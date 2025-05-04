@@ -143,7 +143,7 @@ export interface OrganizationsResponseData {
 export const authService = {
   // Регистрация нового пользователя
   register: async (userData: RegisterRequest): Promise<any> => {
-    const response = await fetch(`${API_URL}/auth/register`, {
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -172,7 +172,7 @@ export const authService = {
   // Вход в систему
   login: async (credentials: LoginRequest): Promise<any> => {
     console.log('API: Начало функции login');
-    const response = await fetch(`${API_URL}/auth/login`, {
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -217,7 +217,7 @@ export const authService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`${API_URL}/auth/me`, {
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/auth/me`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
