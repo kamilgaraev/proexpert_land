@@ -64,11 +64,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authService.login({ email, password });
       
       // Сохраняем токен
-      if (!response.data || !response.data.data || !response.data.data.token) {
+      const responseData = response.data;
+      
+      if (!responseData || !responseData.success) {
+        throw new Error('Ошибка авторизации: неуспешный ответ');
+      }
+      
+      if (!responseData.data || !responseData.data.token) {
         throw new Error('Токен не получен от сервера');
       }
       
-      const bearerToken = response.data.data.token;
+      const bearerToken = responseData.data.token;
       localStorage.setItem('token', bearerToken);
       setToken(bearerToken);
       
@@ -88,11 +94,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authService.register(userData);
       
       // Сохраняем токен
-      if (!response.data || !response.data.data || !response.data.data.token) {
+      const responseData = response.data;
+      
+      if (!responseData || !responseData.success) {
+        throw new Error('Ошибка регистрации: неуспешный ответ');
+      }
+      
+      if (!responseData.data || !responseData.data.token) {
         throw new Error('Токен не получен от сервера');
       }
       
-      const bearerToken = response.data.data.token;
+      const bearerToken = responseData.data.token;
       localStorage.setItem('token', bearerToken);
       setToken(bearerToken);
       
@@ -110,9 +122,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     try {
       const response = await authService.getCurrentUser();
+      const responseData = response.data;
+      
       // Проверяем наличие данных пользователя
-      if (response.data && response.data.data && response.data.data.user) {
-        setUser(response.data.data.user as unknown as User);
+      if (responseData && responseData.success && responseData.data && responseData.data.user) {
+        setUser(responseData.data.user as unknown as User);
       } else {
         throw new Error('Данные пользователя не получены');
       }
