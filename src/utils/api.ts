@@ -91,8 +91,27 @@ export const authService = {
     api.post<ApiResponse<AuthResponseData>>('/auth/register', userData),
   
   // Вход в систему
-  login: (credentials: LoginRequest) => 
-    api.post<ApiResponse<AuthResponseData>>('/auth/login', credentials),
+  login: async (credentials: LoginRequest): Promise<AxiosResponse<ApiResponse<AuthResponseData>>> => {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    });
+    
+    const data = await response.json();
+    
+    // Создаем объект, имитирующий ответ Axios
+    return {
+      data: data,
+      status: response.status,
+      statusText: response.statusText,
+      headers: {},
+      config: {} as any
+    };
+  },
   
   // Выход из системы
   logout: () => api.post<ApiResponse<null>>('/auth/logout'),

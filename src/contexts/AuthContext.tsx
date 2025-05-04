@@ -61,33 +61,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     
     try {
-      // Выполняем запрос к API
-      const rawResponse = await fetch(`${import.meta.env.VITE_API_URL || '/api/v1/landing'}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
-      });
+      const response = await authService.login({ email, password });
       
-      // Получаем данные
-      const data = await rawResponse.json();
-      
-      // Сохраняем токен напрямую
-      if (data && data.data && data.data.token) {
-        const tokenValue = data.data.token;
-        localStorage.setItem('token', tokenValue);
-        setToken(tokenValue);
+      // Проверяем ответ напрямую
+      if (response.data && response.data.data) {
+        // Сохраняем токен
+        localStorage.setItem('token', response.data.data.token);
+        setToken(response.data.data.token);
         
-        // Устанавливаем пользователя напрямую
-        if (data.data.user) {
-          setUser(data.data.user as unknown as User);
+        // Сохраняем пользователя
+        if (response.data.data.user) {
+          setUser(response.data.data.user as unknown as User);
         } else {
           await fetchUser();
         }
       } else {
-        throw new Error('Токен не получен от сервера');
+        throw new Error('Некорректный ответ от сервера');
       }
     } catch (error) {
       localStorage.removeItem('token');
