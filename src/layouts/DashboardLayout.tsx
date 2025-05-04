@@ -13,7 +13,12 @@ import {
   BuildingOfficeIcon,
   CalendarIcon,
   QuestionMarkCircleIcon,
-  BellIcon
+  BellIcon,
+  UserGroupIcon,
+  ShieldCheckIcon,
+  TicketIcon,
+  UserPlusIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
 
@@ -39,6 +44,17 @@ const DashboardLayout = () => {
     { name: 'Профиль', href: '/dashboard/profile', icon: UserCircleIcon },
     { name: 'Настройки', href: '/dashboard/settings', icon: CogIcon },
     { name: 'Справка', href: '/dashboard/help', icon: QuestionMarkCircleIcon },
+  ];
+
+  const adminNavigation = [
+    { name: 'Участники орг.', href: '/dashboard/members', icon: UserGroupIcon },
+    { name: 'Администраторы', href: '/dashboard/admins', icon: ShieldCheckIcon },
+    { name: 'Подписки', href: '/dashboard/subscriptions', icon: TicketIcon }
+  ];
+
+  const adminPanelNavigation = [
+    { name: 'Пользователи (админка)', href: '/admin/users', icon: UserPlusIcon },
+    { name: 'Проекты (админка)', href: '/admin/projects', icon: ClipboardDocumentListIcon }
   ];
 
   // Функция для определения активного пункта меню
@@ -78,7 +94,7 @@ const DashboardLayout = () => {
             <img
               className="h-8 w-auto"
               src="/logo.svg"
-              alt="Прораб-Финанс Мост"
+              alt="ProExpert"
             />
           </div>
           
@@ -86,6 +102,62 @@ const DashboardLayout = () => {
           <div className="mt-5 flex flex-1 flex-col">
             <nav className="flex-1 space-y-1 px-2">
               {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
+                    isActive(item.href)
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900'
+                  }`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <item.icon className={`mr-3 h-6 w-6 ${
+                    isActive(item.href)
+                      ? 'text-primary-500'
+                      : 'text-secondary-500 group-hover:text-secondary-700'
+                  }`} aria-hidden="true" />
+                  {item.name}
+                </Link>
+              ))}
+
+              {/* Разделитель */}
+              <div className="my-3 border-t border-secondary-200"></div>
+              
+              {/* Управление организацией */}
+              <div className="text-xs uppercase text-secondary-500 font-semibold px-3 py-2">
+                Управление организацией
+              </div>
+              
+              {adminNavigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
+                    isActive(item.href)
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900'
+                  }`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <item.icon className={`mr-3 h-6 w-6 ${
+                    isActive(item.href)
+                      ? 'text-primary-500'
+                      : 'text-secondary-500 group-hover:text-secondary-700'
+                  }`} aria-hidden="true" />
+                  {item.name}
+                </Link>
+              ))}
+
+              {/* Разделитель */}
+              <div className="my-3 border-t border-secondary-200"></div>
+              
+              {/* Администрирование */}
+              <div className="text-xs uppercase text-secondary-500 font-semibold px-3 py-2">
+                Администрирование
+              </div>
+              
+              {adminPanelNavigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
@@ -128,11 +200,65 @@ const DashboardLayout = () => {
               <img
                 className="h-8 w-auto"
                 src="/logo.svg"
-                alt="Прораб-Финанс Мост"
+                alt="ProExpert"
               />
             </div>
             <nav className="mt-8 flex-1 space-y-1 px-2">
               {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                    isActive(item.href)
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900'
+                  }`}
+                >
+                  <item.icon className={`mr-3 h-5 w-5 ${
+                    isActive(item.href)
+                      ? 'text-primary-500'
+                      : 'text-secondary-500 group-hover:text-secondary-700'
+                  }`} aria-hidden="true" />
+                  {item.name}
+                </Link>
+              ))}
+
+              {/* Разделитель */}
+              <div className="my-3 border-t border-secondary-200"></div>
+              
+              {/* Управление организацией */}
+              <div className="text-xs uppercase text-secondary-500 font-semibold px-3 py-2">
+                Управление организацией
+              </div>
+              
+              {adminNavigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                    isActive(item.href)
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900'
+                  }`}
+                >
+                  <item.icon className={`mr-3 h-5 w-5 ${
+                    isActive(item.href)
+                      ? 'text-primary-500'
+                      : 'text-secondary-500 group-hover:text-secondary-700'
+                  }`} aria-hidden="true" />
+                  {item.name}
+                </Link>
+              ))}
+
+              {/* Разделитель */}
+              <div className="my-3 border-t border-secondary-200"></div>
+              
+              {/* Администрирование */}
+              <div className="text-xs uppercase text-secondary-500 font-semibold px-3 py-2">
+                Администрирование
+              </div>
+              
+              {adminPanelNavigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
