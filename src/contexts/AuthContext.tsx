@@ -63,24 +63,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authService.login({ email, password });
       
-      // Сохраняем токен
-      const responseData = response.data;
-      
-      if (!responseData || !responseData.success) {
-        throw new Error('Ошибка авторизации: неуспешный ответ');
+      // Проверяем структуру ответа
+      if (!response || !response.data) {
+        throw new Error('Некорректный ответ от сервера');
       }
       
-      if (!responseData.data || !responseData.data.token) {
+      // Здесь нам точно нужен токен из объекта data
+      const token = response?.data?.data?.token;
+      
+      if (!token) {
         throw new Error('Токен не получен от сервера');
       }
       
-      const bearerToken = responseData.data.token;
-      localStorage.setItem('token', bearerToken);
-      setToken(bearerToken);
+      // Сохраняем токен
+      localStorage.setItem('token', token);
+      setToken(token);
       
-      // Получаем данные пользователя
-      await fetchUser();
+      // Загружаем пользователя, если токен получен
+      if (response?.data?.data?.user) {
+        setUser(response.data.data.user as unknown as User);
+      } else {
+        await fetchUser();
+      }
     } catch (error) {
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
       throw error;
     } finally {
       setIsLoading(false);
@@ -93,24 +101,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authService.register(userData);
       
-      // Сохраняем токен
-      const responseData = response.data;
-      
-      if (!responseData || !responseData.success) {
-        throw new Error('Ошибка регистрации: неуспешный ответ');
+      // Проверяем структуру ответа
+      if (!response || !response.data) {
+        throw new Error('Некорректный ответ от сервера');
       }
       
-      if (!responseData.data || !responseData.data.token) {
+      // Здесь нам точно нужен токен из объекта data
+      const token = response?.data?.data?.token;
+      
+      if (!token) {
         throw new Error('Токен не получен от сервера');
       }
       
-      const bearerToken = responseData.data.token;
-      localStorage.setItem('token', bearerToken);
-      setToken(bearerToken);
+      // Сохраняем токен
+      localStorage.setItem('token', token);
+      setToken(token);
       
-      // Получаем данные пользователя
-      await fetchUser();
+      // Загружаем пользователя, если токен получен
+      if (response?.data?.data?.user) {
+        setUser(response.data.data.user as unknown as User);
+      } else {
+        await fetchUser();
+      }
     } catch (error) {
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
       throw error;
     } finally {
       setIsLoading(false);
@@ -122,14 +138,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     try {
       const response = await authService.getCurrentUser();
-      const responseData = response.data;
       
-      // Проверяем наличие данных пользователя
-      if (responseData && responseData.success && responseData.data && responseData.data.user) {
-        setUser(responseData.data.user as unknown as User);
-      } else {
+      // Проверяем структуру ответа
+      if (!response || !response.data) {
+        throw new Error('Некорректный ответ от сервера');
+      }
+      
+      const userData = response?.data?.data?.user;
+      
+      if (!userData) {
         throw new Error('Данные пользователя не получены');
       }
+      
+      setUser(userData as unknown as User);
     } catch (error) {
       throw error;
     }
