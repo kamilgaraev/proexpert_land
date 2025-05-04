@@ -19,9 +19,9 @@ const Navbar = () => {
               <img
                 className="h-8 w-auto"
                 src="/logo.svg"
-                alt="Прораб-Финанс Мост"
+                alt="ProExpert"
               />
-              <span className="ml-3 font-bold text-xl text-primary-700">ПрорабМост</span>
+              <span className="ml-3 font-bold text-xl text-primary-700">ProExpert</span>
             </Link>
           </div>
 

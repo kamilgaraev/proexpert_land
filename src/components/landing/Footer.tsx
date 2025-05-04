@@ -50,9 +50,9 @@ const Footer = () => {
               <img
                 className="h-10 w-auto"
                 src="/logo-white.svg"
-                alt="Прораб-Финанс Мост"
+                alt="ProExpert"
               />
-              <span className="ml-3 font-bold text-xl text-white">ПрорабМост</span>
+              <span className="ml-3 font-bold text-xl text-white">ProExpert</span>
             </Link>
             <p className="text-secondary-300 text-base">
               Удобная и простая система учета для строительных компаний.
@@ -131,7 +131,7 @@ const Footer = () => {
         </div>
         <div className="mt-12 border-t border-secondary-700 pt-8">
           <p className="text-base text-secondary-400 text-center">
-            &copy; {new Date().getFullYear()} ПрорабМост. Все права защищены.
+            &copy; {new Date().getFullYear()} ProExpert. Все права защищены.
           </p>
         </div>
       </div>
