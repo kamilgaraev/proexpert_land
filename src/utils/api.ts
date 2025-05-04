@@ -255,38 +255,221 @@ export const authService = {
 
 export const userService = {
   // Получение профиля пользователя
-  getProfile: () => api.get<ApiResponse<UserResponseData>>('/user/profile'),
+  getProfile: async () => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/user/profile`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data: data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
   
   // Обновление профиля пользователя
-  updateProfile: (profileData: UpdateProfileRequest) => 
-    api.put<ApiResponse<UserResponseData>>('/user/profile', profileData),
+  updateProfile: async (profileData: UpdateProfileRequest) => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/user/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(profileData)
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data: data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
   
   // Изменение пароля
-  changePassword: (passwordData: ChangePasswordRequest) => 
-    api.put<ApiResponse<null>>('/user/password', passwordData),
+  changePassword: async (passwordData: ChangePasswordRequest) => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/user/password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(passwordData)
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data: data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
   
   // Получение списка организаций пользователя
-  getUserOrganizations: () => api.get<ApiResponse<OrganizationsResponseData>>('/user/organizations')
+  getUserOrganizations: async () => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/user/organizations`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data: data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  }
 };
 
 export const organizationService = {
   // Создание новой организации
-  createOrganization: (orgData: any) => 
-    api.post<ApiResponse<Organization>>('/organizations', orgData),
+  createOrganization: async (orgData: any) => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/organizations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(orgData)
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data: data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
   
   // Получение данных организации
-  getOrganization: (orgId: number) => 
-    api.get<ApiResponse<Organization>>(`/organizations/${orgId}`),
+  getOrganization: async (orgId: number) => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/organizations/${orgId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data: data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
   
   // Обновление данных организации
-  updateOrganization: (orgId: number, orgData: any) => 
-    api.put<ApiResponse<Organization>>(`/organizations/${orgId}`, orgData)
+  updateOrganization: async (orgId: number, orgData: any) => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/organizations/${orgId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(orgData)
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data: data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  }
 };
 
 export const supportService = {
   // Отправка запроса в поддержку
-  submitSupportRequest: (requestData: SupportRequest) => 
-    api.post<ApiResponse<null>>('/support/request', requestData)
+  submitSupportRequest: async (requestData: SupportRequest) => {
+    const token = getTokenFromStorages();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/support/request`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(requestData)
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data: data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  }
 };
 
 // Интерфейсы для типизации данных
