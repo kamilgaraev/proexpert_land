@@ -1,14 +1,8 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
-import { authService, RegisterRequest } from '@utils/api';
+import { authService, RegisterRequest, LandingUser } from '@utils/api';
 
-export interface User {
-  id: number;
-  name: string;
-  email: string;
+export interface User extends Omit<LandingUser, 'email_verified_at'> {
   email_verified_at: string | null;
-  created_at: string;
-  updated_at: string;
-  current_organization_id: number;
 }
 
 export interface AuthContextType {
@@ -70,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authService.login({ email, password });
       
       // Сохраняем токен
-      const bearerToken = response.data.token;
+      const bearerToken = response.data.data?.token;
       if (!bearerToken) {
         throw new Error('Токен не получен от сервера');
       }
@@ -94,7 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authService.register(userData);
       
       // Сохраняем токен
-      const bearerToken = response.data.token;
+      const bearerToken = response.data.data?.token;
       if (!bearerToken) {
         throw new Error('Токен не получен от сервера');
       }
@@ -116,7 +110,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     try {
       const response = await authService.getCurrentUser();
-      setUser(response.data.user);
+      // Преобразуем тип LandingUser в User
+      if (response.data.data?.user) {
+        setUser(response.data.data.user as unknown as User);
+      }
     } catch (error) {
       throw error;
     }

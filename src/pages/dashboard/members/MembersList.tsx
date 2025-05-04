@@ -21,7 +21,7 @@ const MembersList: React.FC = () => {
       try {
         // Используем API для получения организаций пользователя
         const response = await userService.getUserOrganizations();
-        const organizations: OrganizationSummary[] = response.data;
+        const organizations: OrganizationSummary[] = response.data.data?.organizations || [];
         
         // Преобразуем данные в формат Member для отображения
         const formattedMembers = organizations.map((org) => ({

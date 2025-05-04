@@ -65,7 +65,8 @@ const SubscriptionsList: React.FC = () => {
         ];
         
         // В будущем здесь будет реальный запрос к API подписок
-        // const subscriptionsData = await subscriptionService.getSubscriptions();
+        // const response = await subscriptionService.getSubscriptions();
+        // const subscriptionsData = response.data.data.subscriptions;
         
         setSubscriptions(mockSubscriptions);
       } catch (err) {

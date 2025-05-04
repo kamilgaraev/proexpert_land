@@ -74,11 +74,13 @@ const MemberCreate: React.FC = () => {
       // Используем API для создания новой организации
       // Поскольку в API нет прямого эндпоинта для добавления участника, 
       // мы можем использовать создание организации как пример
-      await organizationService.createOrganization({
+      const response = await organizationService.createOrganization({
         name: formData.name,
         email: formData.email
         // Другие поля из formData
       });
+      
+      console.log('Участник успешно создан:', response.data);
       
       // После успешного создания перенаправляем на список участников
       navigate('/dashboard/members');
@@ -86,8 +88,8 @@ const MemberCreate: React.FC = () => {
       console.error('Ошибка при создании участника:', error);
       
       // Обработка ошибок валидации с сервера
-      if (error.response?.status === 422 && error.response?.data?.errors) {
-        const serverErrors: Record<string, string[]> = error.response.data.errors;
+      if (error.response?.status === 422 && error.response?.data?.data?.errors) {
+        const serverErrors: Record<string, string[]> = error.response.data.data.errors;
         const formattedErrors: ErrorsType = {};
         
         // Преобразуем ошибки с сервера в формат, понятный нашей форме

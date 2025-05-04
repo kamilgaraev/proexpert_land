@@ -63,62 +63,92 @@ api.interceptors.response.use(
   }
 );
 
+// Определение интерфейса для структуры ответов API
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+// Интерфейсы для данных ответов
+export interface AuthResponseData {
+  token: string;
+  user: LandingUser;
+}
+
+export interface UserResponseData {
+  user: LandingUser;
+}
+
+export interface OrganizationsResponseData {
+  organizations: OrganizationSummary[];
+}
+
 // Сервисы для работы с API
 export const authService = {
   // Регистрация нового пользователя
-  register: (userData: RegisterRequest) => api.post('/auth/register', userData),
+  register: (userData: RegisterRequest) => 
+    api.post<ApiResponse<AuthResponseData>>('/auth/register', userData),
   
   // Вход в систему
-  login: (credentials: LoginRequest) => api.post('/auth/login', credentials),
+  login: (credentials: LoginRequest) => 
+    api.post<ApiResponse<AuthResponseData>>('/auth/login', credentials),
   
   // Выход из системы
-  logout: () => api.post('/auth/logout'),
+  logout: () => api.post<ApiResponse<null>>('/auth/logout'),
   
   // Получение данных текущего пользователя
-  getCurrentUser: () => api.get('/auth/me'),
+  getCurrentUser: () => api.get<ApiResponse<UserResponseData>>('/auth/me'),
   
   // Обновление токена
-  refreshToken: () => api.post('/auth/refresh'),
+  refreshToken: () => api.post<ApiResponse<{ token: string }>>('/auth/refresh'),
   
   // Запрос на сброс пароля
-  requestPasswordReset: (email: string) => api.post('/auth/password/email', { email }),
+  requestPasswordReset: (email: string) => 
+    api.post<ApiResponse<null>>('/auth/password/email', { email }),
   
   // Сброс пароля
   resetPassword: (resetData: { token: string; email: string; password: string; password_confirmation: string }) => 
-    api.post('/auth/password/reset', resetData),
+    api.post<ApiResponse<null>>('/auth/password/reset', resetData),
   
   // Повторная отправка письма с подтверждением
-  resendVerificationEmail: () => api.post('/auth/email/resend')
+  resendVerificationEmail: () => api.post<ApiResponse<null>>('/auth/email/resend')
 };
 
 export const userService = {
   // Получение профиля пользователя
-  getProfile: () => api.get('/user/profile'),
+  getProfile: () => api.get<ApiResponse<UserResponseData>>('/user/profile'),
   
   // Обновление профиля пользователя
-  updateProfile: (profileData: UpdateProfileRequest) => api.put('/user/profile', profileData),
+  updateProfile: (profileData: UpdateProfileRequest) => 
+    api.put<ApiResponse<UserResponseData>>('/user/profile', profileData),
   
   // Изменение пароля
-  changePassword: (passwordData: ChangePasswordRequest) => api.put('/user/password', passwordData),
+  changePassword: (passwordData: ChangePasswordRequest) => 
+    api.put<ApiResponse<null>>('/user/password', passwordData),
   
   // Получение списка организаций пользователя
-  getUserOrganizations: () => api.get('/user/organizations')
+  getUserOrganizations: () => api.get<ApiResponse<OrganizationsResponseData>>('/user/organizations')
 };
 
 export const organizationService = {
   // Создание новой организации
-  createOrganization: (orgData: any) => api.post('/organizations', orgData),
+  createOrganization: (orgData: any) => 
+    api.post<ApiResponse<Organization>>('/organizations', orgData),
   
   // Получение данных организации
-  getOrganization: (orgId: number) => api.get(`/organizations/${orgId}`),
+  getOrganization: (orgId: number) => 
+    api.get<ApiResponse<Organization>>(`/organizations/${orgId}`),
   
   // Обновление данных организации
-  updateOrganization: (orgId: number, orgData: any) => api.put(`/organizations/${orgId}`, orgData)
+  updateOrganization: (orgId: number, orgData: any) => 
+    api.put<ApiResponse<Organization>>(`/organizations/${orgId}`, orgData)
 };
 
 export const supportService = {
   // Отправка запроса в поддержку
-  submitSupportRequest: (requestData: SupportRequest) => api.post('/support/request', requestData)
+  submitSupportRequest: (requestData: SupportRequest) => 
+    api.post<ApiResponse<null>>('/support/request', requestData)
 };
 
 // Интерфейсы для типизации данных
