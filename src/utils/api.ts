@@ -2,6 +2,7 @@
  * Утилиты для работы с API
  */
 
+// @ts-ignore
 import axios from 'axios';
 
 // Используем тип для ImportMeta.env
@@ -11,7 +12,7 @@ declare global {
   }
 }
 
-const API_URL = import.meta.env.VITE_API_URL || '/api/v1/landing';
+const API_URL = import.meta.env.VITE_API_URL || 'http://89.111.153.146/api/v1/landing';
 
 // Создаем экземпляр axios с базовым URL и заголовками
 const api = axios.create({
