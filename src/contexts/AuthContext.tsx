@@ -1,6 +1,15 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
 import { authService, RegisterRequest, LandingUser } from '@utils/api';
 
+// Импортирую глобальные функции работы с токеном
+declare global {
+  interface Window {
+    getTokenFromStorages: () => string | null;
+    saveTokenToMultipleStorages: (token: string) => void;
+    clearTokenFromStorages: () => void;
+  }
+}
+
 export interface User extends Omit<LandingUser, 'email_verified_at'> {
   email_verified_at: string | null;
 }
@@ -34,13 +43,81 @@ export const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(window.getTokenFromStorages ? window.getTokenFromStorages() : localStorage.getItem('token'));
   const [isLoading, setIsLoading] = useState(true);
+
+  // Экспортирую функции в window для доступа из других частей приложения и отладки
+  useEffect(() => {
+    // Экспортирую функции в window объект для доступа из других мест
+    if (typeof window !== 'undefined' && window.getTokenFromStorages === undefined) {
+      try {
+        const getToken = () => {
+          // Пробуем сначала localStorage
+          let token = localStorage.getItem('token');
+          
+          // Если не нашли, пробуем в sessionStorage
+          if (!token) {
+            token = sessionStorage.getItem('authToken');
+          }
+          
+          // Если и там нет, пробуем куки
+          if (!token) {
+            const cookies = document.cookie.split('; ').reduce((acc, cookie) => {
+              const [key, value] = cookie.split('=');
+              acc[key] = value;
+              return acc;
+            }, {} as Record<string, string>);
+            
+            token = cookies.authToken || null;
+          }
+          
+          return token;
+        };
+        
+        const saveToken = (token: string) => {
+          // Сохраняем в localStorage
+          try {
+            localStorage.setItem('token', token);
+          } catch (e) {
+            console.error('Ошибка сохранения в localStorage', e);
+          }
+          
+          // Сохраняем в sessionStorage как запасной вариант
+          try {
+            sessionStorage.setItem('authToken', token);
+          } catch (e) {
+            console.error('Ошибка сохранения в sessionStorage', e);
+          }
+          
+          // Пробуем использовать куки
+          try {
+            document.cookie = `authToken=${token}; path=/; max-age=86400`;
+          } catch (e) {
+            console.error('Ошибка сохранения в cookie', e);
+          }
+        };
+        
+        const clearToken = () => {
+          localStorage.removeItem('token');
+          sessionStorage.removeItem('authToken');
+          document.cookie = 'authToken=; path=/; max-age=0';
+        };
+        
+        window.getTokenFromStorages = getToken;
+        window.saveTokenToMultipleStorages = saveToken;
+        window.clearTokenFromStorages = clearToken;
+      } catch (e) {
+        console.error('Ошибка при экспорте функций в window', e);
+      }
+    }
+  }, []);
 
   // Проверяем авторизацию при загрузке
   useEffect(() => {
     const checkAuth = async () => {
-      if (token) {
+      const currentToken = window.getTokenFromStorages ? window.getTokenFromStorages() : localStorage.getItem('token');
+      
+      if (currentToken) {
         try {
           await fetchUser();
         } catch (error) {
@@ -66,19 +143,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authService.login({ email, password });
       console.log('AuthContext: Ответ от authService.login получен:', response);
       
-      // Получаем токен, который уже должен быть сохранен в localStorage
-      console.log('AuthContext: Проверяем localStorage перед получением токена');
-      const tokenFromStorage = localStorage.getItem('token');
-      console.log('AuthContext: Токен из localStorage:', tokenFromStorage);
+      // Получаем токен из хранилища
+      console.log('AuthContext: Проверяем токен из хранилища');
+      const currentToken = window.getTokenFromStorages ? window.getTokenFromStorages() : localStorage.getItem('token');
+      console.log('AuthContext: Токен из хранилища:', currentToken);
       
-      if (!tokenFromStorage) {
-        console.log('AuthContext: Токен не найден в localStorage!');
-        throw new Error('Токен не получен от сервера');
+      if (!currentToken) {
+        console.log('AuthContext: Токен не найден в хранилище, пробуем получить из ответа');
+        
+        // Если токен не сохранился в хранилище, проверим ответ API напрямую
+        if (response.data && response.data.data && response.data.data.token) {
+          const apiToken = response.data.data.token;
+          console.log('AuthContext: Токен из ответа API:', apiToken);
+          
+          // Сохраняем токен в хранилище напрямую из компонента
+          if (window.saveTokenToMultipleStorages) {
+            window.saveTokenToMultipleStorages(apiToken);
+          } else {
+            localStorage.setItem('token', apiToken);
+            sessionStorage.setItem('authToken', apiToken);
+            document.cookie = `authToken=${apiToken}; path=/; max-age=86400`;
+          }
+          
+          // Обновляем состояние
+          setToken(apiToken);
+        } else {
+          console.log('AuthContext: Токен не получен от сервера ни в хранилище, ни в ответе');
+          throw new Error('Токен не получен от сервера');
+        }
+      } else {
+        // Обновляем состояние
+        console.log('AuthContext: Обновляем состояние с токеном из хранилища');
+        setToken(currentToken);
       }
-      
-      // Обновляем состояние
-      console.log('AuthContext: Обновляем состояние с токеном');
-      setToken(tokenFromStorage);
       
       // Устанавливаем пользователя 
       if (response.data?.data?.user) {
@@ -92,7 +189,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log('AuthContext: Авторизация успешно завершена');
     } catch (error) {
       console.log('AuthContext: Ошибка авторизации:', error);
-      localStorage.removeItem('token');
+      if (window.clearTokenFromStorages) {
+        window.clearTokenFromStorages();
+      } else {
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('authToken');
+        document.cookie = 'authToken=; path=/; max-age=0';
+      }
       setToken(null);
       setUser(null);
       throw error;

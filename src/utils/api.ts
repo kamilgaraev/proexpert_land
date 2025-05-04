@@ -22,9 +22,63 @@ const api = axios.create({
   }
 });
 
+// Дополнительная функция для работы с токеном через разные типы хранилищ
+const saveTokenToMultipleStorages = (token: string) => {
+  // Сохраняем в localStorage
+  try {
+    localStorage.setItem('token', token);
+  } catch (e) {
+    console.error('Ошибка сохранения в localStorage', e);
+  }
+  
+  // Сохраняем в sessionStorage как запасной вариант
+  try {
+    sessionStorage.setItem('authToken', token);
+  } catch (e) {
+    console.error('Ошибка сохранения в sessionStorage', e);
+  }
+  
+  // Пробуем использовать куки (работает только при определенных настройках безопасности)
+  try {
+    document.cookie = `authToken=${token}; path=/; max-age=86400`;
+  } catch (e) {
+    console.error('Ошибка сохранения в cookie', e);
+  }
+};
+
+const getTokenFromStorages = (): string | null => {
+  // Пробуем сначала localStorage
+  let token = localStorage.getItem('token');
+  
+  // Если не нашли, пробуем в sessionStorage
+  if (!token) {
+    token = sessionStorage.getItem('authToken');
+  }
+  
+  // Если и там нет, пробуем куки
+  if (!token) {
+    const cookies = document.cookie.split('; ').reduce((acc, cookie) => {
+      const [key, value] = cookie.split('=');
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+    
+    token = cookies.authToken || null;
+  }
+  
+  return token;
+};
+
+const clearTokenFromStorages = () => {
+  // Очищаем во всех хранилищах
+  localStorage.removeItem('token');
+  sessionStorage.removeItem('authToken');
+  document.cookie = 'authToken=; path=/; max-age=0';
+};
+
 // Интерцептор для добавления токена аутентификации
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = localStorage.getItem('token');
+  const token = getTokenFromStorages();
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -43,7 +97,7 @@ api.interceptors.response.use(
         const { token } = refreshResponse.data;
         
         // Сохраняем новый токен
-        localStorage.setItem('token', token);
+        saveTokenToMultipleStorages(token);
         
         // Повторяем оригинальный запрос с новым токеном
         const originalRequest = error.config;
@@ -53,7 +107,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         // Если не удалось обновить токен - разлогиниваем пользователя
-        localStorage.removeItem('token');
+        clearTokenFromStorages();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
@@ -99,9 +153,9 @@ export const authService = {
     
     const data = await response.json();
     
-    // Сразу сохраняем токен в localStorage
+    // Сразу сохраняем токен в хранилище
     if (data && data.success && data.data && data.data.token) {
-      localStorage.setItem('token', data.data.token);
+      saveTokenToMultipleStorages(data.data.token);
     }
     
     // Создаем объект, имитирующий ответ Axios
@@ -129,11 +183,11 @@ export const authService = {
     const data = await response.json();
     console.log('API: Ответ от сервера:', data);
     
-    // Сразу сохраняем токен в localStorage
+    // Сразу сохраняем токен в хранилище
     if (data && data.success && data.data && data.data.token) {
-      console.log('API: Токен получен, сохраняем в localStorage:', data.data.token);
-      localStorage.setItem('token', data.data.token);
-      console.log('API: Проверка localStorage после сохранения:', localStorage.getItem('token'));
+      console.log('API: Токен получен, сохраняем в хранилища:', data.data.token);
+      saveTokenToMultipleStorages(data.data.token);
+      console.log('API: Проверка токена после сохранения:', getTokenFromStorages());
     } else {
       console.log('API: Токен не получен или структура ответа некорректна:', data);
     }
@@ -149,11 +203,14 @@ export const authService = {
   },
   
   // Выход из системы
-  logout: () => api.post<ApiResponse<null>>('/auth/logout'),
+  logout: () => {
+    clearTokenFromStorages();
+    return api.post<ApiResponse<null>>('/auth/logout');
+  },
   
   // Получение данных текущего пользователя
   getCurrentUser: async (): Promise<AxiosResponse<ApiResponse<UserResponseData>>> => {
-    const token = localStorage.getItem('token');
+    const token = getTokenFromStorages();
     
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
