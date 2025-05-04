@@ -254,7 +254,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     // Попытка выхода через API, если возможно
     if (token) {
-      authService.logout().catch(err => {
+      authService.logout().catch((err: Error) => {
         console.error('Ошибка при выходе из системы:', err);
       });
     }

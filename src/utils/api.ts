@@ -2,7 +2,7 @@
  * Утилиты для работы с API
  */
 
-import axios, { AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios from 'axios';
 
 // Используем тип для ImportMeta.env
 declare global {
@@ -77,7 +77,7 @@ const clearTokenFromStorages = () => {
 };
 
 // Интерцептор для добавления токена аутентификации
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+api.interceptors.request.use((config: any) => {
   const token = getTokenFromStorages();
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -87,14 +87,14 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 // Интерцептор для обработки ошибок
 api.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response: any) => response,
   async (error: any) => {
     // Обработка ошибки 401 (Unauthorized)
     if (error.response?.status === 401) {
       // Попытка обновить токен
       try {
         const refreshResponse = await api.post('/auth/refresh');
-        const { token } = refreshResponse.data;
+        const token = (refreshResponse.data as any).token;
         
         // Сохраняем новый токен
         saveTokenToMultipleStorages(token);
@@ -141,7 +141,7 @@ export interface OrganizationsResponseData {
 // Сервисы для работы с API
 export const authService = {
   // Регистрация нового пользователя
-  register: async (userData: RegisterRequest): Promise<AxiosResponse<ApiResponse<AuthResponseData>>> => {
+  register: async (userData: RegisterRequest): Promise<any> => {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: {
@@ -169,7 +169,7 @@ export const authService = {
   },
   
   // Вход в систему
-  login: async (credentials: LoginRequest): Promise<AxiosResponse<ApiResponse<AuthResponseData>>> => {
+  login: async (credentials: LoginRequest): Promise<any> => {
     console.log('API: Начало функции login');
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
@@ -209,7 +209,7 @@ export const authService = {
   },
   
   // Получение данных текущего пользователя
-  getCurrentUser: async (): Promise<AxiosResponse<ApiResponse<UserResponseData>>> => {
+  getCurrentUser: async (): Promise<any> => {
     const token = getTokenFromStorages();
     
     if (!token) {
