@@ -116,6 +116,7 @@ export const authService = {
   
   // Вход в систему
   login: async (credentials: LoginRequest): Promise<AxiosResponse<ApiResponse<AuthResponseData>>> => {
+    console.log('API: Начало функции login');
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -126,10 +127,15 @@ export const authService = {
     });
     
     const data = await response.json();
+    console.log('API: Ответ от сервера:', data);
     
     // Сразу сохраняем токен в localStorage
     if (data && data.success && data.data && data.data.token) {
+      console.log('API: Токен получен, сохраняем в localStorage:', data.data.token);
       localStorage.setItem('token', data.data.token);
+      console.log('API: Проверка localStorage после сохранения:', localStorage.getItem('token'));
+    } else {
+      console.log('API: Токен не получен или структура ответа некорректна:', data);
     }
     
     // Создаем объект, имитирующий ответ Axios

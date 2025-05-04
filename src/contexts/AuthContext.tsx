@@ -59,26 +59,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
+    console.log('AuthContext: Начало функции login');
     
     try {
+      console.log('AuthContext: Перед вызовом authService.login');
       const response = await authService.login({ email, password });
+      console.log('AuthContext: Ответ от authService.login получен:', response);
       
       // Получаем токен, который уже должен быть сохранен в localStorage
+      console.log('AuthContext: Проверяем localStorage перед получением токена');
       const tokenFromStorage = localStorage.getItem('token');
+      console.log('AuthContext: Токен из localStorage:', tokenFromStorage);
+      
       if (!tokenFromStorage) {
+        console.log('AuthContext: Токен не найден в localStorage!');
         throw new Error('Токен не получен от сервера');
       }
       
       // Обновляем состояние
+      console.log('AuthContext: Обновляем состояние с токеном');
       setToken(tokenFromStorage);
       
       // Устанавливаем пользователя 
       if (response.data?.data?.user) {
+        console.log('AuthContext: Устанавливаем данные пользователя из ответа');
         setUser(response.data.data.user as unknown as User);
       } else {
+        console.log('AuthContext: Пользователь не получен из ответа, вызываем fetchUser');
         await fetchUser();
       }
+      
+      console.log('AuthContext: Авторизация успешно завершена');
     } catch (error) {
+      console.log('AuthContext: Ошибка авторизации:', error);
       localStorage.removeItem('token');
       setToken(null);
       setUser(null);
