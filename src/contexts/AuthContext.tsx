@@ -64,11 +64,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authService.login({ email, password });
       
       // Сохраняем токен
-      const bearerToken = response.data.data?.token;
-      if (!bearerToken) {
+      if (!response.data || !response.data.data || !response.data.data.token) {
         throw new Error('Токен не получен от сервера');
       }
       
+      const bearerToken = response.data.data.token;
       localStorage.setItem('token', bearerToken);
       setToken(bearerToken);
       
@@ -88,11 +88,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authService.register(userData);
       
       // Сохраняем токен
-      const bearerToken = response.data.data?.token;
-      if (!bearerToken) {
+      if (!response.data || !response.data.data || !response.data.data.token) {
         throw new Error('Токен не получен от сервера');
       }
       
+      const bearerToken = response.data.data.token;
       localStorage.setItem('token', bearerToken);
       setToken(bearerToken);
       
@@ -110,9 +110,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     try {
       const response = await authService.getCurrentUser();
-      // Преобразуем тип LandingUser в User
-      if (response.data.data?.user) {
+      // Проверяем наличие данных пользователя
+      if (response.data && response.data.data && response.data.data.user) {
         setUser(response.data.data.user as unknown as User);
+      } else {
+        throw new Error('Данные пользователя не получены');
       }
     } catch (error) {
       throw error;
