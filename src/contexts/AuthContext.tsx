@@ -63,20 +63,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authService.login({ email, password });
       
-      // Проверяем ответ напрямую
-      if (response.data && response.data.data) {
-        // Сохраняем токен
-        localStorage.setItem('token', response.data.data.token);
-        setToken(response.data.data.token);
-        
-        // Сохраняем пользователя
-        if (response.data.data.user) {
-          setUser(response.data.data.user as unknown as User);
-        } else {
-          await fetchUser();
-        }
+      // Получаем токен, который уже должен быть сохранен в localStorage
+      const tokenFromStorage = localStorage.getItem('token');
+      if (!tokenFromStorage) {
+        throw new Error('Токен не получен от сервера');
+      }
+      
+      // Обновляем состояние
+      setToken(tokenFromStorage);
+      
+      // Устанавливаем пользователя 
+      if (response.data?.data?.user) {
+        setUser(response.data.data.user as unknown as User);
       } else {
-        throw new Error('Некорректный ответ от сервера');
+        await fetchUser();
       }
     } catch (error) {
       localStorage.removeItem('token');
@@ -92,33 +92,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     
     try {
-      // Выполняем запрос к API напрямую
-      const rawResponse = await fetch(`${import.meta.env.VITE_API_URL || '/api/v1/landing'}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(userData)
-      });
+      const response = await authService.register(userData);
       
-      // Получаем данные
-      const data = await rawResponse.json();
-      
-      // Сохраняем токен напрямую
-      if (data && data.data && data.data.token) {
-        const tokenValue = data.data.token;
-        localStorage.setItem('token', tokenValue);
-        setToken(tokenValue);
-        
-        // Устанавливаем пользователя напрямую
-        if (data.data.user) {
-          setUser(data.data.user as unknown as User);
-        } else {
-          await fetchUser();
-        }
-      } else {
+      // Получаем токен, который уже должен быть сохранен в localStorage
+      const tokenFromStorage = localStorage.getItem('token');
+      if (!tokenFromStorage) {
         throw new Error('Токен не получен от сервера');
+      }
+      
+      // Обновляем состояние
+      setToken(tokenFromStorage);
+      
+      // Устанавливаем пользователя
+      if (response.data?.data?.user) {
+        setUser(response.data.data.user as unknown as User);
+      } else {
+        await fetchUser();
       }
     } catch (error) {
       localStorage.removeItem('token');
@@ -134,22 +123,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!token) return;
     
     try {
-      // Выполняем запрос к API напрямую
-      const rawResponse = await fetch(`${import.meta.env.VITE_API_URL || '/api/v1/landing'}/auth/me`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await authService.getCurrentUser();
       
-      // Получаем данные
-      const data = await rawResponse.json();
-      
-      // Проверяем и устанавливаем данные пользователя
-      if (data && data.data && data.data.user) {
-        setUser(data.data.user as unknown as User);
+      if (response.data?.data?.user) {
+        setUser(response.data.data.user as unknown as User);
       } else {
         throw new Error('Данные пользователя не получены');
       }

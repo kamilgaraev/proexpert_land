@@ -87,8 +87,32 @@ export interface OrganizationsResponseData {
 // Сервисы для работы с API
 export const authService = {
   // Регистрация нового пользователя
-  register: (userData: RegisterRequest) => 
-    api.post<ApiResponse<AuthResponseData>>('/auth/register', userData),
+  register: async (userData: RegisterRequest): Promise<AxiosResponse<ApiResponse<AuthResponseData>>> => {
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(userData)
+    });
+    
+    const data = await response.json();
+    
+    // Сразу сохраняем токен в localStorage
+    if (data && data.success && data.data && data.data.token) {
+      localStorage.setItem('token', data.data.token);
+    }
+    
+    // Создаем объект, имитирующий ответ Axios
+    return {
+      data: data,
+      status: response.status,
+      statusText: response.statusText,
+      headers: {},
+      config: {} as any
+    };
+  },
   
   // Вход в систему
   login: async (credentials: LoginRequest): Promise<AxiosResponse<ApiResponse<AuthResponseData>>> => {
@@ -102,6 +126,11 @@ export const authService = {
     });
     
     const data = await response.json();
+    
+    // Сразу сохраняем токен в localStorage
+    if (data && data.success && data.data && data.data.token) {
+      localStorage.setItem('token', data.data.token);
+    }
     
     // Создаем объект, имитирующий ответ Axios
     return {
@@ -117,7 +146,33 @@ export const authService = {
   logout: () => api.post<ApiResponse<null>>('/auth/logout'),
   
   // Получение данных текущего пользователя
-  getCurrentUser: () => api.get<ApiResponse<UserResponseData>>('/auth/me'),
+  getCurrentUser: async (): Promise<AxiosResponse<ApiResponse<UserResponseData>>> => {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`${API_URL}/auth/me`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = await response.json();
+    
+    // Создаем объект, имитирующий ответ Axios
+    return {
+      data: data,
+      status: response.status,
+      statusText: response.statusText,
+      headers: {},
+      config: {} as any
+    };
+  },
   
   // Обновление токена
   refreshToken: () => api.post<ApiResponse<{ token: string }>>('/auth/refresh'),
