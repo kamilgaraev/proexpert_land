@@ -2,170 +2,198 @@
  * Утилиты для работы с API
  */
 
-export const API_BASE_URL = 'http://89.111.153.146/api/v1';
+import axios, { AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
-type FetchOptions = RequestInit & {
-  token?: string | null;
+// Используем тип для ImportMeta.env
+declare global {
+  interface ImportMeta {
+    env: Record<string, string>;
+  }
 }
 
-/**
- * Логирование запросов
- */
-export const logRequest = (method: string, endpoint: string, body?: any) => {
-  console.log(`[API ${method}] ${endpoint}`, body || '');
-};
+const API_URL = import.meta.env.VITE_API_URL || '/api/v1/landing';
 
-/**
- * Логирование ответов
- */
-export const logResponse = (endpoint: string, status: number, data: any) => {
-  console.log(`[API Response] ${endpoint} (${status})`, data);
-};
-
-/**
- * Универсальная функция для выполнения API запросов с обработкой ошибок
- * @param endpoint - Эндпоинт API (без базового URL)
- * @param options - Опции запроса (как для fetch)
- * @returns Промис с данными ответа
- */
-export const apiRequest = async <T = any>(
-  endpoint: string,
-  options: FetchOptions = {}
-): Promise<T> => {
-  const { token, ...fetchOptions } = options;
-  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
-  
-  logRequest(options.method || 'GET', url, options.body);
-  
-  try {
-    // Базовые заголовки
-    const defaultHeaders: HeadersInit = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-    };
-    
-    // Добавляем токен авторизации, если он есть
-    if (token) {
-      defaultHeaders['Authorization'] = `Bearer ${token}`;
-    }
-    
-    const response = await fetch(url, {
-      ...fetchOptions,
-      headers: {
-        ...defaultHeaders,
-        ...fetchOptions.headers,
-      },
-      credentials: 'include',
-      mode: 'cors',
-    });
-    
-    // Получаем текст ответа, чтобы в случае невалидного JSON не упасть с ошибкой
-    const text = await response.text();
-    
-    // Пытаемся распарсить JSON, если есть содержимое
-    let data;
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch (e) {
-      console.error('Невозможно распарсить ответ как JSON:', text);
-      data = { message: 'Неверный формат ответа от сервера' };
-    }
-    
-    // Логируем полученный ответ
-    logResponse(url, response.status, data);
-    
-    // Если ответ не успешный, выбрасываем ошибку
-    if (!response.ok) {
-      let errorMessage = data.message || `Ошибка ${response.status}`;
-      
-      // Обработка валидационных ошибок
-      if (data.errors) {
-        const firstError = Object.values(data.errors)[0];
-        if (Array.isArray(firstError) && firstError.length > 0) {
-          errorMessage = firstError[0];
-        }
-      }
-      
-      throw new Error(errorMessage);
-    }
-    
-    return data as T;
-  } catch (error) {
-    // Отлавливаем ошибки сети (Failed to fetch)
-    if (error instanceof Error) {
-      if (error.message === 'Failed to fetch') {
-        console.error('Ошибка сети:', error);
-        throw new Error('Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.');
-      }
-      
-      console.error('Ошибка запроса:', error);
-      throw error;
-    }
-    
-    console.error('Неизвестная ошибка:', error);
-    throw new Error('Произошла непредвиденная ошибка');
+// Создаем экземпляр axios с базовым URL и заголовками
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
   }
-};
+});
 
-/**
- * Хелпер для GET запросов
- */
-export const get = <T = any>(endpoint: string, token?: string | null) => {
-  return apiRequest<T>(endpoint, { method: 'GET', token });
-};
+// Интерцептор для добавления токена аутентификации
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = localStorage.getItem('token');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-/**
- * Хелпер для POST запросов
- */
-export const post = <T = any>(endpoint: string, data: any, token?: string | null) => {
-  return apiRequest<T>(endpoint, { 
-    method: 'POST', 
-    body: JSON.stringify(data),
-    token
-  });
-};
+// Интерцептор для обработки ошибок
+api.interceptors.response.use(
+  (response: AxiosResponse) => response,
+  async (error: any) => {
+    // Обработка ошибки 401 (Unauthorized)
+    if (error.response?.status === 401) {
+      // Попытка обновить токен
+      try {
+        const refreshResponse = await api.post('/auth/refresh');
+        const { token } = refreshResponse.data;
+        
+        // Сохраняем новый токен
+        localStorage.setItem('token', token);
+        
+        // Повторяем оригинальный запрос с новым токеном
+        const originalRequest = error.config;
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+        }
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Если не удалось обновить токен - разлогиниваем пользователя
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
-/**
- * Хелпер для PUT запросов
- */
-export const put = <T = any>(endpoint: string, data: any, token?: string | null) => {
-  return apiRequest<T>(endpoint, { 
-    method: 'PUT', 
-    body: JSON.stringify(data),
-    token
-  });
-};
-
-/**
- * Хелпер для DELETE запросов
- */
-export const del = <T = any>(endpoint: string, token?: string | null) => {
-  return apiRequest<T>(endpoint, { method: 'DELETE', token });
-};
-
-/**
- * API клиент для аутентификации
- */
-export const authApi = {
-  /**
-   * Вход в систему
-   */
-  login: async (email: string, password: string) => {
-    return post<{ token: string; user: any }>('/landing/auth/login', { email, password });
-  },
+// Сервисы для работы с API
+export const authService = {
+  // Регистрация нового пользователя
+  register: (userData: RegisterRequest) => api.post('/auth/register', userData),
   
-  /**
-   * Регистрация нового пользователя
-   */
-  register: async (userData: any) => {
-    return post<{ token: string; user: any }>('/landing/auth/register', userData);
-  },
+  // Вход в систему
+  login: (credentials: LoginRequest) => api.post('/auth/login', credentials),
   
-  /**
-   * Получение данных текущего пользователя
-   */
-  getMe: async (token: string) => {
-    return get<{ user: any }>('/landing/auth/me', token);
-  },
-}; 
+  // Выход из системы
+  logout: () => api.post('/auth/logout'),
+  
+  // Получение данных текущего пользователя
+  getCurrentUser: () => api.get('/auth/me'),
+  
+  // Обновление токена
+  refreshToken: () => api.post('/auth/refresh'),
+  
+  // Запрос на сброс пароля
+  requestPasswordReset: (email: string) => api.post('/auth/password/email', { email }),
+  
+  // Сброс пароля
+  resetPassword: (resetData: { token: string; email: string; password: string; password_confirmation: string }) => 
+    api.post('/auth/password/reset', resetData),
+  
+  // Повторная отправка письма с подтверждением
+  resendVerificationEmail: () => api.post('/auth/email/resend')
+};
+
+export const userService = {
+  // Получение профиля пользователя
+  getProfile: () => api.get('/user/profile'),
+  
+  // Обновление профиля пользователя
+  updateProfile: (profileData: UpdateProfileRequest) => api.put('/user/profile', profileData),
+  
+  // Изменение пароля
+  changePassword: (passwordData: ChangePasswordRequest) => api.put('/user/password', passwordData),
+  
+  // Получение списка организаций пользователя
+  getUserOrganizations: () => api.get('/user/organizations')
+};
+
+export const organizationService = {
+  // Создание новой организации
+  createOrganization: (orgData: any) => api.post('/organizations', orgData),
+  
+  // Получение данных организации
+  getOrganization: (orgId: number) => api.get(`/organizations/${orgId}`),
+  
+  // Обновление данных организации
+  updateOrganization: (orgId: number, orgData: any) => api.put(`/organizations/${orgId}`, orgData)
+};
+
+export const supportService = {
+  // Отправка запроса в поддержку
+  submitSupportRequest: (requestData: SupportRequest) => api.post('/support/request', requestData)
+};
+
+// Интерфейсы для типизации данных
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  organization_name: string;
+  organization_legal_name?: string;
+  organization_tax_number?: string;
+  organization_registration_number?: string;
+  organization_phone?: string;
+  organization_email?: string;
+  organization_address?: string;
+  organization_city?: string;
+  organization_postal_code?: string;
+  organization_country?: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
+  email?: string;
+}
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  password: string;
+  password_confirmation: string;
+}
+
+export interface OrganizationSummary {
+  id: number;
+  name: string;
+  role_in_org: string;
+}
+
+export interface Organization {
+  id: number;
+  name: string;
+  legal_name?: string;
+  tax_number?: string;
+  registration_number?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+  owner_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LandingUser {
+  id: number;
+  name: string;
+  email: string;
+  email_verified_at?: string;
+  created_at: string;
+  updated_at: string;
+  current_organization_id?: number;
+}
+
+export interface SupportRequest {
+  name?: string;
+  email?: string;
+  subject: string;
+  message: string;
+  type?: 'Сообщение об ошибке' | 'Запрос функциональности' | 'Общий вопрос' | 'Вопрос по оплате';
+}
+
+export default api; 

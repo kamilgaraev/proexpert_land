@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { userService } from '@utils/api';
 
 interface Subscription {
   id: number;
@@ -19,47 +20,62 @@ const SubscriptionsList: React.FC = () => {
   const [error] = useState<string | null>(null);
 
   useEffect(() => {
-    // Имитация загрузки данных с API
-    setTimeout(() => {
-      const mockSubscriptions: Subscription[] = [
-        {
-          id: 1,
-          plan_name: 'Базовый',
-          status: 'Активна',
-          start_date: '15.03.2023',
-          end_date: '15.03.2024',
-          price: 1990,
-          billing_period: 'Ежемесячно',
-          auto_renew: true,
-          features: [
-            'До 5 проектов',
-            'До 10 пользователей',
-            'Базовая отчетность',
-            'Техническая поддержка',
-          ],
-        },
-        {
-          id: 2,
-          plan_name: 'Корпоративный',
-          status: 'Ожидает оплаты',
-          start_date: '15.03.2024',
-          end_date: '15.03.2025',
-          price: 4990,
-          billing_period: 'Ежемесячно',
-          auto_renew: false,
-          features: [
-            'Неограниченное количество проектов',
-            'До 50 пользователей',
-            'Расширенная отчетность',
-            'Приоритетная техническая поддержка',
-            'API-интеграция',
-            'Персональный менеджер',
-          ],
-        },
-      ];
-      setSubscriptions(mockSubscriptions);
-      setIsLoading(false);
-    }, 1000);
+    const fetchSubscriptions = async () => {
+      try {
+        // Получаем данные об организациях пользователя
+        // В текущем API нет прямого эндпоинта для подписок, поэтому используем этот как пример
+        await userService.getUserOrganizations();
+        
+        // В качестве примера используем мок-данные, пока нет реального API для подписок
+        const mockSubscriptions: Subscription[] = [
+          {
+            id: 1,
+            plan_name: 'Базовый',
+            status: 'Активна',
+            start_date: '15.03.2023',
+            end_date: '15.03.2024',
+            price: 1990,
+            billing_period: 'Ежемесячно',
+            auto_renew: true,
+            features: [
+              'До 5 проектов',
+              'До 10 пользователей',
+              'Базовая отчетность',
+              'Техническая поддержка',
+            ],
+          },
+          {
+            id: 2,
+            plan_name: 'Корпоративный',
+            status: 'Ожидает оплаты',
+            start_date: '15.03.2024',
+            end_date: '15.03.2025',
+            price: 4990,
+            billing_period: 'Ежемесячно',
+            auto_renew: false,
+            features: [
+              'Неограниченное количество проектов',
+              'До 50 пользователей',
+              'Расширенная отчетность',
+              'Приоритетная техническая поддержка',
+              'API-интеграция',
+              'Персональный менеджер',
+            ],
+          },
+        ];
+        
+        // В будущем здесь будет реальный запрос к API подписок
+        // const subscriptionsData = await subscriptionService.getSubscriptions();
+        
+        setSubscriptions(mockSubscriptions);
+      } catch (err) {
+        console.error('Ошибка при загрузке подписок:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchSubscriptions();
   }, []);
 
   const getStatusBadgeClass = (status: string): string => {
@@ -165,6 +181,7 @@ const SubscriptionsList: React.FC = () => {
                     onClick={() => {
                       if (window.confirm('Вы уверены, что хотите отменить подписку?')) {
                         console.log('Отмена подписки', subscription.id);
+                        // Здесь будет API запрос на отмену подписки
                       }
                     }}
                   >
@@ -172,7 +189,13 @@ const SubscriptionsList: React.FC = () => {
                   </button>
                 )}
                 {subscription.status === 'Ожидает оплаты' && (
-                  <button className="btn btn-primary text-sm" onClick={() => console.log('Оплата подписки', subscription.id)}>
+                  <button 
+                    className="btn btn-primary text-sm" 
+                    onClick={() => {
+                      console.log('Оплата подписки', subscription.id);
+                      // Здесь будет API запрос на оплату подписки
+                    }}
+                  >
                     Оплатить сейчас
                   </button>
                 )}
@@ -188,7 +211,10 @@ const SubscriptionsList: React.FC = () => {
                       ? 'text-orange-600 hover:text-orange-800'
                       : 'text-green-600 hover:text-green-800'
                   }`}
-                  onClick={() => console.log('Переключение автопродления', subscription.id)}
+                  onClick={() => {
+                    console.log('Переключение автопродления', subscription.id);
+                    // Здесь будет API запрос на переключение автопродления
+                  }}
                 >
                   {subscription.auto_renew ? 'Отключить автопродление' : 'Включить автопродление'}
                 </button>

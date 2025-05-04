@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { organizationService } from '@utils/api';
 
 interface FormData {
   name: string;
@@ -70,15 +71,39 @@ const MemberCreate: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Имитация отправки данных на сервер
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Данные для отправки:', formData);
+      // Используем API для создания новой организации
+      // Поскольку в API нет прямого эндпоинта для добавления участника, 
+      // мы можем использовать создание организации как пример
+      await organizationService.createOrganization({
+        name: formData.name,
+        email: formData.email
+        // Другие поля из formData
+      });
       
       // После успешного создания перенаправляем на список участников
       navigate('/dashboard/members');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Ошибка при создании участника:', error);
-      setErrors((prev) => ({ ...prev, general: 'Произошла ошибка при создании участника' }));
+      
+      // Обработка ошибок валидации с сервера
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        const serverErrors: Record<string, string[]> = error.response.data.errors;
+        const formattedErrors: ErrorsType = {};
+        
+        // Преобразуем ошибки с сервера в формат, понятный нашей форме
+        Object.entries(serverErrors).forEach(([key, messages]) => {
+          if (Array.isArray(messages) && messages.length > 0) {
+            formattedErrors[key as keyof FormData] = messages[0];
+          }
+        });
+        
+        setErrors(formattedErrors);
+      } else {
+        setErrors((prev) => ({ 
+          ...prev, 
+          general: error.response?.data?.message || 'Произошла ошибка при создании участника' 
+        }));
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
-import { authApi } from '@utils/api';
+import { authService, RegisterRequest } from '@utils/api';
 
 export interface User {
   id: number;
@@ -22,23 +22,9 @@ export interface AuthContextType {
   fetchUser: () => Promise<void>;
 }
 
-export interface RegisterData {
-  name: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
+export interface RegisterData extends RegisterRequest {
   phone?: string;
   position?: string;
-  organization_name: string;
-  organization_legal_name?: string;
-  organization_tax_number?: string;
-  organization_registration_number?: string;
-  organization_phone?: string;
-  organization_email?: string;
-  organization_address?: string;
-  organization_city?: string;
-  organization_postal_code?: string;
-  organization_country?: string;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -81,10 +67,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     
     try {
-      const data = await authApi.login(email, password);
+      const response = await authService.login({ email, password });
       
       // Сохраняем токен
-      const bearerToken = data.token;
+      const bearerToken = response.data.token;
       if (!bearerToken) {
         throw new Error('Токен не получен от сервера');
       }
@@ -105,10 +91,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     
     try {
-      const data = await authApi.register(userData);
+      const response = await authService.register(userData);
       
       // Сохраняем токен
-      const bearerToken = data.token;
+      const bearerToken = response.data.token;
       if (!bearerToken) {
         throw new Error('Токен не получен от сервера');
       }
@@ -129,14 +115,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!token) return;
     
     try {
-      const data = await authApi.getMe(token);
-      setUser(data.user);
+      const response = await authService.getCurrentUser();
+      setUser(response.data.user);
     } catch (error) {
       throw error;
     }
   };
 
   const logout = () => {
+    // Попытка выхода через API, если возможно
+    if (token) {
+      authService.logout().catch(err => {
+        console.error('Ошибка при выходе из системы:', err);
+      });
+    }
+    
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);

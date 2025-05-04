@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { userService, OrganizationSummary } from '@utils/api';
 
 interface Member {
   id: number;
@@ -16,37 +17,32 @@ const MembersList: React.FC = () => {
   const [error] = useState<string | null>(null);
 
   useEffect(() => {
-    // Имитация загрузки данных с API
-    setTimeout(() => {
-      const mockMembers: Member[] = [
-        {
-          id: 1,
-          name: 'Иванов Иван',
-          email: 'ivanov@example.com',
-          role: 'Администратор',
-          status: 'Активен',
-          created_at: '2023-05-15',
-        },
-        {
-          id: 2,
-          name: 'Петров Петр',
-          email: 'petrov@example.com',
-          role: 'Менеджер',
-          status: 'Активен',
-          created_at: '2023-06-20',
-        },
-        {
-          id: 3,
-          name: 'Сидорова Анна',
-          email: 'sidorova@example.com',
-          role: 'Помощник',
-          status: 'Приглашен',
-          created_at: '2023-07-10',
-        },
-      ];
-      setMembers(mockMembers);
-      setIsLoading(false);
-    }, 1000);
+    const fetchMembers = async () => {
+      try {
+        // Используем API для получения организаций пользователя
+        const response = await userService.getUserOrganizations();
+        const organizations: OrganizationSummary[] = response.data;
+        
+        // Преобразуем данные в формат Member для отображения
+        const formattedMembers = organizations.map((org) => ({
+          id: org.id,
+          name: org.name,
+          email: '', // Эти данные отсутствуют в API, можно дополнить при наличии
+          role: org.role_in_org,
+          status: 'Активен', // По умолчанию считаем активным
+          created_at: new Date().toISOString().split('T')[0] // Заглушка, т.к. нет даты в API
+        }));
+        
+        setMembers(formattedMembers);
+      } catch (err) {
+        console.error('Ошибка при загрузке списка участников:', err);
+        // Здесь можно установить сообщение об ошибке, если нужно
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMembers();
   }, []);
 
   if (isLoading) {
@@ -91,51 +87,59 @@ const MembersList: React.FC = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {members.map((member) => (
-              <tr key={member.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{member.name}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{member.email}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{member.role}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      member.status === 'Активен'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}
-                  >
-                    {member.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {member.created_at}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <Link
-                    to={`/dashboard/members/edit/${member.id}`}
-                    className="text-primary-600 hover:text-primary-900 mr-4"
-                  >
-                    Редактировать
-                  </Link>
-                  <button
-                    onClick={() => {
-                      if (window.confirm('Вы уверены, что хотите удалить этого участника?')) {
-                        console.log('Удаление участника', member.id);
-                      }
-                    }}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Удалить
-                  </button>
+            {members.length > 0 ? (
+              members.map((member) => (
+                <tr key={member.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{member.name}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">{member.email || 'Нет данных'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">{member.role}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        member.status === 'Активен'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}
+                    >
+                      {member.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {member.created_at}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <Link
+                      to={`/dashboard/members/edit/${member.id}`}
+                      className="text-primary-600 hover:text-primary-900 mr-4"
+                    >
+                      Редактировать
+                    </Link>
+                    <button
+                      onClick={() => {
+                        if (window.confirm('Вы уверены, что хотите удалить этого участника?')) {
+                          console.log('Удаление участника', member.id);
+                        }
+                      }}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Удалить
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                  Участники не найдены
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
