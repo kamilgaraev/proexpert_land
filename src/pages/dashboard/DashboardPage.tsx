@@ -8,15 +8,16 @@ import {
   CurrencyRupeeIcon,
   ArrowTrendingUpIcon
 } from '@heroicons/react/24/outline';
+import { DashboardIcon } from '@components/icons/DashboardIcons';
 
 // Карточки с ключевыми метриками
 const stats = [
-  { id: 1, name: 'Активные объекты', value: '3', icon: BuildingOfficeIcon, color: 'bg-primary-100 text-primary-700' },
-  { id: 2, name: 'Прорабы', value: '2', icon: UserGroupIcon, color: 'bg-green-100 text-green-700' },
-  { id: 3, name: 'Движения материалов', value: '127', icon: TruckIcon, color: 'bg-construction-100 text-construction-700' },
-  { id: 4, name: 'Выполненные работы', value: '58', icon: DocumentTextIcon, color: 'bg-purple-100 text-purple-700' },
-  { id: 5, name: 'Расходы', value: '2.3M ₽', icon: CurrencyRupeeIcon, color: 'bg-red-100 text-red-700' },
-  { id: 6, name: 'Выполнение плана', value: '76%', icon: ArrowTrendingUpIcon, color: 'bg-blue-100 text-blue-700' },
+  { id: 1, name: 'Активные объекты', value: '3', icon: BuildingOfficeIcon, color: 'bg-primary-100 text-primary-700', link: '/dashboard/projects' },
+  { id: 2, name: 'Прорабы', value: '2', icon: UserGroupIcon, color: 'bg-green-100 text-green-700', link: '/dashboard/team' },
+  { id: 3, name: 'Движения материалов', value: '127', icon: TruckIcon, color: 'bg-construction-100 text-construction-700', link: '/dashboard/documents' },
+  { id: 4, name: 'Выполненные работы', value: '58', icon: DocumentTextIcon, color: 'bg-purple-100 text-purple-700', link: '/dashboard/projects' },
+  { id: 5, name: 'Расходы', value: '2.3M ₽', icon: CurrencyRupeeIcon, color: 'bg-red-100 text-red-700', link: '/dashboard/finance' },
+  { id: 6, name: 'Выполнение плана', value: '76%', icon: ArrowTrendingUpIcon, color: 'bg-blue-100 text-blue-700', link: '/dashboard/calendar' },
 ];
 
 // Последние активности
@@ -78,10 +79,15 @@ const DashboardPage = () => {
   return (
     <div className="py-6">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-secondary-900">Обзор</h1>
-        <p className="mt-1 text-sm text-secondary-500">
-          Добро пожаловать в ваш личный кабинет. Здесь вы можете управлять организацией и видеть ключевые показатели.
-        </p>
+        <div className="flex items-center">
+          <DashboardIcon />
+          <div className="ml-4">
+            <h1 className="text-2xl font-semibold text-secondary-900">Обзор</h1>
+            <p className="mt-1 text-sm text-secondary-500">
+              Добро пожаловать в ваш личный кабинет. Здесь вы можете управлять организацией и видеть ключевые показатели.
+            </p>
+          </div>
+        </div>
       </div>
 
       {loading ? (
@@ -117,7 +123,7 @@ const DashboardPage = () => {
                 </div>
                 <div className="bg-secondary-50 px-5 py-3">
                   <div className="text-sm">
-                    <Link to={`/dashboard/${stat.name.toLowerCase().replace(' ', '-')}`} className="font-medium text-primary-700 hover:text-primary-900">
+                    <Link to={stat.link} className="font-medium text-primary-700 hover:text-primary-900">
                       Подробнее
                     </Link>
                   </div>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Перенаправление | Прораб-Финанс Мост</title>
+  <script>
+    // Простая реализация SPA редиректа с сохранением маршрутизации
+    (function() {
+      // Получаем текущий путь из URL
+      var pathname = window.location.pathname;
+      
+      // Сохраняем оригинальный путь в localStorage
+      sessionStorage.setItem('spa_redirect_path', pathname);
+      
+      // Перенаправляем на главную страницу с параметром redirect
+      window.location.href = window.location.origin + '/?redirect=true';
+    })();
+  </script>
+</head>
+<body>
+  <h1>Перенаправление...</h1>
+  <p>Если вы не были перенаправлены автоматически, <a href="/">нажмите сюда</a>.</p>
+</body>
+</html> 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Bars3Icon, 
   XMarkIcon, 
@@ -8,7 +8,12 @@ import {
   CogIcon, 
   DocumentTextIcon,
   ArrowLeftOnRectangleIcon,
-  UserCircleIcon
+  UserCircleIcon,
+  BanknotesIcon,
+  BuildingOfficeIcon,
+  CalendarIcon,
+  QuestionMarkCircleIcon,
+  BellIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
 
@@ -16,6 +21,7 @@ const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const handleLogout = () => {
     logout();
@@ -24,11 +30,21 @@ const DashboardLayout = () => {
   
   const navigation = [
     { name: 'Обзор', href: '/dashboard', icon: HomeIcon },
+    { name: 'Проекты', href: '/dashboard/projects', icon: BuildingOfficeIcon },
+    { name: 'Финансы', href: '/dashboard/finance', icon: BanknotesIcon },
+    { name: 'Документы', href: '/dashboard/documents', icon: DocumentTextIcon },
+    { name: 'Команда', href: '/dashboard/team', icon: UsersIcon },
+    { name: 'Календарь', href: '/dashboard/calendar', icon: CalendarIcon },
+    { name: 'Уведомления', href: '/dashboard/notifications', icon: BellIcon },
     { name: 'Профиль', href: '/dashboard/profile', icon: UserCircleIcon },
-    { name: 'Пользователи', href: '/dashboard/users', icon: UsersIcon },
     { name: 'Настройки', href: '/dashboard/settings', icon: CogIcon },
-    { name: 'Документация', href: '/dashboard/docs', icon: DocumentTextIcon },
+    { name: 'Справка', href: '/dashboard/help', icon: QuestionMarkCircleIcon },
   ];
+
+  // Функция для определения активного пункта меню
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
 
   return (
     <div className="min-h-screen bg-secondary-50">
@@ -73,9 +89,18 @@ const DashboardLayout = () => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900"
+                  className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
+                    isActive(item.href)
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900'
+                  }`}
+                  onClick={() => setSidebarOpen(false)}
                 >
-                  <item.icon className="mr-3 h-6 w-6 text-secondary-500 group-hover:text-secondary-700" aria-hidden="true" />
+                  <item.icon className={`mr-3 h-6 w-6 ${
+                    isActive(item.href)
+                      ? 'text-primary-500'
+                      : 'text-secondary-500 group-hover:text-secondary-700'
+                  }`} aria-hidden="true" />
                   {item.name}
                 </Link>
               ))}
@@ -111,9 +136,17 @@ const DashboardLayout = () => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900"
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                    isActive(item.href)
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900'
+                  }`}
                 >
-                  <item.icon className="mr-3 h-5 w-5 text-secondary-500 group-hover:text-secondary-700" aria-hidden="true" />
+                  <item.icon className={`mr-3 h-5 w-5 ${
+                    isActive(item.href)
+                      ? 'text-primary-500'
+                      : 'text-secondary-500 group-hover:text-secondary-700'
+                  }`} aria-hidden="true" />
                   {item.name}
                 </Link>
               ))}

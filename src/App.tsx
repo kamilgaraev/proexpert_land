@@ -4,9 +4,17 @@ import DashboardLayout from '@layouts/DashboardLayout';
 import LoginPage from '@pages/dashboard/LoginPage';
 import RegisterPage from '@pages/dashboard/RegisterPage';
 import DashboardPage from '@pages/dashboard/DashboardPage';
+import ProfilePage from '@pages/dashboard/ProfilePage';
+import ProjectsPage from '@pages/dashboard/ProjectsPage';
+import FinancePage from '@pages/dashboard/FinancePage';
+import DocumentsPage from '@pages/dashboard/DocumentsPage';
+import TeamPage from '@pages/dashboard/TeamPage';
+import CalendarPage from '@pages/dashboard/CalendarPage';
+import SettingsPage from '@pages/dashboard/SettingsPage';
+import NotificationsPage from '@pages/dashboard/NotificationsPage';
+import HelpPage from '@pages/dashboard/HelpPage';
 import NotFoundPage from '@pages/NotFoundPage';
 import ProtectedRoute from '@components/ProtectedRoute';
-import ProfilePage from '@pages/dashboard/ProfilePage';
 
 function App() {
   return (
@@ -24,7 +32,14 @@ function App() {
       }>
         <Route index element={<DashboardPage />} />
         <Route path="profile" element={<ProfilePage />} />
-        {/* Другие маршруты личного кабинета */}
+        <Route path="projects" element={<ProjectsPage />} />
+        <Route path="finance" element={<FinancePage />} />
+        <Route path="documents" element={<DocumentsPage />} />
+        <Route path="team" element={<TeamPage />} />
+        <Route path="calendar" element={<CalendarPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="help" element={<HelpPage />} />
       </Route>
       
       {/* Страница 404 для несуществующих маршрутов */}
