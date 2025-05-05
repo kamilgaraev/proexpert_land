@@ -13,6 +13,7 @@ import CalendarPage from '@pages/dashboard/CalendarPage';
 import SettingsPage from '@pages/dashboard/SettingsPage';
 import NotificationsPage from '@pages/dashboard/NotificationsPage';
 import HelpPage from '@pages/dashboard/HelpPage';
+import SupportPage from '@pages/dashboard/SupportPage';
 import NotFoundPage from '@pages/NotFoundPage';
 import ProtectedRoute from '@components/ProtectedRoute';
 import MembersList from '@pages/dashboard/members/MembersList';
@@ -47,6 +48,7 @@ function App() {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="help" element={<HelpPage />} />
+        <Route path="support" element={<SupportPage />} />
         
         {/* Маршруты управления организацией */}
         <Route path="members" element={<MembersList />} />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { userService, OrganizationSummary } from '@utils/api';
+import { userService } from '@utils/api';
 
 interface Member {
   id: number;
@@ -19,24 +19,45 @@ const MembersList: React.FC = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        // Используем API для получения организаций пользователя
-        const response = await userService.getUserOrganizations();
-        const organizations: OrganizationSummary[] = response.data.data?.organizations || [];
+        // Используем API для получения пользователей организации
+        const response = await userService.getOrganizationUsers();
+        
+        // Проверяем успешность ответа
+        if (!response.data || !response.data.success) {
+          console.error('Ошибка при загрузке списка пользователей:', response);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Получаем список пользователей
+        const users = response.data.data || [];
+        
+        if (!users.length) {
+          setMembers([]);
+          setIsLoading(false);
+          return;
+        }
         
         // Преобразуем данные в формат Member для отображения
-        const formattedMembers = organizations.map((org) => ({
-          id: org.id,
-          name: org.name,
-          email: '', // Эти данные отсутствуют в API, можно дополнить при наличии
-          role: org.role_in_org,
-          status: 'Активен', // По умолчанию считаем активным
-          created_at: new Date().toISOString().split('T')[0] // Заглушка, т.к. нет даты в API
-        }));
+        const formattedMembers = users.map((user: any) => {
+          // Получаем роль из первой роли пользователя
+          const role = user.roles && user.roles.length > 0 
+            ? user.roles[0].name 
+            : 'Пользователь';
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email || '',
+            role: role,
+            status: user.is_active ? 'Активен' : 'Не активен',
+            created_at: user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : ''
+          };
+        });
         
         setMembers(formattedMembers);
       } catch (err) {
-        console.error('Ошибка при загрузке списка участников:', err);
-        // Здесь можно установить сообщение об ошибке, если нужно
+        console.error('Ошибка при загрузке списка пользователей:', err);
       } finally {
         setIsLoading(false);
       }

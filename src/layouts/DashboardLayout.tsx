@@ -99,7 +99,7 @@ const DashboardLayout = () => {
           </div>
           
           {/* Навигация */}
-          <div className="mt-5 flex flex-1 flex-col">
+          <div className="mt-5 flex flex-1 flex-col overflow-y-auto">
             <nav className="flex-1 space-y-1 px-2">
               {navigation.map((item) => (
                 <Link

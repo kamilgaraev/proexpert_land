@@ -342,7 +342,33 @@ export const userService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/user/organizations`, {
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/organizations`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data: data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+  
+  // Получение списка пользователей организации
+  getOrganizationUsers: async () => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/users`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
