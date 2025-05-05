@@ -22,9 +22,8 @@ const SubscriptionsList: React.FC = () => {
   useEffect(() => {
     const fetchSubscriptions = async () => {
       try {
-        // Получаем данные об организациях пользователя
-        // В текущем API нет прямого эндпоинта для подписок, поэтому используем этот как пример
-        await userService.getUserOrganizations();
+        // Убираем ненужный запрос к организациям
+        // В будущем здесь должен быть прямой запрос к API подписок
         
         // В качестве примера используем мок-данные, пока нет реального API для подписок
         const mockSubscriptions: Subscription[] = [

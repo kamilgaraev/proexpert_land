@@ -30,7 +30,16 @@ const MembersList: React.FC = () => {
         }
         
         // Получаем список пользователей
-        const users = response.data.data || [];
+        const usersData = response.data.data;
+        
+        if (!usersData || !Array.isArray(usersData.users)) {
+          console.error('Неверная структура данных пользователей:', usersData);
+          setMembers([]);
+          setIsLoading(false);
+          return;
+        }
+        
+        const users = usersData.users;
         
         if (!users.length) {
           setMembers([]);
@@ -40,22 +49,44 @@ const MembersList: React.FC = () => {
         
         // Преобразуем данные в формат Member для отображения
         const formattedMembers = users.map((user: any) => {
-          // Получаем роль из первой роли пользователя
-          const role = user.roles && user.roles.length > 0 
-            ? user.roles[0].name 
-            : 'Пользователь';
+          // Получаем роль из информации о ролях пользователя
+          let role = 'Пользователь';
+          
+          if (user.roles && Array.isArray(user.roles) && user.roles.length > 0) {
+            // Если роль представлена как объект с полем name
+            if (typeof user.roles[0] === 'object' && user.roles[0].name) {
+              role = user.roles[0].name;
+            } else if (typeof user.roles[0] === 'string') {
+              // Если роль представлена как строка
+              role = user.roles[0];
+            }
+          } else if (user.role) {
+            // Если роль находится прямо в объекте пользователя
+            role = user.role;
+          }
+          
+          // Преобразуем роль на русский язык
+          const roleMap: Record<string, string> = {
+            'admin': 'Администратор',
+            'manager': 'Менеджер',
+            'member': 'Участник',
+            'user': 'Пользователь'
+          };
+          
+          const translatedRole = roleMap[role.toLowerCase()] || role;
 
           return {
             id: user.id,
-            name: user.name,
+            name: user.name || 'Без имени',
             email: user.email || '',
-            role: role,
-            status: user.is_active ? 'Активен' : 'Не активен',
+            role: translatedRole,
+            status: user.is_active !== false ? 'Активен' : 'Не активен',
             created_at: user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : ''
           };
         });
         
         setMembers(formattedMembers);
+        console.log('Обработанные данные участников:', formattedMembers);
       } catch (err) {
         console.error('Ошибка при загрузке списка пользователей:', err);
       } finally {

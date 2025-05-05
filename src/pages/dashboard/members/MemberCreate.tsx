@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { organizationService } from '@utils/api';
+import { userService } from '@utils/api';
 
 interface FormData {
   name: string;
@@ -71,14 +71,18 @@ const MemberCreate: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Используем API для создания новой организации
-      // Поскольку в API нет прямого эндпоинта для добавления участника, 
-      // мы можем использовать создание организации как пример
-      const response = await organizationService.createOrganization({
+      // Используем новый метод API для создания нового участника
+      const response = await userService.inviteUser({
         name: formData.name,
-        email: formData.email
-        // Другие поля из formData
+        email: formData.email,
+        role: formData.role,
+        password: formData.password,
+        password_confirmation: formData.password_confirmation
       });
+      
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Ошибка при создании участника');
+      }
       
       console.log('Участник успешно создан:', response.data);
       
