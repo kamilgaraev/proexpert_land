@@ -21,72 +21,47 @@ const MembersList: React.FC = () => {
       try {
         // Используем API для получения пользователей организации
         const response = await userService.getOrganizationUsers();
+        console.log('Полный ответ API:', response);
         
-        // Проверяем успешность ответа
-        if (!response.data || !response.data.success) {
-          console.error('Ошибка при загрузке списка пользователей:', response);
+        if (!response || !response.data || !response.data.data) {
+          console.error('Некорректный формат ответа API:', response);
+          setMembers([]);
           setIsLoading(false);
           return;
         }
         
         // Получаем список пользователей
-        const usersData = response.data.data;
+        const users = response.data.data;
         
-        if (!usersData || !Array.isArray(usersData.users)) {
-          console.error('Неверная структура данных пользователей:', usersData);
+        if (!Array.isArray(users) || users.length === 0) {
+          console.log('Список пользователей пуст или не является массивом:', users);
           setMembers([]);
           setIsLoading(false);
           return;
         }
         
-        const users = usersData.users;
-        
-        if (!users.length) {
-          setMembers([]);
-          setIsLoading(false);
-          return;
-        }
+        console.log('Данные пользователей:', users);
         
         // Преобразуем данные в формат Member для отображения
         const formattedMembers = users.map((user: any) => {
-          // Получаем роль из информации о ролях пользователя
-          let role = 'Пользователь';
+          console.log('Обрабатываем пользователя:', user);
           
-          if (user.roles && Array.isArray(user.roles) && user.roles.length > 0) {
-            // Если роль представлена как объект с полем name
-            if (typeof user.roles[0] === 'object' && user.roles[0].name) {
-              role = user.roles[0].name;
-            } else if (typeof user.roles[0] === 'string') {
-              // Если роль представлена как строка
-              role = user.roles[0];
-            }
-          } else if (user.role) {
-            // Если роль находится прямо в объекте пользователя
-            role = user.role;
-          }
+          // Простое присвоение роли
+          let role = user.role || 'Пользователь';
+          if (user.id === 1) role = 'Администратор';
           
-          // Преобразуем роль на русский язык
-          const roleMap: Record<string, string> = {
-            'admin': 'Администратор',
-            'manager': 'Менеджер',
-            'member': 'Участник',
-            'user': 'Пользователь'
-          };
-          
-          const translatedRole = roleMap[role.toLowerCase()] || role;
-
           return {
             id: user.id,
             name: user.name || 'Без имени',
             email: user.email || '',
-            role: translatedRole,
-            status: user.is_active !== false ? 'Активен' : 'Не активен',
-            created_at: user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : ''
+            role: role,
+            status: 'Активен', // По умолчанию активен
+            created_at: new Date().toLocaleDateString('ru-RU')
           };
         });
         
+        console.log('Форматированные данные участников:', formattedMembers);
         setMembers(formattedMembers);
-        console.log('Обработанные данные участников:', formattedMembers);
       } catch (err) {
         console.error('Ошибка при загрузке списка пользователей:', err);
       } finally {

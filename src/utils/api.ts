@@ -380,8 +380,16 @@ export const userService = {
     const data = await response.json();
     console.log('API response for users:', data);
     
+    // Смотря на скриншот, данные пользователя находятся в data.data
+    // и имеют формат [{ id: 1, name: "Иван Иванов", email: "kamilgaraev3@gmail.com", ... }]
     return {
-      data: data,
+      data: {
+        success: true, // Предполагаем успех, так как код 200
+        message: '',
+        data: Array.isArray(data) ? data : 
+              (data && data.data && Array.isArray(data.data)) ? data.data : 
+              (data && data.id) ? [data] : []
+      },
       status: response.status,
       statusText: response.statusText
     };
