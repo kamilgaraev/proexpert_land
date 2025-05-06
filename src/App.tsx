@@ -16,7 +16,6 @@ import BillingPage from '@pages/dashboard/BillingPage';
 import AddFundsPage from '@pages/dashboard/billing/AddFundsPage';
 import UsersList from '@pages/admin/users/UsersList';
 import ProjectsList from '@pages/admin/projects/ProjectsList';
-import AdminsPage from '@pages/dashboard/AdminsPage';
 
 function App() {
   return (
