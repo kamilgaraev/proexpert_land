@@ -615,4 +615,52 @@ export interface SupportRequest {
   type?: 'Сообщение об ошибке' | 'Запрос функциональности' | 'Общий вопрос' | 'Вопрос по оплате';
 }
 
+// Типы для AdminPanelUsers, используемые в adminPanelUserService и AdminsPage
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: 'web_admin' | 'accountant' | string;
+}
+
+export interface AdminUsersApiResponse {
+  data: AdminUser[];
+  links?: any; // Опционально для пагинации
+  meta?: any;  // Опционально для пагинации
+}
+
+// Тип для данных формы создания/редактирования администратора
+// Пароль и его подтверждение опциональны при редактировании
+export interface AdminFormData {
+  name: string;
+  email: string;
+  role_slug: 'web_admin' | 'accountant';
+  password?: string;
+  password_confirmation?: string;
+}
+
+// Сервис для управления пользователями Админ-панели
+export const adminPanelUserService = {
+  getAdminPanelUsers: async (): Promise<AdminUsersApiResponse> => {
+    // @ts-ignore
+    const response = await api.get('/landing/adminPanelUsers');
+    return response.data as AdminUsersApiResponse;
+  },
+  createAdminPanelUser: async (userData: AdminFormData): Promise<any> => {
+    // @ts-ignore
+    const response = await api.post('/landing/adminPanelUsers', userData);
+    return response.data;
+  },
+  updateAdminPanelUser: async (userId: number, userData: Partial<AdminFormData>): Promise<any> => {
+    // @ts-ignore
+    const response = await api.patch(`/landing/adminPanelUsers/${userId}`, userData);
+    return response.data;
+  },
+  deleteAdminPanelUser: async (userId: number): Promise<any> => {
+    // @ts-ignore
+    const response = await api.delete(`/landing/adminPanelUsers/${userId}`);
+    return response.data;
+  },
+};
+
 export default api; 

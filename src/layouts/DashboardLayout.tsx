@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Bars3Icon, 
+  BellIcon,
   XMarkIcon, 
   HomeIcon, 
   ArrowLeftOnRectangleIcon,
@@ -11,8 +12,12 @@ import {
   ShieldCheckIcon,
   TicketIcon,
   WalletIcon,
+  UsersIcon,
+  DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
+import { Menu, Transition } from '@headlessui/react';
+import { classNames } from '@utils/classNames';
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -42,6 +47,12 @@ const DashboardLayout = () => {
   const isActive = (path: string) => {
     return location.pathname === path;
   };
+
+  // Навигация для выпадающего меню пользователя
+  const userNavigation = [
+    { name: 'Профиль', href: '/dashboard/profile', onClick: () => {} },
+    { name: 'Выйти', href: '/login', onClick: handleLogout }, // Используем handleLogout для выхода
+  ];
 
   return (
     <div className="min-h-screen bg-secondary-50">
@@ -183,17 +194,52 @@ const DashboardLayout = () => {
                   <span>Баланс: {currentBalance}</span>
                 </Link>
                 
-                {/* Профиль пользователя */}
-                <Link to="/dashboard/profile" className="flex items-center">
-                  <img
-                    className="h-8 w-8 rounded-full bg-secondary-200"
-                    src={"/avatar-placeholder.svg"}
-                    alt="Аватар пользователя"
-                  />
-                  <span className="ml-2 text-sm font-medium text-secondary-900">
-                    {user?.name || 'Администратор'}
-                  </span>
+                {/* Кнопка перехода в Админ-панель */}
+                <Link
+                  to="/admin" // Маршрут к админ-панели
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Перейти в админ панель
                 </Link>
+
+                {/* Profile dropdown */}
+                <Menu as="div" className="relative">
+                  <div>
+                    <Menu.Button className="relative flex max-w-xs items-center rounded-full bg-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                      <span className="absolute -inset-1.5" />
+                      <span className="sr-only">Открыть меню пользователя</span>
+                      <UserCircleIcon className="h-8 w-8 rounded-full text-gray-400" aria-hidden="true" />
+                    </Menu.Button>
+                  </div>
+                  <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                  >
+                    <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      {userNavigation.map((item) => (
+                        <Menu.Item key={item.name}>
+                          {({ active }) => (
+                            <Link
+                              to={item.href}
+                              onClick={item.onClick}
+                              className={classNames(
+                                active ? 'bg-gray-100' : '',
+                                'block px-4 py-2 text-sm text-gray-700'
+                              )}
+                            >
+                              {item.name}
+                            </Link>
+                          )}
+                        </Menu.Item>
+                      ))}
+                    </Menu.Items>
+                  </Transition>
+                </Menu>
               </div>
             </div>
           </div>
