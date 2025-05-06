@@ -18,7 +18,8 @@ import {
   ShieldCheckIcon,
   TicketIcon,
   UserPlusIcon,
-  ClipboardDocumentListIcon
+  ClipboardDocumentListIcon,
+  WalletIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
 
@@ -28,33 +29,22 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
+  // Заглушка для баланса
+  const currentBalance = '15,750.00 ₽'; // Позже будет из API или контекста
+
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
   
-  const navigation = [
+  // Основные пункты ЛК Владельца
+  const mainNavigation = [
     { name: 'Обзор', href: '/dashboard', icon: HomeIcon },
-    { name: 'Проекты', href: '/dashboard/projects', icon: BuildingOfficeIcon },
-    { name: 'Финансы', href: '/dashboard/finance', icon: BanknotesIcon },
-    { name: 'Документы', href: '/dashboard/documents', icon: DocumentTextIcon },
-    { name: 'Команда', href: '/dashboard/team', icon: UsersIcon },
-    { name: 'Календарь', href: '/dashboard/calendar', icon: CalendarIcon },
-    { name: 'Уведомления', href: '/dashboard/notifications', icon: BellIcon },
+    { name: 'Баланс', href: '/dashboard/billing', icon: BanknotesIcon },
+    { name: 'Подписки', href: '/dashboard/subscriptions', icon: TicketIcon },
+    { name: 'Администраторы', href: '/dashboard/admins', icon: ShieldCheckIcon }, // Управление пользователями админки
     { name: 'Профиль', href: '/dashboard/profile', icon: UserCircleIcon },
-    { name: 'Настройки', href: '/dashboard/settings', icon: CogIcon },
-    { name: 'Справка', href: '/dashboard/help', icon: QuestionMarkCircleIcon },
-  ];
-
-  const adminNavigation = [
-    { name: 'Участники орг.', href: '/dashboard/members', icon: UserGroupIcon },
-    { name: 'Администраторы', href: '/dashboard/admins', icon: ShieldCheckIcon },
-    { name: 'Подписки', href: '/dashboard/subscriptions', icon: TicketIcon }
-  ];
-
-  const adminPanelNavigation = [
-    { name: 'Пользователи (админка)', href: '/admin/users', icon: UserPlusIcon },
-    { name: 'Проекты (админка)', href: '/admin/projects', icon: ClipboardDocumentListIcon }
+    { name: 'Справка', href: '/dashboard/help', icon: QuestionMarkCircleIcon }, // Включает ссылку на поддержку
   ];
 
   // Функция для определения активного пункта меню
@@ -101,63 +91,7 @@ const DashboardLayout = () => {
           {/* Навигация */}
           <div className="mt-5 flex flex-1 flex-col overflow-y-auto">
             <nav className="flex-1 space-y-1 px-2">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
-                    isActive(item.href)
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900'
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon className={`mr-3 h-6 w-6 ${
-                    isActive(item.href)
-                      ? 'text-primary-500'
-                      : 'text-secondary-500 group-hover:text-secondary-700'
-                  }`} aria-hidden="true" />
-                  {item.name}
-                </Link>
-              ))}
-
-              {/* Разделитель */}
-              <div className="my-3 border-t border-secondary-200"></div>
-              
-              {/* Управление организацией */}
-              <div className="text-xs uppercase text-secondary-500 font-semibold px-3 py-2">
-                Управление организацией
-              </div>
-              
-              {adminNavigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
-                    isActive(item.href)
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900'
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon className={`mr-3 h-6 w-6 ${
-                    isActive(item.href)
-                      ? 'text-primary-500'
-                      : 'text-secondary-500 group-hover:text-secondary-700'
-                  }`} aria-hidden="true" />
-                  {item.name}
-                </Link>
-              ))}
-
-              {/* Разделитель */}
-              <div className="my-3 border-t border-secondary-200"></div>
-              
-              {/* Администрирование */}
-              <div className="text-xs uppercase text-secondary-500 font-semibold px-3 py-2">
-                Администрирование
-              </div>
-              
-              {adminPanelNavigation.map((item) => (
+              {mainNavigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
@@ -204,61 +138,7 @@ const DashboardLayout = () => {
               />
             </div>
             <nav className="mt-8 flex-1 space-y-1 px-2">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    isActive(item.href)
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900'
-                  }`}
-                >
-                  <item.icon className={`mr-3 h-5 w-5 ${
-                    isActive(item.href)
-                      ? 'text-primary-500'
-                      : 'text-secondary-500 group-hover:text-secondary-700'
-                  }`} aria-hidden="true" />
-                  {item.name}
-                </Link>
-              ))}
-
-              {/* Разделитель */}
-              <div className="my-3 border-t border-secondary-200"></div>
-              
-              {/* Управление организацией */}
-              <div className="text-xs uppercase text-secondary-500 font-semibold px-3 py-2">
-                Управление организацией
-              </div>
-              
-              {adminNavigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    isActive(item.href)
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-secondary-700 hover:bg-secondary-100 hover:text-secondary-900'
-                  }`}
-                >
-                  <item.icon className={`mr-3 h-5 w-5 ${
-                    isActive(item.href)
-                      ? 'text-primary-500'
-                      : 'text-secondary-500 group-hover:text-secondary-700'
-                  }`} aria-hidden="true" />
-                  {item.name}
-                </Link>
-              ))}
-
-              {/* Разделитель */}
-              <div className="my-3 border-t border-secondary-200"></div>
-              
-              {/* Администрирование */}
-              <div className="text-xs uppercase text-secondary-500 font-semibold px-3 py-2">
-                Администрирование
-              </div>
-              
-              {adminPanelNavigation.map((item) => (
+              {mainNavigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
@@ -305,14 +185,21 @@ const DashboardLayout = () => {
               <Bars3Icon className="h-6 w-6" aria-hidden="true" />
             </button>
             <div className="flex-1 flex justify-between md:justify-end">
-              <div className="flex items-center">
+              <div className="flex items-center space-x-4">
+                {/* Баланс и ссылка на биллинг */}
+                <Link to="/dashboard/billing" className="flex items-center text-sm font-medium text-secondary-700 hover:text-primary-600">
+                  <WalletIcon className="h-5 w-5 mr-1.5 text-secondary-500 group-hover:text-primary-500" />
+                  <span>Баланс: {currentBalance}</span>
+                </Link>
+                
+                {/* Профиль пользователя */}
                 <Link to="/dashboard/profile" className="flex items-center">
                   <img
                     className="h-8 w-8 rounded-full bg-secondary-200"
-                    src="/avatar-placeholder.svg"
+                    src={"/avatar-placeholder.svg"}
                     alt="Аватар пользователя"
                   />
-                  <span className="ml-3 text-sm font-medium text-secondary-900">
+                  <span className="ml-2 text-sm font-medium text-secondary-900">
                     {user?.name || 'Администратор'}
                   </span>
                 </Link>
