@@ -806,7 +806,7 @@ async function fetchWithBillingLogging(url: string, options: RequestInit): Promi
 }
 
 export const billingService = {
-  getPlans: async (): Promise<{ data: SubscriptionPlan[], status: number, statusText: string }> => {
+  getPlans: async (): Promise<{ data: SubscriptionPlan[] | ErrorResponse, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/plans`;
@@ -816,7 +816,18 @@ export const billingService = {
     };
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    return { data: responseData as SubscriptionPlan[], status: response.status, statusText: response.statusText }; 
+
+    if (response.ok && responseData && typeof responseData === 'object' && 'data' in responseData && Array.isArray(responseData.data)) {
+      // Успешный ответ, и структура соответствует { data: [...] }
+      return { data: responseData.data as SubscriptionPlan[], status: response.status, statusText: response.statusText }; 
+    } else if (!response.ok) {
+      // Ошибка от сервера
+      return { data: responseData as ErrorResponse, status: response.status, statusText: response.statusText };
+    } else {
+      // Неожиданная структура успешного ответа
+      console.error('[BillingService] getPlans: Unexpected response structure:', responseData);
+      return { data: { message: 'Неожиданная структура ответа от сервера для планов.' } as ErrorResponse, status: response.status, statusText: 'Unexpected structure' };
+    }
   },
 
   getCurrentSubscription: async (): Promise<{ data: UserSubscription | ErrorResponse, status: number, statusText: string }> => {
