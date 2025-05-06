@@ -36,7 +36,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
           password_confirmation: '',
         });
       } else {
-        setFormData(initialFormState);
+      setFormData(initialFormState);
       }
       setError(null);
       setIsLoading(false);
@@ -57,13 +57,13 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
 
     // Валидация пароля только если он вводится (обязателен при создании, опционален при редактировании)
     if (formData.password || (!isEditing && !formData.password) ) {
-      if (formData.password !== formData.password_confirmation) {
-        setError('Пароли не совпадают.');
-        return;
-      }
+    if (formData.password !== formData.password_confirmation) {
+      setError('Пароли не совпадают.');
+      return;
+    }
       if (formData.password && formData.password.length < 8) {
-        setError('Пароль должен содержать не менее 8 символов.');
-        return;
+      setError('Пароль должен содержать не менее 8 символов.');
+      return;
       }
     }
 

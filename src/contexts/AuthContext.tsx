@@ -169,8 +169,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setToken(apiToken);
         } else {
           console.log('AuthContext: Токен не получен от сервера ни в хранилище, ни в ответе');
-          throw new Error('Токен не получен от сервера');
-        }
+        throw new Error('Токен не получен от сервера');
+      }
       } else {
         // Обновляем состояние
         console.log('AuthContext: Обновляем состояние с токеном из хранилища');
@@ -223,7 +223,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (response.data?.data?.user) {
         setUser(response.data.data.user as unknown as User);
       } else {
-        await fetchUser();
+      await fetchUser();
       }
     } catch (error) {
       localStorage.removeItem('token');

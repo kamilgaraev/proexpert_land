@@ -12,11 +12,24 @@ declare global {
   }
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://89.111.153.146/api/v1/landing';
+// НОВЫЙ БЛОК ОПРЕДЕЛЕНИЯ URL
+// Глобальная переменная окружения для самого базового URL без каких-либо сегментов пути API.
+// Например: http://89.111.153.146
+const VITE_APP_BASE_DOMAIN = import.meta.env.VITE_APP_BASE_DOMAIN || 'http://89.111.153.146';
 
-// Создаем экземпляр axios с базовым URL и заголовками
+// Базовый путь для всех API v1, включая /landing
+// Результат: http://89.111.153.146/api/v1/landing
+const API_URL = `${VITE_APP_BASE_DOMAIN}/api/v1/landing`;
+
+// URL для эндпоинтов биллинга, который должен быть http://.../api/v1/landing/billing
+// Строится от API_URL (который уже .../landing) добавлением /billing
+const BILLING_API_URL = `${API_URL}/billing`;
+// КОНЕЦ НОВОГО БЛОКА
+
+// Создаем экземпляр axios с базовым URL
+// Этот экземпляр axios используется для старых сервисов, которые ожидают /landing в пути.
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_URL, 
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -766,8 +779,6 @@ export interface ErrorResponse {
   message: string;
   errors?: Record<string, string[]>; // Для ошибок валидации (как в ValidationErrorResponse)
 }
-
-const BILLING_API_URL = `${API_URL}/billing`;
 
 // Вспомогательная функция для логирования запросов и ответов
 async function fetchWithBillingLogging(url: string, options: RequestInit): Promise<Response> {
