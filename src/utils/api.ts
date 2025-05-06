@@ -767,92 +767,126 @@ export interface ErrorResponse {
   errors?: Record<string, string[]>; // Для ошибок валидации (как в ValidationErrorResponse)
 }
 
-const BILLING_API_URL = `${API_URL}/billing`; // Базовый URL для биллинга
+const BILLING_API_URL = `${API_URL}/billing`;
+
+// Вспомогательная функция для логирования запросов и ответов
+async function fetchWithBillingLogging(url: string, options: RequestInit): Promise<Response> {
+  console.log(`[BillingService] Requesting: ${options.method} ${url}`);
+  if (options.headers) {
+    console.log('[BillingService] Request Headers:', JSON.parse(JSON.stringify(options.headers))); // Клонируем для логирования
+  }
+  if (options.body) {
+    console.log('[BillingService] Request Body:', options.body);
+  }
+
+  const response = await fetch(url, options);
+
+  console.log(`[BillingService] Response Status: ${response.status} ${response.statusText} for ${options.method} ${url}`);
+  // Клонируем ответ, чтобы безопасно прочитать тело для лога, а затем снова для JSON
+  const clonedResponse = response.clone();
+  try {
+    const responseBodyText = await clonedResponse.text();
+    console.log('[BillingService] Raw Response Body:', responseBodyText);
+  } catch (e) {
+    console.error('[BillingService] Error reading raw response body for logging:', e);
+  }
+  
+  return response; // Возвращаем оригинальный response для дальнейшей обработки
+}
 
 export const billingService = {
-  // Тарифные планы
   getPlans: async (): Promise<{ data: SubscriptionPlan[], status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const response = await fetch(`${BILLING_API_URL}/plans`, {
+    const url = `${BILLING_API_URL}/plans`;
+    const options: RequestInit = {
       method: 'GET',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-    });
+    };
+    const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    // OpenAPI ожидает массив планов напрямую, а не в data.data
     return { data: responseData as SubscriptionPlan[], status: response.status, statusText: response.statusText }; 
   },
 
-  // Подписки пользователя
-  getCurrentSubscription: async (): Promise<{ data: UserSubscription, status: number, statusText: string }> => {
+  getCurrentSubscription: async (): Promise<{ data: UserSubscription | ErrorResponse, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const response = await fetch(`${BILLING_API_URL}/subscription`, {
+    const url = `${BILLING_API_URL}/subscription`;
+    const options: RequestInit = {
       method: 'GET',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-    });
+    };
+    const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    // OpenAPI ожидает объект подписки напрямую
-    return { data: responseData as UserSubscription, status: response.status, statusText: response.statusText }; 
+    return { data: responseData as UserSubscription | ErrorResponse, status: response.status, statusText: response.statusText };
   },
 
-  subscribeToPlan: async (payload: SubscribeToPlanRequest): Promise<{ data: UserSubscription, status: number, statusText: string }> => {
+  subscribeToPlan: async (payload: SubscribeToPlanRequest): Promise<{ data: UserSubscription | ErrorResponse, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const response = await fetch(`${BILLING_API_URL}/subscription`, {
+    const url = `${BILLING_API_URL}/subscription`;
+    const options: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(payload),
-    });
+    };
+    const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    return { data: responseData as UserSubscription, status: response.status, statusText: response.statusText };
+    return { data: responseData as UserSubscription | ErrorResponse, status: response.status, statusText: response.statusText };
   },
 
-  cancelSubscription: async (payload?: CancelSubscriptionRequest): Promise<{ data: UserSubscription, status: number, statusText: string }> => {
+  cancelSubscription: async (payload?: CancelSubscriptionRequest): Promise<{ data: UserSubscription | ErrorResponse, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const response = await fetch(`${BILLING_API_URL}/subscription/cancel`, {
+    const url = `${BILLING_API_URL}/subscription/cancel`;
+    const options: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(payload || {}), // Отправляем пустой объект, если payload не предоставлен
-    });
+      body: JSON.stringify(payload || {}),
+    };
+    const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    return { data: responseData as UserSubscription, status: response.status, statusText: response.statusText };
+    return { data: responseData as UserSubscription | ErrorResponse, status: response.status, statusText: response.statusText };
   },
 
-  // Баланс
-  getBalance: async (): Promise<{ data: OrganizationBalance, status: number, statusText: string }> => {
+  getBalance: async (): Promise<{ data: OrganizationBalance | ErrorResponse, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const response = await fetch(`${BILLING_API_URL}/balance`, {
+    const url = `${BILLING_API_URL}/balance`;
+    const options: RequestInit = {
       method: 'GET',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-    });
+    };
+    const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    return { data: responseData as OrganizationBalance, status: response.status, statusText: response.statusText };
+    return { data: responseData as OrganizationBalance | ErrorResponse, status: response.status, statusText: response.statusText };
   },
 
-  getBalanceTransactions: async (page: number = 1, limit: number = 15): Promise<{ data: PaginatedBalanceTransactions, status: number, statusText: string }> => {
+  getBalanceTransactions: async (page: number = 1, limit: number = 15): Promise<{ data: PaginatedBalanceTransactions | ErrorResponse, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const response = await fetch(`${BILLING_API_URL}/balance/transactions?page=${page}&limit=${limit}`, {
+    const url = `${BILLING_API_URL}/balance/transactions?page=${page}&limit=${limit}`;
+    const options: RequestInit = {
       method: 'GET',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-    });
+    };
+    const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    return { data: responseData as PaginatedBalanceTransactions, status: response.status, statusText: response.statusText };
+    return { data: responseData as PaginatedBalanceTransactions | ErrorResponse, status: response.status, statusText: response.statusText };
   },
 
-  topUpBalance: async (payload: TopUpBalanceRequest): Promise<{ data: PaymentGatewayChargeResponse, status: number, statusText: string }> => {
+  topUpBalance: async (payload: TopUpBalanceRequest): Promise<{ data: PaymentGatewayChargeResponse | ErrorResponse, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const response = await fetch(`${BILLING_API_URL}/balance/top-up`, {
+    const url = `${BILLING_API_URL}/balance/top-up`;
+    const options: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(payload),
-    });
+    };
+    const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    return { data: responseData as PaymentGatewayChargeResponse, status: response.status, statusText: response.statusText };
+    return { data: responseData as PaymentGatewayChargeResponse | ErrorResponse, status: response.status, statusText: response.statusText };
   },
 };
 
