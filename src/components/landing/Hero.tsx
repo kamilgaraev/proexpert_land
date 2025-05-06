@@ -109,7 +109,7 @@ const Hero = () => {
           <div className="hidden lg:block h-56 w-full lg:h-full">
             <img
               className="h-full w-full object-cover object-center"
-              src="/hero-image.svg"
+              src="/hero-image.png"
               alt="Прораб работает с приложением на стройплощадке"
             />
           </div>
