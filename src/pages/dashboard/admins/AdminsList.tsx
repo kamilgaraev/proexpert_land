@@ -1,61 +1,54 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { UserCircleIcon, XMarkIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { userService } from '../../../utils/api';
 
 interface Admin {
   id: string;
   name: string;
   email: string;
-  role: string;
-  lastActive: string;
+  is_active: boolean;
+  created_at: string;
 }
 
-const mockAdmins: Admin[] = [
-  {
-    id: '1',
-    name: 'Александр Иванов',
-    email: 'ivanov@proexpert.ru',
-    role: 'Главный администратор',
-    lastActive: '2023-11-24'
-  },
-  {
-    id: '2',
-    name: 'Екатерина Смирнова',
-    email: 'smirnova@proexpert.ru',
-    role: 'Администратор',
-    lastActive: '2023-11-23'
-  },
-  {
-    id: '3',
-    name: 'Дмитрий Козлов',
-    email: 'kozlov@proexpert.ru',
-    role: 'Администратор контента',
-    lastActive: '2023-11-20'
-  },
-  {
-    id: '4',
-    name: 'Ольга Петрова',
-    email: 'petrova@proexpert.ru',
-    role: 'Администратор',
-    lastActive: '2023-11-22'
-  },
-  {
-    id: '5',
-    name: 'Михаил Соколов',
-    email: 'sokolov@proexpert.ru',
-    role: 'Администратор поддержки',
-    lastActive: '2023-11-21'
-  }
-];
-
 const AdminsList = () => {
-  const [admins, setAdmins] = useState<Admin[]>(mockAdmins);
+  const [admins, setAdmins] = useState<Admin[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchAdmins = async () => {
+      try {
+        setLoading(true);
+        const response = await userService.getOrganizationUsers();
+        
+        if (response.data && response.data.data && Array.isArray(response.data.data)) {
+          const fetchedAdmins = response.data.data.map((user: any) => ({
+            id: String(user.id),
+            name: user.name,
+            email: user.email,
+            is_active: user.is_active,
+            created_at: user.created_at,
+          }));
+          setAdmins(fetchedAdmins);
+        } else {
+          console.error("Unexpected API response structure:", response);
+          setError("Не удалось получить список администраторов: неверный формат ответа.");
+        }
+      } catch (err) {
+        console.error("Error fetching admins:", err);
+        setError("Ошибка при загрузке администраторов.");
+      }
+      setLoading(false);
+    };
+
+    fetchAdmins();
+  }, []);
   
   const filteredAdmins = admins.filter(admin => 
     admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    admin.role.toLowerCase().includes(searchTerm.toLowerCase())
+    admin.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
   const handleDeleteAdmin = (id: string) => {
@@ -63,6 +56,14 @@ const AdminsList = () => {
       setAdmins(prevAdmins => prevAdmins.filter(admin => admin.id !== id));
     }
   };
+  
+  if (loading) {
+    return <div className="container mx-auto px-4 py-6 text-center">Загрузка администраторов...</div>;
+  }
+
+  if (error) {
+    return <div className="container mx-auto px-4 py-6 text-center text-red-500">{error}</div>;
+  }
   
   return (
     <div className="container mx-auto px-4 py-6">
@@ -96,10 +97,10 @@ const AdminsList = () => {
                   Администратор
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Роль
+                  Статус
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Последняя активность
+                  Дата создания
                 </th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Действия
@@ -124,10 +125,12 @@ const AdminsList = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{admin.role}</div>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${admin.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {admin.is_active ? 'Активен' : 'Неактивен'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{new Date(admin.lastActive).toLocaleDateString('ru-RU')}</div>
+                      <div className="text-sm text-gray-900">{new Date(admin.created_at).toLocaleDateString('ru-RU')}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
