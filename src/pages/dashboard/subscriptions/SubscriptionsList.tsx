@@ -191,7 +191,10 @@ const SubscriptionsPage = () => {
                     </p>
                     <p className="text-sm text-gray-600 min-h-[40px]">{plan.description || 'Базовый набор функций для начала работы.'}</p>
                     <ul className="space-y-1 pt-2">
-                      {plan.features.map((feature, index) => <PlanFeature key={index}>{feature}</PlanFeature>)}
+                      {plan.features && Array.isArray(plan.features) 
+                        ? plan.features.map((feature, index) => <PlanFeature key={index}>{feature}</PlanFeature>) 
+                        : <PlanFeature>Основные возможности</PlanFeature>
+                      }
                       {plan.max_foremen !== null && <PlanFeature>Прорабы: {plan.max_foremen ?? 'Без ограничений'}</PlanFeature>}
                       {plan.max_projects !== null && <PlanFeature>Проекты: {plan.max_projects ?? 'Без ограничений'}</PlanFeature>}
                       {plan.max_storage_gb !== null && <PlanFeature>Хранилище: {plan.max_storage_gb} ГБ</PlanFeature>}
