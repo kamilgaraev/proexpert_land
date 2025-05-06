@@ -368,7 +368,7 @@ export const userService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/users`, {
+    const response = await fetch(`http://89.111.153.146/api/v1/landing/adminPaneUsers`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

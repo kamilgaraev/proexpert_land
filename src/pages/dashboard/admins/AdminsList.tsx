@@ -21,9 +21,13 @@ const AdminsList = () => {
     const fetchAdmins = async () => {
       try {
         setLoading(true);
+        setError(null);
+        console.log('[AdminsList] Fetching admins...');
         const response = await userService.getOrganizationUsers();
+        console.log('[AdminsList] Response from userService:', response);
         
-        if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        if (response && response.data && response.data.data && Array.isArray(response.data.data)) {
+          console.log('[AdminsList] Data from API (response.data.data):', response.data.data);
           const fetchedAdmins = response.data.data.map((user: any) => ({
             id: String(user.id),
             name: user.name,
@@ -31,14 +35,18 @@ const AdminsList = () => {
             is_active: user.is_active,
             created_at: user.created_at,
           }));
+          console.log('[AdminsList] Mapped admins (fetchedAdmins):', fetchedAdmins);
           setAdmins(fetchedAdmins);
+          if (fetchedAdmins.length === 0) {
+            console.log('[AdminsList] No admins found in the response, but the structure was correct.');
+          }
         } else {
-          console.error("Unexpected API response structure:", response);
-          setError("Не удалось получить список администраторов: неверный формат ответа.");
+          console.error("[AdminsList] Unexpected API response structure from userService:", response);
+          setError("Не удалось получить список администраторов: неверный формат ответа от сервиса.");
         }
-      } catch (err) {
-        console.error("Error fetching admins:", err);
-        setError("Ошибка при загрузке администраторов.");
+      } catch (err: any) {
+        console.error("[AdminsList] Error fetching admins:", err);
+        setError(`Ошибка при загрузке администраторов: ${err.message || 'Неизвестная ошибка'}`);
       }
       setLoading(false);
     };
@@ -50,6 +58,10 @@ const AdminsList = () => {
     admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     admin.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  console.log('[AdminsList] Admins in state:', admins);
+  console.log('[AdminsList] Search term:', searchTerm);
+  console.log('[AdminsList] Filtered admins:', filteredAdmins);
   
   const handleDeleteAdmin = (id: string) => {
     if (window.confirm('Вы уверены, что хотите удалить этого администратора?')) {
