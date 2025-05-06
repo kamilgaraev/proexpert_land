@@ -665,4 +665,195 @@ export const adminPanelUserService = {
   },
 };
 
+// Интерфейсы для Billing API на основе billing_openapi.yaml
+
+export interface SubscriptionPlan {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  price: number;
+  currency: string;
+  duration_in_days: number;
+  max_foremen?: number | null;
+  max_projects?: number | null;
+  max_storage_gb?: number | null;
+  features: string[];
+  display_order: number;
+}
+
+export interface UserSubscription {
+  id: number;
+  status: string; // e.g., trial, active, pending_payment, past_due, canceled, expired, incomplete
+  trial_ends_at?: string | null; // ISO DateTime
+  starts_at?: string | null; // ISO DateTime
+  ends_at?: string | null; // ISO DateTime
+  next_billing_at?: string | null; // ISO DateTime
+  canceled_at?: string | null; // ISO DateTime
+  is_active_now: boolean;
+  plan: SubscriptionPlan;
+  payment_gateway_subscription_id?: string | null;
+}
+
+export interface OrganizationBalance {
+  organization_id: number;
+  balance_cents: number;
+  balance_formatted: string;
+  currency: string;
+  updated_at: string; // ISO DateTime
+}
+
+export interface BalanceTransaction {
+  id: number;
+  type: 'credit' | 'debit';
+  amount_cents: number;
+  amount_formatted: string;
+  balance_before_cents: number;
+  balance_after_cents: number;
+  description?: string | null;
+  payment_id?: number | null;
+  user_subscription_id?: number | null;
+  meta?: object | null;
+  created_at: string; // ISO DateTime
+}
+
+export interface PaginatedBalanceTransactions {
+  data: BalanceTransaction[];
+  links: {
+    first?: string | null;
+    last?: string | null;
+    prev?: string | null;
+    next?: string | null;
+  };
+  meta: {
+    current_page: number;
+    from?: number | null;
+    last_page: number;
+    path: string;
+    per_page: number;
+    to?: number | null;
+    total: number;
+  };
+}
+
+export interface PaymentGatewayChargeResponse {
+  success: boolean;
+  chargeId?: string | null;
+  status: string; // e.g., succeeded, pending, failed
+  message?: string | null;
+  redirectUrl?: string | null;
+  gatewaySpecificResponse?: object | null;
+}
+
+// Запросы
+export interface SubscribeToPlanRequest {
+  plan_slug: string;
+  payment_method_token?: string | null;
+}
+
+export interface CancelSubscriptionRequest {
+  at_period_end?: boolean;
+}
+
+export interface TopUpBalanceRequest {
+  amount: number; // Сумма в основной валюте
+  currency: string; // e.g., RUB
+  payment_method_token: string;
+}
+
+// Общий интерфейс для ошибок API (на основе ErrorResponse из OpenAPI)
+export interface ErrorResponse {
+  message: string;
+  errors?: Record<string, string[]>; // Для ошибок валидации (как в ValidationErrorResponse)
+}
+
+const BILLING_API_URL = `${API_URL}/billing`; // Базовый URL для биллинга
+
+export const billingService = {
+  // Тарифные планы
+  getPlans: async (): Promise<{ data: SubscriptionPlan[], status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const response = await fetch(`${BILLING_API_URL}/plans`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+    });
+    const responseData = await response.json();
+    // OpenAPI ожидает массив планов напрямую, а не в data.data
+    return { data: responseData as SubscriptionPlan[], status: response.status, statusText: response.statusText }; 
+  },
+
+  // Подписки пользователя
+  getCurrentSubscription: async (): Promise<{ data: UserSubscription, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const response = await fetch(`${BILLING_API_URL}/subscription`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+    });
+    const responseData = await response.json();
+    // OpenAPI ожидает объект подписки напрямую
+    return { data: responseData as UserSubscription, status: response.status, statusText: response.statusText }; 
+  },
+
+  subscribeToPlan: async (payload: SubscribeToPlanRequest): Promise<{ data: UserSubscription, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const response = await fetch(`${BILLING_API_URL}/subscription`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    });
+    const responseData = await response.json();
+    return { data: responseData as UserSubscription, status: response.status, statusText: response.statusText };
+  },
+
+  cancelSubscription: async (payload?: CancelSubscriptionRequest): Promise<{ data: UserSubscription, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const response = await fetch(`${BILLING_API_URL}/subscription/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(payload || {}), // Отправляем пустой объект, если payload не предоставлен
+    });
+    const responseData = await response.json();
+    return { data: responseData as UserSubscription, status: response.status, statusText: response.statusText };
+  },
+
+  // Баланс
+  getBalance: async (): Promise<{ data: OrganizationBalance, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const response = await fetch(`${BILLING_API_URL}/balance`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+    });
+    const responseData = await response.json();
+    return { data: responseData as OrganizationBalance, status: response.status, statusText: response.statusText };
+  },
+
+  getBalanceTransactions: async (page: number = 1, limit: number = 15): Promise<{ data: PaginatedBalanceTransactions, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const response = await fetch(`${BILLING_API_URL}/balance/transactions?page=${page}&limit=${limit}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+    });
+    const responseData = await response.json();
+    return { data: responseData as PaginatedBalanceTransactions, status: response.status, statusText: response.statusText };
+  },
+
+  topUpBalance: async (payload: TopUpBalanceRequest): Promise<{ data: PaymentGatewayChargeResponse, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const response = await fetch(`${BILLING_API_URL}/balance/top-up`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    });
+    const responseData = await response.json();
+    return { data: responseData as PaymentGatewayChargeResponse, status: response.status, statusText: response.statusText };
+  },
+};
+
 export default api; 

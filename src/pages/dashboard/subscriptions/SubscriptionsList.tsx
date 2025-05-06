@@ -1,256 +1,218 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { billingService, UserSubscription, SubscriptionPlan, SubscribeToPlanRequest, ErrorResponse } from '@utils/api';
+import { CheckCircleIcon, XCircleIcon, InformationCircleIcon, ShoppingCartIcon, NoSymbolIcon } from '@heroicons/react/24/outline';
+import { PageLoading } from '@components/common/PageLoading'; // Предполагаем наличие компонента-заглушки
 
-interface Subscription {
-  id: number;
-  plan_name: string;
-  status: string;
-  start_date: string;
-  end_date: string;
-  price: number;
-  billing_period: string;
-  auto_renew: boolean;
-  features: string[];
-}
+// Вспомогательный компонент для отображения деталей плана
+const PlanFeature = ({ children }: { children: React.ReactNode }) => (
+  <li className="flex items-center space-x-2">
+    <CheckCircleIcon className="h-5 w-5 text-green-500 flex-shrink-0" />
+    <span className="text-sm text-gray-700">{children}</span>
+  </li>
+);
 
-const SubscriptionsList: React.FC = () => {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error] = useState<string | null>(null);
+const SubscriptionsPage = () => {
+  const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [loadingSubscription, setLoadingSubscription] = useState<boolean>(true);
+  const [loadingPlans, setLoadingPlans] = useState<boolean>(true);
+  const [errorSubscription, setErrorSubscription] = useState<string | null>(null);
+  const [errorPlans, setErrorPlans] = useState<string | null>(null);
+  const [actionInProgress, setActionInProgress] = useState<string | null>(null); // Для отслеживания slug плана при подписке/отмене
 
-  useEffect(() => {
-    const fetchSubscriptions = async () => {
-      try {
-        // Убираем ненужный запрос к организациям
-        // В будущем здесь должен быть прямой запрос к API подписок
-        
-        // В качестве примера используем мок-данные, пока нет реального API для подписок
-        const mockSubscriptions: Subscription[] = [
-          {
-            id: 1,
-            plan_name: 'Базовый',
-            status: 'Активна',
-            start_date: '15.03.2023',
-            end_date: '15.03.2024',
-            price: 1990,
-            billing_period: 'Ежемесячно',
-            auto_renew: true,
-            features: [
-              'До 5 проектов',
-              'До 10 пользователей',
-              'Базовая отчетность',
-              'Техническая поддержка',
-            ],
-          },
-          {
-            id: 2,
-            plan_name: 'Корпоративный',
-            status: 'Ожидает оплаты',
-            start_date: '15.03.2024',
-            end_date: '15.03.2025',
-            price: 4990,
-            billing_period: 'Ежемесячно',
-            auto_renew: false,
-            features: [
-              'Неограниченное количество проектов',
-              'До 50 пользователей',
-              'Расширенная отчетность',
-              'Приоритетная техническая поддержка',
-              'API-интеграция',
-              'Персональный менеджер',
-            ],
-          },
-        ];
-        
-        // В будущем здесь будет реальный запрос к API подписок
-        // const response = await subscriptionService.getSubscriptions();
-        // const subscriptionsData = response.data.data.subscriptions;
-        
-        setSubscriptions(mockSubscriptions);
-      } catch (err) {
-        console.error('Ошибка при загрузке подписок:', err);
-      } finally {
-        setIsLoading(false);
+  const fetchSubscriptionAndPlans = useCallback(async () => {
+    setLoadingSubscription(true);
+    setLoadingPlans(true);
+    setErrorSubscription(null);
+    setErrorPlans(null);
+
+    try {
+      const subResponse = await billingService.getCurrentSubscription();
+      if (subResponse.status === 200) {
+        setCurrentSubscription(subResponse.data as UserSubscription);
+      } else if (subResponse.status === 404) {
+        setCurrentSubscription(null);
+      } else {
+        const errorData = subResponse.data as unknown as ErrorResponse; 
+        throw new Error(errorData?.message || `Ошибка ${subResponse.status}: ${subResponse.statusText}`);
       }
-    };
-    
-    fetchSubscriptions();
+    } catch (err: any) {
+      console.error("Error fetching current subscription:", err);
+      setErrorSubscription(err.message || 'Не удалось загрузить текущую подписку.');
+      setCurrentSubscription(null);
+    } finally {
+      setLoadingSubscription(false);
+    }
+
+    try {
+      const plansResponse = await billingService.getPlans();
+      setPlans((plansResponse.data as SubscriptionPlan[]) || []);
+    } catch (err: any) {
+      console.error("Error fetching plans:", err);
+      setErrorPlans(err.message || 'Не удалось загрузить тарифные планы.');
+    } finally {
+      setLoadingPlans(false);
+    }
   }, []);
 
-  const getStatusBadgeClass = (status: string): string => {
-    switch (status) {
-      case 'Активна':
-        return 'bg-green-100 text-green-800';
-      case 'Ожидает оплаты':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Приостановлена':
-        return 'bg-red-100 text-red-800';
-      case 'Отменена':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-blue-100 text-blue-800';
+  useEffect(() => {
+    fetchSubscriptionAndPlans();
+  }, [fetchSubscriptionAndPlans]);
+
+  const handleSubscribe = async (planSlug: string) => {
+    setActionInProgress(planSlug);
+    setErrorSubscription(null);
+    try {
+      const payload: SubscribeToPlanRequest = { plan_slug: planSlug };
+      const response = await billingService.subscribeToPlan(payload);
+      if (response.status === 201 || response.status === 200) { 
+         setCurrentSubscription(response.data as UserSubscription);
+      } else {
+        const errorData = response.data as unknown as ErrorResponse;
+        throw new Error(errorData?.message || `Ошибка ${response.status}: ${response.statusText}`);
+      }
+    } catch (err: any) {
+      console.error(`Error subscribing to plan ${planSlug}:`, err);
+      setErrorSubscription(err.message || `Не удалось подписаться на план ${planSlug}.`);
+    } finally {
+      setActionInProgress(null);
     }
   };
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-full">Загрузка...</div>;
-  }
+  const handleCancelSubscription = async () => {
+    if (!currentSubscription) return;
+    setActionInProgress('cancel_current');
+    setErrorSubscription(null);
+    try {
+      const response = await billingService.cancelSubscription({ at_period_end: true });
+      if (response.status === 200) {
+        setCurrentSubscription(response.data as UserSubscription);
+      } else {
+         const errorData = response.data as unknown as ErrorResponse;
+        throw new Error(errorData?.message || `Ошибка ${response.status}: ${response.statusText}`);
+      }
+    } catch (err: any) {
+      console.error("Error canceling subscription:", err);
+      setErrorSubscription(err.message || 'Не удалось отменить подписку.');
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+  
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return 'Н/Д';
+    return new Date(dateString).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
 
-  if (error) {
-    return <div className="text-red-500">Ошибка: {error}</div>;
+  if (loadingSubscription || loadingPlans) {
+    return <PageLoading message="Загрузка информации о подписках и планах..." />;
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Управление подписками</h1>
-        <Link to="/dashboard/subscriptions/new" className="btn btn-primary">
-          Подключить новый тариф
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {subscriptions.map((subscription) => (
-          <div
-            key={subscription.id}
-            className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200"
-          >
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">{subscription.plan_name}</h2>
-                  <p className="text-gray-500 text-sm">
-                    Тариф: {subscription.billing_period} - {subscription.price} ₽
-                  </p>
-                </div>
-                <span
-                  className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(
-                    subscription.status
-                  )}`}
-                >
-                  {subscription.status}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <span className="block text-sm text-gray-500">Начало:</span>
-                  <span className="font-medium">{subscription.start_date}</span>
-                </div>
-                <div>
-                  <span className="block text-sm text-gray-500">Окончание:</span>
-                  <span className="font-medium">{subscription.end_date}</span>
-                </div>
-                <div>
-                  <span className="block text-sm text-gray-500">Автопродление:</span>
-                  <span className="font-medium">
-                    {subscription.auto_renew ? 'Включено' : 'Отключено'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Включено в тариф:</h3>
-                <ul className="space-y-1">
-                  {subscription.features.map((feature, index) => (
-                    <li key={index} className="flex items-start text-sm">
-                      <svg
-                        className="h-5 w-5 text-green-500 mr-2 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M5 13l4 4L19 7"
-                        ></path>
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="flex flex-wrap justify-between space-y-2 sm:space-y-0">
-                {subscription.status === 'Активна' && (
-                  <button
-                    className="text-red-600 hover:text-red-800 text-sm font-medium"
-                    onClick={() => {
-                      if (window.confirm('Вы уверены, что хотите отменить подписку?')) {
-                        console.log('Отмена подписки', subscription.id);
-                        // Здесь будет API запрос на отмену подписки
-                      }
-                    }}
-                  >
-                    Отменить подписку
-                  </button>
-                )}
-                {subscription.status === 'Ожидает оплаты' && (
-                  <button 
-                    className="btn btn-primary text-sm" 
-                    onClick={() => {
-                      console.log('Оплата подписки', subscription.id);
-                      // Здесь будет API запрос на оплату подписки
-                    }}
-                  >
-                    Оплатить сейчас
-                  </button>
-                )}
-                <Link
-                  to={`/dashboard/subscriptions/${subscription.id}`}
-                  className="text-primary-600 hover:text-primary-800 text-sm font-medium"
-                >
-                  Подробнее
-                </Link>
-                <button
-                  className={`text-sm font-medium ${
-                    subscription.auto_renew
-                      ? 'text-orange-600 hover:text-orange-800'
-                      : 'text-green-600 hover:text-green-800'
-                  }`}
-                  onClick={() => {
-                    console.log('Переключение автопродления', subscription.id);
-                    // Здесь будет API запрос на переключение автопродления
-                  }}
-                >
-                  {subscription.auto_renew ? 'Отключить автопродление' : 'Включить автопродление'}
-                </button>
+    <div className="container mx-auto px-4 py-8 space-y-12">
+      {/* Секция текущей подписки */}
+      <section className="bg-white shadow-lg rounded-xl p-6 md:p-8">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Текущая подписка</h2>
+        {errorSubscription && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md flex items-start">
+            <XCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+            <p>{errorSubscription}</p>
+          </div>
+        )}
+        {currentSubscription && currentSubscription.plan ? (
+          <div className="space-y-4">
+            <div className="p-6 rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md">
+              <h3 className="text-xl font-bold">{currentSubscription.plan.name}</h3>
+              <p className="text-sm opacity-90">{currentSubscription.plan.description}</p>
+              <div className="mt-3 text-xs">
+                <p>Статус: <span className="font-semibold capitalize">{currentSubscription.status}</span> {currentSubscription.is_active_now ? <CheckCircleIcon className="h-4 w-4 inline text-green-300" /> : <XCircleIcon className="h-4 w-4 inline text-red-300" />}</p>
+                {currentSubscription.trial_ends_at && <p>Пробный период до: {formatDate(currentSubscription.trial_ends_at)}</p>}
+                {currentSubscription.starts_at && <p>Начало: {formatDate(currentSubscription.starts_at)}</p>}
+                {currentSubscription.ends_at && <p>Окончание: {formatDate(currentSubscription.ends_at)}</p>}
+                {currentSubscription.next_billing_at && <p>Следующий платеж: {formatDate(currentSubscription.next_billing_at)}</p>}
+                {currentSubscription.canceled_at && <p className="text-yellow-300">Отменена: {formatDate(currentSubscription.canceled_at)} (будет действовать до {formatDate(currentSubscription.ends_at)})</p>}
               </div>
             </div>
+            
+            {currentSubscription.status === 'active' && !currentSubscription.canceled_at && (
+              <button
+                onClick={handleCancelSubscription}
+                disabled={actionInProgress === 'cancel_current'}
+                className="w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+              >
+                <NoSymbolIcon className="h-5 w-5 mr-2" />
+                {actionInProgress === 'cancel_current' ? 'Отменяем...' : 'Отменить подписку'}
+              </button>
+            )}
+             {currentSubscription.status !== 'active' && currentSubscription.status !== 'trial' && (
+                 <p className="mt-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-md text-sm flex items-start">
+                    <InformationCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+                    <span>Ваша подписка не активна. Пожалуйста, выберите один из планов ниже.</span>
+                </p>
+             )}
           </div>
-        ))}
-      </div>
+        ) : (
+          !errorSubscription && !loadingSubscription && <p className="text-gray-600">У вас нет активной подписки.</p> // Добавил !loadingSubscription
+        )}
+      </section>
 
-      {subscriptions.length === 0 && (
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">У вас пока нет подписок</h2>
-          <p className="text-gray-500 mb-6">
-            Выберите подходящий тариф, чтобы начать пользоваться всеми возможностями системы
-          </p>
-          <Link to="/dashboard/subscriptions/plans" className="btn btn-primary">
-            Выбрать тариф
-          </Link>
-        </div>
-      )}
-
-      <div className="mt-8 bg-blue-50 rounded-lg p-4 border border-blue-200">
-        <h3 className="text-lg font-semibold text-blue-800 mb-2">Справка по тарифам</h3>
-        <p className="text-blue-700 mb-2">
-          Если у вас возникли вопросы по тарифам или вам нужен индивидуальный тариф, свяжитесь с
-          нашим отделом продаж.
-        </p>
-        <a href="mailto:sales@proexpert.ru" className="text-blue-600 hover:text-blue-800 font-medium">
-          sales@proexpert.ru
-        </a>
-        <span className="mx-2 text-blue-400">|</span>
-        <a href="tel:+78001234567" className="text-blue-600 hover:text-blue-800 font-medium">
-          8 (800) 123-45-67
-        </a>
-      </div>
+      {/* Секция доступных планов */}
+      <section>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-8 text-center">Доступные тарифные планы</h2>
+        {errorPlans && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md flex items-start">
+            <XCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+            <p>{errorPlans}</p>
+          </div>
+        )}
+        {plans.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {plans.sort((a, b) => a.display_order - b.display_order).map((plan) => {
+              const isCurrentPlan = currentSubscription?.plan?.id === plan.id && currentSubscription?.status === 'active';
+              const isSubscribingToThis = actionInProgress === plan.slug;
+              return (
+                <div key={plan.slug} className={`bg-white rounded-xl shadow-lg p-6 flex flex-col ${isCurrentPlan ? 'ring-2 ring-primary-500' : 'border border-gray-200'}`}>
+                  <div className="flex-grow space-y-3">
+                    <h3 className="text-xl font-semibold text-gray-800">{plan.name}</h3>
+                    <p className="text-2xl font-bold text-primary-600">
+                      {plan.price.toLocaleString('ru-RU', { style: 'currency', currency: plan.currency, minimumFractionDigits: 0 })}
+                      <span className="text-sm font-normal text-gray-500"> / {plan.duration_in_days === 30 ? 'месяц' : `${plan.duration_in_days} дней`}</span>
+                    </p>
+                    <p className="text-sm text-gray-600 min-h-[40px]">{plan.description || 'Базовый набор функций для начала работы.'}</p>
+                    <ul className="space-y-1 pt-2">
+                      {plan.features.map((feature, index) => <PlanFeature key={index}>{feature}</PlanFeature>)}
+                      {plan.max_foremen !== null && <PlanFeature>Прорабы: {plan.max_foremen ?? 'Без ограничений'}</PlanFeature>}
+                      {plan.max_projects !== null && <PlanFeature>Проекты: {plan.max_projects ?? 'Без ограничений'}</PlanFeature>}
+                      {plan.max_storage_gb !== null && <PlanFeature>Хранилище: {plan.max_storage_gb} ГБ</PlanFeature>}
+                    </ul>
+                  </div>
+                  <div className="mt-6">
+                    {isCurrentPlan ? (
+                      <div className="flex items-center justify-center px-6 py-3 border border-green-500 rounded-md text-green-600 font-medium">
+                        <CheckCircleIcon className="h-5 w-5 mr-2" />
+                        Ваш текущий план
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleSubscribe(plan.slug)}
+                        disabled={!!actionInProgress || currentSubscription?.status === 'active' || currentSubscription?.status === 'trial'}
+                        className="w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ShoppingCartIcon className="h-5 w-5 mr-2" />
+                        {isSubscribingToThis ? 'Обработка...' : 'Выбрать план'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+           !errorPlans && !loadingPlans && <p className="text-center text-gray-600">Тарифные планы не найдены.</p> // Добавил !loadingPlans
+        )}
+      </section>
     </div>
   );
 };
 
-export default SubscriptionsList; 
+export default SubscriptionsPage; 
