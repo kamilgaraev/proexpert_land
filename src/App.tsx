@@ -36,7 +36,6 @@ function App() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="help" element={<HelpPage />} />
         <Route path="support" element={<SupportPage />} />
-        <Route path="admins" element={<AdminsPage />} />
         
         {/* Маршруты управления организацией */}
         <Route path="billing" element={<BillingPage />} />
