@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { UserCircleIcon, XMarkIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { userService } from '../../../utils/api';
 
+console.log('[AdminsList] Component importing/rendering... (top level)');
+
 interface Admin {
   id: string;
   name: string;
@@ -12,13 +14,16 @@ interface Admin {
 }
 
 const AdminsList = () => {
+  console.log('[AdminsList] Component function body executing...');
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
+    console.log('[AdminsList] useEffect triggered.');
     const fetchAdmins = async () => {
+      console.log('[AdminsList] fetchAdmins async function started.');
       try {
         setLoading(true);
         setError(null);
@@ -49,10 +54,14 @@ const AdminsList = () => {
         setError(`Ошибка при загрузке администраторов: ${err.message || 'Неизвестная ошибка'}`);
       }
       setLoading(false);
+      console.log('[AdminsList] setLoading(false) executed. Current loading state should be false.');
     };
 
     fetchAdmins();
+    console.log('[AdminsList] fetchAdmins() called within useEffect.');
   }, []);
+  
+  console.log('[AdminsList] States after useEffect declaration: admins, searchTerm, loading, error', admins, searchTerm, loading, error);
   
   const filteredAdmins = admins.filter(admin => 
     admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
