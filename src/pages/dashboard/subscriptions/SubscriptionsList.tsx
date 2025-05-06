@@ -46,10 +46,21 @@ const SubscriptionsPage = () => {
 
     try {
       const plansResponse = await billingService.getPlans();
-      setPlans((plansResponse.data as SubscriptionPlan[]) || []);
+      if (plansResponse.status === 200 && Array.isArray(plansResponse.data)) {
+        setPlans(plansResponse.data as SubscriptionPlan[]);
+      } else if (plansResponse.status !== 200 && plansResponse.data && typeof plansResponse.data === 'object' && 'message' in plansResponse.data) {
+        console.error("Error fetching plans (API error object received):", (plansResponse.data as ErrorResponse).message);
+        setErrorPlans((plansResponse.data as ErrorResponse).message || 'Не удалось загрузить тарифные планы (ошибка API).');
+        setPlans([]);
+      } else {
+        console.error("Error fetching plans (unexpected structure or non-array data):", plansResponse.data);
+        setErrorPlans('Не удалось загрузить тарифные планы (неверный формат ответа).');
+        setPlans([]);
+      }
     } catch (err: any) {
-      console.error("Error fetching plans:", err);
-      setErrorPlans(err.message || 'Не удалось загрузить тарифные планы.');
+      console.error("Error fetching plans (network/other error):", err);
+      setErrorPlans(err.message || 'Не удалось загрузить тарифные планы (ошибка сети).');
+      setPlans([]);
     } finally {
       setLoadingPlans(false);
     }
