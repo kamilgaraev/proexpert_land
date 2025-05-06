@@ -2,7 +2,6 @@ import { Fragment, useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Bars3Icon, 
-  BellIcon,
   XMarkIcon, 
   HomeIcon, 
   ArrowLeftOnRectangleIcon,
@@ -12,8 +11,6 @@ import {
   ShieldCheckIcon,
   TicketIcon,
   WalletIcon,
-  UsersIcon,
-  DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
 import { Menu, Transition } from '@headlessui/react';
@@ -21,7 +18,7 @@ import { classNames } from '@utils/classNames';
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
