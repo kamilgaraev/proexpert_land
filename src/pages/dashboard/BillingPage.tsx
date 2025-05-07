@@ -25,6 +25,7 @@ const BillingPage = () => {
       const response = await billingService.getBalance();
       if (response.status === 200) {
         setBalance(response.data as OrganizationBalance);
+        console.log('Balance data from API:', response.data);
       } else {
         const errorData = response.data as unknown as ErrorResponse;
         throw new Error(errorData?.message || `Ошибка ${response.status}: ${response.statusText}`);
@@ -82,7 +83,8 @@ const BillingPage = () => {
 
       if (response.status === 200 && responseData.success) {
         if (responseData.redirectUrl) {
-          // Редирект на страницу оплаты платежного шлюза
+          console.log('Top-up response data:', responseData);
+          console.log('Redirecting to:', responseData.redirectUrl);
           window.location.href = responseData.redirectUrl;
         } else {
           // Если редиректа нет, предполагаем, что оплата прошла или требует подтверждения
