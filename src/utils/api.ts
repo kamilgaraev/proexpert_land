@@ -103,28 +103,43 @@ api.interceptors.request.use((config: any) => {
 api.interceptors.response.use(
   (response: any) => response,
   async (error: any) => {
+    const originalRequest = error.config;
     // Обработка ошибки 401 (Unauthorized)
-    if (error.response?.status === 401) {
+    // Добавляем проверку, чтобы не попасть в цикл, если сам /auth/refresh вернул 401
+    if (error.response?.status === 401 && originalRequest.url !== '/auth/refresh') {
       // Попытка обновить токен
       try {
-        const refreshResponse = await api.post('/auth/refresh');
-        const token = (refreshResponse.data as any).token;
+        console.log('Attempting to refresh token...'); // Добавим лог
+        const refreshResponse = await api.post('/auth/refresh'); // Предполагается, что refresh-токен обрабатывается бэкендом через httpOnly cookie или сессию
+        const token = (refreshResponse.data as any).token; // ВАЖНО: Убедитесь, что API /auth/refresh возвращает access_token в поле token
         
-        // Сохраняем новый токен
+        if (!token) {
+            console.error('Refresh response did not contain a token.');
+            clearTokenFromStorages();
+            window.location.href = '/login'; // Или другой обработчик, например, показать модальное окно
+            return Promise.reject(new Error('Refresh response did not contain a token.'));
+        }
+
         saveTokenToMultipleStorages(token);
+        console.log('Token refreshed successfully.');
         
         // Повторяем оригинальный запрос с новым токеном
-        const originalRequest = error.config;
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${token}`;
         }
         return api(originalRequest);
-      } catch (refreshError) {
-        // Если не удалось обновить токен - разлогиниваем пользователя
+      } catch (refreshError: any) {
+        console.error('Failed to refresh token:', refreshError.response?.data || refreshError.message);
         clearTokenFromStorages();
-        window.location.href = '/login';
+        window.location.href = '/login'; // Или другой обработчик
         return Promise.reject(refreshError);
       }
+    } else if (error.response?.status === 401 && originalRequest.url === '/auth/refresh') {
+      // Если /auth/refresh сам вернул 401, значит refresh token невалиден или истек
+      console.error('Refresh token is invalid or expired. Logging out.');
+      clearTokenFromStorages();
+      window.location.href = '/login'; // Или другой обработчик
+      return Promise.reject(error); // Важно отклонить промис, чтобы вызывающий код мог обработать ошибку
     }
     
     return Promise.reject(error);
