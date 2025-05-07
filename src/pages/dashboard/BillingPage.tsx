@@ -89,18 +89,15 @@ const BillingPage = () => {
 
       if (response.status === 200 && responseData.success) {
         if (responseData.redirectUrl) {
-          console.log('Top-up response data:', responseData);
-          console.log('Redirecting to:', responseData.redirectUrl);
-          window.location.href = responseData.redirectUrl;
+          console.log('Top-up response included a redirectUrl (now ignored):', responseData.redirectUrl);
+          alert(responseData.message || 'Запрос на пополнение инициирован (перенаправление проигнорировано). Баланс скоро обновится.');
         } else {
-          // Если редиректа нет, предполагаем, что оплата прошла или требует подтверждения
-          // Обновляем баланс и транзакции
           alert(responseData.message || 'Запрос на пополнение успешно отправлен! Баланс скоро обновится.');
-          setTopUpAmount(''); 
-          fetchBalance(); 
-          fetchTransactions(1); // Возвращаемся на первую страницу транзакций
-          setCurrentPage(1);
         }
+        setTopUpAmount(''); 
+        fetchBalance(); 
+        fetchTransactions(1); // Возвращаемся на первую страницу транзакций
+        setCurrentPage(1);
       } else {
         const errorData = response.data as unknown as ErrorResponse; // Может быть и PaymentGatewayChargeResponse с success: false
         throw new Error(errorData?.message || responseData.message || `Ошибка ${response.status}: ${response.statusText}`);
