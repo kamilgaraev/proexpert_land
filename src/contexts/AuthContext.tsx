@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { authService, RegisterRequest, LandingUser } from '@utils/api';
 
 // Импортирую глобальные функции работы с токеном
@@ -112,27 +112,79 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  // Определяем fetchUser с useCallback до useEffect, который его использует
+  const fetchUser = useCallback(async () => {
+    // Используем token из замыкания useCallback или получаем актуальный, если нужно
+    // Но т.к. fetchUser будет в зависимостях у другого useEffect, который следит за token,
+    // то при изменении token, fetchUser пересоздастся и useEffect вызовется с актуальной версией.
+    const currentToken = window.getTokenFromStorages ? window.getTokenFromStorages() : localStorage.getItem('token');
+    if (!currentToken) {
+        console.log('[AuthContext] fetchUser: No token, cannot fetch.');
+        // setUser(null); // Возможно, стоит сбросить пользователя, если токена нет
+        // setIsLoading(false);
+        return;
+    }
+    
+    console.log('[AuthContext] fetchUser: Attempting to get current user with token:', currentToken);
+    try {
+      const response = await authService.getCurrentUser(); // getCurrentUser уже использует getTokenFromStorages()
+      
+      if (response.data?.data?.user) {
+        setUser(response.data.data.user as unknown as User);
+        console.log('[AuthContext] fetchUser: User data set.', response.data.data.user);
+      } else {
+        console.error('[AuthContext] fetchUser: User data not found in response.', response.data);
+        // Если данные пользователя не получены, но токен был, это может быть ошибкой
+        // Можно вызвать logout() или специфическую обработку ошибки
+        // logout(); 
+        throw new Error('Данные пользователя не получены от сервера, хотя токен присутствовал.');
+      }
+    } catch (error) {
+      console.error('[AuthContext] fetchUser: Error fetching user:', error);
+      // Важно пробросить ошибку, чтобы useEffect мог ее обработать (например, вызвать logout)
+      throw error; 
+    }
+  }, []); // Зависимостей нет, т.к. token читается внутри из хранилища, а authService стабилен
+
   // Проверяем авторизацию при загрузке
   useEffect(() => {
+    console.log('[AuthContext] useEffect for token check triggered. Current token state:', token);
     const checkAuth = async () => {
-      const currentToken = window.getTokenFromStorages ? window.getTokenFromStorages() : localStorage.getItem('token');
+      const currentTokenFromStorage = window.getTokenFromStorages ? window.getTokenFromStorages() : localStorage.getItem('token');
+      console.log('[AuthContext] Token from storage inside checkAuth:', currentTokenFromStorage);
       
-      if (currentToken) {
+      if (currentTokenFromStorage) {
+        // Если токен в стейте отличается от токена в хранилище (например, после logout)
+        // и равен null, возможно, не стоит сразу делать fetchUser, а дождаться синхронизации
+        if (token !== currentTokenFromStorage && token === null) {
+            console.log('[AuthContext] Token state is null, but storage has token. Likely after logout/refresh failure. Syncing state.');
+            setToken(currentTokenFromStorage); // Синхронизируем, это может вызвать повторный useEffect
+            // setIsLoading(false); // Возможно, загрузку пока не стоит прекращать
+            // return; // Можно прервать текущий checkAuth, дождавшись нового вызова useEffect
+        }
+        console.log('[AuthContext] Attempting to fetch user because token exists in storage.');
         try {
           await fetchUser();
         } catch (error) {
-          console.error('Ошибка при получении данных пользователя:', error);
-          logout();
+          console.error('[AuthContext] Error fetching user in useEffect:', error);
+          // logout(); // logout() здесь может быть лишним, если интерцептор уже сделал редирект
         } finally {
           setIsLoading(false);
         }
       } else {
+        console.log('[AuthContext] No token in storage. Setting loading to false.');
+        // Если в хранилище токена нет, а в стейте он есть, надо очистить стейт
+        if (token !== null) {
+            console.log('[AuthContext] Token in state but not in storage. Clearing state token.');
+            setToken(null);
+            setUser(null);
+        }
         setIsLoading(false);
       }
     };
 
     checkAuth();
-  }, [token]);
+  }, [token, fetchUser]); // Теперь fetchUser корректно добавлен в зависимости
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -235,33 +287,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const fetchUser = async () => {
-    if (!token) return;
-    
-    try {
-      const response = await authService.getCurrentUser();
-      
-      if (response.data?.data?.user) {
-        setUser(response.data.data.user as unknown as User);
-      } else {
-        throw new Error('Данные пользователя не получены');
-      }
-    } catch (error) {
-      throw error;
-    }
-  };
-
   const logout = () => {
+    console.log('[AuthContext] logout called. Clearing tokens and user state.');
     // Попытка выхода через API, если возможно
-    if (token) {
+    const currentTokenForLogout = token; // Используем копию, чтобы избежать замыкания на старое значение
+    if (currentTokenForLogout) {
       authService.logout().catch((err: Error) => {
-        console.error('Ошибка при выходе из системы:', err);
+        console.error('Ошибка при выходе из системы (API call):', err);
       });
     }
     
-    localStorage.removeItem('token');
+    // Гарантированная очистка из всех хранилищ
+    if (window.clearTokenFromStorages) {
+        window.clearTokenFromStorages();
+    } else {
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('authToken');
+        document.cookie = 'authToken=; path=/; max-age=0';
+    }
     setToken(null);
     setUser(null);
+    setIsLoading(false); // Устанавливаем isLoading в false после выхода
+    console.log('[AuthContext] Tokens cleared, user set to null, isLoading set to false.');
   };
 
   const value = {
