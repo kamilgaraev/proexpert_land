@@ -24,8 +24,14 @@ const BillingPage = () => {
     try {
       const response = await billingService.getBalance();
       if (response.status === 200) {
-        setBalance(response.data as OrganizationBalance);
-        console.log('Balance data from API:', response.data);
+        if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+          setBalance((response.data as any).data as OrganizationBalance);
+          console.log('Balance data from API (processed):', (response.data as any).data);
+        } else {
+          console.error('Unexpected balance data structure from API:', response.data);
+          setBalance(null);
+          setErrorBalance('Не удалось обработать данные о балансе. Неожиданный формат ответа от сервера.');
+        }
       } else {
         const errorData = response.data as unknown as ErrorResponse;
         throw new Error(errorData?.message || `Ошибка ${response.status}: ${response.statusText}`);

@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useEffect, useCallback } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Bars3Icon, 
@@ -15,6 +15,7 @@ import {
 import { useAuth } from '@hooks/useAuth';
 import { Menu, Transition } from '@headlessui/react';
 import { classNames } from '@utils/classNames';
+import { billingService, OrganizationBalance, ErrorResponse } from '@utils/api';
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -22,8 +23,33 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Заглушка для баланса
-  const currentBalance = '15,750.00 ₽'; // Позже будет из API или контекста
+  const [actualBalance, setActualBalance] = useState<OrganizationBalance | null>(null);
+  const [balanceError, setBalanceError] = useState<string | null>(null);
+
+  const fetchHeaderBalance = useCallback(async () => {
+    setBalanceError(null);
+    try {
+      const response = await billingService.getBalance();
+      if (response.status === 200) {
+        if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+          setActualBalance((response.data as any).data as OrganizationBalance);
+        } else {
+          console.error('Unexpected balance data structure from API in Layout:', response.data);
+          setBalanceError('Ошибка формата баланса');
+        }
+      } else {
+        const errorData = response.data as unknown as ErrorResponse;
+        setBalanceError(errorData?.message || `Ошибка ${response.status}`);
+      }
+    } catch (err: any) {
+      console.error("Error fetching header balance:", err);
+      setBalanceError(err.message || 'Не удалось загрузить баланс');
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchHeaderBalance();
+  }, [fetchHeaderBalance]);
 
   const handleLogout = () => {
     logout();
@@ -188,7 +214,10 @@ const DashboardLayout = () => {
                 {/* Баланс и ссылка на биллинг */}
                 <Link to="/dashboard/billing" className="flex items-center text-sm font-medium text-secondary-700 hover:text-primary-600">
                   <WalletIcon className="h-5 w-5 mr-1.5 text-secondary-500 group-hover:text-primary-500" />
-                  <span>Баланс: {currentBalance}</span>
+                  <span>
+                    Баланс: {actualBalance ? actualBalance.balance_formatted : (balanceError ? 'Ошибка' : '...')}
+                    {actualBalance && actualBalance.currency && <span className="ml-1">{actualBalance.currency}</span>}
+                  </span>
                 </Link>
                 
                 {/* Кнопка перехода в Админ-панель */}
