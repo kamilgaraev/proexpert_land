@@ -28,12 +28,30 @@ const SubscriptionsPage = () => {
 
     try {
       const subResponse = await billingService.getCurrentSubscription();
-      if (subResponse.status === 200) {
-        setCurrentSubscription(subResponse.data as UserSubscription);
+      console.log('[SubscriptionsList] Fetched current subscription response:', subResponse);
+
+      if (subResponse.status === 200 && subResponse.data) {
+        // Проверяем, есть ли вложенный объект 'data'
+        const subscriptionData = (typeof subResponse.data === 'object' && subResponse.data !== null && 'data' in subResponse.data && typeof (subResponse.data as any).data === 'object') 
+                               ? (subResponse.data as any).data as UserSubscription 
+                               : subResponse.data as UserSubscription; // Или используем subResponse.data напрямую, если нет обертки
+        
+        // Дополнительная проверка, что subscriptionData содержит поле plan
+        if (subscriptionData && typeof subscriptionData === 'object' && 'plan' in subscriptionData && subscriptionData.plan !== null) {
+            setCurrentSubscription(subscriptionData);
+            console.log('[SubscriptionsList] Current subscription SET in state:', subscriptionData);
+        } else {
+            console.warn('[SubscriptionsList] Subscription data received, but `plan` object is missing or null. Setting currentSubscription to null.', subscriptionData);
+            setCurrentSubscription(null); // Если plan отсутствует, считаем, что данных для отображения нет
+            // Можно также установить специфическую ошибку, если это ожидалось
+            // setErrorSubscription('Данные о плане подписки не получены.'); 
+        }
       } else if (subResponse.status === 404) {
+        console.log('[SubscriptionsList] No active subscription found (404). Setting currentSubscription to null.');
         setCurrentSubscription(null);
       } else {
         const errorData = subResponse.data as unknown as ErrorResponse; 
+        console.error('[SubscriptionsList] Error response from getCurrentSubscription:', errorData, subResponse.status);
         throw new Error(errorData?.message || `Ошибка ${subResponse.status}: ${subResponse.statusText}`);
       }
     } catch (err: any) {
