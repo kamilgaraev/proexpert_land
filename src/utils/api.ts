@@ -861,7 +861,7 @@ export const billingService = {
   subscribeToPlan: async (payload: SubscribeToPlanRequest): Promise<{ data: UserSubscription | ErrorResponse, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const url = `${BILLING_API_URL}/subscription`;
+    const url = `${BILLING_API_URL}/subscribe`;
     const options: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
