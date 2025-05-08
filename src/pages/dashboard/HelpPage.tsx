@@ -26,12 +26,12 @@ const HelpPage: React.FC = () => {
           <p className="text-gray-600 mb-4">
             Ознакомьтесь с ответами на часто задаваемые вопросы перед обращением в поддержку.
           </p>
-          <a 
-            href="#" 
+          <Link 
+            to="/dashboard/faq" 
             className="inline-block px-4 py-2 bg-secondary-600 text-white rounded hover:bg-secondary-700 transition"
           >
             Открыть FAQ
-          </a>
+          </Link>
         </div>
       </div>
       
