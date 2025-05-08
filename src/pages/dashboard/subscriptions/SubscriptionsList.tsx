@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { billingService, UserSubscription, SubscriptionPlan, SubscribeToPlanRequest, ErrorResponse } from '@utils/api';
-import { CheckCircleIcon, XCircleIcon, InformationCircleIcon, ShoppingCartIcon, NoSymbolIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, XCircleIcon, InformationCircleIcon, ShoppingCartIcon, NoSymbolIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { PageLoading } from '@components/common/PageLoading'; // Предполагаем наличие компонента-заглушки
 
 // Вспомогательный компонент для отображения деталей плана
@@ -150,55 +150,63 @@ const SubscriptionsPage = () => {
           </div>
         )}
         {currentSubscription && currentSubscription.plan ? (
-          <div className="space-y-6">
-            <div className="bg-gradient-to-br from-primary-600 to-primary-700 text-white rounded-xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-2xl font-bold tracking-tight">{currentSubscription.plan.name}</h3>
-                  <p className="text-sm opacity-80 font-light">{currentSubscription.plan.description}</p>
-                </div>
-                <span 
-                  className={`px-3 py-1 text-xs font-semibold rounded-full leading-none flex items-center space-x-1 
-                    ${currentSubscription.is_active_now ? 'bg-green-500 text-white' : 'bg-yellow-400 text-yellow-900'}
-                    ${currentSubscription.canceled_at ? 'bg-red-500 text-white' : ''}
-                  `}
-                >
-                  {currentSubscription.is_active_now && !currentSubscription.canceled_at && <CheckCircleIcon className="h-4 w-4" />}
-                  {currentSubscription.canceled_at && <InformationCircleIcon className="h-4 w-4" />}
-                  <span className="capitalize">
-                    {currentSubscription.canceled_at ? `Отменена` : currentSubscription.status}
+          <div className="space-y-8">
+            {/* УЛЬТРА-СОВРЕМЕННЫЙ блок информации о подписке */}
+            <div className="bg-white rounded-2xl shadow-subtle overflow-hidden">
+              {/* Шапка с названием плана и статусом */}
+              <div className={`p-6 ${currentSubscription.canceled_at ? 'bg-gray-100' : 'bg-primary-600'}  text-white`}>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                  <div>
+                    <h3 className={`text-3xl font-extrabold tracking-tight ${currentSubscription.canceled_at ? 'text-gray-700' : 'text-white'}`}>{currentSubscription.plan.name}</h3>
+                    <p className={`text-sm mt-1 ${currentSubscription.canceled_at ? 'text-gray-500' : 'opacity-80'}`}>{currentSubscription.plan.description}</p>
+                  </div>
+                  <span 
+                    className={`text-xs font-semibold py-1.5 px-3 rounded-full leading-none flex items-center space-x-1.5 whitespace-nowrap mt-2 sm:mt-0
+                      ${currentSubscription.is_active_now && !currentSubscription.canceled_at ? 'bg-green-100 text-green-700 ring-1 ring-green-300' : ''}
+                      ${!currentSubscription.is_active_now && !currentSubscription.canceled_at ? 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-300' : ''}
+                      ${currentSubscription.canceled_at ? 'bg-red-100 text-red-700 ring-1 ring-red-300' : ''}
+                    `}
+                  >
+                    {currentSubscription.is_active_now && !currentSubscription.canceled_at && <CheckCircleIcon className="h-4 w-4" />}
+                    {!currentSubscription.is_active_now && !currentSubscription.canceled_at && <ExclamationTriangleIcon className="h-4 w-4" />}
+                    {currentSubscription.canceled_at && <NoSymbolIcon className="h-4 w-4" />}
+                    <span className="capitalize">
+                      {currentSubscription.canceled_at ? `Отменена` : currentSubscription.status}
+                    </span>
                   </span>
-                </span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 text-sm opacity-90 mb-1">
-                {currentSubscription.starts_at && 
-                  <div><strong className="font-medium">Начало:</strong> {formatDate(currentSubscription.starts_at)}</div>}
-                {currentSubscription.ends_at && !currentSubscription.canceled_at && 
-                  <div><strong className="font-medium">Окончание:</strong> {formatDate(currentSubscription.ends_at)}</div>}
-                {currentSubscription.next_billing_at && !currentSubscription.canceled_at &&
-                  <div><strong className="font-medium">След. платеж:</strong> {formatDate(currentSubscription.next_billing_at)}</div>}
-                {currentSubscription.trial_ends_at && 
-                  <div><strong className="font-medium">Пробный до:</strong> {formatDate(currentSubscription.trial_ends_at)}</div>}
-              </div>
+              {/* Тело с деталями подписки */}
+              <div className="p-6 bg-gray-50">
+                <dl className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4 text-sm">
+                  {currentSubscription.starts_at && 
+                    <div><dt className="font-medium text-gray-500">Дата начала:</dt> <dd className="text-gray-800 font-semibold">{formatDate(currentSubscription.starts_at)}</dd></div>}
+                  {currentSubscription.ends_at && !currentSubscription.canceled_at && 
+                    <div><dt className="font-medium text-gray-500">Дата окончания:</dt> <dd className="text-gray-800 font-semibold">{formatDate(currentSubscription.ends_at)}</dd></div>}
+                  {currentSubscription.next_billing_at && !currentSubscription.canceled_at &&
+                    <div><dt className="font-medium text-gray-500">Следующий платеж:</dt> <dd className="text-gray-800 font-semibold">{formatDate(currentSubscription.next_billing_at)}</dd></div>}
+                  {currentSubscription.trial_ends_at && 
+                    <div><dt className="font-medium text-gray-500">Пробный период до:</dt> <dd className="text-gray-800 font-semibold">{formatDate(currentSubscription.trial_ends_at)}</dd></div>}
+                </dl>
 
-              {currentSubscription.canceled_at && (
-                <p className="mt-2 text-xs bg-yellow-500 bg-opacity-20 text-yellow-100 p-2 rounded-md">
-                  Подписка отменена {formatDate(currentSubscription.canceled_at)} и будет действовать до {formatDate(currentSubscription.ends_at)}.
-                </p>
-              )}
+                {currentSubscription.canceled_at && (
+                  <div className="mt-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-yellow-700 text-sm">
+                    <p className="flex items-center"><InformationCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+                    Ваша подписка была отменена {formatDate(currentSubscription.canceled_at)} и будет активна до {formatDate(currentSubscription.ends_at)}.</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {currentSubscription.status === 'active' && !currentSubscription.canceled_at && (
               <button
                 onClick={handleCancelSubscription}
                 disabled={actionInProgress === 'cancel_current'}
-                className="w-full flex items-center justify-center px-6 py-3 border border-gray-300 rounded-lg shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-60 transition-colors duration-150 group"
+                className="w-full flex items-center justify-center px-6 py-3.5 border border-transparent rounded-xl shadow-md text-base font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-150 ease-in-out transform hover:scale-102 active:scale-98 group"
               >
-                <NoSymbolIcon className="h-5 w-5 mr-2 text-gray-400 group-hover:text-red-500 transition-colors duration-150" />
+                <NoSymbolIcon className="h-5 w-5 mr-2.5 transition-transform duration-150 group-hover:rotate-12" />
                 {actionInProgress === 'cancel_current' ? 'Отменяем подписку...' : 'Отменить подписку'}
-                <NoSymbolIcon className="h-5 w-5 mr-2" />
-                {actionInProgress === 'cancel_current' ? 'Отменяем...' : 'Отменить подписку'}
               </button>
             )}
              {currentSubscription.status !== 'active' && currentSubscription.status !== 'trial' && (
