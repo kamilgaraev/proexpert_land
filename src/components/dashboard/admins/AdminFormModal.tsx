@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { adminPanelUserService } from '@utils/api';
 import { AdminPanelUser, AdminFormData, SYSTEM_ROLES } from '@/types/admin';
+import { toast } from 'react-toastify';
 
 interface AdminFormModalProps {
   isOpen: boolean;
@@ -58,50 +59,80 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    console.log('AdminFormModal: handleSubmit initiated. isEditing:', isEditing, 'Data:', formData);
 
-    if (formData.password || (!isEditing && !formData.password) ) {
-    if (formData.password !== formData.password_confirmation) {
-      setError('Пароли не совпадают.');
+    if (!isEditing && !formData.password) {
+      setError('Пароль обязателен при создании нового администратора.');
+      toast.error('Пароль обязателен при создании нового администратора.');
       return;
     }
-      if (formData.password && formData.password.length < 8) {
+    if (formData.password && formData.password.length < 8) {
       setError('Пароль должен содержать не менее 8 символов.');
+      toast.error('Пароль должен содержать не менее 8 символов.');
       return;
-      }
+    }
+    if (formData.password && formData.password !== formData.password_confirmation) {
+      setError('Пароли не совпадают.');
+      toast.error('Пароли не совпадают.');
+      return;
     }
 
     setIsLoading(true);
     try {
-      const dataToSend: Partial<AdminFormData> = {
-        name: formData.name,
-        email: formData.email,
-        role_slug: formData.role_slug,
-        is_active: formData.is_active,
-      };
-
-      if (formData.password) {
-        dataToSend.password = formData.password;
-        dataToSend.password_confirmation = formData.password_confirmation;
-      }
-
+      let response;
       if (isEditing && adminToEdit) {
-        await adminPanelUserService.updateAdminPanelUser(adminToEdit.id, dataToSend);
+        const dataToSendForUpdate: Partial<AdminFormData> = {
+          name: formData.name,
+          is_active: formData.is_active,
+        };
+        if (formData.password) {
+          dataToSendForUpdate.password = formData.password;
+          dataToSendForUpdate.password_confirmation = formData.password_confirmation;
+        }
+        console.log('AdminFormModal: Attempting to update admin ID:', adminToEdit.id, 'Payload:', dataToSendForUpdate);
+        response = await adminPanelUserService.updateAdminPanelUser(adminToEdit.id, dataToSendForUpdate);
       } else {
-        await adminPanelUserService.createAdminPanelUser(dataToSend as AdminFormData); 
+        const dataToSendForCreate: AdminFormData = {
+          name: formData.name,
+          email: formData.email,
+          role_slug: formData.role_slug,
+          password: formData.password,
+          password_confirmation: formData.password_confirmation,
+          is_active: formData.is_active,
+        };
+        console.log('AdminFormModal: Attempting to create admin. Payload:', dataToSendForCreate);
+        response = await adminPanelUserService.createAdminPanelUser(dataToSendForCreate);
       }
-      onFormSubmit();
-      onClose();
+
+      console.log('AdminFormModal: API Response:', response);
+
+      if (response.success && response.data) {
+        toast.success(response.message || `Администратор успешно ${isEditing ? 'обновлен' : 'создан'}.`);
+        onFormSubmit();
+        onClose();
+      } else {
+        let errorMessage = response.message || `Не удалось ${isEditing ? 'обновить' : 'создать'} администратора.`;
+        if (response.errors) {
+          const validationMessages = Object.values(response.errors).flat().join(' ');
+          errorMessage += `: ${validationMessages}`;
+        }
+        setError(errorMessage);
+        toast.error(errorMessage);
+        console.error('AdminFormModal: API logical error:', errorMessage, 'Full response:', response);
+      }
     } catch (err: any) {
-      console.error(`Ошибка при ${isEditing ? 'обновлении' : 'создании'} администратора:`, err);
-      const apiErrorMessage = err.response?.data?.message || err.message || `Не удалось ${isEditing ? 'обновить' : 'создать'} администратора.`;
+      console.error(`AdminFormModal: Catch block error during ${isEditing ? 'update' : 'create'}:`, err);
+      const apiErrorMessage = err.response?.data?.message || err.message || `Произошла ошибка при ${isEditing ? 'обновлении' : 'создании'} администратора.`;
+      let detailedMessage = apiErrorMessage;
       if (err.response?.data?.errors) {
         const validationErrors = Object.values(err.response.data.errors).flat().join(' ');
-        setError(`${apiErrorMessage} ${validationErrors}`);
-      } else {
-        setError(apiErrorMessage);
+        detailedMessage += `: ${validationErrors}`;
       }
+      setError(detailedMessage);
+      toast.error(detailedMessage);
     } finally {
       setIsLoading(false);
+      console.log('AdminFormModal: handleSubmit finished.');
     }
   };
 

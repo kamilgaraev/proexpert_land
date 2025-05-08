@@ -4,6 +4,7 @@ import { adminPanelUserService } from '@utils/api';
 import { AdminPanelUser, AdminPanelUserRole } from '@/types/admin'; // Исправлен путь импорта
 import AdminFormModal from '@components/dashboard/admins/AdminFormModal';
 import ConfirmDeleteModal from '@components/shared/ConfirmDeleteModal';
+import { toast } from 'react-toastify'; // Добавляем импорт toast
 
 const AdminsPage = () => {
   const [admins, setAdmins] = useState<AdminPanelUser[]>([]); // Используем AdminPanelUser
@@ -119,15 +120,31 @@ const AdminsPage = () => {
     
     setIsProcessingDelete(true);
     setError(null);
+    console.log('AdminsPage: handleDeleteConfirmed for admin ID:', deletingAdmin.id);
     try {
-      await adminPanelUserService.deleteAdminPanelUser(deletingAdmin.id);
-      fetchAdmins();
-      handleCloseDeleteConfirmModal();
+      const result = await adminPanelUserService.deleteAdminPanelUser(deletingAdmin.id);
+      console.log('AdminsPage: Delete API Response:', result);
+
+      if (result.success) {
+        toast.success(result.message || 'Администратор успешно удален.');
+        fetchAdmins(); // Обновляем список
+        handleCloseDeleteConfirmModal(); // Закрываем модальное окно
+      } else {
+        // Обработка логической ошибки от API (success: false)
+        const errorMessage = result.message || "Не удалось удалить администратора (ответ API с ошибкой).";
+        setError(errorMessage);
+        toast.error(errorMessage);
+        console.error('AdminsPage: API logical error during delete:', errorMessage, 'Full response:', result);
+      }
     } catch (err: any) {
-      console.error("Ошибка при удалении администратора:", err);
-      setError(err.response?.data?.message || err.message || "Не удалось удалить администратора.");
+      // Обработка ошибок сети или других исключений от axios/fetch
+      console.error("AdminsPage: Catch block error during delete:", err);
+      const errMsg = err.response?.data?.message || err.message || "Не удалось удалить администратора.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setIsProcessingDelete(false);
+      console.log('AdminsPage: handleDeleteConfirmed finished.');
     }
   };
 
