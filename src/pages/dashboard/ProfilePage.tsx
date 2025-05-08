@@ -74,7 +74,7 @@ const ProfilePage = () => {
     if (email !== user.email) formData.append('email', email);
     if (phone !== (user.phone || '')) formData.append('phone', phone);
     if (position !== (user.position || '')) formData.append('position', position);
-    formData.append('_method', 'PUT');
+    formData.append('_method', 'PATCH');
 
     if (avatarFile) {
       formData.append('avatar', avatarFile);

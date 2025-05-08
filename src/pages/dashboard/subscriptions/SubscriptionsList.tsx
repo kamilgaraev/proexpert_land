@@ -147,7 +147,7 @@ const SubscriptionsPage = () => {
           <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md flex items-start">
             <XCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
             <p>{errorSubscription}</p>
-          </div>
+      </div>
         )}
         {currentSubscription && currentSubscription.plan ? (
           <div className="space-y-8">
@@ -156,11 +156,11 @@ const SubscriptionsPage = () => {
               {/* Шапка с названием плана и статусом */}
               <div className={`p-6 ${currentSubscription.canceled_at ? 'bg-gray-100' : 'bg-primary-600'}  text-white`}>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                  <div>
+                <div>
                     <h3 className={`text-3xl font-extrabold tracking-tight ${currentSubscription.canceled_at ? 'text-gray-700' : 'text-white'}`}>{currentSubscription.plan.name}</h3>
                     <p className={`text-sm mt-1 ${currentSubscription.canceled_at ? 'text-gray-500' : 'opacity-80'}`}>{currentSubscription.plan.description}</p>
-                  </div>
-                  <span 
+                </div>
+                <span
                     className={`text-xs font-semibold py-1.5 px-3 rounded-full leading-none flex items-center space-x-1.5 whitespace-nowrap mt-2 sm:mt-0
                       ${currentSubscription.is_active_now && !currentSubscription.canceled_at ? 'bg-green-100 text-green-700 ring-1 ring-green-300' : ''}
                       ${!currentSubscription.is_active_now && !currentSubscription.canceled_at ? 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-300' : ''}
@@ -172,7 +172,7 @@ const SubscriptionsPage = () => {
                     {currentSubscription.canceled_at && <NoSymbolIcon className="h-4 w-4" />}
                     <span className="capitalize">
                       {currentSubscription.canceled_at ? `Отменена` : currentSubscription.status}
-                    </span>
+                </span>
                   </span>
                 </div>
               </div>
@@ -194,7 +194,7 @@ const SubscriptionsPage = () => {
                   <div className="mt-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-yellow-700 text-sm">
                     <p className="flex items-center"><InformationCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
                     Ваша подписка была отменена {formatDate(currentSubscription.canceled_at)} и будет активна до {formatDate(currentSubscription.ends_at)}.</p>
-                  </div>
+              </div>
                 )}
               </div>
             </div>
@@ -228,8 +228,8 @@ const SubscriptionsPage = () => {
           <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md flex items-start">
             <XCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
             <p>{errorPlans}</p>
-          </div>
-        )}
+        </div>
+      )}
         {plans.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {plans.sort((a, b) => a.display_order - b.display_order).map((plan) => {
@@ -274,7 +274,7 @@ const SubscriptionsPage = () => {
                 </div>
               );
             })}
-          </div>
+      </div>
         ) : (
            !errorPlans && !loadingPlans && <p className="text-center text-gray-600">Тарифные планы не найдены.</p> // Добавил !loadingPlans
         )}
