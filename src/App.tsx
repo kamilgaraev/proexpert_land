@@ -16,6 +16,7 @@ import BillingPage from '@pages/dashboard/BillingPage';
 import AddFundsPage from '@pages/dashboard/billing/AddFundsPage';
 import UsersList from '@pages/admin/users/UsersList';
 import ProjectsList from '@pages/admin/projects/ProjectsList';
+import FAQPage from '@pages/dashboard/FAQPage';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="help" element={<HelpPage />} />
         <Route path="support" element={<SupportPage />} />
+        <Route path="faq" element={<FAQPage />} />
         
         {/* Маршруты управления организацией */}
         <Route path="billing" element={<BillingPage />} />
