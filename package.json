@@ -33,6 +33,7 @@
   "devDependencies": {
     "@types/axios": "^0.9.36",
     "@types/node": "^22.15.3",
+    "@types/react-toastify": "^4.0.2",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.35",

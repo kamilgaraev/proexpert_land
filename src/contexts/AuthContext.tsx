@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { authService, RegisterRequest, LandingUser, ErrorResponse } from '@utils/api';
+import { authService, LandingUser } from '@utils/api';
 
 // Импортирую глобальные функции работы с токеном
 declare global {
