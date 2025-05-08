@@ -4,6 +4,9 @@
 
 // @ts-ignore
 import axios from 'axios';
+// @ts-ignore
+import api_instance from './axiosConfig'; 
+import type { AdminFormData as AdminFormDataExternal, AdminUsersListResponse, AdminUserDetailResponse, AdminUserDeleteResponse } from '../types/admin';
 
 // Используем тип для ImportMeta.env
 declare global {
@@ -465,119 +468,6 @@ export const userService = {
       status: response.status,
       statusText: response.statusText
     };
-  },
-
-  // А. Получение списка администраторов организации
-  getOrganizationAdmins: async () => {
-    const token = getTokenFromStorages();
-    if (!token) throw new Error('Токен авторизации отсутствует');
-    const response = await fetch(`${API_URL}/users`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: response.statusText }));
-      throw { status: response.status, message: errorData.message || `Ошибка получения списка администраторов (статус ${response.status})`, errors: errorData.errors };
-    }
-    return response.json(); // Ожидаем массив объектов пользователей
-  },
-
-  // Б. Получение информации о конкретном администраторе
-  getOrganizationAdminById: async (userId: number) => {
-    const token = getTokenFromStorages();
-    if (!token) throw new Error('Токен авторизации отсутствует');
-    const response = await fetch(`${API_URL}/users/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: response.statusText }));
-      throw { status: response.status, message: errorData.message || `Ошибка получения администратора (статус ${response.status})`, errors: errorData.errors };
-    }
-    const data = await response.json();
-    return data.data; // API возвращает { data: User }
-  },
-
-  // В. Создание нового администратора
-  createOrganizationAdmin: async (formData: FormData) => {
-    const token = getTokenFromStorages();
-    if (!token) throw new Error('Токен авторизации отсутствует');
-    const response = await fetch(`${API_URL}/users`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        // Content-Type для FormData устанавливается автоматически fetch
-      },
-      body: formData,
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      const errorMsg = data?.message || `Ошибка создания администратора (статус ${response.status})`;
-      const errorToThrow = new Error(errorMsg) as any;
-      if (data?.errors) errorToThrow.errors = data.errors;
-      errorToThrow.status = response.status;
-      throw errorToThrow;
-    }
-    return data; // API возвращает { data: User, message: string }
-  },
-
-  // Г. Обновление данных администратора
-  updateOrganizationAdmin: async (userId: number, formData: FormData) => {
-    const token = getTokenFromStorages();
-    if (!token) throw new Error('Токен авторизации отсутствует');
-    
-    formData.append('_method', 'PATCH');
-
-    const response = await fetch(`${API_URL}/users/${userId}`, {
-      method: 'POST', // Отправляем как POST с _method: PATCH
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        // Content-Type для FormData устанавливается автоматически fetch
-      },
-      body: formData,
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      const errorMsg = data?.message || `Ошибка обновления администратора (статус ${response.status})`;
-      const errorToThrow = new Error(errorMsg) as any;
-      if (data?.errors) errorToThrow.errors = data.errors;
-      errorToThrow.status = response.status;
-      throw errorToThrow;
-    }
-    return data; // API возвращает { data: User, message: string }
-  },
-
-  // Д. Удаление администратора
-  deleteOrganizationAdmin: async (userId: number) => {
-    const token = getTokenFromStorages();
-    if (!token) throw new Error('Токен авторизации отсутствует');
-    const response = await fetch(`${API_URL}/users/${userId}`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    if (!response.ok) {
-      // Успешный DELETE часто возвращает 204 No Content, response.ok будет true для 204
-      // Эта ветка для других ошибок (404, 500 и т.д.)
-      const errorData = await response.json().catch(() => ({ message: response.statusText }));
-      throw { status: response.status, message: errorData.message || `Ошибка удаления администратора (статус ${response.status})`, errors: errorData.errors };
-    }
-    // Для 204 No Content тело ответа может быть пустым
-    if (response.status === 204) {
-      return { message: 'Администратор успешно удален' };
-    }
-    // Если вдруг пришел 200 OK с телом (нестандартно для DELETE, но возможно)
-    return response.json().catch(() => ({ message: 'Администратор успешно удален, но ответ не содержит JSON или пустой' }));
   }
 };
 
@@ -781,43 +671,34 @@ export interface AdminUser {
   role: 'web_admin' | 'accountant' | string;
 }
 
-export interface AdminUsersApiResponse {
-  data: AdminUser[];
-  links?: any; // Опционально для пагинации
-  meta?: any;  // Опционально для пагинации
-}
-
-// Тип для данных формы создания/редактирования администратора
-// Пароль и его подтверждение опциональны при редактировании
-export interface AdminFormData {
-  name: string;
-  email: string;
-  role_slug: 'web_admin' | 'accountant';
-  password?: string;
-  password_confirmation?: string;
-}
-
 // Сервис для управления пользователями Админ-панели
 export const adminPanelUserService = {
-  getAdminPanelUsers: async (): Promise<AdminUsersApiResponse> => {
-    // @ts-ignore
-    const response = await api.get('/landing/adminPanelUsers');
-    return response.data as AdminUsersApiResponse;
+  getAdminPanelUsers: async (): Promise<AdminUsersListResponse> => {
+    const response = await api_instance.get('/landing/adminPanelUsers');
+    return response.data as AdminUsersListResponse; 
   },
-  createAdminPanelUser: async (userData: AdminFormData): Promise<any> => {
-    // @ts-ignore
-    const response = await api.post('/landing/adminPanelUsers', userData);
-    return response.data;
+
+  getAdminPanelUserById: async (userId: number): Promise<AdminUserDetailResponse> => {
+    const response = await api_instance.get(`/landing/adminPanelUsers/${userId}`);
+    return response.data as AdminUserDetailResponse;
   },
-  updateAdminPanelUser: async (userId: number, userData: Partial<AdminFormData>): Promise<any> => {
-    // @ts-ignore
-    const response = await api.patch(`/landing/adminPanelUsers/${userId}`, userData);
-    return response.data;
+
+  createAdminPanelUser: async (userData: AdminFormDataExternal): Promise<AdminUserDetailResponse> => {
+    const response = await api_instance.post('/landing/adminPanelUsers', userData);
+    return response.data as AdminUserDetailResponse;
   },
-  deleteAdminPanelUser: async (userId: number): Promise<any> => {
-    // @ts-ignore
-    const response = await api.delete(`/landing/adminPanelUsers/${userId}`);
-    return response.data;
+  
+  updateAdminPanelUser: async (userId: number, userData: Partial<AdminFormDataExternal>): Promise<AdminUserDetailResponse> => {
+    const response = await api_instance.patch(`/landing/adminPanelUsers/${userId}`, userData);
+    return response.data as AdminUserDetailResponse;
+  },
+  
+  deleteAdminPanelUser: async (userId: number): Promise<AdminUserDeleteResponse> => {
+    const response = await api_instance.delete(`/landing/adminPanelUsers/${userId}`);
+    if (response.status === 204) {
+      return { success: true, message: 'Пользователь успешно удален' };
+    }
+    return response.data as AdminUserDeleteResponse; 
   },
 };
 
