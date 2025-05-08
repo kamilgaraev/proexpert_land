@@ -77,7 +77,8 @@ const SubscriptionsPage = () => {
       const payload: SubscribeToPlanRequest = { plan_slug: planSlug };
       const response = await billingService.subscribeToPlan(payload);
       if (response.status === 201 || response.status === 200) { 
-         setCurrentSubscription(response.data as UserSubscription);
+         console.log('Subscription process successful via API, refetching all subscription and plan data.');
+         await fetchSubscriptionAndPlans(); 
       } else {
         const errorData = response.data as unknown as ErrorResponse;
         throw new Error(errorData?.message || `Ошибка ${response.status}: ${response.statusText}`);
