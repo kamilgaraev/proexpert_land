@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { authService, RegisterRequest, LandingUser } from '@utils/api';
+import { authService, RegisterRequest, LandingUser, ErrorResponse } from '@utils/api';
 
 // Импортирую глобальные функции работы с токеном
 declare global {
@@ -12,6 +12,13 @@ declare global {
 
 export interface User extends Omit<LandingUser, 'email_verified_at'> {
   email_verified_at: string | null;
+  avatar_url: string | null;
+  phone?: string | null;
+  position?: string | null;
+  is_active?: boolean;
+  user_type?: string;
+  last_login_at?: string | null;
+  current_organization_id?: number;
 }
 
 export interface AuthContextType {
@@ -20,14 +27,9 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (userData: RegisterData) => Promise<void>;
+  register: (formData: FormData) => Promise<void>;
   logout: () => void;
   fetchUser: () => Promise<void>;
-}
-
-export interface RegisterData extends RegisterRequest {
-  phone?: string;
-  position?: string;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -256,32 +258,67 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = async (userData: RegisterData) => {
+  const register = async (formData: FormData) => {
     setIsLoading(true);
-    
+    console.log('[AuthContext] Register called with FormData');
     try {
-      const response = await authService.register(userData);
+      // Передаем FormData напрямую в сервис
+      const response = await authService.register(formData);
+      console.log('[AuthContext] Response from authService.register:', response);
       
-      // Получаем токен, который уже должен быть сохранен в localStorage
-      const tokenFromStorage = localStorage.getItem('token');
-      if (!tokenFromStorage) {
-        throw new Error('Токен не получен от сервера');
-      }
-      
-      // Обновляем состояние
-      setToken(tokenFromStorage);
-      
-      // Устанавливаем пользователя
-      if (response.data?.data?.user) {
-        setUser(response.data.data.user as unknown as User);
+      // Обрабатываем ответ - ожидаем { success, message, user, organization, token } 
+      if (response.status === 201 && response.data?.success) {
+        const receivedToken = response.data.token;
+        const receivedUser = response.data.user as LandingUser; // Приводим к типу с avatar_url
+        
+        if (!receivedToken) {
+          console.error('[AuthContext] Token not found in successful registration response.');
+          throw new Error('Токен не получен от сервера после регистрации.');
+        }
+        if (!receivedUser) {
+          console.error('[AuthContext] User data not found in successful registration response.');
+          // Можно попробовать запросить пользователя отдельно, но лучше, если API вернет его
+          throw new Error('Данные пользователя не получены от сервера после регистрации.');
+        }
+        
+        // Сохраняем токен (сервис уже должен был это сделать, но дублируем для надежности)
+        if (window.saveTokenToMultipleStorages) {
+            window.saveTokenToMultipleStorages(receivedToken);
+        } else {
+            localStorage.setItem('token', receivedToken);
+        }
+        
+        // Обновляем состояние контекста
+        setToken(receivedToken);
+        setUser(receivedUser as unknown as User); // Обновляем пользователя, включая avatar_url
+        console.log('[AuthContext] Registration successful. Token and user state updated.');
+
       } else {
-      await fetchUser();
+        // Обработка ошибки от API
+        const errorMsg = response.data?.message || `Ошибка регистрации (статус ${response.status})`;
+        const validationErrors = response.data?.errors;
+        console.error('[AuthContext] Registration API error:', errorMsg, validationErrors);
+        // Пробрасываем ошибку для отображения в компоненте
+        const errorToThrow = new Error(errorMsg) as any;
+        if (validationErrors) {
+          errorToThrow.errors = validationErrors; // Добавляем ошибки валидации, если есть
+        }
+         if (response.status) {
+           errorToThrow.status = response.status;
+        }
+        throw errorToThrow; 
       }
     } catch (error) {
-      localStorage.removeItem('token');
+      console.error('[AuthContext] Error during registration process:', error);
+      // Очищаем токен и пользователя в случае любой ошибки на этапе регистрации
+      if (window.clearTokenFromStorages) {
+        window.clearTokenFromStorages();
+      } else {
+        localStorage.removeItem('token');
+      }
       setToken(null);
       setUser(null);
-      throw error;
+      throw error; // Перебрасываем ошибку дальше
     } finally {
       setIsLoading(false);
     }

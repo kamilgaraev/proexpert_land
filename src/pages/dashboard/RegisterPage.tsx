@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@hooks/useAuth';
-import { RegisterData } from '@contexts/AuthContext';
 
 const RegisterPage = () => {
   // Основные данные пользователя
@@ -32,8 +31,26 @@ const RegisterPage = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [currentStep, setCurrentStep] = useState(1);
   
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      }
+      reader.readAsDataURL(file);
+    } else {
+      setAvatarFile(null);
+      setAvatarPreview(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +74,13 @@ const RegisterPage = () => {
       if (!passwordConfirmation) errors.passwordConfirmation = 'Подтвердите пароль';
       else if (password !== passwordConfirmation) errors.passwordConfirmation = 'Пароли не совпадают';
       
+      if (avatarFile && avatarFile.size > 2 * 1024 * 1024) {
+        errors.avatar = 'Размер файла аватара не должен превышать 2 МБ.';
+      }
+      if (avatarFile && !['image/jpeg', 'image/png', 'image/gif'].includes(avatarFile.type)) {
+        errors.avatar = 'Допустимые форматы для аватара: JPG, PNG, GIF.';
+      }
+
       if (Object.keys(errors).length > 0) {
         setValidationErrors(errors);
         setError('Пожалуйста, исправьте ошибки в форме');
@@ -84,28 +108,28 @@ const RegisterPage = () => {
       setIsLoading(true);
       
       try {
-        const userData: RegisterData = {
-          name,
-          email,
-          password,
-          password_confirmation: passwordConfirmation,
-          phone,
-          position,
-          organization_name: organizationName,
-        };
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('password', password);
+        formData.append('password_confirmation', passwordConfirmation);
+        if (phone) formData.append('phone', phone);
+        if (position) formData.append('position', position);
+        formData.append('organization_name', organizationName);
+        if (organizationLegalName) formData.append('organization_legal_name', organizationLegalName);
+        if (organizationTaxNumber) formData.append('organization_tax_number', organizationTaxNumber);
+        if (organizationRegistrationNumber) formData.append('organization_registration_number', organizationRegistrationNumber);
+        if (organizationPhone) formData.append('organization_phone', organizationPhone);
+        if (organizationEmail) formData.append('organization_email', organizationEmail);
+        if (organizationAddress) formData.append('organization_address', organizationAddress);
+        if (organizationCity) formData.append('organization_city', organizationCity);
+        if (organizationPostalCode) formData.append('organization_postal_code', organizationPostalCode);
+        if (organizationCountry) formData.append('organization_country', organizationCountry);
+        if (avatarFile) {
+          formData.append('avatar', avatarFile);
+        }
         
-        // Добавляем необязательные поля, только если они заполнены
-        if (organizationLegalName) userData.organization_legal_name = organizationLegalName;
-        if (organizationTaxNumber) userData.organization_tax_number = organizationTaxNumber;
-        if (organizationRegistrationNumber) userData.organization_registration_number = organizationRegistrationNumber;
-        if (organizationPhone) userData.organization_phone = organizationPhone;
-        if (organizationEmail) userData.organization_email = organizationEmail;
-        if (organizationAddress) userData.organization_address = organizationAddress;
-        if (organizationCity) userData.organization_city = organizationCity;
-        if (organizationPostalCode) userData.organization_postal_code = organizationPostalCode;
-        if (organizationCountry) userData.organization_country = organizationCountry;
-        
-        await register(userData);
+        await register(formData);
         
         // После успешной регистрации перенаправляем пользователя
         navigate('/dashboard');
@@ -123,7 +147,29 @@ const RegisterPage = () => {
           });
           setError('Email уже зарегистрирован в системе');
         } else {
-          setError(err.message || 'Произошла ошибка при регистрации. Пожалуйста, попробуйте снова.');
+          // Обработка ошибок валидации от сервера
+          if (err.errors && typeof err.errors === 'object') {
+            const serverErrors: Record<string, string> = {};
+            for (const key in err.errors) {
+              if (Array.isArray(err.errors[key]) && err.errors[key].length > 0) {
+                serverErrors[key] = err.errors[key][0];
+              }
+            }
+            // Если есть ошибка аватара, показываем ее
+            if (serverErrors.avatar) {
+              errors.avatar = serverErrors.avatar;
+            }
+            setValidationErrors(serverErrors);
+            setError(err.message || 'Ошибка валидации данных на сервере.');
+            // Может потребоваться вернуться на первый шаг, если ошибки касаются полей первого шага
+            if (serverErrors.name || serverErrors.email || serverErrors.password || serverErrors.avatar) {
+              setCurrentStep(1);
+            }
+          } else if (err.status === 401) {
+            setError('Ошибка авторизации. Попробуйте обновить страницу.');
+          } else {
+            setError(err.message || 'Произошла ошибка при регистрации. Пожалуйста, попробуйте снова.');
+          }
         }
       } finally {
         setIsLoading(false);
@@ -211,9 +257,16 @@ const RegisterPage = () => {
           </div>
         )}
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
           {currentStep === 1 ? (
-            <div className="rounded-md shadow-sm space-y-4">
+            <motion.div 
+                key="step1"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 50 }}
+                transition={{ duration: 0.3 }}
+                className="rounded-md shadow-sm space-y-4"
+             >
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-secondary-700">
                   Ваше имя <span className="text-red-500">*</span>
@@ -325,17 +378,52 @@ const RegisterPage = () => {
                 )}
               </div>
               
+              <div>
+                <label htmlFor="avatar" className="block text-sm font-medium text-secondary-700">
+                    Аватар (необязательно, до 2МБ)
+                </label>
+                <div className="mt-1 flex items-center space-x-4">
+                    <span className="inline-block h-12 w-12 rounded-full overflow-hidden bg-gray-100">
+                        {avatarPreview ? (
+                            <img src={avatarPreview} alt="Превью аватара" className="h-full w-full object-cover" />
+                        ) : (
+                            <svg className="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        )}
+                    </span>
+                    <input
+                      id="avatar"
+                      name="avatar"
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif"
+                      onChange={handleAvatarChange}
+                      className={`block w-full text-sm ${hasError('avatar') ? 'text-red-600' : 'text-gray-500'} file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${hasError('avatar') ? 'focus:ring-red-500' : 'focus:ring-primary-500'}`}
+                    />
+                </div>
+                 {hasError('avatar') && (
+                    <p className="mt-1 text-sm text-red-600">{getErrorMessage('avatar')}</p>
+                )}
+              </div>
+              
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  className="btn btn-primary"
+                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
-                  Далее
+                  Продолжить
                 </button>
               </div>
-            </div>
+            </motion.div>
           ) : (
-            <div className="rounded-md shadow-sm space-y-4">
+            <motion.div 
+                key="step2"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.3 }}
+                className="rounded-md shadow-sm space-y-4"
+            >
               <div>
                 <label htmlFor="organization-name" className="block text-sm font-medium text-secondary-700">
                   Название организации <span className="text-red-500">*</span>
@@ -520,33 +608,23 @@ const RegisterPage = () => {
                 <p className="mt-1 text-sm text-red-600">{getErrorMessage('agreeTerms')}</p>
               )}
               
-              <div className="flex justify-between">
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={() => setCurrentStep(1)}
+              <div className="flex justify-between items-center">
+                <button 
+                    type="button" 
+                    onClick={() => setCurrentStep(1)} 
+                    className="text-sm font-medium text-primary-600 hover:text-primary-500"
                 >
-                  Назад
+                    Назад
                 </button>
                 <button
                   type="submit"
-                  className={`btn btn-primary ${isLoading || !agreeTerms ? 'opacity-70 cursor-not-allowed' : ''}`}
-                  disabled={isLoading || !agreeTerms}
+                  disabled={isLoading}
+                  className="group relative inline-flex justify-center py-2 px-6 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
                 >
-                  {isLoading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Регистрация...
-                    </>
-                  ) : (
-                    'Зарегистрироваться'
-                  )}
+                  {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
                 </button>
               </div>
-            </div>
+            </motion.div>
           )}
         </form>
         

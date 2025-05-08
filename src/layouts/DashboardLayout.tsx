@@ -19,7 +19,7 @@ import { billingService, OrganizationBalance, ErrorResponse } from '@utils/api';
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -234,7 +234,15 @@ const DashboardLayout = () => {
                     <Menu.Button className="relative flex max-w-xs items-center rounded-full bg-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                       <span className="absolute -inset-1.5" />
                       <span className="sr-only">Открыть меню пользователя</span>
-                      <UserCircleIcon className="h-8 w-8 rounded-full text-gray-400" aria-hidden="true" />
+                      {user?.avatar_url ? (
+                        <img
+                          className="h-8 w-8 rounded-full object-cover"
+                          src={user.avatar_url}
+                          alt="Аватар пользователя"
+                        />
+                      ) : (
+                        <UserCircleIcon className="h-8 w-8 rounded-full text-gray-400" aria-hidden="true" />
+                      )}
                     </Menu.Button>
                   </div>
                   <Transition

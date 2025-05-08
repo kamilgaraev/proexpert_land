@@ -170,24 +170,23 @@ export interface OrganizationsResponseData {
 // Сервисы для работы с API
 export const authService = {
   // Регистрация нового пользователя
-  register: async (userData: RegisterRequest): Promise<any> => {
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/auth/register`, {
+  register: async (formData: FormData): Promise<any> => {
+    const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify(userData)
+      body: formData
     });
     
     const data = await response.json();
     
-    // Сразу сохраняем токен в хранилище
-    if (data && data.success && data.data && data.data.token) {
+    if (data && data.token) {
+      saveTokenToMultipleStorages(data.token);
+    } else if (data && data.data && data.data.token) {
       saveTokenToMultipleStorages(data.data.token);
     }
     
-    // Создаем объект, имитирующий ответ Axios
     return {
       data: data,
       status: response.status,
@@ -309,27 +308,37 @@ export const userService = {
   },
   
   // Обновление профиля пользователя
-  updateProfile: async (profileData: UpdateProfileRequest) => {
+  updateProfile: async (formData: FormData) => {
     const token = getTokenFromStorages();
     
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/user/profile`, {
-      method: 'PUT',
+    const response = await fetch(`${API_URL}/auth/me`, {
+      method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(profileData)
+      body: formData
     });
     
     const data = await response.json();
+
+    if (!response.ok) {
+        const errorMsg = data?.message || `Ошибка обновления профиля (статус ${response.status})`;
+        const validationErrors = data?.errors;
+        const errorToThrow = new Error(errorMsg) as any;
+        if (validationErrors) {
+          errorToThrow.errors = validationErrors; 
+        }
+        errorToThrow.status = response.status;
+        throw errorToThrow; 
+    }
     
     return {
-      data: data,
+      data: data, 
       status: response.status,
       statusText: response.statusText
     };
@@ -635,6 +644,12 @@ export interface LandingUser {
   created_at: string;
   updated_at: string;
   current_organization_id?: number;
+  avatar_url: string | null;
+  phone?: string | null;
+  position?: string | null;
+  is_active?: boolean;
+  user_type?: string;
+  last_login_at?: string | null;
 }
 
 export interface SupportRequest {
