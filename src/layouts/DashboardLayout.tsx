@@ -221,12 +221,14 @@ const DashboardLayout = () => {
                 </Link>
                 
                 {/* Кнопка перехода в Админ-панель */}
-                <Link
-                  to="/admin" // Маршрут к админ-панели
+                <a
+                  href="http://89.104.68.13/"
                   className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Перейти в админ панель
-                </Link>
+                </a>
 
                 {/* Profile dropdown */}
                 <Menu as="div" className="relative">
