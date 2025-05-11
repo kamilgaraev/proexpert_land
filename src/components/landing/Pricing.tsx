@@ -1,4 +1,4 @@
-import { CheckIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, CogIcon, PuzzlePieceIcon, LifebuoyIcon, WalletIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -176,65 +176,98 @@ const Pricing = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-secondary-900 sm:text-4xl">
+          <div className="text-center mb-16">
+            <h3 className="text-3xl font-bold text-secondary-900 sm:text-4xl lg:text-5xl">
               Дополнительные услуги и возможности
             </h3>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-secondary-500">
-              Расширьте функционал и получите поддержку, соответствующую вашим уникальным потребностям.
+            <p className="mt-6 max-w-3xl mx-auto text-xl text-secondary-600">
+              Настройте платформу под себя: расширьте функционал и получите поддержку, соответствующую вашим уникальным бизнес-процессам.
             </p>
           </div>
 
-          <div className="space-y-10">
+          <div className="space-y-12">
             {/* Платные Модули */}
             <div>
-              <h4 className="text-2xl font-semibold text-secondary-800 mb-4">Платные Модули (Add-ons)</h4>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center mb-6">
+                <PuzzlePieceIcon className="h-8 w-8 text-primary-600 mr-3" />
+                <h4 className="text-2xl font-semibold text-secondary-800">Платные Модули (Add-ons)</h4>
+              </div>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                   <h5 className="text-lg font-semibold text-primary-700">Продвинутая Аналитика и BI</h5>
-                  <p className="mt-2 text-secondary-600">Детальные дашборды, кастомные отчеты, сравнение план/факт. <br /><em>Ориентировочно: +20-30% к стоимости тарифа "Профи" или "Бизнес".</em></p>
+                  <p className="mt-3 text-secondary-600 text-sm">
+                    Детальные дашборды, кастомные отчеты, сравнение план/факт для глубокого анализа.<br />
+                    <em>Ориентировочно: +20-30% к стоимости тарифа "Профи" или "Бизнес". Точная стоимость зависит от выбранного тарифа.</em>
+                  </p>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                   <h5 className="text-lg font-semibold text-primary-700">Модуль Управления Заявками и Согласованиями</h5>
-                  <p className="mt-2 text-secondary-600">Для более сложных процессов документооборота и утверждений. <br /><em>Ориентировочно: +15-25% к стоимости тарифа.</em></p>
+                  <p className="mt-3 text-secondary-600 text-sm">
+                    Для более сложных процессов документооборота, согласования заявок и внутреннего контроля.<br />
+                    <em>Ориентировочно: +15-25% к стоимости основного тарифа. Обсуждается индивидуально.</em>
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Услуги по Внедрению и Кастомизации */}
             <div>
-              <h4 className="text-2xl font-semibold text-secondary-800 mb-4">Услуги по Внедрению и Кастомизации</h4>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center mb-6">
+                <CogIcon className="h-8 w-8 text-primary-600 mr-3" />
+                <h4 className="text-2xl font-semibold text-secondary-800">Услуги по Внедрению и Кастомизации</h4>
+              </div>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                   <h5 className="text-lg font-semibold text-primary-700">Стартовый Пакет Внедрения</h5>
-                  <p className="mt-2 text-secondary-600">Помощь с импортом данных, настройка справочников, обучение команды. <br /><em>Ориентировочно: 15 000 - 50 000 руб. разово.</em></p>
+                  <p className="mt-3 text-secondary-600 text-sm">
+                    Помощь с импортом ваших данных, детальная настройка справочников, комплексное обучение вашей команды.<br />
+                    <em>Ориентировочно: 15 000 - 50 000 руб. (разовый платеж).</em>
+                  </p>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                   <h5 className="text-lg font-semibold text-primary-700">Разработка Кастомных Интеграций/Отчетов</h5>
-                  <p className="mt-2 text-secondary-600">Для уникальных интеграций или специфических отчетов. <br /><em>Почасовая ставка или фиксированная цена за проект.</em></p>
+                  <p className="mt-3 text-secondary-600 text-sm">
+                    Создание уникальных интеграций с вашими системами или разработка специфических отчетов под ваши нужды.<br />
+                    <em>Стоимость определяется индивидуально (почасовая ставка или фиксированная цена за проект).</em>
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Премиум-Поддержка */}
             <div>
-              <h4 className="text-2xl font-semibold text-secondary-800 mb-4">Премиум-Поддержка</h4>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <p className="mt-2 text-secondary-600">Расширенная поддержка с более быстрым временем ответа для тарифов "Старт" и "Бизнес". <br /><em>Ориентировочно: +1000-2000 руб./месяц.</em></p>
+              <div className="flex items-center mb-6">
+                <LifebuoyIcon className="h-8 w-8 text-primary-600 mr-3" />
+                <h4 className="text-2xl font-semibold text-secondary-800">Премиум-Поддержка</h4>
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <p className="text-secondary-600 text-sm">
+                  Выделенная линия поддержки с гарантированным временем ответа для оперативного решения вопросов (доступно для тарифов "Старт" и "Бизнес").<br />
+                  <em>Ориентировочно: +1000-2000 руб./месяц к основному тарифу.</em>
+                </p>
               </div>
             </div>
 
             {/* Оплата за Превышение Лимитов */}
             <div>
-              <h4 className="text-2xl font-semibold text-secondary-800 mb-4">Оплата за Превышение Лимитов (Pay-per-use)</h4>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center mb-6">
+                <WalletIcon className="h-8 w-8 text-primary-600 mr-3" />
+                <h4 className="text-2xl font-semibold text-secondary-800">Оплата за Превышение Лимитов (Pay-per-use)</h4>
+              </div>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                   <h5 className="text-lg font-semibold text-primary-700">Дополнительное хранилище</h5>
-                  <p className="mt-2 text-secondary-600"><em>500 руб. за каждые дополнительные 5 ГБ/месяц.</em></p>
+                  <p className="mt-3 text-secondary-600 text-sm">
+                    Если стандартных объемов будет недостаточно для ваших фото и документов.<br />
+                    <em>Стоимость: 500 руб. за каждые дополнительные 5 ГБ/месяц. <br />Например, +10 ГБ обойдутся в 1000 руб./мес.</em>
+                  </p>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                   <h5 className="text-lg font-semibold text-primary-700">Дополнительные пользователи-прорабы</h5>
-                  <p className="mt-2 text-secondary-600">Сверх пакета на младших тарифах. <br /><em>500-700 руб./месяц за каждого.</em></p>
+                  <p className="mt-3 text-secondary-600 text-sm">
+                    Если количество пользователей-прорабов в вашем тарифе нужно увеличить.<br />
+                    <em>Стоимость: 500-700 руб./месяц за каждого дополнительного пользователя. <br />Например, +2 прораба будут стоить 1000-1400 руб./мес.</em>
+                  </p>
                 </div>
               </div>
             </div>
