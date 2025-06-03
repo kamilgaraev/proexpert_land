@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from '@pages/landing/LandingPage';
 import DashboardLayout from '@layouts/DashboardLayout';
 import LoginPage from '@pages/dashboard/LoginPage';
@@ -44,6 +44,7 @@ function App() {
           <Route path="billing" element={<BillingPage />} />
           <Route path="billing/add-funds" element={<AddFundsPage />} />
           <Route path="admins" element={<AdminsPage />} />
+          <Route path="admins/create" element={<Navigate to="/dashboard/admins" replace />} />
           <Route path="subscriptions" element={<SubscriptionsList />} />
         </Route>
         
