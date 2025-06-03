@@ -9,7 +9,8 @@ export interface AdminPanelUser {
   name: string;
   email: string;
   is_active: boolean;
-  roles: AdminPanelUserRole[];
+  roles?: AdminPanelUserRole[];
+  role_slug: string | null;
   created_at: string; 
 }
 

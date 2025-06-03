@@ -53,13 +53,9 @@ const AdminsPage = () => {
     setSearchTerm(event.target.value);
   };
 
-  const getRoleDisplayName = (roles: AdminPanelUserRole[]): string => {
-    if (!roles || roles.length === 0) {
-      return 'N/A';
-    }
-    // Пока отображаем первую роль. Можно доработать для отображения нескольких.
-    const role = roles[0];
-    switch (role.slug) {
+  // Функция для отображения роли по slug
+  const getRoleDisplayName = (role_slug: string | null): string => {
+    switch (role_slug) {
       case 'organization_owner':
         return 'Владелец организации';
       case 'organization_admin':
@@ -68,8 +64,16 @@ const AdminsPage = () => {
         return 'Веб-администратор';
       case 'accountant':
         return 'Бухгалтер';
+      case 'super_admin':
+        return 'Главный администратор';
+      case 'admin':
+        return 'Администратор';
+      case 'content_admin':
+        return 'Администратор контента';
+      case 'support_admin':
+        return 'Администратор поддержки';
       default:
-        return role.name || role.slug;
+        return role_slug || 'N/A';
     }
   };
   
@@ -236,7 +240,7 @@ const AdminsPage = () => {
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {getRoleDisplayName(admin.roles)}
+                        {getRoleDisplayName(admin.role_slug)}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         {admin.is_active ? (
