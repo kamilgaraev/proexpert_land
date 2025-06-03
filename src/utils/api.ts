@@ -937,4 +937,33 @@ export const billingService = {
   },
 };
 
+// Получение логов операций (отчёты)
+export const getOperationLogs = async (filters: Record<string, any>) => {
+  const token = getTokenFromStorages();
+  if (!token) throw new Error('Токен авторизации отсутствует');
+  // Преобразуем фильтры в query string
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value) params.append(key, value);
+  });
+  const url = `${API_URL}/operation-logs?${params.toString()}`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  const data = await response.json();
+  return {
+    data: data.data || [],
+    status: response.status,
+    statusText: response.statusText,
+    message: data.message,
+    success: data.success !== undefined ? data.success : response.ok,
+    errors: data.errors,
+  };
+};
+
 export default api; 
