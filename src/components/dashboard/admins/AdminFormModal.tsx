@@ -4,6 +4,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { adminPanelUserService } from '@utils/api';
 import { AdminPanelUser, AdminFormData, SYSTEM_ROLES } from '@/types/admin';
 import { toast } from 'react-toastify';
+import { useAuth } from '@hooks/useAuth';
 
 interface AdminFormModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface AdminFormModalProps {
 
 const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onFormSubmit, adminToEdit }) => {
   const isEditing = !!adminToEdit;
+  const { user } = useAuth();
 
   const defaultRoleSlug = SYSTEM_ROLES.length > 0 ? SYSTEM_ROLES[0].slug : '';
 
@@ -97,7 +99,8 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
           email: formData.email,
           role_slug: formData.role_slug,
           password: formData.password,
-          password_confirmation: formData.password_confirmation
+          password_confirmation: formData.password_confirmation,
+          organization_id: user?.current_organization_id,
         };
         console.log('AdminFormModal: Attempting to create admin. Payload:', dataToSendForCreate);
         response = await adminPanelUserService.createAdminPanelUser(dataToSendForCreate);

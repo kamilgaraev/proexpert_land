@@ -444,6 +444,7 @@ export const userService = {
     role: string;
     password?: string;
     password_confirmation?: string;
+    organization_id?: number;
   }) => {
     const token = getTokenFromStorages();
     

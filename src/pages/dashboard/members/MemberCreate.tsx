@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { userService } from '@utils/api';
+import { useAuth } from '@hooks/useAuth';
 
 interface FormData {
   name: string;
@@ -14,6 +15,7 @@ type ErrorsType = Partial<Record<keyof FormData, string>> & { general?: string }
 
 const MemberCreate: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -77,7 +79,8 @@ const MemberCreate: React.FC = () => {
         email: formData.email,
         role: formData.role,
         password: formData.password,
-        password_confirmation: formData.password_confirmation
+        password_confirmation: formData.password_confirmation,
+        organization_id: user?.current_organization_id,
       });
       
       if (!response.data.success) {
