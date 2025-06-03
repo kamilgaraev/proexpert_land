@@ -46,9 +46,8 @@ export interface AdminUserDeleteResponse {
 // Это можно будет загружать с API, если будет такой эндпоинт,
 // или оставить как константу, если список фиксирован.
 export const SYSTEM_ROLES = [
-  { slug: 'organization_owner', name: 'Владелец организации' },
-  { slug: 'organization_admin', name: 'Администратор организации' },
-  { slug: 'web_admin', name: 'Веб-администратор' },
-  { slug: 'accountant', name: 'Бухгалтер' },
-  // Добавьте другие системные роли по мере необходимости
+  { slug: 'super_admin', name: 'Главный администратор' },
+  { slug: 'admin', name: 'Администратор' },
+  { slug: 'content_admin', name: 'Администратор контента' },
+  { slug: 'support_admin', name: 'Администратор поддержки' },
 ]; 

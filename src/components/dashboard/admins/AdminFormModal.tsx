@@ -118,7 +118,6 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
         }
         setError(errorMessage);
         toast.error(errorMessage);
-        console.error('AdminFormModal: API logical error:', errorMessage, 'Full response:', response);
       }
     } catch (err: any) {
       console.error(`AdminFormModal: Catch block error during ${isEditing ? 'update' : 'create'}:`, err);
@@ -198,10 +197,10 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                         name="name"
                         id="name"
                         required
-                        maxLength={255}
                         value={formData.name}
                         onChange={handleChange}
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+                        placeholder="Введите ФИО полностью"
                       />
                     </div>
                   </div>
