@@ -92,13 +92,12 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
         console.log('AdminFormModal: Attempting to update admin ID:', adminToEdit.id, 'Payload:', dataToSendForUpdate);
         response = await adminPanelUserService.updateAdminPanelUser(adminToEdit.id, dataToSendForUpdate);
       } else {
-        const dataToSendForCreate: AdminFormData = {
+        const dataToSendForCreate = {
           name: formData.name,
           email: formData.email,
           role_slug: formData.role_slug,
           password: formData.password,
-          password_confirmation: formData.password_confirmation,
-          is_active: formData.is_active,
+          password_confirmation: formData.password_confirmation
         };
         console.log('AdminFormModal: Attempting to create admin. Payload:', dataToSendForCreate);
         response = await adminPanelUserService.createAdminPanelUser(dataToSendForCreate);

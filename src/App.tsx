@@ -10,8 +10,7 @@ import SupportPage from '@pages/dashboard/SupportPage';
 import NotFoundPage from '@pages/NotFoundPage';
 import ProtectedRoute from '@components/ProtectedRoute';
 import SubscriptionsList from '@pages/dashboard/subscriptions/SubscriptionsList';
-import AdminsList from '@pages/dashboard/admins/AdminsList';
-import AdminCreate from '@pages/dashboard/admins/AdminCreate';
+import AdminsPage from '@pages/dashboard/AdminsPage';
 import BillingPage from '@pages/dashboard/BillingPage';
 import AddFundsPage from '@pages/dashboard/billing/AddFundsPage';
 import UsersList from '@pages/admin/users/UsersList';
@@ -44,8 +43,7 @@ function App() {
           {/* Маршруты управления организацией */}
           <Route path="billing" element={<BillingPage />} />
           <Route path="billing/add-funds" element={<AddFundsPage />} />
-          <Route path="admins" element={<AdminsList />} />
-          <Route path="admins/create" element={<AdminCreate />} />
+          <Route path="admins" element={<AdminsPage />} />
           <Route path="subscriptions" element={<SubscriptionsList />} />
         </Route>
         
