@@ -674,27 +674,27 @@ export interface AdminUser {
 // Сервис для управления пользователями Админ-панели
 export const adminPanelUserService = {
   getAdminPanelUsers: async (): Promise<AdminUsersListResponse> => {
-    const response = await api.get('/landing/adminPanelUsers');
+    const response = await api.get('/adminPanelUsers');
     return response.data as AdminUsersListResponse; 
   },
 
   getAdminPanelUserById: async (userId: number): Promise<AdminUserDetailResponse> => {
-    const response = await api.get(`/landing/adminPanelUsers/${userId}`);
+    const response = await api.get(`/adminPanelUsers/${userId}`);
     return response.data as AdminUserDetailResponse;
   },
 
   createAdminPanelUser: async (userData: AdminFormDataExternal): Promise<AdminUserDetailResponse> => {
-    const response = await api.post('/landing/adminPanelUsers', userData);
+    const response = await api.post('/adminPanelUsers', userData);
     return response.data as AdminUserDetailResponse;
   },
   
   updateAdminPanelUser: async (userId: number, userData: Partial<AdminFormDataExternal>): Promise<AdminUserDetailResponse> => {
-    const response = await api.patch(`/landing/adminPanelUsers/${userId}`, userData);
+    const response = await api.patch(`/adminPanelUsers/${userId}`, userData);
     return response.data as AdminUserDetailResponse;
   },
   
   deleteAdminPanelUser: async (userId: number): Promise<AdminUserDeleteResponse> => {
-    const response = await api.delete(`/landing/adminPanelUsers/${userId}`);
+    const response = await api.delete(`/adminPanelUsers/${userId}`);
     if (response.status === 204) {
       return { success: true, message: 'Пользователь успешно удален' };
     }
