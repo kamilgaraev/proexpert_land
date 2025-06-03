@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PlusIcon, PencilIcon, TrashIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { adminPanelUserService } from '@utils/api';
-import { AdminPanelUser, AdminPanelUserRole } from '@/types/admin'; // Исправлен путь импорта
+import { AdminPanelUser } from '@/types/admin';
 import AdminFormModal from '@components/dashboard/admins/AdminFormModal';
 import ConfirmDeleteModal from '@components/shared/ConfirmDeleteModal';
 import { toast } from 'react-toastify'; // Добавляем импорт toast
