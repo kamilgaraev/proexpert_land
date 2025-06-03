@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, UserCircleIcon, ExclamationTriangleIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { adminPanelUserService } from '@utils/api';
 import { AdminPanelUser, AdminFormData, SYSTEM_ROLES } from '@/types/admin';
 import { toast } from 'react-toastify';
@@ -163,153 +163,137 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                <div className="absolute top-0 right-0 hidden pt-4 pr-4 sm:block">
-                  <button
-                    type="button"
-                    className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    onClick={onClose}
-                  >
-                    <span className="sr-only">Закрыть</span>
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                  </button>
-                </div>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-2xl bg-white px-6 pt-8 pb-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-8">
+                <div className="flex items-center mb-6">
+                  <div className="flex-shrink-0 bg-indigo-100 rounded-full p-2 mr-3">
+                    <UserCircleIcon className="h-8 w-8 text-indigo-600" />
+                  </div>
+                  <Dialog.Title as="h3" className="text-2xl font-bold leading-7 text-gray-900">
                     {isEditing ? 'Редактировать администратора' : 'Добавить администратора'}
                   </Dialog.Title>
-                  
-                  {error && (
-                    <div className="rounded-md bg-red-50 p-4">
-                      <div className="flex">
-                        <div className="ml-3">
-                          <p className="text-sm font-medium text-red-800">{error}</p>
-                        </div>
+                </div>
+                {error && (
+                  <div className="rounded-md bg-red-50 p-4 mb-4 flex items-start">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mt-0.5 mr-2" />
+                    <div>
+                      <p className="text-sm font-medium text-red-800">{error}</p>
+                    </div>
+                  </div>
+                )}
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-700 mb-2">Данные администратора</h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">Имя и Фамилия</label>
+                        <input
+                          type="text"
+                          name="name"
+                          id="name"
+                          required
+                          autoFocus
+                          value={formData.name}
+                          onChange={handleChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+                          placeholder="Введите ФИО полностью"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          id="email"
+                          required
+                          maxLength={255}
+                          value={formData.email}
+                          onChange={handleChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="role_slug" className="block text-sm font-medium text-gray-700">Роль</label>
+                        <select
+                          id="role_slug"
+                          name="role_slug"
+                          required
+                          value={formData.role_slug}
+                          onChange={handleChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+                        >
+                          {SYSTEM_ROLES.map(role => (
+                            <option key={role.slug} value={role.slug}>{role.name}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
-                  )}
-
+                  </div>
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                      Имя и Фамилия
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        type="text"
-                        name="name"
-                        id="name"
-                        required
-                        value={formData.name}
-                        onChange={handleChange}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                        placeholder="Введите ФИО полностью"
-                      />
+                    <h4 className="text-lg font-semibold text-gray-700 mb-2">Безопасность</h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                          Пароль {isEditing ? <span className="text-gray-400">(оставьте пустым, чтобы не менять)</span> : <span className="text-gray-400">(мин. 8 символов)</span>}
+                        </label>
+                        <input
+                          type="password"
+                          name="password"
+                          id="password"
+                          required={!isEditing}
+                          minLength={isEditing && !formData.password ? undefined : 8}
+                          value={formData.password}
+                          onChange={handleChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+                          placeholder="Введите пароль"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Минимум 8 символов. Используйте буквы и цифры.</p>
+                      </div>
+                      <div>
+                        <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">Подтверждение пароля</label>
+                        <input
+                          type="password"
+                          name="password_confirmation"
+                          id="password_confirmation"
+                          required={!!formData.password}
+                          value={formData.password_confirmation}
+                          onChange={handleChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+                          placeholder="Повторите пароль"
+                        />
+                      </div>
+                      <div className="flex items-center mt-2">
+                        <input
+                          id="is_active"
+                          name="is_active"
+                          type="checkbox"
+                          checked={formData.is_active}
+                          onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">Активен</label>
+                      </div>
                     </div>
                   </div>
-
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                      Email
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        type="email"
-                        name="email"
-                        id="email"
-                        required
-                        maxLength={255}
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="role_slug" className="block text-sm font-medium text-gray-700">
-                      Роль
-                    </label>
-                    <div className="mt-1">
-                      <select
-                        id="role_slug"
-                        name="role_slug"
-                        required
-                        value={formData.role_slug}
-                        onChange={handleChange}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                      >
-                        {SYSTEM_ROLES.map(role => (
-                          <option key={role.slug} value={role.slug}>
-                            {role.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                      Пароль {isEditing ? '(оставьте пустым, чтобы не менять)' : '(мин. 8 символов)'}
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        type="password"
-                        name="password"
-                        id="password"
-                        required={!isEditing}
-                        minLength={isEditing && !formData.password ? undefined : 8}
-                        value={formData.password}
-                        onChange={handleChange}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">
-                      Подтверждение пароля
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        type="password"
-                        name="password_confirmation"
-                        id="password_confirmation"
-                        required={!!formData.password}
-                        value={formData.password_confirmation}
-                        onChange={handleChange}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      id="is_active"
-                      name="is_active"
-                      type="checkbox"
-                      checked={formData.is_active}
-                      onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
-                      Активен
-                    </label>
-                  </div>
-
-                  <div className="pt-2 sm:flex sm:flex-row-reverse">
+                  <div className="pt-4 sm:flex sm:flex-row-reverse gap-2">
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                      className="inline-flex items-center justify-center w-full sm:w-auto rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:ml-3 sm:text-sm disabled:opacity-50 transition-all"
                     >
-                      {isLoading ? 'Сохранение...' : (isEditing ? 'Сохранить изменения' : 'Добавить')}
+                      {isLoading ? (
+                        <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      ) : (
+                        <PlusIcon className="h-5 w-5 mr-2" />
+                      )}
+                      {isEditing ? 'Сохранить изменения' : 'Добавить'}
                     </button>
                     <button
                       type="button"
                       disabled={isLoading}
-                      className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm disabled:opacity-50"
+                      className="inline-flex items-center justify-center w-full sm:w-auto rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:text-sm disabled:opacity-50 transition-all"
                       onClick={onClose}
                     >
+                      <XMarkIcon className="h-5 w-5 mr-2" />
                       Отмена
                     </button>
                   </div>
