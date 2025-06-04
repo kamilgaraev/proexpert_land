@@ -60,7 +60,7 @@ const DashboardLayout = () => {
   const mainNavigation = [
     { name: 'Обзор', href: '/dashboard', icon: HomeIcon },
     { name: 'Баланс', href: '/dashboard/billing', icon: BanknotesIcon },
-    { name: 'Подписки', href: '/dashboard/subscriptions', icon: TicketIcon },
+    { name: 'Платные услуги', href: '/dashboard/paid-services', icon: TicketIcon },
     { name: 'Администраторы', href: '/dashboard/admins', icon: ShieldCheckIcon }, // Управление пользователями админки
     { name: 'Профиль', href: '/dashboard/profile', icon: UserCircleIcon },
     { name: 'Справка', href: '/dashboard/help', icon: QuestionMarkCircleIcon }, // Включает ссылку на поддержку

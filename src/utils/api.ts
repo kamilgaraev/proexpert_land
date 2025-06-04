@@ -935,6 +935,122 @@ export const billingService = {
     const responseData = await response.json();
     return { data: responseData as PaymentGatewayChargeResponse | ErrorResponse, status: response.status, statusText: response.statusText };
   },
+
+  // Получить список add-on'ов и подключённых
+  getAddons: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/addons`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Подключить add-on
+  connectAddon: async (addon_id: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/org-addon`;
+    const options: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ addon_id }),
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Отключить add-on
+  disconnectAddon: async (subscription_addon_id: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/org-addon/${subscription_addon_id}`;
+    const options: RequestInit = {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Получить текущую подписку организации
+  getOrgSubscription: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/org-subscription`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Оформить/сменить подписку
+  orgSubscribe: async (plan_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/org-subscribe`;
+    const options: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ plan_slug }),
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Изменить параметры подписки (апгрейд/даунгрейд)
+  updateOrgSubscription: async (plan_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/org-subscription`;
+    const options: RequestInit = {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ plan_slug }),
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Совершить одноразовую покупку
+  oneTimePurchase: async (payload: { type: string; description: string; amount: number; currency: string }): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/org-one-time-purchase`;
+    const options: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Получить историю одноразовых покупок
+  getOneTimePurchases: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/org-one-time-purchases`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
 };
 
 export default api; 

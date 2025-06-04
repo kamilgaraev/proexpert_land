@@ -54,10 +54,10 @@ const DashboardPage = () => {
   const managementCards = [
     // Карточка billing удалена
     {
-      id: 'subscriptions',
-      name: 'Управление подписками',
-      description: 'Просмотр и изменение вашего тарифного плана.',
-      href: '/dashboard/subscriptions',
+      id: 'paid-services',
+      name: 'Платные услуги',
+      description: 'Тарифы, add-on и разовые покупки для вашей организации.',
+      href: '/dashboard/paid-services',
       icon: TicketIcon,
       color: 'bg-primary-100 text-primary-700',
       bgColor: 'hover:bg-primary-50'

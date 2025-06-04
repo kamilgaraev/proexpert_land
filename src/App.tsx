@@ -9,13 +9,13 @@ import HelpPage from '@pages/dashboard/HelpPage';
 import SupportPage from '@pages/dashboard/SupportPage';
 import NotFoundPage from '@pages/NotFoundPage';
 import ProtectedRoute from '@components/ProtectedRoute';
-import SubscriptionsList from '@pages/dashboard/subscriptions/SubscriptionsList';
 import AdminsPage from '@pages/dashboard/AdminsPage';
 import BillingPage from '@pages/dashboard/BillingPage';
 import AddFundsPage from '@pages/dashboard/billing/AddFundsPage';
 import UsersList from '@pages/admin/users/UsersList';
 import ProjectsList from '@pages/admin/projects/ProjectsList';
 import FAQPage from '@pages/dashboard/FAQPage';
+import PaidServicesPage from '@pages/dashboard/paid-services/PaidServicesPage';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -45,7 +45,7 @@ function App() {
           <Route path="billing/add-funds" element={<AddFundsPage />} />
           <Route path="admins" element={<AdminsPage />} />
           <Route path="admins/create" element={<Navigate to="/dashboard/admins" replace />} />
-          <Route path="subscriptions" element={<SubscriptionsList />} />
+          <Route path="paid-services" element={<PaidServicesPage />} />
         </Route>
         
         {/* Административные маршруты */}
