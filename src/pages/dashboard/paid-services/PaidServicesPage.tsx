@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { billingService, UserSubscription, SubscriptionPlan, SubscribeToPlanRequest, ErrorResponse } from '@utils/api';
-import { CheckCircleIcon, XCircleIcon, InformationCircleIcon, ShoppingCartIcon, NoSymbolIcon, ExclamationTriangleIcon, PuzzlePieceIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { billingService } from '@utils/api';
+import { CheckCircleIcon, XCircleIcon, PuzzlePieceIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { PageLoading } from '@components/common/PageLoading'; // Предполагаем наличие компонента-заглушки
 
 const PaidServicesPage = () => {
