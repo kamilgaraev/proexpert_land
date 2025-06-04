@@ -1051,6 +1051,20 @@ export const billingService = {
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
+
+  // Получить дашборд организации (тариф, лимиты, add-on)
+  getOrgDashboard: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/org-dashboard`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
 };
 
 export default api; 

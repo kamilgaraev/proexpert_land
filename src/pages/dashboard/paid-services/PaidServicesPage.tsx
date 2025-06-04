@@ -106,7 +106,7 @@ const PaidServicesPage = () => {
       setPurchaseLoading(false);
     }
   };
-
+  
   const formatDate = (date?: string) => date ? new Date(date).toLocaleDateString('ru-RU') : '—';
 
   if (loading) return <PageLoading message="Загрузка платных услуг..." />;
@@ -121,19 +121,19 @@ const PaidServicesPage = () => {
         <h2 className="text-xl font-semibold mb-4">Текущая подписка</h2>
         {subscription && subscription.status ? (
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
+                <div>
               <div className="text-2xl font-bold text-primary-700">{subscription.status === 'active' ? subscription.plan?.name : 'Нет активной подписки'}</div>
               <div className="text-gray-600 text-sm mt-1">{subscription.plan?.description}</div>
               <div className="text-xs text-gray-400 mt-2">Действует до: {formatDate(subscription.ends_at)}</div>
-            </div>
+                </div>
             <div className="flex flex-col gap-2">
               {plans.filter(p => p.slug !== subscription.plan?.slug).map(plan => (
                 <button key={plan.slug} onClick={() => handlePlanChange(plan.slug)} className="btn btn-outline">
                   Перейти на {plan.name}
                 </button>
               ))}
-            </div>
-          </div>
+                </div>
+              </div>
         ) : <div className="text-gray-500">Нет активной подписки</div>}
       </section>
 
@@ -155,7 +155,7 @@ const PaidServicesPage = () => {
               <button onClick={() => handlePlanChange(plan.slug)} className="btn btn-primary mt-auto">Выбрать</button>
             </div>
           ))}
-        </div>
+          </div>
       </section>
 
       {/* Add-ons */}
@@ -181,7 +181,7 @@ const PaidServicesPage = () => {
                 {addons.map((addon: any) => {
                   const connected = connectedAddons.some((a: any) => a.id === addon.id);
                   const subAddon = connectedAddons.find((a: any) => a.id === addon.id);
-                  return (
+              return (
                     <li key={addon.id} className="flex items-center justify-between border-b pb-2">
                       <div>
                         <div className="font-medium">{addon.name}</div>
@@ -194,14 +194,14 @@ const PaidServicesPage = () => {
                       ) : (
                         <button disabled={addonAction === addon.id} onClick={() => handleAddonConnect(addon.id)} className="btn btn-primary flex items-center gap-1">
                           <PlusIcon className="h-4 w-4" /> Подключить
-                        </button>
-                      )}
+                      </button>
+                    )}
                     </li>
-                  );
-                })}
+              );
+            })}
               </ul>
             </div>
-          </div>
+      </div>
         )}
       </section>
 
