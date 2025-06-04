@@ -3,14 +3,6 @@ import { billingService, UserSubscription, SubscriptionPlan, SubscribeToPlanRequ
 import { CheckCircleIcon, XCircleIcon, InformationCircleIcon, ShoppingCartIcon, NoSymbolIcon, ExclamationTriangleIcon, PuzzlePieceIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { PageLoading } from '@components/common/PageLoading'; // Предполагаем наличие компонента-заглушки
 
-// Вспомогательный компонент для отображения деталей плана
-const PlanFeature = ({ children }: { children: React.ReactNode }) => (
-  <li className="flex items-center space-x-2">
-    <CheckCircleIcon className="h-5 w-5 text-green-500 flex-shrink-0" />
-    <span className="text-sm text-gray-700">{children}</span>
-  </li>
-);
-
 const PaidServicesPage = () => {
   const [subscription, setSubscription] = useState<any>(null);
   const [plans, setPlans] = useState<any[]>([]);
