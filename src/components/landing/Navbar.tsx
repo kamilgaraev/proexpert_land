@@ -31,7 +31,7 @@ const Navbar = () => {
               Возможности
             </a>
             <a href="#how-it-works" className="text-secondary-700 hover:text-primary-600 font-medium">
-              Как это работает
+              Как это работает pipec
             </a>
             <a href="#pricing" className="text-secondary-700 hover:text-primary-600 font-medium">
               Тарифы

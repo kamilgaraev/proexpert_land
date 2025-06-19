@@ -19,7 +19,7 @@ const Placeholder: React.FC<PlaceholderProps> = ({ title, description, icon }) =
         )}
         <div className="mt-6 p-4 bg-secondary-50 rounded-md w-full max-w-md">
           <p className="text-sm text-secondary-400">
-            Эта страница находится в разработке sad. Скоро здесь появится полный функционал.
+            Эта страница находится в разработке. Скоро здесь появится полный функционал.
           </p>
         </div>
       </div>
