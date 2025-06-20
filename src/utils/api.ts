@@ -17,8 +17,8 @@ declare global {
 
 // НОВЫЙ БЛОК ОПРЕДЕЛЕНИЯ URL
 // Глобальная переменная окружения для самого базового URL без каких-либо сегментов пути API.
-// Например: http://89.111.153.146
-const VITE_APP_BASE_DOMAIN = import.meta.env.VITE_APP_BASE_DOMAIN || 'http://89.111.153.146';
+// Например: https://prohelper.pro
+const VITE_APP_BASE_DOMAIN = import.meta.env.VITE_APP_BASE_DOMAIN || 'https://prohelper.pro';
 
 // Базовый путь для всех API v1, включая /landing
 // Результат: http://89.111.153.146/api/v1/landing
