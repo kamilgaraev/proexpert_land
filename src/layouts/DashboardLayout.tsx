@@ -8,15 +8,12 @@ import {
   UserCircleIcon,
   BanknotesIcon,
   QuestionMarkCircleIcon,
-  ShieldCheckIcon,
   TicketIcon,
   WalletIcon,
   BuildingOfficeIcon,
-  ChartBarIcon,
   CogIcon,
   BellIcon,
-  UsersIcon,
-  DocumentTextIcon
+  UsersIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
 import { Menu, Transition } from '@headlessui/react';
@@ -70,12 +67,6 @@ const DashboardLayout = () => {
       description: 'Общая статистика проектов'
     },
     { 
-      name: 'Проекты', 
-      href: '/dashboard/projects', 
-      icon: BuildingOfficeIcon,
-      description: 'Управление строительными объектами'
-    },
-    { 
       name: 'Команда', 
       href: '/dashboard/admins', 
       icon: UsersIcon,
@@ -88,22 +79,10 @@ const DashboardLayout = () => {
       description: 'Баланс и платежи'
     },
     { 
-      name: 'Отчеты', 
-      href: '/dashboard/reports', 
-      icon: ChartBarIcon,
-      description: 'Аналитика и отчетность'
-    },
-    { 
       name: 'Услуги', 
       href: '/dashboard/paid-services', 
       icon: TicketIcon,
       description: 'Дополнительные возможности'
-    },
-    { 
-      name: 'Документы', 
-      href: '/dashboard/documents', 
-      icon: DocumentTextIcon,
-      description: 'Договоры и документооборот'
     },
     { 
       name: 'Настройки', 
@@ -158,10 +137,14 @@ const DashboardLayout = () => {
           
           {/* Логотип */}
           <div className="flex h-20 shrink-0 items-center px-6 bg-gradient-to-r from-construction-600 to-construction-500">
-            <img className="h-10 w-auto" src="/logo-white.svg" alt="ProExpert" />
-            <div className="ml-3">
-              <h1 className="text-white font-bold text-lg">ProExpert</h1>
-              <p className="text-construction-100 text-xs">Личный кабинет</p>
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-xl">P</span>
+              </div>
+              <div className="ml-3">
+                <h1 className="text-white font-bold text-lg">ProHelper</h1>
+                <p className="text-construction-100 text-xs">Личный кабинет</p>
+              </div>
             </div>
           </div>
           
@@ -255,9 +238,11 @@ const DashboardLayout = () => {
           <div className="flex flex-1 flex-col overflow-y-auto">
             {/* Логотип */}
             <div className="flex items-center px-6 py-6 bg-gradient-to-r from-construction-600 to-construction-500">
-              <img className="h-10 w-auto" src="/logo-white.svg" alt="ProExpert" />
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-2xl">P</span>
+              </div>
               <div className="ml-3">
-                <h1 className="text-white font-bold text-xl">ProExpert</h1>
+                <h1 className="text-white font-bold text-xl">ProHelper</h1>
                 <p className="text-construction-100 text-sm">Личный кабинет</p>
               </div>
             </div>
