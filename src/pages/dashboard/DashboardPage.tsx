@@ -20,11 +20,23 @@ import {
   LifebuoyIcon
 } from '@heroicons/react/24/outline';
 import { billingService } from '@utils/api';
+import { useSubscriptionLimits } from '@hooks/useSubscriptionLimits';
 
 const DashboardPage = () => {
   const [dashboard, setDashboard] = useState<any>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
+
+  // Хук для лимитов подписки
+  const { 
+    data: limitsData, 
+    hasWarnings, 
+    criticalWarnings, 
+    needsUpgrade 
+  } = useSubscriptionLimits({
+    autoRefresh: true,
+    refreshInterval: 300000 // 5 минут
+  });
 
   useEffect(() => {
     (async () => {
@@ -261,6 +273,46 @@ const DashboardPage = () => {
           <span>Последнее обновление: {new Date().toLocaleTimeString('ru-RU')}</span>
         </div>
       </motion.div>
+
+      {/* Предупреждения о лимитах */}
+      {hasWarnings && criticalWarnings.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.05 }}
+          className="bg-gradient-to-r from-red-500 to-red-600 rounded-2xl p-4 text-white"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <ExclamationTriangleIcon className="w-6 h-6 text-white" />
+              <div>
+                <h3 className="font-semibold">Внимание к лимитам</h3>
+                <p className="text-sm text-red-100">
+                  {criticalWarnings.length === 1 
+                    ? `1 критическое предупреждение` 
+                    : `${criticalWarnings.length} критических предупреждений`}
+                </p>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <Link
+                to="/dashboard/limits"
+                className="bg-white text-red-600 px-4 py-2 rounded-xl font-medium hover:bg-red-50 transition-colors text-sm"
+              >
+                Подробнее
+              </Link>
+              {needsUpgrade && (
+                <Link
+                  to="/dashboard/billing"
+                  className="bg-red-700 text-white px-4 py-2 rounded-xl font-medium hover:bg-red-800 transition-colors text-sm"
+                >
+                  Обновить тариф
+                </Link>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Статистика */}
       <motion.div 

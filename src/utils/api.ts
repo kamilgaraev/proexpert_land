@@ -805,6 +805,58 @@ export interface ErrorResponse {
   errors?: Record<string, string[]>; // Для ошибок валидации (как в ValidationErrorResponse)
 }
 
+// Интерфейсы для API лимитов подписки
+export interface SubscriptionLimitItem {
+  limit: number | null;
+  used: number;
+  remaining: number;
+  percentage_used: number;
+  is_unlimited: boolean;
+  status: 'normal' | 'approaching' | 'warning' | 'exceeded' | 'unlimited';
+}
+
+export interface StorageLimitItem {
+  limit_gb: number | null;
+  used_gb: number;
+  remaining_gb: number;
+  percentage_used: number;
+  is_unlimited: boolean;
+  status: 'normal' | 'approaching' | 'warning' | 'exceeded' | 'unlimited';
+}
+
+export interface SubscriptionLimits {
+  foremen: SubscriptionLimitItem;
+  projects: SubscriptionLimitItem;
+  storage: StorageLimitItem;
+}
+
+export interface SubscriptionWarning {
+  type: string;
+  level: 'warning' | 'critical';
+  message: string;
+}
+
+export interface SubscriptionInfo {
+  id: number;
+  status: string;
+  plan_name: string;
+  plan_description: string;
+  is_trial: boolean;
+  trial_ends_at: string | null;
+  ends_at: string | null;
+  next_billing_at: string | null;
+  is_canceled: boolean;
+}
+
+export interface SubscriptionLimitsResponse {
+  has_subscription: boolean;
+  subscription: SubscriptionInfo | null;
+  limits: SubscriptionLimits;
+  features: string[];
+  warnings: SubscriptionWarning[];
+  upgrade_required: boolean;
+}
+
 // Вспомогательная функция для логирования запросов и ответов
 async function fetchWithBillingLogging(url: string, options: RequestInit): Promise<Response> {
   console.log(`[BillingService] Requesting: ${options.method} ${url}`);
@@ -1064,6 +1116,20 @@ export const billingService = {
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Получить лимиты подписки
+  getSubscriptionLimits: async (): Promise<{ data: SubscriptionLimitsResponse | ErrorResponse, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/subscription/limits`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData as SubscriptionLimitsResponse | ErrorResponse, status: response.status, statusText: response.statusText };
   },
 };
 

@@ -16,6 +16,7 @@ import UsersList from '@pages/admin/users/UsersList';
 import ProjectsList from '@pages/admin/projects/ProjectsList';
 import FAQPage from '@pages/dashboard/FAQPage';
 import PaidServicesPage from '@pages/dashboard/paid-services/PaidServicesPage';
+import SubscriptionLimitsPage from '@pages/dashboard/SubscriptionLimitsPage';
 
 // Новые страницы
 import IntegrationsPage from '@pages/product/IntegrationsPage';
@@ -85,6 +86,7 @@ function App() {
           <Route path="help" element={<HelpPage />} />
           <Route path="support" element={<SupportPage />} />
           <Route path="faq" element={<FAQPage />} />
+          <Route path="limits" element={<SubscriptionLimitsPage />} />
           
           {/* Маршруты управления организацией */}
           <Route path="billing" element={<BillingPage />} />
