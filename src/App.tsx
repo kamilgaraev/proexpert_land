@@ -16,6 +16,18 @@ import UsersList from '@pages/admin/users/UsersList';
 import ProjectsList from '@pages/admin/projects/ProjectsList';
 import FAQPage from '@pages/dashboard/FAQPage';
 import PaidServicesPage from '@pages/dashboard/paid-services/PaidServicesPage';
+
+// Новые страницы
+import IntegrationsPage from '@pages/product/IntegrationsPage';
+import ApiPage from '@pages/product/ApiPage';
+import SmallBusinessPage from '@pages/solutions/SmallBusinessPage';
+import EnterprisePage from '@pages/solutions/EnterprisePage';
+import ContractorsPage from '@pages/solutions/ContractorsPage';
+import BlogPage from '@pages/resources/BlogPage';
+import DocsPage from '@pages/resources/DocsPage';
+import AboutPage from '@pages/company/AboutPage';
+import CareersPage from '@pages/company/CareersPage';
+
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -27,6 +39,28 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        
+        {/* Продуктовые страницы */}
+        <Route path="/integrations" element={<IntegrationsPage />} />
+        <Route path="/api" element={<ApiPage />} />
+        
+        {/* Страницы решений */}
+        <Route path="/small-business" element={<SmallBusinessPage />} />
+        <Route path="/enterprise" element={<EnterprisePage />} />
+        <Route path="/contractors" element={<ContractorsPage />} />
+        <Route path="/developers" element={<EnterprisePage />} />
+        
+        {/* Ресурсы */}
+        <Route path="/docs" element={<DocsPage />} />
+        <Route path="/help" element={<DocsPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/webinars" element={<BlogPage />} />
+        
+        {/* Компания */}
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/careers" element={<CareersPage />} />
+        <Route path="/press" element={<BlogPage />} />
+        <Route path="/partners" element={<AboutPage />} />
         
         {/* Защищенные маршруты внутри личного кабинета */}
         <Route path="/dashboard" element={
