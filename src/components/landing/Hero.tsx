@@ -10,8 +10,19 @@ import {
   BuildingOfficeIcon,
   TruckIcon
 } from '@heroicons/react/24/outline';
+import useAnalytics from '../../hooks/useAnalytics';
 
 const Hero = () => {
+  const { trackButtonClick } = useAnalytics();
+
+  const handleStartFreeClick = () => {
+    trackButtonClick('start_free', 'hero_section');
+  };
+
+  const handleWatchDemoClick = () => {
+    trackButtonClick('watch_demo', 'hero_section');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-concrete-50 via-concrete-100 to-steel-100 relative overflow-hidden">
       <div className="absolute inset-0 bg-construction-grid opacity-30"></div>
@@ -65,6 +76,7 @@ const Hero = () => {
             >
               <Link
                 to="/register"
+                onClick={handleStartFreeClick}
                 className="group relative px-8 py-4 bg-gradient-to-r from-construction-600 to-construction-500 rounded-lg text-white font-semibold text-lg hover:shadow-construction transition-all duration-300 transform hover:scale-105 border border-construction-600"
               >
                 <span className="relative z-10 flex items-center gap-2">
@@ -73,7 +85,10 @@ const Hero = () => {
                 </span>
               </Link>
               
-              <button className="flex items-center gap-3 px-8 py-4 border-2 border-steel-400 rounded-lg text-steel-700 font-semibold text-lg hover:border-construction-500 hover:text-construction-600 transition-all duration-300 backdrop-blur-sm bg-white/50">
+              <button 
+                onClick={handleWatchDemoClick}
+                className="flex items-center gap-3 px-8 py-4 border-2 border-steel-400 rounded-lg text-steel-700 font-semibold text-lg hover:border-construction-500 hover:text-construction-600 transition-all duration-300 backdrop-blur-sm bg-white/50"
+              >
                 <PlayIcon className="w-5 h-5" />
                 Смотреть демо
               </button>

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { BuildingOfficeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import SEOHead from './SEOHead';
+import { getPageSEOData, generateOrganizationSchema } from '../../utils/seo';
 
 interface PageLayoutProps {
   title: string;
@@ -9,6 +11,7 @@ interface PageLayoutProps {
   showBackButton?: boolean;
   backTo?: string;
   hero?: boolean;
+  seoPage?: string;
 }
 
 const PageLayout: React.FC<PageLayoutProps> = ({ 
@@ -17,10 +20,24 @@ const PageLayout: React.FC<PageLayoutProps> = ({
   children, 
   showBackButton = true, 
   backTo = '/',
-  hero = true 
+  hero = true,
+  seoPage 
 }) => {
+  const seoData = seoPage ? getPageSEOData(seoPage) : null;
+  const organizationSchema = generateOrganizationSchema();
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-concrete-50 to-white">
+    <>
+      {seoData && (
+        <SEOHead
+          title={seoData.title}
+          description={seoData.description}
+          keywords={seoData.keywords}
+          canonicalUrl={seoData.canonicalUrl}
+          structuredData={organizationSchema}
+        />
+      )}
+      <div className="min-h-screen bg-gradient-to-b from-concrete-50 to-white">
       {hero && (
         <div className="bg-gradient-to-r from-construction-600 via-construction-500 to-safety-500 relative overflow-hidden">
           <div className="absolute inset-0 bg-construction-grid opacity-20"></div>
@@ -58,6 +75,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({
         {children}
       </div>
     </div>
+    </>
   );
 };
 

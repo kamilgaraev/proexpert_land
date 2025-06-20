@@ -11,7 +11,7 @@ node_modules
 /build
 
 # Переменные окружения
-.env
+
 .env.local
 .env.development
 .env.development.local

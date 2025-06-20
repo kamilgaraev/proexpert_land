@@ -10,8 +10,16 @@ import {
   CurrencyDollarIcon,
   PhoneIcon
 } from '@heroicons/react/24/outline';
+import useAnalytics from '../../hooks/useAnalytics';
 
 const Pricing = () => {
+  const { trackButtonClick, trackPricingView } = useAnalytics();
+
+  const handlePlanClick = (planName: string, planPrice: string) => {
+    trackButtonClick(`select_plan_${planName.toLowerCase()}`, 'pricing_section');
+    trackPricingView(planName);
+  };
+
   const plans = [
     {
       name: 'Стартовый',
