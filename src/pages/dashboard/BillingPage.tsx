@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { billingService, OrganizationBalance, BalanceTransaction, PaginatedBalanceTransactions, TopUpBalanceRequest, ErrorResponse, PaymentGatewayChargeResponse } from '@utils/api';
 import { 
-  ArrowPathIcon, 
   CreditCardIcon, 
   CurrencyDollarIcon, 
   ReceiptRefundIcon, 

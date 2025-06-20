@@ -7,7 +7,6 @@ import {
   PencilIcon, 
   CheckIcon, 
   XMarkIcon,
-  PhotoIcon,
   TrashIcon,
   EnvelopeIcon,
   PhoneIcon,

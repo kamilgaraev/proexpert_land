@@ -10,8 +10,7 @@ import {
   BuildingOfficeIcon,
   ShieldCheckIcon,
   CalendarIcon,
-  EnvelopeIcon,
-  PhoneIcon
+  EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import { adminPanelUserService } from '@utils/api';
 import { AdminPanelUser } from '@/types/admin';

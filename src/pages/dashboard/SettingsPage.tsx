@@ -4,20 +4,17 @@ import {
   CogIcon,
   BellIcon,
   ShieldCheckIcon,
-  UserIcon,
   BuildingOfficeIcon,
   GlobeAltIcon,
   PaintBrushIcon,
   KeyIcon,
-  DocumentTextIcon,
   ChartBarIcon,
   EnvelopeIcon,
   DevicePhoneMobileIcon,
   ComputerDesktopIcon,
   SunIcon,
   MoonIcon,
-  EyeIcon,
-  EyeSlashIcon
+  EyeIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 
