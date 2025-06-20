@@ -38,7 +38,7 @@ const RegisterPage = () => {
   const [organizationAddress, setOrganizationAddress] = useState('');
   const [organizationCity, setOrganizationCity] = useState('');
   const [organizationPostalCode, setOrganizationPostalCode] = useState('');
-  const [organizationCountry, setOrganizationCountry] = useState('Россия');
+  const [organizationCountry] = useState('Россия');
   
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
