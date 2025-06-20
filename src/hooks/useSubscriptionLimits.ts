@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { billingService, SubscriptionLimitsResponse, SubscriptionWarning, ErrorResponse } from '@utils/api';
-import NotificationService from '@components/shared/NotificationService';
 
 interface UseSubscriptionLimitsOptions {
   autoRefresh?: boolean;
@@ -40,8 +39,23 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
     lastUpdated: null
   });
 
+  // Используем ref'ы для колбэков, чтобы избежать лишних перерендеров
+  const onWarningRef = useRef(onWarning);
+  const onCriticalRef = useRef(onCritical);
+  const isLoadingRef = useRef(false);
+  
+  useEffect(() => {
+    onWarningRef.current = onWarning;
+    onCriticalRef.current = onCritical;
+  });
+
   const fetchLimits = useCallback(async () => {
+    if (isLoadingRef.current) {
+      return; // Предотвращаем множественные запросы
+    }
+    
     try {
+      isLoadingRef.current = true;
       setState(prev => ({ ...prev, error: null }));
       
       const response = await billingService.getSubscriptionLimits();
@@ -49,36 +63,27 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
       if (response.status === 200) {
         const data = response.data as SubscriptionLimitsResponse;
 
-        // Вызываем колбэки для предупреждений
-        if (data.warnings?.length > 0) {
-          const criticalWarnings = data.warnings.filter(w => w.level === 'critical');
-          const normalWarnings = data.warnings.filter(w => w.level === 'warning');
-
-          if (criticalWarnings.length > 0) {
-            if (onCritical) {
-              onCritical(criticalWarnings);
-            }
-            // Показываем критические уведомления
-            NotificationService.showCriticalLimitsAlert(criticalWarnings);
-          }
-          
-          if (normalWarnings.length > 0) {
-            if (onWarning) {
-              onWarning(normalWarnings);
-            }
-            // Показываем обычные предупреждения (первое)
-            if (normalWarnings[0]) {
-              NotificationService.showLimitNotification(normalWarnings[0]);
-            }
-          }
-        }
-
         setState({
           data,
           loading: false,
           error: null,
           lastUpdated: new Date()
         });
+        isLoadingRef.current = false;
+
+        // Вызываем колбэки для предупреждений только если они переданы
+        if (data.warnings?.length > 0) {
+          const criticalWarnings = data.warnings.filter(w => w.level === 'critical');
+          const normalWarnings = data.warnings.filter(w => w.level === 'warning');
+
+          if (criticalWarnings.length > 0 && onCriticalRef.current) {
+            onCriticalRef.current(criticalWarnings);
+          }
+          
+          if (normalWarnings.length > 0 && onWarningRef.current) {
+            onWarningRef.current(normalWarnings);
+          }
+        }
       } else {
         const errorData = response.data as ErrorResponse;
         setState(prev => ({
@@ -86,6 +91,7 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
           loading: false,
           error: errorData?.message || `Ошибка ${response.status}`
         }));
+        isLoadingRef.current = false;
       }
     } catch (error: any) {
       setState(prev => ({
@@ -93,8 +99,9 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
         loading: false,
         error: error.message || 'Не удалось загрузить лимиты подписки'
       }));
+      isLoadingRef.current = false;
     }
-  }, [onWarning, onCritical]);
+  }, []);
 
   // Первоначальная загрузка
   useEffect(() => {
@@ -110,8 +117,10 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
   }, [autoRefresh, refreshInterval, fetchLimits]);
 
   const refresh = useCallback(() => {
-    setState(prev => ({ ...prev, loading: true }));
-    fetchLimits();
+    if (!isLoadingRef.current) {
+      setState(prev => ({ ...prev, loading: true }));
+      fetchLimits();
+    }
   }, [fetchLimits]);
 
   // Вспомогательные геттеры

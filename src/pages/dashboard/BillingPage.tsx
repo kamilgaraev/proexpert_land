@@ -313,23 +313,23 @@ const BillingPage = () => {
                   Сумма пополнения
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <CurrencyDollarIcon className="h-5 w-5 text-steel-400" />
-                  </div>
-                  <input 
-                    type="number" 
+                </div>
+                <input 
+                  type="number" 
                     className="w-full pl-10 pr-4 py-3 border border-steel-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
                     placeholder="Введите сумму"
-                    value={topUpAmount}
-                    onChange={(e) => setTopUpAmount(e.target.value)}
-                    required
-                    min="1"
-                  />
-                </div>
+                  value={topUpAmount}
+                  onChange={(e) => setTopUpAmount(e.target.value)}
+                  required
+                  min="1"
+                />
               </div>
+            </div>
 
               {/* Быстрые суммы */}
-              <div>
+            <div>
                 <p className="text-sm font-medium text-steel-700 mb-2">Быстрый выбор</p>
                 <div className="grid grid-cols-2 gap-2">
                   {quickAmounts.map((amount) => (
@@ -352,21 +352,21 @@ const BillingPage = () => {
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <CreditCardIcon className="h-5 w-5 text-steel-400" />
-                  </div>
-                  <input 
-                    type="text" 
-                    className="w-full pl-10 pr-4 py-3 border border-steel-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-                    value={paymentMethodToken}
-                    onChange={(e) => setPaymentMethodToken(e.target.value)}
-                    placeholder="tok_mock_visa_..."
-                    required
-                  />
                 </div>
+                <input 
+                  type="text" 
+                    className="w-full pl-10 pr-4 py-3 border border-steel-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
+                  value={paymentMethodToken}
+                  onChange={(e) => setPaymentMethodToken(e.target.value)}
+                  placeholder="tok_mock_visa_..."
+                  required
+                />
               </div>
+            </div>
 
               <motion.button 
-                type="submit"
-                disabled={isToppingUp}
+              type="submit"
+              disabled={isToppingUp}
                 className="w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-construction-500 to-construction-600 text-white rounded-xl hover:shadow-construction focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-construction-500 disabled:opacity-50 transition-all duration-200"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -378,8 +378,8 @@ const BillingPage = () => {
                 )}
                 {isToppingUp ? 'Обработка...' : 'Пополнить баланс'}
               </motion.button>
-            </form>
-          </div>
+          </form>
+        </div>
         </motion.div>
 
         {/* История транзакций */}
@@ -392,7 +392,7 @@ const BillingPage = () => {
           <div className="bg-white rounded-2xl shadow-lg border border-steel-100 overflow-hidden">
             <div className="px-6 py-4 bg-gradient-to-r from-steel-50 to-concrete-50 border-b border-steel-100">
               <div className="flex items-center justify-between">
-                <div>
+                      <div>
                   <h3 className="text-xl font-bold text-steel-900">История транзакций</h3>
                   <p className="text-steel-600 text-sm">Последние операции по счету</p>
                 </div>
@@ -416,7 +416,7 @@ const BillingPage = () => {
                 <div className="text-center py-8">
                   <ReceiptRefundIcon className="h-12 w-12 text-steel-300 mx-auto mb-3" />
                   <p className="text-steel-500">Транзакции не найдены</p>
-                </div>
+                      </div>
               ) : (
                 <div className="space-y-3">
                   {transactions.map((transaction) => (
@@ -450,19 +450,19 @@ const BillingPage = () => {
                            <span className={`ml-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor('completed')}`}>
                              Завершено
                            </span>
-                         </div>
-                      </div>
+                    </div>
+                  </div>
                     </motion.div>
-                  ))}
-                </div>
-              )}
+              ))}
+          </div>
+        )}
 
-              {/* Пагинация */}
-              {pagination && pagination.last_page > 1 && (
+        {/* Пагинация */} 
+        {pagination && pagination.last_page > 1 && (
                 <div className="flex justify-center mt-6">
                   <div className="flex space-x-2">
                     {Array.from({ length: pagination.last_page }, (_, i) => i + 1).map((page) => (
-                      <button
+              <button
                         key={page}
                         onClick={() => handlePageChange(page)}
                         className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -472,9 +472,9 @@ const BillingPage = () => {
                         }`}
                       >
                         {page}
-                      </button>
-                    ))}
-                  </div>
+                </button>
+              ))}
+            </div>
                 </div>
               )}
             </div>

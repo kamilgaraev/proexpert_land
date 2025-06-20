@@ -27,8 +27,7 @@ const SubscriptionLimitsPage: React.FC = () => {
     needsUpgrade,
     lastUpdated
   } = useSubscriptionLimits({
-    autoRefresh: true,
-    refreshInterval: 300000, // 5 минут
+    autoRefresh: false, // Отключаем автообновление на странице лимитов
     onCritical: (warnings) => {
       console.log('Критические предупреждения:', warnings);
     },
