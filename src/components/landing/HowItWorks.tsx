@@ -1,248 +1,258 @@
 import { motion } from 'framer-motion';
 import { 
-  UserPlusIcon,
-  DevicePhoneMobileIcon, 
-  ComputerDesktopIcon,
+  DocumentCheckIcon,
+  WrenchScrewdriverIcon,
+  UserGroupIcon,
   ChartBarIcon,
   ArrowRightIcon,
-  CheckIcon
+  PlayIcon,
+  ClipboardDocumentListIcon,
+  BuildingOfficeIcon,
+  TruckIcon,
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 
-const steps = [
-  {
-    id: 1,
-    title: 'Регистрация и настройка',
-    description: 'Владелец организации создает аккаунт, настраивает компанию и создает учетные записи для администраторов.',
-    icon: UserPlusIcon,
-    details: ['Быстрая регистрация за 2 минуты', 'Настройка профиля компании', 'Создание ролей и прав доступа'],
-    color: 'neon-blue',
-    gradient: 'from-blue-400 to-cyan-500'
-  },
-  {
-    id: 2,
-    title: 'Мобильное приложение',
-    description: 'Прорабы получают мобильное приложение для учета материалов и фиксации работ прямо на объекте.',
-    icon: DevicePhoneMobileIcon,
-    details: ['Скачивание и вход в приложение', 'Учет материалов и работ', 'Работа офлайн с синхронизацией'],
-    color: 'neon-green',
-    gradient: 'from-green-400 to-emerald-500'
-  },
-  {
-    id: 3,
-    title: 'Веб-платформа',
-    description: 'Администраторы управляют проектами, контрактами, подрядчиками через удобный веб-интерфейс.',
-    icon: ComputerDesktopIcon,
-    details: ['Управление всеми проектами', 'Контроль подрядчиков и материалов', 'Финансовое планирование'],
-    color: 'neon-purple', 
-    gradient: 'from-purple-400 to-violet-500'
-  },
-  {
-    id: 4,
-    title: 'Аналитика и отчеты',
-    description: 'Получение комплексных отчетов, аналитики по проектам и автоматизация бизнес-процессов.',
-    icon: ChartBarIcon,
-    details: ['Автоматические отчеты', 'Аналитические дашборды', 'Экспорт в учетные системы'],
-    color: 'neon-pink',
-    gradient: 'from-pink-400 to-rose-500'
-  }
-];
-
-const benefits = [
-  'Единая система для всех участников проекта',
-  'Полная прозрачность процессов',
-  'Автоматизация рутинных операций',
-  'Реальная экономия времени и денег',
-  'Масштабируемость под любой размер компании'
-];
-
 const HowItWorks = () => {
+  const steps = [
+    {
+      step: '01',
+      title: 'Планирование и настройка',
+      description: 'Создание проекта, настройка справочников материалов, добавление участников команды и определение ролевой модели доступа.',
+      icon: DocumentCheckIcon,
+      features: [
+        'Создание структуры проекта',
+        'Загрузка справочников',
+        'Настройка ролей пользователей',
+        'Интеграция с существующими системами'
+      ],
+      color: 'construction'
+    },
+    {
+      step: '02',
+      title: 'Обучение и внедрение',
+      description: 'Обучение команды работе с системой, настройка мобильных приложений для прорабов и веб-интерфейса для администраторов.',
+      icon: UserGroupIcon,
+      features: [
+        'Онлайн-обучение команды',
+        'Установка мобильных приложений',
+        'Настройка уведомлений',
+        'Тестирование всех функций'
+      ],
+      color: 'safety'
+    },
+    {
+      step: '03',
+      title: 'Учет и контроль',
+      description: 'Ведение учета материалов на объектах, контроль выполнения работ, фиксация всех операций в реальном времени.',
+      icon: ClipboardDocumentListIcon,
+      features: [
+        'Мобильный учет материалов',
+        'Фотофиксация работ',
+        'QR-коды для быстрого учета',
+        'Геолокация операций'
+      ],
+      color: 'steel'
+    },
+    {
+      step: '04',
+      title: 'Анализ и оптимизация',
+      description: 'Получение детальной аналитики, формирование отчетов, оптимизация процессов на основе данных о производительности.',
+      icon: ChartBarIcon,
+      features: [
+        'Автоматические отчеты',
+        'Аналитические дашборды',
+        'Прогнозирование затрат',
+        'Оптимизация процессов'
+      ],
+      color: 'earth'
+    }
+  ];
+
+  const benefits = [
+    {
+      icon: WrenchScrewdriverIcon,
+      title: 'Быстрое внедрение',
+      description: 'Система готова к работе за 24 часа',
+      value: '1 день'
+    },
+    {
+      icon: TruckIcon,
+      title: 'Экономия ресурсов',
+      description: 'Снижение затрат на материалы и логистику',
+      value: '40%'
+    },
+    {
+      icon: ShieldCheckIcon,
+      title: 'Надежность',
+      description: 'Гарантированная сохранность данных',
+      value: '99.9%'
+    }
+  ];
+
   return (
-    <section id="how-it-works" className="py-20 bg-gradient-to-b from-slate-900 to-cyber-bg relative overflow-hidden">
-      <div className="absolute inset-0 bg-cyber-grid opacity-10"></div>
-      
-      <div className="absolute top-32 right-10 w-72 h-72 bg-neon-green/10 rounded-full blur-3xl animate-pulse-slow"></div>
-      <div className="absolute bottom-32 left-10 w-96 h-96 bg-neon-pink/10 rounded-full blur-3xl animate-pulse-slow delay-1000"></div>
+    <section className="py-24 bg-gradient-to-b from-concrete-100 to-steel-50 relative overflow-hidden">
+      <div className="absolute inset-0 bg-construction-grid opacity-10"></div>
       
       <div className="container-custom relative z-10">
-        <div className="text-center mb-20">
-          <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-neon-green/20 to-neon-blue/20 border border-neon-green/30 backdrop-blur-sm mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="w-2 h-2 bg-neon-pink rounded-full animate-pulse"></div>
-            <span className="text-gray-300 text-sm font-medium">КАК ЭТО РАБОТАЕТ</span>
-          </motion.div>
+        <motion.div
+          className="text-center mb-20"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-construction-100 to-safety-100 border border-construction-300 rounded-full mb-6">
+            <BuildingOfficeIcon className="w-4 h-4 text-construction-600" />
+            <span className="text-construction-800 text-sm font-semibold">Процесс внедрения</span>
+          </div>
           
-          <motion.h2 
-            className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            Простой путь к
-            <span className="block bg-gradient-to-r from-neon-green via-neon-blue to-neon-purple bg-clip-text text-transparent">
-              эффективному управлению
+          <h2 className="text-4xl md:text-6xl font-bold text-steel-900 mb-6 font-construction">
+            Как работает <br />
+            <span className="bg-gradient-to-r from-construction-600 to-safety-600 bg-clip-text text-transparent">
+              ProHelper
             </span>
-          </motion.h2>
+          </h2>
           
-          <motion.p 
-            className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            Четыре простых шага от регистрации до полноценного управления всеми строительными процессами
-          </motion.p>
-        </div>
+          <p className="text-xl text-steel-600 max-w-3xl mx-auto">
+            Простой и понятный процесс от первого входа в систему до получения результатов
+          </p>
+        </motion.div>
 
-        <div className="space-y-12 mb-20">
+        <div className="space-y-20 mb-24">
           {steps.map((step, index) => (
             <motion.div
-              key={step.id}
-              className="group"
+              key={index}
+              className={`flex flex-col lg:flex-row items-center gap-12 ${
+                index % 2 === 1 ? 'lg:flex-row-reverse' : ''
+              }`}
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
               transition={{ duration: 0.8, delay: index * 0.2 }}
+              viewport={{ once: true }}
             >
-              <div className="flex flex-col lg:flex-row items-center gap-12">
-                {index % 2 === 0 ? (
-                  <>
-                    <div className="flex-1">
-                      <div className="relative bg-gradient-to-br from-cyber-card/80 to-cyber-accent/80 border border-cyber-border rounded-3xl p-8 backdrop-blur-sm group-hover:shadow-cyber transition-all duration-500">
-                        <div className="flex items-center gap-4 mb-6">
-                          <div className={`p-4 rounded-2xl bg-gradient-to-br ${step.gradient} shadow-lg`}>
-                            <step.icon className="w-8 h-8 text-white" />
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-3xl font-bold text-neon-blue">0{step.id}</span>
-                            <div className="w-12 h-0.5 bg-gradient-to-r from-neon-blue to-transparent"></div>
-                          </div>
-                        </div>
-                        
-                        <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-neon-blue transition-colors">
-                          {step.title}
-                        </h3>
-                        <p className="text-gray-300 text-lg leading-relaxed mb-6">
-                          {step.description}
-                        </p>
-                        
-                        <div className="space-y-3">
-                          {step.details.map((detail, detailIndex) => (
-                            <div key={detailIndex} className="flex items-center gap-3">
-                              <CheckIcon className="w-5 h-5 text-neon-green flex-shrink-0" />
-                              <span className="text-gray-400">{detail}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+              <div className="flex-1 text-center lg:text-left">
+                <div className={`
+                  inline-flex items-center gap-3 px-4 py-2 rounded-full mb-6
+                  ${step.color === 'construction' ? 'bg-construction-100 text-construction-700' : ''}
+                  ${step.color === 'safety' ? 'bg-safety-100 text-safety-700' : ''}
+                  ${step.color === 'steel' ? 'bg-steel-100 text-steel-700' : ''}
+                  ${step.color === 'earth' ? 'bg-earth-100 text-earth-700' : ''}
+                `}>
+                  <span className="text-lg font-bold">{step.step}</span>
+                  <ArrowRightIcon className="w-4 h-4" />
+                </div>
+                
+                <h3 className="text-3xl font-bold text-steel-900 mb-6">{step.title}</h3>
+                <p className="text-lg text-steel-600 mb-8 leading-relaxed">{step.description}</p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {step.features.map((feature, idx) => (
+                    <div key={idx} className="flex items-center gap-3">
+                      <div className={`
+                        w-2 h-2 rounded-full
+                        ${step.color === 'construction' ? 'bg-construction-500' : ''}
+                        ${step.color === 'safety' ? 'bg-safety-500' : ''}
+                        ${step.color === 'steel' ? 'bg-steel-500' : ''}
+                        ${step.color === 'earth' ? 'bg-earth-500' : ''}
+                      `}></div>
+                      <span className="text-steel-700 font-medium">{feature}</span>
                     </div>
-                    
-                    <div className="flex-1 flex justify-center">
-                      <div className="relative">
-                        <div className="w-80 h-80 bg-gradient-to-br from-cyber-card to-cyber-accent border border-cyber-border rounded-3xl flex items-center justify-center backdrop-blur-sm group-hover:shadow-cyber transition-all duration-500">
-                          <div className={`w-32 h-32 bg-gradient-to-br ${step.gradient} rounded-2xl flex items-center justify-center animate-float`}>
-                            <step.icon className="w-16 h-16 text-white" />
-                          </div>
-                        </div>
-                        <div className="absolute -inset-0.5 bg-gradient-to-br from-neon-purple via-neon-blue to-neon-green rounded-3xl blur opacity-20 animate-pulse-slow"></div>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex-1 flex justify-center order-2 lg:order-1">
-                      <div className="relative">
-                        <div className="w-80 h-80 bg-gradient-to-br from-cyber-card to-cyber-accent border border-cyber-border rounded-3xl flex items-center justify-center backdrop-blur-sm group-hover:shadow-cyber transition-all duration-500">
-                          <div className={`w-32 h-32 bg-gradient-to-br ${step.gradient} rounded-2xl flex items-center justify-center animate-float`}>
-                            <step.icon className="w-16 h-16 text-white" />
-                          </div>
-                        </div>
-                        <div className="absolute -inset-0.5 bg-gradient-to-br from-neon-green via-neon-pink to-neon-purple rounded-3xl blur opacity-20 animate-pulse-slow"></div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex-1 order-1 lg:order-2">
-                      <div className="relative bg-gradient-to-br from-cyber-card/80 to-cyber-accent/80 border border-cyber-border rounded-3xl p-8 backdrop-blur-sm group-hover:shadow-cyber transition-all duration-500">
-                        <div className="flex items-center gap-4 mb-6">
-                          <div className="flex items-center gap-3">
-                            <span className="text-3xl font-bold text-neon-green">0{step.id}</span>
-                            <div className="w-12 h-0.5 bg-gradient-to-r from-neon-green to-transparent"></div>
-                          </div>
-                          <div className={`p-4 rounded-2xl bg-gradient-to-br ${step.gradient} shadow-lg`}>
-                            <step.icon className="w-8 h-8 text-white" />
-                          </div>
-                        </div>
-                        
-                        <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-neon-green transition-colors">
-                          {step.title}
-                        </h3>
-                        <p className="text-gray-300 text-lg leading-relaxed mb-6">
-                          {step.description}
-                        </p>
-                        
-                        <div className="space-y-3">
-                          {step.details.map((detail, detailIndex) => (
-                            <div key={detailIndex} className="flex items-center gap-3">
-                              <CheckIcon className="w-5 h-5 text-neon-green flex-shrink-0" />
-                              <span className="text-gray-400">{detail}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
+                  ))}
+                </div>
               </div>
-              
-              {index < steps.length - 1 && (
-                <div className="flex justify-center mt-8">
-                  <div className="flex items-center gap-2">
-                    <ArrowRightIcon className="w-6 h-6 text-neon-blue animate-bounce" />
-                    <div className="w-24 h-0.5 bg-gradient-to-r from-neon-blue to-neon-purple"></div>
-                    <ArrowRightIcon className="w-6 h-6 text-neon-purple animate-bounce" style={{ animationDelay: '0.5s' }} />
+
+              <div className="flex-1 relative">
+                <div className={`
+                  relative bg-white/90 border-2 rounded-2xl p-8 backdrop-blur-sm shadow-lg hover:scale-105 transition-all duration-300
+                  ${step.color === 'construction' ? 'border-construction-300 hover:shadow-construction' : ''}
+                  ${step.color === 'safety' ? 'border-safety-300 hover:shadow-safety' : ''}
+                  ${step.color === 'steel' ? 'border-steel-300 hover:shadow-steel' : ''}
+                  ${step.color === 'earth' ? 'border-earth-300 hover:shadow-concrete' : ''}
+                `}>
+                  <div className={`
+                    w-20 h-20 rounded-2xl flex items-center justify-center mb-6 mx-auto
+                    ${step.color === 'construction' ? 'bg-gradient-to-br from-construction-500 to-construction-600' : ''}
+                    ${step.color === 'safety' ? 'bg-gradient-to-br from-safety-500 to-safety-600' : ''}
+                    ${step.color === 'steel' ? 'bg-gradient-to-br from-steel-500 to-steel-600' : ''}
+                    ${step.color === 'earth' ? 'bg-gradient-to-br from-earth-500 to-earth-600' : ''}
+                  `}>
+                    <step.icon className="w-10 h-10 text-white" />
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className={`
+                      text-4xl font-bold mb-2
+                      ${step.color === 'construction' ? 'text-construction-600' : ''}
+                      ${step.color === 'safety' ? 'text-safety-600' : ''}
+                      ${step.color === 'steel' ? 'text-steel-600' : ''}
+                      ${step.color === 'earth' ? 'text-earth-600' : ''}
+                    `}>
+                      {step.step}
+                    </div>
+                    <div className="text-steel-600 font-medium">Этап</div>
                   </div>
                 </div>
-              )}
+
+                <div className={`
+                  absolute -top-6 -right-6 w-12 h-12 rounded-full blur-xl animate-pulse-construction
+                  ${step.color === 'construction' ? 'bg-construction-400/50' : ''}
+                  ${step.color === 'safety' ? 'bg-safety-400/50' : ''}
+                  ${step.color === 'steel' ? 'bg-steel-400/50' : ''}
+                  ${step.color === 'earth' ? 'bg-earth-400/50' : ''}
+                `}></div>
+              </div>
             </motion.div>
           ))}
         </div>
 
         <motion.div
-          className="relative"
-          initial={{ opacity: 0, scale: 0.9 }}
+          className="bg-gradient-to-r from-construction-600 to-safety-600 rounded-2xl p-12 relative overflow-hidden"
+          initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
           transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
         >
-          <div className="bg-gradient-to-r from-cyber-card/50 to-cyber-accent/50 border border-cyber-border rounded-3xl p-12 backdrop-blur-sm text-center">
-            <h3 className="text-3xl font-bold text-white mb-8">
-              Почему выбирают ProHelper?
-            </h3>
+          <div className="absolute inset-0 bg-construction-grid opacity-20"></div>
+          
+          <div className="relative z-10">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 font-construction">
+                Преимущества ProHelper
+              </h3>
+              <p className="text-construction-100 text-lg max-w-2xl mx-auto">
+                Результаты, которые получают наши клиенты после внедрения системы
+              </p>
+            </div>
             
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
               {benefits.map((benefit, index) => (
                 <motion.div
                   key={index}
-                  className="flex items-center gap-3 text-left"
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  className="bg-white/10 border border-white/20 rounded-xl p-6 backdrop-blur-sm text-center hover:scale-105 transition-all duration-300"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.2 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <CheckIcon className="w-6 h-6 text-neon-green flex-shrink-0" />
-                  <span className="text-gray-300">{benefit}</span>
+                  <benefit.icon className="w-12 h-12 text-white mb-4 mx-auto" />
+                  <div className="text-3xl font-bold text-white mb-2">{benefit.value}</div>
+                  <h4 className="text-lg font-semibold text-white mb-2">{benefit.title}</h4>
+                  <p className="text-construction-100 text-sm">{benefit.description}</p>
                 </motion.div>
               ))}
             </div>
+            
+            <div className="text-center">
+              <motion.button
+                className="inline-flex items-center gap-3 px-8 py-4 bg-white text-construction-600 font-semibold text-lg rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <PlayIcon className="w-5 h-5" />
+                Посмотреть демо-версию
+              </motion.button>
+            </div>
           </div>
-          
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-green via-neon-blue to-neon-purple rounded-3xl blur opacity-20 animate-pulse-slow"></div>
         </motion.div>
       </div>
     </section>

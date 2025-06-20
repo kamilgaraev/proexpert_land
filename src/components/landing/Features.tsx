@@ -1,251 +1,229 @@
-import {
-  DevicePhoneMobileIcon,
-  ComputerDesktopIcon,
-  DocumentChartBarIcon,
-  UserGroupIcon,
-  BuildingOfficeIcon,
-  CurrencyDollarIcon,
-  ChartBarIcon,
-  CloudArrowUpIcon,
-  ShieldCheckIcon,
-  LightBulbIcon,
-  ClockIcon,
-  CheckCircleIcon
-} from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
-
-const features = [
-  {
-    name: 'Мобильное приложение для прорабов',
-    description: 'Учет материалов и работ прямо на объекте. Приемка, списание, фиксация выполненных работ с фото. Работает офлайн.',
-    icon: DevicePhoneMobileIcon,
-    color: 'neon-green',
-    gradient: 'from-green-400 to-emerald-500',
-  },
-  {
-    name: 'Веб-платформа для администраторов',
-    description: 'Полное управление проектами, контрактами, подрядчиками, материалами. Центральная система контроля всех процессов.',
-    icon: ComputerDesktopIcon,
-    color: 'neon-blue',
-    gradient: 'from-blue-400 to-cyan-500',
-  },
-  {
-    name: 'Управление контрактами',
-    description: 'Ведение реестра договоров с заказчиками. Контроль сроков, условий, платежей. Формирование актов выполненных работ.',
-    icon: DocumentChartBarIcon,
-    color: 'neon-purple',
-    gradient: 'from-purple-400 to-violet-500',
-  },
-  {
-    name: 'Управление подрядчиками',
-    description: 'Реестр подрядных организаций с оценкой качества. Контроль договоров, выполненных работ и расчетов.',
-    icon: UserGroupIcon,
-    color: 'neon-pink',
-    gradient: 'from-pink-400 to-rose-500',
-  },
-  {
-    name: 'Управление материалами',
-    description: 'Справочники материалов с ценами. Контроль поставок, качества, оптимизация закупок и остатков.',
-    icon: BuildingOfficeIcon,
-    color: 'neon-orange',
-    gradient: 'from-orange-400 to-amber-500',
-  },
-  {
-    name: 'Финансовое управление',
-    description: 'Учет подотчетных средств, контроль бюджетов проектов, анализ прибыльности, планирование денежных потоков.',
-    icon: CurrencyDollarIcon,
-    color: 'neon-yellow',
-    gradient: 'from-yellow-400 to-amber-500',
-  },
-  {
-    name: 'Аналитика и отчеты',
-    description: 'Комплексные отчеты по проектам, материалам, финансам. Аналитические дашборды с ключевыми показателями.',
-    icon: ChartBarIcon,
-    color: 'neon-blue',
-    gradient: 'from-indigo-400 to-blue-500',
-  },
-  {
-    name: 'Облачная синхронизация',
-    description: 'Все данные надежно хранятся в облаке. Доступ с любого устройства, автоматическая синхронизация между приложениями.',
-    icon: CloudArrowUpIcon,
-    color: 'neon-purple',
-    gradient: 'from-violet-400 to-purple-500',
-  },
-  {
-    name: 'Безопасность данных',
-    description: 'Многоуровневая система безопасности, шифрование данных, резервное копирование, контроль доступа по ролям.',
-    icon: ShieldCheckIcon,
-    color: 'neon-green',
-    gradient: 'from-teal-400 to-green-500',
-  }
-];
-
-const benefits = [
-  {
-    title: 'Экономия времени',
-    description: 'До 95% сокращение времени на отчеты',
-    icon: ClockIcon,
-    value: '95%'
-  },
-  {
-    title: 'Снижение затрат',
-    description: 'До 40% экономия на материалах',
-    icon: CurrencyDollarIcon,
-    value: '40%'
-  },
-  {
-    title: 'Контроль качества',
-    description: 'Полная прозрачность процессов',
-    icon: CheckCircleIcon,
-    value: '100%'
-  },
-  {
-    title: 'Автоматизация',
-    description: 'Автоматические уведомления и алерты',
-    icon: LightBulbIcon,
-    value: '24/7'
-  }
-];
+import { 
+  DevicePhoneMobileIcon,
+  ClipboardDocumentListIcon,
+  ChartBarIcon,
+  UserGroupIcon,
+  CloudIcon,
+  ShieldCheckIcon,
+  CurrencyDollarIcon,
+  ClockIcon,
+  DocumentTextIcon,
+  WrenchScrewdriverIcon,
+  TruckIcon,
+  BuildingOfficeIcon,
+  CalendarDaysIcon,
+  CalculatorIcon,
+  MapIcon
+} from '@heroicons/react/24/outline';
 
 const Features = () => {
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+  const features = [
+    {
+      icon: DevicePhoneMobileIcon,
+      title: 'Мобильный учёт материалов',
+      description: 'Прорабы ведут учёт материалов и работ прямо с телефона на объекте. Сканирование QR-кодов, фотофиксация, геолокация.',
+      color: 'construction',
+      stats: 'Экономия 3 часа в день'
+    },
+    {
+      icon: ClipboardDocumentListIcon,
+      title: 'Управление задачами',
+      description: 'Создание, назначение и контроль выполнения задач. Уведомления и дедлайны для всех участников проекта.',
+      color: 'safety',
+      stats: '+85% производительность'
+    },
+    {
+      icon: ChartBarIcon,
+      title: 'Аналитика и отчеты',
+      description: 'Детальная аналитика по проектам, затратам, срокам. Автоматическое формирование отчетов для руководства.',
+      color: 'steel',
+      stats: '95% точность прогнозов'
+    },
+    {
+      icon: UserGroupIcon,
+      title: 'Управление командой',
+      description: 'Ролевая модель доступа, управление правами пользователей, координация работы всех участников.',
+      color: 'earth',
+      stats: 'До 50 пользователей'
+    },
+    {
+      icon: CloudIcon,
+      title: 'Облачное хранение',
+      description: 'Все данные в облаке с резервным копированием. Доступ к информации 24/7 с любого устройства.',
+      color: 'primary',
+      stats: '99.9% надежность'
+    },
+    {
+      icon: ShieldCheckIcon,
+      title: 'Безопасность данных',
+      description: 'Шифрование данных, двухфакторная аутентификация, регулярные аудиты безопасности.',
+      color: 'concrete',
+      stats: 'SSL + 2FA защита'
+    },
+    {
+      icon: CurrencyDollarIcon,
+      title: 'Финансовый контроль',
+      description: 'Контроль бюджета проектов, отслеживание затрат, планирование расходов на материалы и работы.',
+      color: 'construction',
+      stats: '40% экономия бюджета'
+    },
+    {
+      icon: ClockIcon,
+      title: 'Контроль сроков',
+      description: 'Планирование этапов строительства, контроль дедлайнов, оптимизация рабочих процессов.',
+      color: 'safety',
+      stats: 'Сроки соблюдаются'
+    },
+    {
+      icon: DocumentTextIcon,
+      title: 'Документооборот',
+      description: 'Цифровой документооборот, электронные подписи, автоматическое формирование актов и справок.',
+      color: 'steel',
+      stats: 'Без бумажной работы'
     }
-  };
-  
-  const item = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.6 } }
-  };
+  ];
+
+  const results = [
+    {
+      icon: WrenchScrewdriverIcon,
+      title: 'Повышение эффективности',
+      description: 'Автоматизация рутинных процессов позволяет сосредоточиться на ключевых задачах',
+      percentage: '85%',
+      color: 'construction'
+    },
+    {
+      icon: TruckIcon,
+      title: 'Экономия ресурсов',
+      description: 'Точный учет материалов и оптимизация поставок снижают избыточные затраты',
+      percentage: '40%',
+      color: 'safety'
+    },
+    {
+      icon: BuildingOfficeIcon,
+      title: 'Ускорение проектов',
+      description: 'Координация всех участников в одной системе ускоряет реализацию проектов',
+      percentage: '60%',
+      color: 'steel'
+    }
+  ];
 
   return (
-    <section id="features" className="py-20 bg-gradient-to-b from-cyber-bg to-slate-900 relative overflow-hidden">
-      <div className="absolute inset-0 bg-cyber-grid opacity-10"></div>
-      
-      <div className="absolute top-20 left-10 w-64 h-64 bg-neon-blue/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 right-10 w-80 h-80 bg-neon-purple/10 rounded-full blur-3xl"></div>
+    <section className="py-24 bg-gradient-to-b from-steel-50 to-concrete-100 relative overflow-hidden">
+      <div className="absolute inset-0 bg-blueprint opacity-20"></div>
       
       <div className="container-custom relative z-10">
-        <div className="text-center mb-20">
-          <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-neon-purple/20 to-neon-blue/20 border border-neon-purple/30 backdrop-blur-sm mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="w-2 h-2 bg-neon-green rounded-full animate-pulse"></div>
-            <span className="text-gray-300 text-sm font-medium">ВОЗМОЖНОСТИ ПЛАТФОРМЫ</span>
-          </motion.div>
-          
-          <motion.h2 
-            className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            Все для управления
-            <span className="block bg-gradient-to-r from-neon-pink via-neon-purple to-neon-blue bg-clip-text text-transparent">
-              строительными проектами
-            </span>
-          </motion.h2>
-          
-          <motion.p 
-            className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            Единая экосистема объединяет все аспекты управления: от учета материалов на объекте 
-            до финансовой аналитики и контроля подрядчиков
-          </motion.p>
-        </div>
-
-        <motion.div 
-          className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-20"
-          variants={container}
-          initial="hidden"
-          whileInView="show"
+        <motion.div
+          className="text-center mb-20"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          {features.map((feature) => (
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-construction-100 to-safety-100 border border-construction-300 rounded-full mb-6">
+            <WrenchScrewdriverIcon className="w-4 h-4 text-construction-600" />
+            <span className="text-construction-800 text-sm font-semibold">Возможности платформы</span>
+          </div>
+          
+          <h2 className="text-4xl md:text-6xl font-bold text-steel-900 mb-6 font-construction">
+            Всё для управления <br />
+            <span className="bg-gradient-to-r from-construction-600 to-safety-600 bg-clip-text text-transparent">
+              строительством
+            </span>
+          </h2>
+          
+          <p className="text-xl text-steel-600 max-w-3xl mx-auto">
+            Комплексная система управления строительными проектами от планирования до сдачи объекта
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+          {features.map((feature, index) => (
             <motion.div
-              key={feature.name}
+              key={index}
               className="group relative"
-              variants={item}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: index * 0.1 }}
+              viewport={{ once: true }}
             >
-              <div className="relative bg-gradient-to-br from-cyber-card/80 to-cyber-accent/80 border border-cyber-border rounded-2xl p-8 backdrop-blur-sm hover:shadow-cyber transition-all duration-500 hover:scale-105 h-full">
-                <div className={`absolute -top-4 -left-4 p-4 rounded-2xl bg-gradient-to-br ${feature.gradient} shadow-lg`}>
-                  <feature.icon className="h-8 w-8 text-white" />
+              <div className={`
+                bg-white/90 border-2 rounded-xl p-8 backdrop-blur-sm transition-all duration-300 
+                hover:scale-105 hover:shadow-${feature.color} group-hover:border-${feature.color}-400
+                ${feature.color === 'construction' ? 'border-construction-200' : ''}
+                ${feature.color === 'safety' ? 'border-safety-200' : ''}
+                ${feature.color === 'steel' ? 'border-steel-200' : ''}
+                ${feature.color === 'earth' ? 'border-earth-200' : ''}
+                ${feature.color === 'primary' ? 'border-primary-200' : ''}
+                ${feature.color === 'concrete' ? 'border-concrete-200' : ''}
+              `}>
+                <div className={`
+                  w-16 h-16 rounded-xl flex items-center justify-center mb-6 group-hover:animate-build
+                  ${feature.color === 'construction' ? 'bg-gradient-to-br from-construction-500 to-construction-600' : ''}
+                  ${feature.color === 'safety' ? 'bg-gradient-to-br from-safety-500 to-safety-600' : ''}
+                  ${feature.color === 'steel' ? 'bg-gradient-to-br from-steel-500 to-steel-600' : ''}
+                  ${feature.color === 'earth' ? 'bg-gradient-to-br from-earth-500 to-earth-600' : ''}
+                  ${feature.color === 'primary' ? 'bg-gradient-to-br from-primary-500 to-primary-600' : ''}
+                  ${feature.color === 'concrete' ? 'bg-gradient-to-br from-concrete-500 to-concrete-600' : ''}
+                `}>
+                  <feature.icon className="w-8 h-8 text-white" />
                 </div>
                 
-                <div className="mt-6">
-                  <h3 className="text-xl font-bold text-white mb-4 group-hover:text-neon-blue transition-colors">
-                    {feature.name}
-                  </h3>
-                  <p className="text-gray-400 leading-relaxed">
-                    {feature.description}
-                  </p>
+                <h3 className="text-xl font-semibold text-steel-900 mb-4">{feature.title}</h3>
+                <p className="text-steel-600 mb-4 leading-relaxed">{feature.description}</p>
+                
+                <div className={`
+                  inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium
+                  ${feature.color === 'construction' ? 'bg-construction-100 text-construction-700' : ''}
+                  ${feature.color === 'safety' ? 'bg-safety-100 text-safety-700' : ''}
+                  ${feature.color === 'steel' ? 'bg-steel-100 text-steel-700' : ''}
+                  ${feature.color === 'earth' ? 'bg-earth-100 text-earth-700' : ''}
+                  ${feature.color === 'primary' ? 'bg-primary-100 text-primary-700' : ''}
+                  ${feature.color === 'concrete' ? 'bg-concrete-100 text-concrete-700' : ''}
+                `}>
+                  {feature.stats}
                 </div>
-
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-neon-purple/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div 
-          className="relative"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+        <motion.div
+          className="bg-gradient-to-r from-construction-600 to-safety-600 rounded-2xl p-12 text-center relative overflow-hidden"
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
         >
-          <div className="bg-gradient-to-r from-cyber-card/50 to-cyber-accent/50 border border-cyber-border rounded-3xl p-12 backdrop-blur-sm">
-            <div className="text-center mb-12">
-              <h3 className="text-3xl font-bold text-white mb-4">
-                Результаты использования ProHelper
-              </h3>
-              <p className="text-gray-300 text-lg">
-                Реальные показатели эффективности наших клиентов
-              </p>
-            </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-construction-600/90 to-safety-600/90"></div>
+          <div className="absolute top-0 left-0 w-full h-full bg-construction-grid opacity-20"></div>
+          
+          <div className="relative z-10">
+            <h3 className="text-3xl md:text-4xl font-bold text-white mb-6 font-construction">
+              Результаты внедрения ProHelper
+            </h3>
+            <p className="text-construction-100 text-lg mb-12 max-w-2xl mx-auto">
+              Наши клиенты достигают значительных улучшений в управлении строительными проектами
+            </p>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {benefits.map((benefit, index) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {results.map((result, index) => (
                 <motion.div
-                  key={benefit.title}
-                  className="text-center group"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
+                  key={index}
+                  className="bg-white/10 border border-white/20 rounded-xl p-6 backdrop-blur-sm"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.2 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-neon-purple to-neon-pink mb-4 group-hover:shadow-neon-purple transition-all duration-300">
-                    <benefit.icon className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="text-3xl font-bold text-neon-green mb-2">
-                    {benefit.value}
-                  </div>
-                  <div className="text-white font-semibold mb-1">
-                    {benefit.title}
-                  </div>
-                  <div className="text-gray-400 text-sm">
-                    {benefit.description}
-                  </div>
+                  <result.icon className="w-10 h-10 text-white mb-4 mx-auto" />
+                  <div className="text-4xl font-bold text-white mb-2">{result.percentage}</div>
+                  <h4 className="text-lg font-semibold text-white mb-2">{result.title}</h4>
+                  <p className="text-construction-100 text-sm">{result.description}</p>
                 </motion.div>
               ))}
             </div>
           </div>
-          
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-purple via-neon-blue to-neon-green rounded-3xl blur opacity-20 animate-pulse-slow"></div>
         </motion.div>
       </div>
     </section>
