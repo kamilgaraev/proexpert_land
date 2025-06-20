@@ -24,10 +24,7 @@ const SubscriptionLimitsPage: React.FC = () => {
     error, 
     refresh, 
     hasSubscription, 
-    needsUpgrade, 
-    hasWarnings,
-    criticalWarnings,
-    normalWarnings,
+    needsUpgrade,
     lastUpdated
   } = useSubscriptionLimits({
     autoRefresh: true,

@@ -29,7 +29,6 @@ const DashboardPage = () => {
 
   // Хук для лимитов подписки
   const { 
-    data: limitsData, 
     hasWarnings, 
     criticalWarnings, 
     needsUpgrade 
