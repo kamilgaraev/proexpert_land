@@ -13,7 +13,8 @@ import {
   BuildingOfficeIcon,
   CogIcon,
   BellIcon,
-  UsersIcon
+  UsersIcon,
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
 import { Menu, Transition } from '@headlessui/react';
