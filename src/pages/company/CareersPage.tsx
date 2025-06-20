@@ -1,12 +1,9 @@
-import React from 'react';
 import PageLayout from '../../components/shared/PageLayout';
 import { 
   BriefcaseIcon,
   MapPinIcon,
   ClockIcon,
   CurrencyDollarIcon,
-  UsersIcon,
-  RocketLaunchIcon,
   AcademicCapIcon,
   HeartIcon
 } from '@heroicons/react/24/outline';

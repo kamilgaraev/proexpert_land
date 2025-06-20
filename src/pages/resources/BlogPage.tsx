@@ -1,10 +1,8 @@
-import React from 'react';
 import PageLayout from '../../components/shared/PageLayout';
 import { 
   DocumentTextIcon,
   CalendarDaysIcon,
   UserIcon,
-  TagIcon,
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
 

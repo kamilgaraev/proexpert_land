@@ -1,4 +1,3 @@
-import React from 'react';
 import PageLayout from '../../components/shared/PageLayout';
 import { 
   WrenchScrewdriverIcon,
@@ -7,8 +6,7 @@ import {
   DocumentTextIcon,
   ClockIcon,
   CheckCircleIcon,
-  ShieldCheckIcon,
-  ChartBarIcon
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 
 const ContractorsPage = () => {
