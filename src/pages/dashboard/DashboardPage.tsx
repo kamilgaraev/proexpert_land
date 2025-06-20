@@ -34,7 +34,13 @@ const DashboardPage = () => {
     needsUpgrade 
   } = useSubscriptionLimits({
     autoRefresh: true,
-    refreshInterval: 300000 // 5 минут
+    refreshInterval: 300000, // 5 минут
+    onCritical: (warnings) => {
+      console.log('🚨 Критические лимиты на главной:', warnings);
+    },
+    onWarning: (warnings) => {
+      console.log('⚠️ Предупреждения о лимитах на главной:', warnings);
+    }
   });
 
   useEffect(() => {

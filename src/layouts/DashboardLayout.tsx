@@ -14,7 +14,8 @@ import {
   CogIcon,
   BellIcon,
   UsersIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  ChartPieIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
 import { Menu, Transition } from '@headlessui/react';
@@ -78,6 +79,12 @@ const DashboardLayout = () => {
       href: '/dashboard/billing', 
       icon: BanknotesIcon,
       description: 'Баланс и платежи'
+    },
+    { 
+      name: 'Лимиты', 
+      href: '/dashboard/limits', 
+      icon: ChartPieIcon,
+      description: 'Лимиты подписки и использование'
     },
     { 
       name: 'Услуги', 

@@ -227,7 +227,7 @@ const AdminsPage = () => {
           <div>
             <h1 className="text-3xl font-bold text-steel-900 mb-2">Команда</h1>
             <p className="text-steel-600 text-lg">Управление администраторами и прорабами</p>
-          </div>
+        </div>
           <motion.button
             type="button"
             onClick={handleOpenCreateModal}
@@ -265,8 +265,8 @@ const AdminsPage = () => {
                 </div>
                 <div className={`w-12 h-12 rounded-xl ${colors.bg} flex items-center justify-center`}>
                   <stat.icon className="w-6 h-6 text-white" />
-                </div>
-              </div>
+        </div>
+      </div>
             </motion.div>
           );
         })}
@@ -282,14 +282,14 @@ const AdminsPage = () => {
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <MagnifyingGlassIcon className="h-5 w-5 text-steel-400" />
           </div>
-          <input
-            type="text"
-            placeholder="Поиск по имени или email..."
-            value={searchTerm}
-            onChange={handleSearchChange}
+        <input
+          type="text"
+          placeholder="Поиск по имени или email..."
+          value={searchTerm}
+          onChange={handleSearchChange}
             className="w-full pl-10 pr-4 py-3 border border-steel-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-          />
-        </div>
+        />
+      </div>
       </motion.div>
 
       {/* Контент */}
@@ -298,7 +298,7 @@ const AdminsPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
       >
-        {error && !isProcessingDelete && (
+            {error && !isProcessingDelete && (
           <motion.div 
             className="mb-6 p-4 bg-construction-50 border border-construction-200 text-construction-700 rounded-xl"
             initial={{ opacity: 0, y: -10 }}
@@ -374,17 +374,17 @@ const AdminsPage = () => {
                   <div className="flex items-center text-sm text-steel-600">
                     <EnvelopeIcon className="w-4 h-4 mr-2 flex-shrink-0" />
                     <span className="truncate">{admin.email}</span>
-                  </div>
+              </div>
                   
                   <div className="flex items-center text-sm text-steel-600">
                     <CalendarIcon className="w-4 h-4 mr-2 flex-shrink-0" />
                     <span>Создан: {formatDate(admin.created_at)}</span>
-                  </div>
-                </div>
+                          </div>
+                        </div>
 
                                  {/* Статус активности */}
                  <div className="mb-4">
-                   {admin.is_active ? (
+                        {admin.is_active ? (
                      <div className="flex items-center text-sm text-earth-600">
                        <ShieldCheckIcon className="w-4 h-4 mr-2" />
                        <span>Активный пользователь</span>
@@ -424,21 +424,21 @@ const AdminsPage = () => {
       </motion.div>
 
              {/* Модальные окна */}
-       <AdminFormModal
-         isOpen={isFormModalOpen}
-         onClose={handleCloseFormModal}
-         onFormSubmit={handleFormSubmitted}
+      <AdminFormModal 
+        isOpen={isFormModalOpen} 
+        onClose={handleCloseFormModal} 
+        onFormSubmit={handleFormSubmitted} 
          adminToEdit={editingAdmin}
-       />
+      />
 
-       <ConfirmDeleteModal
+        <ConfirmDeleteModal
          isOpen={isConfirmDeleteModalOpen}
-         onClose={handleCloseDeleteConfirmModal}
-         onConfirm={handleDeleteConfirmed}
-         title="Удалить администратора"
+          onClose={handleCloseDeleteConfirmModal}
+          onConfirm={handleDeleteConfirmed}
+          title="Удалить администратора"
          message={`Вы уверены, что хотите удалить администратора "${deletingAdmin?.name}"? Это действие нельзя отменить.`}
-         isLoading={isProcessingDelete}
-       />
+          isLoading={isProcessingDelete}
+        />
     </div>
   );
 };
