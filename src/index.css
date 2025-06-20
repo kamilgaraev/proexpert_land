@@ -5,10 +5,11 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 80px;
   }
   
   body {
-    @apply bg-white text-secondary-900 font-sans;
+    @apply bg-cyber-bg text-white font-sans;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -32,30 +33,70 @@
   }
   
   a {
-    @apply text-primary-600 hover:text-primary-700;
+    @apply text-neon-blue hover:text-neon-purple transition-colors;
+  }
+
+  ::selection {
+    @apply bg-neon-purple text-white;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-cyber-bg;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gradient-to-b from-neon-purple to-neon-blue rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply from-neon-pink to-neon-purple;
   }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors 
+    @apply inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all duration-300
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 
-           disabled:pointer-events-none ring-offset-white;
+           disabled:pointer-events-none ring-offset-cyber-bg relative overflow-hidden;
   }
   
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 h-10 px-4 py-2;
+    @apply bg-gradient-to-r from-neon-purple to-neon-pink text-white hover:shadow-neon-purple 
+           h-12 px-6 py-3 transform hover:scale-105;
   }
   
   .btn-secondary {
-    @apply bg-secondary-100 text-secondary-900 hover:bg-secondary-200 h-10 px-4 py-2;
+    @apply bg-gradient-to-r from-cyber-card to-cyber-accent text-white border border-cyber-border
+           hover:shadow-cyber h-12 px-6 py-3 backdrop-blur-sm;
   }
   
   .btn-outline {
-    @apply border border-secondary-200 bg-transparent hover:bg-secondary-100 h-10 px-4 py-2;
+    @apply border border-gray-600 bg-transparent text-gray-300 hover:border-neon-blue 
+           hover:text-neon-blue h-12 px-6 py-3 backdrop-blur-sm;
   }
   
   .container-custom {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .card {
+    @apply bg-gradient-to-br from-cyber-card/80 to-cyber-accent/80 border border-cyber-border 
+           rounded-2xl backdrop-blur-sm;
+  }
+
+  .card-hover {
+    @apply hover:shadow-cyber transition-all duration-500 hover:scale-105;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-neon-pink via-neon-purple to-neon-blue bg-clip-text text-transparent;
+  }
+
+  .glass {
+    @apply backdrop-blur-xl bg-cyber-card/20 border border-cyber-border/50;
   }
 } 

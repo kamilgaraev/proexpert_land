@@ -1,281 +1,282 @@
-import { CheckIcon, CogIcon, PuzzlePieceIcon, LifebuoyIcon, WalletIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { 
+  CheckIcon, 
+  XMarkIcon,
+  StarIcon,
+  ArrowRightIcon,
+  BuildingOfficeIcon,
+  UserGroupIcon,
+  ChartBarIcon
+} from '@heroicons/react/24/outline';
 
-const tiers = [
+const plans = [
   {
-    name: 'Старт',
-    id: 'tier-start',
-    price: '1 990',
-    description: 'Для небольших компаний, ИП и начинающих подрядчиков.',
+    name: 'Стартовый',
+    price: 'Бесплатно',
+    period: 'навсегда',
+    description: 'Для малых компаний и тестирования',
     features: [
-      'До 2-х пользователей-прорабов',
-      'До 3-х активных объектов',
-      'До 500 МБ хранилища',
-      'Основные функции мобильного приложения',
-      'Базовый просмотр логов',
-      'Стандартные отчеты (CSV/Excel)',
-      'Email-поддержка',
+      { name: '2 активных проекта', included: true },
+      { name: '3 пользователя (1 админ + 2 прораба)', included: true },
+      { name: 'Базовый учет материалов', included: true },
+      { name: 'Простые отчеты', included: true },
+      { name: 'Мобильное приложение', included: true },
+      { name: 'Облачное хранение 1 ГБ', included: true },
+      { name: 'Email поддержка', included: true },
+      { name: 'Управление подрядчиками', included: false },
+      { name: 'Финансовая аналитика', included: false },
+      { name: 'API доступ', included: false },
+      { name: 'Интеграции с 1С', included: false },
+      { name: 'Приоритетная поддержка', included: false }
     ],
-    cta: 'Начать с тарифа Старт',
-    mostPopular: false,
+    color: 'neon-blue',
+    gradient: 'from-blue-400 to-cyan-500',
+    icon: BuildingOfficeIcon,
+    popular: false
   },
   {
-    name: 'Бизнес',
-    id: 'tier-business',
-    price: '6 990',
-    description: 'Оптимальный выбор для малых и средних строительных компаний.',
+    name: 'Профессиональный',
+    price: '3 990',
+    period: 'в месяц',
+    description: 'Для растущих строительных компаний',
     features: [
-      'До 10 пользователей-прорабов',
-      'До 15 активных объектов',
-      'До 5 ГБ хранилища',
-      'До 2-х пользователей-администраторов',
-      'Все функции тарифа "Старт"',
-      'Импорт справочников из CSV/Excel',
-      'Конструктор шаблонов выгрузок',
-      'Расширенная фильтрация и поиск',
-      'Базовая интеграция с ЭДО (сверка)',
-      'Техническая поддержка по email/чату',
+      { name: '10 активных проектов', included: true },
+      { name: 'До 15 пользователей', included: true },
+      { name: 'Полный учет материалов и работ', included: true },
+      { name: 'Управление подрядчиками', included: true },
+      { name: 'Управление контрактами', included: true },
+      { name: 'Финансовая аналитика', included: true },
+      { name: 'Расширенные отчеты', included: true },
+      { name: 'Облачное хранение 10 ГБ', included: true },
+      { name: 'Приоритетная поддержка', included: true },
+      { name: 'Обучение персонала', included: true },
+      { name: 'API доступ', included: false },
+      { name: 'Интеграции с 1С', included: false }
     ],
-    cta: 'Попробовать Бизнес бесплатно',
-    mostPopular: true,
+    color: 'neon-purple',
+    gradient: 'from-purple-400 to-violet-500',
+    icon: UserGroupIcon,
+    popular: true
   },
   {
-    name: 'Профи',
-    id: 'tier-pro',
-    price: '14 990',
-    description: 'Для компаний с несколькими командами и повышенными требованиями.',
+    name: 'Корпоративный',
+    price: '9 990',
+    period: 'в месяц',
+    description: 'Для крупных строительных организаций',
     features: [
-      'До 30 пользователей-прорабов',
-      'До 50 активных объектов',
-      'До 20 ГБ хранилища',
-      'До 5 пользователей-администраторов',
-      'Все функции тарифа "Бизнес"',
-      'API-доступ для интеграций',
-      'Расширенные права доступа и роли',
-      'Приоритетная техническая поддержка',
+      { name: 'Неограниченные проекты', included: true },
+      { name: 'Неограниченные пользователи', included: true },
+      { name: 'Все функции платформы', included: true },
+      { name: 'Интеграции с 1С, СБИС', included: true },
+      { name: 'API для интеграций', included: true },
+      { name: 'Персональный менеджер', included: true },
+      { name: 'Кастомизация под бизнес', included: true },
+      { name: 'Облачное хранение 100 ГБ', included: true },
+      { name: '24/7 техподдержка', included: true },
+      { name: 'Консультации по внедрению', included: true },
+      { name: 'Обучение команды', included: true },
+      { name: 'SLA гарантии', included: true }
     ],
-    cta: 'Выбрать Профи',
-    mostPopular: false,
+    color: 'neon-pink',
+    gradient: 'from-pink-400 to-rose-500',
+    icon: ChartBarIcon,
+    popular: false
+  }
+];
+
+const faqs = [
+  {
+    question: 'Можно ли изменить тариф в процессе использования?',
+    answer: 'Да, вы можете повысить или понизить тариф в любое время. При повышении тарифа доплата рассчитывается пропорционально оставшемуся периоду.'
   },
+  {
+    question: 'Есть ли скидки при годовой оплате?',
+    answer: 'Да, при оплате на год предоставляется скидка 20% от стоимости месячной подписки.'
+  },
+  {
+    question: 'Что происходит с данными при отмене подписки?',
+    answer: 'Ваши данные сохраняются в течение 90 дней после отмены подписки. Вы можете экспортировать все данные в любое время.'
+  }
 ];
 
 const Pricing = () => {
   return (
-    <section id="pricing" className="py-12 bg-secondary-50 sm:py-16 lg:py-20">
-      <div className="container-custom">
-        <div className="text-center">
+    <section id="pricing" className="py-20 bg-gradient-to-b from-cyber-bg to-slate-900 relative overflow-hidden">
+      <div className="absolute inset-0 bg-cyber-grid opacity-10"></div>
+      
+      <div className="absolute top-20 left-20 w-64 h-64 bg-neon-purple/10 rounded-full blur-3xl animate-pulse-slow"></div>
+      <div className="absolute bottom-20 right-20 w-80 h-80 bg-neon-blue/10 rounded-full blur-3xl animate-pulse-slow delay-1000"></div>
+      
+      <div className="container-custom relative z-10">
+        <div className="text-center mb-20">
+          <motion.div
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-neon-pink/20 to-neon-purple/20 border border-neon-pink/30 backdrop-blur-sm mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="w-2 h-2 bg-neon-yellow rounded-full animate-pulse"></div>
+            <span className="text-gray-300 text-sm font-medium">ТАРИФНЫЕ ПЛАНЫ</span>
+          </motion.div>
+          
           <motion.h2 
-            className="text-primary-600 font-semibold"
-            initial={{ opacity: 0, y: 20 }}
+            className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.8 }}
           >
-            ТАРИФЫ
+            Выберите план
+            <span className="block bg-gradient-to-r from-neon-pink via-neon-purple to-neon-blue bg-clip-text text-transparent">
+              для вашего бизнеса
+            </span>
           </motion.h2>
-          <motion.h3 
-            className="mt-2 text-3xl font-bold text-secondary-900 sm:text-4xl"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            Гибкие тарифные планы для любого бизнеса
-          </motion.h3>
+          
           <motion.p 
-            className="mt-4 max-w-2xl mx-auto text-xl text-secondary-500"
-            initial={{ opacity: 0, y: 20 }}
+            className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Выберите план, который подходит именно вам. Тариф "Бизнес" включает 14-дневный бесплатный пробный период.
+            Прозрачные цены без скрытых комиссий. Начните бесплатно и масштабируйтесь по мере роста
           </motion.p>
         </div>
 
-        <motion.div 
-          className="mt-12 space-y-8 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-8"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-        >
-          {tiers.map((tier) => (
-            <div
-              key={tier.id}
-              className={`relative flex flex-col p-8 rounded-2xl shadow-sm ${
-                tier.mostPopular
-                  ? 'bg-white ring-2 ring-primary-600 lg:scale-105 z-10'
-                  : 'bg-white'
-              }`}
+        <div className="grid gap-8 lg:grid-cols-3 mb-20">
+          {plans.map((plan, index) => (
+            <motion.div
+              key={plan.name}
+              className={`relative group ${plan.popular ? 'lg:scale-110 lg:-mt-8' : ''}`}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: index * 0.2 }}
             >
-              {tier.mostPopular && (
-                <div className="absolute top-0 right-6 -translate-y-1/2 bg-primary-600 px-3 py-1 rounded-full text-white text-sm font-semibold">
-                  Популярный
+              {plan.popular && (
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-gradient-to-r from-neon-purple to-neon-pink px-6 py-2 rounded-full text-white font-semibold text-sm flex items-center gap-2">
+                    <StarIcon className="w-4 h-4" />
+                    Популярный
+                  </div>
                 </div>
               )}
-              <div>
-                <h3 className="text-2xl font-bold text-secondary-900">{tier.name}</h3>
-                <p className="mt-4 text-sm text-secondary-500">{tier.description}</p>
-                <p className="mt-8">
-                  <span className="text-4xl font-bold text-secondary-900">{tier.price}</span>
-                  <span className="text-base font-medium text-secondary-500"> руб./мес.</span>
-                </p>
-                <ul className="mt-8 space-y-4">
-                  {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <CheckIcon className="h-6 w-6 text-green-500" aria-hidden="true" />
-                      </div>
-                      <p className="ml-3 text-base text-secondary-700">{feature}</p>
-                    </li>
+
+              <div className={`relative bg-gradient-to-br from-cyber-card/80 to-cyber-accent/80 border ${plan.popular ? 'border-neon-purple shadow-neon-purple' : 'border-cyber-border'} rounded-3xl p-8 backdrop-blur-sm transition-all duration-500 hover:scale-105 h-full`}>
+                <div className="flex items-center gap-4 mb-6">
+                  <div className={`p-3 rounded-2xl bg-gradient-to-br ${plan.gradient} shadow-lg`}>
+                    <plan.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-white">{plan.name}</h3>
+                    <p className="text-gray-400">{plan.description}</p>
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <div className="flex items-baseline gap-2">
+                    <span className={`text-4xl font-bold ${plan.price === 'Бесплатно' ? 'text-neon-green' : 'text-white'}`}>
+                      {plan.price}
+                    </span>
+                    {plan.price !== 'Бесплатно' && (
+                      <span className="text-gray-400">₽</span>
+                    )}
+                  </div>
+                  <p className="text-gray-400 mt-1">{plan.period}</p>
+                </div>
+
+                <div className="space-y-4 mb-8">
+                  {plan.features.map((feature, featureIndex) => (
+                    <div key={featureIndex} className="flex items-center gap-3">
+                      {feature.included ? (
+                        <CheckIcon className="w-5 h-5 text-neon-green flex-shrink-0" />
+                      ) : (
+                        <XMarkIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                      )}
+                      <span className={`${feature.included ? 'text-gray-300' : 'text-gray-500'}`}>
+                        {feature.name}
+                      </span>
+                    </div>
                   ))}
-                </ul>
-              </div>
-              <div className="mt-8">
+                </div>
+
                 <Link
                   to="/register"
-                  className={`w-full btn ${
-                    tier.mostPopular ? 'btn-primary' : 'btn-outline'
+                  className={`block w-full text-center px-6 py-4 rounded-2xl font-semibold transition-all duration-300 ${
+                    plan.popular 
+                      ? 'bg-gradient-to-r from-neon-purple to-neon-pink text-white hover:shadow-neon-purple transform hover:scale-105' 
+                      : 'border border-gray-600 text-gray-300 hover:border-neon-blue hover:text-neon-blue'
                   }`}
                 >
-                  {tier.cta}
+                  <span className="flex items-center justify-center gap-2">
+                    {plan.price === 'Бесплатно' ? 'Начать бесплатно' : 'Выбрать план'}
+                    <ArrowRightIcon className="w-4 h-4" />
+                  </span>
                 </Link>
+
+                {plan.popular && (
+                  <div className="absolute -inset-0.5 bg-gradient-to-br from-neon-purple via-neon-pink to-neon-blue rounded-3xl blur opacity-30 animate-pulse-slow -z-10"></div>
+                )}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div 
-          className="mt-16 text-center bg-white p-8 rounded-xl shadow-sm"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <h4 className="text-2xl font-bold text-secondary-900">Тариф "Энтерпрайз"</h4>
-          <p className="mt-2 text-lg text-secondary-500">
-            Для крупных строительных организаций и холдингов. Индивидуальные условия и цена по запросу.
-          </p>
-          <div className="mt-6">
-            <a
-              href="mailto:info@prorabmost.ru"
-              className="btn btn-primary"
-            >
-              Связаться для консультации
-            </a>
-          </div>
-        </motion.div>
-
-        {/* Дополнительные услуги и возможности */}
         <motion.div
-          className="mt-16 pt-10 border-t border-secondary-200"
-          initial={{ opacity: 0, y: 20 }}
+          className="relative"
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.8 }}
         >
-          <div className="text-center mb-16">
-            <h3 className="text-3xl font-bold text-secondary-900 sm:text-4xl lg:text-5xl">
-              Дополнительные услуги и возможности
-            </h3>
-            <p className="mt-6 max-w-3xl mx-auto text-xl text-secondary-600">
-              Настройте платформу под себя: расширьте функционал и получите поддержку, соответствующую вашим уникальным бизнес-процессам.
-            </p>
+          <div className="bg-gradient-to-r from-cyber-card/50 to-cyber-accent/50 border border-cyber-border rounded-3xl p-12 backdrop-blur-sm">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-bold text-white mb-4">
+                Часто задаваемые вопросы
+              </h3>
+              <p className="text-gray-300 text-lg">
+                Ответы на популярные вопросы о тарифах и подписке
+              </p>
+            </div>
+            
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+              {faqs.map((faq, index) => (
+                <motion.div
+                  key={index}
+                  className="bg-cyber-card/50 border border-cyber-border rounded-2xl p-6 backdrop-blur-sm"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <h4 className="text-white font-semibold mb-3">
+                    {faq.question}
+                  </h4>
+                  <p className="text-gray-400 leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="text-center mt-12">
+              <p className="text-gray-300 mb-6">
+                Остались вопросы? Мы поможем выбрать подходящий тариф
+              </p>
+              <Link
+                to="/support"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-neon-blue to-neon-purple rounded-lg text-white font-semibold hover:shadow-neon-blue transition-all duration-300 transform hover:scale-105"
+              >
+                Связаться с нами
+                <ArrowRightIcon className="w-5 h-5" />
+              </Link>
+            </div>
           </div>
-
-          <div className="space-y-12">
-            {/* Платные Модули */}
-            <div>
-              <div className="flex items-center mb-6">
-                <PuzzlePieceIcon className="h-8 w-8 text-primary-600 mr-3" />
-                <h4 className="text-2xl font-semibold text-secondary-800">Платные Модули (Add-ons)</h4>
-              </div>
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <h5 className="text-lg font-semibold text-primary-700">Продвинутая Аналитика и BI</h5>
-                  <p className="mt-3 text-secondary-600 text-sm">
-                    Детальные дашборды, кастомные отчеты, сравнение план/факт для глубокого анализа.<br />
-                    <em>Ориентировочно: +20-30% к стоимости тарифа "Профи" или "Бизнес". Точная стоимость зависит от выбранного тарифа.</em>
-                  </p>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <h5 className="text-lg font-semibold text-primary-700">Модуль Управления Заявками и Согласованиями</h5>
-                  <p className="mt-3 text-secondary-600 text-sm">
-                    Для более сложных процессов документооборота, согласования заявок и внутреннего контроля.<br />
-                    <em>Ориентировочно: +15-25% к стоимости основного тарифа. Обсуждается индивидуально.</em>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Услуги по Внедрению и Кастомизации */}
-            <div>
-              <div className="flex items-center mb-6">
-                <CogIcon className="h-8 w-8 text-primary-600 mr-3" />
-                <h4 className="text-2xl font-semibold text-secondary-800">Услуги по Внедрению и Кастомизации</h4>
-              </div>
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <h5 className="text-lg font-semibold text-primary-700">Стартовый Пакет Внедрения</h5>
-                  <p className="mt-3 text-secondary-600 text-sm">
-                    Помощь с импортом ваших данных, детальная настройка справочников, комплексное обучение вашей команды.<br />
-                    <em>Ориентировочно: 15 000 - 50 000 руб. (разовый платеж).</em>
-                  </p>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <h5 className="text-lg font-semibold text-primary-700">Разработка Кастомных Интеграций/Отчетов</h5>
-                  <p className="mt-3 text-secondary-600 text-sm">
-                    Создание уникальных интеграций с вашими системами или разработка специфических отчетов под ваши нужды.<br />
-                    <em>Стоимость определяется индивидуально (почасовая ставка или фиксированная цена за проект).</em>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Премиум-Поддержка */}
-            <div>
-              <div className="flex items-center mb-6">
-                <LifebuoyIcon className="h-8 w-8 text-primary-600 mr-3" />
-                <h4 className="text-2xl font-semibold text-secondary-800">Премиум-Поддержка</h4>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <p className="text-secondary-600 text-sm">
-                  Выделенная линия поддержки с гарантированным временем ответа для оперативного решения вопросов (доступно для тарифов "Старт" и "Бизнес").<br />
-                  <em>Ориентировочно: +1000-2000 руб./месяц к основному тарифу.</em>
-                </p>
-              </div>
-            </div>
-
-            {/* Оплата за Превышение Лимитов */}
-            <div>
-              <div className="flex items-center mb-6">
-                <WalletIcon className="h-8 w-8 text-primary-600 mr-3" />
-                <h4 className="text-2xl font-semibold text-secondary-800">Оплата за Превышение Лимитов (Pay-per-use)</h4>
-              </div>
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <h5 className="text-lg font-semibold text-primary-700">Дополнительное хранилище</h5>
-                  <p className="mt-3 text-secondary-600 text-sm">
-                    Если стандартных объемов будет недостаточно для ваших фото и документов.<br />
-                    <em>Стоимость: 500 руб. за каждые дополнительные 5 ГБ/месяц. <br />Например, +10 ГБ обойдутся в 1000 руб./мес.</em>
-                  </p>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <h5 className="text-lg font-semibold text-primary-700">Дополнительные пользователи-прорабы</h5>
-                  <p className="mt-3 text-secondary-600 text-sm">
-                    Если количество пользователей-прорабов в вашем тарифе нужно увеличить.<br />
-                    <em>Стоимость: 500-700 руб./месяц за каждого дополнительного пользователя. <br />Например, +2 прораба будут стоить 1000-1400 руб./мес.</em>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-          </div>
+          
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-blue via-neon-purple to-neon-pink rounded-3xl blur opacity-20 animate-pulse-slow"></div>
         </motion.div>
-        {/* Конец Дополнительные услуги и возможности */}
-
       </div>
     </section>
   );

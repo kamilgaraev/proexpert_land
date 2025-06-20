@@ -7,12 +7,14 @@ import Footer from '@components/landing/Footer';
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-cyber-bg to-slate-900">
       <Navbar />
-      <Hero />
-      <Features />
-      <HowItWorks />
-      <Pricing />
+      <div className="pt-16">
+        <Hero />
+        <Features />
+        <HowItWorks />
+        <Pricing />
+      </div>
       <Footer />
     </div>
   );
