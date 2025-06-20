@@ -215,6 +215,7 @@ const Pricing = () => {
 
                 <Link
                   to={plan.name === 'Корпоративный' ? '/contact' : '/register'}
+                  onClick={() => handlePlanClick(plan.name, plan.price)}
                   className={`
                     w-full py-4 px-6 rounded-lg font-semibold text-center transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105
                     ${plan.buttonStyle}
@@ -248,12 +249,14 @@ const Pricing = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
                 to="/register"
+                onClick={() => handlePlanClick('Пробный период', 'Бесплатно')}
                 className="px-8 py-4 bg-white text-construction-600 font-semibold rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105"
               >
                 Начать бесплатный период
               </Link>
               <Link 
                 to="/contact"
+                onClick={() => handlePlanClick('Связаться с нами', 'Консультация')}
                 className="flex items-center gap-2 px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-all duration-300"
               >
                 <PhoneIcon className="w-5 h-5" />
