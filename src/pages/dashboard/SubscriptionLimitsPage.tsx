@@ -48,6 +48,9 @@ const SubscriptionLimitsPage: React.FC = () => {
     warning => !dismissedWarnings.includes(warning.type)
   ) || [];
 
+  // Отладочная информация
+  console.log('🎯 SubscriptionLimitsPage - состояние:', { data, loading, error, hasSubscription });
+
   if (loading && !data) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-concrete-50 to-steel-50 p-4 md:p-8">
@@ -125,7 +128,38 @@ const SubscriptionLimitsPage: React.FC = () => {
         </motion.div>
 
         {/* Информация о подписке */}
-        {data.subscription && (
+        {!data.has_subscription ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-2xl shadow-lg border border-steel-200 p-6"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-safety-500 to-safety-600 rounded-xl flex items-center justify-center shadow-construction">
+                  <StarIcon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-steel-900">Базовый план</h2>
+                  <p className="text-steel-600">Ограниченный функционал без подписки</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-safety-100 text-safety-800">
+                  Без подписки
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-safety-50 rounded-xl p-4">
+              <p className="text-safety-800 text-sm">
+                Вы используете базовый план с ограниченным функционалом. 
+                Для расширения возможностей рекомендуем оформить подписку.
+              </p>
+            </div>
+          </motion.div>
+        ) : data.subscription && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

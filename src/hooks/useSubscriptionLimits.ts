@@ -59,9 +59,11 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
       setState(prev => ({ ...prev, error: null }));
       
       const response = await billingService.getSubscriptionLimits();
+      console.log('🔍 Ответ API лимитов:', response);
 
       if (response.status === 200) {
         const data = response.data as SubscriptionLimitsResponse;
+        console.log('📊 Данные лимитов:', data);
 
         setState({
           data,
@@ -94,6 +96,7 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
         isLoadingRef.current = false;
       }
     } catch (error: any) {
+      console.error('❌ Ошибка загрузки лимитов:', error);
       setState(prev => ({
         ...prev,
         loading: false,

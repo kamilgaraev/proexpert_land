@@ -1129,7 +1129,13 @@ export const billingService = {
     };
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    return { data: responseData as SubscriptionLimitsResponse | ErrorResponse, status: response.status, statusText: response.statusText };
+    
+    // API возвращает { success: true, data: {...} }, нам нужны только data
+    if (responseData.success && responseData.data) {
+      return { data: responseData.data as SubscriptionLimitsResponse, status: response.status, statusText: response.statusText };
+    } else {
+      return { data: responseData as ErrorResponse, status: response.status, statusText: response.statusText };
+    }
   },
 };
 
