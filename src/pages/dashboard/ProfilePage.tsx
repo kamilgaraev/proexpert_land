@@ -1,7 +1,20 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useAuth } from '@hooks/useAuth';
 import { userService } from '@utils/api';
-import { UserCircleIcon } from '@heroicons/react/24/solid';
+import { 
+  UserCircleIcon, 
+  PencilIcon, 
+  CheckIcon, 
+  XMarkIcon,
+  PhotoIcon,
+  TrashIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  BuildingOfficeIcon,
+  IdentificationIcon,
+  CameraIcon
+} from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 
 const ProfilePage = () => {
@@ -47,7 +60,6 @@ const ProfilePage = () => {
         setAvatarPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
-    } else {
     }
   };
 
@@ -97,14 +109,10 @@ const ProfilePage = () => {
 
     try {
       const response = await userService.updateProfile(formData);
-      console.log('Профиль успешно обновлен:', response);
       toast.success(response.data?.message || 'Профиль успешно обновлен!');
-      
       await fetchUser();
-      
       setIsEditing(false);
     } catch (err: any) {
-      console.error('Ошибка при обновлении профиля:', err);
       if (err.errors && typeof err.errors === 'object') {
         const serverErrors: Record<string, string> = {};
         for (const key in err.errors) {
@@ -125,16 +133,17 @@ const ProfilePage = () => {
   if (authLoading && !user) {
     return (
       <div className="flex justify-center items-center h-64">
-        <svg className="animate-spin h-10 w-10 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-construction-200 border-t-construction-600"></div>
       </div>
     );
   }
 
   if (!user) {
-    return <div>Не удалось загрузить данные пользователя.</div>;
+    return (
+      <div className="text-center py-12">
+        <div className="text-steel-500">Не удалось загрузить данные пользователя.</div>
+      </div>
+    );
   }
 
   const handleCancelEdit = () => {
@@ -150,175 +159,282 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="py-6 container mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-secondary-900">Профиль пользователя</h1>
-        <p className="mt-1 text-sm text-secondary-500">
-          Здесь вы можете просмотреть и обновить свои данные
-        </p>
-      </div>
+    <div className="space-y-8">
+      {/* Заголовок */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <h1 className="text-3xl font-bold text-steel-900 mb-2">Профиль пользователя</h1>
+        <p className="text-steel-600 text-lg">Управляйте своими личными данными и настройками</p>
+      </motion.div>
 
-      <div className="bg-white shadow-lg overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6 flex justify-between items-center border-b border-gray-200">
-          <div>
-            <h3 className="text-lg leading-6 font-medium text-secondary-900">Личная информация</h3>
-            <p className="mt-1 max-w-2xl text-sm text-secondary-500">Основные данные вашего профиля</p>
-          </div>
-          {!isEditing && (
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
-              className="btn btn-outline"
-            >
-              Редактировать
-            </button>
-          )}
-        </div>
-        
-        <div className="p-4 sm:p-6 space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Аватар</label>
-            <div className="mt-1 flex items-center gap-4">
-              <span className="inline-block h-16 w-16 rounded-full overflow-hidden bg-gray-100 ring-2 ring-white shadow-sm">
-                {avatarPreview ? (
-                  <img src={avatarPreview} alt="Текущий аватар" className="h-full w-full object-cover" />
-                ) : (
-                  <UserCircleIcon className="h-full w-full text-gray-300" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Карточка аватара */}
+        <motion.div
+          className="lg:col-span-1"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <div className="bg-white rounded-2xl p-8 shadow-lg border border-steel-100">
+            <div className="text-center">
+              <div className="relative inline-block">
+                <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-construction-500 to-construction-600 p-1 shadow-construction">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-white">
+                    {avatarPreview ? (
+                      <img 
+                        src={avatarPreview} 
+                        alt="Аватар пользователя" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-steel-100 flex items-center justify-center">
+                        <UserCircleIcon className="w-20 h-20 text-steel-400" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {isEditing && (
+                  <div className="absolute -bottom-2 -right-2">
+                    <label htmlFor="avatar-upload" className="cursor-pointer">
+                      <div className="w-10 h-10 bg-construction-600 rounded-full flex items-center justify-center shadow-lg hover:bg-construction-700 transition-colors">
+                        <CameraIcon className="w-5 h-5 text-white" />
+                      </div>
+                      <input
+                        id="avatar-upload"
+                        type="file"
+                        className="sr-only"
+                        accept="image/jpeg,image/png,image/gif"
+                        onChange={handleAvatarChange}
+                      />
+                    </label>
+                  </div>
                 )}
-              </span>
-              {isEditing && (
-                <div className="flex-grow">
-                  <label htmlFor="avatar-upload" className="cursor-pointer bg-white py-1.5 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                    <span>{avatarFile ? 'Выбран другой файл' : 'Сменить аватар'}</span>
-                    <input id="avatar-upload" name="avatar" type="file" className="sr-only" accept="image/jpeg,image/png,image/gif" onChange={handleAvatarChange} />
-                  </label>
-                  {avatarPreview && (
-                    <button
+              </div>
+              
+              <div className="mt-6">
+                <h2 className="text-2xl font-bold text-steel-900">{user.name}</h2>
+                <p className="text-steel-600 mt-1">{user.position || 'Не указана должность'}</p>
+                <p className="text-steel-500 text-sm mt-2">{user.email}</p>
+              </div>
+
+              {isEditing && avatarPreview && (
+                <motion.button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  className="mt-4 inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <TrashIcon className="w-4 h-4 mr-2" />
+                  Удалить аватар
+                </motion.button>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Форма профиля */}
+        <motion.div
+          className="lg:col-span-2"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <div className="bg-white rounded-2xl shadow-lg border border-steel-100 overflow-hidden">
+            {/* Заголовок формы */}
+            <div className="bg-gradient-to-r from-construction-50 to-safety-50 px-8 py-6 border-b border-steel-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-steel-900">Личная информация</h3>
+                  <p className="text-steel-600 mt-1">Основные данные вашего профиля</p>
+                </div>
+                {!isEditing ? (
+                  <motion.button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="inline-flex items-center px-4 py-2 bg-construction-600 text-white rounded-xl hover:bg-construction-700 transition-colors shadow-construction"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <PencilIcon className="w-4 h-4 mr-2" />
+                    Редактировать
+                  </motion.button>
+                ) : (
+                  <div className="flex space-x-3">
+                    <motion.button
                       type="button"
-                      onClick={handleRemoveAvatar}
-                      className="ml-3 text-sm font-medium text-red-600 hover:text-red-500"
+                      onClick={handleCancelEdit}
+                      className="inline-flex items-center px-4 py-2 border border-steel-300 text-steel-700 rounded-xl hover:bg-steel-50 transition-colors"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      Удалить
-                    </button>
+                      <XMarkIcon className="w-4 h-4 mr-2" />
+                      Отмена
+                    </motion.button>
+                    <motion.button
+                      type="submit"
+                      form="profile-form"
+                      disabled={isSaving}
+                      className="inline-flex items-center px-4 py-2 bg-safety-600 text-white rounded-xl hover:bg-safety-700 transition-colors shadow-safety disabled:opacity-50"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {isSaving ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                      ) : (
+                        <CheckIcon className="w-4 h-4 mr-2" />
+                      )}
+                      {isSaving ? 'Сохранение...' : 'Сохранить'}
+                    </motion.button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Форма */}
+            <form id="profile-form" onSubmit={handleSubmit} className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Имя */}
+                <div>
+                  <label className="block text-sm font-medium text-steel-700 mb-2">
+                    <IdentificationIcon className="w-4 h-4 inline mr-2" />
+                    Полное имя
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors ${
+                        validationErrors.name ? 'border-red-300' : 'border-steel-300'
+                      }`}
+                      placeholder="Введите ваше полное имя"
+                    />
+                  ) : (
+                    <div className="px-4 py-3 bg-steel-50 rounded-xl text-steel-900 font-medium">
+                      {user.name || 'Не указано'}
+                    </div>
+                  )}
+                  {validationErrors.name && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.name}</p>
                   )}
                 </div>
-              )}
-            </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-medium text-steel-700 mb-2">
+                    <EnvelopeIcon className="w-4 h-4 inline mr-2" />
+                    Email адрес
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors ${
+                        validationErrors.email ? 'border-red-300' : 'border-steel-300'
+                      }`}
+                      placeholder="Введите ваш email"
+                    />
+                  ) : (
+                    <div className="px-4 py-3 bg-steel-50 rounded-xl text-steel-900 font-medium">
+                      {user.email || 'Не указан'}
+                    </div>
+                  )}
+                  {validationErrors.email && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.email}</p>
+                  )}
+                </div>
+
+                {/* Телефон */}
+                <div>
+                  <label className="block text-sm font-medium text-steel-700 mb-2">
+                    <PhoneIcon className="w-4 h-4 inline mr-2" />
+                    Номер телефона
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors ${
+                        validationErrors.phone ? 'border-red-300' : 'border-steel-300'
+                      }`}
+                      placeholder="+7 (999) 123-45-67"
+                    />
+                  ) : (
+                    <div className="px-4 py-3 bg-steel-50 rounded-xl text-steel-900 font-medium">
+                      {user.phone || 'Не указан'}
+                    </div>
+                  )}
+                  {validationErrors.phone && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.phone}</p>
+                  )}
+                </div>
+
+                {/* Должность */}
+                <div>
+                  <label className="block text-sm font-medium text-steel-700 mb-2">
+                    <BuildingOfficeIcon className="w-4 h-4 inline mr-2" />
+                    Должность
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={position}
+                      onChange={(e) => setPosition(e.target.value)}
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors ${
+                        validationErrors.position ? 'border-red-300' : 'border-steel-300'
+                      }`}
+                      placeholder="Например: Главный инженер"
+                    />
+                  ) : (
+                    <div className="px-4 py-3 bg-steel-50 rounded-xl text-steel-900 font-medium">
+                      {user.position || 'Не указана'}
+                    </div>
+                  )}
+                  {validationErrors.position && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.position}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Дополнительная информация */}
+              <div className="mt-8 pt-8 border-t border-steel-200">
+                <h4 className="text-lg font-semibold text-steel-900 mb-4">Дополнительная информация</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex items-center justify-between p-4 bg-construction-50 rounded-xl">
+                    <div>
+                      <p className="font-medium text-steel-900">Дата регистрации</p>
+                      <p className="text-steel-600 text-sm">
+                        {user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : 'Не указана'}
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 bg-construction-100 rounded-lg flex items-center justify-center">
+                      <IdentificationIcon className="w-5 h-5 text-construction-600" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-safety-50 rounded-xl">
+                    <div>
+                      <p className="font-medium text-steel-900">Последнее обновление</p>
+                      <p className="text-steel-600 text-sm">
+                        {user.updated_at ? new Date(user.updated_at).toLocaleDateString('ru-RU') : 'Не указано'}
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 bg-safety-100 rounded-lg flex items-center justify-center">
+                      <PencilIcon className="w-5 h-5 text-safety-600" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
           </div>
-
-          <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-6 sm:gap-x-6">
-            <div className="sm:col-span-3">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">Имя</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="name"
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={`mt-1 block w-full rounded-md border-secondary-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${validationErrors.name ? 'border-red-500' : 'border-gray-300'}`}
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900 font-semibold">{user.name}</p>
-              )}
-              {validationErrors.name && <p className="mt-1 text-sm text-red-600">{validationErrors.name}</p>}
-            </div>
-
-            <div className="sm:col-span-3">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-              {isEditing ? (
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`mt-1 block w-full rounded-md border-secondary-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${validationErrors.email ? 'border-red-500' : 'border-gray-300'}`}
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900 font-semibold">{user.email}</p>
-              )}
-              {validationErrors.email && <p className="mt-1 text-sm text-red-600">{validationErrors.email}</p>}
-            </div>
-
-            <div className="sm:col-span-3">
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Телефон</label>
-              {isEditing ? (
-                <input
-                  type="tel"
-                  name="phone"
-                  id="phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className={`mt-1 block w-full rounded-md border-secondary-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${validationErrors.phone ? 'border-red-500' : 'border-gray-300'}`}
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900 font-semibold">{user.phone || '-'}</p>
-              )}
-              {validationErrors.phone && <p className="mt-1 text-sm text-red-600">{validationErrors.phone}</p>}
-            </div>
-
-            <div className="sm:col-span-3">
-              <label htmlFor="position" className="block text-sm font-medium text-gray-700">Должность</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="position"
-                  id="position"
-                  value={position}
-                  onChange={(e) => setPosition(e.target.value)}
-                  className={`mt-1 block w-full rounded-md border-secondary-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${validationErrors.position ? 'border-red-500' : 'border-gray-300'}`}
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900 font-semibold">{user.position || '-'}</p>
-              )}
-              {validationErrors.position && <p className="mt-1 text-sm text-red-600">{validationErrors.position}</p>}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-6 sm:gap-x-6 border-t border-gray-200 pt-6">
-            <div className="sm:col-span-3"><dt className="text-sm font-medium text-gray-500">ID организации</dt><dd>{user.current_organization_id}</dd></div>
-            <div className="sm:col-span-3"><dt className="text-sm font-medium text-gray-500">Дата регистрации</dt><dd>{new Date(user.created_at).toLocaleDateString('ru-RU')} {new Date(user.created_at).toLocaleTimeString('ru-RU')}</dd></div>
-            <div className="sm:col-span-3"><dt className="text-sm font-medium text-gray-500">Статус Email</dt><dd>{user.email_verified_at ? (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                Подтвержден
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                Не подтвержден
-              </span>
-            )}</dd></div>
-          </div>
-        </div>
-
-        {isEditing && (
-          <div className="px-4 py-3 sm:px-6 bg-gray-50 text-right">
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              disabled={isSaving}
-              className="btn btn-secondary mr-2"
-            >
-              Отмена
-            </button>
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={isSaving}
-              className="btn btn-primary"
-            >
-              {isSaving ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Сохранение...
-                </>
-              ) : 'Сохранить изменения'}
-            </button>
-          </div>
-        )}
+        </motion.div>
       </div>
     </div>
   );

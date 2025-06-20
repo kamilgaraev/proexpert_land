@@ -1,7 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { billingService, OrganizationBalance, BalanceTransaction, PaginatedBalanceTransactions, TopUpBalanceRequest, ErrorResponse, PaymentGatewayChargeResponse } from '@utils/api';
-import { PageLoading } from '@components/common/PageLoading';
-import { ArrowPathIcon, CreditCardIcon, CurrencyDollarIcon, ReceiptRefundIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { 
+  ArrowPathIcon, 
+  CreditCardIcon, 
+  CurrencyDollarIcon, 
+  ReceiptRefundIcon, 
+  ExclamationTriangleIcon,
+  WalletIcon,
+  BanknotesIcon,
+  ChartBarIcon,
+  CalendarIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
+  PlusIcon
+} from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify';
 
 const BillingPage = () => {
   const [balance, setBalance] = useState<OrganizationBalance | null>(null);
@@ -15,7 +32,7 @@ const BillingPage = () => {
   const [errorTopUp, setErrorTopUp] = useState<string | null>(null);
   
   const [topUpAmount, setTopUpAmount] = useState<string>('');
-  const [paymentMethodToken, setPaymentMethodToken] = useState<string>('tok_mock_visa_chargeable_russian_STANDARD'); // Пример токена
+  const [paymentMethodToken, setPaymentMethodToken] = useState<string>('tok_mock_visa_chargeable_russian_STANDARD');
   const [isToppingUp, setIsToppingUp] = useState<boolean>(false);
 
   const fetchBalance = useCallback(async () => {
@@ -26,18 +43,15 @@ const BillingPage = () => {
       if (response.status === 200) {
         if (response.data && typeof response.data === 'object' && 'data' in response.data) {
           setBalance((response.data as any).data as OrganizationBalance);
-          console.log('Balance data from API (processed):', (response.data as any).data);
         } else {
-          console.error('Unexpected balance data structure from API:', response.data);
           setBalance(null);
-          setErrorBalance('Не удалось обработать данные о балансе. Неожиданный формат ответа от сервера.');
+          setErrorBalance('Не удалось обработать данные о балансе.');
         }
       } else {
         const errorData = response.data as unknown as ErrorResponse;
-        throw new Error(errorData?.message || `Ошибка ${response.status}: ${response.statusText}`);
+        throw new Error(errorData?.message || `Ошибка ${response.status}`);
       }
     } catch (err: any) {
-      console.error("Error fetching balance:", err);
       setErrorBalance(err.message || 'Не удалось загрузить баланс.');
     } finally {
       setLoadingBalance(false);
@@ -48,17 +62,16 @@ const BillingPage = () => {
     setLoadingTransactions(true);
     setErrorTransactions(null);
     try {
-      const response = await billingService.getBalanceTransactions(page, 10); // 10 транзакций на страницу
+      const response = await billingService.getBalanceTransactions(page, 10);
       if (response.status === 200) {
         const paginatedData = response.data as PaginatedBalanceTransactions;
         setTransactions(paginatedData.data);
         setPagination(paginatedData.meta);
       } else {
         const errorData = response.data as unknown as ErrorResponse;
-        throw new Error(errorData?.message || `Ошибка ${response.status}: ${response.statusText}`);
+        throw new Error(errorData?.message || `Ошибка ${response.status}`);
       }
     } catch (err: any) {
-      console.error("Error fetching transactions:", err);
       setErrorTransactions(err.message || 'Не удалось загрузить историю транзакций.');
     } finally {
       setLoadingTransactions(false);
@@ -81,30 +94,25 @@ const BillingPage = () => {
       }
       const payload: TopUpBalanceRequest = {
         amount: amountNumber,
-        currency: 'RUB', // Хардкод, как в OpenAPI
+        currency: 'RUB',
         payment_method_token: paymentMethodToken,
       };
       const response = await billingService.topUpBalance(payload);
       const responseData = response.data as PaymentGatewayChargeResponse;
 
       if (response.status === 200 && responseData.success) {
-        if (responseData.redirectUrl) {
-          console.log('Top-up response included a redirectUrl (now ignored):', responseData.redirectUrl);
-          alert(responseData.message || 'Запрос на пополнение инициирован (перенаправление проигнорировано). Баланс скоро обновится.');
-        } else {
-          alert(responseData.message || 'Запрос на пополнение успешно отправлен! Баланс скоро обновится.');
-        }
+        toast.success(responseData.message || 'Баланс успешно пополнен!');
         setTopUpAmount(''); 
         fetchBalance(); 
-        fetchTransactions(1); // Возвращаемся на первую страницу транзакций
+        fetchTransactions(1);
         setCurrentPage(1);
       } else {
-        const errorData = response.data as unknown as ErrorResponse; // Может быть и PaymentGatewayChargeResponse с success: false
-        throw new Error(errorData?.message || responseData.message || `Ошибка ${response.status}: ${response.statusText}`);
+        const errorData = response.data as unknown as ErrorResponse;
+        throw new Error(errorData?.message || responseData.message || `Ошибка ${response.status}`);
       }
     } catch (err: any) {
-      console.error("Error topping up balance:", err);
       setErrorTopUp(err.message || 'Не удалось выполнить пополнение баланса.');
+      toast.error(err.message || 'Ошибка пополнения баланса');
     } finally {
       setIsToppingUp(false);
     }
@@ -116,170 +124,364 @@ const BillingPage = () => {
   
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return 'Н/Д';
-    return new Date(dateString).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return new Date(dateString).toLocaleString('ru-RU', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
   };
 
+  const getTransactionIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'deposit':
+      case 'top_up':
+        return <ArrowUpIcon className="w-5 h-5 text-earth-600" />;
+      case 'withdrawal':
+      case 'charge':
+        return <ArrowDownIcon className="w-5 h-5 text-construction-600" />;
+      default:
+        return <CurrencyDollarIcon className="w-5 h-5 text-steel-600" />;
+    }
+  };
+
+  const getTransactionColor = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'deposit':
+      case 'top_up':
+        return 'text-earth-600 bg-earth-50';
+      case 'withdrawal':
+      case 'charge':
+        return 'text-construction-600 bg-construction-50';
+      default:
+        return 'text-steel-600 bg-steel-50';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'completed':
+      case 'success':
+        return <CheckCircleIcon className="w-4 h-4 text-earth-600" />;
+      case 'failed':
+      case 'error':
+        return <XCircleIcon className="w-4 h-4 text-construction-600" />;
+      case 'pending':
+        return <ClockIcon className="w-4 h-4 text-safety-600" />;
+      default:
+        return <ClockIcon className="w-4 h-4 text-steel-600" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'completed':
+      case 'success':
+        return 'bg-earth-100 text-earth-800';
+      case 'failed':
+      case 'error':
+        return 'bg-construction-100 text-construction-800';
+      case 'pending':
+        return 'bg-safety-100 text-safety-800';
+      default:
+        return 'bg-steel-100 text-steel-800';
+    }
+  };
+
+  const quickAmounts = [1000, 5000, 10000, 25000];
+
   if (loadingBalance) {
-    return <PageLoading message="Загрузка информации о балансе..." />;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-construction-200 border-t-construction-600"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-10">
-      {/* Секция баланса и пополнения */}
-      <section className="grid md:grid-cols-2 gap-8 items-start">
-        <div className="bg-white shadow-xl rounded-lg p-6">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Текущий баланс</h2>
-          {errorBalance && <p className="text-red-500 text-sm mb-3">{errorBalance}</p>}
-          {balance ? (
-            <div className="text-4xl font-bold text-primary-600 mb-1">
-              {balance.balance_formatted} <span className="text-2xl text-gray-500">{balance.currency}</span>
-            </div>
-          ) : (
-            !errorBalance && <p className="text-gray-500">Не удалось загрузить данные о балансе.</p>
-          )}
-          <p className="text-xs text-gray-400">Обновлено: {balance ? formatDate(balance.updated_at) : 'Н/Д'}</p>
-        </div>
+    <div className="space-y-8">
+      {/* Заголовок */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <h1 className="text-3xl font-bold text-steel-900 mb-2">Финансы</h1>
+        <p className="text-steel-600 text-lg">Управление бюджетом и платежами</p>
+      </motion.div>
 
-        <div className="bg-white shadow-xl rounded-lg p-6">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Пополнить баланс</h2>
-          {errorTopUp && 
-            <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-md text-sm flex items-start">
-                <ExclamationTriangleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-red-500" />
-                <span>{errorTopUp}</span>
-            </div>
-          }
-          <form onSubmit={handleTopUp} className="space-y-4">
+      {/* Карточки статистики */}
+      <motion.div 
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+      >
+        {/* Текущий баланс */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <label htmlFor="topUpAmount" className="block text-sm font-medium text-gray-700">Сумма (RUB)</label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <CurrencyDollarIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                </div>
-                <input 
-                  type="number" 
-                  name="topUpAmount" 
-                  id="topUpAmount" 
-                  className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md p-2"
-                  placeholder="1000.00"
-                  value={topUpAmount}
-                  onChange={(e) => setTopUpAmount(e.target.value)}
-                  required
-                  min="1"
-                />
-              </div>
+              <p className="text-steel-600 text-sm font-medium">Текущий баланс</p>
+              {errorBalance ? (
+                <p className="text-construction-600 text-lg font-bold">Ошибка загрузки</p>
+              ) : balance ? (
+                <p className="text-3xl font-bold text-steel-900">
+                  {balance.balance_formatted} <span className="text-lg text-steel-600">{balance.currency}</span>
+                </p>
+              ) : (
+                <p className="text-steel-500">Загрузка...</p>
+              )}
             </div>
-            <div>
-              <label htmlFor="paymentMethodToken" className="block text-sm font-medium text-gray-700">Токен метода оплаты (тест)</label>
-               <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <CreditCardIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                </div>
-                <input 
-                  type="text" 
-                  name="paymentMethodToken" 
-                  id="paymentMethodToken" 
-                  className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md p-2"
-                  value={paymentMethodToken}
-                  onChange={(e) => setPaymentMethodToken(e.target.value)}
-                  placeholder="tok_mock_visa_..."
-                  required
-                />
-              </div>
+            <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center">
+              <WalletIcon className="w-6 h-6 text-white" />
             </div>
-            <button 
-              type="submit"
-              disabled={isToppingUp}
-              className="w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
-            >
-              {isToppingUp ? <ArrowPathIcon className="animate-spin h-5 w-5 mr-2" /> : <CurrencyDollarIcon className="h-5 w-5 mr-2" />}
-              {isToppingUp ? 'Обработка...' : 'Пополнить'}
-            </button>
-          </form>
-        </div>
-      </section>
-
-      {/* Секция истории транзакций */}
-      <section className="bg-white shadow-xl rounded-lg p-6">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">История транзакций</h2>
-        {errorTransactions && <p className="text-red-500 text-sm mb-3">{errorTransactions}</p>}
-        {loadingTransactions && !transactions.length && <PageLoading message="Загрузка транзакций..." />}
-        {!loadingTransactions && !transactions.length && !errorTransactions && (
-          <p className="text-gray-500 text-center py-10">История транзакций пуста.</p>
-        )}
-        {transactions.length > 0 && (
-          <div className="flow-root">
-            <ul role="list" className="-mb-8">
-              {transactions.map((transaction, transactionIdx) => (
-                <li key={transaction.id}>
-                  <div className="relative pb-8">
-                    {transactionIdx !== transactions.length - 1 ? (
-                      <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
-                    ) : null}
-                    <div className="relative flex space-x-3 items-center">
-                      <div>
-                        <span className={`h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white ${transaction.type === 'credit' ? 'bg-green-500' : 'bg-red-500'}`}>
-                          {transaction.type === 'credit' ? 
-                            <CurrencyDollarIcon className="h-5 w-5 text-white" aria-hidden="true" /> : 
-                            <ReceiptRefundIcon className="h-5 w-5 text-white" aria-hidden="true" />
-                          }
-                        </span>
-                      </div>
-                      <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
-                        <div>
-                          <p className="text-sm text-gray-700">
-                            {transaction.description || (transaction.type === 'credit' ? 'Пополнение' : 'Списание')}
-                            <span className="font-medium text-gray-900 ml-1">{transaction.amount_formatted} {balance?.currency}</span>
-                          </p>
-                        </div>
-                        <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                          <time dateTime={transaction.created_at}>{formatDate(transaction.created_at)}</time>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
           </div>
-        )}
-        {/* Пагинация */} 
-        {pagination && pagination.last_page > 1 && (
-          <nav className="mt-8 border-t border-gray-200 px-4 flex items-center justify-between sm:px-0">
-            <div className="-mt-px w-0 flex-1 flex">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="border-t-2 border-transparent pt-4 pr-1 inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 disabled:opacity-50"
+          <div className="flex items-center text-sm text-steel-500">
+            <CalendarIcon className="w-4 h-4 mr-1" />
+            <span>Обновлено: {balance ? formatDate(balance.updated_at) : 'Н/Д'}</span>
+          </div>
+        </div>
+
+        {/* Всего потрачено */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-steel-600 text-sm font-medium">Всего потрачено</p>
+              <p className="text-3xl font-bold text-steel-900">₽127,500</p>
+            </div>
+            <div className="w-12 h-12 bg-gradient-to-br from-safety-500 to-safety-600 rounded-xl flex items-center justify-center">
+              <ChartBarIcon className="w-6 w-6 text-white" />
+            </div>
+          </div>
+          <div className="flex items-center text-sm text-steel-500">
+            <ArrowDownIcon className="w-4 h-4 mr-1" />
+            <span>За текущий месяц</span>
+          </div>
+        </div>
+
+        {/* Среднемесячный расход */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-steel-600 text-sm font-medium">Средний расход</p>
+              <p className="text-3xl font-bold text-steel-900">₽85,300</p>
+            </div>
+            <div className="w-12 h-12 bg-gradient-to-br from-earth-500 to-earth-600 rounded-xl flex items-center justify-center">
+              <BanknotesIcon className="w-6 h-6 text-white" />
+            </div>
+          </div>
+          <div className="flex items-center text-sm text-steel-500">
+            <ChartBarIcon className="w-4 h-4 mr-1" />
+            <span>В месяц за последние 6 месяцев</span>
+          </div>
+        </div>
+      </motion.div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Пополнение баланса */}
+        <motion.div
+          className="lg:col-span-1"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+            <div className="flex items-center mb-6">
+              <div className="w-10 h-10 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center mr-3">
+                <PlusIcon className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-steel-900">Пополнить баланс</h3>
+                <p className="text-steel-600 text-sm">Добавьте средства на счет</p>
+              </div>
+            </div>
+
+            {errorTopUp && (
+              <motion.div 
+                className="mb-4 p-3 bg-construction-50 border border-construction-200 text-construction-700 rounded-xl text-sm flex items-start"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
               >
-                <ArrowPathIcon className="mr-3 h-5 w-5 text-gray-400 transform rotate-180" aria-hidden="true" /> {/* Иконка для 'Назад' */} 
-                Предыдущая
-              </button>
-            </div>
-            <div className="hidden md:-mt-px md:flex">
-              {[...Array(pagination.last_page).keys()].map(num => num + 1).map(pageNumber => (
-                <button
-                  key={pageNumber}
-                  onClick={() => handlePageChange(pageNumber)}
-                  className={`border-t-2 pt-4 px-4 inline-flex items-center text-sm font-medium ${currentPage === pageNumber ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-                  aria-current={currentPage === pageNumber ? 'page' : undefined}
-                >
-                  {pageNumber}
-                </button>
-              ))}
-            </div>
-            <div className="-mt-px w-0 flex-1 flex justify-end">
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === pagination.last_page}
-                className="border-t-2 border-transparent pt-4 pl-1 inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 disabled:opacity-50"
+                <ExclamationTriangleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-construction-500" />
+                <span>{errorTopUp}</span>
+              </motion.div>
+            )}
+
+            <form onSubmit={handleTopUp} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-steel-700 mb-2">
+                  Сумма пополнения
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <CurrencyDollarIcon className="h-5 w-5 text-steel-400" />
+                  </div>
+                  <input 
+                    type="number" 
+                    className="w-full pl-10 pr-4 py-3 border border-steel-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
+                    placeholder="Введите сумму"
+                    value={topUpAmount}
+                    onChange={(e) => setTopUpAmount(e.target.value)}
+                    required
+                    min="1"
+                  />
+                </div>
+              </div>
+
+              {/* Быстрые суммы */}
+              <div>
+                <p className="text-sm font-medium text-steel-700 mb-2">Быстрый выбор</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {quickAmounts.map((amount) => (
+                    <button
+                      key={amount}
+                      type="button"
+                      onClick={() => setTopUpAmount(amount.toString())}
+                      className="px-3 py-2 text-sm font-medium text-steel-700 bg-steel-50 rounded-lg hover:bg-construction-50 hover:text-construction-700 transition-colors"
+                    >
+                      ₽{amount.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-steel-700 mb-2">
+                  Токен метода оплаты
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <CreditCardIcon className="h-5 w-5 text-steel-400" />
+                  </div>
+                  <input 
+                    type="text" 
+                    className="w-full pl-10 pr-4 py-3 border border-steel-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
+                    value={paymentMethodToken}
+                    onChange={(e) => setPaymentMethodToken(e.target.value)}
+                    placeholder="tok_mock_visa_..."
+                    required
+                  />
+                </div>
+              </div>
+
+              <motion.button 
+                type="submit"
+                disabled={isToppingUp}
+                className="w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-construction-500 to-construction-600 text-white rounded-xl hover:shadow-construction focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-construction-500 disabled:opacity-50 transition-all duration-200"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                Следующая
-                <ArrowPathIcon className="ml-3 h-5 w-5 text-gray-400" aria-hidden="true" /> {/* Иконка для 'Вперед' */} 
-              </button>
+                {isToppingUp ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                ) : (
+                  <PlusIcon className="h-5 w-5 mr-2" />
+                )}
+                {isToppingUp ? 'Обработка...' : 'Пополнить баланс'}
+              </motion.button>
+            </form>
+          </div>
+        </motion.div>
+
+        {/* История транзакций */}
+        <motion.div
+          className="lg:col-span-2"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <div className="bg-white rounded-2xl shadow-lg border border-steel-100 overflow-hidden">
+            <div className="px-6 py-4 bg-gradient-to-r from-steel-50 to-concrete-50 border-b border-steel-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-steel-900">История транзакций</h3>
+                  <p className="text-steel-600 text-sm">Последние операции по счету</p>
+                </div>
+                <div className="w-10 h-10 bg-gradient-to-br from-steel-500 to-steel-600 rounded-xl flex items-center justify-center">
+                  <ReceiptRefundIcon className="w-5 h-5 text-white" />
+                </div>
+              </div>
             </div>
-          </nav>
-        )}
-      </section>
+
+            <div className="p-6">
+              {loadingTransactions ? (
+                <div className="flex justify-center items-center h-32">
+                  <div className="animate-spin rounded-full h-8 w-8 border-4 border-construction-200 border-t-construction-600"></div>
+                </div>
+              ) : errorTransactions ? (
+                <div className="text-center py-8">
+                  <ExclamationTriangleIcon className="h-12 w-12 text-construction-400 mx-auto mb-3" />
+                  <p className="text-construction-600">{errorTransactions}</p>
+                </div>
+              ) : transactions.length === 0 ? (
+                <div className="text-center py-8">
+                  <ReceiptRefundIcon className="h-12 w-12 text-steel-300 mx-auto mb-3" />
+                  <p className="text-steel-500">Транзакции не найдены</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {transactions.map((transaction) => (
+                    <motion.div
+                      key={transaction.id}
+                      className="flex items-center justify-between p-4 bg-steel-50 rounded-xl hover:bg-steel-100 transition-colors"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getTransactionColor(transaction.type)}`}>
+                          {getTransactionIcon(transaction.type)}
+                        </div>
+                        <div>
+                          <p className="font-medium text-steel-900">{transaction.description || 'Транзакция'}</p>
+                          <p className="text-sm text-steel-600">{formatDate(transaction.created_at)}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                                                 <p className={`font-bold ${
+                           transaction.type.toLowerCase().includes('deposit') || transaction.type.toLowerCase().includes('top_up')
+                             ? 'text-earth-600' 
+                             : 'text-construction-600'
+                         }`}>
+                           {transaction.type.toLowerCase().includes('deposit') || transaction.type.toLowerCase().includes('top_up') ? '+' : '-'}
+                           {transaction.amount_formatted} {balance?.currency || 'RUB'}
+                         </p>
+                         <div className="flex items-center justify-end mt-1">
+                           {getStatusIcon('completed')}
+                           <span className={`ml-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor('completed')}`}>
+                             Завершено
+                           </span>
+                         </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              {/* Пагинация */}
+              {pagination && pagination.last_page > 1 && (
+                <div className="flex justify-center mt-6">
+                  <div className="flex space-x-2">
+                    {Array.from({ length: pagination.last_page }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          page === currentPage
+                            ? 'bg-construction-600 text-white'
+                            : 'bg-steel-100 text-steel-700 hover:bg-steel-200'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 };
