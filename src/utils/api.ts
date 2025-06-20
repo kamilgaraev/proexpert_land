@@ -21,7 +21,7 @@ declare global {
 const VITE_APP_BASE_DOMAIN = import.meta.env.VITE_APP_BASE_DOMAIN || 'https://prohelper.pro';
 
 // Базовый путь для всех API v1, включая /landing
-// Результат: http://89.111.153.146/api/v1/landing
+// Результат: https://prohelper.pro/api/v1/landing
 const API_URL = `${VITE_APP_BASE_DOMAIN}/api/v1/landing`;
 
 // URL для эндпоинтов биллинга, который должен быть http://.../api/v1/landing/billing
@@ -202,7 +202,7 @@ export const authService = {
   // Вход в систему
   login: async (credentials: LoginRequest): Promise<any> => {
     console.log('API: Начало функции login');
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/auth/login`, {
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -247,7 +247,7 @@ export const authService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/auth/me`, {
+    const response = await fetch(`${API_URL}/auth/me`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -292,7 +292,7 @@ export const userService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/user/profile`, {
+    const response = await fetch(`${API_URL}/user/profile`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -355,7 +355,7 @@ export const userService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/user/password`, {
+    const response = await fetch(`${API_URL}/user/password`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -382,7 +382,7 @@ export const userService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/user/organizations`, {
+    const response = await fetch(`${API_URL}/user/organizations`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -408,7 +408,7 @@ export const userService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/adminPanelUsers`, {
+    const response = await fetch(`${API_URL}/adminPanelUsers`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -452,7 +452,7 @@ export const userService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/users/invite`, {
+    const response = await fetch(`${API_URL}/users/invite`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -481,7 +481,7 @@ export const organizationService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/organizations`, {
+    const response = await fetch(`${API_URL}/organizations`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -508,7 +508,7 @@ export const organizationService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/organizations/${orgId}`, {
+    const response = await fetch(`${API_URL}/organizations/${orgId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -534,7 +534,7 @@ export const organizationService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/organizations/${orgId}`, {
+    const response = await fetch(`${API_URL}/organizations/${orgId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -567,7 +567,7 @@ export const supportService = {
       headers['Authorization'] = `Bearer ${token}`;
     }
     
-    const response = await fetch(`http://89.111.153.146/api/v1/landing/support/request`, {
+    const response = await fetch(`${API_URL}/support/request`, {
       method: 'POST',
       headers,
       body: JSON.stringify(requestData)
