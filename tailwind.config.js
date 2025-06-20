@@ -112,6 +112,7 @@ export default {
       },
       boxShadow: {
         'construction': '0 4px 15px 0 rgba(249, 115, 22, 0.3), 0 10px 25px 0 rgba(249, 115, 22, 0.2)',
+        'construction-lg': '0 8px 25px 0 rgba(249, 115, 22, 0.4), 0 15px 35px 0 rgba(249, 115, 22, 0.3)',
         'safety': '0 4px 15px 0 rgba(234, 179, 8, 0.3), 0 10px 25px 0 rgba(234, 179, 8, 0.2)',
         'steel': '0 4px 15px 0 rgba(71, 85, 105, 0.3), 0 10px 25px 0 rgba(71, 85, 105, 0.2)',
         'concrete': '0 4px 15px 0 rgba(107, 114, 128, 0.3), 0 10px 25px 0 rgba(107, 114, 128, 0.2)',

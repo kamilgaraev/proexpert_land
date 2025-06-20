@@ -3,6 +3,7 @@ import LandingPage from '@pages/landing/LandingPage';
 import DashboardLayout from '@layouts/DashboardLayout';
 import LoginPage from '@pages/dashboard/LoginPage';
 import RegisterPage from '@pages/dashboard/RegisterPage';
+import ForgotPasswordPage from '@pages/dashboard/ForgotPasswordPage';
 import DashboardPage from '@pages/dashboard/DashboardPage';
 import ProfilePage from '@pages/dashboard/ProfilePage';
 import HelpPage from '@pages/dashboard/HelpPage';
@@ -52,6 +53,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         
         {/* Продуктовые страницы */}
         <Route path="/integrations" element={<IntegrationsPage />} />
