@@ -7,9 +7,6 @@ import {
   WrenchScrewdriverIcon,
   BuildingOfficeIcon,
   TruckIcon,
-  UserGroupIcon,
-  ChartBarIcon,
-  ShieldCheckIcon,
   CurrencyDollarIcon,
   PhoneIcon
 } from '@heroicons/react/24/outline';

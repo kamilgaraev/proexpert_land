@@ -11,10 +11,7 @@ import {
   DocumentTextIcon,
   WrenchScrewdriverIcon,
   TruckIcon,
-  BuildingOfficeIcon,
-  CalendarDaysIcon,
-  CalculatorIcon,
-  MapIcon
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
 
 const Features = () => {
