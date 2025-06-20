@@ -175,7 +175,7 @@ const Features = () => {
           whileInView="show"
           viewport={{ once: true }}
         >
-          {features.map((feature, index) => (
+          {features.map((feature) => (
             <motion.div
               key={feature.name}
               className="group relative"
