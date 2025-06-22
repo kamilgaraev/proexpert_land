@@ -337,20 +337,21 @@ const RegisterPage = () => {
                 className="space-y-6"
               >
                 {/* Аватар */}
-                <div className="flex justify-center mb-8">
-                  <div className="relative">
-                    <div className="w-24 h-24 bg-gradient-to-br from-construction-100 to-construction-200 rounded-2xl flex items-center justify-center overflow-hidden">
+                <div className="flex flex-col items-center mb-6 sm:mb-8">
+                  <div className="relative group">
+                    <div className="w-24 h-24 bg-gradient-to-br from-construction-100 to-construction-200 rounded-2xl flex items-center justify-center overflow-hidden border-2 border-dashed border-transparent group-hover:border-construction-300 transition-all duration-200">
                       {avatarPreview ? (
                         <img src={avatarPreview} alt="Аватар" className="w-full h-full object-cover" />
                       ) : (
-                        <PhotoIcon className="w-8 h-8 text-construction-400" />
+                        <PhotoIcon className="w-8 h-8 text-construction-400 group-hover:text-construction-500 transition-colors" />
                       )}
                     </div>
                     {avatarPreview && (
                       <button
                         type="button"
                         onClick={removeAvatar}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                        title="Удалить фото"
                       >
                         <XMarkIcon className="w-4 h-4" />
                       </button>
@@ -360,7 +361,15 @@ const RegisterPage = () => {
                       accept="image/*"
                       onChange={handleAvatarChange}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      title="Выбрать фото профиля"
                     />
+                  </div>
+                  <div className="mt-3 text-center">
+                    <p className="text-sm font-medium text-steel-700">Фото профиля</p>
+                    <p className="text-xs text-steel-500 mt-1">
+                      {avatarPreview ? 'Нажмите для замены' : 'Нажмите для загрузки'}
+                    </p>
+                    <p className="text-xs text-steel-400 mt-1">JPG, PNG или GIF до 2 МБ</p>
                   </div>
                 </div>
                 {hasError('avatar') && (
