@@ -19,7 +19,7 @@ import ProjectsList from '@pages/admin/projects/ProjectsList';
 import FAQPage from '@pages/dashboard/FAQPage';
 import PaidServicesPage from '@pages/dashboard/paid-services/PaidServicesPage';
 import SubscriptionLimitsPage from '@pages/dashboard/SubscriptionLimitsPage';
-import UserManagementPage from '@pages/dashboard/UserManagementPage';
+
 
 // Новые страницы
 import IntegrationsPage from '@pages/product/IntegrationsPage';
@@ -95,7 +95,7 @@ function App() {
           <Route path="billing/add-funds" element={<AddFundsPage />} />
           <Route path="admins" element={<AdminsPage />} />
           <Route path="admins/create" element={<Navigate to="/dashboard/admins" replace />} />
-          <Route path="users" element={<UserManagementPage />} />
+
           <Route path="paid-services" element={<PaidServicesPage />} />
           <Route path="organization" element={<OrganizationPage />} />
         </Route>

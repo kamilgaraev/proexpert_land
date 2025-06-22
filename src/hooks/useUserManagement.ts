@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { userManagementService } from '@utils/api';
 
 export interface OrganizationRole {
@@ -96,7 +96,7 @@ export const useUserManagement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async () => {
     try {
       setLoading(true);
       const response = await userManagementService.getRoles();
@@ -108,9 +108,9 @@ export const useUserManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchInvitations = async () => {
+  const fetchInvitations = useCallback(async () => {
     try {
       setLoading(true);
       const response = await userManagementService.getInvitations();
@@ -122,9 +122,9 @@ export const useUserManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await userManagementService.getOrganizationUsers();
@@ -136,9 +136,9 @@ export const useUserManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchLimits = async () => {
+  const fetchLimits = useCallback(async () => {
     try {
       const response = await userManagementService.getUserLimits();
       if (response.data.success) {
@@ -147,7 +147,7 @@ export const useUserManagement = () => {
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки лимитов');
     }
-  };
+  }, []);
 
   const createRole = async (roleData: {
     name: string;
@@ -234,9 +234,13 @@ export const useUserManagement = () => {
     }
   };
 
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   useEffect(() => {
     fetchLimits();
-  }, []);
+  }, [fetchLimits]);
 
   return {
     roles,
@@ -253,6 +257,6 @@ export const useUserManagement = () => {
     sendInvitation,
     updateUserRoles,
     resendInvitation,
-    clearError: () => setError(null)
+    clearError
   };
 }; 
