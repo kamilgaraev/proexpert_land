@@ -18,7 +18,7 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
   onRecommendationsLoad 
 }) => {
   const [recommendations, setRecommendations] = useState<VerificationRecommendationsType | null>(null);
-  const [userMessage, setUserMessage] = useState<UserMessage | null>(null);
+  const [, setUserMessage] = useState<UserMessage | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
