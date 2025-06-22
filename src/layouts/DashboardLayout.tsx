@@ -81,6 +81,12 @@ const DashboardLayout = () => {
       description: 'Администраторы и прорабы'
     },
     { 
+      name: 'Пользователи', 
+      href: '/dashboard/users', 
+      icon: ShieldCheckIcon,
+      description: 'Управление пользователями и ролями'
+    },
+    { 
       name: 'Финансы', 
       href: '/dashboard/billing', 
       icon: BanknotesIcon,
