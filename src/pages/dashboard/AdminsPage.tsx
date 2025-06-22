@@ -7,7 +7,6 @@ import {
   UserCircleIcon,
   MagnifyingGlassIcon,
   UsersIcon,
-  BuildingOfficeIcon,
   ShieldCheckIcon,
   CalendarIcon,
   EnvelopeIcon
