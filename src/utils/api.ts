@@ -571,6 +571,11 @@ export const organizationService = {
   requestVerification: async (): Promise<ApiResponse<{ verification_result: any; organization: Organization }>> => {
     const response = await api.post('/organization/verification/request');
     return response.data as ApiResponse<{ verification_result: any; organization: Organization }>;
+  },
+
+  getVerificationRecommendations: async (): Promise<ApiResponse<VerificationRecommendations>> => {
+    const response = await api.get('/organization/verification/recommendations');
+    return response.data as ApiResponse<VerificationRecommendations>;
   }
 };
 
@@ -687,6 +692,40 @@ export interface OrganizationUpdateData {
   postal_code?: string;
   country?: string;
   description?: string;
+}
+
+export interface MissingField {
+  field: string;
+  name: string;
+  description: string;
+  weight: number;
+  required: boolean;
+}
+
+export interface FieldIssue {
+  field: string;
+  name: string;
+  description: string;
+  current_value: string;
+  weight: number;
+}
+
+export interface VerificationIssue {
+  type: 'warning' | 'error' | 'info';
+  message: string;
+  severity: 'low' | 'medium' | 'high';
+}
+
+export interface VerificationRecommendations {
+  current_score: number;
+  max_score: number;
+  status: string;
+  status_text: string;
+  missing_fields: MissingField[];
+  field_issues: FieldIssue[];
+  verification_issues: VerificationIssue[];
+  can_auto_verify: boolean;
+  potential_score_increase: number;
 }
 
 export interface LandingUser {

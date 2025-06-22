@@ -16,6 +16,7 @@ import { toast } from 'react-toastify';
 import { organizationService, Organization, OrganizationUpdateData } from '@utils/api';
 import { useDaData } from '@hooks/useDaData';
 import AutocompleteInput from '@components/shared/AutocompleteInput';
+import VerificationRecommendations from '@components/dashboard/VerificationRecommendations';
 
 const OrganizationPage = () => {
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -24,6 +25,7 @@ const OrganizationPage = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [formData, setFormData] = useState<OrganizationUpdateData>({});
+  const [recommendationsKey, setRecommendationsKey] = useState(0);
 
   const { searchAddresses } = useDaData();
 
@@ -73,6 +75,7 @@ const OrganizationPage = () => {
       if (response.success && response.data.organization) {
         setOrganization(response.data.organization);
         setIsEditing(false);
+        setRecommendationsKey(prev => prev + 1);
         toast.success('Данные организации обновлены');
       }
     } catch (error) {
@@ -92,6 +95,7 @@ const OrganizationPage = () => {
       if (response.success && response.data.organization) {
         toast.success('Верификация выполнена успешно');
         await loadOrganization();
+        setRecommendationsKey(prev => prev + 1);
       }
     } catch (error) {
       console.error('Ошибка верификации:', error);
@@ -463,6 +467,15 @@ const OrganizationPage = () => {
           )}
         </div>
       </div>
+
+      {/* Рекомендации по верификации */}
+      <VerificationRecommendations 
+        key={recommendationsKey}
+        organizationId={organization.id}
+        onRecommendationsLoad={(recommendations) => {
+          console.log('Рекомендации загружены:', recommendations);
+        }}
+      />
     </div>
   );
 };
