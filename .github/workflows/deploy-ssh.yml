@@ -31,7 +31,8 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         script: |
           cd /var/www/proexpert_land
-          rm -rf ./*
+          rm -rf ./dist/*
+          mkdir -p ./dist
           
     - name: Copy files to server
       uses: appleboy/scp-action@v0.1.4
@@ -40,5 +41,5 @@ jobs:
         username: root
         key: ${{ secrets.SSH_KEY }}
         source: "dist/*"
-        target: "/var/www/proexpert_land/"
+        target: "/var/www/proexpert_land/dist/"
         strip_components: 1 
