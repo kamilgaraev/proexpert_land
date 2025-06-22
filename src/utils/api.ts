@@ -558,14 +558,14 @@ export const organizationService = {
     return response.data as ApiResponse<Organization[]>;
   },
 
-  getCurrent: async (): Promise<ApiResponse<{ organization: Organization }>> => {
+  getCurrent: async (): Promise<ApiResponse<OrganizationWithRecommendations>> => {
     const response = await api.get('/organization/verification');
-    return response.data as ApiResponse<{ organization: Organization }>;
+    return response.data as ApiResponse<OrganizationWithRecommendations>;
   },
 
-  update: async (data: OrganizationUpdateData): Promise<ApiResponse<{ organization: Organization }>> => {
+  update: async (data: OrganizationUpdateData): Promise<ApiResponse<OrganizationWithRecommendations>> => {
     const response = await api.patch('/organization/verification', data);
-    return response.data as ApiResponse<{ organization: Organization }>;
+    return response.data as ApiResponse<OrganizationWithRecommendations>;
   },
 
   requestVerification: async (): Promise<ApiResponse<{ verification_result: any; organization: Organization }>> => {
@@ -573,9 +573,9 @@ export const organizationService = {
     return response.data as ApiResponse<{ verification_result: any; organization: Organization }>;
   },
 
-  getVerificationRecommendations: async (): Promise<ApiResponse<VerificationRecommendations>> => {
+  getVerificationRecommendations: async (): Promise<ApiResponse<{ recommendations: VerificationRecommendations; user_message: UserMessage }>> => {
     const response = await api.get('/organization/verification/recommendations');
-    return response.data as ApiResponse<VerificationRecommendations>;
+    return response.data as ApiResponse<{ recommendations: VerificationRecommendations; user_message: UserMessage }>;
   }
 };
 
@@ -726,6 +726,20 @@ export interface VerificationRecommendations {
   verification_issues: VerificationIssue[];
   can_auto_verify: boolean;
   potential_score_increase: number;
+  needs_verification: boolean;
+}
+
+export interface UserMessage {
+  type: 'success' | 'warning' | 'error' | 'info';
+  title: string;
+  message: string;
+  action: 'verify' | 'edit' | null;
+}
+
+export interface OrganizationWithRecommendations {
+  organization: Organization;
+  recommendations: VerificationRecommendations;
+  user_message: UserMessage;
 }
 
 export interface LandingUser {

@@ -6,7 +6,7 @@ import {
   XCircleIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
-import { organizationService, VerificationRecommendations as VerificationRecommendationsType } from '@utils/api';
+import { organizationService, VerificationRecommendations as VerificationRecommendationsType, UserMessage } from '@utils/api';
 
 interface VerificationRecommendationsProps {
   organizationId?: number;
@@ -18,6 +18,7 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
   onRecommendationsLoad 
 }) => {
   const [recommendations, setRecommendations] = useState<VerificationRecommendationsType | null>(null);
+  const [userMessage, setUserMessage] = useState<UserMessage | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,8 +32,9 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
       setError(null);
       const response = await organizationService.getVerificationRecommendations();
       if (response.success) {
-        setRecommendations(response.data);
-        onRecommendationsLoad?.(response.data);
+        setRecommendations(response.data.recommendations);
+        setUserMessage(response.data.user_message);
+        onRecommendationsLoad?.(response.data.recommendations);
       }
     } catch (err: any) {
       console.error('Ошибка загрузки рекомендаций:', err);

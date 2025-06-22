@@ -1,28 +1,26 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { 
   BuildingOfficeIcon, 
-  ShieldCheckIcon, 
+  PencilIcon, 
+  CheckIcon, 
+  XMarkIcon,
+  ShieldCheckIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ClockIcon,
-  PencilIcon,
-  PhoneIcon,
-  EnvelopeIcon,
-  MapPinIcon,
-  IdentificationIcon
+  InformationCircleIcon
 } from '@heroicons/react/24/outline';
-import { toast } from 'react-toastify';
-import { organizationService, Organization, OrganizationUpdateData } from '@utils/api';
+import { organizationService, Organization, OrganizationUpdateData, VerificationRecommendations, UserMessage } from '@utils/api';
 import { useDaData } from '@hooks/useDaData';
 import AutocompleteInput from '@components/shared/AutocompleteInput';
-import VerificationRecommendations from '@components/dashboard/VerificationRecommendations';
+import VerificationRecommendationsComponent from '@components/dashboard/VerificationRecommendations';
 
 const OrganizationPage = () => {
   const [organization, setOrganization] = useState<Organization | null>(null);
+  const [recommendations, setRecommendations] = useState<VerificationRecommendations | null>(null);
+  const [userMessage, setUserMessage] = useState<UserMessage | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [formData, setFormData] = useState<OrganizationUpdateData>({});
   const [recommendationsKey, setRecommendationsKey] = useState(0);
@@ -37,10 +35,12 @@ const OrganizationPage = () => {
     try {
       setLoading(true);
       const response = await organizationService.getCurrent();
-      if (response.success && response.data.organization) {
+      if (response.success) {
         setOrganization(response.data.organization);
+        setRecommendations(response.data.recommendations);
+        setUserMessage(response.data.user_message);
         setFormData({
-          name: response.data.organization.name,
+          name: response.data.organization.name || '',
           legal_name: response.data.organization.legal_name || '',
           tax_number: response.data.organization.tax_number || '',
           registration_number: response.data.organization.registration_number || '',
@@ -50,45 +50,38 @@ const OrganizationPage = () => {
           city: response.data.organization.city || '',
           postal_code: response.data.organization.postal_code || '',
           country: response.data.organization.country || 'Россия',
-          description: response.data.organization.description || ''
+          description: response.data.organization.description || '',
         });
       }
     } catch (error) {
-      console.error('Ошибка загрузки данных организации:', error);
+      console.error('Ошибка загрузки организации:', error);
       toast.error('Не удалось загрузить данные организации');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (field: keyof OrganizationUpdateData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleUpdate = async () => {
+  const handleSave = async () => {
     try {
-      setIsUpdating(true);
+      setIsSaving(true);
       const response = await organizationService.update(formData);
-      if (response.success && response.data.organization) {
+      if (response.success) {
         setOrganization(response.data.organization);
+        setRecommendations(response.data.recommendations);
+        setUserMessage(response.data.user_message);
         setIsEditing(false);
         setRecommendationsKey(prev => prev + 1);
         toast.success('Данные организации обновлены');
       }
     } catch (error) {
-      console.error('Ошибка обновления организации:', error);
-      toast.error('Не удалось обновить данные организации');
+      console.error('Ошибка сохранения:', error);
+      toast.error('Не удалось сохранить изменения');
     } finally {
-      setIsUpdating(false);
+      setIsSaving(false);
     }
   };
 
   const handleVerification = async () => {
-    if (!organization) return;
-    
     try {
       setIsVerifying(true);
       const response = await organizationService.requestVerification();
@@ -105,374 +98,391 @@ const OrganizationPage = () => {
     }
   };
 
-  const handleAddressSearch = async (query: string) => {
-    try {
-      const results = await searchAddresses(query);
-      return results.map(item => ({
-        value: item.value,
-        label: item.value,
-        data: item.data
-      }));
-    } catch (error) {
-      console.error('Ошибка поиска адресов:', error);
-      return [];
-    }
-  };
-
-  const handleAddressSelect = (value: string, data?: any) => {
-    handleInputChange('address', value);
-    if (data) {
-      if (data.city) {
-        handleInputChange('city', data.city);
-      }
-      if (data.postal_code) {
-        handleInputChange('postal_code', data.postal_code);
-      }
-    }
-  };
-
-  const getVerificationStatusIcon = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'verified':
-        return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
+        return 'text-green-600 bg-green-100';
       case 'partially_verified':
+        return 'text-yellow-600 bg-yellow-100';
+      case 'needs_review':
+        return 'text-orange-600 bg-orange-100';
+      case 'rejected':
+        return 'text-red-600 bg-red-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'verified':
+        return '🟢';
+      case 'partially_verified':
+        return '🟡';
+      case 'needs_review':
+        return '🔴';
+      case 'rejected':
+        return '⚫';
+      default:
+        return '⚪';
+    }
+  };
+
+  const getUserMessageIcon = (type: string) => {
+    switch (type) {
+      case 'success':
+        return <CheckIcon className="h-5 w-5 text-green-500" />;
+      case 'warning':
         return <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />;
-      case 'needs_review':
-        return <ExclamationTriangleIcon className="h-5 w-5 text-orange-500" />;
-      case 'failed':
-        return <XCircleIcon className="h-5 w-5 text-red-500" />;
+      case 'error':
+        return <XMarkIcon className="h-5 w-5 text-red-500" />;
+      case 'info':
+        return <InformationCircleIcon className="h-5 w-5 text-blue-500" />;
       default:
-        return <ClockIcon className="h-5 w-5 text-gray-500" />;
+        return <InformationCircleIcon className="h-5 w-5 text-gray-500" />;
     }
   };
 
-  const getVerificationStatusColor = (status: string) => {
-    switch (status) {
-      case 'verified':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'partially_verified':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'needs_review':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'failed':
-        return 'bg-red-100 text-red-800 border-red-200';
+  const getUserMessageColor = (type: string) => {
+    switch (type) {
+      case 'success':
+        return 'text-green-700 bg-green-50 border-green-200';
+      case 'warning':
+        return 'text-yellow-700 bg-yellow-50 border-yellow-200';
+      case 'error':
+        return 'text-red-700 bg-red-50 border-red-200';
+      case 'info':
+        return 'text-blue-700 bg-blue-50 border-blue-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'text-gray-700 bg-gray-50 border-gray-200';
     }
+  };
+
+  const handleAddressSearch = async (query: string) => {
+    const results = await searchAddresses(query);
+    return results.map(item => ({
+      value: item.value,
+      label: item.value
+    }));
+  };
+
+  const handleAddressSelect = (address: string) => {
+    setFormData(prev => ({ ...prev, address }));
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-construction-600"></div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-construction-600"></div>
       </div>
     );
   }
 
-  if (!organization) {
+  if (!organization || !recommendations) {
     return (
-      <div className="text-center py-12">
-        <BuildingOfficeIcon className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-sm font-medium text-gray-900">Организация не найдена</h3>
-        <p className="mt-1 text-sm text-gray-500">
-          Не удалось загрузить данные вашей организации
-        </p>
+      <div className="text-center py-8">
+        <p className="text-gray-500">Данные организации не найдены</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Управление организацией</h1>
-          <p className="mt-2 text-gray-600">
-            Просматривайте и редактируйте информацию о вашей организации
-          </p>
+    <div className="space-y-6">
+      {/* Сообщение для пользователя */}
+      {userMessage && (
+        <div className={`rounded-lg border p-4 ${getUserMessageColor(userMessage.type)}`}>
+          <div className="flex items-start space-x-3">
+            {getUserMessageIcon(userMessage.type)}
+            <div className="flex-1">
+              <h3 className="font-medium">{userMessage.title}</h3>
+              <p className="text-sm mt-1">{userMessage.message}</p>
+              {userMessage.action === 'verify' && (
+                <button
+                  onClick={handleVerification}
+                  disabled={isVerifying}
+                  className="mt-3 inline-flex items-center px-3 py-1.5 text-sm bg-construction-600 text-white rounded-lg hover:bg-construction-700 disabled:opacity-50"
+                >
+                  {isVerifying ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Выполняется...
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheckIcon className="h-4 w-4 mr-2" />
+                      Запустить верификацию
+                    </>
+                  )}
+                </button>
+              )}
+              {userMessage.action === 'edit' && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="mt-3 inline-flex items-center px-3 py-1.5 text-sm bg-construction-600 text-white rounded-lg hover:bg-construction-700"
+                >
+                  <PencilIcon className="h-4 w-4 mr-2" />
+                  Редактировать данные
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="flex space-x-3">
-          {!isEditing && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="inline-flex items-center px-4 py-2 border border-construction-300 text-sm font-medium rounded-xl text-construction-700 bg-white hover:bg-construction-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-construction-500 transition-colors"
-            >
-              <PencilIcon className="h-4 w-4 mr-2" />
-              Редактировать
-            </button>
-          )}
-          {organization.verification.can_be_verified && (
-            <button
-              onClick={handleVerification}
-              disabled={isVerifying}
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-construction-500 to-construction-600 text-white text-sm font-medium rounded-xl hover:shadow-construction transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ShieldCheckIcon className="h-4 w-4 mr-2" />
-              {isVerifying ? 'Проверяется...' : 'Запустить верификацию'}
-            </button>
-          )}
-        </div>
-      </div>
+      )}
 
-      <div className="bg-white shadow-xl rounded-2xl border border-gray-200">
-        <div className="px-6 py-6 border-b border-gray-200">
+      {/* Основная карточка */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center">
-                <BuildingOfficeIcon className="h-6 w-6 text-white" />
-              </div>
-              <div className="ml-4">
-                <h2 className="text-xl font-bold text-gray-900">{organization.name}</h2>
-                <p className="text-sm text-gray-500">{organization.legal_name || 'Юридическое наименование не указано'}</p>
+            <div className="flex items-center space-x-3">
+              <BuildingOfficeIcon className="h-6 w-6 text-gray-400" />
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Организация</h1>
+                <p className="text-sm text-gray-500">Управление данными и верификация</p>
               </div>
             </div>
-            <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getVerificationStatusColor(organization.verification.verification_status)}`}>
-              {getVerificationStatusIcon(organization.verification.verification_status)}
-              <span className="ml-2">{organization.verification.verification_status_text}</span>
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-500">Статус:</span>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(recommendations.status)}`}>
+                    {getStatusIcon(recommendations.status)} {recommendations.status_text}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2 mt-1">
+                  <span className="text-sm text-gray-500">Рейтинг:</span>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-construction-500 to-construction-600 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${recommendations.current_score}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-medium text-construction-600">
+                      {recommendations.current_score}/{recommendations.max_score}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              {!isEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  <PencilIcon className="h-4 w-4 mr-2" />
+                  Редактировать
+                </button>
+              )}
             </div>
           </div>
         </div>
 
-        <div className="px-6 py-6">
-          {organization.verification.verification_score > 0 && (
-            <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Рейтинг верификации</span>
-                <span className="text-lg font-bold text-construction-600">{organization.verification.verification_score}/100</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-gradient-to-r from-construction-500 to-construction-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${organization.verification.verification_score}%` }}
-                ></div>
-              </div>
-              {organization.verification.verification_notes && (
-                <p className="mt-2 text-sm text-gray-600">{organization.verification.verification_notes}</p>
-              )}
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Название организации</label>
-                {isEditing ? (
+        <div className="p-6">
+          {isEditing ? (
+            <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Название организации
+                  </label>
                   <input
                     type="text"
                     value={formData.name || ''}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-                    placeholder="Введите название организации"
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-transparent"
                   />
-                ) : (
-                  <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl">
-                    <BuildingOfficeIcon className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-900">{organization.name}</span>
-                  </div>
-                )}
-              </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Юридическое наименование</label>
-                {isEditing ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Полное юридическое наименование
+                  </label>
                   <input
                     type="text"
                     value={formData.legal_name || ''}
-                    onChange={(e) => handleInputChange('legal_name', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-                    placeholder="Полное юридическое наименование"
+                    onChange={(e) => setFormData(prev => ({ ...prev, legal_name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-transparent"
                   />
-                ) : (
-                  <div className="px-4 py-3 bg-gray-50 rounded-xl">
-                    <span className="text-gray-900">{organization.legal_name || 'Не указано'}</span>
-                  </div>
-                )}
-              </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">ИНН</label>
-                {isEditing ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ИНН
+                  </label>
                   <input
                     type="text"
                     value={formData.tax_number || ''}
-                    onChange={(e) => handleInputChange('tax_number', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-                    placeholder="10 или 12 цифр"
-                    maxLength={12}
+                    onChange={(e) => setFormData(prev => ({ ...prev, tax_number: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-transparent"
                   />
-                ) : (
-                  <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl">
-                    <IdentificationIcon className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-900">{organization.tax_number || 'Не указан'}</span>
-                  </div>
-                )}
-              </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">ОГРН</label>
-                {isEditing ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ОГРН
+                  </label>
                   <input
                     type="text"
                     value={formData.registration_number || ''}
-                    onChange={(e) => handleInputChange('registration_number', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-                    placeholder="13 или 15 цифр"
-                    maxLength={15}
+                    onChange={(e) => setFormData(prev => ({ ...prev, registration_number: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-transparent"
                   />
-                ) : (
-                  <div className="px-4 py-3 bg-gray-50 rounded-xl">
-                    <span className="text-gray-900">{organization.registration_number || 'Не указан'}</span>
-                  </div>
-                )}
-              </div>
-            </div>
+                </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Телефон</label>
-                {isEditing ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Телефон
+                  </label>
                   <input
                     type="tel"
                     value={formData.phone || ''}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-                    placeholder="+7(999)123-45-67"
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-transparent"
                   />
-                ) : (
-                  <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl">
-                    <PhoneIcon className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-900">{organization.phone || 'Не указан'}</span>
-                  </div>
-                )}
-              </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                {isEditing ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
                   <input
                     type="email"
                     value={formData.email || ''}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-                    placeholder="company@example.com"
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-transparent"
                   />
-                ) : (
-                  <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl">
-                    <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-900">{organization.email || 'Не указан'}</span>
-                  </div>
-                )}
-              </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Адрес</label>
-                {isEditing ? (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Адрес
+                  </label>
                   <AutocompleteInput
                     value={formData.address || ''}
-                    onChange={handleAddressSelect}
+                    onChange={(value) => setFormData(prev => ({ ...prev, address: value }))}
                     onSearch={handleAddressSearch}
-                    placeholder="Начните вводить адрес"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
+                    placeholder="Введите адрес организации"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-transparent"
                   />
-                ) : (
-                  <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl">
-                    <MapPinIcon className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-900">{organization.address || 'Не указан'}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Город</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={formData.city || ''}
-                      onChange={(e) => handleInputChange('city', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-                      placeholder="Москва"
-                    />
-                  ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-xl">
-                      <span className="text-gray-900">{organization.city || 'Не указан'}</span>
-                    </div>
-                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Индекс</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={formData.postal_code || ''}
-                      onChange={(e) => handleInputChange('postal_code', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-                      placeholder="123456"
-                      maxLength={6}
-                    />
-                  ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-xl">
-                      <span className="text-gray-900">{organization.postal_code || 'Не указан'}</span>
-                    </div>
-                  )}
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Город
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.city || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Почтовый индекс
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.postal_code || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, postal_code: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Описание деятельности
+                  </label>
+                  <textarea
+                    value={formData.description || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-transparent"
+                  />
                 </div>
               </div>
-            </div>
-          </div>
 
-          {isEditing && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Описание деятельности</label>
-                <textarea
-                  value={formData.description || ''}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-                  placeholder="Краткое описание деятельности организации"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6">
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
                 <button
-                  onClick={() => {
-                    setIsEditing(false);
-                    setFormData({
-                      name: organization.name,
-                      legal_name: organization.legal_name || '',
-                      tax_number: organization.tax_number || '',
-                      registration_number: organization.registration_number || '',
-                      phone: organization.phone || '',
-                      email: organization.email || '',
-                      address: organization.address || '',
-                      city: organization.city || '',
-                      postal_code: organization.postal_code || '',
-                      country: organization.country || 'Россия',
-                      description: organization.description || ''
-                    });
-                  }}
-                  className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-construction-500 transition-colors"
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
                   Отменить
                 </button>
                 <button
-                  onClick={handleUpdate}
-                  disabled={isUpdating}
-                  className="px-4 py-2 bg-gradient-to-r from-construction-500 to-construction-600 text-white text-sm font-medium rounded-xl hover:shadow-construction transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="submit"
+                  disabled={isSaving}
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-construction-600 border border-transparent rounded-lg hover:bg-construction-700 disabled:opacity-50"
                 >
-                  {isUpdating ? 'Сохранение...' : 'Сохранить изменения'}
+                  {isSaving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Сохранение...
+                    </>
+                  ) : (
+                    <>
+                      <CheckIcon className="h-4 w-4 mr-2" />
+                      Сохранить
+                    </>
+                  )}
                 </button>
               </div>
+            </form>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Название</label>
+                <p className="text-gray-900">{organization.name || 'Не указано'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Юридическое наименование</label>
+                <p className="text-gray-900">{organization.legal_name || 'Не указано'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">ИНН</label>
+                <p className="text-gray-900">{organization.tax_number || 'Не указан'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">ОГРН</label>
+                <p className="text-gray-900">{organization.registration_number || 'Не указан'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Телефон</label>
+                <p className="text-gray-900">{organization.phone || 'Не указан'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Email</label>
+                <p className="text-gray-900">{organization.email || 'Не указан'}</p>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-500 mb-1">Адрес</label>
+                <p className="text-gray-900">{organization.address || 'Не указан'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Город</label>
+                <p className="text-gray-900">{organization.city || 'Не указан'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">Почтовый индекс</label>
+                <p className="text-gray-900">{organization.postal_code || 'Не указан'}</p>
+              </div>
+              {organization.description && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Описание деятельности</label>
+                  <p className="text-gray-900">{organization.description}</p>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
       {/* Рекомендации по верификации */}
-      <VerificationRecommendations 
+      <VerificationRecommendationsComponent 
         key={recommendationsKey}
         organizationId={organization.id}
-        onRecommendationsLoad={(recommendations) => {
+        onRecommendationsLoad={(recommendations: any) => {
           console.log('Рекомендации загружены:', recommendations);
         }}
       />
