@@ -35,19 +35,17 @@ import 'react-toastify/dist/ReactToastify.css';
 import YandexMetrika from '@components/analytics/YandexMetrika';
 
 function App() {
-  const yandexMetrikaId = process.env.REACT_APP_YANDEX_METRIKA_ID;
+  const yandexMetrikaId = 102888970;
 
   return (
     <>
-      {yandexMetrikaId && (
-        <YandexMetrika 
-          counterId={parseInt(yandexMetrikaId)}
-          enableWebvisor={true}
-          enableClickmap={true}
-          enableTrackLinks={true}
-          enableAccurateTrackBounce={true}
-        />
-      )}
+      <YandexMetrika 
+        counterId={yandexMetrikaId}
+        enableWebvisor={true}
+        enableClickmap={true}
+        enableTrackLinks={true}
+        enableAccurateTrackBounce={true}
+      />
       <Routes>
         {/* Публичные маршруты */}
         <Route path="/" element={<LandingPage />} />

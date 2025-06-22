@@ -27,7 +27,9 @@ const YandexMetrika = ({
     script.async = true;
     script.innerHTML = `
       (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-      m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+      m[i].l=1*new Date();
+      for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+      k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
       (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
 
       ym(${counterId}, "init", {
@@ -55,26 +57,22 @@ const YandexMetrika = ({
 
 export const trackYandexGoal = (goalName: string, params?: Record<string, any>) => {
   if (typeof window !== 'undefined' && window.ym) {
-    const counterId = parseInt(process.env.REACT_APP_YANDEX_METRIKA_ID || '0');
-    if (counterId > 0) {
-      window.ym(counterId, 'reachGoal', goalName, params);
-    }
+    const counterId = 102888970;
+    window.ym(counterId, 'reachGoal', goalName, params);
   }
 };
 
 export const trackYandexEvent = (eventName: string, params?: Record<string, any>) => {
   if (typeof window !== 'undefined' && window.ym) {
-    const counterId = parseInt(process.env.REACT_APP_YANDEX_METRIKA_ID || '0');
-    if (counterId > 0) {
-      window.ym(counterId, 'hit', window.location.href, {
-        title: document.title,
-        referer: document.referrer,
-        params: {
-          event: eventName,
-          ...params
-        }
-      });
-    }
+    const counterId = 102888970;
+    window.ym(counterId, 'hit', window.location.href, {
+      title: document.title,
+      referer: document.referrer,
+      params: {
+        event: eventName,
+        ...params
+      }
+    });
   }
 };
 
