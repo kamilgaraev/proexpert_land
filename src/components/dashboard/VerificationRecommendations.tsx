@@ -11,11 +11,15 @@ import { organizationService, VerificationRecommendations as VerificationRecomme
 interface VerificationRecommendationsProps {
   organizationId?: number;
   onRecommendationsLoad?: (recommendations: VerificationRecommendationsType) => void;
+  onVerificationRequest?: () => void;
+  isVerifying?: boolean;
 }
 
 const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = ({ 
   organizationId, 
-  onRecommendationsLoad 
+  onRecommendationsLoad,
+  onVerificationRequest,
+  isVerifying
 }) => {
   const [recommendations, setRecommendations] = useState<VerificationRecommendationsType | null>(null);
   const [, setUserMessage] = useState<UserMessage | null>(null);
@@ -215,8 +219,19 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
         {/* Кнопка автоверификации */}
         {recommendations.can_auto_verify && recommendations.potential_score_increase > 0 && (
           <div className="pt-2 border-t border-gray-200">
-            <button className="w-full text-xs bg-construction-50 text-construction-700 hover:bg-construction-100 rounded-lg p-2 transition-colors">
-              Запустить автоматическую верификацию для улучшения рейтинга
+            <button 
+              className="w-full text-xs bg-construction-50 text-construction-700 hover:bg-construction-100 rounded-lg p-2 transition-colors disabled:opacity-50"
+              onClick={onVerificationRequest}
+              disabled={isVerifying}
+            >
+              {isVerifying ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-construction-600"></div>
+                  <span>Выполняется верификация...</span>
+                </div>
+              ) : (
+                'Запустить автоматическую верификацию для улучшения рейтинга'
+              )}
             </button>
           </div>
         )}

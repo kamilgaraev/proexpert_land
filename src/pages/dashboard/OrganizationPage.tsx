@@ -483,6 +483,8 @@ const OrganizationPage = () => {
         onRecommendationsLoad={(recommendations: any) => {
           console.log('Рекомендации загружены:', recommendations);
         }}
+        onVerificationRequest={handleVerification}
+        isVerifying={isVerifying}
       />
     </div>
   );
