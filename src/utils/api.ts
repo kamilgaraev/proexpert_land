@@ -1241,4 +1241,125 @@ export const billingService = {
   },
 };
 
+export const userManagementService = {
+  getRoles: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/user-management/roles');
+    return response;
+  },
+
+  createRole: async (roleData: {
+    name: string;
+    slug?: string;
+    description?: string;
+    permissions: string[];
+    color?: string;
+    is_active?: boolean;
+    display_order?: number;
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post('/user-management/roles', roleData);
+    return response;
+  },
+
+  getAvailablePermissions: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/user-management/roles/permissions/available');
+    return response;
+  },
+
+  assignRoleToUser: async (roleId: number, userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post(`/user-management/roles/${roleId}/assign-user`, { user_id: userId });
+    return response;
+  },
+
+  duplicateRole: async (roleId: number, name: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post(`/user-management/roles/${roleId}/duplicate`, { name });
+    return response;
+  },
+
+  getInvitations: async (status?: string, email?: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    if (email) params.append('email', email);
+    
+    const response = await api.get(`/user-management/invitations${params.toString() ? '?' + params.toString() : ''}`);
+    return response;
+  },
+
+  createInvitation: async (invitationData: {
+    email: string;
+    name: string;
+    role_slugs: string[];
+    metadata?: Record<string, any>;
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post('/user-management/invitations', invitationData);
+    return response;
+  },
+
+  acceptInvitation: async (token: string, password?: string, passwordConfirmation?: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const payload: any = {};
+    if (password) {
+      payload.password = password;
+      payload.password_confirmation = passwordConfirmation;
+    }
+    
+    const response = await api.post(`/user-management/invitation/${token}/accept`, payload);
+    return response;
+  },
+
+  getInvitationStats: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/user-management/invitations/stats/overview');
+    return response;
+  },
+
+  resendInvitation: async (invitationId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post(`/user-management/invitations/${invitationId}/resend`);
+    return response;
+  },
+
+  getOrganizationUsers: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/user-management/organization-users');
+    return response;
+  },
+
+  updateUserRoles: async (userId: number, rolesData: {
+    system_roles?: string[];
+    custom_roles?: number[];
+    action: 'replace' | 'add' | 'remove';
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post(`/user-management/organization-users/${userId}/roles`, rolesData);
+    return response;
+  },
+
+  getUserLimits: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/user-management/user-limits');
+    return response;
+  },
+
+  deleteUser: async (userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.delete(`/user-management/organization-users/${userId}`);
+    return response;
+  },
+
+  updateRole: async (roleId: number, roleData: {
+    name?: string;
+    description?: string;
+    permissions?: string[];
+    color?: string;
+    is_active?: boolean;
+    display_order?: number;
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.put(`/user-management/roles/${roleId}`, roleData);
+    return response;
+  },
+
+  deleteRole: async (roleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.delete(`/user-management/roles/${roleId}`);
+    return response;
+  },
+
+  cancelInvitation: async (invitationId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.delete(`/user-management/invitations/${invitationId}`);
+    return response;
+  },
+};
+
 export default api; 
