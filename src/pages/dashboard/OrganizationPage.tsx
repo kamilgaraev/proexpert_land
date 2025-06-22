@@ -102,6 +102,11 @@ const OrganizationPage = () => {
   };
 
   const getStatusColor = (status: string) => {
+    // Если рейтинг максимальный, то статус должен быть verified
+    if (recommendations && recommendations.current_score === recommendations.max_score) {
+      return 'text-green-600 bg-green-100';
+    }
+    
     switch (status) {
       case 'verified':
         return 'text-green-600 bg-green-100';
@@ -117,6 +122,11 @@ const OrganizationPage = () => {
   };
 
   const getStatusIcon = (status: string) => {
+    // Если рейтинг максимальный, то статус должен быть verified
+    if (recommendations && recommendations.current_score === recommendations.max_score) {
+      return '🟢';
+    }
+    
     switch (status) {
       case 'verified':
         return '🟢';
@@ -129,6 +139,14 @@ const OrganizationPage = () => {
       default:
         return '⚪';
     }
+  };
+
+  const getStatusText = (status: string, statusText: string) => {
+    // Если рейтинг максимальный, то статус должен быть verified
+    if (recommendations && recommendations.current_score === recommendations.max_score) {
+      return 'Полностью верифицирована';
+    }
+    return statusText;
   };
 
   const getUserMessageIcon = (type: string) => {
@@ -246,7 +264,7 @@ const OrganizationPage = () => {
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-500">Статус:</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(recommendations.status)}`}>
-                    {getStatusIcon(recommendations.status)} {recommendations.status_text}
+                    {getStatusIcon(recommendations.status)} {getStatusText(recommendations.status, recommendations.status_text)}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">

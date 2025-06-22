@@ -108,15 +108,19 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
                    recommendations.field_issues.length > 0 || 
                    recommendations.verification_issues.length > 0;
 
+  const isFullyVerified = recommendations.current_score === recommendations.max_score;
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
       <div className="px-4 py-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <LightBulbIcon className="h-5 w-5 text-yellow-500" />
-            <h3 className="text-sm font-medium text-gray-900">Рекомендации по верификации</h3>
+            <h3 className="text-sm font-medium text-gray-900">
+              {isFullyVerified ? 'Статус верификации' : 'Рекомендации по верификации'}
+            </h3>
           </div>
-          {recommendations.potential_score_increase > 0 && (
+          {recommendations.potential_score_increase > 0 && !isFullyVerified && (
             <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
               +{recommendations.potential_score_increase} баллов
             </span>
@@ -141,7 +145,12 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
           </div>
         </div>
 
-        {!hasIssues ? (
+        {isFullyVerified ? (
+          <div className="flex items-center space-x-2 text-green-600 bg-green-50 rounded-lg p-3">
+            <CheckCircleIcon className="h-4 w-4" />
+            <span className="text-sm">Организация полностью верифицирована! Все данные проверены через государственные реестры.</span>
+          </div>
+        ) : !hasIssues ? (
           <div className="flex items-center space-x-2 text-green-600 bg-green-50 rounded-lg p-3">
             <CheckCircleIcon className="h-4 w-4" />
             <span className="text-sm">Все данные заполнены корректно!</span>
@@ -220,8 +229,8 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
           </div>
         )}
 
-        {/* Кнопка автоверификации */}
-        {recommendations.can_auto_verify && (
+        {/* Кнопка автоверификации - только если НЕ полностью верифицирована */}
+        {!isFullyVerified && recommendations.can_auto_verify && (
           <div className="pt-2 border-t border-gray-200">
             <button 
               className="w-full text-xs bg-construction-50 text-construction-700 hover:bg-construction-100 rounded-lg p-2 transition-colors disabled:opacity-50"
@@ -242,8 +251,8 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
           </div>
         )}
 
-        {/* Альтернативная кнопка если основная не показывается */}
-        {!recommendations.can_auto_verify && recommendations.needs_verification && (
+        {/* Альтернативная кнопка если основная не показывается - только если НЕ полностью верифицирована */}
+        {!isFullyVerified && !recommendations.can_auto_verify && recommendations.needs_verification && (
           <div className="pt-2 border-t border-gray-200">
             <button 
               className="w-full text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg p-2 transition-colors disabled:opacity-50"
@@ -268,6 +277,7 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
             <div>can_auto_verify: {recommendations.can_auto_verify ? 'true' : 'false'}</div>
             <div>potential_score_increase: {recommendations.potential_score_increase}</div>
             <div>needs_verification: {recommendations.needs_verification ? 'true' : 'false'}</div>
+            <div>isFullyVerified: {isFullyVerified ? 'true' : 'false'}</div>
           </div>
         )}
       </div>
