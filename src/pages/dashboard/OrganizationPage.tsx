@@ -14,7 +14,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 import { organizationService, Organization, OrganizationUpdateData } from '@utils/api';
-import { useOrganizationVerification } from '@hooks/useOrganizationVerification';
 import { useDaData } from '@hooks/useDaData';
 import AutocompleteInput from '@components/shared/AutocompleteInput';
 
@@ -26,7 +25,6 @@ const OrganizationPage = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [formData, setFormData] = useState<OrganizationUpdateData>({});
 
-  const { requestVerification } = useOrganizationVerification();
   const { searchAddresses } = useDaData();
 
   useEffect(() => {
@@ -90,8 +88,8 @@ const OrganizationPage = () => {
     
     try {
       setIsVerifying(true);
-      const response = await requestVerification();
-      if (response.organization) {
+      const response = await organizationService.requestVerification();
+      if (response.success && response.data.organization) {
         toast.success('Верификация выполнена успешно');
         await loadOrganization();
       }

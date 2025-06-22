@@ -63,7 +63,7 @@ const saveTokenToMultipleStorages = (token: string) => {
   }
 };
 
-const getTokenFromStorages = (): string | null => {
+export const getTokenFromStorages = (): string | null => {
   // Пробуем сначала localStorage
   let token = localStorage.getItem('token');
   

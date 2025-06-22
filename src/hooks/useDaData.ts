@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { getTokenFromStorages } from '@utils/api';
 
 export interface DaDataAddress {
   value: string;
@@ -41,7 +42,7 @@ export const useDaData = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('auth_token');
+    const token = getTokenFromStorages();
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',

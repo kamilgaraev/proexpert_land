@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { getTokenFromStorages } from '@utils/api';
 
 export interface OrganizationData {
   id?: number;
@@ -56,7 +57,7 @@ export const useOrganizationVerification = () => {
   const [organization, setOrganization] = useState<OrganizationData | null>(null);
 
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('auth_token');
+    const token = getTokenFromStorages();
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
