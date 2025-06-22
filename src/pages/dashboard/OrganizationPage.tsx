@@ -141,7 +141,7 @@ const OrganizationPage = () => {
     }
   };
 
-  const getStatusText = (status: string, statusText: string) => {
+  const getStatusText = (statusText: string) => {
     // Если рейтинг максимальный, то статус должен быть verified
     if (recommendations && recommendations.current_score === recommendations.max_score) {
       return 'Полностью верифицирована';
@@ -264,7 +264,7 @@ const OrganizationPage = () => {
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-500">Статус:</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(recommendations.status)}`}>
-                    {getStatusIcon(recommendations.status)} {getStatusText(recommendations.status, recommendations.status_text)}
+                                         {getStatusIcon(recommendations.status)} {getStatusText(recommendations.status_text)}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
