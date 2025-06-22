@@ -18,7 +18,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
-import useDaData, { DaDataAddress, DaDataCity } from '@hooks/useDaData';
+import useDaData from '@hooks/useDaData';
 import AutocompleteInput from '@components/shared/AutocompleteInput';
 
 const RegisterPage = () => {
