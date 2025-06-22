@@ -13,13 +13,15 @@ interface VerificationRecommendationsProps {
   onRecommendationsLoad?: (recommendations: VerificationRecommendationsType) => void;
   onVerificationRequest?: () => void;
   isVerifying?: boolean;
+  refreshTrigger?: number;
 }
 
 const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = ({ 
   organizationId, 
   onRecommendationsLoad,
   onVerificationRequest,
-  isVerifying
+  isVerifying,
+  refreshTrigger
 }) => {
   const [recommendations, setRecommendations] = useState<VerificationRecommendationsType | null>(null);
   const [, setUserMessage] = useState<UserMessage | null>(null);
@@ -28,14 +30,16 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
 
   useEffect(() => {
     loadRecommendations();
-  }, [organizationId]);
+  }, [organizationId, refreshTrigger]);
 
   const loadRecommendations = async () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Загрузка рекомендаций...');
       const response = await organizationService.getVerificationRecommendations();
       if (response.success) {
+        console.log('Рекомендации получены:', response.data);
         setRecommendations(response.data.recommendations);
         setUserMessage(response.data.user_message);
         onRecommendationsLoad?.(response.data.recommendations);

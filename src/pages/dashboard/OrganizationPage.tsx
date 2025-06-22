@@ -88,7 +88,10 @@ const OrganizationPage = () => {
       if (response.success && response.data.organization) {
         toast.success('Верификация выполнена успешно');
         await loadOrganization();
-        setRecommendationsKey(prev => prev + 1);
+        // Небольшая задержка перед обновлением рекомендаций
+        setTimeout(() => {
+          setRecommendationsKey(prev => prev + 1);
+        }, 500);
       }
     } catch (error) {
       console.error('Ошибка верификации:', error);
@@ -478,13 +481,13 @@ const OrganizationPage = () => {
 
       {/* Рекомендации по верификации */}
       <VerificationRecommendationsComponent 
-        key={recommendationsKey}
         organizationId={organization.id}
         onRecommendationsLoad={(recommendations: any) => {
           console.log('Рекомендации загружены:', recommendations);
         }}
         onVerificationRequest={handleVerification}
         isVerifying={isVerifying}
+        refreshTrigger={recommendationsKey}
       />
     </div>
   );
