@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { OrganizationUser, OrganizationRole } from '../../../hooks/useUserManagement';
+import { OrganizationUser } from '../../../hooks/useUserManagement';
 import { useUserManagement } from '../../../hooks/useUserManagement';
 
 interface UserEditModalProps {

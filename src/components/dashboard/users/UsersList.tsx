@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { OrganizationUser } from '../../../hooks/useUserManagement';
 
 interface UsersListProps {
@@ -7,7 +7,7 @@ interface UsersListProps {
   onRefresh: () => void;
 }
 
-const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
+const UsersList: React.FC<UsersListProps> = ({ users, loading }) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':
@@ -58,9 +58,7 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
           <h2 className="text-lg font-semibold text-gray-900">Пользователи организации</h2>
           <p className="text-sm text-gray-600">Управляйте участниками вашей организации</p>
         </div>
-        <button 
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
-        >
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
           Пригласить пользователя
         </button>
       </div>

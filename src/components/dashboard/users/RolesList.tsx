@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { OrganizationRole } from '../../../hooks/useUserManagement';
 
 interface RolesListProps {
@@ -7,10 +7,7 @@ interface RolesListProps {
   onRefresh: () => void;
 }
 
-const RolesList: React.FC<RolesListProps> = ({ roles, loading, onRefresh }) => {
-  const [selectedRole, setSelectedRole] = useState<OrganizationRole | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-
+const RolesList: React.FC<RolesListProps> = ({ roles, loading }) => {
   const formatPermissions = (permissionsFormatted: Record<string, Array<{slug: string, name: string, granted: boolean}>>) => {
     const granted = Object.values(permissionsFormatted)
       .flat()
@@ -41,10 +38,7 @@ const RolesList: React.FC<RolesListProps> = ({ roles, loading, onRefresh }) => {
           <h2 className="text-lg font-semibold text-gray-900">Роли организации</h2>
           <p className="text-sm text-gray-600">Управляйте ролями и разрешениями</p>
         </div>
-        <button 
-          onClick={() => setShowCreateModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
-        >
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
           Создать роль
         </button>
       </div>
@@ -92,10 +86,7 @@ const RolesList: React.FC<RolesListProps> = ({ roles, loading, onRefresh }) => {
                   Пользователей: {role.users_count}
                 </span>
                 <div className="flex space-x-2">
-                  <button
-                    onClick={() => setSelectedRole(role)}
-                    className="text-blue-600 hover:text-blue-900 text-sm font-medium"
-                  >
+                  <button className="text-blue-600 hover:text-blue-900 text-sm font-medium">
                     Редактировать
                   </button>
                   {!role.is_system && (

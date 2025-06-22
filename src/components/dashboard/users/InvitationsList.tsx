@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { UserInvitation } from '../../../hooks/useUserManagement';
 
 interface InvitationsListProps {
@@ -7,9 +7,7 @@ interface InvitationsListProps {
   onRefresh: () => void;
 }
 
-const InvitationsList: React.FC<InvitationsListProps> = ({ invitations, loading, onRefresh }) => {
-  const [showInviteModal, setShowInviteModal] = useState(false);
-
+const InvitationsList: React.FC<InvitationsListProps> = ({ invitations, loading }) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending':
@@ -46,10 +44,7 @@ const InvitationsList: React.FC<InvitationsListProps> = ({ invitations, loading,
           <h2 className="text-lg font-semibold text-gray-900">Приглашения</h2>
           <p className="text-sm text-gray-600">Отслеживайте статус отправленных приглашений</p>
         </div>
-        <button 
-          onClick={() => setShowInviteModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
-        >
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
           Отправить приглашение
         </button>
       </div>
