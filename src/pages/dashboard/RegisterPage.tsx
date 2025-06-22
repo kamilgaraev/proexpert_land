@@ -225,33 +225,36 @@ const RegisterPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-concrete-50 via-steel-50 to-construction-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-concrete-50 via-steel-50 to-construction-50 flex items-center justify-center px-4 py-6">
+      <div className="w-full max-w-4xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden">
         
         {/* Заголовок и прогресс */}
-        <div className="bg-gradient-to-r from-construction-500 to-construction-600 px-8 py-6">
+        <div className="bg-gradient-to-r from-construction-500 to-construction-600 px-4 sm:px-8 py-4 sm:py-6">
           <div className="flex items-center justify-between mb-4">
             <Link to="/" className="inline-flex items-center">
               <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center mr-2">
                 <span className="text-white font-bold">P</span>
               </div>
-              <span className="text-xl font-bold text-white">ProHelper</span>
+              <span className="text-lg sm:text-xl font-bold text-white">ProHelper</span>
             </Link>
             
             <Link 
               to="/login" 
-              className="text-construction-100 hover:text-white transition-colors text-sm font-medium"
+              className="text-construction-100 hover:text-white transition-colors text-xs sm:text-sm font-medium"
             >
-              Уже есть аккаунт? Войти
+              <span className="hidden sm:inline">Уже есть аккаунт? </span>Войти
             </Link>
           </div>
           
-          <h1 className="text-3xl font-bold text-white mb-2">Создание аккаунта</h1>
-          <p className="text-construction-100">Присоединяйтесь к ProHelper для управления строительными проектами</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Создание аккаунта</h1>
+          <p className="text-construction-100 text-sm sm:text-base">
+            <span className="hidden sm:inline">Присоединяйтесь к ProHelper для управления строительными проектами</span>
+            <span className="sm:hidden">Присоединяйтесь к ProHelper</span>
+          </p>
           
           {/* Индикатор прогресса */}
-          <div className="mt-6">
-            <div className="flex items-center">
+          <div className="mt-4 sm:mt-6">
+            <div className="flex items-center justify-center sm:justify-start">
               {steps.map((step, index) => (
                 <div key={step.id} className="flex items-center">
                   <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 ${
@@ -265,7 +268,7 @@ const RegisterPage = () => {
                       <span className="text-sm font-semibold">{step.id}</span>
                     )}
                   </div>
-                  <div className="ml-3">
+                  <div className="ml-2 sm:ml-3 hidden sm:block">
                     <p className={`text-sm font-medium ${
                       currentStep >= step.id ? 'text-white' : 'text-white/70'
                     }`}>
@@ -274,12 +277,22 @@ const RegisterPage = () => {
                     <p className="text-xs text-white/60">{step.description}</p>
                   </div>
                   {index < steps.length - 1 && (
-                    <div className={`mx-6 h-0.5 w-16 transition-all duration-300 ${
+                    <div className={`mx-3 sm:mx-6 h-0.5 w-8 sm:w-16 transition-all duration-300 ${
                       currentStep > step.id ? 'bg-white' : 'bg-white/30'
                     }`} />
                   )}
                 </div>
               ))}
+            </div>
+            
+            {/* Мобильная версия названий шагов */}
+            <div className="sm:hidden mt-3 text-center">
+              <p className="text-white text-sm font-medium">
+                {steps.find(step => step.id === currentStep)?.name}
+              </p>
+              <p className="text-white/60 text-xs">
+                {steps.find(step => step.id === currentStep)?.description}
+              </p>
             </div>
           </div>
         </div>
@@ -287,15 +300,15 @@ const RegisterPage = () => {
         {/* Сообщение об ошибке */}
         {error && (
           <motion.div 
-            className="mx-8 mt-6 bg-red-50 border-l-4 border-red-400 rounded-xl p-4"
+            className="mx-4 sm:mx-8 mt-4 sm:mt-6 bg-red-50 border-l-4 border-red-400 rounded-xl p-4"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
           >
             <div className="flex items-start">
               <ExclamationTriangleIcon className="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" />
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-red-700 font-medium mb-1">Ошибка регистрации</p>
-                <p className="text-red-600 text-sm">{error}</p>
+                <p className="text-red-600 text-sm break-words">{error}</p>
                 {showNetworkError && (
                   <div className="mt-3 text-red-600 text-sm">
                     <p className="font-medium mb-1">Возможные причины:</p>
@@ -312,7 +325,7 @@ const RegisterPage = () => {
         )}
 
         {/* Форма */}
-        <form onSubmit={handleSubmit} className="p-8">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-8">
           <AnimatePresence mode="wait">
             {currentStep === 1 && (
               <motion.div
@@ -354,7 +367,7 @@ const RegisterPage = () => {
                   <p className="text-red-600 text-sm text-center -mt-4">{getErrorMessage('avatar')}</p>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   {/* Имя */}
                   <div>
                     <label htmlFor="name" className="block text-sm font-semibold text-steel-700 mb-2">
@@ -525,9 +538,9 @@ const RegisterPage = () => {
                 transition={{ duration: 0.3 }}
                 className="space-y-6"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   {/* Название организации */}
-                  <div className="md:col-span-2">
+                  <div className="sm:col-span-2">
                     <label htmlFor="organizationName" className="block text-sm font-semibold text-steel-700 mb-2">
                       Название организации *
                     </label>
@@ -651,7 +664,7 @@ const RegisterPage = () => {
                   </div>
 
                   {/* Адрес */}
-                  <div className="md:col-span-2">
+                  <div className="sm:col-span-2">
                     <label htmlFor="organizationAddress" className="block text-sm font-semibold text-steel-700 mb-2">
                       Адрес
                     </label>
@@ -712,27 +725,27 @@ const RegisterPage = () => {
                 </div>
 
                 {/* Согласие с условиями */}
-                <div className="pt-6 border-t border-steel-200">
+                <div className="pt-4 sm:pt-6 border-t border-steel-200">
                   <label className="flex items-start space-x-3">
                     <input
                       type="checkbox"
-                      className="w-5 h-5 text-construction-600 bg-white border-steel-300 rounded focus:ring-construction-500 focus:ring-2 mt-0.5"
+                      className="w-5 h-5 text-construction-600 bg-white border-steel-300 rounded focus:ring-construction-500 focus:ring-2 mt-0.5 flex-shrink-0"
                       checked={agreeTerms}
                       onChange={(e) => setAgreeTerms(e.target.checked)}
                     />
-                    <span className="text-sm text-steel-700 leading-relaxed">
+                    <span className="text-sm text-steel-700 leading-relaxed min-w-0">
                       Я согласен с{' '}
-                      <Link to="/terms" className="text-construction-600 hover:text-construction-700 font-medium" target="_blank">
+                      <Link to="/terms" className="text-construction-600 hover:text-construction-700 font-medium break-words" target="_blank">
                         условиями предоставления услуг
                       </Link>
                       {' '}и{' '}
-                      <Link to="/privacy" className="text-construction-600 hover:text-construction-700 font-medium" target="_blank">
+                      <Link to="/privacy" className="text-construction-600 hover:text-construction-700 font-medium break-words" target="_blank">
                         политикой конфиденциальности
                       </Link>
                     </span>
                   </label>
                   {hasError('agreeTerms') && (
-                    <p className="mt-2 text-red-600 text-sm">{getErrorMessage('agreeTerms')}</p>
+                    <p className="mt-2 text-red-600 text-sm break-words">{getErrorMessage('agreeTerms')}</p>
                   )}
                 </div>
               </motion.div>
@@ -740,12 +753,12 @@ const RegisterPage = () => {
           </AnimatePresence>
 
           {/* Кнопки навигации */}
-          <div className="flex items-center justify-between pt-8 mt-8 border-t border-steel-200">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-6 sm:pt-8 mt-6 sm:mt-8 border-t border-steel-200 gap-3 sm:gap-0">
             {currentStep > 1 ? (
               <motion.button
                 type="button"
                 onClick={handleBack}
-                className="flex items-center px-6 py-3 text-steel-700 bg-white border border-steel-300 rounded-xl hover:bg-steel-50 transition-colors font-medium"
+                className="flex items-center justify-center px-4 sm:px-6 py-3 text-steel-700 bg-white border border-steel-300 rounded-xl hover:bg-steel-50 transition-colors font-medium order-2 sm:order-1"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -753,13 +766,13 @@ const RegisterPage = () => {
                 Назад
               </motion.button>
             ) : (
-              <div></div>
+              <div className="hidden sm:block"></div>
             )}
 
             <motion.button
               type="submit"
               disabled={isLoading}
-              className="flex items-center px-8 py-3 bg-gradient-to-r from-construction-500 to-construction-600 text-white rounded-xl font-semibold shadow-construction hover:shadow-construction-lg disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200"
+              className="flex items-center justify-center px-6 sm:px-8 py-3 bg-gradient-to-r from-construction-500 to-construction-600 text-white rounded-xl font-semibold shadow-construction hover:shadow-construction-lg disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200 order-1 sm:order-2 min-h-[48px]"
               whileHover={{ scale: isLoading ? 1 : 1.02 }}
               whileTap={{ scale: isLoading ? 1 : 0.98 }}
             >
@@ -769,7 +782,8 @@ const RegisterPage = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Создание аккаунта...
+                  <span className="hidden sm:inline">Создание аккаунта...</span>
+                  <span className="sm:hidden">Создание...</span>
                 </>
               ) : currentStep === 1 ? (
                 <>
@@ -778,7 +792,8 @@ const RegisterPage = () => {
                 </>
               ) : (
                 <>
-                  Создать аккаунт
+                  <span className="hidden sm:inline">Создать аккаунт</span>
+                  <span className="sm:hidden">Создать</span>
                   <CheckIcon className="w-4 h-4 ml-2" />
                 </>
               )}
