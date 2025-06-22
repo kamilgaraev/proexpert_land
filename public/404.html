@@ -1,24 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <title>Перенаправление | Прораб-Финанс Мост</title>
-  <script>
-    // Простая реализация SPA редиректа с сохранением маршрутизации
-    (function() {
-      // Получаем текущий путь из URL
-      var pathname = window.location.pathname;
-      
-      // Сохраняем оригинальный путь в localStorage
-      sessionStorage.setItem('spa_redirect_path', pathname);
-      
-      // Перенаправляем на главную страницу с параметром redirect
-      window.location.href = window.location.origin + '/?redirect=true';
-    })();
-  </script>
+    <title>Страница не найдена | ProHelper</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: system-ui, sans-serif; text-align: center; padding: 2rem; }
+        h1 { color: #2563EB; }
+    </style>
 </head>
 <body>
-  <h1>Перенаправление...</h1>
-  <p>Если вы не были перенаправлены автоматически, <a href="/">нажмите сюда</a>.</p>
+    <h1>404 - Страница не найдена</h1>
+    <p>Перенаправляем на главную страницу...</p>
+    <script>
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 2000);
+    </script>
 </body>
 </html> 

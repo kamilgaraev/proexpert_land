@@ -1,7 +1,7 @@
 {
   "name": "prohelper_land",
   "version": "1.0.0",
-  "description": "Лендинг и личный кабинет для сервиса Прораб-Финанс Мост",
+  "description": "Лендинг и личный кабинет для сервиса ProHelper - умного управления строительными проектами",
   "type": "module",
   "scripts": {
     "dev": "vite",
