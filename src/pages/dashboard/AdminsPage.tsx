@@ -71,11 +71,22 @@ const AdminsPage = () => {
   useEffect(() => {
     const initUserManagementData = async () => {
       try {
-        await Promise.all([
-          fetchUsers(),
-          fetchInvitations(),
-          fetchRoles()
-        ]);
+        console.log('Инициализация данных для таба:', activeTab);
+        
+        if (activeTab === 'users') {
+          await fetchUsers();
+        } else if (activeTab === 'invitations') {
+          await fetchInvitations();
+        } else if (activeTab === 'roles') {
+          await fetchRoles();
+        } else {
+          // Загружаем все данные для общего обзора
+          await Promise.all([
+            fetchUsers(),
+            fetchInvitations(),
+            fetchRoles()
+          ]);
+        }
       } catch (err) {
         console.error('Ошибка загрузки данных управления пользователями:', err);
       }
@@ -225,6 +236,29 @@ const AdminsPage = () => {
   ];
 
   const renderContent = () => {
+    // Показываем ошибки управления пользователями для соответствующих табов
+    if (userManagementError && activeTab !== 'admins') {
+      return (
+        <div className="p-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h3 className="text-lg font-medium text-red-900">Ошибка загрузки данных</h3>
+            <p className="text-sm text-red-700 mt-1">{userManagementError}</p>
+            <button 
+              onClick={() => {
+                clearError();
+                if (activeTab === 'users') fetchUsers();
+                else if (activeTab === 'invitations') fetchInvitations();
+                else if (activeTab === 'roles') fetchRoles();
+              }}
+              className="mt-3 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium"
+            >
+              Попробовать снова
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case 'users':
         return <UsersList users={users} loading={userManagementLoading} onRefresh={fetchUsers} />;

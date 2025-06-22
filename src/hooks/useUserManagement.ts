@@ -99,12 +99,28 @@ export const useUserManagement = () => {
   const fetchRoles = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
+      console.log('Загрузка ролей...');
+      
       const response = await userManagementService.getRoles();
-      if (response.data.success) {
-        setRoles([...response.data.data.custom_roles, ...response.data.data.system_roles]);
+      console.log('Ответ API для ролей:', response);
+      
+      if (response.data && response.data.success) {
+        const customRoles = response.data.data?.custom_roles || [];
+        const systemRoles = response.data.data?.system_roles || [];
+        const allRoles = [...customRoles, ...systemRoles];
+        
+        console.log('Загруженные роли:', allRoles);
+        setRoles(allRoles);
+      } else {
+        console.error('Неуспешный ответ API:', response.data);
+        setError(response.data?.message || 'Ошибка загрузки ролей');
+        setRoles([]);
       }
     } catch (err: any) {
+      console.error('Ошибка при загрузке ролей:', err);
       setError(err.message || 'Ошибка загрузки ролей');
+      setRoles([]);
     } finally {
       setLoading(false);
     }
