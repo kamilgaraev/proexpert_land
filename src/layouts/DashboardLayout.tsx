@@ -69,6 +69,12 @@ const DashboardLayout = () => {
       description: 'Общая статистика проектов'
     },
     { 
+      name: 'Организация', 
+      href: '/dashboard/organization', 
+      icon: BuildingOfficeIcon,
+      description: 'Данные и верификация'
+    },
+    { 
       name: 'Команда', 
       href: '/dashboard/admins', 
       icon: UsersIcon,

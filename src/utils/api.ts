@@ -551,6 +551,26 @@ export const organizationService = {
       status: response.status,
       statusText: response.statusText
     };
+  },
+
+  getList: async (): Promise<ApiResponse<Organization[]>> => {
+    const response = await api.get('/organizations');
+    return response.data as ApiResponse<Organization[]>;
+  },
+
+  getCurrent: async (): Promise<ApiResponse<{ organization: Organization }>> => {
+    const response = await api.get('/organization/verification');
+    return response.data as ApiResponse<{ organization: Organization }>;
+  },
+
+  update: async (data: OrganizationUpdateData): Promise<ApiResponse<{ organization: Organization }>> => {
+    const response = await api.patch('/organization/verification', data);
+    return response.data as ApiResponse<{ organization: Organization }>;
+  },
+
+  requestVerification: async (): Promise<ApiResponse<{ verification_result: any; organization: Organization }>> => {
+    const response = await api.post('/organization/verification/request');
+    return response.data as ApiResponse<{ verification_result: any; organization: Organization }>;
   }
 };
 
@@ -623,6 +643,17 @@ export interface OrganizationSummary {
   role_in_org: string;
 }
 
+export interface OrganizationVerification {
+  is_verified: boolean;
+  verified_at: string | null;
+  verification_status: 'verified' | 'partially_verified' | 'needs_review' | 'failed' | 'pending';
+  verification_status_text: string;
+  verification_score: number;
+  verification_data: any;
+  verification_notes: string;
+  can_be_verified: boolean;
+}
+
 export interface Organization {
   id: number;
   name: string;
@@ -635,9 +666,27 @@ export interface Organization {
   city?: string;
   postal_code?: string;
   country?: string;
-  owner_id: number;
+  description?: string;
+  logo_path?: string;
+  is_active: boolean;
+  subscription_expires_at?: string;
+  verification: OrganizationVerification;
   created_at: string;
   updated_at: string;
+}
+
+export interface OrganizationUpdateData {
+  name?: string;
+  legal_name?: string;
+  tax_number?: string;
+  registration_number?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+  description?: string;
 }
 
 export interface LandingUser {

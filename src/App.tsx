@@ -6,6 +6,7 @@ import RegisterPage from '@pages/dashboard/RegisterPage';
 import ForgotPasswordPage from '@pages/dashboard/ForgotPasswordPage';
 import DashboardPage from '@pages/dashboard/DashboardPage';
 import ProfilePage from '@pages/dashboard/ProfilePage';
+import OrganizationPage from '@pages/dashboard/OrganizationPage';
 import HelpPage from '@pages/dashboard/HelpPage';
 import SupportPage from '@pages/dashboard/SupportPage';
 import NotFoundPage from '@pages/NotFoundPage';
@@ -94,6 +95,7 @@ function App() {
           <Route path="admins" element={<AdminsPage />} />
           <Route path="admins/create" element={<Navigate to="/dashboard/admins" replace />} />
           <Route path="paid-services" element={<PaidServicesPage />} />
+          <Route path="organization" element={<OrganizationPage />} />
         </Route>
         
         {/* Административные маршруты */}

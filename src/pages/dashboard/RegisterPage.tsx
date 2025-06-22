@@ -56,7 +56,16 @@ const RegisterPage = () => {
   
   const { register } = useAuth();
   const navigate = useNavigate();
-  const { searchAddresses, searchCities, isLoading: isDaDataLoading } = useDaData();
+  const { searchAddresses, searchCities, searchOrganizations, isLoading: isDaDataLoading } = useDaData();
+
+  const handleOrganizationSearch = async (query: string) => {
+    const results = await searchOrganizations(query);
+    return results.map(item => ({
+      value: item.data.name.short || item.value,
+      label: item.data.name.short || item.value,
+      data: item.data
+    }));
+  };
 
   const handleAddressSearch = async (query: string) => {
     const results = await searchAddresses(query);
@@ -74,6 +83,18 @@ const RegisterPage = () => {
       label: `${item.data.city}${item.data.region ? ', ' + item.data.region : ''}`,
       data: item.data
     }));
+  };
+
+  const handleOrganizationSelect = (value: string, data?: any) => {
+    setOrganizationName(value);
+    if (data) {
+      if (data.name?.full) setOrganizationLegalName(data.name.full);
+      if (data.inn) setOrganizationTaxNumber(data.inn);
+      if (data.ogrn) setOrganizationRegistrationNumber(data.ogrn);
+      if (data.address?.unrestricted_value) {
+        setOrganizationAddress(data.address.unrestricted_value);
+      }
+    }
   };
 
   const handleAddressSelect = (value: string, data?: any) => {
@@ -586,20 +607,15 @@ const RegisterPage = () => {
                     <label htmlFor="organizationName" className="block text-sm font-semibold text-steel-700 mb-2">
                       Название организации *
                     </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <BuildingOfficeIcon className="h-5 w-5 text-steel-400" />
-                      </div>
-                      <input
-                        id="organizationName"
-                        type="text"
-                        required
-                        className={getInputClass('organizationName')}
-                        placeholder="ООО «Строительная компания»"
-                        value={organizationName}
-                        onChange={(e) => setOrganizationName(e.target.value)}
-                      />
-                    </div>
+                    <AutocompleteInput
+                      value={organizationName}
+                      onChange={handleOrganizationSelect}
+                      onSearch={handleOrganizationSearch}
+                      placeholder="Начните вводить название или ИНН..."
+                      className={getInputClass('organizationName')}
+                      icon={<BuildingOfficeIcon className="h-5 w-5 text-steel-400" />}
+                      isLoading={isDaDataLoading}
+                    />
                     {hasError('organizationName') && (
                       <p className="mt-1 text-red-600 text-sm">{getErrorMessage('organizationName')}</p>
                     )}

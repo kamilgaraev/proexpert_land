@@ -10,59 +10,66 @@ export interface DaDataAddress {
     city: string;
     street: string;
     house: string;
-    flat: string;
-    geo_lat: string;
-    geo_lon: string;
+    flat?: string;
+    qc?: number;
   };
 }
 
-export interface DaDataCity {
+export interface DaDataOrganization {
   value: string;
   unrestricted_value: string;
   data: {
-    city: string;
-    region: string;
-    country: string;
+    inn: string;
+    ogrn: string;
+    name: {
+      full: string;
+      short: string;
+      full_with_opf: string;
+    };
+    address: {
+      unrestricted_value: string;
+    };
+    state: {
+      status: string;
+    };
   };
 }
 
-const DADATA_API_KEY = 'c2110ee53431438f940545629894ebb5dc1fb1a4';
-const DADATA_SECRET_KEY = '9acd90e91b45e9105f0a7fac58bfebca6addf914';
-const DADATA_BASE_URL = 'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest';
+const API_BASE_URL = '/api/v1/landing';
 
 export const useDaData = () => {
   const [isLoading, setIsLoading] = useState(false);
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('auth_token');
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  };
 
   const searchAddresses = useCallback(async (query: string): Promise<DaDataAddress[]> => {
     if (!query || query.length < 3) return [];
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${DADATA_BASE_URL}/address`, {
+      const response = await fetch(`${API_BASE_URL}/dadata/suggest/addresses`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Token ${DADATA_API_KEY}`,
-          'X-Secret': DADATA_SECRET_KEY,
-        },
-        body: JSON.stringify({
-          query: query,
-          count: 10,
-          locations: [
-            {
-              country: 'Россия'
-            }
-          ]
-        }),
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ query }),
       });
 
       if (!response.ok) {
-        throw new Error('Ошибка при запросе к DaData API');
+        throw new Error('Ошибка при поиске адресов');
       }
 
-      const data = await response.json();
-      return data.suggestions || [];
+      const result = await response.json();
+      if (result.success) {
+        return result.data || [];
+      } else {
+        throw new Error(result.message || 'Ошибка поиска адресов');
+      }
     } catch (error) {
       console.error('Ошибка поиска адресов:', error);
       return [];
@@ -71,38 +78,30 @@ export const useDaData = () => {
     }
   }, []);
 
-  const searchCities = useCallback(async (query: string): Promise<DaDataCity[]> => {
+  const searchCities = useCallback(async (query: string): Promise<DaDataAddress[]> => {
     if (!query || query.length < 2) return [];
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${DADATA_BASE_URL}/address`, {
+      const response = await fetch(`${API_BASE_URL}/dadata/suggest/addresses`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Token ${DADATA_API_KEY}`,
-          'X-Secret': DADATA_SECRET_KEY,
-        },
-        body: JSON.stringify({
-          query: query,
-          count: 10,
-          from_bound: { value: 'city' },
-          to_bound: { value: 'city' },
-          locations: [
-            {
-              country: 'Россия'
-            }
-          ]
-        }),
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ query }),
       });
 
       if (!response.ok) {
-        throw new Error('Ошибка при запросе к DaData API');
+        throw new Error('Ошибка при поиске городов');
       }
 
-      const data = await response.json();
-      return data.suggestions || [];
+      const result = await response.json();
+      if (result.success) {
+        const addresses = result.data || [];
+        return addresses.filter((addr: DaDataAddress) => 
+          addr.data.city && addr.data.city.toLowerCase().includes(query.toLowerCase())
+        );
+      } else {
+        throw new Error(result.message || 'Ошибка поиска городов');
+      }
     } catch (error) {
       console.error('Ошибка поиска городов:', error);
       return [];
@@ -111,9 +110,81 @@ export const useDaData = () => {
     }
   }, []);
 
+  const searchOrganizations = useCallback(async (query: string): Promise<DaDataOrganization[]> => {
+    if (!query || query.length < 2) return [];
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/dadata/suggest/organizations`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ query }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при поиске организаций');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        return result.data || [];
+      } else {
+        throw new Error(result.message || 'Ошибка поиска организаций');
+      }
+    } catch (error) {
+      console.error('Ошибка поиска организаций:', error);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const cleanAddress = useCallback(async (address: string): Promise<DaDataAddress | null> => {
+    if (!address) return null;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/dadata/clean/address`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ address }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при стандартизации адреса');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        return {
+          value: result.data.result,
+          unrestricted_value: result.data.result,
+          data: {
+            postal_code: result.data.postal_code || '',
+            country: result.data.country || '',
+            region: result.data.region || '',
+            city: result.data.city || '',
+            street: result.data.street || '',
+            house: result.data.house || '',
+            qc: result.data.qc
+          }
+        };
+      } else {
+        throw new Error(result.message || 'Ошибка стандартизации адреса');
+      }
+    } catch (error) {
+      console.error('Ошибка стандартизации адреса:', error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   return {
     searchAddresses,
     searchCities,
+    searchOrganizations,
+    cleanAddress,
     isLoading,
   };
 };
