@@ -217,7 +217,7 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
         )}
 
         {/* Кнопка автоверификации */}
-        {recommendations.can_auto_verify && recommendations.potential_score_increase > 0 && (
+        {recommendations.can_auto_verify && (
           <div className="pt-2 border-t border-gray-200">
             <button 
               className="w-full text-xs bg-construction-50 text-construction-700 hover:bg-construction-100 rounded-lg p-2 transition-colors disabled:opacity-50"
@@ -230,9 +230,40 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
                   <span>Выполняется верификация...</span>
                 </div>
               ) : (
-                'Запустить автоматическую верификацию для улучшения рейтинга'
+                recommendations.potential_score_increase > 0 ? 
+                  `Запустить автоматическую верификацию для улучшения рейтинга (+${recommendations.potential_score_increase} баллов)` :
+                  'Запустить автоматическую верификацию для проверки данных через государственные реестры'
               )}
             </button>
+          </div>
+        )}
+
+        {/* Альтернативная кнопка если основная не показывается */}
+        {!recommendations.can_auto_verify && recommendations.needs_verification && (
+          <div className="pt-2 border-t border-gray-200">
+            <button 
+              className="w-full text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg p-2 transition-colors disabled:opacity-50"
+              onClick={onVerificationRequest}
+              disabled={isVerifying}
+            >
+              {isVerifying ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                  <span>Выполняется верификация...</span>
+                </div>
+              ) : (
+                'Запустить верификацию данных'
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Отладочная информация */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-4 p-2 bg-gray-100 rounded text-xs">
+            <div>can_auto_verify: {recommendations.can_auto_verify ? 'true' : 'false'}</div>
+            <div>potential_score_increase: {recommendations.potential_score_increase}</div>
+            <div>needs_verification: {recommendations.needs_verification ? 'true' : 'false'}</div>
           </div>
         )}
       </div>
