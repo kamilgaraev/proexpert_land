@@ -18,6 +18,8 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
+import useDaData, { DaDataAddress, DaDataCity } from '@hooks/useDaData';
+import AutocompleteInput from '@components/shared/AutocompleteInput';
 
 const RegisterPage = () => {
   // Основные данные пользователя
@@ -54,6 +56,37 @@ const RegisterPage = () => {
   
   const { register } = useAuth();
   const navigate = useNavigate();
+  const { searchAddresses, searchCities, isLoading: isDaDataLoading } = useDaData();
+
+  const handleAddressSearch = async (query: string) => {
+    const results = await searchAddresses(query);
+    return results.map(item => ({
+      value: item.value,
+      label: item.value,
+      data: item.data
+    }));
+  };
+
+  const handleCitySearch = async (query: string) => {
+    const results = await searchCities(query);
+    return results.map(item => ({
+      value: item.data.city || item.value,
+      label: `${item.data.city}${item.data.region ? ', ' + item.data.region : ''}`,
+      data: item.data
+    }));
+  };
+
+  const handleAddressSelect = (value: string, data?: any) => {
+    setOrganizationAddress(value);
+    if (data) {
+      if (data.city) setOrganizationCity(data.city);
+      if (data.postal_code) setOrganizationPostalCode(data.postal_code);
+    }
+  };
+
+  const handleCitySelect = (value: string) => {
+    setOrganizationCity(value);
+  };
 
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -677,19 +710,15 @@ const RegisterPage = () => {
                     <label htmlFor="organizationAddress" className="block text-sm font-semibold text-steel-700 mb-2">
                       Адрес
                     </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <MapPinIcon className="h-5 w-5 text-steel-400" />
-                      </div>
-                      <input
-                        id="organizationAddress"
-                        type="text"
-                        className={getInputClass('organizationAddress')}
-                        placeholder="Улица, дом, офис"
-                        value={organizationAddress}
-                        onChange={(e) => setOrganizationAddress(e.target.value)}
-                      />
-                    </div>
+                    <AutocompleteInput
+                      value={organizationAddress}
+                      onChange={handleAddressSelect}
+                      onSearch={handleAddressSearch}
+                      placeholder="Начните вводить адрес..."
+                      className={getInputClass('organizationAddress')}
+                      icon={<MapPinIcon className="h-5 w-5 text-steel-400" />}
+                      isLoading={isDaDataLoading}
+                    />
                   </div>
 
                   {/* Город */}
@@ -697,19 +726,15 @@ const RegisterPage = () => {
                     <label htmlFor="organizationCity" className="block text-sm font-semibold text-steel-700 mb-2">
                       Город
                     </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <MapPinIcon className="h-5 w-5 text-steel-400" />
-                      </div>
-                      <input
-                        id="organizationCity"
-                        type="text"
-                        className={getInputClass('organizationCity')}
-                        placeholder="Москва"
-                        value={organizationCity}
-                        onChange={(e) => setOrganizationCity(e.target.value)}
-                      />
-                    </div>
+                    <AutocompleteInput
+                      value={organizationCity}
+                      onChange={handleCitySelect}
+                      onSearch={handleCitySearch}
+                      placeholder="Начните вводить город..."
+                      className={getInputClass('organizationCity')}
+                      icon={<MapPinIcon className="h-5 w-5 text-steel-400" />}
+                      isLoading={isDaDataLoading}
+                    />
                   </div>
 
                   {/* Почтовый индекс */}
