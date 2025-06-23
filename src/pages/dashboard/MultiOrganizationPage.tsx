@@ -121,14 +121,19 @@ const MultiOrganizationPage = () => {
   const activeModules = getActiveModuleSlugs();
   const hasMultiOrgAccess = activeModules.includes('multi_organization');
   
-  console.log('Активные модули:', activeModules);
-  console.log('Доступ к мультиорганизации:', hasMultiOrgAccess);
-
+  // Определяем, что данные загружаются
+  const isInitialLoading = loading && hierarchy === null && accessibleOrganizations.length === 0;
+  
   // Если API вызовы проходят успешно (статус 200), значит модуль активен
-  // Используем успешный ответ API как индикатор доступности
   const apiWorking = hierarchy !== null || accessibleOrganizations.length > 0;
+  
+  // Показываем ошибку только если:
+  // 1. Не в процессе загрузки
+  // 2. Нет доступа по модулям И API не работает
+  // 3. Есть явная ошибка доступа
+  const shouldShowAccessError = !isInitialLoading && !hasMultiOrgAccess && !apiWorking && !loading;
 
-  if (!hasMultiOrgAccess && !apiWorking) {
+  if (shouldShowAccessError) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
@@ -329,10 +334,9 @@ const MultiOrganizationPage = () => {
                         </linearGradient>
                       </defs>
                       
-                      {/* Используем дочерние организации из accessibleOrganizations */}
-                      {accessibleOrganizations.filter(org => org.id !== hierarchy.parent.id).map((child, index) => {
-                        const childOrganizations = accessibleOrganizations.filter(org => org.id !== hierarchy.parent.id);
-                        const angle = (index * 360) / childOrganizations.length;
+                      {/* Используем дочерние организации из hierarchy.children */}
+                      {hierarchy.children.map((child, index) => {
+                        const angle = (index * 360) / hierarchy.children.length;
                         const radius = 200;
                         const centerX = 400;
                         const centerY = 300;
@@ -361,9 +365,8 @@ const MultiOrganizationPage = () => {
                     </svg>
 
                     {/* Дочерние организации по кругу */}
-                    {accessibleOrganizations.filter(org => org.id !== hierarchy.parent.id).map((child, index) => {
-                      const childOrganizations = accessibleOrganizations.filter(org => org.id !== hierarchy.parent.id);
-                      const angle = (index * 360) / childOrganizations.length;
+                    {hierarchy.children.map((child, index) => {
+                      const angle = (index * 360) / hierarchy.children.length;
                       const radius = 200;
                       const childX = 50 + radius * Math.cos((angle * Math.PI) / 180);
                       const childY = 50 + radius * Math.sin((angle * Math.PI) / 180);
