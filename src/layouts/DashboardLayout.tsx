@@ -28,15 +28,14 @@ import { billingService, OrganizationBalance, ErrorResponse } from '@utils/api';
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { logout, user } = useAuth();
-  const { checkModuleAccess } = useModules();
+  const { getActiveModuleSlugs, fetchModules } = useModules();
   const navigate = useNavigate();
   const location = useLocation();
   
   const [actualBalance, setActualBalance] = useState<OrganizationBalance | null>(null);
   const [balanceError, setBalanceError] = useState<string | null>(null);
-  const [hasMultiOrgAccess, setHasMultiOrgAccess] = useState(false);
   const balanceLoadedRef = useRef(false);
-  const moduleCheckLoadedRef = useRef(false);
+  const moduleLoadedRef = useRef(false);
 
   const fetchHeaderBalance = useCallback(async () => {
     if (balanceLoadedRef.current) return; // Предотвращаем повторные вызовы
@@ -70,38 +69,26 @@ const DashboardLayout = () => {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    
     const loadData = async () => {
       // Загружаем баланс
       if (!balanceLoadedRef.current) {
         fetchHeaderBalance();
       }
       
-      // Проверяем доступ к мультиорганизации
-      if (!moduleCheckLoadedRef.current) {
+      // Загружаем модули
+      if (!moduleLoadedRef.current) {
         try {
-          const hasAccess = await checkModuleAccess('multi_organization');
-          if (isMounted) {
-            setHasMultiOrgAccess(hasAccess);
-            moduleCheckLoadedRef.current = true;
-          }
+          await fetchModules();
+          moduleLoadedRef.current = true;
         } catch (error) {
-          console.error('Ошибка проверки доступа к модулю мультиорганизации:', error);
-          if (isMounted) {
-            setHasMultiOrgAccess(false);
-            moduleCheckLoadedRef.current = true;
-          }
+          console.error('Ошибка загрузки модулей:', error);
+          moduleLoadedRef.current = true;
         }
       }
     };
     
     loadData();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, []); // Выполняется только один раз при монтировании
+  }, [fetchHeaderBalance, fetchModules]);
 
   const handleLogout = () => {
     logout();
@@ -109,6 +96,9 @@ const DashboardLayout = () => {
   };
   
   const mainNavigation = useMemo(() => {
+    const activeModules = getActiveModuleSlugs();
+    const hasMultiOrgAccess = activeModules.includes('multi_organization');
+
     const baseNavigation = [
       { 
         name: 'Обзор', 
@@ -172,7 +162,7 @@ const DashboardLayout = () => {
     });
 
     return baseNavigation;
-  }, [hasMultiOrgAccess]);
+  }, [getActiveModuleSlugs]);
 
   const supportNavigation = [
     { 
