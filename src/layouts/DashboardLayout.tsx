@@ -47,26 +47,46 @@ const DashboardLayout = () => {
           console.error('Unexpected balance data structure from API in Layout:', response.data);
           setBalanceError('Ошибка формата баланса');
         }
+      } else if (response.status === 500) {
+        console.warn('Серверная ошибка при загрузке баланса, игнорируем');
+        setBalanceError('Временная ошибка сервера');
       } else {
         const errorData = response.data as unknown as ErrorResponse;
         setBalanceError(errorData?.message || `Ошибка ${response.status}`);
       }
     } catch (err: any) {
       console.error("Error fetching header balance:", err);
-      setBalanceError(err.message || 'Не удалось загрузить баланс');
+      setBalanceError('Временная ошибка загрузки');
     }
   }, []);
 
   useEffect(() => {
-    fetchHeaderBalance();
+    let isMounted = true;
     
-    const checkMultiOrgAccess = async () => {
-      const hasAccess = await checkModuleAccess('multi_organization');
-      setHasMultiOrgAccess(hasAccess);
+    const loadData = async () => {
+      // Загружаем баланс
+      fetchHeaderBalance();
+      
+      // Проверяем доступ к мультиорганизации
+      try {
+        const hasAccess = await checkModuleAccess('multi_organization');
+        if (isMounted) {
+          setHasMultiOrgAccess(hasAccess);
+        }
+      } catch (error) {
+        console.error('Ошибка проверки доступа к модулю мультиорганизации:', error);
+        if (isMounted) {
+          setHasMultiOrgAccess(false);
+        }
+      }
     };
     
-    checkMultiOrgAccess();
-  }, [fetchHeaderBalance, checkModuleAccess]);
+    loadData();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Выполняется только один раз при монтировании
 
   const handleLogout = () => {
     logout();

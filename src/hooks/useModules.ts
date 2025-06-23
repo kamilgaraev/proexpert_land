@@ -121,6 +121,10 @@ export const useModules = () => {
   const checkModuleAccess = async (moduleSlug: string): Promise<boolean> => {
     try {
       const response = await modulesService.checkAccess({ module_slug: moduleSlug });
+      if (response.status === 500) {
+        console.warn(`Серверная ошибка при проверке модуля ${moduleSlug}, возвращаем false`);
+        return false;
+      }
       return response.data?.has_access || false;
     } catch (err: any) {
       console.error('Ошибка проверки доступа к модулю:', err);
