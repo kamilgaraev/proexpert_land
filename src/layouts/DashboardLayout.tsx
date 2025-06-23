@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useCallback } from 'react';
+import { Fragment, useState, useEffect, useCallback, useMemo } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Bars3Icon, 
@@ -15,9 +15,12 @@ import {
   BellIcon,
   UsersIcon,
   ShieldCheckIcon,
-  ChartPieIcon
+  ChartPieIcon,
+  PuzzlePieceIcon,
+  BuildingOffice2Icon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
+import { useModules } from '@hooks/useModules';
 import { Menu, Transition } from '@headlessui/react';
 import { classNames } from '@utils/classNames';
 import { billingService, OrganizationBalance, ErrorResponse } from '@utils/api';
@@ -25,11 +28,13 @@ import { billingService, OrganizationBalance, ErrorResponse } from '@utils/api';
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { logout, user } = useAuth();
+  const { checkModuleAccess } = useModules();
   const navigate = useNavigate();
   const location = useLocation();
   
   const [actualBalance, setActualBalance] = useState<OrganizationBalance | null>(null);
   const [balanceError, setBalanceError] = useState<string | null>(null);
+  const [hasMultiOrgAccess, setHasMultiOrgAccess] = useState(false);
 
   const fetchHeaderBalance = useCallback(async () => {
     setBalanceError(null);
@@ -54,58 +59,85 @@ const DashboardLayout = () => {
 
   useEffect(() => {
     fetchHeaderBalance();
-  }, [fetchHeaderBalance]);
+    
+    const checkMultiOrgAccess = async () => {
+      const hasAccess = await checkModuleAccess('multi_organization');
+      setHasMultiOrgAccess(hasAccess);
+    };
+    
+    checkMultiOrgAccess();
+  }, [fetchHeaderBalance, checkModuleAccess]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
   
-  const mainNavigation = [
-    { 
-      name: 'Обзор', 
-      href: '/dashboard', 
-      icon: HomeIcon,
-      description: 'Общая статистика проектов'
-    },
-    { 
-      name: 'Организация', 
-      href: '/dashboard/organization', 
-      icon: BuildingOfficeIcon,
-      description: 'Данные и верификация'
-    },
-    { 
-      name: 'Команда', 
-      href: '/dashboard/admins', 
-      icon: UsersIcon,
-      description: 'Администраторы и прорабы'
-    },
+  const mainNavigation = useMemo(() => {
+    const baseNavigation = [
+      { 
+        name: 'Обзор', 
+        href: '/dashboard', 
+        icon: HomeIcon,
+        description: 'Общая статистика проектов'
+      },
+      { 
+        name: 'Организация', 
+        href: '/dashboard/organization', 
+        icon: BuildingOfficeIcon,
+        description: 'Данные и верификация'
+      },
+      { 
+        name: 'Команда', 
+        href: '/dashboard/admins', 
+        icon: UsersIcon,
+        description: 'Администраторы и прорабы'
+      },
+      { 
+        name: 'Финансы', 
+        href: '/dashboard/billing', 
+        icon: BanknotesIcon,
+        description: 'Баланс и платежи'
+      },
+      { 
+        name: 'Лимиты', 
+        href: '/dashboard/limits', 
+        icon: ChartPieIcon,
+        description: 'Лимиты подписки и использование'
+      },
+      { 
+        name: 'Услуги', 
+        href: '/dashboard/paid-services', 
+        icon: TicketIcon,
+        description: 'Дополнительные возможности'
+      },
+      { 
+        name: 'Модули', 
+        href: '/dashboard/modules', 
+        icon: PuzzlePieceIcon,
+        description: 'Модули организации'
+      }
+    ];
 
-    { 
-      name: 'Финансы', 
-      href: '/dashboard/billing', 
-      icon: BanknotesIcon,
-      description: 'Баланс и платежи'
-    },
-    { 
-      name: 'Лимиты', 
-      href: '/dashboard/limits', 
-      icon: ChartPieIcon,
-      description: 'Лимиты подписки и использование'
-    },
-    { 
-      name: 'Услуги', 
-      href: '/dashboard/paid-services', 
-      icon: TicketIcon,
-      description: 'Дополнительные возможности'
-    },
-    { 
+    // Добавляем мультиорганизацию только если модуль активирован
+    if (hasMultiOrgAccess) {
+      baseNavigation.push({
+        name: 'Холдинг', 
+        href: '/dashboard/multi-organization', 
+        icon: BuildingOffice2Icon,
+        description: 'Управление холдингом'
+      });
+    }
+
+    baseNavigation.push({
       name: 'Настройки', 
       href: '/dashboard/profile', 
       icon: CogIcon,
       description: 'Профиль и настройки'
-    }
-  ];
+    });
+
+    return baseNavigation;
+  }, [hasMultiOrgAccess]);
 
   const supportNavigation = [
     { 

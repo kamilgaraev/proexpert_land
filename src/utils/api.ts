@@ -1362,4 +1362,217 @@ export const userManagementService = {
   },
 };
 
+export interface OrganizationModule {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  currency: string;
+  features: string[];
+  category: string;
+  icon: string;
+  is_premium: boolean;
+}
+
+export interface ModuleActivation {
+  id: number;
+  activated_at: string;
+  expires_at: string | null;
+  status: 'active' | 'expired' | 'pending';
+}
+
+export interface ActivatedModule {
+  module: OrganizationModule;
+  is_activated: boolean;
+  activation: ModuleActivation | null;
+  expires_at: string | null;
+  days_until_expiration: number | null;
+  status: 'active' | 'expired' | 'pending' | 'inactive';
+}
+
+export interface ModulesResponse {
+  analytics: ActivatedModule[];
+  integrations: ActivatedModule[];
+  automation: ActivatedModule[];
+  customization: ActivatedModule[];
+  security: ActivatedModule[];
+  support: ActivatedModule[];
+}
+
+export interface ActivateModuleRequest {
+  module_id: number;
+  payment_method?: 'balance' | 'card' | 'invoice';
+  settings?: Record<string, any>;
+}
+
+export interface RenewModuleRequest {
+  days?: number;
+}
+
+export interface CheckAccessRequest {
+  module_slug: string;
+}
+
+export interface MultiOrganizationAvailability {
+  available: boolean;
+  can_create_holding: boolean;
+  current_type: 'single' | 'parent' | 'child';
+  is_holding: boolean;
+}
+
+export interface CreateHoldingRequest {
+  name: string;
+  description?: string;
+  max_child_organizations?: number;
+  settings?: {
+    consolidated_reports?: boolean;
+    shared_materials?: boolean;
+  };
+  permissions_config?: {
+    default_child_permissions?: Record<string, string[]>;
+  };
+}
+
+export interface AddChildOrganizationRequest {
+  group_id: number;
+  name: string;
+  description?: string;
+  inn?: string;
+  kpp?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface OrganizationHierarchy {
+  parent: {
+    id: number;
+    name: string;
+    organization_type: 'parent';
+    is_holding: boolean;
+    hierarchy_level: number;
+  };
+  children: Array<{
+    id: number;
+    name: string;
+    organization_type: 'child';
+    hierarchy_level: number;
+    inn?: string;
+  }>;
+  total_stats: {
+    total_organizations: number;
+    total_users: number;
+    total_projects: number;
+    total_contracts: number;
+  };
+}
+
+export interface AccessibleOrganization {
+  id: number;
+  name: string;
+  organization_type: 'single' | 'parent' | 'child';
+  is_holding: boolean;
+  hierarchy_level: number;
+}
+
+export interface OrganizationDetails {
+  organization: {
+    id: number;
+    name: string;
+    organization_type: 'single' | 'parent' | 'child';
+    inn?: string;
+    address?: string;
+  };
+  stats: {
+    users_count: number;
+    projects_count: number;
+    contracts_count: number;
+    active_contracts_value: number;
+  };
+  recent_activity: {
+    last_project_created?: string;
+    last_contract_signed?: string;
+    last_user_added?: string;
+  };
+}
+
+export interface SwitchContextRequest {
+  organization_id: number;
+}
+
+export const modulesService = {
+  getModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/modules/');
+    return response;
+  },
+
+  getAvailableModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/modules/available');
+    return response;
+  },
+
+  activateModule: async (moduleData: ActivateModuleRequest): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post('/modules/activate', moduleData);
+    return response;
+  },
+
+  deactivateModule: async (moduleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.delete(`/modules/${moduleId}`);
+    return response;
+  },
+
+  renewModule: async (moduleId: number, renewData: RenewModuleRequest): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.patch(`/modules/${moduleId}/renew`, renewData);
+    return response;
+  },
+
+  checkAccess: async (accessData: CheckAccessRequest): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post('/modules/check-access', accessData);
+    return response;
+  },
+
+  getExpiringModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/modules/expiring');
+    return response;
+  },
+};
+
+export const multiOrganizationService = {
+  checkAvailability: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/multi-organization/check-availability');
+    return response;
+  },
+
+  createHolding: async (holdingData: CreateHoldingRequest): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post('/multi-organization/create-holding', holdingData);
+    return response;
+  },
+
+  addChildOrganization: async (childData: AddChildOrganizationRequest): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post('/multi-organization/add-child', childData);
+    return response;
+  },
+
+  getHierarchy: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/multi-organization/hierarchy');
+    return response;
+  },
+
+  getAccessibleOrganizations: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/multi-organization/accessible');
+    return response;
+  },
+
+  getOrganizationDetails: async (organizationId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get(`/multi-organization/organization/${organizationId}`);
+    return response;
+  },
+
+  switchContext: async (contextData: SwitchContextRequest): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post('/multi-organization/switch-context', contextData);
+    return response;
+  },
+};
+
 export default api; 

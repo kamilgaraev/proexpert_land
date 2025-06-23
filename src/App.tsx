@@ -19,6 +19,8 @@ import ProjectsList from '@pages/admin/projects/ProjectsList';
 import FAQPage from '@pages/dashboard/FAQPage';
 import PaidServicesPage from '@pages/dashboard/paid-services/PaidServicesPage';
 import SubscriptionLimitsPage from '@pages/dashboard/SubscriptionLimitsPage';
+import ModulesPage from '@pages/dashboard/ModulesPage';
+import MultiOrganizationPage from '@pages/dashboard/MultiOrganizationPage';
 
 
 // Новые страницы
@@ -97,6 +99,8 @@ function App() {
           <Route path="admins/create" element={<Navigate to="/dashboard/admins" replace />} />
 
           <Route path="paid-services" element={<PaidServicesPage />} />
+          <Route path="modules" element={<ModulesPage />} />
+          <Route path="multi-organization" element={<MultiOrganizationPage />} />
           <Route path="organization" element={<OrganizationPage />} />
         </Route>
         
