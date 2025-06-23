@@ -13,6 +13,7 @@ import {
   ArrowPathIcon,
   PlayIcon,
   StopIcon,
+  BuildingOffice2Icon,
 } from '@heroicons/react/24/outline';
 import { useModules } from '@hooks/useModules';
 import { PageLoading } from '@components/common/PageLoading';
@@ -26,6 +27,7 @@ const categoryIcons: Record<string, any> = {
   customization: PuzzlePieceIcon,
   security: ShieldCheckIcon,
   support: ChatBubbleBottomCenterTextIcon,
+  organization: BuildingOffice2Icon,
 };
 
 const categoryNames: Record<string, string> = {
@@ -35,6 +37,7 @@ const categoryNames: Record<string, string> = {
   customization: 'Кастомизация',
   security: 'Безопасность',
   support: 'Поддержка',
+  organization: 'Организация',
 };
 
 const ModulesPage = () => {
