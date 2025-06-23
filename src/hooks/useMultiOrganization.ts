@@ -6,8 +6,7 @@ import {
   type AccessibleOrganization, 
   type OrganizationDetails,
   type CreateHoldingRequest, 
-  type AddChildOrganizationRequest, 
-  type SwitchContextRequest 
+  type AddChildOrganizationRequest
 } from '@utils/api';
 import { toast } from 'react-toastify';
 

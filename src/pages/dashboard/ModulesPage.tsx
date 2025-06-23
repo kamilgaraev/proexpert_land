@@ -8,7 +8,6 @@ import {
   ChatBubbleBottomCenterTextIcon,
   GlobeAltIcon,
   CheckCircleIcon,
-  XMarkIcon,
   CalendarIcon,
   ExclamationTriangleIcon,
   ArrowPathIcon,
@@ -41,7 +40,6 @@ const categoryNames: Record<string, string> = {
 const ModulesPage = () => {
   const {
     modules,
-    availableModules,
     expiringModules,
     loading,
     error,
@@ -55,7 +53,6 @@ const ModulesPage = () => {
   } = useModules();
 
   const [selectedCategory, setSelectedCategory] = useState('analytics');
-  const [showActivateModal, setShowActivateModal] = useState(false);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [selectedModule, setSelectedModule] = useState<OrganizationModule | null>(null);
   const [activatingModuleId, setActivatingModuleId] = useState<number | null>(null);
@@ -73,8 +70,6 @@ const ModulesPage = () => {
         module_id: module.id,
         payment_method: 'balance',
       });
-      setShowActivateModal(false);
-      setSelectedModule(null);
     } catch (error) {
       console.error('Ошибка активации модуля:', error);
     } finally {

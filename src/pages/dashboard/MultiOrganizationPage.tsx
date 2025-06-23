@@ -1,15 +1,10 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import {
   BuildingOfficeIcon,
   PlusIcon,
   UsersIcon,
   ChartBarIcon,
-  DocumentTextIcon,
-  EyeIcon,
   ArrowPathIcon,
-  CheckCircleIcon,
-  XCircleIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import { useMultiOrganization } from '@hooks/useMultiOrganization';
