@@ -316,8 +316,7 @@ const MultiOrganizationPage = () => {
                           </div>
                         </div>
                         
-                        {/* Пульсирующий эффект */}
-                        <div className="absolute inset-0 bg-blue-500 rounded-2xl opacity-20 animate-ping"></div>
+
                       </div>
                     </div>
 
@@ -331,8 +330,8 @@ const MultiOrganizationPage = () => {
                       </defs>
                       
                       {/* Используем дочерние организации из accessibleOrganizations */}
-                      {accessibleOrganizations.filter(org => org.organization_type === 'child' || org.hierarchy_level > 0).map((child, index) => {
-                        const childOrganizations = accessibleOrganizations.filter(org => org.organization_type === 'child' || org.hierarchy_level > 0);
+                      {accessibleOrganizations.filter(org => org.id !== hierarchy.parent.id).map((child, index) => {
+                        const childOrganizations = accessibleOrganizations.filter(org => org.id !== hierarchy.parent.id);
                         const angle = (index * 360) / childOrganizations.length;
                         const radius = 200;
                         const centerX = 400;
@@ -351,7 +350,6 @@ const MultiOrganizationPage = () => {
                               stroke="url(#connectionGradient)"
                               strokeWidth="3"
                               strokeDasharray="5,5"
-                              className="animate-pulse"
                             />
                             
                             {/* Точки соединения */}
@@ -363,8 +361,8 @@ const MultiOrganizationPage = () => {
                     </svg>
 
                     {/* Дочерние организации по кругу */}
-                    {accessibleOrganizations.filter(org => org.organization_type === 'child' || org.hierarchy_level > 0).map((child, index) => {
-                      const childOrganizations = accessibleOrganizations.filter(org => org.organization_type === 'child' || org.hierarchy_level > 0);
+                    {accessibleOrganizations.filter(org => org.id !== hierarchy.parent.id).map((child, index) => {
+                      const childOrganizations = accessibleOrganizations.filter(org => org.id !== hierarchy.parent.id);
                       const angle = (index * 360) / childOrganizations.length;
                       const radius = 200;
                       const childX = 50 + radius * Math.cos((angle * Math.PI) / 180);
@@ -387,9 +385,7 @@ const MultiOrganizationPage = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <h4 className="font-semibold text-gray-900 text-sm truncate">{child.name}</h4>
-                                  <p className="text-purple-600 text-xs">
-                                    {child.organization_type === 'child' ? 'Дочерняя организация' : 'Дочерняя организация'}
-                                  </p>
+                                  <p className="text-purple-600 text-xs">Дочерняя организация</p>
                                 </div>
                               </div>
                               
@@ -399,7 +395,7 @@ const MultiOrganizationPage = () => {
                               
                               {/* Индикатор связи */}
                               <div className="flex justify-center mt-3">
-                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                               </div>
                             </div>
                             
