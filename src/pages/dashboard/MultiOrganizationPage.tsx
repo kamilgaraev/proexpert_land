@@ -120,8 +120,15 @@ const MultiOrganizationPage = () => {
 
   const activeModules = getActiveModuleSlugs();
   const hasMultiOrgAccess = activeModules.includes('multi_organization');
+  
+  console.log('Активные модули:', activeModules);
+  console.log('Доступ к мультиорганизации:', hasMultiOrgAccess);
 
-  if (!hasMultiOrgAccess) {
+  // Если API вызовы проходят успешно (статус 200), значит модуль активен
+  // Используем успешный ответ API как индикатор доступности
+  const apiWorking = hierarchy !== null || accessibleOrganizations.length > 0;
+
+  if (!hasMultiOrgAccess && !apiWorking) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
