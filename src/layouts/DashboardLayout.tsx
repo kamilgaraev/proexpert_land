@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useCallback, useMemo } from 'react';
+import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Bars3Icon, 
@@ -35,28 +35,37 @@ const DashboardLayout = () => {
   const [actualBalance, setActualBalance] = useState<OrganizationBalance | null>(null);
   const [balanceError, setBalanceError] = useState<string | null>(null);
   const [hasMultiOrgAccess, setHasMultiOrgAccess] = useState(false);
+  const balanceLoadedRef = useRef(false);
+  const moduleCheckLoadedRef = useRef(false);
 
   const fetchHeaderBalance = useCallback(async () => {
+    if (balanceLoadedRef.current) return; // Предотвращаем повторные вызовы
+    
     setBalanceError(null);
     try {
       const response = await billingService.getBalance();
       if (response.status === 200) {
         if (response.data && typeof response.data === 'object' && 'data' in response.data) {
           setActualBalance((response.data as any).data as OrganizationBalance);
+          balanceLoadedRef.current = true;
         } else {
           console.error('Unexpected balance data structure from API in Layout:', response.data);
           setBalanceError('Ошибка формата баланса');
+          balanceLoadedRef.current = true;
         }
       } else if (response.status === 500) {
         console.warn('Серверная ошибка при загрузке баланса, игнорируем');
         setBalanceError('Временная ошибка сервера');
+        balanceLoadedRef.current = true;
       } else {
         const errorData = response.data as unknown as ErrorResponse;
         setBalanceError(errorData?.message || `Ошибка ${response.status}`);
+        balanceLoadedRef.current = true;
       }
     } catch (err: any) {
       console.error("Error fetching header balance:", err);
       setBalanceError('Временная ошибка загрузки');
+      balanceLoadedRef.current = true;
     }
   }, []);
 
@@ -65,18 +74,24 @@ const DashboardLayout = () => {
     
     const loadData = async () => {
       // Загружаем баланс
-      fetchHeaderBalance();
+      if (!balanceLoadedRef.current) {
+        fetchHeaderBalance();
+      }
       
       // Проверяем доступ к мультиорганизации
-      try {
-        const hasAccess = await checkModuleAccess('multi_organization');
-        if (isMounted) {
-          setHasMultiOrgAccess(hasAccess);
-        }
-      } catch (error) {
-        console.error('Ошибка проверки доступа к модулю мультиорганизации:', error);
-        if (isMounted) {
-          setHasMultiOrgAccess(false);
+      if (!moduleCheckLoadedRef.current) {
+        try {
+          const hasAccess = await checkModuleAccess('multi_organization');
+          if (isMounted) {
+            setHasMultiOrgAccess(hasAccess);
+            moduleCheckLoadedRef.current = true;
+          }
+        } catch (error) {
+          console.error('Ошибка проверки доступа к модулю мультиорганизации:', error);
+          if (isMounted) {
+            setHasMultiOrgAccess(false);
+            moduleCheckLoadedRef.current = true;
+          }
         }
       }
     };
