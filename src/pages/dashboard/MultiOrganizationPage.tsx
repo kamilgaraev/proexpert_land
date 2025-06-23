@@ -8,6 +8,7 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import { useMultiOrganization } from '@hooks/useMultiOrganization';
+import { useModules } from '@hooks/useModules';
 import { PageLoading } from '@components/common/PageLoading';
 import type { CreateHoldingRequest, AddChildOrganizationRequest } from '@utils/api';
 
@@ -24,11 +25,12 @@ const MultiOrganizationPage = () => {
     createHolding,
     addChildOrganization,
     switchContext,
-    isMultiOrganizationAvailable,
     canCreateHolding,
     isHolding,
     getCurrentOrganizationType,
   } = useMultiOrganization();
+  
+  const { getActiveModuleSlugs } = useModules();
 
   const [activeTab, setActiveTab] = useState('overview');
   const [showCreateHoldingModal, setShowCreateHoldingModal] = useState(false);
@@ -116,7 +118,10 @@ const MultiOrganizationPage = () => {
     return <PageLoading message="Проверка доступности мультиорганизации..." />;
   }
 
-  if (!isMultiOrganizationAvailable()) {
+  const activeModules = getActiveModuleSlugs();
+  const hasMultiOrgAccess = activeModules.includes('multi_organization');
+
+  if (!hasMultiOrgAccess) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
