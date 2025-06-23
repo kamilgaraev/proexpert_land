@@ -330,8 +330,10 @@ const MultiOrganizationPage = () => {
                         </linearGradient>
                       </defs>
                       
-                      {hierarchy.children.map((child, index) => {
-                        const angle = (index * 360) / hierarchy.children.length;
+                      {/* Используем дочерние организации из accessibleOrganizations */}
+                      {accessibleOrganizations.filter(org => org.organization_type === 'child' || org.hierarchy_level > 0).map((child, index) => {
+                        const childOrganizations = accessibleOrganizations.filter(org => org.organization_type === 'child' || org.hierarchy_level > 0);
+                        const angle = (index * 360) / childOrganizations.length;
                         const radius = 200;
                         const centerX = 400;
                         const centerY = 300;
@@ -361,8 +363,9 @@ const MultiOrganizationPage = () => {
                     </svg>
 
                     {/* Дочерние организации по кругу */}
-                    {hierarchy.children.map((child, index) => {
-                      const angle = (index * 360) / hierarchy.children.length;
+                    {accessibleOrganizations.filter(org => org.organization_type === 'child' || org.hierarchy_level > 0).map((child, index) => {
+                      const childOrganizations = accessibleOrganizations.filter(org => org.organization_type === 'child' || org.hierarchy_level > 0);
+                      const angle = (index * 360) / childOrganizations.length;
                       const radius = 200;
                       const childX = 50 + radius * Math.cos((angle * Math.PI) / 180);
                       const childY = 50 + radius * Math.sin((angle * Math.PI) / 180);
@@ -384,12 +387,13 @@ const MultiOrganizationPage = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <h4 className="font-semibold text-gray-900 text-sm truncate">{child.name}</h4>
-                                  <p className="text-purple-600 text-xs">Дочерняя организация</p>
+                                  <p className="text-purple-600 text-xs">
+                                    {child.organization_type === 'child' ? 'Дочерняя организация' : 'Дочерняя организация'}
+                                  </p>
                                 </div>
                               </div>
                               
                               <div className="text-xs text-gray-600 space-y-1">
-                                {child.inn && <p>ИНН: {child.inn}</p>}
                                 <p>Уровень: {child.hierarchy_level}</p>
                               </div>
                               

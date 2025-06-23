@@ -238,7 +238,7 @@ const AdminsPage = () => {
   const renderContent = () => {
     // Показываем ошибки управления пользователями для соответствующих табов
     if (userManagementError && activeTab !== 'admins') {
-      return (
+  return (
         <div className="p-6">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <h3 className="text-lg font-medium text-red-900">Ошибка загрузки данных</h3>
@@ -254,7 +254,7 @@ const AdminsPage = () => {
             >
               Попробовать снова
             </button>
-          </div>
+                </div>
         </div>
       );
     }
@@ -275,119 +275,119 @@ const AdminsPage = () => {
   const renderAdminsContent = () => {
     if (isLoading) {
       return (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-construction-200 border-t-construction-600"></div>
-        </div>
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-construction-200 border-t-construction-600"></div>
+          </div>
       );
     }
 
     if (filteredAdmins.length === 0 && !error) {
       return (
-        <div className="text-center py-12">
-          <UsersIcon className="h-16 w-16 text-steel-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-steel-900 mb-2">
-            {searchTerm ? 'Администраторы не найдены' : 'Нет администраторов'}
-          </h3>
-          <p className="text-steel-600 mb-6">
-            {searchTerm 
-              ? 'Попробуйте изменить критерии поиска' 
-              : 'Добавьте первого администратора для начала работы'
-            }
-          </p>
-          {!searchTerm && (
-            <motion.button
-              onClick={handleOpenCreateModal}
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-construction-500 to-construction-600 text-white rounded-xl hover:shadow-construction transition-all duration-200"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <PlusIcon className="w-5 h-5 mr-2" />
-              Добавить администратора
-            </motion.button>
-          )}
-        </div>
+          <div className="text-center py-12">
+            <UsersIcon className="h-16 w-16 text-steel-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-steel-900 mb-2">
+              {searchTerm ? 'Администраторы не найдены' : 'Нет администраторов'}
+            </h3>
+            <p className="text-steel-600 mb-6">
+              {searchTerm 
+                ? 'Попробуйте изменить критерии поиска' 
+                : 'Добавьте первого администратора для начала работы'
+              }
+            </p>
+            {!searchTerm && (
+              <motion.button
+                onClick={handleOpenCreateModal}
+                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-construction-500 to-construction-600 text-white rounded-xl hover:shadow-construction transition-all duration-200"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <PlusIcon className="w-5 h-5 mr-2" />
+                Добавить администратора
+              </motion.button>
+            )}
+          </div>
       );
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAdmins.map((admin, index) => (
-          <motion.div
-            key={admin.id}
-            className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
-            whileHover={{ y: -2 }}
-          >
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-construction-500 to-construction-600 p-0.5">
-                  <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center">
-                    <UserCircleIcon className="w-10 h-10 text-steel-400" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredAdmins.map((admin, index) => (
+              <motion.div
+                key={admin.id}
+                className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
+                whileHover={{ y: -2 }}
+              >
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="relative">
+                                         <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-construction-500 to-construction-600 p-0.5">
+                       <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center">
+                         <UserCircleIcon className="w-10 h-10 text-steel-400" />
+                       </div>
+                     </div>
+                     {admin.is_active && (
+                       <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-earth-500 rounded-full flex items-center justify-center">
+                         <ShieldCheckIcon className="w-3 h-3 text-white" />
+                       </div>
+                     )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold text-steel-900 truncate">{admin.name}</h3>
+                    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(admin.role_slug)}`}>
+                      {getRoleDisplayName(admin.role_slug)}
+                    </span>
                   </div>
                 </div>
-                {admin.is_active && (
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-earth-500 rounded-full flex items-center justify-center">
-                    <ShieldCheckIcon className="w-3 h-3 text-white" />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-bold text-steel-900 truncate">{admin.name}</h3>
-                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(admin.role_slug)}`}>
-                  {getRoleDisplayName(admin.role_slug)}
-                </span>
-              </div>
-            </div>
 
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center text-sm text-steel-600">
-                <EnvelopeIcon className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span className="truncate">{admin.email}</span>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-sm text-steel-600">
+                    <EnvelopeIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">{admin.email}</span>
               </div>
-              
-              <div className="flex items-center text-sm text-steel-600">
-                <CalendarIcon className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span>Создан: {formatDate(admin.created_at)}</span>
-              </div>
-            </div>
+                  
+                  <div className="flex items-center text-sm text-steel-600">
+                    <CalendarIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span>Создан: {formatDate(admin.created_at)}</span>
+                          </div>
+                        </div>
 
-            <div className="mb-4">
-              {admin.is_active ? (
-                <div className="flex items-center text-sm text-earth-600">
-                  <ShieldCheckIcon className="w-4 h-4 mr-2" />
-                  <span>Активный пользователь</span>
+                 <div className="mb-4">
+                        {admin.is_active ? (
+                     <div className="flex items-center text-sm text-earth-600">
+                       <ShieldCheckIcon className="w-4 h-4 mr-2" />
+                       <span>Активный пользователь</span>
+                     </div>
+                   ) : (
+                     <div className="flex items-center text-sm text-safety-600">
+                       <CalendarIcon className="w-4 h-4 mr-2" />
+                       <span>Неактивный пользователь</span>
+                     </div>
+                   )}
+                 </div>
+
+                <div className="flex space-x-2">
+                  <motion.button
+                    onClick={() => handleOpenEditModal(admin)}
+                    className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-steel-300 text-steel-700 rounded-lg hover:bg-steel-50 transition-colors"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <PencilIcon className="w-4 h-4 mr-2" />
+                    Редактировать
+                  </motion.button>
+                  <motion.button
+                    onClick={() => handleOpenDeleteConfirmModal(admin)}
+                    className="px-3 py-2 border border-construction-300 text-construction-700 rounded-lg hover:bg-construction-50 transition-colors"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <TrashIcon className="w-4 h-4" />
+                  </motion.button>
                 </div>
-              ) : (
-                <div className="flex items-center text-sm text-safety-600">
-                  <CalendarIcon className="w-4 h-4 mr-2" />
-                  <span>Неактивный пользователь</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex space-x-2">
-              <motion.button
-                onClick={() => handleOpenEditModal(admin)}
-                className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-steel-300 text-steel-700 rounded-lg hover:bg-steel-50 transition-colors"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <PencilIcon className="w-4 h-4 mr-2" />
-                Редактировать
-              </motion.button>
-              <motion.button
-                onClick={() => handleOpenDeleteConfirmModal(admin)}
-                className="px-3 py-2 border border-construction-300 text-construction-700 rounded-lg hover:bg-construction-50 transition-colors"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <TrashIcon className="w-4 h-4" />
-              </motion.button>
-            </div>
-          </motion.div>
-        ))}
+              </motion.div>
+            ))}
       </div>
     );
   };
@@ -596,7 +596,7 @@ const AdminsPage = () => {
             animate={{ opacity: 1, y: 0 }}
           >
             <p className="font-medium">{error}</p>
-          </motion.div>
+      </motion.div>
         )}
         {renderContent()}
       </div>
