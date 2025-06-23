@@ -284,36 +284,160 @@ const MultiOrganizationPage = () => {
           {activeTab === 'hierarchy' && (
             <div className="space-y-6">
               {hierarchy ? (
-                <div>
-                  <div className="flex items-center justify-center mb-8">
-                    <div className="bg-blue-100 p-6 rounded-lg text-center">
-                      <BuildingOfficeIcon className="h-12 w-12 text-blue-600 mx-auto mb-2" />
-                      <h3 className="text-lg font-semibold text-blue-900">{hierarchy.parent.name}</h3>
-                      <p className="text-blue-600">Головная организация</p>
+                <div className="relative">
+                  {/* Интерактивная схема холдинга */}
+                  <div className="min-h-[600px] relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-50 to-blue-50 p-8">
+                    
+                    {/* Головная организация в центре */}
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                      <div className="relative group">
+                        <div className="bg-white border-4 border-blue-500 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 min-w-[280px] text-center">
+                          <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <BuildingOfficeIcon className="h-8 w-8 text-white" />
+                          </div>
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">{hierarchy.parent.name}</h3>
+                          <p className="text-blue-600 font-medium mb-2">Головная организация</p>
+                          <div className="text-xs text-gray-500 space-y-1">
+                            <p>Уровень: {hierarchy.parent.hierarchy_level}</p>
+                          </div>
+                          
+                          {/* Статистика */}
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <p className="font-medium text-gray-900">{hierarchy.total_stats.total_organizations}</p>
+                                <p className="text-gray-500">Организаций</p>
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">{hierarchy.total_stats.total_users}</p>
+                                <p className="text-gray-500">Пользователей</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Пульсирующий эффект */}
+                        <div className="absolute inset-0 bg-blue-500 rounded-2xl opacity-20 animate-ping"></div>
+                      </div>
+                    </div>
+
+                    {/* SVG для связей */}
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 800 600">
+                      <defs>
+                        <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.8"/>
+                          <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.4"/>
+                        </linearGradient>
+                      </defs>
+                      
+                      {hierarchy.children.map((child, index) => {
+                        const angle = (index * 360) / hierarchy.children.length;
+                        const radius = 200;
+                        const centerX = 400;
+                        const centerY = 300;
+                        const childX = centerX + radius * Math.cos((angle * Math.PI) / 180);
+                        const childY = centerY + radius * Math.sin((angle * Math.PI) / 180);
+                        
+                        return (
+                          <g key={child.id}>
+                            {/* Основная связь */}
+                            <line
+                              x1={centerX}
+                              y1={centerY}
+                              x2={childX}
+                              y2={childY}
+                              stroke="url(#connectionGradient)"
+                              strokeWidth="3"
+                              strokeDasharray="5,5"
+                              className="animate-pulse"
+                            />
+                            
+                            {/* Точки соединения */}
+                            <circle cx={centerX} cy={centerY} r="4" fill="#3b82f6" />
+                            <circle cx={childX} cy={childY} r="4" fill="#8b5cf6" />
+                          </g>
+                        );
+                      })}
+                    </svg>
+
+                    {/* Дочерние организации по кругу */}
+                    {hierarchy.children.map((child, index) => {
+                      const angle = (index * 360) / hierarchy.children.length;
+                      const radius = 200;
+                      const childX = 50 + radius * Math.cos((angle * Math.PI) / 180);
+                      const childY = 50 + radius * Math.sin((angle * Math.PI) / 180);
+                      
+                      return (
+                        <div
+                          key={child.id}
+                          className="absolute z-10 transform -translate-x-1/2 -translate-y-1/2"
+                          style={{
+                            left: `${childX}%`,
+                            top: `${childY}%`,
+                          }}
+                        >
+                          <div className="group cursor-pointer">
+                            <div className="bg-white border-2 border-purple-400 rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 min-w-[220px] hover:scale-105">
+                              <div className="flex items-center mb-3">
+                                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center mr-3">
+                                  <BuildingOfficeIcon className="h-5 w-5 text-white" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-semibold text-gray-900 text-sm truncate">{child.name}</h4>
+                                  <p className="text-purple-600 text-xs">Дочерняя организация</p>
+                                </div>
+                              </div>
+                              
+                              <div className="text-xs text-gray-600 space-y-1">
+                                {child.inn && <p>ИНН: {child.inn}</p>}
+                                <p>Уровень: {child.hierarchy_level}</p>
+                              </div>
+                              
+                              {/* Индикатор связи */}
+                              <div className="flex justify-center mt-3">
+                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                              </div>
+                            </div>
+                            
+                            {/* Hover эффект */}
+                            <div className="absolute inset-0 bg-purple-500 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Декоративные элементы */}
+                    <div className="absolute top-4 left-4 w-3 h-3 bg-blue-400 rounded-full animate-bounce"></div>
+                    <div className="absolute top-8 right-8 w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }}></div>
+                    <div className="absolute bottom-6 left-8 w-4 h-4 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
+                    
+                    {/* Сетка фона */}
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="h-full w-full" style={{
+                        backgroundImage: 'radial-gradient(circle, #3b82f6 1px, transparent 1px)',
+                        backgroundSize: '30px 30px'
+                      }}></div>
                     </div>
                   </div>
 
-                  {hierarchy.children.length > 0 && (
-                    <div>
-                      <h4 className="text-lg font-medium text-gray-900 mb-4">Дочерние организации</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {hierarchy.children.map((child) => (
-                          <div key={child.id} className="border border-gray-200 rounded-lg p-4">
-                            <div className="flex items-center mb-2">
-                              <BuildingOfficeIcon className="h-6 w-6 text-gray-500 mr-2" />
-                              <h5 className="font-medium text-gray-900">{child.name}</h5>
-                            </div>
-                            {child.inn && (
-                              <p className="text-sm text-gray-600">ИНН: {child.inn}</p>
-                            )}
-                            <p className="text-xs text-gray-500 mt-1">
-                              Уровень: {child.hierarchy_level}
-                            </p>
-                          </div>
-                        ))}
+                  {/* Легенда */}
+                  <div className="mt-6 bg-white rounded-lg p-4 border border-gray-200">
+                    <h4 className="font-medium text-gray-900 mb-3">Структура холдинга</h4>
+                    <div className="flex flex-wrap gap-4">
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
+                        <span className="text-sm text-gray-600">Головная организация</span>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-4 h-4 bg-purple-500 rounded-full mr-2"></div>
+                        <span className="text-sm text-gray-600">Дочерние организации</span>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-8 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded mr-2"></div>
+                        <span className="text-sm text-gray-600">Связи управления</span>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-12">
