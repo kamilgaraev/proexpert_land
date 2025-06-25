@@ -49,8 +49,9 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const { seoTracker } = require('@utils/seoTracking');
-    seoTracker.trackPageView();
+    import('@utils/seoTracking').then(({ seoTracker }) => {
+      seoTracker.trackPageView();
+    });
   }, [location.pathname]);
 
   return (

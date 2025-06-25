@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { BuildingOfficeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
-import SEOHead from './SEOHead';
+import { SEOHead } from './SEOHead';
 import { getPageSEOData, generateOrganizationSchema } from '../../utils/seo';
 
 interface PageLayoutProps {
