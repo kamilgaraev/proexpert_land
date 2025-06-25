@@ -42,7 +42,8 @@ const Pricing = () => {
       buttonStyle: 'border-2 border-construction-400 text-construction-600 hover:bg-construction-50',
       popular: false,
       color: 'concrete',
-      icon: WrenchScrewdriverIcon
+      icon: WrenchScrewdriverIcon,
+      keywords: 'бесплатный тариф строительство малый бизнес'
     },
     {
       name: 'Профессиональный',
@@ -64,7 +65,8 @@ const Pricing = () => {
       buttonStyle: 'bg-gradient-to-r from-construction-600 to-construction-500 text-white hover:shadow-construction',
       popular: true,
       color: 'construction',
-      icon: BuildingOfficeIcon
+      icon: BuildingOfficeIcon,
+      keywords: 'профессиональный тариф CRM строительство средний бизнес'
     },
     {
       name: 'Корпоративный',
@@ -86,35 +88,44 @@ const Pricing = () => {
       buttonStyle: 'border-2 border-safety-400 text-safety-600 hover:bg-safety-50',
       popular: false,
       color: 'safety',
-      icon: TruckIcon
+      icon: TruckIcon,
+      keywords: 'корпоративный тариф enterprise строительство крупный бизнес'
     }
   ];
 
   const faqItems = [
     {
       question: 'Как быстро можно начать работать с системой?',
-      answer: 'Регистрация и базовая настройка занимают 15 минут. Полное обучение команды - 1-2 дня. Мы предоставляем персонального менеджера для помощи в настройке.'
+      answer: 'Регистрация и базовая настройка занимают 15 минут. Полное обучение команды - 1-2 дня. Мы предоставляем персонального менеджера для помощи в настройке.',
+      keywords: 'быстрый старт настройка система'
     },
     {
       question: 'Работает ли система без интернета?',
-      answer: 'Мобильное приложение работает офлайн. Все данные синхронизируются при появлении интернета. Веб-платформа требует стабильное подключение.'
+      answer: 'Мобильное приложение работает офлайн. Все данные синхронизируются при появлении интернета. Веб-платформа требует стабильное подключение.',
+      keywords: 'офлайн работа мобильное приложение'
     },
     {
       question: 'Можно ли интегрировать с 1С и другими системами?',
-      answer: 'Да, мы предоставляем готовые интеграции с 1С, а также API для подключения других систем. Настройка интеграций входит в план "Профессиональный".'
+      answer: 'Да, мы предоставляем готовые интеграции с 1С, а также API для подключения других систем. Настройка интеграций входит в план "Профессиональный".',
+      keywords: 'интеграция 1С API системы'
     },
     {
       question: 'Какие гарантии безопасности данных?',
-      answer: 'Данные хранятся на серверах в России с шифрованием. Ежедневное резервное копирование, двухфакторная аутентификация, регулярные аудиты безопасности.'
+      answer: 'Данные хранятся на серверах в России с шифрованием. Ежедневное резервное копирование, двухфакторная аутентификация, регулярные аудиты безопасности.',
+      keywords: 'безопасность данных шифрование'
     },
     {
       question: 'Можно ли изменить тарифный план?',
-      answer: 'Вы можете повысить тариф в любой момент. При понижении тарифа изменения вступят в силу со следующего периода оплаты.'
+      answer: 'Вы можете повысить тариф в любой момент. При понижении тарифа изменения вступят в силу со следующего периода оплаты.',
+      keywords: 'смена тарифа гибкость оплаты'
     }
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-steel-50 to-concrete-100 relative overflow-hidden">
+    <section 
+      className="py-24 bg-gradient-to-b from-steel-50 to-concrete-100 relative overflow-hidden"
+      data-seo-track="pricing_section_view"
+    >
       <div className="absolute inset-0 bg-blueprint opacity-10"></div>
       
       <div className="container-custom relative z-10">
@@ -127,17 +138,28 @@ const Pricing = () => {
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-construction-100 to-safety-100 border border-construction-300 rounded-full mb-6">
             <CurrencyDollarIcon className="w-4 h-4 text-construction-600" />
-            <span className="text-construction-800 text-sm font-semibold">Тарифные планы</span>
+            <span 
+              className="text-construction-800 text-sm font-semibold"
+              data-seo-keyword="тарифные планы"
+            >
+              Тарифные планы
+            </span>
           </div>
           
-          <h2 className="text-4xl md:text-6xl font-bold text-steel-900 mb-6 font-construction">
+          <h2 
+            className="text-4xl md:text-6xl font-bold text-steel-900 mb-6 font-construction"
+            data-seo-keyword="стоимость CRM строительство"
+          >
             Выберите подходящий <br />
             <span className="bg-gradient-to-r from-construction-600 to-safety-600 bg-clip-text text-transparent">
               тарифный план
             </span>
           </h2>
           
-          <p className="text-xl text-steel-600 max-w-3xl mx-auto">
+          <p 
+            className="text-xl text-steel-600 max-w-3xl mx-auto"
+            data-seo-keyword="тарифы строительные компании"
+          >
             Гибкие тарифы для компаний любого размера - от стартапов до крупных холдингов
           </p>
         </motion.div>
@@ -154,12 +176,14 @@ const Pricing = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: index * 0.2 }}
               viewport={{ once: true }}
+              data-seo-track="pricing_plan_view"
+              data-seo-keyword={plan.keywords}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
                   <div className="bg-gradient-to-r from-construction-600 to-safety-600 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
                     <StarIcon className="w-4 h-4" />
-                    Популярный выбор
+                    <span data-seo-keyword="популярный план">Популярный выбор</span>
                   </div>
                 </div>
               )}
@@ -181,11 +205,21 @@ const Pricing = () => {
                     <plan.icon className="w-8 h-8 text-white" />
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-steel-900 mb-2">{plan.name}</h3>
+                  <h3 
+                    className="text-2xl font-bold text-steel-900 mb-2"
+                    data-seo-keyword={plan.keywords}
+                  >
+                    {plan.name}
+                  </h3>
                   <p className="text-steel-600 mb-6">{plan.description}</p>
                   
                   <div className="mb-6">
-                    <span className="text-4xl font-bold text-steel-900">{plan.price}</span>
+                    <span 
+                      className="text-4xl font-bold text-steel-900"
+                      data-seo-keyword="цена план"
+                    >
+                      {plan.price}
+                    </span>
                     {plan.period && (
                       <span className="text-steel-600 ml-2">/ {plan.period}</span>
                     )}
@@ -213,17 +247,17 @@ const Pricing = () => {
                   ))}
                 </div>
 
-                <Link
-                  to={plan.name === 'Корпоративный' ? '/contact' : '/register'}
+                <button
                   onClick={() => handlePlanClick(plan.name)}
                   className={`
-                    w-full py-4 px-6 rounded-lg font-semibold text-center transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105
+                    w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 hover:scale-105
                     ${plan.buttonStyle}
                   `}
+                  data-seo-track="pricing_plan_button_click"
+                  data-seo-keyword={plan.keywords}
                 >
-                  {plan.name === 'Корпоративный' && <PhoneIcon className="w-5 h-5" />}
                   {plan.buttonText}
-                </Link>
+                </button>
               </div>
             </motion.div>
           ))}
@@ -235,33 +269,40 @@ const Pricing = () => {
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
+          data-seo-track="pricing_cta_view"
         >
-          <div className="absolute inset-0 bg-construction-grid opacity-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-construction-600/90 to-safety-600/90"></div>
+          <div className="absolute top-0 left-0 w-full h-full bg-construction-grid opacity-20"></div>
           
           <div className="relative z-10">
-            <h3 className="text-3xl md:text-4xl font-bold text-white mb-6 font-construction">
-              Попробуйте бесплатно 14 дней
+            <h3 
+              className="text-3xl md:text-4xl font-bold text-white mb-6 font-construction"
+              data-seo-keyword="демо версия ProHelper"
+            >
+              Не уверены? Попробуйте демо-версию
             </h3>
-            <p className="text-construction-100 text-lg mb-8 max-w-2xl mx-auto">
-              Полный доступ ко всем функциям без ограничений. Кредитная карта не требуется.
+            <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto">
+              Получите полный доступ к системе на 14 дней бесплатно и убедитесь в эффективности
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                to="/register"
-                onClick={() => handlePlanClick('Пробный период')}
-                className="px-8 py-4 bg-white text-construction-600 font-semibold rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105"
+                to="/demo"
+                className="px-8 py-4 bg-white text-construction-600 font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-105"
+                data-seo-track="demo_button_click"
+                data-seo-keyword="демо версия бесплатно"
               >
-                Начать бесплатный период
+                Запросить демо
               </Link>
-              <Link 
-                to="/contact"
-                onClick={() => handlePlanClick('Связаться с нами')}
-                className="flex items-center gap-2 px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition-all duration-300"
+              <a
+                href="tel:+79991234567"
+                className="px-8 py-4 border-2 border-white text-white font-semibold rounded-xl hover:bg-white/10 transition-all duration-300 hover:scale-105 flex items-center gap-2 justify-center"
+                data-seo-track="call_button_click"
+                data-seo-keyword="консультация телефон"
               >
                 <PhoneIcon className="w-5 h-5" />
-                Связаться с нами
-              </Link>
+                Получить консультацию
+              </a>
             </div>
           </div>
         </motion.div>
@@ -272,32 +313,34 @@ const Pricing = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
+          data-seo-track="faq_section_view"
         >
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-steel-900 mb-4 font-construction">
-              Часто задаваемые вопросы
-            </h3>
-            <p className="text-steel-600 text-lg">
-              Ответы на популярные вопросы о ProHelper
-            </p>
-          </div>
+          <h3 
+            className="text-3xl md:text-4xl font-bold text-steel-900 text-center mb-12 font-construction"
+            data-seo-keyword="часто задаваемые вопросы"
+          >
+            Часто задаваемые вопросы
+          </h3>
           
           <div className="space-y-6">
-            {faqItems.map((item, index) => (
+            {faqItems.map((faq, index) => (
               <motion.div
                 key={index}
-                className="bg-white/90 border-2 border-steel-200 rounded-xl p-6 backdrop-blur-sm hover:border-construction-300 transition-all duration-300"
+                className="bg-white/80 border border-steel-200 rounded-xl p-6 backdrop-blur-sm hover:shadow-lg transition-all duration-300"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                transition={{ duration: 0.8, delay: index * 0.1 }}
                 viewport={{ once: true }}
+                data-seo-track="faq_item_view"
+                data-seo-keyword={faq.keywords}
               >
-                <h4 className="text-lg font-semibold text-steel-900 mb-3">
-                  {item.question}
+                <h4 
+                  className="text-lg font-semibold text-steel-900 mb-3"
+                  data-seo-keyword={faq.keywords}
+                >
+                  {faq.question}
                 </h4>
-                <p className="text-steel-600 leading-relaxed">
-                  {item.answer}
-                </p>
+                <p className="text-steel-600 leading-relaxed">{faq.answer}</p>
               </motion.div>
             ))}
           </div>

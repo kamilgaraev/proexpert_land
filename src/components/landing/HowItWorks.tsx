@@ -9,7 +9,10 @@ import {
   ClipboardDocumentListIcon,
   BuildingOfficeIcon,
   TruckIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  UserPlusIcon,
+  CogIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
 const HowItWorks = () => {
@@ -25,7 +28,8 @@ const HowItWorks = () => {
         'Настройка ролей пользователей',
         'Интеграция с существующими системами'
       ],
-      color: 'construction'
+      color: 'construction',
+      keywords: 'регистрация настройка быстрый старт'
     },
     {
       step: '02',
@@ -38,7 +42,8 @@ const HowItWorks = () => {
         'Настройка уведомлений',
         'Тестирование всех функций'
       ],
-      color: 'safety'
+      color: 'safety',
+      keywords: 'обучение команда менеджер поддержка'
     },
     {
       step: '03',
@@ -51,7 +56,8 @@ const HowItWorks = () => {
         'QR-коды для быстрого учета',
         'Геолокация операций'
       ],
-      color: 'steel'
+      color: 'steel',
+      keywords: 'запуск проекты учет материалов задачи'
     },
     {
       step: '04',
@@ -64,7 +70,8 @@ const HowItWorks = () => {
         'Прогнозирование затрат',
         'Оптимизация процессов'
       ],
-      color: 'earth'
+      color: 'earth',
+      keywords: 'результаты аналитика эффективность оптимизация'
     }
   ];
 
@@ -73,25 +80,55 @@ const HowItWorks = () => {
       icon: WrenchScrewdriverIcon,
       title: 'Быстрое внедрение',
       description: 'Система готова к работе за 24 часа',
-      value: '1 день'
+      value: '1 день',
+      keywords: 'экономия времени автоматизация'
     },
     {
       icon: TruckIcon,
       title: 'Экономия ресурсов',
       description: 'Снижение затрат на материалы и логистику',
-      value: '40%'
+      value: '40%',
+      keywords: 'снижение затрат учет материалов'
     },
     {
       icon: ShieldCheckIcon,
       title: 'Надежность',
       description: 'Гарантированная сохранность данных',
-      value: '99.9%'
+      value: '99.9%',
+      keywords: 'доступность данные облако'
+    },
+    {
+      number: '3 часа',
+      title: 'экономии времени в день',
+      description: 'за счет автоматизации рутинных процессов',
+      keywords: 'экономия времени автоматизация'
+    },
+    {
+      number: '40%',
+      title: 'снижение затрат',
+      description: 'благодаря точному учету материалов',
+      keywords: 'снижение затрат учет материалов'
+    },
+    {
+      number: '85%',
+      title: 'рост производительности',
+      description: 'команды за счет четкой координации',
+      keywords: 'рост производительности координация команды'
+    },
+    {
+      number: '24/7',
+      title: 'доступность данных',
+      description: 'с любого устройства в любое время',
+      keywords: 'доступность данные облако'
     }
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-concrete-100 to-steel-50 relative overflow-hidden">
-      <div className="absolute inset-0 bg-construction-grid opacity-10"></div>
+    <section 
+      className="py-24 bg-gradient-to-b from-white to-steel-50 relative overflow-hidden"
+      data-seo-track="how_it_works_section_view"
+    >
+      <div className="absolute inset-0 bg-construction-grid opacity-5"></div>
       
       <div className="container-custom relative z-10">
         <motion.div
@@ -102,19 +139,30 @@ const HowItWorks = () => {
           viewport={{ once: true }}
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-construction-100 to-safety-100 border border-construction-300 rounded-full mb-6">
-            <BuildingOfficeIcon className="w-4 h-4 text-construction-600" />
-            <span className="text-construction-800 text-sm font-semibold">Процесс внедрения</span>
+            <CogIcon className="w-4 h-4 text-construction-600" />
+            <span 
+              className="text-construction-800 text-sm font-semibold"
+              data-seo-keyword="как это работает"
+            >
+              Как это работает
+            </span>
           </div>
           
-          <h2 className="text-4xl md:text-6xl font-bold text-steel-900 mb-6 font-construction">
-            Как работает <br />
+          <h2 
+            className="text-4xl md:text-6xl font-bold text-steel-900 mb-6 font-construction"
+            data-seo-keyword="внедрение системы управления строительством"
+          >
+            Простое внедрение <br />
             <span className="bg-gradient-to-r from-construction-600 to-safety-600 bg-clip-text text-transparent">
-              ProHelper
+              за 4 шага
             </span>
           </h2>
           
-          <p className="text-xl text-steel-600 max-w-3xl mx-auto">
-            Простой и понятный процесс от первого входа в систему до получения результатов
+          <p 
+            className="text-xl text-steel-600 max-w-3xl mx-auto"
+            data-seo-keyword="быстрое внедрение CRM строительство"
+          >
+            От регистрации до получения первых результатов всего за несколько дней
           </p>
         </motion.div>
 
@@ -129,6 +177,8 @@ const HowItWorks = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: index * 0.2 }}
               viewport={{ once: true }}
+              data-seo-track="step_card_view"
+              data-seo-keyword={step.keywords}
             >
               <div className="flex-1 text-center lg:text-left">
                 <div className={`
@@ -211,47 +261,45 @@ const HowItWorks = () => {
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
+          data-seo-track="benefits_section_view"
         >
-          <div className="absolute inset-0 bg-construction-grid opacity-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-construction-600/90 to-safety-600/90"></div>
+          <div className="absolute top-0 left-0 w-full h-full bg-construction-grid opacity-20"></div>
           
-          <div className="relative z-10">
-            <div className="text-center mb-12">
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 font-construction">
-                Преимущества ProHelper
-              </h3>
-              <p className="text-construction-100 text-lg max-w-2xl mx-auto">
-                Результаты, которые получают наши клиенты после внедрения системы
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-              {benefits.map((benefit, index) => (
-                <motion.div
-                  key={index}
-                  className="bg-white/10 border border-white/20 rounded-xl p-6 backdrop-blur-sm text-center hover:scale-105 transition-all duration-300"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.2 }}
-                  viewport={{ once: true }}
-                >
-                  <benefit.icon className="w-12 h-12 text-white mb-4 mx-auto" />
-                  <div className="text-3xl font-bold text-white mb-2">{benefit.value}</div>
-                  <h4 className="text-lg font-semibold text-white mb-2">{benefit.title}</h4>
-                  <p className="text-construction-100 text-sm">{benefit.description}</p>
-                </motion.div>
-              ))}
-            </div>
-            
-            <div className="text-center">
-              <motion.button
-                className="inline-flex items-center gap-3 px-8 py-4 bg-white text-construction-600 font-semibold text-lg rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+          <div className="relative z-10 text-center mb-12">
+            <h3 
+              className="text-3xl md:text-4xl font-bold text-white mb-4 font-construction"
+              data-seo-keyword="преимущества ProHelper цифры"
+            >
+              Преимущества в цифрах
+            </h3>
+            <p className="text-xl text-white/90 max-w-3xl mx-auto">
+              Реальные показатели от наших клиентов, которые уже используют ProHelper
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
+            {benefits.map((benefit, index) => (
+              <motion.div
+                key={index}
+                className="text-center bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                data-seo-track="benefit_card_view"
+                data-seo-keyword={benefit.keywords}
               >
-                <PlayIcon className="w-5 h-5" />
-                Посмотреть демо-версию
-              </motion.button>
-            </div>
+                <div 
+                  className="text-4xl md:text-5xl font-bold text-white mb-2"
+                  data-seo-keyword={benefit.keywords}
+                >
+                  {benefit.number}
+                </div>
+                <h4 className="text-lg font-semibold text-white mb-2">{benefit.title}</h4>
+                <p className="text-white/80 text-sm">{benefit.description}</p>
+              </motion.div>
+            ))}
           </div>
         </motion.div>
       </div>
