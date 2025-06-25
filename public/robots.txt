@@ -1,15 +1,32 @@
 User-agent: *
 Allow: /
 
-# Исключаем админские страницы и файлы билдинга
-Disallow: /dashboard/
-Disallow: /admin/
-Disallow: /*.js$
-Disallow: /*.css$
-Disallow: /*.json$
+# Основные страницы сайта
+Allow: /
+Allow: /integrations
+Allow: /api
+Allow: /small-business
+Allow: /enterprise  
+Allow: /contractors
+Allow: /blog
+Allow: /docs
+Allow: /about
+Allow: /careers
+
+# Дашборд - закрыт для индексации
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+
+# Служебные файлы
+Disallow: *.json
+Disallow: *.xml
+Disallow: /src/
+Disallow: /node_modules/
 
 # Карта сайта
 Sitemap: https://prohelper.pro/sitemap.xml
 
-# Время задержки для ботов (в секундах)
+# Время задержки для ботов
 Crawl-delay: 1 

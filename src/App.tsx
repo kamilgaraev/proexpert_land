@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import LandingPage from '@pages/landing/LandingPage';
 import DashboardLayout from '@layouts/DashboardLayout';
 import LoginPage from '@pages/dashboard/LoginPage';
@@ -37,9 +38,20 @@ import CareersPage from '@pages/company/CareersPage';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import YandexMetrika from '@components/analytics/YandexMetrika';
+import { initSEOTracking } from '@utils/seoTracking';
 
 function App() {
+  const location = useLocation();
   const yandexMetrikaId = 102888970;
+
+  useEffect(() => {
+    initSEOTracking();
+  }, []);
+
+  useEffect(() => {
+    const { seoTracker } = require('@utils/seoTracking');
+    seoTracker.trackPageView();
+  }, [location.pathname]);
 
   return (
     <>
@@ -87,6 +99,7 @@ function App() {
         }>
           <Route index element={<DashboardPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="settings" element={<ProfilePage />} />
           <Route path="help" element={<HelpPage />} />
           <Route path="support" element={<SupportPage />} />
           <Route path="faq" element={<FAQPage />} />

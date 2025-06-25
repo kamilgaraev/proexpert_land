@@ -4,49 +4,48 @@ import Features from '@components/landing/Features';
 import HowItWorks from '@components/landing/HowItWorks';
 import Pricing from '@components/landing/Pricing';
 import Footer from '@components/landing/Footer';
-import SEOHead from '@components/shared/SEOHead';
+import { useSEO } from '@hooks/useSEO';
 
 const LandingPage = () => {
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "ProExpert - Система управления строительными проектами",
-    "description": "Единая экосистема для строительных компаний: от учета материалов на объекте до финансовой отчетности",
-    "url": "https://prohelper.pro",
-    "mainEntity": {
-      "@type": "Organization",
-      "@id": "https://prohelper.pro/#organization",
-      "name": "ProExpert",
-      "url": "https://prohelper.pro",
-      "description": "Ведущий поставщик SaaS решений для строительной отрасли",
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "contactType": "customer service",
-        "availableLanguage": "Russian"
-      }
+  const { addFAQSchema } = useSEO({
+    title: "ProHelper - Умная платформа для управления строительными проектами",
+    description: "Автоматизируйте строительные процессы с ProHelper: учет материалов, контроль бюджета, координация команд и отчетность в одной платформе. Повышайте эффективность проектов на 40%.",
+    keywords: "строительство, управление проектами, учет материалов, строительная отчетность, SaaS для строителей, автоматизация строительства, финансовый контроль, ProHelper",
+    type: "website"
+  });
+
+  const faqs = [
+    {
+      question: "Что такое ProHelper?",
+      answer: "ProHelper - это умная SaaS-платформа для комплексного управления строительными проектами. Мы объединяем учет материалов, контроль бюджета, координацию команд и отчетность в одной системе."
+    },
+    {
+      question: "Для каких компаний подходит ProHelper?",
+      answer: "ProHelper подходит для строительных компаний любого размера: от небольших подрядчиков до крупных корпораций. У нас есть специальные тарифы для малого бизнеса, среднего бизнеса и enterprise решения."
+    },
+    {
+      question: "Есть ли мобильное приложение?",
+      answer: "Да, у нас есть мобильное приложение для прорабов, которое позволяет вести учет материалов прямо на объекте, сканировать QR-коды и фиксировать геолокацию."
+    },
+    {
+      question: "Можно ли интегрировать ProHelper с 1С?",
+      answer: "Да, ProHelper поддерживает интеграцию с 1С и более чем 200 другими системами. Данные синхронизируются автоматически, что экономит время на ручной ввод."
     }
-  };
+  ];
+
+  addFAQSchema(faqs);
 
   return (
-    <>
-      <SEOHead
-        title="ProExpert - Система управления строительными проектами"
-        description="Единая экосистема для строительных компаний: от учета материалов на объекте до финансовой отчетности. Объединяем прорабов, администраторов и владельцев в одной платформе."
-        keywords="прораб, строительство, учет материалов, управление проектами, строительные работы, финансовый учет, SaaS, строительная отчетность, строительные компании"
-        canonicalUrl="https://prohelper.pro/"
-        structuredData={structuredData}
-      />
-      <div className="min-h-screen bg-gradient-to-b from-cyber-bg to-slate-900">
-        <Navbar />
-        <div className="pt-16">
-          <Hero />
-          <Features />
-          <HowItWorks />
-          <Pricing />
-        </div>
-        <Footer />
+    <div className="min-h-screen bg-gradient-to-b from-cyber-bg to-slate-900">
+      <Navbar />
+      <div className="pt-16">
+        <Hero />
+        <Features />
+        <HowItWorks />
+        <Pricing />
       </div>
-    </>
+      <Footer />
+    </div>
   );
 };
 

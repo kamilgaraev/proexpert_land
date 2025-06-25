@@ -11,16 +11,24 @@ import {
   TruckIcon
 } from '@heroicons/react/24/outline';
 import useAnalytics from '../../hooks/useAnalytics';
+import { seoTracker } from '../../utils/seoTracking';
 
 const Hero = () => {
   const { trackButtonClick } = useAnalytics();
 
   const handleStartFreeClick = () => {
     trackButtonClick('start_free', 'hero_section');
+    seoTracker.trackCTAClick('Начать бесплатно', 'hero_main');
+    seoTracker.trackBusinessGoal('REGISTRATION_INTENT');
   };
 
   const handleWatchDemoClick = () => {
     trackButtonClick('watch_demo', 'hero_section');
+    seoTracker.trackCTAClick('Смотреть демо', 'hero_secondary');
+  };
+
+  const handleKeywordClick = (keyword: string) => {
+    seoTracker.trackKeywordClick(keyword, 'hero_text');
   };
 
   return (
@@ -40,9 +48,16 @@ const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
+              data-seo-track="hero_badge"
             >
               <WrenchScrewdriverIcon className="w-4 h-4 text-construction-600" />
-              <span className="text-construction-800 text-sm font-semibold">Цифровые решения для строительства</span>
+              <span className="text-construction-800 text-sm font-semibold">
+                Умная платформа для <span 
+                  className="cursor-pointer hover:text-construction-600" 
+                  onClick={() => handleKeywordClick('автоматизация строительства')}
+                  data-seo-track="keyword_automation"
+                >автоматизации строительства</span>
+              </span>
             </motion.div>
 
             <motion.h1 
@@ -50,12 +65,23 @@ const Hero = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
+              data-seo-track="main_headline"
             >
-              <span className="block">Управление</span>
-              <span className="block bg-gradient-to-r from-construction-600 via-construction-500 to-safety-600 bg-clip-text text-transparent">
-                строительными
+              <span className="block">
+                <span 
+                  className="cursor-pointer hover:text-construction-600"
+                  onClick={() => handleKeywordClick('учет материалов')}
+                  data-seo-track="keyword_materials"
+                >Учет материалов</span> и
               </span>
-              <span className="block">проектами</span>
+              <span className="block bg-gradient-to-r from-construction-600 via-construction-500 to-safety-600 bg-clip-text text-transparent">
+                <span 
+                  className="cursor-pointer"
+                  onClick={() => handleKeywordClick('управление проектами')}
+                  data-seo-track="keyword_management"
+                >управление проектами</span>
+              </span>
+              <span className="block">для строителей</span>
             </motion.h1>
 
             <motion.p 
@@ -63,9 +89,17 @@ const Hero = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
+              data-seo-track="hero_description"
             >
-              Единая экосистема для строительных компаний: от учета материалов на объекте 
-              до финансовой отчетности. Объединяем прорабов, администраторов и владельцев в одной платформе.
+              ProHelper объединяет <span 
+                className="font-semibold text-construction-600 cursor-pointer hover:text-construction-700" 
+                onClick={() => handleKeywordClick('учет материалов на стройке')}
+                data-seo-track="keyword_site_materials"
+              >учет материалов на стройке</span>, <span 
+                className="font-semibold text-safety-600 cursor-pointer hover:text-safety-700"
+                onClick={() => handleKeywordClick('контроль работ')}
+                data-seo-track="keyword_work_control"
+              >контроль работ</span>, координацию команд и финансовую отчетность в одной платформе.
             </motion.p>
 
             <motion.div 
@@ -73,11 +107,13 @@ const Hero = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
+              data-seo-track="hero_cta_section"
             >
               <Link
                 to="/register"
                 onClick={handleStartFreeClick}
                 className="group relative px-8 py-4 bg-gradient-to-r from-construction-600 to-construction-500 rounded-lg text-white font-semibold text-lg hover:shadow-construction transition-all duration-300 transform hover:scale-105 border border-construction-600"
+                data-seo-track="cta_register"
               >
                 <span className="relative z-10 flex items-center gap-2">
                   Начать бесплатно
@@ -88,6 +124,7 @@ const Hero = () => {
               <button 
                 onClick={handleWatchDemoClick}
                 className="flex items-center gap-3 px-8 py-4 border-2 border-steel-400 rounded-lg text-steel-700 font-semibold text-lg hover:border-construction-500 hover:text-construction-600 transition-all duration-300 backdrop-blur-sm bg-white/50"
+                data-seo-track="cta_demo"
               >
                 <PlayIcon className="w-5 h-5" />
                 Смотреть демо
@@ -99,34 +136,50 @@ const Hero = () => {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7 }}
+              data-seo-track="hero_features"
             >
-              <div className="group relative">
+              <div className="group relative" data-seo-track="feature_mobile">
                 <div className="bg-white/80 border-2 border-construction-200 rounded-xl p-6 backdrop-blur-sm hover:shadow-construction transition-all duration-300 hover:scale-105 hover:border-construction-400">
                   <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-lg flex items-center justify-center mb-4 group-hover:animate-build">
                     <DevicePhoneMobileIcon className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold text-steel-900 mb-2">Мобильное приложение</h3>
-                  <p className="text-steel-600">Для прорабов - учет материалов и работ прямо на объекте</p>
+                  <h3 className="text-xl font-semibold text-steel-900 mb-2">
+                    <span 
+                      className="cursor-pointer hover:text-construction-600"
+                      onClick={() => handleKeywordClick('мобильное приложение для прораба')}
+                    >Мобильное приложение</span>
+                  </h3>
+                  <p className="text-steel-600">Для прорабов - учет материалов и работ прямо на объекте с QR-сканером</p>
                 </div>
               </div>
 
-              <div className="group relative">
+              <div className="group relative" data-seo-track="feature_web">
                 <div className="bg-white/80 border-2 border-safety-200 rounded-xl p-6 backdrop-blur-sm hover:shadow-safety transition-all duration-300 hover:scale-105 hover:border-safety-400">
                   <div className="w-12 h-12 bg-gradient-to-br from-safety-500 to-safety-600 rounded-lg flex items-center justify-center mb-4 group-hover:animate-build">
                     <ComputerDesktopIcon className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold text-steel-900 mb-2">Веб-платформа</h3>
-                  <p className="text-steel-600">Для администраторов - полное управление проектами</p>
+                  <h3 className="text-xl font-semibold text-steel-900 mb-2">
+                    <span 
+                      className="cursor-pointer hover:text-safety-600"
+                      onClick={() => handleKeywordClick('CRM для строителей')}
+                    >CRM для строителей</span>
+                  </h3>
+                  <p className="text-steel-600">Для администраторов - полное управление проектами и контроль бюджета</p>
                 </div>
               </div>
 
-              <div className="group relative">
+              <div className="group relative" data-seo-track="feature_sync">
                 <div className="bg-white/80 border-2 border-steel-200 rounded-xl p-6 backdrop-blur-sm hover:shadow-steel transition-all duration-300 hover:scale-105 hover:border-steel-400">
                   <div className="w-12 h-12 bg-gradient-to-br from-steel-500 to-steel-600 rounded-lg flex items-center justify-center mb-4 group-hover:animate-build">
                     <CloudIcon className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold text-steel-900 mb-2">Облачная синхронизация</h3>
-                  <p className="text-steel-600">Все данные в реальном времени доступны всем участникам</p>
+                  <h3 className="text-xl font-semibold text-steel-900 mb-2">
+                    <span 
+                      className="cursor-pointer hover:text-steel-600"
+                      onClick={() => handleKeywordClick('синхронизация данных стройка')}
+                    >Облачная синхронизация</span>
+                  </h3>
+                  <p className="text-steel-600">Все данные в реальном времени доступны всем участникам проекта</p>
                 </div>
               </div>
             </motion.div>
@@ -136,6 +189,7 @@ const Hero = () => {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1, delay: 0.9 }}
+              data-seo-track="hero_stats"
             >
               <div className="relative bg-white/90 border-2 border-construction-300 rounded-2xl p-8 backdrop-blur-sm shadow-construction">
                 <div className="absolute -top-4 -left-4 w-8 h-8 bg-construction-500 rounded-full"></div>
@@ -144,20 +198,20 @@ const Hero = () => {
                 <div className="absolute -bottom-4 -right-4 w-8 h-8 bg-construction-500 rounded-full"></div>
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                  <div>
-                    <div className="text-3xl font-bold text-construction-600 mb-2">95%</div>
-                    <div className="text-steel-600 text-sm">Экономия времени на отчеты</div>
+                  <div data-seo-track="stat_efficiency">
+                    <div className="text-3xl font-bold text-construction-600 mb-2">40%</div>
+                    <div className="text-steel-600 text-sm">Повышение эффективности проектов</div>
                   </div>
-                  <div>
-                    <div className="text-3xl font-bold text-safety-600 mb-2">40%</div>
-                    <div className="text-steel-600 text-sm">Снижение затрат на материалы</div>
+                  <div data-seo-track="stat_materials">
+                    <div className="text-3xl font-bold text-safety-600 mb-2">30%</div>
+                    <div className="text-steel-600 text-sm">Экономия на материалах</div>
                   </div>
-                  <div>
+                  <div data-seo-track="stat_monitoring">
                     <div className="text-3xl font-bold text-steel-600 mb-2">24/7</div>
                     <div className="text-steel-600 text-sm">Мониторинг проектов</div>
                   </div>
-                  <div>
-                    <div className="text-3xl font-bold text-construction-600 mb-2">100+</div>
+                  <div data-seo-track="stat_clients">
+                    <div className="text-3xl font-bold text-construction-600 mb-2">200+</div>
                     <div className="text-steel-600 text-sm">Довольных клиентов</div>
                   </div>
                 </div>
@@ -169,10 +223,16 @@ const Hero = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 1.2 }}
+              data-seo-track="hero_footer"
             >
               <div className="flex items-center gap-4 text-steel-600">
                 <BuildingOfficeIcon className="w-8 h-8 text-construction-500 animate-crane" />
-                <span className="font-medium">Стройте будущее с ProHelper</span>
+                <span className="font-medium">
+                  <span 
+                    className="cursor-pointer hover:text-construction-600"
+                    onClick={() => handleKeywordClick('цифровизация строительства')}
+                  >Цифровизируйте</span> строительство с ProHelper
+                </span>
                 <TruckIcon className="w-8 h-8 text-safety-500 animate-float" />
               </div>
             </motion.div>
