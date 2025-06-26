@@ -11,10 +11,12 @@ import type { AdminFormData as AdminFormDataExternal, AdminUsersListResponse, Ad
 // БЛОК ОПРЕДЕЛЕНИЯ URL
 // Базовый домен API
 const API_BASE_DOMAIN = 'https://api.prohelper.pro';
+console.log('ОТЛАДКА: API_BASE_DOMAIN определен как:', API_BASE_DOMAIN);
 
 // Базовый путь для всех API v1, включая /landing
 // Результат: https://api.prohelper.pro/api/v1/landing
 const API_URL = `${API_BASE_DOMAIN}/api/v1/landing`;
+console.log('ОТЛАДКА: API_URL сформирован как:', API_URL);
 
 // URL для эндпоинтов биллинга, который должен быть https://api.prohelper.pro/api/v1/landing/billing
 // Строится от API_URL (который уже .../landing) добавлением /billing
