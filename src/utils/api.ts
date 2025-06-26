@@ -194,6 +194,9 @@ export const authService = {
   // Вход в систему
   login: async (credentials: LoginRequest): Promise<any> => {
     console.log('API: Начало функции login');
+    console.log('API: Используемый URL:', `${API_URL}/auth/login`);
+    console.log('API: API_URL переменная:', API_URL);
+    console.log('API: API_BASE_DOMAIN переменная:', API_BASE_DOMAIN);
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
