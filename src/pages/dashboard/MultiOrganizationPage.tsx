@@ -6,12 +6,8 @@ import {
   ChartBarIcon,
   ArrowPathIcon,
   ExclamationTriangleIcon,
-  CogIcon,
   BanknotesIcon,
   DocumentTextIcon,
-  ClockIcon,
-  ArrowTopRightOnSquareIcon,
-  CheckCircleIcon,
   EyeIcon,
 } from '@heroicons/react/24/outline';
 import { useMultiOrganization } from '@hooks/useMultiOrganization';
