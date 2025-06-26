@@ -1587,6 +1587,49 @@ export const multiOrganizationService = {
     const response = await api.post('/multi-organization/switch-context', contextData);
     return response;
   },
+
+  getHoldingPublicInfo: async (slug: string): Promise<OrganizationHierarchy> => {
+    const response = await fetch(`https://${slug}.prohelper.pro/api/public/holding`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Ошибка загрузки данных холдинга: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Не удалось загрузить данные холдинга');
+    }
+    
+    return data.data;
+  },
+
+  getHoldingDashboardInfo: async (slug: string, token: string): Promise<OrganizationHierarchy> => {
+    const response = await fetch(`https://${slug}.prohelper.pro/api/dashboard/holding`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Ошибка загрузки данных панели холдинга: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Не удалось загрузить данные панели холдинга');
+    }
+    
+    return data.data;
+  },
 };
 
 export default api; 

@@ -22,7 +22,7 @@ import PaidServicesPage from '@pages/dashboard/paid-services/PaidServicesPage';
 import SubscriptionLimitsPage from '@pages/dashboard/SubscriptionLimitsPage';
 import ModulesPage from '@pages/dashboard/ModulesPage';
 import MultiOrganizationPage from '@pages/dashboard/MultiOrganizationPage';
-
+import HoldingRouter from '@/HoldingRouter';
 
 // Новые страницы
 import IntegrationsPage from '@pages/product/IntegrationsPage';
@@ -53,6 +53,44 @@ function App() {
       seoTracker.trackPageView();
     });
   }, [location.pathname]);
+
+  const isHoldingSubdomain = () => {
+    const hostname = window.location.hostname;
+    const mainDomain = 'prohelper.pro';
+    
+    if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+      return false;
+    }
+    
+    return hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`);
+  };
+
+  if (isHoldingSubdomain()) {
+    return (
+      <>
+        <YandexMetrika 
+          counterId={yandexMetrikaId}
+          enableWebvisor={true}
+          enableClickmap={true}
+          enableTrackLinks={true}
+          enableAccurateTrackBounce={true}
+        />
+        <HoldingRouter />
+        <ToastContainer 
+          position="bottom-right"
+          autoClose={3000} 
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
+      </>
+    );
+  }
 
   return (
     <>

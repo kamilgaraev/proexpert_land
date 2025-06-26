@@ -222,26 +222,26 @@ const MultiOrganizationPage = () => {
               Перейти на сайт холдинга
             </button>
           )}
-          
-          {canCreateHolding() && !isHolding() && (
-            <button
-              onClick={() => setShowCreateHoldingModal(true)}
+        
+        {canCreateHolding() && !isHolding() && (
+          <button
+            onClick={() => setShowCreateHoldingModal(true)}
               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <PlusIcon className="h-5 w-5 mr-2" />
-              Создать холдинг
-            </button>
-          )}
-          
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Создать холдинг
+          </button>
+        )}
+        
           {isHolding() && hierarchy?.parent && (
-            <button
-              onClick={() => setShowAddChildModal(true)}
+          <button
+            onClick={() => setShowAddChildModal(true)}
               className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <PlusIcon className="h-5 w-5 mr-2" />
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
               Добавить дочернюю организацию
-            </button>
-          )}
+          </button>
+        )}
         </div>
       </div>
 
@@ -330,13 +330,13 @@ const MultiOrganizationPage = () => {
                       <div>
                         <p className="text-sm font-medium text-gray-500">ИНН</p>
                         <p className="text-gray-900">{hierarchy.parent.tax_number}</p>
-                      </div>
+                    </div>
                     )}
                     {hierarchy.parent.address && (
                       <div>
                         <p className="text-sm font-medium text-gray-500">Адрес</p>
                         <p className="text-gray-900">{hierarchy.parent.address}</p>
-                      </div>
+                    </div>
                     )}
                     <div>
                       <p className="text-sm font-medium text-gray-500">Дочерних организаций</p>
@@ -356,7 +356,7 @@ const MultiOrganizationPage = () => {
                   
                   <div className="relative">
                     <div className="flex flex-col items-center space-y-8">
-                      <div className="relative">
+                <div className="relative">
                         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 min-w-[280px] text-white">
                           <div className="flex items-center mb-4">
                             <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
@@ -391,23 +391,23 @@ const MultiOrganizationPage = () => {
                           {hierarchy.children.map((child) => (
                             <div key={child.id} className="relative group">
                               <div className="bg-white border-2 border-purple-200 rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                                <div className="flex items-center mb-3">
-                                  <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center mr-3">
-                                    <BuildingOfficeIcon className="h-5 w-5 text-white" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="font-semibold text-gray-900 text-sm truncate">{child.name}</h4>
-                                    <p className="text-purple-600 text-xs">Дочерняя организация</p>
-                                  </div>
+                              <div className="flex items-center mb-3">
+                                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center mr-3">
+                                  <BuildingOfficeIcon className="h-5 w-5 text-white" />
                                 </div>
-                                
-                                <div className="text-xs text-gray-600 space-y-1">
-                                  <p>Уровень: {child.hierarchy_level}</p>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-semibold text-gray-900 text-sm truncate">{child.name}</h4>
+                                  <p className="text-purple-600 text-xs">Дочерняя организация</p>
+                                </div>
+                              </div>
+                              
+                              <div className="text-xs text-gray-600 space-y-1">
+                                <p>Уровень: {child.hierarchy_level}</p>
                                   {child.tax_number && (
                                     <p>ИНН: {child.tax_number}</p>
                                   )}
-                                </div>
-                                
+                              </div>
+                              
                                 <div className="flex space-x-2 mt-3">
                                   <button
                                     onClick={() => handleViewOrganizationDetails(child.id)}
@@ -447,11 +447,11 @@ const MultiOrganizationPage = () => {
                         <div className="text-center">
                           <p className="text-2xl font-bold text-purple-600">{hierarchy.total_stats.total_projects}</p>
                           <p className="text-sm text-gray-600">Проектов</p>
-                        </div>
+                      </div>
                         <div className="text-center">
                           <p className="text-2xl font-bold text-orange-600">{hierarchy.total_stats.total_contracts}</p>
                           <p className="text-sm text-gray-600">Договоров</p>
-                        </div>
+                      </div>
                       </div>
                     </div>
                   )}
@@ -479,15 +479,15 @@ const MultiOrganizationPage = () => {
                           <div>
                             <h3 className="font-semibold text-gray-900">{org.name}</h3>
                             <div className="flex items-center space-x-2">
-                              <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600">
                                 {org.organization_type === 'parent' ? 'Головная организация' : 
                                  org.organization_type === 'child' ? 'Дочерняя организация' : 'Обычная организация'}
-                              </p>
-                              {org.is_holding && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                  Холдинг
-                                </span>
-                              )}
+                            </p>
+                        {org.is_holding && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Холдинг
+                          </span>
+                        )}
                             </div>
                           </div>
                         </div>
@@ -665,48 +665,48 @@ const MultiOrganizationPage = () => {
             <div className="p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Создать холдинг</h2>
               
-              <form onSubmit={handleCreateHolding} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+            <form onSubmit={handleCreateHolding} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                     Название холдинга <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={holdingForm.name}
-                    onChange={(e) => setHoldingForm({ ...holdingForm, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={holdingForm.name}
+                  onChange={(e) => setHoldingForm({ ...holdingForm, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Строительный холдинг АБВ"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Описание
-                  </label>
-                  <textarea
-                    value={holdingForm.description}
-                    onChange={(e) => setHoldingForm({ ...holdingForm, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    rows={3}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Описание
+                </label>
+                <textarea
+                  value={holdingForm.description}
+                  onChange={(e) => setHoldingForm({ ...holdingForm, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  rows={3}
                     placeholder="Группа строительных компаний"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Максимум дочерних организаций
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={holdingForm.max_child_organizations}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Максимум дочерних организаций
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={holdingForm.max_child_organizations}
                     onChange={(e) => setHoldingForm({ ...holdingForm, max_child_organizations: parseInt(e.target.value) || 25 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">Настройки холдинга</label>
                   <div className="space-y-3">
@@ -759,22 +759,22 @@ const MultiOrganizationPage = () => {
                 </div>
                 
                 <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateHoldingModal(false)}
+                <button
+                  type="button"
+                  onClick={() => setShowCreateHoldingModal(false)}
                     className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                  >
-                    Отмена
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                  >
+                >
+                  Отмена
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
                     {loading ? 'Создание...' : 'Создать холдинг'}
-                  </button>
-                </div>
-              </form>
+                </button>
+              </div>
+            </form>
             </div>
           </div>
         </div>
@@ -786,21 +786,21 @@ const MultiOrganizationPage = () => {
             <div className="p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Добавить дочернюю организацию</h2>
               
-              <form onSubmit={handleAddChild} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+            <form onSubmit={handleAddChild} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                     Название организации <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={childForm.name}
-                    onChange={(e) => setChildForm({ ...childForm, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={childForm.name}
+                  onChange={(e) => setChildForm({ ...childForm, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     placeholder="ООО Новый Строитель"
-                  />
-                </div>
-                
+                />
+              </div>
+              
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Описание
@@ -815,15 +815,15 @@ const MultiOrganizationPage = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      ИНН
-                    </label>
-                    <input
-                      type="text"
-                      value={childForm.inn}
-                      onChange={(e) => setChildForm({ ...childForm, inn: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  ИНН
+                </label>
+                <input
+                  type="text"
+                  value={childForm.inn}
+                  onChange={(e) => setChildForm({ ...childForm, inn: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="1234567890"
                     />
                   </div>
@@ -866,40 +866,40 @@ const MultiOrganizationPage = () => {
                       onChange={(e) => setChildForm({ ...childForm, phone: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="+7 (495) 123-45-67"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      value={childForm.email}
-                      onChange={(e) => setChildForm({ ...childForm, email: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={childForm.email}
+                  onChange={(e) => setChildForm({ ...childForm, email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="info@novyy-stroitel.ru"
-                    />
+                />
                   </div>
-                </div>
-                
+              </div>
+              
                 <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddChildModal(false)}
+                <button
+                  type="button"
+                  onClick={() => setShowAddChildModal(false)}
                     className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                  >
-                    Отмена
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
-                  >
+                >
+                  Отмена
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                >
                     {loading ? 'Добавление...' : 'Добавить организацию'}
-                  </button>
-                </div>
-              </form>
+                </button>
+              </div>
+            </form>
             </div>
           </div>
         </div>
