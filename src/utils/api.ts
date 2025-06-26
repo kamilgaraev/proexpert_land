@@ -1681,7 +1681,7 @@ export const multiOrganizationService = {
     let url: string;
     
     if (isLocalDev) {
-      url = `/api/v1/multi-organization/hierarchy`;
+      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}`;
     } else {
       url = `https://api.prohelper.pro/api/v1/holding-api/${slug}`;
     }
@@ -1711,7 +1711,7 @@ export const multiOrganizationService = {
     let url: string;
     
     if (isLocalDev) {
-      url = `/api/v1/multi-organization/hierarchy`;
+      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/dashboard`;
     } else {
       url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/dashboard`;
     }
