@@ -5,8 +5,6 @@ import {
   UsersIcon,
   FolderOpenIcon,
   DocumentTextIcon,
-  ArrowRightIcon,
-  ArrowTrendingUpIcon,
   ChartBarIcon,
   CogIcon,
   PlusIcon
