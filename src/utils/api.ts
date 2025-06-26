@@ -1553,37 +1553,37 @@ export const modulesService = {
 
 export const multiOrganizationService = {
   checkAvailability: async (): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.get('/landing/multi-organization/check-availability');
+    const response = await api.get('/multi-organization/check-availability');
     return response;
   },
 
   createHolding: async (holdingData: CreateHoldingRequest): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.post('/landing/multi-organization/create-holding', holdingData);
+    const response = await api.post('/multi-organization/create-holding', holdingData);
     return response;
   },
 
   addChildOrganization: async (childData: AddChildOrganizationRequest): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.post('/landing/multi-organization/add-child', childData);
+    const response = await api.post('/multi-organization/add-child', childData);
     return response;
   },
 
   getHierarchy: async (): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.get('/landing/multi-organization/hierarchy');
+    const response = await api.get('/multi-organization/hierarchy');
     return response;
   },
 
   getAccessibleOrganizations: async (): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.get('/landing/multi-organization/accessible');
+    const response = await api.get('/multi-organization/accessible');
     return response;
   },
 
   getOrganizationDetails: async (organizationId: number): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.get(`/landing/multi-organization/organization/${organizationId}`);
+    const response = await api.get(`/multi-organization/organization/${organizationId}`);
     return response;
   },
 
   switchContext: async (contextData: SwitchContextRequest): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.post('/landing/multi-organization/switch-context', contextData);
+    const response = await api.post('/multi-organization/switch-context', contextData);
     return response;
   },
 };
