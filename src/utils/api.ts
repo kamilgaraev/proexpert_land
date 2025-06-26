@@ -1515,6 +1515,94 @@ export interface SwitchContextRequest {
   organization_id: number;
 }
 
+export interface HoldingPublicData {
+  holding: {
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    parent_organization_id: number;
+    status: string;
+    created_at: string;
+  };
+  parent_organization: {
+    id: number;
+    name: string;
+    legal_name: string;
+    tax_number: string;
+    registration_number: string;
+    address: string;
+    phone?: string;
+    email?: string;
+    city: string;
+    description?: string;
+  };
+  stats: {
+    total_child_organizations: number;
+    total_users: number;
+    total_projects: number;
+    total_contracts: number;
+    total_contracts_value: number;
+    active_contracts_count: number;
+  };
+}
+
+export interface HoldingDashboardData {
+  holding: {
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    parent_organization_id: number;
+    status: string;
+  };
+  hierarchy: OrganizationHierarchy;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  consolidated_stats: {
+    total_child_organizations: number;
+    total_users: number;
+    total_projects: number;
+    total_contracts: number;
+    total_contracts_value: number;
+    active_contracts_count: number;
+    recent_activity: Array<{
+      type: string;
+      organization_name: string;
+      description: string;
+      date: string;
+    }>;
+    performance_metrics: {
+      monthly_growth: number;
+      efficiency_score: number;
+      satisfaction_index: number;
+    };
+  };
+}
+
+export interface HoldingOrganization {
+  id: number;
+  name: string;
+  description?: string;
+  organization_type: 'child';
+  hierarchy_level: number;
+  tax_number?: string;
+  registration_number?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  created_at: string;
+  stats: {
+    users_count: number;
+    projects_count: number;
+    contracts_count: number;
+    active_contracts_value: number;
+  };
+}
+
 export const modulesService = {
   getModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const response = await api.get('/modules/');
@@ -1588,14 +1676,14 @@ export const multiOrganizationService = {
     return response;
   },
 
-  getHoldingPublicInfo: async (slug: string): Promise<OrganizationHierarchy> => {
+  getHoldingPublicInfo: async (slug: string): Promise<HoldingPublicData> => {
     const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
     let url: string;
     
     if (isLocalDev) {
       url = `/api/v1/multi-organization/hierarchy`;
     } else {
-      url = `https://prohelper.pro/api/public/holding/${slug}`;
+      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}`;
     }
     
     const response = await fetch(url, {
@@ -1618,14 +1706,14 @@ export const multiOrganizationService = {
     return data.data;
   },
 
-  getHoldingDashboardInfo: async (slug: string, token: string): Promise<OrganizationHierarchy> => {
+  getHoldingDashboardInfo: async (slug: string, token: string): Promise<HoldingDashboardData> => {
     const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
     let url: string;
     
     if (isLocalDev) {
       url = `/api/v1/multi-organization/hierarchy`;
     } else {
-      url = `https://prohelper.pro/api/dashboard/holding/${slug}`;
+      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/dashboard`;
     }
     
     const response = await fetch(url, {
@@ -1638,12 +1726,49 @@ export const multiOrganizationService = {
     });
     
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+      }
       throw new Error(`Ошибка загрузки данных панели холдинга: ${response.status}`);
     }
     
     const data = await response.json();
     if (!data.success) {
       throw new Error(data.message || 'Не удалось загрузить данные панели холдинга');
+    }
+    
+    return data.data;
+  },
+
+  getHoldingOrganizations: async (slug: string, token: string): Promise<any[]> => {
+    const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
+    let url: string;
+    
+    if (isLocalDev) {
+      url = `/api/v1/multi-organization/accessible`;
+    } else {
+      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/organizations`;
+    }
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+      }
+      throw new Error(`Ошибка загрузки организаций: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Не удалось загрузить организации');
     }
     
     return data.data;

@@ -11,11 +11,11 @@ import {
   BoltIcon
 } from '@heroicons/react/24/outline';
 import { multiOrganizationService } from '@utils/api';
-import type { OrganizationHierarchy } from '@utils/api';
+import type { HoldingPublicData } from '@utils/api';
 import { SEOHead } from '@components/shared/SEOHead';
 
 const HoldingLandingPage = () => {
-  const [holdingData, setHoldingData] = useState<OrganizationHierarchy | null>(null);
+  const [holdingData, setHoldingData] = useState<HoldingPublicData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,14 +31,49 @@ const HoldingLandingPage = () => {
         
         if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
           slug = 'proverocka';
+          const data = await multiOrganizationService.getHierarchy();
+          if (data.data.success) {
+            const hierarchyData = data.data.data;
+            const publicData: HoldingPublicData = {
+              holding: {
+                id: 1,
+                name: hierarchyData.parent.name,
+                slug: 'proverocka',
+                description: 'Тестовый холдинг',
+                parent_organization_id: hierarchyData.parent.id,
+                status: 'active',
+                created_at: hierarchyData.parent.created_at,
+              },
+              parent_organization: {
+                id: hierarchyData.parent.id,
+                name: hierarchyData.parent.name,
+                legal_name: hierarchyData.parent.name,
+                tax_number: hierarchyData.parent.tax_number || '',
+                registration_number: hierarchyData.parent.registration_number || '',
+                address: hierarchyData.parent.address || '',
+                city: 'Казань',
+                description: 'Строительная компания',
+              },
+              stats: {
+                total_child_organizations: hierarchyData.total_stats.total_organizations,
+                total_users: hierarchyData.total_stats.total_users,
+                total_projects: hierarchyData.total_stats.total_projects,
+                total_contracts: hierarchyData.total_stats.total_contracts,
+                total_contracts_value: 0,
+                active_contracts_count: hierarchyData.total_stats.total_contracts,
+              }
+            };
+            setHoldingData(publicData);
+          } else {
+            throw new Error(data.data.message || 'Ошибка загрузки данных');
+          }
         } else if (hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`)) {
           slug = hostname.split('.')[0];
+          const data = await multiOrganizationService.getHoldingPublicInfo(slug);
+          setHoldingData(data);
         } else {
           throw new Error('Неверный поддомен');
         }
-
-        const data = await multiOrganizationService.getHoldingPublicInfo(slug);
-        setHoldingData(data);
       } catch (err) {
         console.error('Ошибка загрузки данных холдинга:', err);
         setError(err instanceof Error ? err.message : 'Ошибка загрузки данных');
@@ -75,13 +110,22 @@ const HoldingLandingPage = () => {
     );
   }
 
-  const { parent, children, total_stats } = holdingData;
+  const { holding, parent_organization, stats } = holdingData;
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('ru-RU', {
+      style: 'currency',
+      currency: 'RUB',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <SEOHead 
-        title={`${parent.name} - Холдинг`}
-        description={`Официальная страница холдинга ${parent.name}. Управляем ${total_stats.total_organizations} организациями с ${total_stats.total_users} пользователями.`}
+        title={`${holding.name} - Холдинг`}
+        description={`Официальная страница холдинга ${holding.name}. Управляем ${stats.total_child_organizations} организациями с ${stats.total_users} пользователями.`}
         keywords="холдинг, управление организациями, мультиорганизация"
       />
 
@@ -96,7 +140,7 @@ const HoldingLandingPage = () => {
                   <BuildingOfficeIcon className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{parent.name}</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">{holding.name}</h1>
                   <p className="text-sm text-gray-600">Холдинг компаний</p>
                 </div>
               </div>
@@ -116,10 +160,10 @@ const HoldingLandingPage = () => {
             <div className="max-w-4xl mx-auto">
               <h2 className="text-5xl font-bold text-gray-900 mb-6">
                 Добро пожаловать в холдинг
-                <span className="text-blue-600 block mt-2">{parent.name}</span>
+                <span className="text-blue-600 block mt-2">{holding.name}</span>
               </h2>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Мы объединяем усилия {total_stats.total_organizations} организаций для достижения общих целей и создания синергетического эффекта в строительной отрасли.
+                {holding.description || `Мы объединяем усилия ${stats.total_child_organizations} организаций для достижения общих целей и создания синергетического эффекта в строительной отрасли.`}
               </p>
               
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mt-16">
@@ -127,7 +171,7 @@ const HoldingLandingPage = () => {
                   <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-4">
                     <BuildingOfficeIcon className="h-6 w-6 text-blue-600" />
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">{total_stats.total_organizations}</h3>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-2">{stats.total_child_organizations}</h3>
                   <p className="text-gray-600">Организаций</p>
                 </div>
                 
@@ -135,7 +179,7 @@ const HoldingLandingPage = () => {
                   <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mx-auto mb-4">
                     <UsersIcon className="h-6 w-6 text-green-600" />
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">{total_stats.total_users}</h3>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-2">{stats.total_users}</h3>
                   <p className="text-gray-600">Сотрудников</p>
                 </div>
                 
@@ -143,7 +187,7 @@ const HoldingLandingPage = () => {
                   <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-4">
                     <FolderOpenIcon className="h-6 w-6 text-purple-600" />
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">{total_stats.total_projects}</h3>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-2">{stats.total_projects}</h3>
                   <p className="text-gray-600">Проектов</p>
                 </div>
                 
@@ -151,7 +195,7 @@ const HoldingLandingPage = () => {
                   <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg mx-auto mb-4">
                     <DocumentTextIcon className="h-6 w-6 text-orange-600" />
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">{total_stats.total_contracts}</h3>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-2">{stats.total_contracts}</h3>
                   <p className="text-gray-600">Договоров</p>
                 </div>
               </div>
@@ -163,9 +207,9 @@ const HoldingLandingPage = () => {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">Организации холдинга</h3>
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">О холдинге</h3>
             <p className="text-xl text-gray-600">
-              Познакомьтесь с компаниями, входящими в состав нашего холдинга
+              Подробная информация о нашей компании
             </p>
           </div>
 
@@ -182,15 +226,18 @@ const HoldingLandingPage = () => {
               </div>
 
               <div className="bg-white rounded-xl p-6 mb-6">
-                <h5 className="text-xl font-bold text-gray-900 mb-2">{parent.name}</h5>
-                {parent.tax_number && (
-                  <p className="text-gray-600 mb-2">ИНН: {parent.tax_number}</p>
+                <h5 className="text-xl font-bold text-gray-900 mb-2">{parent_organization.name}</h5>
+                {parent_organization.legal_name && parent_organization.legal_name !== parent_organization.name && (
+                  <p className="text-gray-600 mb-2">Полное название: {parent_organization.legal_name}</p>
                 )}
-                {parent.registration_number && (
-                  <p className="text-gray-600 mb-2">ОГРН: {parent.registration_number}</p>
+                {parent_organization.tax_number && (
+                  <p className="text-gray-600 mb-2">ИНН: {parent_organization.tax_number}</p>
                 )}
-                {parent.address && (
-                  <p className="text-gray-600">{parent.address}</p>
+                {parent_organization.registration_number && (
+                  <p className="text-gray-600 mb-2">ОГРН: {parent_organization.registration_number}</p>
+                )}
+                {parent_organization.address && (
+                  <p className="text-gray-600">{parent_organization.address}</p>
                 )}
               </div>
 
@@ -216,20 +263,30 @@ const HoldingLandingPage = () => {
                   <UsersIcon className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <h4 className="text-2xl font-bold text-gray-900">Дочерние организации</h4>
-                  <p className="text-green-600 font-medium">{children.length} компаний</p>
+                  <h4 className="text-2xl font-bold text-gray-900">Ключевые показатели</h4>
+                  <p className="text-green-600 font-medium">Наши достижения</p>
                 </div>
               </div>
 
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {children.map((child) => (
-                  <div key={child.id} className="bg-white rounded-xl p-4">
-                    <h5 className="font-semibold text-gray-900 mb-1">{child.name}</h5>
-                    {child.tax_number && (
-                      <p className="text-sm text-gray-600">ИНН: {child.tax_number}</p>
-                    )}
+              <div className="space-y-4">
+                <div className="bg-white rounded-xl p-4 flex justify-between items-center">
+                  <span className="font-semibold text-gray-900">Организаций в холдинге</span>
+                  <span className="text-2xl font-bold text-blue-600">{stats.total_child_organizations}</span>
+                </div>
+                <div className="bg-white rounded-xl p-4 flex justify-between items-center">
+                  <span className="font-semibold text-gray-900">Активных проектов</span>
+                  <span className="text-2xl font-bold text-green-600">{stats.total_projects}</span>
+                </div>
+                <div className="bg-white rounded-xl p-4 flex justify-between items-center">
+                  <span className="font-semibold text-gray-900">Договоров в работе</span>
+                  <span className="text-2xl font-bold text-purple-600">{stats.active_contracts_count}</span>
+                </div>
+                {stats.total_contracts_value > 0 && (
+                  <div className="bg-white rounded-xl p-4 flex justify-between items-center">
+                    <span className="font-semibold text-gray-900">Объем договоров</span>
+                    <span className="text-xl font-bold text-orange-600">{formatCurrency(stats.total_contracts_value)}</span>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -244,20 +301,26 @@ const HoldingLandingPage = () => {
                 <div className="bg-blue-600 p-2 rounded-lg">
                   <BuildingOfficeIcon className="h-6 w-6 text-white" />
                 </div>
-                <span className="text-xl font-bold">{parent.name}</span>
+                <span className="text-xl font-bold">{holding.name}</span>
               </div>
               <p className="text-gray-400">
-                Современное управление холдинговой структурой с фокусом на эффективность и развитие.
+                {holding.description || 'Современное управление холдинговой структурой с фокусом на эффективность и развитие.'}
               </p>
             </div>
             
             <div>
               <h5 className="font-semibold text-lg mb-4">Контакты</h5>
-              {parent.address && (
-                <p className="text-gray-400 mb-2">{parent.address}</p>
+              {parent_organization.address && (
+                <p className="text-gray-400 mb-2">{parent_organization.address}</p>
               )}
-              {parent.tax_number && (
-                <p className="text-gray-400">ИНН: {parent.tax_number}</p>
+              {parent_organization.phone && (
+                <p className="text-gray-400 mb-2">{parent_organization.phone}</p>
+              )}
+              {parent_organization.email && (
+                <p className="text-gray-400 mb-2">{parent_organization.email}</p>
+              )}
+              {parent_organization.tax_number && (
+                <p className="text-gray-400">ИНН: {parent_organization.tax_number}</p>
               )}
             </div>
             
@@ -274,7 +337,7 @@ const HoldingLandingPage = () => {
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; {new Date().getFullYear()} {parent.name}. Все права защищены.</p>
+            <p>&copy; {new Date().getFullYear()} {holding.name}. Все права защищены.</p>
           </div>
         </div>
       </footer>
