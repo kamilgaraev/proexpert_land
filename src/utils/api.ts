@@ -1425,9 +1425,16 @@ export interface CreateHoldingRequest {
   settings?: {
     consolidated_reports?: boolean;
     shared_materials?: boolean;
+    unified_billing?: boolean;
   };
   permissions_config?: {
-    default_child_permissions?: Record<string, string[]>;
+    default_child_permissions?: {
+      projects?: string[];
+      contracts?: string[];
+      materials?: string[];
+      reports?: string[];
+      users?: string[];
+    };
   };
 }
 
@@ -1449,13 +1456,19 @@ export interface OrganizationHierarchy {
     organization_type: 'parent';
     is_holding: boolean;
     hierarchy_level: number;
+    tax_number?: string;
+    registration_number?: string;
+    address?: string;
+    created_at: string;
   };
   children: Array<{
     id: number;
     name: string;
     organization_type: 'child';
+    is_holding: boolean;
     hierarchy_level: number;
-    inn?: string;
+    tax_number?: string;
+    created_at: string;
   }>;
   total_stats: {
     total_organizations: number;
@@ -1478,8 +1491,11 @@ export interface OrganizationDetails {
     id: number;
     name: string;
     organization_type: 'single' | 'parent' | 'child';
+    is_holding: boolean;
+    hierarchy_level: number;
     inn?: string;
     address?: string;
+    created_at: string;
   };
   stats: {
     users_count: number;
@@ -1537,37 +1553,37 @@ export const modulesService = {
 
 export const multiOrganizationService = {
   checkAvailability: async (): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.get('/multi-organization/check-availability');
+    const response = await api.get('/landing/multi-organization/check-availability');
     return response;
   },
 
   createHolding: async (holdingData: CreateHoldingRequest): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.post('/multi-organization/create-holding', holdingData);
+    const response = await api.post('/landing/multi-organization/create-holding', holdingData);
     return response;
   },
 
   addChildOrganization: async (childData: AddChildOrganizationRequest): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.post('/multi-organization/add-child', childData);
+    const response = await api.post('/landing/multi-organization/add-child', childData);
     return response;
   },
 
   getHierarchy: async (): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.get('/multi-organization/hierarchy');
+    const response = await api.get('/landing/multi-organization/hierarchy');
     return response;
   },
 
   getAccessibleOrganizations: async (): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.get('/multi-organization/accessible');
+    const response = await api.get('/landing/multi-organization/accessible');
     return response;
   },
 
   getOrganizationDetails: async (organizationId: number): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.get(`/multi-organization/organization/${organizationId}`);
+    const response = await api.get(`/landing/multi-organization/organization/${organizationId}`);
     return response;
   },
 
   switchContext: async (contextData: SwitchContextRequest): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.post('/multi-organization/switch-context', contextData);
+    const response = await api.post('/landing/multi-organization/switch-context', contextData);
     return response;
   },
 };
