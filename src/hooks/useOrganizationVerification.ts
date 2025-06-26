@@ -50,7 +50,7 @@ export interface VerificationResult {
   warnings: string[];
 }
 
-const API_BASE_URL = '/api/v1/landing';
+const API_BASE_URL = 'https://api.prohelper.pro/api/v1/landing';
 
 export const useOrganizationVerification = () => {
   const [isLoading, setIsLoading] = useState(false);

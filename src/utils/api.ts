@@ -8,26 +8,18 @@ import axios from 'axios';
 // import api_instance from './axiosConfig'; 
 import type { AdminFormData as AdminFormDataExternal, AdminUsersListResponse, AdminUserDetailResponse, AdminUserDeleteResponse } from '../types/admin';
 
-// Используем тип для ImportMeta.env
-declare global {
-  interface ImportMeta {
-    env: Record<string, string>;
-  }
-}
-
-// НОВЫЙ БЛОК ОПРЕДЕЛЕНИЯ URL
-// Глобальная переменная окружения для самого базового URL без каких-либо сегментов пути API.
-// Например: https://prohelper.pro
-const VITE_APP_BASE_DOMAIN = import.meta.env.VITE_APP_BASE_DOMAIN || 'https://prohelper.pro';
+// БЛОК ОПРЕДЕЛЕНИЯ URL
+// Базовый домен API
+const API_BASE_DOMAIN = 'https://api.prohelper.pro';
 
 // Базовый путь для всех API v1, включая /landing
-// Результат: https://prohelper.pro/api/v1/landing
-const API_URL = `${VITE_APP_BASE_DOMAIN}/api/v1/landing`;
+// Результат: https://api.prohelper.pro/api/v1/landing
+const API_URL = `${API_BASE_DOMAIN}/api/v1/landing`;
 
-// URL для эндпоинтов биллинга, который должен быть http://.../api/v1/landing/billing
+// URL для эндпоинтов биллинга, который должен быть https://api.prohelper.pro/api/v1/landing/billing
 // Строится от API_URL (который уже .../landing) добавлением /billing
 const BILLING_API_URL = `${API_URL}/billing`;
-// КОНЕЦ НОВОГО БЛОКА
+// КОНЕЦ БЛОКА
 
 // Создаем экземпляр axios с базовым URL
 // Этот экземпляр axios используется для старых сервисов, которые ожидают /landing в пути.

@@ -36,7 +36,7 @@ export interface DaDataOrganization {
   };
 }
 
-const API_BASE_URL = '/api/v1/landing';
+const API_BASE_URL = 'https://api.prohelper.pro/api/v1/landing';
 
 export const useDaData = () => {
   const [isLoading, setIsLoading] = useState(false);

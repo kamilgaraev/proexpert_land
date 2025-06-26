@@ -64,7 +64,7 @@ const ApiPage = () => {
     {
       title: 'Авторизация',
       language: 'curl',
-      code: `curl -X POST https://api.prohelper.pro/auth/login \\
+      code: `curl -X POST https://api.prohelper.pro/api/v1/landing/auth/login \\
   -H "Content-Type: application/json" \\
   -d '{
     "email": "user@example.com",
@@ -74,7 +74,7 @@ const ApiPage = () => {
     {
       title: 'Получение проектов',
       language: 'javascript',
-      code: `const response = await fetch('https://api.prohelper.pro/v1/projects', {
+      code: `const response = await fetch('https://api.prohelper.pro/api/v1/projects', {
   headers: {
     'Authorization': 'Bearer YOUR_TOKEN',
     'Content-Type': 'application/json'
@@ -89,7 +89,7 @@ console.log(projects);`
       language: 'python',
       code: `import requests
 
-url = "https://api.prohelper.pro/v1/tasks"
+url = "https://api.prohelper.pro/api/v1/tasks"
 headers = {
     "Authorization": "Bearer YOUR_TOKEN",
     "Content-Type": "application/json"
