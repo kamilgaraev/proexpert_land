@@ -1589,7 +1589,16 @@ export const multiOrganizationService = {
   },
 
   getHoldingPublicInfo: async (slug: string): Promise<OrganizationHierarchy> => {
-    const response = await fetch(`https://${slug}.prohelper.pro/api/public/holding`, {
+    const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
+    let url: string;
+    
+    if (isLocalDev) {
+      url = `/api/v1/multi-organization/hierarchy`;
+    } else {
+      url = `https://prohelper.pro/api/public/holding/${slug}`;
+    }
+    
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -1610,7 +1619,16 @@ export const multiOrganizationService = {
   },
 
   getHoldingDashboardInfo: async (slug: string, token: string): Promise<OrganizationHierarchy> => {
-    const response = await fetch(`https://${slug}.prohelper.pro/api/dashboard/holding`, {
+    const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
+    let url: string;
+    
+    if (isLocalDev) {
+      url = `/api/v1/multi-organization/hierarchy`;
+    } else {
+      url = `https://prohelper.pro/api/dashboard/holding/${slug}`;
+    }
+    
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
