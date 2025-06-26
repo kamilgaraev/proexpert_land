@@ -5,9 +5,6 @@ import {
   DocumentTextIcon,
   BanknotesIcon,
   ChartBarIcon,
-  PhoneIcon,
-  EnvelopeIcon,
-  MapPinIcon,
 } from '@heroicons/react/24/outline';
 import { SEOHead } from '@components/shared/SEOHead';
 
