@@ -5,14 +5,10 @@ import {
   UserGroupIcon,
   ChartBarIcon,
   ArrowRightIcon,
-  PlayIcon,
   ClipboardDocumentListIcon,
-  BuildingOfficeIcon,
   TruckIcon,
   ShieldCheckIcon,
-  UserPlusIcon,
-  CogIcon,
-  CheckCircleIcon
+  CogIcon
 } from '@heroicons/react/24/outline';
 
 const HowItWorks = () => {

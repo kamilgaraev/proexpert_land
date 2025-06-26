@@ -6,8 +6,7 @@ import {
   XMarkIcon,
   BuildingOfficeIcon,
   ChevronDownIcon,
-  PhoneIcon,
-  EnvelopeIcon
+  PhoneIcon
 } from '@heroicons/react/24/outline';
 
 const Navbar = () => {
@@ -63,7 +62,7 @@ const Navbar = () => {
     }
   ];
 
-  const handleLinkClick = (name: string, href: string, keywords?: string) => {
+  const handleLinkClick = (href: string) => {
     if (href.startsWith('#')) {
       const element = document.querySelector(href);
       if (element) {
@@ -141,7 +140,7 @@ const Navbar = () => {
                               key={dropdownItem.name}
                               to={dropdownItem.href}
                               className="block px-4 py-3 text-steel-700 hover:bg-construction-50 hover:text-construction-600 transition-colors duration-200"
-                              onClick={() => handleLinkClick(dropdownItem.name, dropdownItem.href, dropdownItem.keywords)}
+                              onClick={() => handleLinkClick(dropdownItem.href)}
                               data-seo-track="dropdown_item_click"
                               data-seo-keyword={dropdownItem.keywords}
                             >
@@ -160,7 +159,7 @@ const Navbar = () => {
                         ? 'text-steel-700 hover:text-construction-600' 
                         : 'text-white hover:text-construction-200'
                     }`}
-                    onClick={() => handleLinkClick(item.name, item.href, item.keywords)}
+                    onClick={() => handleLinkClick(item.href)}
                     data-seo-track="nav_link_click"
                     data-seo-keyword={item.keywords}
                   >
@@ -267,7 +266,7 @@ const Navbar = () => {
                                   key={dropdownItem.name}
                                   to={dropdownItem.href}
                                   className="block px-3 py-2 text-steel-600 hover:text-construction-600"
-                                  onClick={() => handleLinkClick(dropdownItem.name, dropdownItem.href, dropdownItem.keywords)}
+                                  onClick={() => handleLinkClick(dropdownItem.href)}
                                   data-seo-track="mobile_dropdown_item_click"
                                   data-seo-keyword={dropdownItem.keywords}
                                 >
@@ -282,7 +281,7 @@ const Navbar = () => {
                       <Link
                         to={item.href}
                         className="block px-3 py-2 text-steel-700 hover:text-construction-600 font-medium"
-                        onClick={() => handleLinkClick(item.name, item.href, item.keywords)}
+                        onClick={() => handleLinkClick(item.href)}
                         data-seo-track="mobile_nav_link_click"
                         data-seo-keyword={item.keywords}
                       >
