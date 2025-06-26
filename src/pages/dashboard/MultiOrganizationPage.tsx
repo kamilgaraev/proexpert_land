@@ -9,6 +9,7 @@ import {
   BanknotesIcon,
   DocumentTextIcon,
   EyeIcon,
+  ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline';
 import { useMultiOrganization } from '@hooks/useMultiOrganization';
 import { PageLoading } from '@components/common/PageLoading';
@@ -212,6 +213,16 @@ const MultiOrganizationPage = () => {
         </div>
         
         <div className="flex space-x-3">
+          {hierarchy?.parent?.slug && (
+            <button
+              onClick={() => window.open(`https://${hierarchy.parent.slug}.prohelper.pro/`, '_blank')}
+              className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <ArrowTopRightOnSquareIcon className="h-5 w-5 mr-2" />
+              Перейти на сайт холдинга
+            </button>
+          )}
+          
           {canCreateHolding() && !isHolding() && (
             <button
               onClick={() => setShowCreateHoldingModal(true)}

@@ -1453,6 +1453,7 @@ export interface OrganizationHierarchy {
   parent: {
     id: number;
     name: string;
+    slug?: string;
     organization_type: 'parent';
     is_holding: boolean;
     hierarchy_level: number;
