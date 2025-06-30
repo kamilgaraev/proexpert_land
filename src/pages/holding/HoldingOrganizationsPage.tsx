@@ -82,55 +82,16 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
   const loadUsers = async () => {
     try {
       setLoading(true);
-      // Мок данные для демонстрации
-      const mockUsers: OrganizationUser[] = [
-        {
-          id: 1,
-          name: 'Иван Петров',
-          email: 'ivan.petrov@stroitel.ru',
-          is_owner: true,
-          is_active: true,
-          role: 'admin',
-          permissions: ['projects.read', 'projects.create', 'projects.edit', 'projects.delete', 'users.read', 'users.create'],
-          last_login: '2024-01-20T09:15:00Z',
-          joined_at: '2024-01-16T09:00:00Z'
-        },
-        {
-          id: 2,
-          name: 'Мария Сидорова',
-          email: 'maria.sidorova@stroitel.ru',
-          is_owner: false,
-          is_active: true,
-          role: 'manager',
-          permissions: ['projects.read', 'projects.create', 'projects.edit', 'contracts.read'],
-          last_login: '2024-01-19T14:30:00Z',
-          joined_at: '2024-01-17T10:00:00Z'
-        },
-        {
-          id: 3,
-          name: 'Алексей Козлов',
-          email: 'alexey.kozlov@stroitel.ru',
-          is_owner: false,
-          is_active: false,
-          role: 'employee',
-          permissions: ['projects.read', 'contracts.read'],
-          last_login: '2024-01-15T16:45:00Z',
-          joined_at: '2024-01-18T11:00:00Z'
-        }
-      ];
+      const token = getTokenFromStorages();
+      if (!token) return;
+
+      const response = await multiOrganizationService.getChildOrganizationUsers(organizationId, {
+        search: searchTerm,
+        role: roleFilter === 'all' ? undefined : roleFilter,
+        status: statusFilter === 'all' ? undefined : statusFilter
+      });
       
-      setUsers(mockUsers.filter(user => {
-        const matchesSearch = !searchTerm || 
-          user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-        const matchesStatus = statusFilter === 'all' || 
-          (statusFilter === 'active' && user.is_active) ||
-          (statusFilter === 'inactive' && !user.is_active);
-        
-        return matchesSearch && matchesRole && matchesStatus;
-      }));
+      setUsers(response?.data || []);
     } catch (error) {
       console.error('Ошибка загрузки пользователей:', error);
       setUsers([]);
@@ -141,8 +102,13 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
 
   const handleAddUser = async () => {
     try {
-      // TODO: Вызов реального API
-      console.log('Добавление пользователя:', newUserForm);
+      await multiOrganizationService.addUserToChildOrganization(organizationId, {
+        email: newUserForm.email,
+        role: newUserForm.role,
+        permissions: newUserForm.permissions,
+        send_invitation: newUserForm.send_invitation
+      });
+      
       setShowAddModal(false);
       setNewUserForm({
         email: '',
@@ -160,8 +126,7 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
     if (!selectedUser) return;
     
     try {
-      // TODO: Вызов реального API
-      console.log('Удаление пользователя:', selectedUser.id);
+      await multiOrganizationService.removeUserFromChildOrganization(organizationId, selectedUser.id);
       setShowDeleteModal(false);
       setSelectedUser(null);
       await loadUsers();
@@ -454,11 +419,22 @@ const HoldingOrganizationsPage = () => {
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showUsersModal, setShowUsersModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState<HoldingOrganization | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'created_at' | 'users_count' | 'projects_count'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [editForm, setEditForm] = useState({
+    name: '',
+    description: '',
+    inn: '',
+    kpp: '',
+    address: '',
+    phone: '',
+    email: '',
+    is_active: true
+  });
   const navigate = useNavigate();
   const { color, getThemeClasses } = useTheme();
   const theme = getThemeClasses();
@@ -531,12 +507,64 @@ const HoldingOrganizationsPage = () => {
 
   const handleEditOrganization = (org: HoldingOrganization) => {
     setSelectedOrganization(org);
+    setEditForm({
+      name: org.name,
+      description: org.description || '',
+      inn: org.tax_number || '',
+      kpp: org.registration_number || '',
+      address: org.address || '',
+      phone: org.phone || '',
+      email: org.email || '',
+      is_active: true
+    });
     setShowEditModal(true);
   };
 
   const handleDeleteOrganization = (org: HoldingOrganization) => {
     setSelectedOrganization(org);
     setShowDeleteModal(true);
+  };
+
+  const handleSaveOrganization = async () => {
+    if (!selectedOrganization) return;
+    
+    try {
+      await multiOrganizationService.updateChildOrganization(selectedOrganization.id, {
+        name: editForm.name,
+        description: editForm.description,
+        inn: editForm.inn,
+        kpp: editForm.kpp,
+        address: editForm.address,
+        phone: editForm.phone,
+        email: editForm.email,
+        is_active: editForm.is_active
+      });
+      
+      setShowEditModal(false);
+      setSelectedOrganization(null);
+      
+      // Обновляем список организаций
+      const token = getTokenFromStorages();
+      if (token) {
+        const hostname = window.location.hostname;
+        const mainDomain = 'prohelper.pro';
+        
+        if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+          // Для localhost просто обновляем локальные данные
+          setOrganizations(prev => prev.map(org => 
+            org.id === selectedOrganization.id 
+              ? { ...org, name: editForm.name, description: editForm.description, tax_number: editForm.inn, email: editForm.email, phone: editForm.phone, address: editForm.address }
+              : org
+          ));
+        } else if (hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`)) {
+          const slug = hostname.split('.')[0];
+          const data = await multiOrganizationService.getHoldingOrganizations(slug, token);
+          setOrganizations(data || []);
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка сохранения организации:', error);
+    }
   };
 
   const handleViewStats = (org: HoldingOrganization) => {
@@ -549,10 +577,21 @@ const HoldingOrganizationsPage = () => {
     setShowUsersModal(true);
   };
 
+  const handleViewDetails = (org: HoldingOrganization) => {
+    setSelectedOrganization(org);
+    setShowDetailsModal(true);
+  };
+
   const handleExport = async (format: 'xlsx' | 'csv' | 'pdf') => {
     try {
-      // TODO: Реализовать экспорт через новый API
-      console.log(`Экспорт организаций в формате ${format}`);
+      const response = await multiOrganizationService.exportChildOrganizations({
+        format: format,
+        include_stats: true,
+        organization_ids: filteredOrganizations.map(org => org.id)
+      });
+      
+      // В реальном приложении здесь будет обработка файла для скачивания
+      console.log(`Экспорт организаций в формате ${format} завершен`);
     } catch (error) {
       console.error('Ошибка экспорта:', error);
     }
@@ -899,7 +938,10 @@ const HoldingOrganizationsPage = () => {
                           <p className="text-sm text-gray-600">Дочерняя организация</p>
                         </div>
                       </div>
-                      <button className={`${theme.text} opacity-70 hover:opacity-100 transition-opacity duration-200`}>
+                      <button 
+                        onClick={() => handleViewDetails(org)}
+                        className={`${theme.text} opacity-70 hover:opacity-100 transition-opacity duration-200`}
+                      >
                         <EyeIcon className="h-5 w-5" />
                       </button>
                     </div>
@@ -1075,6 +1117,13 @@ const HoldingOrganizationsPage = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex justify-end space-x-2">
+                            <button 
+                              onClick={() => handleViewDetails(org)}
+                              className={`${theme.text} hover:opacity-80 transition-opacity duration-200`}
+                              title="Подробная информация"
+                            >
+                              <EyeIcon className="h-5 w-5" />
+                            </button>
                             <button 
                               onClick={() => handleViewStats(org)}
                               className={`${theme.text} hover:opacity-80 transition-opacity duration-200`}
@@ -1271,19 +1320,365 @@ const HoldingOrganizationsPage = () => {
             </div>
             
             <div className="p-6">
-              <div className="text-center py-12">
-                <div className="bg-yellow-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                  <PencilIcon className="h-12 w-12 text-yellow-600" />
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Название организации *
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Название организации"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="email@example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      ИНН
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.inn}
+                      onChange={(e) => setEditForm({...editForm, inn: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="ИНН организации"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      КПП
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.kpp}
+                      onChange={(e) => setEditForm({...editForm, kpp: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="КПП организации"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Телефон
+                    </label>
+                    <input
+                      type="tel"
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="+7 (000) 000-00-00"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Статус
+                    </label>
+                    <select
+                      value={editForm.is_active ? 'active' : 'inactive'}
+                      onChange={(e) => setEditForm({...editForm, is_active: e.target.value === 'active'})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="active">Активная</option>
+                      <option value="inactive">Неактивная</option>
+                    </select>
+                  </div>
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-3">Редактирование организации</h4>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Функция редактирования организаций будет доступна в ближайших обновлениях.
-                </p>
-                <div className="space-y-2 text-sm text-gray-500">
-                  <p>• Изменение основных данных</p>
-                  <p>• Настройка контактной информации</p>
-                  <p>• Управление статусом</p>
-                  <p>• Конфигурация доступов</p>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Адрес
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.address}
+                    onChange={(e) => setEditForm({...editForm, address: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Юридический адрес организации"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Описание
+                  </label>
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Краткое описание деятельности организации"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex space-x-3">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium transition-colors duration-200"
+              >
+                Отмена
+              </button>
+              <button
+                onClick={handleSaveOrganization}
+                disabled={!editForm.name.trim()}
+                className={`flex-1 bg-gradient-to-r ${theme.gradient} hover:opacity-90 text-white py-3 px-4 rounded-xl font-medium transition-opacity duration-200 disabled:opacity-50`}
+              >
+                Сохранить
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Модальное окно подробной информации */}
+      {showDetailsModal && selectedOrganization && (
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setShowDetailsModal(false)}
+        >
+          <motion.div
+            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <div className={`bg-gradient-to-r ${theme.gradient} p-3 rounded-xl`}>
+                    <BuildingOfficeIcon className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">{selectedOrganization.name}</h3>
+                    <p className="text-gray-600">Подробная информация об организации</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Основная информация */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                    Основная информация
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Название</label>
+                      <p className="text-gray-900 font-medium">{selectedOrganization.name}</p>
+                    </div>
+                    
+                    {selectedOrganization.description && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Описание</label>
+                        <p className="text-gray-900">{selectedOrganization.description}</p>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Тип организации</label>
+                      <p className="text-gray-900">Дочерняя организация</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Уровень иерархии</label>
+                      <p className="text-gray-900">{selectedOrganization.hierarchy_level}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Дата создания</label>
+                      <p className="text-gray-900">
+                        {new Date(selectedOrganization.created_at).toLocaleDateString('ru-RU', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                    Реквизиты и контакты
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    {selectedOrganization.tax_number && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">ИНН</label>
+                        <p className="text-gray-900 font-mono">{selectedOrganization.tax_number}</p>
+                      </div>
+                    )}
+                    
+                    {selectedOrganization.registration_number && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">КПП</label>
+                        <p className="text-gray-900 font-mono">{selectedOrganization.registration_number}</p>
+                      </div>
+                    )}
+                    
+                    {selectedOrganization.email && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Email</label>
+                        <p className="text-gray-900">
+                          <a href={`mailto:${selectedOrganization.email}`} className="text-blue-600 hover:underline">
+                            {selectedOrganization.email}
+                          </a>
+                        </p>
+                      </div>
+                    )}
+                    
+                    {selectedOrganization.phone && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Телефон</label>
+                        <p className="text-gray-900">
+                          <a href={`tel:${selectedOrganization.phone}`} className="text-blue-600 hover:underline">
+                            {selectedOrganization.phone}
+                          </a>
+                        </p>
+                      </div>
+                    )}
+                    
+                    {selectedOrganization.address && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Адрес</label>
+                        <p className="text-gray-900">{selectedOrganization.address}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Статистика */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2 mb-4">
+                  Статистика
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className={`bg-gradient-to-r ${theme.gradient} p-4 rounded-xl text-white`}>
+                    <div className="flex items-center space-x-2">
+                      <UsersIcon className="h-6 w-6" />
+                      <div>
+                        <p className="text-sm opacity-90">Сотрудники</p>
+                        <p className="text-2xl font-bold">{selectedOrganization.stats?.users_count || 0}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 p-4 rounded-xl text-white">
+                    <div className="flex items-center space-x-2">
+                      <FolderOpenIcon className="h-6 w-6" />
+                      <div>
+                        <p className="text-sm opacity-90">Проекты</p>
+                        <p className="text-2xl font-bold">{selectedOrganization.stats?.projects_count || 0}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-4 rounded-xl text-white">
+                    <div className="flex items-center space-x-2">
+                      <BuildingOfficeIcon className="h-6 w-6" />
+                      <div>
+                        <p className="text-sm opacity-90">Договоры</p>
+                        <p className="text-2xl font-bold">{selectedOrganization.stats?.contracts_count || 0}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4 rounded-xl text-white">
+                    <div className="flex items-center space-x-2">
+                      <BanknotesIcon className="h-6 w-6" />
+                      <div>
+                        <p className="text-sm opacity-90">Оборот</p>
+                        <p className="text-lg font-bold">
+                          {formatCurrency(selectedOrganization.stats?.active_contracts_value || 0)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Действия */}
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => {
+                      setShowDetailsModal(false);
+                      handleViewStats(selectedOrganization);
+                    }}
+                    className={`px-4 py-2 bg-gradient-to-r ${theme.gradient} text-white rounded-lg hover:opacity-90 transition-opacity flex items-center space-x-2`}
+                  >
+                    <ChartBarIcon className="w-4 h-4" />
+                    <span>Детальная статистика</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowDetailsModal(false);
+                      handleManageUsers(selectedOrganization);
+                    }}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                  >
+                    <UsersIcon className="w-4 h-4" />
+                    <span>Управление пользователями</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowDetailsModal(false);
+                      handleEditOrganization(selectedOrganization);
+                    }}
+                    className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                  >
+                    <PencilIcon className="w-4 h-4" />
+                    <span>Редактировать</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowDetailsModal(false);
+                      handleDeleteOrganization(selectedOrganization);
+                    }}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                  >
+                    <TrashIcon className="w-4 h-4" />
+                    <span>Удалить</span>
+                  </button>
                 </div>
               </div>
             </div>
