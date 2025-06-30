@@ -95,7 +95,6 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<OrganizationUser | null>(null);
   const [roleTemplates, setRoleTemplates] = useState<RoleTemplates | null>(null);
-  const [permissionsGroups, setPermissionsGroups] = useState<Record<string, PermissionsGroup>>({});
   const [newUserForm, setNewUserForm] = useState({
     name: '',
     email: '',
@@ -129,7 +128,6 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
       if (response.ok) {
         const data = await response.json();
         setRoleTemplates(data.data.templates);
-        setPermissionsGroups(data.data.permissions_groups);
       }
     } catch (error) {
       console.error('Ошибка загрузки шаблонов ролей:', error);
