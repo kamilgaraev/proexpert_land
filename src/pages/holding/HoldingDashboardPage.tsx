@@ -207,6 +207,18 @@ const HoldingDashboardPage = () => {
 
   const { holding, hierarchy, user, consolidated_stats } = dashboardData;
 
+  // Дополнительная проверка данных
+  if (!holding || !hierarchy || !user || !consolidated_stats) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Загрузка данных...</p>
+        </div>
+      </div>
+    );
+  }
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('ru-RU', {
       style: 'currency',
@@ -219,8 +231,8 @@ const HoldingDashboardPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <SEOHead 
-        title={`Панель управления - ${holding.name}`}
-        description={`Административная панель холдинга ${holding.name}`}
+        title={`Панель управления - ${holding?.name || 'Холдинг'}`}
+        description={`Административная панель холдинга ${holding?.name || 'Холдинг'}`}
         keywords="панель управления, холдинг, администрирование"
       />
 
@@ -233,12 +245,12 @@ const HoldingDashboardPage = () => {
                 <BuildingOfficeIcon className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{holding.name}</h1>
+                <h1 className="text-xl font-bold text-gray-900">{holding?.name || 'Холдинг'}</h1>
                 <p className="text-sm text-gray-600">Панель управления холдингом</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Добро пожаловать, {user.name}</span>
+              <span className="text-sm text-gray-600">Добро пожаловать, {user?.name || 'Пользователь'}</span>
               <Link
                 to="/"
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
@@ -260,7 +272,7 @@ const HoldingDashboardPage = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Организации</p>
-                <p className="text-2xl font-bold text-gray-900">{consolidated_stats.total_child_organizations}</p>
+                <p className="text-2xl font-bold text-gray-900">{consolidated_stats?.total_child_organizations || 0}</p>
               </div>
             </div>
           </div>
@@ -272,7 +284,7 @@ const HoldingDashboardPage = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Сотрудники</p>
-                <p className="text-2xl font-bold text-gray-900">{consolidated_stats.total_users}</p>
+                <p className="text-2xl font-bold text-gray-900">{consolidated_stats?.total_users || 0}</p>
               </div>
             </div>
           </div>
@@ -284,7 +296,7 @@ const HoldingDashboardPage = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Проекты</p>
-                <p className="text-2xl font-bold text-gray-900">{consolidated_stats.total_projects}</p>
+                <p className="text-2xl font-bold text-gray-900">{consolidated_stats?.total_projects || 0}</p>
               </div>
             </div>
           </div>
@@ -296,7 +308,7 @@ const HoldingDashboardPage = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Договоры</p>
-                <p className="text-2xl font-bold text-gray-900">{consolidated_stats.active_contracts_count}</p>
+                <p className="text-2xl font-bold text-gray-900">{consolidated_stats?.active_contracts_count || 0}</p>
               </div>
             </div>
           </div>
@@ -407,14 +419,14 @@ const HoldingDashboardPage = () => {
             </div>
 
             {/* Последняя активность */}
-            {consolidated_stats.recent_activity.length > 0 && (
+            {(consolidated_stats?.recent_activity?.length || 0) > 0 && (
               <div className="bg-white rounded-lg shadow">
                 <div className="px-6 py-4 border-b border-gray-200">
                   <h2 className="text-lg font-medium text-gray-900">Последняя активность</h2>
                 </div>
                 <div className="p-6">
                   <div className="space-y-3">
-                    {consolidated_stats.recent_activity.slice(0, 5).map((activity, index) => (
+                    {(consolidated_stats?.recent_activity || []).slice(0, 5).map((activity, index) => (
                       <div key={index} className="flex items-start space-x-3">
                         <div className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
                         <div className="min-w-0 flex-1">
@@ -432,7 +444,7 @@ const HoldingDashboardPage = () => {
             )}
 
             {/* Статистика производительности */}
-            {consolidated_stats.total_contracts_value > 0 && (
+            {(consolidated_stats?.total_contracts_value || 0) > 0 && (
               <div className="bg-white rounded-lg shadow">
                 <div className="px-6 py-4 border-b border-gray-200">
                   <h2 className="text-lg font-medium text-gray-900">Финансы</h2>
@@ -442,13 +454,13 @@ const HoldingDashboardPage = () => {
                     <div>
                       <p className="text-sm text-gray-600">Общий объем договоров</p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {formatCurrency(consolidated_stats.total_contracts_value)}
+                        {formatCurrency(consolidated_stats?.total_contracts_value || 0)}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Активных договоров</p>
                       <p className="text-xl font-semibold text-green-600">
-                        {consolidated_stats.active_contracts_count}
+                        {consolidated_stats?.active_contracts_count || 0}
                       </p>
                     </div>
                   </div>
