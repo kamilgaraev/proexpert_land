@@ -66,7 +66,6 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'manager' | 'employee'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<OrganizationUser | null>(null);
   const [newUserForm, setNewUserForm] = useState({
@@ -315,11 +314,10 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => {
-                          setSelectedUser(user);
-                          setShowEditModal(true);
+                          console.log('Редактирование пользователя будет доступно в следующих обновлениях');
                         }}
                         className="text-blue-600 hover:text-blue-800 transition-colors"
-                        title="Редактировать"
+                        title="Редактировать (скоро)"
                       >
                         <PencilIcon className="w-5 h-5" />
                       </button>
@@ -452,10 +450,10 @@ const HoldingOrganizationsPage = () => {
   const [holdingName, setHoldingName] = useState<string>('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showUsersModal, setShowUsersModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState<HoldingOrganization | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');

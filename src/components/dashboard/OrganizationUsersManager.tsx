@@ -4,8 +4,6 @@ import { multiOrganizationService } from '../../utils/api';
 import { 
   UsersIcon,
   PlusIcon,
-  PencilIcon,
-  TrashIcon,
   MagnifyingGlassIcon,
   UserCircleIcon,
   ShieldCheckIcon,
@@ -75,9 +73,6 @@ export const OrganizationUsersManager: React.FC<Props> = ({ organizationId, orga
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'manager' | 'employee'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<OrganizationUser | null>(null);
   const [newUserForm, setNewUserForm] = useState({
     email: '',
     role: 'employee' as 'admin' | 'manager' | 'employee',
@@ -130,48 +125,7 @@ export const OrganizationUsersManager: React.FC<Props> = ({ organizationId, orga
     }
   };
 
-  const handleEditUser = async (userData: {
-    role?: 'admin' | 'manager' | 'employee';
-    permissions?: string[];
-    is_active?: boolean;
-  }) => {
-    if (!selectedUser) return;
-    
-    try {
-      const response = await multiOrganizationService.updateChildOrganizationUser(
-        organizationId, 
-        selectedUser.id, 
-        userData
-      );
-      
-      if (response.data.success) {
-        await loadUsers();
-        setShowEditModal(false);
-        setSelectedUser(null);
-      }
-    } catch (error) {
-      console.error('Ошибка обновления пользователя:', error);
-    }
-  };
 
-  const handleDeleteUser = async () => {
-    if (!selectedUser) return;
-    
-    try {
-      const response = await multiOrganizationService.removeUserFromChildOrganization(
-        organizationId, 
-        selectedUser.id
-      );
-      
-      if (response.data.success) {
-        await loadUsers();
-        setShowDeleteModal(false);
-        setSelectedUser(null);
-      }
-    } catch (error) {
-      console.error('Ошибка удаления пользователя:', error);
-    }
-  };
 
   const getDefaultPermissionsByRole = (role: string) => {
     switch (role) {
@@ -348,30 +302,11 @@ export const OrganizationUsersManager: React.FC<Props> = ({ organizationId, orga
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowEditModal(true);
-                        }}
-                        className="text-blue-600 hover:text-blue-800 transition-colors"
-                        title="Редактировать"
-                      >
-                        <PencilIcon className="w-5 h-5" />
-                      </button>
-                      {!user.is_owner && (
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowDeleteModal(true);
-                          }}
-                          className="text-red-600 hover:text-red-800 transition-colors"
-                          title="Удалить"
-                        >
-                          <TrashIcon className="w-5 h-5" />
-                        </button>
-                      )}
-                    </div>
+                                         <div className="flex items-center space-x-2">
+                       <span className="text-sm text-gray-500">
+                         Редактирование скоро
+                       </span>
+                     </div>
                   </div>
                 </div>
               ))}
