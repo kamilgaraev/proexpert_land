@@ -116,7 +116,7 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
 
   const loadRoleTemplates = async () => {
     try {
-      const response = await fetch('/api/v1/landing/multi-organization/role-templates', {
+      const response = await fetch('https://api.prohelper.pro/api/v1/landing/multi-organization/role-templates', {
         headers: {
           'Authorization': `Bearer ${getTokenFromStorages()}`,
           'Content-Type': 'application/json'
@@ -175,7 +175,7 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
         userData.password = newUserForm.password;
       }
 
-      const response = await fetch(`/api/v1/landing/multi-organization/child-organizations/${organizationId}/users`, {
+      const response = await fetch(`https://api.prohelper.pro/api/v1/landing/multi-organization/child-organizations/${organizationId}/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
