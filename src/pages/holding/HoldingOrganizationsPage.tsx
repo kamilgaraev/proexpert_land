@@ -26,6 +26,425 @@ import type { HoldingOrganization } from '@utils/api';
 import { SEOHead } from '@components/shared/SEOHead';
 import { useTheme } from '@components/shared/ThemeProvider';
 
+interface OrganizationUser {
+  id: number;
+  name: string;
+  email: string;
+  is_owner: boolean;
+  is_active: boolean;
+  role: 'admin' | 'manager' | 'employee';
+  permissions: string[];
+  last_login: string;
+  joined_at: string;
+}
+
+interface OrganizationUsersModalProps {
+  organizationId: number;
+  organizationName: string;
+  onClose: () => void;
+}
+
+const roleLabels = {
+  admin: 'Администратор',
+  manager: 'Менеджер',
+  employee: 'Сотрудник'
+};
+
+const roleColors = {
+  admin: 'bg-red-100 text-red-800',
+  manager: 'bg-blue-100 text-blue-800',
+  employee: 'bg-gray-100 text-gray-800'
+};
+
+const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organizationId, organizationName, onClose }) => {
+  const { getThemeClasses } = useTheme();
+  const theme = getThemeClasses();
+  
+  const [users, setUsers] = useState<OrganizationUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'manager' | 'employee'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<OrganizationUser | null>(null);
+  const [newUserForm, setNewUserForm] = useState({
+    email: '',
+    role: 'employee' as 'admin' | 'manager' | 'employee',
+    permissions: [] as string[],
+    send_invitation: true
+  });
+
+  useEffect(() => {
+    loadUsers();
+  }, [organizationId, searchTerm, roleFilter, statusFilter]);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      // Мок данные для демонстрации
+      const mockUsers: OrganizationUser[] = [
+        {
+          id: 1,
+          name: 'Иван Петров',
+          email: 'ivan.petrov@stroitel.ru',
+          is_owner: true,
+          is_active: true,
+          role: 'admin',
+          permissions: ['projects.read', 'projects.create', 'projects.edit', 'projects.delete', 'users.read', 'users.create'],
+          last_login: '2024-01-20T09:15:00Z',
+          joined_at: '2024-01-16T09:00:00Z'
+        },
+        {
+          id: 2,
+          name: 'Мария Сидорова',
+          email: 'maria.sidorova@stroitel.ru',
+          is_owner: false,
+          is_active: true,
+          role: 'manager',
+          permissions: ['projects.read', 'projects.create', 'projects.edit', 'contracts.read'],
+          last_login: '2024-01-19T14:30:00Z',
+          joined_at: '2024-01-17T10:00:00Z'
+        },
+        {
+          id: 3,
+          name: 'Алексей Козлов',
+          email: 'alexey.kozlov@stroitel.ru',
+          is_owner: false,
+          is_active: false,
+          role: 'employee',
+          permissions: ['projects.read', 'contracts.read'],
+          last_login: '2024-01-15T16:45:00Z',
+          joined_at: '2024-01-18T11:00:00Z'
+        }
+      ];
+      
+      setUsers(mockUsers.filter(user => {
+        const matchesSearch = !searchTerm || 
+          user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.email.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+        const matchesStatus = statusFilter === 'all' || 
+          (statusFilter === 'active' && user.is_active) ||
+          (statusFilter === 'inactive' && !user.is_active);
+        
+        return matchesSearch && matchesRole && matchesStatus;
+      }));
+    } catch (error) {
+      console.error('Ошибка загрузки пользователей:', error);
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddUser = async () => {
+    try {
+      // TODO: Вызов реального API
+      console.log('Добавление пользователя:', newUserForm);
+      setShowAddModal(false);
+      setNewUserForm({
+        email: '',
+        role: 'employee',
+        permissions: [],
+        send_invitation: true
+      });
+      await loadUsers();
+    } catch (error) {
+      console.error('Ошибка добавления пользователя:', error);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      // TODO: Вызов реального API
+      console.log('Удаление пользователя:', selectedUser.id);
+      setShowDeleteModal(false);
+      setSelectedUser(null);
+      await loadUsers();
+    } catch (error) {
+      console.error('Ошибка удаления пользователя:', error);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ru-RU', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  return (
+    <motion.div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden"
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Заголовок */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <div className={`bg-gradient-to-r ${theme.gradient} p-3 rounded-xl`}>
+                <UsersIcon className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Управление пользователями</h3>
+                <p className="text-gray-600">{organizationName}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowAddModal(true)}
+                className={`px-4 py-2 bg-gradient-to-r ${theme.gradient} text-white rounded-xl hover:opacity-90 transition-opacity duration-200 flex items-center space-x-2 font-medium`}
+              >
+                <PlusIcon className="w-4 h-4" />
+                <span>Добавить</span>
+              </button>
+              <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl">
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Фильтры */}
+        <div className="p-6 border-b border-gray-200 bg-gray-50">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="relative">
+              <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Поиск по имени или email"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value as any)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">Все роли</option>
+              <option value="admin">Администраторы</option>
+              <option value="manager">Менеджеры</option>
+              <option value="employee">Сотрудники</option>
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">Все статусы</option>
+              <option value="active">Активные</option>
+              <option value="inactive">Неактивные</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Список пользователей */}
+        <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 240px)' }}>
+          {loading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : users.length === 0 ? (
+            <div className="text-center py-12">
+              <UsersIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h4 className="text-lg font-medium text-gray-900 mb-2">Пользователи не найдены</h4>
+              <p className="text-gray-600">Попробуйте изменить фильтры или добавить нового пользователя</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {users.map((user) => (
+                <div key={user.id} className="p-6 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex-shrink-0">
+                        <div className="h-12 w-12 bg-gray-200 rounded-full flex items-center justify-center">
+                          <UsersIcon className="h-6 w-6 text-gray-500" />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3">
+                          <h4 className="text-lg font-medium text-gray-900">{user.name}</h4>
+                          {user.is_owner && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              Владелец
+                            </span>
+                          )}
+                          <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${roleColors[user.role]}`}>
+                            {roleLabels[user.role]}
+                          </span>
+                          <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                            user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {user.is_active ? 'Активен' : 'Неактивен'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600">{user.email}</p>
+                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                          <span>Последний вход: {formatDate(user.last_login)}</span>
+                          <span>Присоединился: {formatDate(user.joined_at)}</span>
+                        </div>
+                        <div className="mt-2">
+                          <p className="text-xs text-gray-500">
+                            Разрешений: {user.permissions.length}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setShowEditModal(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                        title="Редактировать"
+                      >
+                        <PencilIcon className="w-5 h-5" />
+                      </button>
+                      {!user.is_owner && (
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowDeleteModal(true);
+                          }}
+                          className="text-red-600 hover:text-red-800 transition-colors"
+                          title="Удалить"
+                        >
+                          <TrashIcon className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Модальное окно добавления пользователя */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4" style={{ zIndex: 60 }}>
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+              <div className="p-6 border-b border-gray-200">
+                <h4 className="text-lg font-bold text-gray-900">Добавить пользователя</h4>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={newUserForm.email}
+                    onChange={(e) => setNewUserForm({...newUserForm, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="user@example.com"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Роль</label>
+                  <select
+                    value={newUserForm.role}
+                    onChange={(e) => setNewUserForm({...newUserForm, role: e.target.value as any})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="employee">Сотрудник</option>
+                    <option value="manager">Менеджер</option>
+                    <option value="admin">Администратор</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="send_invitation"
+                    checked={newUserForm.send_invitation}
+                    onChange={(e) => setNewUserForm({...newUserForm, send_invitation: e.target.checked})}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="send_invitation" className="ml-2 block text-sm text-gray-700">
+                    Отправить приглашение по email
+                  </label>
+                </div>
+              </div>
+              <div className="p-6 border-t border-gray-200 flex space-x-3">
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition-colors"
+                >
+                  Отмена
+                </button>
+                <button
+                  onClick={handleAddUser}
+                  disabled={!newUserForm.email}
+                  className={`flex-1 bg-gradient-to-r ${theme.gradient} hover:opacity-90 text-white py-2 px-4 rounded-lg font-medium transition-opacity disabled:opacity-50`}
+                >
+                  Добавить
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Модальное окно удаления пользователя */}
+        {showDeleteModal && selectedUser && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4" style={{ zIndex: 60 }}>
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+              <div className="p-6">
+                <div className="text-center">
+                  <div className="bg-red-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                    <TrashIcon className="h-12 w-12 text-red-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">Удалить пользователя?</h3>
+                  <p className="text-gray-600 mb-6">
+                    Вы уверены, что хотите удалить пользователя <strong>{selectedUser.name}</strong>?
+                    Это действие необратимо.
+                  </p>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setShowDeleteModal(false)}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium transition-colors duration-200"
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      onClick={handleDeleteUser}
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-xl font-medium transition-colors duration-200"
+                    >
+                      Удалить
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const HoldingOrganizationsPage = () => {
   const [organizations, setOrganizations] = useState<HoldingOrganization[]>([]);
   const [loading, setLoading] = useState(true);
@@ -816,53 +1235,11 @@ const HoldingOrganizationsPage = () => {
 
       {/* Модальное окно управления пользователями */}
       {showUsersModal && selectedOrganization && (
-        <motion.div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setShowUsersModal(false)}
-        >
-          <motion.div
-            className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900">
-                  Управление пользователями: {selectedOrganization.name}
-                </h3>
-                <button
-                  onClick={() => setShowUsersModal(false)}
-                  className="text-gray-400 hover:text-gray-600 text-2xl"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-6">
-              <div className="text-center py-12">
-                <div className="bg-purple-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                  <UsersIcon className="h-12 w-12 text-purple-600" />
-                </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-3">Управление пользователями</h4>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Полноценное управление пользователями дочерних организаций будет доступно в следующих обновлениях системы.
-                </p>
-                <div className="space-y-2 text-sm text-gray-500">
-                  <p>• Добавление и удаление пользователей</p>
-                  <p>• Настройка ролей и разрешений</p>
-                  <p>• Мониторинг активности</p>
-                  <p>• Управление доступами</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
+        <OrganizationUsersModal 
+          organizationId={selectedOrganization.id}
+          organizationName={selectedOrganization.name}
+          onClose={() => setShowUsersModal(false)}
+        />
       )}
 
       {/* Модальное окно редактирования */}
