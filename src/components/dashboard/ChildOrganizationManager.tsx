@@ -7,11 +7,7 @@ import {
   PencilIcon,
   TrashIcon,
   EyeIcon,
-  PlusIcon,
-  ArrowDownTrayIcon,
-  Cog6ToothIcon,
-  MagnifyingGlassIcon,
-  FunnelIcon
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 
 interface ChildOrganization {
@@ -80,9 +76,7 @@ export const ChildOrganizationManager: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'created_at' | 'users_count' | 'projects_count'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     loadOrganizations();
@@ -118,7 +112,7 @@ export const ChildOrganizationManager: React.FC = () => {
     }
   };
 
-  const loadOrganizationStats = async (orgId: number) => {
+  const loadOrganizationStats = async () => {
     try {
       // TODO: Заменить на реальный API вызов
       const mockStats: OrganizationStats = {
@@ -141,27 +135,18 @@ export const ChildOrganizationManager: React.FC = () => {
 
   const handleViewStats = async (org: ChildOrganization) => {
     setSelectedOrganization(org);
-    await loadOrganizationStats(org.id);
+    await loadOrganizationStats();
     setShowStatsModal(true);
   };
 
   const handleEdit = (org: ChildOrganization) => {
     setSelectedOrganization(org);
-    setShowEditModal(true);
+    console.log('Редактирование организации:', org.name);
   };
 
   const handleDelete = (org: ChildOrganization) => {
     setSelectedOrganization(org);
-    setShowDeleteModal(true);
-  };
-
-  const handleExport = async (format: 'xlsx' | 'csv' | 'pdf') => {
-    try {
-      // TODO: Реализовать экспорт через API
-      console.log(`Экспорт в формате ${format}`);
-    } catch (error) {
-      console.error('Ошибка экспорта:', error);
-    }
+    console.log('Удаление организации:', org.name);
   };
 
   const formatCurrency = (amount: number) => {
@@ -169,10 +154,6 @@ export const ChildOrganizationManager: React.FC = () => {
       style: 'currency',
       currency: 'RUB'
     }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ru-RU');
   };
 
   if (loading) {

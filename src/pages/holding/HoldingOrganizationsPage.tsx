@@ -8,7 +8,6 @@ import {
   ArrowLeftIcon,
   PlusIcon,
   EyeIcon,
-  ChevronRightIcon,
   MapPinIcon,
   PhoneIcon,
   EnvelopeIcon,
@@ -20,8 +19,7 @@ import {
   ChartBarIcon,
   ArrowDownTrayIcon,
   MagnifyingGlassIcon,
-  FunnelIcon,
-  Cog6ToothIcon
+  FunnelIcon
 } from '@heroicons/react/24/outline';
 import { multiOrganizationService, getTokenFromStorages } from '@utils/api';
 import type { HoldingOrganization } from '@utils/api';
