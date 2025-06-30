@@ -584,13 +584,12 @@ const HoldingOrganizationsPage = () => {
 
   const handleExport = async (format: 'xlsx' | 'csv' | 'pdf') => {
     try {
-      const response = await multiOrganizationService.exportChildOrganizations({
+      await multiOrganizationService.exportChildOrganizations({
         format: format,
         include_stats: true,
         organization_ids: filteredOrganizations.map(org => org.id)
       });
       
-      // В реальном приложении здесь будет обработка файла для скачивания
       console.log(`Экспорт организаций в формате ${format} завершен`);
     } catch (error) {
       console.error('Ошибка экспорта:', error);
