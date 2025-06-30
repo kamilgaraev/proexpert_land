@@ -31,41 +31,47 @@ const HoldingLandingPage = () => {
         
         if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
           slug = 'proverocka';
-          const data = await multiOrganizationService.getHierarchy();
-          if (data.data.success) {
-            const hierarchyData = data.data.data;
-            const publicData: HoldingPublicData = {
-              holding: {
-                id: 1,
-                name: hierarchyData.parent.name,
-                slug: 'proverocka',
-                description: 'Тестовый холдинг',
-                parent_organization_id: hierarchyData.parent.id,
-                status: 'active',
-                created_at: hierarchyData.parent.created_at,
-              },
-              parent_organization: {
-                id: hierarchyData.parent.id,
-                name: hierarchyData.parent.name,
-                legal_name: hierarchyData.parent.name,
-                tax_number: hierarchyData.parent.tax_number || '',
-                registration_number: hierarchyData.parent.registration_number || '',
-                address: hierarchyData.parent.address || '',
-                city: 'Казань',
-                description: 'Строительная компания',
-              },
-              stats: {
-                total_child_organizations: hierarchyData.total_stats.total_organizations,
-                total_users: hierarchyData.total_stats.total_users,
-                total_projects: hierarchyData.total_stats.total_projects,
-                total_contracts: hierarchyData.total_stats.total_contracts,
-                total_contracts_value: 0,
-                active_contracts_count: hierarchyData.total_stats.total_contracts,
-              }
-            };
-            setHoldingData(publicData);
-          } else {
-            throw new Error(data.data.message || 'Ошибка загрузки данных');
+          try {
+            const data = await multiOrganizationService.getHoldingPublicInfo(slug);
+            setHoldingData(data);
+          } catch (publicInfoError) {
+            console.warn('Не удалось загрузить через getHoldingPublicInfo, пробую getHierarchy:', publicInfoError);
+            const data = await multiOrganizationService.getHierarchy();
+            if (data?.data?.success && data.data.data) {
+              const hierarchyData = data.data.data;
+              const publicData: HoldingPublicData = {
+                holding: {
+                  id: 1,
+                  name: hierarchyData.parent?.name || 'Тестовый холдинг',
+                  slug: 'proverocka',
+                  description: 'Тестовый холдинг',
+                  parent_organization_id: hierarchyData.parent?.id || 1,
+                  status: 'active',
+                  created_at: hierarchyData.parent?.created_at || new Date().toISOString(),
+                },
+                parent_organization: {
+                  id: hierarchyData.parent?.id || 1,
+                  name: hierarchyData.parent?.name || 'Головная организация',
+                  legal_name: hierarchyData.parent?.name || 'Головная организация',
+                  tax_number: hierarchyData.parent?.tax_number || '',
+                  registration_number: hierarchyData.parent?.registration_number || '',
+                  address: hierarchyData.parent?.address || '',
+                  city: 'Казань',
+                  description: 'Строительная компания',
+                },
+                stats: {
+                  total_child_organizations: hierarchyData.total_stats?.total_organizations || 0,
+                  total_users: hierarchyData.total_stats?.total_users || 0,
+                  total_projects: hierarchyData.total_stats?.total_projects || 0,
+                  total_contracts: hierarchyData.total_stats?.total_contracts || 0,
+                  total_contracts_value: 0,
+                  active_contracts_count: hierarchyData.total_stats?.total_contracts || 0,
+                }
+              };
+              setHoldingData(publicData);
+            } else {
+              throw new Error('Ошибка загрузки данных иерархии');
+            }
           }
         } else if (hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`)) {
           slug = hostname.split('.')[0];
@@ -110,8 +116,6 @@ const HoldingLandingPage = () => {
     );
   }
 
-  const { holding, parent_organization, stats } = holdingData;
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('ru-RU', {
       style: 'currency',
@@ -120,6 +124,24 @@ const HoldingLandingPage = () => {
       maximumFractionDigits: 0,
     }).format(value);
   };
+
+  const holding = holdingData?.holding;
+  const parent_organization = holdingData?.parent_organization;
+  const stats = holdingData?.stats;
+
+  if (!holding || !parent_organization || !stats) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-red-100 rounded-full p-3 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+            <ShieldCheckIcon className="h-8 w-8 text-red-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-red-800 mb-2">Ошибка загрузки данных</h1>
+          <p className="text-red-600 mb-4">Данные о холдинге не найдены или повреждены</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -226,17 +248,17 @@ const HoldingLandingPage = () => {
               </div>
 
               <div className="bg-white rounded-xl p-6 mb-6">
-                <h5 className="text-xl font-bold text-gray-900 mb-2">{parent_organization.name}</h5>
-                {parent_organization.legal_name && parent_organization.legal_name !== parent_organization.name && (
+                <h5 className="text-xl font-bold text-gray-900 mb-2">{parent_organization?.name}</h5>
+                {parent_organization?.legal_name && parent_organization.legal_name !== parent_organization.name && (
                   <p className="text-gray-600 mb-2">Полное название: {parent_organization.legal_name}</p>
                 )}
-                {parent_organization.tax_number && (
+                {parent_organization?.tax_number && (
                   <p className="text-gray-600 mb-2">ИНН: {parent_organization.tax_number}</p>
                 )}
-                {parent_organization.registration_number && (
+                {parent_organization?.registration_number && (
                   <p className="text-gray-600 mb-2">ОГРН: {parent_organization.registration_number}</p>
                 )}
-                {parent_organization.address && (
+                {parent_organization?.address && (
                   <p className="text-gray-600">{parent_organization.address}</p>
                 )}
               </div>
@@ -271,20 +293,20 @@ const HoldingLandingPage = () => {
               <div className="space-y-4">
                 <div className="bg-white rounded-xl p-4 flex justify-between items-center">
                   <span className="font-semibold text-gray-900">Организаций в холдинге</span>
-                  <span className="text-2xl font-bold text-blue-600">{stats.total_child_organizations}</span>
+                  <span className="text-2xl font-bold text-blue-600">{stats?.total_child_organizations || 0}</span>
                 </div>
                 <div className="bg-white rounded-xl p-4 flex justify-between items-center">
                   <span className="font-semibold text-gray-900">Активных проектов</span>
-                  <span className="text-2xl font-bold text-green-600">{stats.total_projects}</span>
+                  <span className="text-2xl font-bold text-green-600">{stats?.total_projects || 0}</span>
                 </div>
                 <div className="bg-white rounded-xl p-4 flex justify-between items-center">
                   <span className="font-semibold text-gray-900">Договоров в работе</span>
-                  <span className="text-2xl font-bold text-purple-600">{stats.active_contracts_count}</span>
+                  <span className="text-2xl font-bold text-purple-600">{stats?.active_contracts_count || 0}</span>
                 </div>
-                {stats.total_contracts_value > 0 && (
+                {(stats?.total_contracts_value || 0) > 0 && (
                   <div className="bg-white rounded-xl p-4 flex justify-between items-center">
                     <span className="font-semibold text-gray-900">Объем договоров</span>
-                    <span className="text-xl font-bold text-orange-600">{formatCurrency(stats.total_contracts_value)}</span>
+                    <span className="text-xl font-bold text-orange-600">{formatCurrency(stats?.total_contracts_value || 0)}</span>
                   </div>
                 )}
               </div>
@@ -310,16 +332,16 @@ const HoldingLandingPage = () => {
             
             <div>
               <h5 className="font-semibold text-lg mb-4">Контакты</h5>
-              {parent_organization.address && (
+              {parent_organization?.address && (
                 <p className="text-gray-400 mb-2">{parent_organization.address}</p>
               )}
-              {parent_organization.phone && (
+              {parent_organization?.phone && (
                 <p className="text-gray-400 mb-2">{parent_organization.phone}</p>
               )}
-              {parent_organization.email && (
+              {parent_organization?.email && (
                 <p className="text-gray-400 mb-2">{parent_organization.email}</p>
               )}
-              {parent_organization.tax_number && (
+              {parent_organization?.tax_number && (
                 <p className="text-gray-400">ИНН: {parent_organization.tax_number}</p>
               )}
             </div>
