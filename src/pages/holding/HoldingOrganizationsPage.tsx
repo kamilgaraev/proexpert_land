@@ -57,9 +57,7 @@ interface RoleTemplates {
   observer: RoleTemplate;
 }
 
-interface PermissionsGroup {
-  [key: string]: string;
-}
+
 
 interface OrganizationUsersModalProps {
   organizationId: number;
