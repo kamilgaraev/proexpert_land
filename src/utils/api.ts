@@ -1697,13 +1697,9 @@ export const multiOrganizationService = {
     if (!response.ok) {
       throw new Error(`Ошибка загрузки данных холдинга: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.message || 'Не удалось загрузить данные холдинга');
-    }
-    
-    return data.data;
+    return data;
   },
 
   getHoldingDashboardInfo: async (slug: string, token: string): Promise<HoldingDashboardData> => {
@@ -1725,20 +1721,23 @@ export const multiOrganizationService = {
       },
     });
     
+    if (response.status === 401) {
+      throw new Error('UNAUTHORIZED');
+    }
+    
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('UNAUTHORIZED');
-      }
-      throw new Error(`Ошибка загрузки данных панели холдинга: ${response.status}`);
+      throw new Error(`Ошибка загрузки панели управления: ${response.status}`);
     }
     
     const data = await response.json();
     if (!data.success) {
-      throw new Error(data.message || 'Не удалось загрузить данные панели холдинга');
+      throw new Error(data.message || 'Не удалось загрузить данные холдинга');
     }
     
     return data.data;
   },
+
+
 
   getHoldingOrganizations: async (slug: string, token: string): Promise<any[]> => {
     const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
