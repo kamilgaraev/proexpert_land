@@ -8,8 +8,6 @@ import {
   ChartBarIcon,
   CogIcon,
   PlusIcon,
-  Squares2X2Icon,
-  TableCellsIcon,
   SwatchIcon
 } from '@heroicons/react/24/outline';
 import { multiOrganizationService, getTokenFromStorages } from '@utils/api';
