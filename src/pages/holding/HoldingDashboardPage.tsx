@@ -83,8 +83,79 @@ const HoldingDashboardPage = () => {
           }
         } else if (hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`)) {
           slug = hostname.split('.')[0];
-          const data = await multiOrganizationService.getHoldingDashboardInfo(slug, token);
-          setDashboardData(data);
+          
+          // Получаем публичные данные холдинга
+          const publicData = await multiOrganizationService.getHoldingPublicInfo(slug);
+          
+          // Получаем список дочерних организаций
+          let childOrganizations: any[] = [];
+          try {
+            childOrganizations = await multiOrganizationService.getHoldingOrganizations(slug, token);
+          } catch (err) {
+            console.warn('Не удалось загрузить дочерние организации:', err);
+          }
+          
+          // Преобразуем в формат дашборда
+          const dashboardData: HoldingDashboardData = {
+            holding: {
+              id: publicData.holding.id,
+              name: publicData.holding.name,
+              slug: publicData.holding.slug,
+              description: publicData.holding.description,
+              parent_organization_id: publicData.holding.parent_organization_id,
+              status: publicData.holding.status,
+            },
+            hierarchy: {
+              parent: {
+                id: publicData.parent_organization.id,
+                name: publicData.parent_organization.name,
+                slug: publicData.holding.slug,
+                organization_type: 'parent' as const,
+                is_holding: true,
+                hierarchy_level: 0,
+                tax_number: publicData.parent_organization.tax_number,
+                registration_number: publicData.parent_organization.registration_number,
+                address: publicData.parent_organization.address,
+                created_at: publicData.holding.created_at,
+              },
+              children: childOrganizations.map((org: any) => ({
+                id: org.id,
+                name: org.name,
+                organization_type: 'child' as const,
+                is_holding: false,
+                hierarchy_level: 1,
+                tax_number: org.tax_number,
+                created_at: org.created_at,
+              })),
+              total_stats: {
+                total_organizations: publicData.stats.total_child_organizations,
+                total_users: publicData.stats.total_users,
+                total_projects: publicData.stats.total_projects,
+                total_contracts: publicData.stats.total_contracts,
+              }
+            },
+            user: {
+              id: 1,
+              name: 'Пользователь',
+              email: 'user@example.com'
+            },
+            consolidated_stats: {
+              total_child_organizations: publicData.stats.total_child_organizations,
+              total_users: publicData.stats.total_users,
+              total_projects: publicData.stats.total_projects,
+              total_contracts: publicData.stats.total_contracts,
+              total_contracts_value: publicData.stats.total_contracts_value,
+              active_contracts_count: publicData.stats.active_contracts_count,
+              recent_activity: [],
+              performance_metrics: {
+                monthly_growth: 0,
+                efficiency_score: 0,
+                satisfaction_index: 0
+              }
+            }
+          };
+          
+          setDashboardData(dashboardData);
         } else {
           throw new Error('Неверный поддомен');
         }
