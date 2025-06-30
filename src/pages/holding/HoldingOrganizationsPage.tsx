@@ -32,10 +32,33 @@ interface OrganizationUser {
   email: string;
   is_owner: boolean;
   is_active: boolean;
-  role: 'admin' | 'manager' | 'employee';
+  role_id: number;
+  role_name: string;
+  role_color: string;
   permissions: string[];
   last_login: string;
   joined_at: string;
+}
+
+interface RoleTemplate {
+  name: string;
+  description: string;
+  permissions: string[];
+  color: string;
+}
+
+interface RoleTemplates {
+  administrator: RoleTemplate;
+  project_manager: RoleTemplate;
+  foreman: RoleTemplate;
+  accountant: RoleTemplate;
+  sales_manager: RoleTemplate;
+  worker: RoleTemplate;
+  observer: RoleTemplate;
+}
+
+interface PermissionsGroup {
+  [key: string]: string;
 }
 
 interface OrganizationUsersModalProps {
@@ -44,16 +67,19 @@ interface OrganizationUsersModalProps {
   onClose: () => void;
 }
 
-const roleLabels = {
-  admin: 'Администратор',
-  manager: 'Менеджер',
-  employee: 'Сотрудник'
-};
-
-const roleColors = {
-  admin: 'bg-red-100 text-red-800',
-  manager: 'bg-blue-100 text-blue-800',
-  employee: 'bg-gray-100 text-gray-800'
+const getRoleColorClasses = (color: string) => {
+  // Преобразуем hex цвет в tailwind классы
+  const colorMap: { [key: string]: string } = {
+    '#DC2626': 'bg-red-100 text-red-800',
+    '#2563EB': 'bg-blue-100 text-blue-800', 
+    '#059669': 'bg-green-100 text-green-800',
+    '#7C3AED': 'bg-purple-100 text-purple-800',
+    '#EA580C': 'bg-orange-100 text-orange-800',
+    '#6B7280': 'bg-gray-100 text-gray-800',
+    '#9CA3AF': 'bg-gray-100 text-gray-600'
+  };
+  
+  return colorMap[color] || 'bg-blue-100 text-blue-800';
 };
 
 const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organizationId, organizationName, onClose }) => {
@@ -63,21 +89,52 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
   const [users, setUsers] = useState<OrganizationUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'manager' | 'employee'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<OrganizationUser | null>(null);
+  const [roleTemplates, setRoleTemplates] = useState<RoleTemplates | null>(null);
+  const [permissionsGroups, setPermissionsGroups] = useState<Record<string, PermissionsGroup>>({});
   const [newUserForm, setNewUserForm] = useState({
+    name: '',
     email: '',
-    role: 'employee' as 'admin' | 'manager' | 'employee',
-    permissions: [] as string[],
-    send_invitation: true
+    password: '',
+    auto_verify: true,
+    send_invitation: true,
+    role_data: {
+      template: '' as keyof RoleTemplates | '',
+      name: '',
+      description: '',
+      color: '#2563EB',
+      permissions: [] as string[]
+    }
   });
+  const [createMode, setCreateMode] = useState<'template' | 'custom'>('template');
 
   useEffect(() => {
     loadUsers();
+    loadRoleTemplates();
   }, [organizationId, searchTerm, roleFilter, statusFilter]);
+
+  const loadRoleTemplates = async () => {
+    try {
+      const response = await fetch('/api/v1/landing/multi-organization/role-templates', {
+        headers: {
+          'Authorization': `Bearer ${getTokenFromStorages()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setRoleTemplates(data.data.templates);
+        setPermissionsGroups(data.data.permissions_groups);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки шаблонов ролей:', error);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -87,11 +144,19 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
 
       const response = await multiOrganizationService.getChildOrganizationUsers(organizationId, {
         search: searchTerm,
-        role: roleFilter === 'all' ? undefined : roleFilter,
         status: statusFilter === 'all' ? undefined : statusFilter
       });
       
-      setUsers(response?.data || []);
+      const usersData = response?.data || [];
+      
+      // Фильтруем по ролям локально, так как API может не поддерживать фильтрацию по названию роли
+      const filteredUsers = roleFilter === 'all' 
+        ? usersData 
+        : usersData.filter((user: OrganizationUser) => 
+            user.role_name?.toLowerCase().includes(roleFilter.toLowerCase())
+          );
+      
+      setUsers(filteredUsers);
     } catch (error) {
       console.error('Ошибка загрузки пользователей:', error);
       setUsers([]);
@@ -102,19 +167,45 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
 
   const handleAddUser = async () => {
     try {
-      await multiOrganizationService.addUserToChildOrganization(organizationId, {
+      const userData: any = {
+        name: newUserForm.name,
         email: newUserForm.email,
-        role: newUserForm.role,
-        permissions: newUserForm.permissions,
-        send_invitation: newUserForm.send_invitation
+        auto_verify: newUserForm.auto_verify,
+        send_invitation: newUserForm.send_invitation,
+        role_data: newUserForm.role_data
+      };
+
+      if (newUserForm.password) {
+        userData.password = newUserForm.password;
+      }
+
+      const response = await fetch(`/api/v1/landing/multi-organization/child-organizations/${organizationId}/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getTokenFromStorages()}`
+        },
+        body: JSON.stringify(userData)
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
       setShowAddModal(false);
       setNewUserForm({
+        name: '',
         email: '',
-        role: 'employee',
-        permissions: [],
-        send_invitation: true
+        password: '',
+        auto_verify: true,
+        send_invitation: true,
+        role_data: {
+          template: '',
+          name: '',
+          description: '',
+          color: '#2563EB',
+          permissions: []
+        }
       });
       await loadUsers();
     } catch (error) {
@@ -203,13 +294,15 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
 
             <select
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value as any)}
+              onChange={(e) => setRoleFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">Все роли</option>
-              <option value="admin">Администраторы</option>
-              <option value="manager">Менеджеры</option>
-              <option value="employee">Сотрудники</option>
+              <option value="администратор">Администраторы</option>
+              <option value="менеджер">Менеджеры</option>
+              <option value="прораб">Прорабы</option>
+              <option value="бухгалтер">Бухгалтеры</option>
+              <option value="рабочий">Рабочие</option>
             </select>
 
             <select
@@ -255,8 +348,8 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
                               Владелец
                             </span>
                           )}
-                          <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${roleColors[user.role]}`}>
-                            {roleLabels[user.role]}
+                          <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getRoleColorClasses(user.role_color)}`}>
+                            {user.role_name}
                           </span>
                           <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                             user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -326,29 +419,105 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Роль</label>
-                  <select
-                    value={newUserForm.role}
-                    onChange={(e) => setNewUserForm({...newUserForm, role: e.target.value as any})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="employee">Сотрудник</option>
-                    <option value="manager">Менеджер</option>
-                    <option value="admin">Администратор</option>
-                  </select>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Режим создания роли</label>
+                  <div className="flex space-x-4 mb-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="template"
+                        checked={createMode === 'template'}
+                        onChange={(e) => setCreateMode(e.target.value as 'template' | 'custom')}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Из шаблона</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="custom"
+                        checked={createMode === 'custom'}
+                        onChange={(e) => setCreateMode(e.target.value as 'template' | 'custom')}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Кастомная роль</span>
+                    </label>
+                  </div>
+
+                  {createMode === 'template' ? (
+                    <select
+                      value={newUserForm.role_data.template}
+                      onChange={(e) => {
+                        const template = e.target.value as keyof RoleTemplates;
+                        const templateData = roleTemplates?.[template];
+                        setNewUserForm({
+                          ...newUserForm, 
+                          role_data: {
+                            template,
+                            name: templateData?.name || '',
+                            description: templateData?.description || '',
+                            color: templateData?.color || '#2563EB',
+                            permissions: templateData?.permissions || []
+                          }
+                        });
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Выберите шаблон роли</option>
+                      {roleTemplates && Object.entries(roleTemplates).map(([key, template]) => (
+                        <option key={key} value={key}>{template.name}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={newUserForm.role_data.name}
+                      onChange={(e) => setNewUserForm({
+                        ...newUserForm, 
+                        role_data: {...newUserForm.role_data, name: e.target.value}
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Название роли"
+                    />
+                  )}
                 </div>
 
-                <div className="flex items-center">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Имя пользователя</label>
                   <input
-                    type="checkbox"
-                    id="send_invitation"
-                    checked={newUserForm.send_invitation}
-                    onChange={(e) => setNewUserForm({...newUserForm, send_invitation: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    type="text"
+                    value={newUserForm.name}
+                    onChange={(e) => setNewUserForm({...newUserForm, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Полное имя"
                   />
-                  <label htmlFor="send_invitation" className="ml-2 block text-sm text-gray-700">
-                    Отправить приглашение по email
-                  </label>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="auto_verify"
+                      checked={newUserForm.auto_verify}
+                      onChange={(e) => setNewUserForm({...newUserForm, auto_verify: e.target.checked})}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="auto_verify" className="ml-2 block text-sm text-gray-700">
+                      Автоматически верифицировать email
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="send_invitation"
+                      checked={newUserForm.send_invitation}
+                      onChange={(e) => setNewUserForm({...newUserForm, send_invitation: e.target.checked})}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="send_invitation" className="ml-2 block text-sm text-gray-700">
+                      Отправить приглашение по email
+                    </label>
+                  </div>
                 </div>
               </div>
               <div className="p-6 border-t border-gray-200 flex space-x-3">
@@ -360,7 +529,7 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
                 </button>
                 <button
                   onClick={handleAddUser}
-                  disabled={!newUserForm.email}
+                  disabled={!newUserForm.email || !newUserForm.name || (createMode === 'template' && !newUserForm.role_data.template) || (createMode === 'custom' && !newUserForm.role_data.name)}
                   className={`flex-1 bg-gradient-to-r ${theme.gradient} hover:opacity-90 text-white py-2 px-4 rounded-lg font-medium transition-opacity disabled:opacity-50`}
                 >
                   Добавить
