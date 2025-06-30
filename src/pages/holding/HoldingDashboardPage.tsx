@@ -39,15 +39,21 @@ const HoldingDashboardPage = () => {
           slug = 'proverocka';
           // В разработке используем обычное API
           const data = await multiOrganizationService.getHierarchy();
-          if (data.data.success) {
+          if (data.data.success && data.data.data) {
             const hierarchyData = data.data.data;
+            
+            // Проверяем наличие обязательных данных
+            if (!hierarchyData?.parent || !hierarchyData?.total_stats) {
+              throw new Error('Неполные данные иерархии организации');
+            }
+            
             const dashboardData: HoldingDashboardData = {
               holding: {
                 id: 1,
-                name: hierarchyData.parent.name,
+                name: hierarchyData.parent.name || 'ООО НЕО СТРОЙ',
                 slug: 'proverocka',
                 description: 'Тестовый холдинг',
-                parent_organization_id: hierarchyData.parent.id,
+                parent_organization_id: hierarchyData.parent.id || 1,
                 status: 'active',
               },
               hierarchy: hierarchyData,
@@ -57,12 +63,12 @@ const HoldingDashboardPage = () => {
                 email: 'test@example.com'
               },
               consolidated_stats: {
-                total_child_organizations: hierarchyData.total_stats.total_organizations,
-                total_users: hierarchyData.total_stats.total_users,
-                total_projects: hierarchyData.total_stats.total_projects,
-                total_contracts: hierarchyData.total_stats.total_contracts,
+                total_child_organizations: hierarchyData.total_stats.total_organizations || 0,
+                total_users: hierarchyData.total_stats.total_users || 0,
+                total_projects: hierarchyData.total_stats.total_projects || 0,
+                total_contracts: hierarchyData.total_stats.total_contracts || 0,
                 total_contracts_value: 0,
-                active_contracts_count: hierarchyData.total_stats.total_contracts,
+                active_contracts_count: hierarchyData.total_stats.total_contracts || 0,
                 recent_activity: [],
                 performance_metrics: {
                   monthly_growth: 0,
@@ -73,7 +79,7 @@ const HoldingDashboardPage = () => {
             };
             setDashboardData(dashboardData);
           } else {
-            throw new Error(data.data.message || 'Ошибка загрузки данных');
+            throw new Error(data.data?.message || 'Ошибка загрузки данных');
           }
         } else if (hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`)) {
           slug = hostname.split('.')[0];
@@ -242,49 +248,58 @@ const HoldingDashboardPage = () => {
               <div className="p-6">
                 <div className="space-y-4">
                   {/* Головная организация */}
-                  <div className="border rounded-lg p-4 bg-blue-50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="bg-blue-600 p-2 rounded-lg">
-                          <BuildingOfficeIcon className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">{hierarchy.parent.name}</h3>
-                          <p className="text-sm text-gray-600">Головная организация</p>
-                        </div>
-                      </div>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        Управляющая
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Дочерние организации */}
-                  {hierarchy.children.map((child) => (
-                    <div key={child.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                  {hierarchy?.parent && (
+                    <div className="border rounded-lg p-4 bg-blue-50">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          <div className="bg-gray-600 p-2 rounded-lg">
+                          <div className="bg-blue-600 p-2 rounded-lg">
                             <BuildingOfficeIcon className="h-5 w-5 text-white" />
                           </div>
                           <div>
-                            <h3 className="font-medium text-gray-900">{child.name}</h3>
-                            <p className="text-sm text-gray-600">
-                              {child.tax_number && `ИНН: ${child.tax_number}`}
-                            </p>
+                            <h3 className="font-medium text-gray-900">{hierarchy.parent.name || 'Головная организация'}</h3>
+                            <p className="text-sm text-gray-600">Головная организация</p>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Активная
-                          </span>
-                          <button className="text-blue-600 hover:text-blue-700 text-sm">
-                            Перейти
-                          </button>
-                        </div>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Управляющая
+                        </span>
                       </div>
                     </div>
-                  ))}
+                  )}
+
+                  {/* Дочерние организации */}
+                  {hierarchy?.children?.length > 0 ? (
+                    hierarchy.children.map((child) => (
+                      <div key={child.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-gray-600 p-2 rounded-lg">
+                              <BuildingOfficeIcon className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium text-gray-900">{child.name || 'Дочерняя организация'}</h3>
+                              <p className="text-sm text-gray-600">
+                                {child.tax_number && `ИНН: ${child.tax_number}`}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              Активная
+                            </span>
+                            <button className="text-blue-600 hover:text-blue-700 text-sm">
+                              Перейти
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <BuildingOfficeIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">Нет дочерних организаций</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
