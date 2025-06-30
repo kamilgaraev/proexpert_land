@@ -14,7 +14,14 @@ import {
   EnvelopeIcon,
   BanknotesIcon,
   Squares2X2Icon,
-  ListBulletIcon
+  ListBulletIcon,
+  PencilIcon,
+  TrashIcon,
+  ChartBarIcon,
+  ArrowDownTrayIcon,
+  MagnifyingGlassIcon,
+  FunnelIcon,
+  Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import { multiOrganizationService, getTokenFromStorages } from '@utils/api';
 import type { HoldingOrganization } from '@utils/api';
@@ -28,6 +35,15 @@ const HoldingOrganizationsPage = () => {
   const [holdingName, setHoldingName] = useState<string>('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [showUsersModal, setShowUsersModal] = useState(false);
+  const [selectedOrganization, setSelectedOrganization] = useState<HoldingOrganization | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'created_at' | 'users_count' | 'projects_count'>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const navigate = useNavigate();
   const { color, getThemeClasses } = useTheme();
   const theme = getThemeClasses();
@@ -97,6 +113,77 @@ const HoldingOrganizationsPage = () => {
 
     loadOrganizations();
   }, [navigate]);
+
+  const handleEditOrganization = (org: HoldingOrganization) => {
+    setSelectedOrganization(org);
+    setShowEditModal(true);
+  };
+
+  const handleDeleteOrganization = (org: HoldingOrganization) => {
+    setSelectedOrganization(org);
+    setShowDeleteModal(true);
+  };
+
+  const handleViewStats = (org: HoldingOrganization) => {
+    setSelectedOrganization(org);
+    setShowStatsModal(true);
+  };
+
+  const handleManageUsers = (org: HoldingOrganization) => {
+    setSelectedOrganization(org);
+    setShowUsersModal(true);
+  };
+
+  const handleExport = async (format: 'xlsx' | 'csv' | 'pdf') => {
+    try {
+      // TODO: Реализовать экспорт через новый API
+      console.log(`Экспорт организаций в формате ${format}`);
+    } catch (error) {
+      console.error('Ошибка экспорта:', error);
+    }
+  };
+
+  const filteredOrganizations = organizations.filter(org => {
+    const matchesSearch = !searchTerm || 
+      org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      org.tax_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      org.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && org.stats) ||
+      (statusFilter === 'inactive' && !org.stats);
+    
+    return matchesSearch && matchesStatus;
+  }).sort((a, b) => {
+    let aValue, bValue;
+    
+    switch (sortBy) {
+      case 'name':
+        aValue = a.name;
+        bValue = b.name;
+        break;
+      case 'created_at':
+        aValue = a.created_at;
+        bValue = b.created_at;
+        break;
+      case 'users_count':
+        aValue = a.stats?.users_count || 0;
+        bValue = b.stats?.users_count || 0;
+        break;
+      case 'projects_count':
+        aValue = a.stats?.projects_count || 0;
+        bValue = b.stats?.projects_count || 0;
+        break;
+      default:
+        return 0;
+    }
+    
+    if (sortDirection === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('ru-RU', {
@@ -193,6 +280,14 @@ const HoldingOrganizationsPage = () => {
             </div>
             
             <div className="flex items-center space-x-3">
+              <button
+                onClick={() => handleExport('xlsx')}
+                className={`px-4 py-2 bg-gradient-to-r ${theme.gradient} text-white rounded-xl hover:opacity-90 transition-all duration-200 flex items-center space-x-2 font-medium shadow-lg`}
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" />
+                <span>Экспорт</span>
+              </button>
+              
               <div className="flex bg-gray-100 rounded-xl p-1">
                 <button
                   onClick={() => setViewMode('grid')}
@@ -227,6 +322,66 @@ const HoldingOrganizationsPage = () => {
           </div>
         </div>
       </motion.header>
+
+      {/* Панель фильтров */}
+      <motion.div 
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Поиск */}
+            <div className="relative">
+              <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Поиск по названию, ИНН или email"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/90 backdrop-blur-sm transition-all duration-200"
+              />
+            </div>
+
+            {/* Фильтр по статусу */}
+            <div className="relative">
+              <FunnelIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/90 backdrop-blur-sm appearance-none transition-all duration-200"
+              >
+                <option value="all">Все статусы</option>
+                <option value="active">Активные</option>
+                <option value="inactive">Неактивные</option>
+              </select>
+            </div>
+
+            {/* Сортировка */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/90 backdrop-blur-sm appearance-none transition-all duration-200"
+            >
+              <option value="name">По названию</option>
+              <option value="created_at">По дате создания</option>
+              <option value="users_count">По количеству пользователей</option>
+              <option value="projects_count">По количеству проектов</option>
+            </select>
+
+            {/* Направление сортировки */}
+            <select
+              value={sortDirection}
+              onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')}
+              className="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/90 backdrop-blur-sm appearance-none transition-all duration-200"
+            >
+              <option value="asc">По возрастанию</option>
+              <option value="desc">По убыванию</option>
+            </select>
+          </div>
+        </div>
+      </motion.div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div 
@@ -289,7 +444,7 @@ const HoldingOrganizationsPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          {organizations.length === 0 ? (
+          {filteredOrganizations.length === 0 ? (
             <div className="text-center py-16">
               <div className="bg-gray-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
                 <BuildingOfficeIcon className="h-12 w-12 text-gray-400" />
@@ -307,7 +462,7 @@ const HoldingOrganizationsPage = () => {
             </div>
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {organizations.map((org, index) => (
+              {filteredOrganizations.map((org, index) => (
                 <motion.div
                   key={org.id}
                   className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200/50 overflow-hidden group cursor-pointer"
@@ -396,12 +551,25 @@ const HoldingOrganizationsPage = () => {
                     )}
 
                     <div className="flex space-x-2">
-                      <button className={`flex-1 ${theme.primary} ${theme.hover} text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-1`}>
-                        <EyeIcon className="h-4 w-4" />
-                        <span>Просмотр</span>
+                      <button 
+                        onClick={() => handleViewStats(org)}
+                        className={`flex-1 ${theme.primary} ${theme.hover} text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-1`}
+                      >
+                        <ChartBarIcon className="h-4 w-4" />
+                        <span>Статистика</span>
                       </button>
-                      <button className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200">
-                        Настройки
+                      <button 
+                        onClick={() => handleManageUsers(org)}
+                        className="flex-1 bg-purple-100 hover:bg-purple-200 text-purple-700 py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-1"
+                      >
+                        <UsersIcon className="h-4 w-4" />
+                        <span>Пользователи</span>
+                      </button>
+                      <button 
+                        onClick={() => handleEditOrganization(org)}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200"
+                      >
+                        <PencilIcon className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -432,7 +600,7 @@ const HoldingOrganizationsPage = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {organizations.map((org, index) => (
+                    {filteredOrganizations.map((org, index) => (
                       <motion.tr
                         key={org.id}
                         className="hover:bg-gray-50 transition-colors duration-150"
@@ -492,11 +660,33 @@ const HoldingOrganizationsPage = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex justify-end space-x-2">
-                            <button className={`${theme.text} hover:opacity-80 transition-opacity duration-200`}>
-                              <EyeIcon className="h-5 w-5" />
+                            <button 
+                              onClick={() => handleViewStats(org)}
+                              className={`${theme.text} hover:opacity-80 transition-opacity duration-200`}
+                              title="Статистика"
+                            >
+                              <ChartBarIcon className="h-5 w-5" />
                             </button>
-                            <button className="text-gray-400 hover:text-gray-600 transition-colors duration-200">
-                              <ChevronRightIcon className="h-5 w-5" />
+                            <button 
+                              onClick={() => handleManageUsers(org)}
+                              className="text-purple-600 hover:text-purple-800 transition-colors duration-200"
+                              title="Управление пользователями"
+                            >
+                              <UsersIcon className="h-5 w-5" />
+                            </button>
+                            <button 
+                              onClick={() => handleEditOrganization(org)}
+                              className="text-yellow-600 hover:text-yellow-800 transition-colors duration-200"
+                              title="Редактировать"
+                            >
+                              <PencilIcon className="h-5 w-5" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteOrganization(org)}
+                              className="text-red-600 hover:text-red-800 transition-colors duration-200"
+                              title="Удалить"
+                            >
+                              <TrashIcon className="h-5 w-5" />
                             </button>
                           </div>
                         </td>
@@ -542,6 +732,237 @@ const HoldingOrganizationsPage = () => {
               >
                 Понятно
               </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Модальное окно статистики */}
+      {showStatsModal && selectedOrganization && (
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setShowStatsModal(false)}
+        >
+          <motion.div
+            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-900">
+                  Детальная статистика: {selectedOrganization.name}
+                </h3>
+                <button
+                  onClick={() => setShowStatsModal(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className={`bg-gradient-to-r ${theme.gradient} p-6 rounded-xl text-white`}>
+                  <h4 className="text-lg font-semibold mb-2">Пользователи</h4>
+                  <div className="text-3xl font-bold">{selectedOrganization.stats?.users_count || 0}</div>
+                  <p className="text-sm opacity-90">Активных сотрудников</p>
+                </div>
+                
+                <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-xl text-white">
+                  <h4 className="text-lg font-semibold mb-2">Проекты</h4>
+                  <div className="text-3xl font-bold">{selectedOrganization.stats?.projects_count || 0}</div>
+                  <p className="text-sm opacity-90">Активных проектов</p>
+                </div>
+                
+                <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-xl text-white">
+                  <h4 className="text-lg font-semibold mb-2">Договоры</h4>
+                  <div className="text-3xl font-bold">{selectedOrganization.stats?.contracts_count || 0}</div>
+                  <p className="text-sm opacity-90">Действующих договоров</p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Финансовые показатели</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(selectedOrganization.stats?.active_contracts_value || 0)}
+                    </div>
+                    <div className="text-sm text-gray-600">Оборот по активным договорам</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">
+                      {new Date(selectedOrganization.created_at).toLocaleDateString('ru-RU')}
+                    </div>
+                    <div className="text-sm text-gray-600">Дата создания</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <p className="text-gray-600">
+                  Подробная аналитика будет доступна в ближайших обновлениях
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Модальное окно управления пользователями */}
+      {showUsersModal && selectedOrganization && (
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setShowUsersModal(false)}
+        >
+          <motion.div
+            className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-900">
+                  Управление пользователями: {selectedOrganization.name}
+                </h3>
+                <button
+                  onClick={() => setShowUsersModal(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="text-center py-12">
+                <div className="bg-purple-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                  <UsersIcon className="h-12 w-12 text-purple-600" />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-3">Управление пользователями</h4>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  Полноценное управление пользователями дочерних организаций будет доступно в следующих обновлениях системы.
+                </p>
+                <div className="space-y-2 text-sm text-gray-500">
+                  <p>• Добавление и удаление пользователей</p>
+                  <p>• Настройка ролей и разрешений</p>
+                  <p>• Мониторинг активности</p>
+                  <p>• Управление доступами</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Модальное окно редактирования */}
+      {showEditModal && selectedOrganization && (
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setShowEditModal(false)}
+        >
+          <motion.div
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-900">
+                  Редактирование: {selectedOrganization.name}
+                </h3>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="text-center py-12">
+                <div className="bg-yellow-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                  <PencilIcon className="h-12 w-12 text-yellow-600" />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-3">Редактирование организации</h4>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  Функция редактирования организаций будет доступна в ближайших обновлениях.
+                </p>
+                <div className="space-y-2 text-sm text-gray-500">
+                  <p>• Изменение основных данных</p>
+                  <p>• Настройка контактной информации</p>
+                  <p>• Управление статусом</p>
+                  <p>• Конфигурация доступов</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Модальное окно удаления */}
+      {showDeleteModal && selectedOrganization && (
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setShowDeleteModal(false)}
+        >
+          <motion.div
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="text-center">
+                <div className="bg-red-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                  <TrashIcon className="h-12 w-12 text-red-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Удалить организацию?</h3>
+                <p className="text-gray-600 mb-6">
+                  Вы уверены, что хотите удалить организацию <strong>{selectedOrganization.name}</strong>?
+                  Это действие необратимо.
+                </p>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium transition-colors duration-200"
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    onClick={() => {
+                      // TODO: Реализовать удаление через API
+                      console.log('Удаление организации:', selectedOrganization.id);
+                      setShowDeleteModal(false);
+                    }}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-xl font-medium transition-colors duration-200"
+                  >
+                    Удалить
+                  </button>
+                </div>
+              </div>
             </div>
           </motion.div>
         </motion.div>

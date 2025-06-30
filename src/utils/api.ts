@@ -1777,6 +1777,169 @@ export const multiOrganizationService = {
     
     return data.data;
   },
+
+  // Расширенные методы для дочерних организаций
+  getChildOrganizations: async (params?: {
+    search?: string;
+    status?: 'active' | 'inactive' | 'all';
+    sort_by?: 'name' | 'created_at' | 'users_count' | 'projects_count';
+    sort_direction?: 'asc' | 'desc';
+    per_page?: number;
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) queryParams.append(key, value.toString());
+      });
+    }
+    
+    const response = await api.get(`/multi-organization/child-organizations?${queryParams}`);
+    return response;
+  },
+
+  updateChildOrganization: async (childOrgId: number, data: {
+    name?: string;
+    description?: string;
+    inn?: string;
+    kpp?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    is_active?: boolean;
+    settings?: Record<string, any>;
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.put(`/multi-organization/child-organizations/${childOrgId}`, data);
+    return response;
+  },
+
+  deleteChildOrganization: async (childOrgId: number, data: {
+    transfer_data_to?: number;
+    confirm_deletion: boolean;
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    const response = await fetch(`https://api.prohelper.pro/api/v1/landing/multi-organization/child-organizations/${childOrgId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  getChildOrganizationStats: async (childOrgId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get(`/multi-organization/child-organizations/${childOrgId}/stats`);
+    return response;
+  },
+
+  // Управление пользователями дочерних организаций
+  getChildOrganizationUsers: async (childOrgId: number, params?: {
+    search?: string;
+    role?: 'admin' | 'manager' | 'employee';
+    status?: 'active' | 'inactive' | 'all';
+    per_page?: number;
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) queryParams.append(key, value.toString());
+      });
+    }
+    
+    const response = await api.get(`/multi-organization/child-organizations/${childOrgId}/users?${queryParams}`);
+    return response;
+  },
+
+  addUserToChildOrganization: async (childOrgId: number, data: {
+    email: string;
+    role: 'admin' | 'manager' | 'employee';
+    permissions?: string[];
+    send_invitation?: boolean;
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post(`/multi-organization/child-organizations/${childOrgId}/users`, data);
+    return response;
+  },
+
+  updateChildOrganizationUser: async (childOrgId: number, userId: number, data: {
+    role?: 'admin' | 'manager' | 'employee';
+    permissions?: string[];
+    is_active?: boolean;
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.put(`/multi-organization/child-organizations/${childOrgId}/users/${userId}`, data);
+    return response;
+  },
+
+  removeUserFromChildOrganization: async (childOrgId: number, userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.delete(`/multi-organization/child-organizations/${childOrgId}/users/${userId}`);
+    return response;
+  },
+
+  // Настройки холдинга
+  updateHoldingSettings: async (data: {
+    group_id: number;
+    name?: string;
+    description?: string;
+    max_child_organizations?: number;
+    settings?: Record<string, any>;
+    permissions_config?: Record<string, any>;
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.put('/multi-organization/holding-settings', data);
+    return response;
+  },
+
+  // Массовые операции
+  bulkUpdateChildOrganizations: async (data: {
+    organization_ids: number[];
+    updates: Record<string, any>;
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.patch('/multi-organization/child-organizations/bulk-update', data);
+    return response;
+  },
+
+  exportChildOrganizations: async (params?: {
+    format?: 'xlsx' | 'csv' | 'pdf';
+    include_stats?: boolean;
+    organization_ids?: number[];
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          if (Array.isArray(value)) {
+            value.forEach(item => queryParams.append(`${key}[]`, item.toString()));
+          } else {
+            queryParams.append(key, value.toString());
+          }
+        }
+      });
+    }
+    
+    const response = await api.get(`/multi-organization/child-organizations/export?${queryParams}`);
+    return response;
+  },
+
+  // Аналитика
+  getHoldingAnalytics: async (params?: {
+    period?: 'week' | 'month' | 'quarter' | 'year';
+    include_trends?: boolean;
+  }): Promise<{ data: any, status: number, statusText: string }> => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) queryParams.append(key, value.toString());
+      });
+    }
+    
+    const response = await api.get(`/multi-organization/analytics/summary?${queryParams}`);
+    return response;
+  },
 };
 
 export default api; 
