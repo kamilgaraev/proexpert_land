@@ -1698,8 +1698,13 @@ export const multiOrganizationService = {
       throw new Error(`Ошибка загрузки данных холдинга: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data;
+    const responseData = await response.json();
+    
+    if (!responseData.success) {
+      throw new Error(responseData.message || 'Ошибка при получении данных холдинга');
+    }
+    
+    return responseData.data;
   },
 
   getHoldingDashboardInfo: async (slug: string, token: string): Promise<HoldingDashboardData> => {
