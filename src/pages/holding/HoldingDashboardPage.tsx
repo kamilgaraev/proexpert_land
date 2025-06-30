@@ -7,17 +7,33 @@ import {
   DocumentTextIcon,
   ChartBarIcon,
   CogIcon,
-  PlusIcon
+  PlusIcon,
+  Squares2X2Icon,
+  TableCellsIcon,
+  SwatchIcon
 } from '@heroicons/react/24/outline';
 import { multiOrganizationService, getTokenFromStorages } from '@utils/api';
 import type { HoldingDashboardData } from '@utils/api';
 import { SEOHead } from '@components/shared/SEOHead';
+import { useTheme, type ThemeColor } from '@components/shared/ThemeProvider';
 
 const HoldingDashboardPage = () => {
   const [dashboardData, setDashboardData] = useState<HoldingDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const navigate = useNavigate();
+  const { color, setColor, getThemeClasses } = useTheme();
+  const theme = getThemeClasses();
+
+  const colorOptions: { value: ThemeColor; name: string; preview: string }[] = [
+    { value: 'blue', name: 'Синий', preview: 'bg-blue-500' },
+    { value: 'green', name: 'Зеленый', preview: 'bg-green-500' },
+    { value: 'purple', name: 'Фиолетовый', preview: 'bg-purple-500' },
+    { value: 'pink', name: 'Розовый', preview: 'bg-pink-500' },
+    { value: 'indigo', name: 'Индиго', preview: 'bg-indigo-500' },
+    { value: 'orange', name: 'Оранжевый', preview: 'bg-orange-500' }
+  ];
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -37,12 +53,10 @@ const HoldingDashboardPage = () => {
         
         if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
           slug = 'proverocka';
-          // В разработке используем обычное API
           const data = await multiOrganizationService.getHierarchy();
           if (data.data.success && data.data.data) {
             const hierarchyData = data.data.data;
             
-            // Проверяем наличие обязательных данных
             if (!hierarchyData?.parent || !hierarchyData?.total_stats) {
               throw new Error('Неполные данные иерархии организации');
             }
@@ -84,10 +98,8 @@ const HoldingDashboardPage = () => {
         } else if (hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`)) {
           slug = hostname.split('.')[0];
           
-          // Получаем публичные данные холдинга
           const publicData = await multiOrganizationService.getHoldingPublicInfo(slug);
           
-          // Получаем список дочерних организаций
           let childOrganizations: any[] = [];
           try {
             childOrganizations = await multiOrganizationService.getHoldingOrganizations(slug, token);
@@ -95,7 +107,6 @@ const HoldingDashboardPage = () => {
             console.warn('Не удалось загрузить дочерние организации:', err);
           }
           
-          // Преобразуем в формат дашборда
           const dashboardData: HoldingDashboardData = {
             holding: {
               id: publicData?.holding?.id || 1,
@@ -174,11 +185,20 @@ const HoldingDashboardPage = () => {
     loadDashboardData();
   }, [navigate]);
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('ru-RU', {
+      style: 'currency',
+      currency: 'RUB',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className={`min-h-screen bg-gradient-to-br ${theme.background} flex items-center justify-center`}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${color}-600 mx-auto mb-4`}></div>
           <p className="text-gray-600">Загрузка панели управления...</p>
         </div>
       </div>
@@ -187,7 +207,7 @@ const HoldingDashboardPage = () => {
 
   if (error || !dashboardData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <div className="bg-red-100 rounded-full p-3 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
             <BuildingOfficeIcon className="h-8 w-8 text-red-600" />
@@ -198,275 +218,265 @@ const HoldingDashboardPage = () => {
             to="/login"
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center space-x-2"
           >
-            <span>Войти в систему</span>
+            <span>Войти заново</span>
           </Link>
         </div>
       </div>
     );
   }
 
-  const { holding, hierarchy, user, consolidated_stats } = dashboardData;
-
-  // Дополнительная проверка данных
-  if (!holding || !hierarchy || !user || !consolidated_stats) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Загрузка данных...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency: 'RUB',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
+  const holding = dashboardData.holding;
+  const stats = dashboardData.consolidated_stats;
+  const hierarchy = dashboardData.hierarchy;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gradient-to-br ${theme.background}`}>
       <SEOHead 
-        title={`Панель управления - ${holding?.name || 'Холдинг'}`}
-        description={`Административная панель холдинга ${holding?.name || 'Холдинг'}`}
-        keywords="панель управления, холдинг, администрирование"
+        title={`${holding.name} - Панель управления холдингом`}
+        description={`Панель управления холдингом ${holding.name}. Управление ${stats.total_child_organizations} организациями с ${stats.total_users} пользователями.`}
+        keywords="панель управления, холдинг, дашборд, управление организациями"
       />
 
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <BuildingOfficeIcon className="h-6 w-6 text-white" />
+      <div className="relative">
+        <nav className={`bg-white/90 backdrop-blur-lg ${theme.border} border-b sticky top-0 z-40`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="flex items-center space-x-4">
+                <Link to="/" className="flex items-center space-x-3">
+                  <div className={`${theme.primary} p-2 rounded-xl shadow-lg`}>
+                    <BuildingOfficeIcon className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold text-gray-900">{holding.name}</h1>
+                    <p className="text-sm text-gray-600">Панель управления</p>
+                  </div>
+                </Link>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">{holding?.name || 'Холдинг'}</h1>
-                <p className="text-sm text-gray-600">Панель управления холдингом</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Добро пожаловать, {user?.name || 'Пользователь'}</span>
-              <Link
-                to="/"
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-              >
-                Публичная страница
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Статистика */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <BuildingOfficeIcon className="h-8 w-8 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Организации</p>
-                <p className="text-2xl font-bold text-gray-900">{consolidated_stats?.total_child_organizations || 0}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <UsersIcon className="h-8 w-8 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Сотрудники</p>
-                <p className="text-2xl font-bold text-gray-900">{consolidated_stats?.total_users || 0}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <FolderOpenIcon className="h-8 w-8 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Проекты</p>
-                <p className="text-2xl font-bold text-gray-900">{consolidated_stats?.total_projects || 0}</p>
+              
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <button
+                    onClick={() => setShowColorPicker(!showColorPicker)}
+                    className={`${theme.primary} ${theme.hover} text-white p-2 rounded-lg transition-colors flex items-center space-x-2`}
+                  >
+                    <SwatchIcon className="h-5 w-5" />
+                    <span className="hidden sm:inline">Тема</span>
+                  </button>
+                  
+                  {showColorPicker && (
+                    <div className="absolute right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 min-w-[200px] z-50">
+                      <h3 className="font-semibold text-gray-900 mb-3">Выберите цветовую тему</h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {colorOptions.map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() => {
+                              setColor(option.value);
+                              setShowColorPicker(false);
+                            }}
+                            className={`p-3 rounded-lg border-2 transition-all hover:scale-105 ${
+                              color === option.value 
+                                ? 'border-gray-900 bg-gray-50' 
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <div className={`w-6 h-6 ${option.preview} rounded-full mx-auto mb-1`}></div>
+                            <span className="text-xs font-medium text-gray-700">{option.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <Link
+                  to="/organizations"
+                  className={`${theme.secondary} ${theme.text} hover:bg-opacity-80 px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2`}
+                >
+                  <BuildingOfficeIcon className="h-4 w-4" />
+                  <span>Организации</span>
+                </Link>
               </div>
             </div>
           </div>
+        </nav>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <DocumentTextIcon className="h-8 w-8 text-orange-600" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Добро пожаловать в панель управления
+            </h2>
+            <p className="text-lg text-gray-600">
+              Обзор деятельности холдинга {holding.name}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-white/50">
+              <div className="flex items-center">
+                <div className={`${theme.secondary} p-3 rounded-xl mr-4`}>
+                  <BuildingOfficeIcon className={`h-8 w-8 ${theme.text}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Организаций</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.total_child_organizations}</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Договоры</p>
-                <p className="text-2xl font-bold text-gray-900">{consolidated_stats?.active_contracts_count || 0}</p>
+            </div>
+
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-white/50">
+              <div className="flex items-center">
+                <div className="bg-green-100 p-3 rounded-xl mr-4">
+                  <UsersIcon className="h-8 w-8 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Сотрудников</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.total_users}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-white/50">
+              <div className="flex items-center">
+                <div className="bg-purple-100 p-3 rounded-xl mr-4">
+                  <FolderOpenIcon className="h-8 w-8 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Проектов</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.total_projects}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-white/50">
+              <div className="flex items-center">
+                <div className="bg-orange-100 p-3 rounded-xl mr-4">
+                  <DocumentTextIcon className="h-8 w-8 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Договоров</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.total_contracts}</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Основной контент */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Организации холдинга */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-medium text-gray-900">Организации холдинга</h2>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm flex items-center space-x-1">
-                    <PlusIcon className="h-4 w-4" />
-                    <span>Добавить</span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">Структура холдинга</h3>
+                <Link
+                  to="/organizations"
+                  className={`${theme.primary} ${theme.hover} text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2`}
+                >
+                  <span>Управление</span>
+                  <BuildingOfficeIcon className="h-4 w-4" />
+                </Link>
+              </div>
+
+              <div className="space-y-4">
+                <div className={`${theme.accent} rounded-xl p-4 ${theme.border} border`}>
+                  <div className="flex items-center space-x-3">
+                    <div className={`${theme.primary} p-2 rounded-lg`}>
+                      <BuildingOfficeIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900">{hierarchy.parent.name}</h4>
+                      <p className="text-sm text-gray-600">Головная организация</p>
+                      {hierarchy.parent.tax_number && (
+                        <p className="text-xs text-gray-500">ИНН: {hierarchy.parent.tax_number}</p>
+                      )}
+                    </div>
+                    <div className={`${theme.secondary} px-3 py-1 rounded-full`}>
+                      <span className={`text-sm font-medium ${theme.text}`}>Головная</span>
+                    </div>
+                  </div>
+                </div>
+
+                {hierarchy.children.slice(0, 3).map((child) => (
+                  <div key={child.id} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-gray-300 p-2 rounded-lg">
+                        <BuildingOfficeIcon className="h-6 w-6 text-gray-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{child.name}</h4>
+                        <p className="text-sm text-gray-600">Дочерняя организация</p>
+                        {child.tax_number && (
+                          <p className="text-xs text-gray-500">ИНН: {child.tax_number}</p>
+                        )}
+                      </div>
+                      <div className="bg-gray-200 px-3 py-1 rounded-full">
+                        <span className="text-sm font-medium text-gray-600">Дочерняя</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {hierarchy.children.length > 3 && (
+                  <div className="text-center py-4">
+                    <Link
+                      to="/organizations"
+                      className={`${theme.text} hover:underline font-medium`}
+                    >
+                      И еще {hierarchy.children.length - 3} организаций...
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Финансовые показатели</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Активных договоров</span>
+                    <span className="font-semibold text-gray-900">{stats.active_contracts_count}</span>
+                  </div>
+                  {stats.total_contracts_value > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Объем договоров</span>
+                      <span className="font-semibold text-gray-900">
+                        {formatCurrency(stats.total_contracts_value)}
+                      </span>
+                    </div>
+                  )}
+                  <div className={`${theme.accent} p-4 rounded-lg ${theme.border} border`}>
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600 mb-1">Общая эффективность</p>
+                      <p className={`text-2xl font-bold ${theme.text}`}>
+                        {Math.round((stats.total_projects + stats.active_contracts_count) / Math.max(stats.total_child_organizations, 1))}
+                      </p>
+                      <p className="text-xs text-gray-500">проектов на организацию</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Быстрые действия</h3>
+                <div className="space-y-3">
+                  <Link
+                    to="/organizations"
+                    className={`w-full ${theme.primary} ${theme.hover} text-white p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2`}
+                  >
+                    <PlusIcon className="h-5 w-5" />
+                    <span>Добавить организацию</span>
+                  </Link>
+                  
+                  <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+                    <ChartBarIcon className="h-5 w-5" />
+                    <span>Отчеты</span>
+                  </button>
+                  
+                  <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+                    <CogIcon className="h-5 w-5" />
+                    <span>Настройки</span>
                   </button>
                 </div>
               </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  {/* Головная организация */}
-                  {hierarchy?.parent && (
-                    <div className="border rounded-lg p-4 bg-blue-50">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="bg-blue-600 p-2 rounded-lg">
-                            <BuildingOfficeIcon className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-medium text-gray-900">{hierarchy.parent.name || 'Головная организация'}</h3>
-                            <p className="text-sm text-gray-600">Головная организация</p>
-                          </div>
-                        </div>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Управляющая
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Дочерние организации */}
-                  {hierarchy?.children?.length > 0 ? (
-                    hierarchy.children.map((child) => (
-                      <div key={child.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="bg-gray-600 p-2 rounded-lg">
-                              <BuildingOfficeIcon className="h-5 w-5 text-white" />
-                            </div>
-                            <div>
-                              <h3 className="font-medium text-gray-900">{child.name || 'Дочерняя организация'}</h3>
-                              <p className="text-sm text-gray-600">
-                                {child.tax_number && `ИНН: ${child.tax_number}`}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              Активная
-                            </span>
-                            <button className="text-blue-600 hover:text-blue-700 text-sm">
-                              Перейти
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <BuildingOfficeIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600">Нет дочерних организаций</p>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
-          </div>
-
-          {/* Сайдбар с дополнительной информацией */}
-          <div className="space-y-6">
-            {/* Быстрые действия */}
-            <div className="bg-white rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">Быстрые действия</h2>
-              </div>
-              <div className="p-6 space-y-3">
-                <button className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors">
-                  <PlusIcon className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm font-medium">Добавить организацию</span>
-                </button>
-                <Link 
-                  to="/organizations"
-                  className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <BuildingOfficeIcon className="h-5 w-5 text-gray-600" />
-                  <span className="text-sm font-medium">Все организации</span>
-                </Link>
-                <button className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors">
-                  <ChartBarIcon className="h-5 w-5 text-green-600" />
-                  <span className="text-sm font-medium">Консолидированные отчеты</span>
-                </button>
-                <button className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors">
-                  <CogIcon className="h-5 w-5 text-gray-600" />
-                  <span className="text-sm font-medium">Настройки холдинга</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Последняя активность */}
-            {(consolidated_stats?.recent_activity?.length || 0) > 0 && (
-              <div className="bg-white rounded-lg shadow">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h2 className="text-lg font-medium text-gray-900">Последняя активность</h2>
-                </div>
-                <div className="p-6">
-                  <div className="space-y-3">
-                    {(consolidated_stats?.recent_activity || []).slice(0, 5).map((activity, index) => (
-                      <div key={index} className="flex items-start space-x-3">
-                        <div className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm text-gray-900">{activity.description}</p>
-                          <p className="text-xs text-gray-500">{activity.organization_name}</p>
-                          <p className="text-xs text-gray-400">
-                            {new Date(activity.date).toLocaleDateString('ru-RU')}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Статистика производительности */}
-            {(consolidated_stats?.total_contracts_value || 0) > 0 && (
-              <div className="bg-white rounded-lg shadow">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h2 className="text-lg font-medium text-gray-900">Финансы</h2>
-                </div>
-                <div className="p-6">
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Общий объем договоров</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {formatCurrency(consolidated_stats?.total_contracts_value || 0)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Активных договоров</p>
-                      <p className="text-xl font-semibold text-green-600">
-                        {consolidated_stats?.active_contracts_count || 0}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -13,11 +13,14 @@ import {
 import { multiOrganizationService } from '@utils/api';
 import type { HoldingPublicData } from '@utils/api';
 import { SEOHead } from '@components/shared/SEOHead';
+import { useTheme } from '@components/shared/ThemeProvider';
 
 const HoldingLandingPage = () => {
   const [holdingData, setHoldingData] = useState<HoldingPublicData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { color, getThemeClasses } = useTheme();
+  const theme = getThemeClasses();
 
   useEffect(() => {
     const loadHoldingData = async () => {
@@ -144,7 +147,7 @@ const HoldingLandingPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className={`min-h-screen bg-gradient-to-br ${theme.background}`}>
       <SEOHead 
         title={`${holding.name} - Холдинг`}
         description={`Официальная страница холдинга ${holding.name}. Управляем ${stats.total_child_organizations} организациями с ${stats.total_users} пользователями.`}
@@ -154,11 +157,11 @@ const HoldingLandingPage = () => {
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-blue-50 opacity-30"></div>
         
-        <nav className="relative bg-white/80 backdrop-blur-sm border-b border-blue-100">
+        <nav className={`relative bg-white/80 backdrop-blur-sm border-b ${theme.border}`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-6">
               <div className="flex items-center space-x-4">
-                <div className="bg-blue-600 p-2 rounded-lg">
+                <div className={`${theme.primary} p-2 rounded-lg`}>
                   <BuildingOfficeIcon className="h-8 w-8 text-white" />
                 </div>
                 <div>
@@ -168,7 +171,7 @@ const HoldingLandingPage = () => {
               </div>
               <Link
                 to="/dashboard"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                className={`${theme.primary} ${theme.hover} text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2`}
               >
                 <span>Панель управления</span>
                 <ArrowRightIcon className="h-4 w-4" />
@@ -182,7 +185,7 @@ const HoldingLandingPage = () => {
             <div className="max-w-4xl mx-auto">
               <h2 className="text-5xl font-bold text-gray-900 mb-6">
                 Добро пожаловать в холдинг
-                <span className="text-blue-600 block mt-2">{holding.name}</span>
+                <span className={`${theme.text} block mt-2`}>{holding.name}</span>
               </h2>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                 {holding.description || `Мы объединяем усилия ${stats.total_child_organizations} организаций для достижения общих целей и создания синергетического эффекта в строительной отрасли.`}
@@ -236,14 +239,14 @@ const HoldingLandingPage = () => {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-8 border border-blue-200">
+                            <div className={`bg-gradient-to-br ${theme.accent} to-${color}-100 rounded-2xl p-8 border ${theme.border}`}>
               <div className="flex items-center mb-6">
-                <div className="bg-blue-600 p-3 rounded-lg mr-4">
+                <div className={`${theme.primary} p-3 rounded-lg mr-4`}>
                   <BuildingOfficeIcon className="h-8 w-8 text-white" />
                 </div>
                 <div>
                   <h4 className="text-2xl font-bold text-gray-900">Головная организация</h4>
-                  <p className="text-blue-600 font-medium">Управляющая компания</p>
+                  <p className={`${theme.text} font-medium`}>Управляющая компания</p>
                 </div>
               </div>
 
@@ -265,15 +268,15 @@ const HoldingLandingPage = () => {
 
               <div className="space-y-4">
                 <div className="flex items-center">
-                  <ArrowTrendingUpIcon className="h-6 w-6 text-blue-600 mr-3" />
+                  <ArrowTrendingUpIcon className={`h-6 w-6 ${theme.text} mr-3`} />
                   <span className="text-gray-700">Стратегическое планирование</span>
                 </div>
                 <div className="flex items-center">
-                  <BoltIcon className="h-6 w-6 text-blue-600 mr-3" />
+                  <BoltIcon className={`h-6 w-6 ${theme.text} mr-3`} />
                   <span className="text-gray-700">Координация проектов</span>
                 </div>
                 <div className="flex items-center">
-                  <ShieldCheckIcon className="h-6 w-6 text-blue-600 mr-3" />
+                  <ShieldCheckIcon className={`h-6 w-6 ${theme.text} mr-3`} />
                   <span className="text-gray-700">Контроль качества</span>
                 </div>
               </div>
@@ -320,7 +323,7 @@ const HoldingLandingPage = () => {
           <div className="grid md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-blue-600 p-2 rounded-lg">
+                <div className={`${theme.primary} p-2 rounded-lg`}>
                   <BuildingOfficeIcon className="h-6 w-6 text-white" />
                 </div>
                 <span className="text-xl font-bold">{holding.name}</span>
@@ -350,7 +353,7 @@ const HoldingLandingPage = () => {
               <h5 className="font-semibold text-lg mb-4">Для партнеров</h5>
               <Link
                 to="/dashboard"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center space-x-2 transition-colors"
+                className={`${theme.primary} ${theme.hover} text-white px-4 py-2 rounded-lg inline-flex items-center space-x-2 transition-colors`}
               >
                 <span>Войти в систему</span>
                 <ArrowRightIcon className="h-4 w-4" />

@@ -19,18 +19,18 @@ get_certificate() {
     local cert_name="$2"
     
     echo "🌟 Получение SSL сертификата для: $domains"
-    echo "⚠️ ВНИМАНИЕ: Вам потребуется добавить TXT записи в DNS панели reg.ru!"
+echo "⚠️ ВНИМАНИЕ: Вам потребуется добавить TXT записи в DNS панели reg.ru!"
     echo "📋 Certbot покажет вам TXT записи для каждого домена"
-    echo ""
-    echo "Нажмите Enter когда будете готовы продолжить..."
-    read -p ""
+echo ""
+echo "Нажмите Enter когда будете готовы продолжить..."
+read -p ""
 
-    certbot certonly \
-        --manual \
-        --preferred-challenges dns \
-        --email kamilgaraev11@gmail.com \
-        --agree-tos \
-        --no-eff-email \
+certbot certonly \
+    --manual \
+    --preferred-challenges dns \
+    --email kamilgaraev11@gmail.com \
+    --agree-tos \
+    --no-eff-email \
         --cert-name "$cert_name" \
         $domains
 }
