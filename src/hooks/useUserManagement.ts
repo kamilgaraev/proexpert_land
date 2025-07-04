@@ -198,6 +198,7 @@ export const useUserManagement = () => {
   }) => {
     try {
       setLoading(true);
+      console.log('--- Отправляю приглашение', invitationData);
       const response = await userManagementService.createInvitation(invitationData);
       if (response.data.success) {
         await fetchInvitations();
