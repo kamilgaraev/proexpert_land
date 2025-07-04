@@ -5,9 +5,10 @@ interface InvitationsListProps {
   invitations: UserInvitation[];
   loading: boolean;
   onRefresh: () => void;
+  onInvite: () => void;
 }
 
-const InvitationsList: React.FC<InvitationsListProps> = ({ invitations, loading }) => {
+const InvitationsList: React.FC<InvitationsListProps> = ({ invitations, loading, onInvite }) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending':
@@ -44,7 +45,7 @@ const InvitationsList: React.FC<InvitationsListProps> = ({ invitations, loading 
           <h2 className="text-lg font-semibold text-gray-900">Приглашения</h2>
           <p className="text-sm text-gray-600">Отслеживайте статус отправленных приглашений</p>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium" onClick={onInvite}>
           Отправить приглашение
         </button>
       </div>

@@ -20,6 +20,7 @@ import { useUserManagement } from '@hooks/useUserManagement';
 import UsersList from '@components/dashboard/users/UsersList';
 import InvitationsList from '@components/dashboard/users/InvitationsList';
 import RolesList from '@components/dashboard/users/RolesList';
+import InviteUserModal from '@components/dashboard/users/InviteUserModal';
 
 type TabType = 'admins' | 'users' | 'invitations' | 'roles';
 
@@ -34,6 +35,7 @@ const AdminsPage = () => {
   const [isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen] = useState(false);
   const [deletingAdmin, setDeletingAdmin] = useState<AdminPanelUser | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   const {
     users,
@@ -263,7 +265,24 @@ const AdminsPage = () => {
       case 'users':
         return <UsersList users={users} loading={userManagementLoading} onRefresh={fetchUsers} />;
       case 'invitations':
-        return <InvitationsList invitations={invitations} loading={userManagementLoading} onRefresh={fetchInvitations} />;
+        return (
+          <>
+            <InvitationsList 
+              invitations={invitations} 
+              loading={userManagementLoading} 
+              onRefresh={fetchInvitations} 
+              onInvite={() => setShowInviteModal(true)}
+            />
+            <InviteUserModal 
+              isOpen={showInviteModal} 
+              onClose={() => setShowInviteModal(false)} 
+              onSave={() => {
+                setShowInviteModal(false);
+                fetchInvitations();
+              }}
+            />
+          </>
+        );
       case 'roles':
         return <RolesList roles={roles} loading={userManagementLoading} onRefresh={fetchRoles} />;
       case 'admins':
