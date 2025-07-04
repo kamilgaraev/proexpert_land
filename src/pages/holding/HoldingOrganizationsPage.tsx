@@ -626,6 +626,11 @@ const HoldingOrganizationsPage = () => {
   const [newOrgForm, setNewOrgForm] = useState<AddChildOrganizationRequest>(initialOrgForm);
   // индикатор процесса сохранения
   const [savingOrg, setSavingOrg] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
+
+  // вспомогатель для вывода первой ошибки поля
+  const getFieldError = (field: string): string | undefined => validationErrors[field]?.[0];
 
   useEffect(() => {
     const loadOrganizations = async () => {
@@ -846,30 +851,45 @@ const HoldingOrganizationsPage = () => {
   // --- добавлено: обработчик создания дочерней организации ---
   const handleCreateOrganization = async (e: React.FormEvent) => {
     e.preventDefault();
+    // очищаем предыдущие ошибки
+    setFormError(null);
+    setValidationErrors({});
     try {
       setSavingOrg(true);
-      const response = await multiOrganizationService.addChildOrganization(newOrgForm);
+      const resp = await multiOrganizationService.addChildOrganization(newOrgForm);
 
-      // закрываем модалку и сбрасываем форму
+      // если API вернул success = false
+      if (resp.data && resp.data.success === false) {
+        setFormError(resp.data.message || 'Ошибка добавления организации');
+        return;
+      }
+
+      // успех
       setShowAddModal(false);
       setNewOrgForm({ ...initialOrgForm, group_id: parentOrgId });
 
-      // обновляем список организаций
+      // обновляем список как раньше
       const token = getTokenFromStorages();
       if (token) {
         const hostname = window.location.hostname;
         const mainDomain = 'prohelper.pro';
         if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
-          // в режиме локальной разработки просто добавляем организацию в список
-          setOrganizations(prev => [...prev, (response as any)?.data ?? newOrgForm]);
+          setOrganizations(prev => [...prev, (resp.data?.data ?? newOrgForm) as any]);
         } else if (hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`)) {
           const slug = hostname.split('.')[0];
           const data = await multiOrganizationService.getHoldingOrganizations(slug, token);
           setOrganizations(data || []);
         }
       }
-    } catch (error) {
-      console.error('Ошибка добавления организации:', error);
+    } catch (error: any) {
+      // пытаемся разобрать ответ сервера
+      if (error.response && error.response.data) {
+        const serverData = error.response.data;
+        if (serverData.message) setFormError(serverData.message);
+        if (serverData.errors) setValidationErrors(serverData.errors);
+      } else {
+        setFormError(error.message || 'Неизвестная ошибка');
+      }
     } finally {
       setSavingOrg(false);
     }
@@ -1407,9 +1427,15 @@ const HoldingOrganizationsPage = () => {
           >
             <form onSubmit={handleCreateOrganization} className="p-6 space-y-4">
               <h3 className="text-xl font-bold text-gray-900">Добавить дочернюю организацию</h3>
+              {formError && (
+                <div className="bg-red-100 text-red-800 rounded-md p-3 mt-4 text-sm">
+                  {formError}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Название *</label>
                 <input type="text" required value={newOrgForm.name} onChange={(e)=>setNewOrgForm({...newOrgForm, name:e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                {getFieldError('name') && <p className="text-xs text-red-600 mt-1">{getFieldError('name')}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Описание</label>
@@ -1419,10 +1445,12 @@ const HoldingOrganizationsPage = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">ИНН</label>
                   <input type="text" value={newOrgForm.inn} onChange={(e)=>setNewOrgForm({...newOrgForm, inn:e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                  {getFieldError('inn') && <p className="text-xs text-red-600 mt-1">{getFieldError('inn')}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">КПП</label>
                   <input type="text" value={newOrgForm.kpp} onChange={(e)=>setNewOrgForm({...newOrgForm, kpp:e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                  {getFieldError('kpp') && <p className="text-xs text-red-600 mt-1">{getFieldError('kpp')}</p>}
                 </div>
               </div>
               <div>
@@ -1445,15 +1473,18 @@ const HoldingOrganizationsPage = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Имя *</label>
                   <input type="text" required value={newOrgForm.owner.name} onChange={(e)=>setNewOrgForm({...newOrgForm, owner:{...newOrgForm.owner, name:e.target.value}})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                  {getFieldError('owner.name') && <p className="text-xs text-red-600 mt-1">{getFieldError('owner.name')}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                   <input type="email" required value={newOrgForm.owner.email} onChange={(e)=>setNewOrgForm({...newOrgForm, owner:{...newOrgForm.owner, email:e.target.value}})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                  {getFieldError('owner.email') && <p className="text-xs text-red-600 mt-1">{getFieldError('owner.email')}</p>}
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Пароль *</label>
                 <input type="password" required value={newOrgForm.owner.password} onChange={(e)=>setNewOrgForm({...newOrgForm, owner:{...newOrgForm.owner, password:e.target.value}})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                {getFieldError('owner.password') && <p className="text-xs text-red-600 mt-1">{getFieldError('owner.password')}</p>}
               </div>
               <div className="flex justify-end space-x-3 pt-4">
                 <button type="button" onClick={()=>setShowAddModal(false)} className="px-4 py-2 border border-gray-300 rounded-md">Отмена</button>
