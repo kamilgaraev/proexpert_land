@@ -21,7 +21,7 @@ import {
   MagnifyingGlassIcon,
   FunnelIcon
 } from '@heroicons/react/24/outline';
-import { multiOrganizationService, getTokenFromStorages } from '@utils/api';
+import { multiOrganizationService, getTokenFromStorages, type AddChildOrganizationRequest } from '@utils/api';
 import type { HoldingOrganization } from '@utils/api';
 import { SEOHead } from '@components/shared/SEOHead';
 import { useTheme } from '@components/shared/ThemeProvider';
@@ -603,6 +603,29 @@ const HoldingOrganizationsPage = () => {
   const navigate = useNavigate();
   const { color, getThemeClasses } = useTheme();
   const theme = getThemeClasses();
+  const [parentOrgId, setParentOrgId] = useState<number>(0);
+
+  // начальное состояние формы дочерней организации
+  const initialOrgForm: AddChildOrganizationRequest = {
+    group_id: parentOrgId,
+    name: '',
+    description: '',
+    inn: '',
+    kpp: '',
+    address: '',
+    phone: '',
+    email: '',
+    owner: {
+      name: '',
+      email: '',
+      password: '',
+    },
+  };
+
+  // форма новой организации
+  const [newOrgForm, setNewOrgForm] = useState<AddChildOrganizationRequest>(initialOrgForm);
+  // индикатор процесса сохранения
+  const [savingOrg, setSavingOrg] = useState(false);
 
   useEffect(() => {
     const loadOrganizations = async () => {
@@ -652,6 +675,7 @@ const HoldingOrganizationsPage = () => {
           setOrganizations(data || []);
           const holdingData = await multiOrganizationService.getHoldingPublicInfo(slug);
           setHoldingName(holdingData?.holding?.name || 'Холдинг');
+          setParentOrgId(holdingData?.parent_organization?.id || 0);
         } else {
           throw new Error('Неверный поддомен');
         }
@@ -819,6 +843,38 @@ const HoldingOrganizationsPage = () => {
     value: acc.value + (org.stats?.active_contracts_value || 0),
   }), { users: 0, projects: 0, contracts: 0, value: 0 });
 
+  // --- добавлено: обработчик создания дочерней организации ---
+  const handleCreateOrganization = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setSavingOrg(true);
+      const response = await multiOrganizationService.addChildOrganization(newOrgForm);
+
+      // закрываем модалку и сбрасываем форму
+      setShowAddModal(false);
+      setNewOrgForm({ ...initialOrgForm, group_id: parentOrgId });
+
+      // обновляем список организаций
+      const token = getTokenFromStorages();
+      if (token) {
+        const hostname = window.location.hostname;
+        const mainDomain = 'prohelper.pro';
+        if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+          // в режиме локальной разработки просто добавляем организацию в список
+          setOrganizations(prev => [...prev, (response as any)?.data ?? newOrgForm]);
+        } else if (hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`)) {
+          const slug = hostname.split('.')[0];
+          const data = await multiOrganizationService.getHoldingOrganizations(slug, token);
+          setOrganizations(data || []);
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка добавления организации:', error);
+    } finally {
+      setSavingOrg(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className={`min-h-screen bg-gradient-to-br ${theme.background} flex items-center justify-center`}>
@@ -930,7 +986,10 @@ const HoldingOrganizationsPage = () => {
               </div>
 
               <button 
-                onClick={() => setShowAddModal(true)}
+                onClick={() => {
+                  setNewOrgForm((prev)=>({...prev, group_id: parentOrgId }));
+                  setShowAddModal(true);
+                }}
                 className={`bg-gradient-to-r ${theme.gradient} hover:opacity-90 text-white px-6 py-3 rounded-xl flex items-center space-x-2 font-semibold transition-all duration-200 shadow-lg hover:shadow-xl`}
               >
                 <PlusIcon className="h-5 w-5" />
@@ -1072,7 +1131,10 @@ const HoldingOrganizationsPage = () => {
                 Добавьте первую дочернюю организацию для начала работы с холдингом
               </p>
               <button 
-                onClick={() => setShowAddModal(true)}
+                onClick={() => {
+                  setNewOrgForm((prev)=>({...prev, group_id: parentOrgId }));
+                  setShowAddModal(true);
+                }}
                 className={`bg-gradient-to-r ${theme.gradient} hover:opacity-90 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl`}
               >
                 Добавить организацию
@@ -1337,30 +1399,67 @@ const HoldingOrganizationsPage = () => {
           onClick={() => setShowAddModal(false)}
         >
           <motion.div
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Добавить организацию</h3>
-            <p className="text-gray-600 mb-6">
-              Эта функция будет доступна в ближайшее время. Для добавления новой организации обратитесь к администратору.
-            </p>
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition-colors duration-200"
-              >
-                Закрыть
-              </button>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className={`flex-1 bg-gradient-to-r ${theme.gradient} hover:opacity-90 text-white py-2 px-4 rounded-lg font-medium transition-opacity duration-200`}
-              >
-                Понятно
-              </button>
-            </div>
+            <form onSubmit={handleCreateOrganization} className="p-6 space-y-4">
+              <h3 className="text-xl font-bold text-gray-900">Добавить дочернюю организацию</h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Название *</label>
+                <input type="text" required value={newOrgForm.name} onChange={(e)=>setNewOrgForm({...newOrgForm, name:e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Описание</label>
+                <textarea value={newOrgForm.description} onChange={(e)=>setNewOrgForm({...newOrgForm, description:e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md" rows={3}></textarea>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">ИНН</label>
+                  <input type="text" value={newOrgForm.inn} onChange={(e)=>setNewOrgForm({...newOrgForm, inn:e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">КПП</label>
+                  <input type="text" value={newOrgForm.kpp} onChange={(e)=>setNewOrgForm({...newOrgForm, kpp:e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Адрес</label>
+                <input type="text" value={newOrgForm.address} onChange={(e)=>setNewOrgForm({...newOrgForm, address:e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
+                  <input type="tel" value={newOrgForm.phone} onChange={(e)=>setNewOrgForm({...newOrgForm, phone:e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input type="email" value={newOrgForm.email} onChange={(e)=>setNewOrgForm({...newOrgForm, email:e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                </div>
+              </div>
+              <hr className="my-2" />
+              <h4 className="text-md font-medium text-gray-900">Владелец организации</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Имя *</label>
+                  <input type="text" required value={newOrgForm.owner.name} onChange={(e)=>setNewOrgForm({...newOrgForm, owner:{...newOrgForm.owner, name:e.target.value}})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <input type="email" required value={newOrgForm.owner.email} onChange={(e)=>setNewOrgForm({...newOrgForm, owner:{...newOrgForm.owner, email:e.target.value}})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Пароль *</label>
+                <input type="password" required value={newOrgForm.owner.password} onChange={(e)=>setNewOrgForm({...newOrgForm, owner:{...newOrgForm.owner, password:e.target.value}})} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+              </div>
+              <div className="flex justify-end space-x-3 pt-4">
+                <button type="button" onClick={()=>setShowAddModal(false)} className="px-4 py-2 border border-gray-300 rounded-md">Отмена</button>
+                <button type="submit" disabled={savingOrg} className="px-4 py-2 bg-blue-600 text-white rounded-md disabled:opacity-50">{savingOrg ? 'Добавление...' : 'Добавить'}</button>
+              </div>
+            </form>
           </motion.div>
         </motion.div>
       )}
