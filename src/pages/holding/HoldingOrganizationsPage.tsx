@@ -143,16 +143,34 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
         status: statusFilter === 'all' ? undefined : statusFilter
       });
       
-      const usersData = Array.isArray(response?.data?.data) ? response.data.data : Array.isArray(response?.data) ? response.data : [];
+      let rawUsers: any[] = [];
+      const payload = response.data;
+      if (Array.isArray(payload)) {
+        rawUsers = payload;
+      } else if (Array.isArray(payload?.users)) {
+        rawUsers = payload.users;
+      } else if (Array.isArray(payload?.data)) {
+        rawUsers = payload.data;
+      } else if (Array.isArray(payload?.data?.users)) {
+        rawUsers = payload.data.users;
+      }
+
+      // нормализуем поля под наш интерфейс
+      const usersData: OrganizationUser[] = rawUsers.map((u: any) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        is_owner: u.is_owner ?? false,
+        is_active: u.is_active ?? true,
+        role_id: u.role_id ?? 0,
+        role_name: u.role_name ?? u.role ?? '',
+        role_color: u.role_color ?? '#2563EB',
+        permissions: u.permissions ?? [],
+        last_login: u.last_login ?? '',
+        joined_at: u.joined_at ?? '',
+      }));
       
-      // Фильтруем по ролям локально, так как API может не поддерживать фильтрацию по названию роли
-      const filteredUsers = roleFilter === 'all' 
-        ? usersData 
-        : usersData.filter((user: OrganizationUser) => 
-            user.role_name?.toLowerCase().includes(roleFilter.toLowerCase())
-          );
-      
-      setUsers(filteredUsers);
+      setUsers(usersData);
     } catch (error) {
       console.error('Ошибка загрузки пользователей:', error);
       setUsers([]);
