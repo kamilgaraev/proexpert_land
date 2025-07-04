@@ -450,7 +450,7 @@ const DashboardLayout = () => {
               
               {/* Админ панель */}
               <a
-                href="http://89.104.68.13/"
+                href="https://admin.prohelper.pro/"
                 className="hidden lg:inline-flex items-center px-4 py-2 border border-steel-300 text-sm font-medium rounded-xl text-steel-700 bg-white hover:bg-steel-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-construction-500 transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
