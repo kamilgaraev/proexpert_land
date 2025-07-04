@@ -143,7 +143,7 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
         status: statusFilter === 'all' ? undefined : statusFilter
       });
       
-      const usersData = response?.data || [];
+      const usersData = Array.isArray(response?.data?.data) ? response.data.data : Array.isArray(response?.data) ? response.data : [];
       
       // Фильтруем по ролям локально, так как API может не поддерживать фильтрацию по названию роли
       const filteredUsers = roleFilter === 'all' 
