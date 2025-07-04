@@ -136,7 +136,13 @@ export const useUserManagement = () => {
         if (Array.isArray(payload.data)) list = payload.data;
         else if (Array.isArray(payload.data?.data)) list = payload.data.data;
         else if (Array.isArray(payload)) list = payload;
-        const norm = list.map((inv) => ({ ...inv, role_names: inv.role_names ?? [] }));
+        const norm = list.map((inv) => ({
+          ...inv,
+          role_names: inv.role_names ?? [],
+          invited_by: inv.invited_by ?? { name: 'Система' },
+          status_text: inv.status_text ?? (inv.status === 'pending' ? 'Ожидает' : inv.status),
+          status_color: inv.status_color ?? '#6B7280',
+        }));
         setInvitations(norm);
       }
     } catch (err: any) {
