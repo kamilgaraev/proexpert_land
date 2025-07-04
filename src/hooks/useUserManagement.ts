@@ -136,7 +136,8 @@ export const useUserManagement = () => {
         if (Array.isArray(payload.data)) list = payload.data;
         else if (Array.isArray(payload.data?.data)) list = payload.data.data;
         else if (Array.isArray(payload)) list = payload;
-        setInvitations(list);
+        const norm = list.map((inv) => ({ ...inv, role_names: inv.role_names ?? [] }));
+        setInvitations(norm);
       }
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки приглашений');
