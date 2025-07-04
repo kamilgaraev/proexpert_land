@@ -1447,6 +1447,11 @@ export interface AddChildOrganizationRequest {
   address?: string;
   phone?: string;
   email?: string;
+  owner: {
+    name: string;
+    email: string;
+    password: string;
+  };
 }
 
 export interface OrganizationHierarchy {

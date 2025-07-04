@@ -67,6 +67,11 @@ const MultiOrganizationPage = () => {
     address: '',
     phone: '',
     email: '',
+    owner: {
+      name: '',
+      email: '',
+      password: '',
+    },
   });
 
   useEffect(() => {
@@ -131,6 +136,7 @@ const MultiOrganizationPage = () => {
         address: '',
         phone: '',
         email: '',
+        owner: { name: '', email: '', password: '' },
       });
     } catch (error) {
       console.error('Ошибка добавления дочерней организации:', error);
@@ -881,6 +887,52 @@ const MultiOrganizationPage = () => {
                       placeholder="info@novyy-stroitel.ru"
                 />
                   </div>
+              </div>
+              
+              {/* Owner Information */}
+              <div className="mt-4 border-t pt-4">
+                <h3 className="text-md font-medium text-gray-900 mb-2">Владелец организации</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Имя владельца <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={childForm.owner.name}
+                      onChange={(e) => setChildForm({ ...childForm, owner: { ...childForm.owner, name: e.target.value } })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Иван Иванов"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email владельца <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={childForm.owner.email}
+                      onChange={(e) => setChildForm({ ...childForm, owner: { ...childForm.owner, email: e.target.value } })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="owner@example.com"
+                    />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Пароль владельца <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={childForm.owner.password}
+                    onChange={(e) => setChildForm({ ...childForm, owner: { ...childForm.owner, password: e.target.value } })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Введите пароль"
+                  />
+                </div>
               </div>
               
                 <div className="flex justify-end space-x-3 pt-4">
