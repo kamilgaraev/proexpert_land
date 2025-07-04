@@ -131,7 +131,12 @@ export const useUserManagement = () => {
       setLoading(true);
       const response = await userManagementService.getInvitations();
       if (response.data.success) {
-        setInvitations(response.data.data);
+        const payload = response.data;
+        let list: any[] = [];
+        if (Array.isArray(payload.data)) list = payload.data;
+        else if (Array.isArray(payload.data?.data)) list = payload.data.data;
+        else if (Array.isArray(payload)) list = payload;
+        setInvitations(list);
       }
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки приглашений');
