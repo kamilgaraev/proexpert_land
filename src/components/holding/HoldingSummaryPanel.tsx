@@ -153,6 +153,31 @@ const HoldingSummaryPanel: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Completed Works List */}
+          {summary.completed_works?.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-2 mt-6">Выполненные работы</h3>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {summary.completed_works.map((work: any) => (
+                  <div key={work.id} className="border rounded-lg p-3 flex flex-col">
+                    <span className="font-medium">{work.name || work.title || `Работа #${work.id}`}</span>
+                    <span className="text-xs text-gray-500">ID: {work.id}</span>
+                    <span className="text-xs text-gray-500">Орг: {work.organization?.name || work.organization_name}</span>
+                    {work.date && (
+                      <div className="text-xs text-gray-600">Дата: {work.date}</div>
+                    )}
+                    {work.amount && (
+                      <div className="text-xs text-gray-600">Сумма: {work.amount}</div>
+                    )}
+                    {work.status && (
+                      <div className="text-xs text-gray-600">Статус: {work.status}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </section>
