@@ -27,6 +27,21 @@ const HoldingSummaryPanel: React.FC = () => {
     fetchSummary(params);
   };
 
+  const statusLabels: Record<string, string> = {
+    pending: 'Ожидает',
+    in_review: 'На проверке',
+    approved: 'Утверждён',
+    rejected: 'Отклонён',
+    active: 'Активен',
+    completed: 'Завершён',
+    paused: 'Приостановлен',
+    draft: 'Черновик',
+  };
+  const getStatusLabel = (status: string | undefined) => {
+    if (!status) return '';
+    return statusLabels[status] || status;
+  };
+
   return (
     <section className={`bg-white rounded-xl px-6 py-4 mt-8 mb-10 border ${theme.border} shadow-lg`}>
       <h2 className="text-lg font-semibold mb-4">Сводка по холдингу</h2>
@@ -103,7 +118,7 @@ const HoldingSummaryPanel: React.FC = () => {
                     <span className="font-medium">{project.name}</span>
                     <span className="text-xs text-gray-500">ID: {project.id}</span>
                     <span className="text-xs text-gray-500">Орг: {project.organization?.name || project.organization_name}</span>
-                    <div className="text-xs mt-2 text-gray-600">Статус: {project.status}</div>
+                    <div className="text-xs mt-2 text-gray-600">Статус: {getStatusLabel(project.status)}</div>
                     <div className="text-xs text-gray-600">Дата начала: {project.start_date}</div>
                     <div className="text-xs text-gray-600">Дата окончания: {project.end_date}</div>
                     {project.budget !== null && (
@@ -127,7 +142,7 @@ const HoldingSummaryPanel: React.FC = () => {
                     <span className="text-xs text-gray-500">Орг: {contract.organization?.name || contract.organization_name}</span>
                     <div className="text-xs mt-2 text-gray-600">Дата: {contract.date}</div>
                     <div className="text-xs text-gray-600">Сумма: {contract.total_amount}</div>
-                    <div className="text-xs text-gray-600">Статус: {contract.status}</div>
+                    <div className="text-xs text-gray-600">Статус: {getStatusLabel(contract.status)}</div>
                   </div>
                 ))}
               </div>
@@ -143,11 +158,21 @@ const HoldingSummaryPanel: React.FC = () => {
                   <div key={act.id} className="border rounded-lg p-3 flex flex-col">
                     <span className="font-medium">Акт #{act.id}</span>
                     <span className="text-xs text-gray-500">Орг: {act.organization?.name || act.organization_name}</span>
-                    {act.number && (
-                      <span className="text-xs text-gray-500">Номер: {act.number}</span>
+                    {act.act_document_number && (
+                      <span className="text-xs text-gray-500">№: {act.act_document_number}</span>
                     )}
-                    <div className="text-xs mt-2 text-gray-600">Дата: {act.date || act.created_at}</div>
-                    <div className="text-xs text-gray-600">Статус: {act.status}</div>
+                    {act.contract_id && (
+                      <span className="text-xs text-gray-500">Договор ID: {act.contract_id}</span>
+                    )}
+                    {act.act_date && (
+                      <div className="text-xs text-gray-600">Дата: {act.act_date}</div>
+                    )}
+                    {act.amount !== undefined && (
+                      <div className="text-xs text-gray-600">Сумма: {act.amount}</div>
+                    )}
+                    {typeof act.is_approved === 'boolean' && (
+                      <div className="text-xs text-gray-600">Утверждён: {act.is_approved ? 'Да' : 'Нет'}</div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -183,7 +208,7 @@ const HoldingSummaryPanel: React.FC = () => {
                       <div className="text-xs text-gray-600">Сумма: {work.total_amount}</div>
                     )}
                     {work.status && (
-                      <div className="text-xs text-gray-600">Статус: {work.status}</div>
+                      <div className="text-xs text-gray-600">Статус: {getStatusLabel(work.status)}</div>
                     )}
                   </div>
                 ))}
