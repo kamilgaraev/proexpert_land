@@ -1984,4 +1984,21 @@ export const multiOrganizationService = {
   },
 };
 
+// --- Глобальный перехват fetch, чтобы при любом 401/419 делать redirect на /login ---
+if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(window as any).__authFetchPatched) {
+  const nativeFetch = window.fetch.bind(window);
+  (window as any).__authFetchPatched = true;
+  window.fetch = async (...args: Parameters<typeof nativeFetch>): Promise<Response> => {
+    const resp = await nativeFetch(...(args as Parameters<typeof nativeFetch>));
+    if (resp.status === 401 || resp.status === 419) {
+      try { clearTokenFromStorages(); } catch {}
+      if (!window.location.pathname.includes('/login')) {
+        window.location.replace('/login');
+      }
+    }
+    return resp;
+  };
+}
+// --- конец перехвата ---
+
 export default api; 
