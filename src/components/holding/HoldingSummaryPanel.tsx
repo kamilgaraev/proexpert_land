@@ -25,25 +25,32 @@ const HoldingSummaryPanel: React.FC = () => {
   };
 
   return (
-    <section className="bg-white shadow rounded-xl p-6 mb-8">
-      <h2 className="text-xl font-semibold mb-4">Сводка по холдингу</h2>
-      <form onSubmit={submit} className="flex flex-wrap gap-3 mb-6">
-        <input type="date" name="date_from" value={filters.date_from} onChange={handleChange} className="input w-[140px]" />
-        <input type="date" name="date_to" value={filters.date_to} onChange={handleChange} className="input w-[140px]" />
-        <input type="text" name="status" placeholder="Статус" value={filters.status} onChange={handleChange} className="input w-[120px]" />
-        <select name="is_approved" value={filters.is_approved} onChange={handleChange} className="input w-[140px]">
+    <section className="bg-white rounded-xl px-6 py-4 mb-8">
+      <h2 className="text-lg font-semibold mb-4">Сводка по холдингу</h2>
+      <form onSubmit={submit} className="flex flex-wrap items-center gap-4 mb-4">
+        <input type="date" name="date_from" value={filters.date_from} onChange={handleChange}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-[140px] focus:ring-primary-500 focus:border-primary-500" />
+        <input type="date" name="date_to" value={filters.date_to} onChange={handleChange}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-[140px] focus:ring-primary-500 focus:border-primary-500" />
+        <input type="text" name="status" placeholder="Статус" value={filters.status} onChange={handleChange}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-[120px] focus:ring-primary-500 focus:border-primary-500" />
+        <select name="is_approved" value={filters.is_approved} onChange={handleChange}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-[150px] focus:ring-primary-500 focus:border-primary-500">
           <option value="">Утверждённость</option>
           <option value="true">Утверждён</option>
           <option value="false">Не утверждён</option>
         </select>
-        <select name="section" value={filters.section} onChange={handleChange} className="input w-[180px]">
+        <select name="section" value={filters.section} onChange={handleChange}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-[170px] focus:ring-primary-500 focus:border-primary-500">
           <option value="">Все секции</option>
           <option value="projects">Проекты</option>
           <option value="contracts">Контракты</option>
           <option value="acts">Акты</option>
           <option value="completed_works">Выполненные работы</option>
         </select>
-        <button type="submit" className="btn btn-primary">Показать</button>
+        <button type="submit" className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold">
+          Показать
+        </button>
       </form>
 
       {loading && <p className="text-gray-500">Загрузка…</p>}
