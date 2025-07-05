@@ -28,7 +28,7 @@ const HoldingSummaryPanel: React.FC = () => {
   };
 
   return (
-    <section className={`bg-white rounded-xl px-6 py-4 mb-8 border ${theme.border} shadow`}>
+    <section className={`bg-white rounded-xl px-6 py-4 mt-8 mb-10 border ${theme.border} shadow-lg`}>
       <h2 className="text-lg font-semibold mb-4">Сводка по холдингу</h2>
       <form onSubmit={submit} className="flex flex-wrap items-center gap-4 mb-4">
         <input type="date" name="date_from" value={filters.date_from} onChange={handleChange}
