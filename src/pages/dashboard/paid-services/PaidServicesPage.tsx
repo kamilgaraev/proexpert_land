@@ -5,6 +5,7 @@ import { PageLoading } from '@components/common/PageLoading'; // Предпол�
 
 const PaidServicesPage = () => {
   const [subscription, setSubscription] = useState<any>(null);
+  const [currentPlan, setCurrentPlan] = useState<any | null>(null);
   const [plans, setPlans] = useState<any[]>([]);
   const [addons, setAddons] = useState<any[]>([]);
   const [connectedAddons, setConnectedAddons] = useState<any[]>([]);
@@ -30,7 +31,11 @@ const PaidServicesPage = () => {
         billingService.getOneTimePurchases(),
       ]);
       setSubscription(subRes.data);
-      setPlans(Array.isArray(plansRes.data) ? plansRes.data : []);
+      const fetchedPlans = Array.isArray(plansRes.data) ? plansRes.data : [];
+      setPlans(fetchedPlans);
+      // определяем текущий план по subscription_plan_id
+      const cp = subRes.data ? fetchedPlans.find((p: any) => p.id === subRes.data.subscription_plan_id) : null;
+      setCurrentPlan(cp || null);
       setAddons(Array.isArray(addonsRes.data.all) ? addonsRes.data.all : []);
       setConnectedAddons(Array.isArray(addonsRes.data.connected) ? addonsRes.data.connected : []);
       setOneTimePurchases(Array.isArray(otpRes.data) ? otpRes.data : []);
@@ -115,22 +120,27 @@ const PaidServicesPage = () => {
       {/* Текущая подписка */}
       <section className="bg-white shadow rounded-xl p-6 mb-8">
         <h2 className="text-xl font-semibold mb-4">Текущая подписка</h2>
-        {subscription && subscription.status ? (
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-              <div className="text-2xl font-bold text-primary-700">{subscription.status === 'active' ? subscription.plan?.name : 'Нет активной подписки'}</div>
-              <div className="text-gray-600 text-sm mt-1">{subscription.plan?.description}</div>
-              <div className="text-xs text-gray-400 mt-2">Действует до: {formatDate(subscription.ends_at)}</div>
-                </div>
-            <div className="flex flex-col gap-2">
-              {plans.filter(p => p.slug !== subscription.plan?.slug).map(plan => (
+        {subscription && subscription.status === 'active' && currentPlan ? (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2">
+                <span className="text-2xl font-bold text-primary-700">{currentPlan.name}</span>
+                <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">Активен</span>
+              </div>
+              <div className="text-gray-600">{currentPlan.description}</div>
+              <div className="text-sm text-gray-500">Действует до: {formatDate(subscription.ends_at)}</div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {plans.filter(p => p.id !== currentPlan.id).map(plan => (
                 <button key={plan.slug} onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-outline disabled:opacity-60">
-                  {planAction===plan.slug ? 'Обновление...' : `Перейти на ${plan.name}`}
+                  {planAction===plan.slug ? 'Обновление…' : `Перейти на ${plan.name}`}
                 </button>
               ))}
-                </div>
-              </div>
-        ) : <div className="text-gray-500">Нет активной подписки</div>}
+            </div>
+          </div>
+        ) : (
+          <div className="text-gray-500">Нет активной подписки</div>
+        )}
       </section>
 
       {/* Тарифные планы */}
@@ -138,7 +148,7 @@ const PaidServicesPage = () => {
         <h2 className="text-xl font-semibold mb-4">Тарифные планы</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {plans.map(plan => (
-            <div key={plan.id} className="border rounded-lg p-4 flex flex-col">
+            <div key={plan.id} className={`rounded-lg p-4 flex flex-col border-2 ${currentPlan && currentPlan.id === plan.id ? 'border-primary-600 bg-primary-50' : 'border-gray-200 bg-white'}`}>
               <div className="font-bold text-lg mb-1">{plan.name}</div>
               <div className="text-primary-700 text-xl font-semibold mb-2">{plan.price.toLocaleString('ru-RU', { style: 'currency', currency: plan.currency })} / {plan.duration_in_days === 30 ? 'мес.' : `${plan.duration_in_days} дн.`}</div>
               <div className="text-gray-600 text-sm mb-2">{plan.description}</div>
@@ -148,9 +158,13 @@ const PaidServicesPage = () => {
                 {plan.max_projects && <li>Проекты: {plan.max_projects}</li>}
                 {plan.max_storage_gb && <li>Хранилище: {plan.max_storage_gb} ГБ</li>}
               </ul>
-              <button onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-primary mt-auto disabled:opacity-60">
-                {planAction===plan.slug ? 'Подписка...' : 'Выбрать'}
-              </button>
+              {currentPlan && currentPlan.id === plan.id ? (
+                <span className="mt-auto inline-block px-3 py-1 text-sm text-white bg-primary-600 rounded">Ваш тариф</span>
+              ) : (
+                <button onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-primary mt-auto disabled:opacity-60">
+                  {planAction===plan.slug ? 'Подписка…' : 'Выбрать'}
+                </button>
+              )}
             </div>
           ))}
           </div>
