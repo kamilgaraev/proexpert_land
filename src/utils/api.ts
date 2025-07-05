@@ -1958,7 +1958,7 @@ export const multiOrganizationService = {
   }) => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const url = new URL(`${API_URL}/landing/multi-organization/summary`);
+    const url = new URL(`${API_URL}/multi-organization/summary`);
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) url.searchParams.append(key, String(value));
     });
