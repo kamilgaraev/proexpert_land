@@ -161,14 +161,26 @@ const HoldingSummaryPanel: React.FC = () => {
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {summary.completed_works.map((work: any) => (
                   <div key={work.id} className="border rounded-lg p-3 flex flex-col">
-                    <span className="font-medium">{work.name || work.title || `Работа #${work.id}`}</span>
+                    <span className="font-medium">{work.work_type?.name || work.name || work.title || work.project?.name || `Работа #${work.id}`}</span>
                     <span className="text-xs text-gray-500">ID: {work.id}</span>
                     <span className="text-xs text-gray-500">Орг: {work.organization?.name || work.organization_name}</span>
-                    {work.date && (
-                      <div className="text-xs text-gray-600">Дата: {work.date}</div>
+                    {work.project?.name && (
+                      <span className="text-xs text-gray-500">Проект: {work.project.name}</span>
                     )}
-                    {work.amount && (
-                      <div className="text-xs text-gray-600">Сумма: {work.amount}</div>
+                    {work.contract?.number && (
+                      <span className="text-xs text-gray-500">Договор: {work.contract.number}</span>
+                    )}
+                    {work.completion_date && (
+                      <div className="text-xs text-gray-600">Дата: {work.completion_date}</div>
+                    )}
+                    {work.quantity !== undefined && (
+                      <div className="text-xs text-gray-600">Кол-во: {work.quantity}</div>
+                    )}
+                    {work.price !== undefined && (
+                      <div className="text-xs text-gray-600">Цена: {work.price}</div>
+                    )}
+                    {work.total_amount !== undefined && (
+                      <div className="text-xs text-gray-600">Сумма: {work.total_amount}</div>
                     )}
                     {work.status && (
                       <div className="text-xs text-gray-600">Статус: {work.status}</div>
