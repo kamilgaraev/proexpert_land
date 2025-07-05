@@ -17,6 +17,7 @@ const PaidServicesPage = () => {
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
   const [addonAction, setAddonAction] = useState<number | null>(null);
+  const [planAction, setPlanAction] = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -44,11 +45,14 @@ const PaidServicesPage = () => {
 
   const handlePlanChange = async (plan_slug: string) => {
     setError(null);
+    setPlanAction(plan_slug);
     try {
-      await billingService.orgSubscribe(plan_slug);
+      await billingService.subscribeToPlan({ plan_slug });
       await fetchAll();
     } catch (e: any) {
       setError(e.message || 'Ошибка смены тарифа');
+    } finally {
+      setPlanAction(null);
     }
   };
 
@@ -120,8 +124,8 @@ const PaidServicesPage = () => {
                 </div>
             <div className="flex flex-col gap-2">
               {plans.filter(p => p.slug !== subscription.plan?.slug).map(plan => (
-                <button key={plan.slug} onClick={() => handlePlanChange(plan.slug)} className="btn btn-outline">
-                  Перейти на {plan.name}
+                <button key={plan.slug} onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-outline disabled:opacity-60">
+                  {planAction===plan.slug ? 'Обновление...' : `Перейти на ${plan.name}`}
                 </button>
               ))}
                 </div>
@@ -144,7 +148,9 @@ const PaidServicesPage = () => {
                 {plan.max_projects && <li>Проекты: {plan.max_projects}</li>}
                 {plan.max_storage_gb && <li>Хранилище: {plan.max_storage_gb} ГБ</li>}
               </ul>
-              <button onClick={() => handlePlanChange(plan.slug)} className="btn btn-primary mt-auto">Выбрать</button>
+              <button onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-primary mt-auto disabled:opacity-60">
+                {planAction===plan.slug ? 'Подписка...' : 'Выбрать'}
+              </button>
             </div>
           ))}
           </div>
