@@ -196,4 +196,37 @@ export const useMultiOrganization = () => {
     isHolding,
     getCurrentOrganizationType,
   };
+};
+
+// Хук для получения summary по холдингу
+export const useHoldingSummary = () => {
+  const [summary, setSummary] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchSummary = useCallback(async (params: {
+    date_from?: string;
+    date_to?: string;
+    status?: string;
+    is_approved?: boolean;
+    export?: string;
+    section?: 'projects' | 'contracts' | 'acts' | 'completed_works';
+  }) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await multiOrganizationService.getHoldingSummary(params);
+      if (response.data && response.data.success) {
+        setSummary(response.data.data);
+      } else {
+        setError(response.data?.message || 'Ошибка получения сводки');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Ошибка получения сводки');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { summary, loading, error, fetchSummary };
 }; 

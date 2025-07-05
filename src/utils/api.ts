@@ -1747,8 +1747,6 @@ export const multiOrganizationService = {
     return data.data;
   },
 
-
-
   getHoldingOrganizations: async (slug: string, token: string): Promise<any[]> => {
     const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
     let url: string;
@@ -1944,6 +1942,33 @@ export const multiOrganizationService = {
     
     const response = await api.get(`/multi-organization/analytics/summary?${queryParams}`);
     return response;
+  },
+
+  /**
+   * Получить сводку по холдингу
+   * @param params { date_from?: string, date_to?: string, status?: string, is_approved?: boolean, export?: string, section?: string }
+   */
+  getHoldingSummary: async (params: {
+    date_from?: string;
+    date_to?: string;
+    status?: string;
+    is_approved?: boolean;
+    export?: string;
+    section?: 'projects' | 'contracts' | 'acts' | 'completed_works';
+  }) => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = new URL(`${API_URL}/landing/multi-organization/summary`);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) url.searchParams.append(key, String(value));
+    });
+    const options: RequestInit = {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+    };
+    const response = await fetchWithBillingLogging(url.toString(), options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
   },
 };
 

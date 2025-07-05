@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   BuildingOfficeIcon,
@@ -14,6 +14,7 @@ import { multiOrganizationService, getTokenFromStorages } from '@utils/api';
 import type { HoldingDashboardData } from '@utils/api';
 import { SEOHead } from '@components/shared/SEOHead';
 import { useTheme, type ThemeColor } from '@components/shared/ThemeProvider';
+import { useHoldingSummary } from '@hooks/useMultiOrganization';
 
 const HoldingDashboardPage = () => {
   const [dashboardData, setDashboardData] = useState<HoldingDashboardData | null>(null);
@@ -23,6 +24,36 @@ const HoldingDashboardPage = () => {
   const navigate = useNavigate();
   const { color, setColor, getThemeClasses } = useTheme();
   const theme = getThemeClasses();
+
+  const { summary, loading: summaryLoading, error: summaryError, fetchSummary } = useHoldingSummary();
+  const [summaryFilters, setSummaryFilters] = useState({
+    date_from: '',
+    date_to: '',
+    status: '',
+    is_approved: '',
+    section: '',
+  });
+
+  const handleSummaryFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    let val: any = value;
+    if (type === 'checkbox') {
+      val = (e.target as HTMLInputElement).checked;
+    }
+    setSummaryFilters(f => ({
+      ...f,
+      [name]: val
+    }));
+  };
+
+  const handleSummarySearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params: any = {};
+    Object.entries(summaryFilters).forEach(([k, v]) => {
+      if (v !== '' && v !== null && v !== undefined) params[k] = v;
+    });
+    fetchSummary(params);
+  };
 
   const colorOptions: { value: ThemeColor; name: string; preview: string }[] = [
     { value: 'blue', name: 'Синий', preview: 'bg-blue-500' },
@@ -191,6 +222,109 @@ const HoldingDashboardPage = () => {
       maximumFractionDigits: 0,
     }).format(value);
   };
+
+  const renderSummaryPanel = () => (
+    <section className="bg-white shadow rounded-xl p-6 mb-8">
+      <h2 className="text-xl font-semibold mb-4">Сводка по холдингу</h2>
+      <form className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4" onSubmit={handleSummarySearch}>
+        <input type="date" name="date_from" value={summaryFilters.date_from} onChange={handleSummaryFilterChange} className="input" placeholder="Дата с" />
+        <input type="date" name="date_to" value={summaryFilters.date_to} onChange={handleSummaryFilterChange} className="input" placeholder="Дата по" />
+        <input type="text" name="status" value={summaryFilters.status} onChange={handleSummaryFilterChange} className="input" placeholder="Статус" />
+        <select name="is_approved" value={summaryFilters.is_approved} onChange={handleSummaryFilterChange} className="input">
+          <option value="">Утверждённость</option>
+          <option value="true">Утверждён</option>
+          <option value="false">Не утверждён</option>
+        </select>
+        <select name="section" value={summaryFilters.section} onChange={handleSummaryFilterChange} className="input">
+          <option value="">Все секции</option>
+          <option value="projects">Проекты</option>
+          <option value="contracts">Контракты</option>
+          <option value="acts">Акты</option>
+          <option value="completed_works">Выполненные работы</option>
+        </select>
+        <button type="submit" className="btn btn-primary">Показать</button>
+      </form>
+      {summaryLoading && <div className="text-gray-500">Загрузка...</div>}
+      {summaryError && <div className="text-red-600 mb-2">{summaryError}</div>}
+      {summary && (
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-semibold mb-2">Организации</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead><tr><th>ID</th><th>Название</th><th>Активна</th><th>Проекты</th><th>Контракты</th></tr></thead>
+                <tbody>
+                  {summary.organizations?.map((org: any) => (
+                    <tr key={org.id}><td>{org.id}</td><td>{org.name}</td><td>{org.is_active ? 'Да' : 'Нет'}</td><td>{org.projects_count}</td><td>{org.contracts_count}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Проекты</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead><tr><th>Название</th><th>Адрес</th><th>Описание</th><th>Заказчик</th><th>Статус</th></tr></thead>
+                <tbody>
+                  {summary.projects?.map((p: any, i: number) => (
+                    <tr key={i}><td>{p.name}</td><td>{p.address}</td><td>{p.description}</td><td>{p.customer}</td><td>{p.status}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Контракты</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead><tr><th>Номер</th><th>Тип</th><th>Сумма</th><th>Статус</th><th>Дата</th></tr></thead>
+                <tbody>
+                  {summary.contracts?.map((c: any, i: number) => (
+                    <tr key={i}><td>{c.number}</td><td>{c.type}</td><td>{c.total_amount}</td><td>{c.status}</td><td>{c.date}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Акты</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead><tr><th>Номер</th><th>Дата</th><th>Сумма</th><th>Утверждён</th></tr></thead>
+                <tbody>
+                  {summary.acts?.map((a: any, i: number) => (
+                    <tr key={i}><td>{a.act_document_number}</td><td>{a.act_date}</td><td>{a.amount}</td><td>{a.is_approved ? 'Да' : 'Нет'}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Выполненные работы</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead><tr><th>ID</th><th>Проект</th><th>Контракт</th><th>Кол-во</th><th>Сумма</th><th>Статус</th></tr></thead>
+                <tbody>
+                  {summary.completed_works?.map((w: any, i: number) => (
+                    <tr key={i}><td>{w.id}</td><td>{w.project_id}</td><td>{w.contract_id}</td><td>{w.quantity}</td><td>{w.total_amount}</td><td>{w.status}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Статистика</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gray-50 rounded p-3">Контракты: {summary.stats?.contracts?.count} / {summary.stats?.contracts?.total_amount}</div>
+              <div className="bg-gray-50 rounded p-3">Акты: {summary.stats?.acts?.count} / {summary.stats?.acts?.total_amount}</div>
+              <div className="bg-gray-50 rounded p-3">Проекты: {summary.stats?.projects?.count}</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
 
   if (loading) {
     return (
@@ -476,6 +610,9 @@ const HoldingDashboardPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Сводка по холдингу */}
+          {renderSummaryPanel()}
         </div>
       </div>
     </div>
