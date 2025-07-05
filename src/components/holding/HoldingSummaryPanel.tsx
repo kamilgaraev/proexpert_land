@@ -92,6 +92,67 @@ const HoldingSummaryPanel: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Projects List */}
+          {summary.projects?.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-2 mt-6">Проекты</h3>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {summary.projects.map((project: any) => (
+                  <div key={project.id} className="border rounded-lg p-3 flex flex-col">
+                    <span className="font-medium">{project.name}</span>
+                    <span className="text-xs text-gray-500">ID: {project.id}</span>
+                    <span className="text-xs text-gray-500">Орг: {project.organization?.name || project.organization_name}</span>
+                    <div className="text-xs mt-2 text-gray-600">Статус: {project.status}</div>
+                    <div className="text-xs text-gray-600">Дата начала: {project.start_date}</div>
+                    <div className="text-xs text-gray-600">Дата окончания: {project.end_date}</div>
+                    {project.budget !== null && (
+                      <div className="text-xs text-gray-600">Бюджет: {project.budget}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Contracts List */}
+          {summary.contracts?.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-2 mt-6">Договоры</h3>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {summary.contracts.map((contract: any) => (
+                  <div key={contract.id} className="border rounded-lg p-3 flex flex-col">
+                    <span className="font-medium">{contract.number}</span>
+                    <span className="text-xs text-gray-500">ID: {contract.id}</span>
+                    <span className="text-xs text-gray-500">Орг: {contract.organization?.name || contract.organization_name}</span>
+                    <div className="text-xs mt-2 text-gray-600">Дата: {contract.date}</div>
+                    <div className="text-xs text-gray-600">Сумма: {contract.total_amount}</div>
+                    <div className="text-xs text-gray-600">Статус: {contract.status}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Acts List */}
+          {summary.acts?.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-2 mt-6">Акты</h3>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {summary.acts.map((act: any) => (
+                  <div key={act.id} className="border rounded-lg p-3 flex flex-col">
+                    <span className="font-medium">Акт #{act.id}</span>
+                    <span className="text-xs text-gray-500">Орг: {act.organization?.name || act.organization_name}</span>
+                    {act.number && (
+                      <span className="text-xs text-gray-500">Номер: {act.number}</span>
+                    )}
+                    <div className="text-xs mt-2 text-gray-600">Дата: {act.date || act.created_at}</div>
+                    <div className="text-xs text-gray-600">Статус: {act.status}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </section>
