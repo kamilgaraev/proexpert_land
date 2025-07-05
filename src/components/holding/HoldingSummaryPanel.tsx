@@ -1,11 +1,8 @@
 import { useState } from 'react';
 import { useHoldingSummary } from '@hooks/useMultiOrganization';
-import { useTheme } from '@components/shared/ThemeProvider';
 
 const HoldingSummaryPanel: React.FC = () => {
   const { summary, loading, error, fetchSummary } = useHoldingSummary();
-  const { getThemeClasses } = useTheme();
-  const theme = getThemeClasses();
 
   const [filters, setFilters] = useState({
     date_from: '',
