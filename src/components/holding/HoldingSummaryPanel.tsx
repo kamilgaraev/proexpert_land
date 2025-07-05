@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useHoldingSummary } from '@hooks/useMultiOrganization';
+import { useTheme } from '@components/shared/ThemeProvider';
 
 const HoldingSummaryPanel: React.FC = () => {
   const { summary, loading, error, fetchSummary } = useHoldingSummary();
+  const { getThemeClasses } = useTheme();
+  const theme = getThemeClasses();
 
   const [filters, setFilters] = useState({
     date_from: '',
@@ -25,7 +28,7 @@ const HoldingSummaryPanel: React.FC = () => {
   };
 
   return (
-    <section className="bg-white rounded-xl px-6 py-4 mb-8">
+    <section className={`bg-white rounded-xl px-6 py-4 mb-8 border ${theme.border} shadow`}>
       <h2 className="text-lg font-semibold mb-4">Сводка по холдингу</h2>
       <form onSubmit={submit} className="flex flex-wrap items-center gap-4 mb-4">
         <input type="date" name="date_from" value={filters.date_from} onChange={handleChange}
@@ -48,7 +51,7 @@ const HoldingSummaryPanel: React.FC = () => {
           <option value="acts">Акты</option>
           <option value="completed_works">Выполненные работы</option>
         </select>
-        <button type="submit" className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold">
+        <button type="submit" className={`${theme.primary} ${theme.hover} text-white px-6 py-2 rounded-lg font-semibold`}>
           Показать
         </button>
       </form>
