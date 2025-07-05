@@ -978,6 +978,18 @@ async function fetchWithBillingLogging(url: string, options: RequestInit): Promi
     console.error('[BillingService] Error reading raw response body for logging:', e);
   }
   
+  // Если токен истёк или сессия недействительна, перенаправляем на страницу логина
+  if (response.status === 401 || response.status === 419) {
+    try {
+      clearTokenFromStorages();
+    } catch (e) {
+      console.warn('[BillingService] clearToken error', e);
+    }
+    if (!window.location.pathname.includes('/login')) {
+      window.location.replace('/login');
+    }
+  }
+
   return response; // Возвращаем оригинальный response для дальнейшей обработки
 }
 
