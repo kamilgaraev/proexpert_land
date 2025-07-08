@@ -272,10 +272,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         (response.data?.success === true || response.data?.token || (response.data?.data && response.data?.data.token));
 
       if (isRegisterSuccess) {
-        // Токен может лежать в корне ответа или под data.token
-        const receivedToken = response.data.token || (response.data.data && response.data.data.token);
+        // Пытаемся извлечь токен несколькими способами
+        let receivedToken =
+          response.data.token || // корневое поле
+          (response.data.data && response.data.data.token) || // внутри data
+          (response.data.data && response.data.data.data && response.data.data.data.token); // некоторые API оборачивают data ещё раз
+
+        // Если всё ещё нет токена, пробуем забрать из хранилища (authService.register мог уже его положить)
+        if (!receivedToken) {
+          receivedToken = window.getTokenFromStorages ? window.getTokenFromStorages() : localStorage.getItem('token');
+        }
+
+        // Пользователь может лежать в нескольких уровнях data
         const receivedUser =
-          (response.data.user || (response.data.data && response.data.data.user)) as LandingUser | undefined;
+          (response.data.user ||
+            (response.data.data && (response.data.data.user || (response.data.data.data && response.data.data.data.user)))) as LandingUser | undefined;
         
         if (!receivedToken) {
           console.error('[AuthContext] Token not found in successful registration response.');
