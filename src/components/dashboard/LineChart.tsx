@@ -34,6 +34,7 @@ const LineChart: React.FC<LineChartProps> = ({ labels, values, title }) => {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false,
@@ -48,7 +49,14 @@ const LineChart: React.FC<LineChartProps> = ({ labels, values, title }) => {
     },
   } as const;
 
-  return <Line options={options} data={data} />;
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300">
+      <h3 className="text-sm font-medium text-steel-600 mb-4">{title}</h3>
+      <div className="h-64">
+        <Line options={options} data={data} />
+      </div>
+    </div>
+  );
 };
 
 export default LineChart; 
