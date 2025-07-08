@@ -5,22 +5,19 @@ import {
   BuildingOfficeIcon,
   UsersIcon,
   ChartBarIcon,
-  CurrencyDollarIcon,
   DocumentTextIcon,
-  WrenchScrewdriverIcon,
-  TruckIcon,
   ClockIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  ArrowTrendingUpIcon,
   BanknotesIcon,
   ShieldCheckIcon,
   TicketIcon,
   QuestionMarkCircleIcon,
-  LifebuoyIcon
+  LifebuoyIcon,
+  WrenchScrewdriverIcon,
+  TruckIcon
 } from '@heroicons/react/24/outline';
-import { billingService } from '@utils/api';
-import { landingService } from '@utils/api';
+import { landingService, billingService } from '@utils/api';
 import type { LandingDashboardResponse } from '@utils/api';
 import StatCard from '@components/dashboard/StatCard';
 import FinancialCard from '@components/dashboard/FinancialCard';
@@ -29,10 +26,10 @@ import DonutStatusChart from '@components/dashboard/DonutStatusChart';
 import { useSubscriptionLimits } from '@hooks/useSubscriptionLimits';
 
 const DashboardPage = () => {
+  const [landingData, setLandingData] = useState<LandingDashboardResponse | null>(null);
   const [dashboard, setDashboard] = useState<any>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
-  const [landingData, setLandingData] = useState<LandingDashboardResponse | null>(null);
 
   // Хук для лимитов подписки
   const { 
@@ -52,8 +49,6 @@ const DashboardPage = () => {
 
   useEffect(() => {
     (async () => {
-      setDashboardLoading(true);
-      setDashboardError(null);
       try {
         const [{ data: landing }, { data: planData }] = await Promise.all([
           landingService.getLandingDashboard(),
@@ -61,9 +56,11 @@ const DashboardPage = () => {
         ]);
         setLandingData(landing);
         setDashboard(planData);
+        setDashboardError(null);
+        setDashboardLoading(false);
       } catch (e: any) {
+        console.error('Ошибка загрузки данных:', e);
         setDashboardError(e.message || 'Ошибка загрузки данных');
-      } finally {
         setDashboardLoading(false);
       }
     })();
@@ -200,21 +197,12 @@ const DashboardPage = () => {
     return colors[color as keyof typeof colors] || colors.construction;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'В работе': return 'bg-construction-100 text-construction-800';
-      case 'Планирование': return 'bg-safety-100 text-safety-800';
-      case 'Завершен': return 'bg-earth-100 text-earth-800';
-      default: return 'bg-steel-100 text-steel-800';
-    }
-  };
-
   const LimitBar = ({ label, used, max }: { label: string; used: number; max: number }) => {
     const percent = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 0;
     let barColor = 'bg-earth-500';
     if (percent >= 90) barColor = 'bg-construction-500';
     else if (percent >= 70) barColor = 'bg-safety-500';
-    
+
     return (
       <div>
         <div className="flex justify-between text-sm mb-2">
@@ -222,9 +210,9 @@ const DashboardPage = () => {
           <span className="text-steel-600">{used} / {max}</span>
         </div>
         <div className="w-full h-3 bg-steel-100 rounded-full overflow-hidden">
-          <div 
-            className={`h-3 rounded-full ${barColor} transition-all duration-500`} 
-            style={{ width: `${percent}%` }} 
+          <div
+            className={`h-3 rounded-full ${barColor} transition-all duration-500`}
+            style={{ width: `${percent}%` }}
           />
         </div>
       </div>
@@ -307,7 +295,7 @@ const DashboardPage = () => {
             credits={landingData.financial.credits_this_month}
             debits={landingData.financial.debits_this_month}
           />
-          {statCards.map((card, idx) => (
+          {statCards.map((card) => (
             <StatCard
               key={card.name}
               title={card.name}
@@ -362,6 +350,90 @@ const DashboardPage = () => {
           <DonutStatusChart title="Статусы контрактов" data={landingData.charts.contracts_status} />
         </motion.div>
       )}
+
+      {/* Тариф и лимиты */}
+      {dashboardLoading ? (
+        <motion.div
+          className="flex justify-center items-center h-32"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-construction-200 border-t-construction-600"></div>
+        </motion.div>
+      ) : dashboardError ? (
+        <motion.div
+          className="bg-red-50 border border-red-200 rounded-xl p-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="flex items-center">
+            <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" />
+            <span className="text-red-700">{dashboardError}</span>
+          </div>
+        </motion.div>
+      ) : dashboard && dashboard.plan ? (
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-steel-900">Тариф: {dashboard.plan.name}</h3>
+                <p className="text-steel-600 text-sm">
+                  Действует до: {dashboard.plan.ends_at ? new Date(dashboard.plan.ends_at).toLocaleDateString('ru-RU') : '—'}
+                  <span className="ml-2 text-construction-600 font-medium">({dashboard.plan.days_left} дн.)</span>
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center">
+                <TicketIcon className="h-6 w-6 text-white" />
+              </div>
+            </div>
+            <div className="space-y-4">
+              <LimitBar label="Прорабы" used={dashboard.plan.used_foremen} max={dashboard.plan.max_foremen} />
+              <LimitBar label="Объекты" used={dashboard.plan.used_projects} max={dashboard.plan.max_projects} />
+              <LimitBar label="Хранилище (ГБ)" used={dashboard.plan.used_storage_gb} max={dashboard.plan.max_storage_gb} />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-steel-900">Дополнительные услуги</h3>
+                <p className="text-steel-600 text-sm">Активные add-ons и расширения</p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-safety-500 to-safety-600 rounded-xl flex items-center justify-center">
+                <WrenchScrewdriverIcon className="h-6 w-6 text-white" />
+              </div>
+            </div>
+            {dashboard.addons && dashboard.addons.length > 0 ? (
+              <div className="space-y-3">
+                {dashboard.addons.map((addon: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-steel-50 rounded-lg">
+                    <div>
+                      <span className="font-medium text-steel-900">{addon.name}</span>
+                      {addon.expires_at && (
+                        <p className="text-xs text-steel-500 mt-1">до {new Date(addon.expires_at).toLocaleDateString('ru-RU')}</p>
+                      )}
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      addon.status === 'active' ? 'bg-earth-100 text-earth-700' : 'bg-steel-100 text-steel-600'
+                    }`}>{addon.status === 'active' ? 'Активен' : addon.status}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <TruckIcon className="h-12 w-12 text-steel-300 mx-auto mb-3" />
+                <p className="text-steel-500">Нет активных дополнительных услуг</p>
+                <Link to="/dashboard/paid-services" className="text-construction-600 hover:text-construction-700 text-sm font-medium mt-2 inline-block">Посмотреть доступные услуги →</Link>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      ) : null}
 
       {/* Быстрые действия */}
       <motion.div
