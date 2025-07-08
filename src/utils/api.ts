@@ -7,6 +7,7 @@ import axios from 'axios';
 // @ts-ignore
 // import api_instance from './axiosConfig'; 
 import type { AdminFormData as AdminFormDataExternal, AdminUsersListResponse, AdminUserDetailResponse, AdminUserDeleteResponse } from '../types/admin';
+import NotificationService from '@components/shared/NotificationService';
 
 // БЛОК ОПРЕДЕЛЕНИЯ URL
 // Базовый домен API
@@ -137,6 +138,17 @@ api.interceptors.response.use(
       clearTokenFromStorages();
       window.location.href = '/login'; // Или другой обработчик
       return Promise.reject(error); // Важно отклонить промис, чтобы вызывающий код мог обработать ошибку
+    }
+    
+    // Обработка 403 (Forbidden / insufficient permissions)
+    if (error.response?.status === 403) {
+      const apiMessage = error.response?.data?.message || 'У вас нет доступа к этому ресурсу.﻿';
+      NotificationService.show({
+        type: 'error',
+        title: 'Недостаточно прав',
+        message: apiMessage,
+        duration: 7000,
+      });
     }
     
     return Promise.reject(error);
@@ -2014,6 +2026,22 @@ if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(win
       if (!window.location.pathname.includes('/login')) {
         window.location.replace('/login');
       }
+    }
+    if (resp.status === 403) {
+      try {
+        const cloned = resp.clone();
+        let apiMessage = 'У вас нет доступа к этому ресурсу.';
+        try {
+          const body = await cloned.json();
+          apiMessage = body?.message || apiMessage;
+        } catch {}
+        NotificationService.show({
+          type: 'error',
+          title: 'Недостаточно прав',
+          message: apiMessage,
+          duration: 7000,
+        });
+      } catch {}
     }
     return resp;
   };
