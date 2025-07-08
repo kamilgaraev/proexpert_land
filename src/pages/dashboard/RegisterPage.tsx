@@ -230,10 +230,11 @@ const RegisterPage = () => {
         setShowNetworkError(true);
         setError('Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.');
       } else if (err.message.includes('уже занят')) {
-        setCurrentStep(1);
-        setValidationErrors({
+        // Оставляем пользователя на текущем шаге, чтобы он мог изменить email без потери введённых данных
+        setValidationErrors(prev => ({
+          ...prev,
           email: 'Этот email уже используется. Попробуйте войти или используйте другой email'
-        });
+        }));
         setError('Email уже зарегистрирован в системе');
       } else {
         if (err.errors && typeof err.errors === 'object') {
@@ -245,9 +246,8 @@ const RegisterPage = () => {
           }
           setValidationErrors(serverErrors);
           setError(err.message || 'Ошибка валидации данных на сервере.');
-          if (serverErrors.name || serverErrors.email || serverErrors.password || serverErrors.avatar) {
-            setCurrentStep(1);
-          }
+          // Если ошибки относятся к полям первого шага и пользователь уже на втором, не отбрасываем его назад.
+          // Вместо этого подсветим ошибки и дадим возможность самостоятельно вернуться.
         } else {
           setError(err.message || 'Произошла ошибка при регистрации. Пожалуйста, попробуйте снова.');
         }
