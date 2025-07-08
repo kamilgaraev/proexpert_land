@@ -20,12 +20,19 @@ import {
   LifebuoyIcon
 } from '@heroicons/react/24/outline';
 import { billingService } from '@utils/api';
+import { landingService } from '@utils/api';
+import type { LandingDashboardResponse } from '@utils/api';
+import StatCard from '@components/dashboard/StatCard';
+import FinancialCard from '@components/dashboard/FinancialCard';
+import LineChart from '@components/dashboard/LineChart';
+import DonutStatusChart from '@components/dashboard/DonutStatusChart';
 import { useSubscriptionLimits } from '@hooks/useSubscriptionLimits';
 
 const DashboardPage = () => {
   const [dashboard, setDashboard] = useState<any>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [landingData, setLandingData] = useState<LandingDashboardResponse | null>(null);
 
   // Хук для лимитов подписки
   const { 
@@ -48,8 +55,12 @@ const DashboardPage = () => {
       setDashboardLoading(true);
       setDashboardError(null);
       try {
-        const res = await billingService.getOrgDashboard();
-        setDashboard(res.data);
+        const [{ data: landing }, { data: planData }] = await Promise.all([
+          landingService.getLandingDashboard(),
+          billingService.getOrgDashboard(),
+        ]);
+        setLandingData(landing);
+        setDashboard(planData);
       } catch (e: any) {
         setDashboardError(e.message || 'Ошибка загрузки данных');
       } finally {
@@ -58,70 +69,34 @@ const DashboardPage = () => {
     })();
   }, []);
 
-  const projectStats = [
+  // Удаляем объявление const projectStats = [...] и recentProjects
+  // Вместо них формируем динамический массив
+  const statCards = landingData ? [
     {
-      name: 'Активные проекты',
-      value: '12',
-      change: '+2',
-      changeType: 'increase',
-      icon: BuildingOfficeIcon,
-      color: 'construction'
+      name: 'Проекты',
+      value: landingData.projects.total,
+      icon: <BuildingOfficeIcon className="h-6 w-6 text-white" />,
+      color: 'construction',
+    },
+    {
+      name: 'Контракты',
+      value: landingData.contracts.total,
+      icon: <DocumentTextIcon className="h-6 w-6 text-white" />,
+      color: 'safety',
     },
     {
       name: 'Команда',
-      value: '28',
-      change: '+3',
-      changeType: 'increase', 
-      icon: UsersIcon,
-      color: 'safety'
+      value: landingData.team.total,
+      icon: <UsersIcon className="h-6 w-6 text-white" />,
+      color: 'earth',
     },
     {
-      name: 'Завершено в месяц',
-      value: '5',
-      change: '+1',
-      changeType: 'increase',
-      icon: CheckCircleIcon,
-      color: 'earth'
+      name: 'Акты',
+      value: landingData.acts.total,
+      icon: <CheckCircleIcon className="h-6 w-6 text-white" />,
+      color: 'steel',
     },
-    {
-      name: 'Общий бюджет',
-      value: '₽2.4М',
-      change: '+15%',
-      changeType: 'increase',
-      icon: CurrencyDollarIcon,
-      color: 'steel'
-    }
-  ];
-
-  const recentProjects = [
-    {
-      id: 1,
-      name: 'ЖК "Северный"',
-      status: 'В работе',
-      progress: 75,
-      team: 8,
-      deadline: '2024-03-15',
-      budget: '₽850,000'
-    },
-    {
-      id: 2, 
-      name: 'Торговый центр "Мега"',
-      status: 'Планирование',
-      progress: 25,
-      team: 12,
-      deadline: '2024-06-20',
-      budget: '₽1,200,000'
-    },
-    {
-      id: 3,
-      name: 'Офисное здание "Технопарк"',
-      status: 'В работе',
-      progress: 90,
-      team: 6,
-      deadline: '2024-02-10',
-      budget: '₽450,000'
-    }
-  ];
+  ] : [];
 
   const quickActions = [
     {
@@ -320,203 +295,73 @@ const DashboardPage = () => {
       )}
 
       {/* Статистика */}
-      <motion.div 
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
-      >
-        {projectStats.map((stat, index) => {
-          const colors = getColorClasses(stat.color);
-          return (
-            <motion.div
-              key={stat.name}
-              className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300"
-              whileHover={{ y: -2 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 + index * 0.1 }}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-steel-600 text-sm font-medium">{stat.name}</p>
-                  <p className="text-3xl font-bold text-steel-900 mt-1">{stat.value}</p>
-                  <div className="flex items-center mt-2">
-                    <ArrowTrendingUpIcon className="h-4 w-4 text-earth-500 mr-1" />
-                    <span className="text-earth-600 text-sm font-medium">{stat.change}</span>
-                  </div>
-                </div>
-                <div className={`w-12 h-12 rounded-xl ${colors.bg} flex items-center justify-center`}>
-                  <stat.icon className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </motion.div>
-
-      {/* Тариф и лимиты */}
-      {dashboardLoading ? (
-        <motion.div 
-          className="flex justify-center items-center h-32"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-construction-200 border-t-construction-600"></div>
-        </motion.div>
-      ) : dashboardError ? (
-        <motion.div 
-          className="bg-red-50 border border-red-200 rounded-xl p-4"
+      {landingData && (
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <div className="flex items-center">
-            <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" />
-            <span className="text-red-700">{dashboardError}</span>
-          </div>
+          <FinancialCard
+            balance={landingData.financial.balance}
+            credits={landingData.financial.credits_this_month}
+            debits={landingData.financial.debits_this_month}
+          />
+          {statCards.map((card, idx) => (
+            <StatCard
+              key={card.name}
+              title={card.name}
+              value={card.value.toString()}
+              icon={card.icon}
+              colorClasses={getColorClasses(card.color)}
+            />
+          ))}
         </motion.div>
-      ) : dashboard && dashboard.plan ? (
-        <motion.div 
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+      )}
+
+      {/* Графики */}
+      {landingData && (
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <LineChart
+            title="Проекты по месяцам"
+            labels={landingData.charts.projects_monthly.labels}
+            values={landingData.charts.projects_monthly.values}
+          />
+          <LineChart
+            title="Контракты по месяцам"
+            labels={landingData.charts.contracts_monthly.labels}
+            values={landingData.charts.contracts_monthly.values}
+          />
+          <LineChart
+            title="Завершённые работы"
+            labels={landingData.charts.completed_works_monthly.labels}
+            values={landingData.charts.completed_works_monthly.values}
+          />
+          <LineChart
+            title="Баланс"
+            labels={landingData.charts.balance_monthly.labels}
+            values={landingData.charts.balance_monthly.values}
+          />
+        </motion.div>
+      )}
+
+      {/* Кольцевые диаграммы */}
+      {landingData && (
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 gap-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-xl font-bold text-steel-900">Тариф: {dashboard.plan.name}</h3>
-                <p className="text-steel-600 text-sm">
-                  Действует до: {dashboard.plan.ends_at ? new Date(dashboard.plan.ends_at).toLocaleDateString('ru-RU') : '—'} 
-                  <span className="ml-2 text-construction-600 font-medium">({dashboard.plan.days_left} дн.)</span>
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center">
-                <TicketIcon className="h-6 w-6 text-white" />
-              </div>
-            </div>
-            <div className="space-y-4">
-              <LimitBar label="Прорабы" used={dashboard.plan.used_foremen} max={dashboard.plan.max_foremen} />
-              <LimitBar label="Объекты" used={dashboard.plan.used_projects} max={dashboard.plan.max_projects} />
-              <LimitBar label="Хранилище (ГБ)" used={dashboard.plan.used_storage_gb} max={dashboard.plan.max_storage_gb} />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-xl font-bold text-steel-900">Дополнительные услуги</h3>
-                <p className="text-steel-600 text-sm">Активные add-ons и расширения</p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-safety-500 to-safety-600 rounded-xl flex items-center justify-center">
-                <WrenchScrewdriverIcon className="h-6 w-6 text-white" />
-              </div>
-            </div>
-            {dashboard.addons && dashboard.addons.length > 0 ? (
-              <div className="space-y-3">
-                {dashboard.addons.map((addon: any, idx: number) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-steel-50 rounded-lg">
-                    <div>
-                      <span className="font-medium text-steel-900">{addon.name}</span>
-                      {addon.expires_at && (
-                        <p className="text-xs text-steel-500 mt-1">
-                          до {new Date(addon.expires_at).toLocaleDateString('ru-RU')}
-                        </p>
-                      )}
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      addon.status === 'active' 
-                        ? 'bg-earth-100 text-earth-700' 
-                        : 'bg-steel-100 text-steel-600'
-                    }`}>
-                      {addon.status === 'active' ? 'Активен' : addon.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <TruckIcon className="h-12 w-12 text-steel-300 mx-auto mb-3" />
-                <p className="text-steel-500">Нет активных дополнительных услуг</p>
-                <Link 
-                  to="/dashboard/paid-services"
-                  className="text-construction-600 hover:text-construction-700 text-sm font-medium mt-2 inline-block"
-                >
-                  Посмотреть доступные услуги →
-                </Link>
-              </div>
-            )}
-          </div>
+          <DonutStatusChart title="Статусы проектов" data={landingData.charts.projects_status} />
+          <DonutStatusChart title="Статусы контрактов" data={landingData.charts.contracts_status} />
         </motion.div>
-      ) : null}
-
-      {/* Последние проекты */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-steel-900">Активные проекты</h2>
-          <Link 
-            to="/dashboard/projects"
-            className="text-construction-600 hover:text-construction-700 font-medium flex items-center"
-          >
-            Все проекты
-            <ArrowTrendingUpIcon className="h-4 w-4 ml-1" />
-          </Link>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recentProjects.map((project, index) => (
-            <motion.div
-              key={project.id}
-              className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300"
-              whileHover={{ y: -2 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-steel-900">{project.name}</h3>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
-                  {project.status}
-                </span>
-              </div>
-              
-              <div className="space-y-3">
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-steel-600">Прогресс</span>
-                    <span className="font-medium text-steel-900">{project.progress}%</span>
-                  </div>
-                  <div className="w-full h-2 bg-steel-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-2 bg-gradient-to-r from-construction-500 to-construction-600 rounded-full transition-all duration-500"
-                      style={{ width: `${project.progress}%` }}
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-steel-600">Команда:</span>
-                  <span className="font-medium text-steel-900">{project.team} чел.</span>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-steel-600">Дедлайн:</span>
-                  <span className="font-medium text-steel-900">{new Date(project.deadline).toLocaleDateString('ru-RU')}</span>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-steel-600">Бюджет:</span>
-                  <span className="font-medium text-construction-600">{project.budget}</span>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+      )}
 
       {/* Быстрые действия */}
       <motion.div

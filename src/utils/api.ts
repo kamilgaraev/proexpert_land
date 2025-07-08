@@ -259,9 +259,7 @@ export const authService = {
     return {
       data: data,
       status: response.status,
-      statusText: response.statusText,
-      headers: {},
-      config: {} as any
+      statusText: response.statusText
     };
   },
   
@@ -1984,6 +1982,27 @@ export const multiOrganizationService = {
   },
 };
 
+export const landingService = {
+  // Получить данные дашборда лендинга /dashboard
+  getLandingDashboard: async (): Promise<{ data: LandingDashboardResponse; status: number; statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+
+    const url = `${API_URL}/dashboard`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetch(url, options);
+    const responseData = await response.json();
+    return { data: responseData as LandingDashboardResponse, status: response.status, statusText: response.statusText };
+  }
+};
+
 // --- Глобальный перехват fetch, чтобы при любом 401/419 делать redirect на /login ---
 if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(window as any).__authFetchPatched) {
   const nativeFetch = window.fetch.bind(window);
@@ -2002,3 +2021,47 @@ if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(win
 // --- конец перехвата ---
 
 export default api; 
+
+// --- Типы дашборда лендинга ---
+export interface LandingDashboardResponse {
+  financial: {
+    balance: number;
+    credits_this_month: number;
+    debits_this_month: number;
+  };
+  projects: {
+    total: number;
+    active: number;
+    completed: number;
+  };
+  contracts: {
+    total: number;
+    active: number;
+    draft: number;
+    completed: number;
+    total_amount: number;
+  };
+  works_materials: {
+    works: Record<string, any>;
+    materials: Record<string, any>;
+  };
+  acts: {
+    total: number;
+    approved: number;
+    total_amount: number;
+  };
+  team: {
+    total: number;
+    by_roles: Record<string, number>;
+  };
+  team_details: any[];
+  charts: {
+    projects_monthly: { labels: string[]; values: number[] };
+    contracts_monthly: { labels: string[]; values: number[] };
+    completed_works_monthly: { labels: string[]; values: number[] };
+    balance_monthly: { labels: string[]; values: number[] };
+    projects_status: Record<string, number>;
+    contracts_status: Record<string, number>;
+  };
+}
+// --- конец типов дашборда лендинга --- 
