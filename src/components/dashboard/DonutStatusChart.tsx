@@ -5,6 +5,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { ChartPieIcon } from '@heroicons/react/24/outline';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -25,6 +26,8 @@ const COLORS = [
 const DonutStatusChart: React.FC<DonutStatusChartProps> = ({ data, title }) => {
   const labels = Object.keys(data);
   const values = Object.values(data);
+
+  const hasData = values.some((v) => v > 0);
 
   const chartData = {
     labels,
@@ -48,7 +51,14 @@ const DonutStatusChart: React.FC<DonutStatusChartProps> = ({ data, title }) => {
   return (
     <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300">
       <h3 className="text-sm font-medium text-steel-600 mb-4">{title}</h3>
-      <Doughnut data={chartData} options={options} />
+      {hasData ? (
+        <Doughnut data={chartData} options={options} />
+      ) : (
+        <div className="flex flex-col items-center justify-center h-48 text-steel-400">
+          <ChartPieIcon className="h-12 w-12 mb-2" />
+          <span className="text-sm">Нет данных</span>
+        </div>
+      )}
     </div>
   );
 };
