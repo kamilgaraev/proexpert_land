@@ -266,10 +266,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authService.register(formData);
       console.log('[AuthContext] Response from authService.register:', response);
       
-      // Обрабатываем ответ - ожидаем { success, message, user, organization, token } 
-      if (response.status === 201 && response.data?.success) {
-        const receivedToken = response.data.token;
-        const receivedUser = response.data.user as LandingUser; // Приводим к типу с avatar_url
+      // Считаем регистрацию успешной, если сервер вернул статус 201 **или** 200 и присутствует токен в одном из ожидаемых мест.
+      const isRegisterSuccess =
+        (response.status === 201 || response.status === 200) &&
+        (response.data?.success === true || response.data?.token || (response.data?.data && response.data?.data.token));
+
+      if (isRegisterSuccess) {
+        // Токен может лежать в корне ответа или под data.token
+        const receivedToken = response.data.token || (response.data.data && response.data.data.token);
+        const receivedUser =
+          (response.data.user || (response.data.data && response.data.data.user)) as LandingUser | undefined;
         
         if (!receivedToken) {
           console.error('[AuthContext] Token not found in successful registration response.');
