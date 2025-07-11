@@ -1479,6 +1479,7 @@ export interface AddChildOrganizationRequest {
 export interface OrganizationHierarchy {
   parent: {
     id: number;
+    group_id?: number; // идентификатор группы холдинга
     name: string;
     slug?: string;
     organization_type: 'parent';
@@ -1491,6 +1492,7 @@ export interface OrganizationHierarchy {
   };
   children: Array<{
     id: number;
+    group_id?: number; // идентификатор группы для дочерней организации
     name: string;
     organization_type: 'child';
     is_holding: boolean;

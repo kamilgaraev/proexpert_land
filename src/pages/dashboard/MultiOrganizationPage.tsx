@@ -59,7 +59,7 @@ const MultiOrganizationPage = () => {
     },
   });
   const [childForm, setChildForm] = useState<AddChildOrganizationRequest>({
-    group_id: hierarchy?.parent?.id || 1,
+    group_id: hierarchy?.parent?.group_id || 1,
     name: '',
     description: '',
     inn: '',
@@ -88,8 +88,8 @@ const MultiOrganizationPage = () => {
   }, []);
 
   useEffect(() => {
-    if (hierarchy?.parent?.id) {
-      setChildForm(prev => ({ ...prev, group_id: hierarchy.parent.id }));
+    if (hierarchy?.parent?.group_id) {
+      setChildForm(prev => ({ ...prev, group_id: hierarchy.parent.group_id! }));
     }
   }, [hierarchy]);
 
@@ -128,7 +128,7 @@ const MultiOrganizationPage = () => {
       await addChildOrganization(childForm);
       setShowAddChildModal(false);
       setChildForm({
-        group_id: hierarchy?.parent?.id || 1,
+        group_id: hierarchy?.parent?.group_id || 1,
         name: '',
         description: '',
         inn: '',

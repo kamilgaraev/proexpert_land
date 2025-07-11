@@ -621,7 +621,7 @@ const HoldingOrganizationsPage = () => {
   const navigate = useNavigate();
   const { color, getThemeClasses } = useTheme();
   const theme = getThemeClasses();
-  const [parentOrgId, setParentOrgId] = useState<number>(0);
+  const [parentOrgId, setParentOrgId] = useState<number>(0); // здесь будет храниться именно group_id
 
   // начальное состояние формы дочерней организации
   const initialOrgForm: AddChildOrganizationRequest = {
@@ -696,9 +696,19 @@ const HoldingOrganizationsPage = () => {
           slug = hostname.split('.')[0];
           const data = await multiOrganizationService.getHoldingOrganizations(slug, token);
           setOrganizations(data || []);
+
+          // получаем название холдинга
           const holdingData = await multiOrganizationService.getHoldingPublicInfo(slug);
           setHoldingName(holdingData?.holding?.name || 'Холдинг');
-          setParentOrgId(holdingData?.parent_organization?.id || 0);
+
+          // запрашиваем иерархию, чтобы узнать корректный group_id
+          try {
+            const hierarchyResp = await multiOrganizationService.getHierarchy();
+            const grpId = hierarchyResp.data?.data?.parent?.group_id ?? 0;
+            setParentOrgId(grpId);
+          } catch (e) {
+            console.warn('Не удалось обновить group_id', e);
+          }
         } else {
           throw new Error('Неверный поддомен');
         }
