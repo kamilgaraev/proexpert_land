@@ -168,7 +168,7 @@ const ModulesPage = () => {
                   onClick={() => setSelectedCategory(category)}
                   className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
                     selectedCategory === category
-                      ? 'border-blue-500 text-blue-600'
+                      ? 'border-orange-500 text-orange-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
@@ -203,8 +203,8 @@ const ModulesPage = () => {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                          <PuzzlePieceIcon className="h-6 w-6 text-blue-600" />
+                        <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                          <PuzzlePieceIcon className="h-6 w-6 text-orange-600" />
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-900">{moduleItem.module.name}</h3>
@@ -280,7 +280,7 @@ const ModulesPage = () => {
                         <button
                           onClick={() => handleActivateModule(moduleItem.module)}
                           disabled={loading || activatingModuleId === moduleItem.module.id}
-                          className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                          className="w-full flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50"
                         >
                           {activatingModuleId === moduleItem.module.id ? (
                             <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />

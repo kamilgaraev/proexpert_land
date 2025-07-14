@@ -43,8 +43,8 @@ const SupportPage: React.FC = () => {
   };
   
   return (
-    <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-secondary-800 mb-6">Обращение в техническую поддержку</h1>
+    <div className="container mx-auto max-w-3xl px-4 py-10">
+      <h1 className="text-3xl font-extrabold text-steel-900 mb-8">Обращение в техническую поддержку</h1>
       
       {success && (
         <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
@@ -78,7 +78,7 @@ const SupportPage: React.FC = () => {
         </div>
       )}
       
-      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6">
+      <form onSubmit={handleSubmit} className="bg-white shadow-lg ring-1 ring-gray-100 rounded-2xl p-8 space-y-5">
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
             Ваше имя
@@ -89,7 +89,7 @@ const SupportPage: React.FC = () => {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             placeholder="Иван Иванов"
           />
         </div>
@@ -104,7 +104,7 @@ const SupportPage: React.FC = () => {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             placeholder="ivan@example.com"
           />
         </div>
@@ -118,7 +118,7 @@ const SupportPage: React.FC = () => {
             name="type"
             value={formData.type}
             onChange={handleChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
           >
             <option value="Общий вопрос">Общий вопрос</option>
             <option value="Сообщение об ошибке">Сообщение об ошибке</option>
@@ -138,7 +138,7 @@ const SupportPage: React.FC = () => {
             value={formData.subject}
             onChange={handleChange}
             required
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             placeholder="Тема обращения"
           />
         </div>
@@ -154,7 +154,7 @@ const SupportPage: React.FC = () => {
             onChange={handleChange}
             required
             rows={5}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className="border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             placeholder="Подробно опишите ваш вопрос или проблему"
           ></textarea>
         </div>
@@ -162,10 +162,10 @@ const SupportPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <button
             type="submit"
-            className={`bg-primary-600 hover:bg-primary-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={isLoading}
+            className={`bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isLoading ? 'Отправка...' : 'Отправить обращение'}
+            {isLoading ? 'Отправка…' : 'Отправить обращение'}
           </button>
         </div>
       </form>
@@ -173,4 +173,4 @@ const SupportPage: React.FC = () => {
   );
 };
 
-export default SupportPage; 
+export default SupportPage;

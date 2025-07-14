@@ -160,7 +160,7 @@ const PaidServicesPage = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2">
-                <span className="text-2xl font-bold text-primary-700">{currentPlan.name}</span>
+                <span className="text-2xl font-bold text-orange-600">{currentPlan.name}</span>
                 <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">Активен</span>
               </div>
               <div className="text-gray-600">{currentPlan.description}</div>
@@ -277,52 +277,7 @@ const PaidServicesPage = () => {
         )}
       </section>
 
-      {/* Разовые покупки */}
-      <section className="bg-white shadow rounded-xl p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">Разовые покупки</h2>
-        <form onSubmit={handleOneTimePurchase} className="flex flex-col md:flex-row gap-4 items-end mb-6">
-          <div className="flex flex-col gap-2 w-full md:w-1/4">
-            <label className="text-sm">Тип</label>
-            <input className="input" value={purchaseForm.type} onChange={e => setPurchaseForm(f => ({ ...f, type: e.target.value }))} required />
-          </div>
-          <div className="flex flex-col gap-2 w-full md:w-1/2">
-            <label className="text-sm">Описание</label>
-            <input className="input" value={purchaseForm.description} onChange={e => setPurchaseForm(f => ({ ...f, description: e.target.value }))} required />
-          </div>
-          <div className="flex flex-col gap-2 w-full md:w-1/6">
-            <label className="text-sm">Сумма (RUB)</label>
-            <input className="input" type="number" min="1" value={purchaseForm.amount} onChange={e => setPurchaseForm(f => ({ ...f, amount: e.target.value }))} required />
-          </div>
-          <button type="submit" className="btn btn-primary" disabled={purchaseLoading}>Купить</button>
-        </form>
-        {purchaseError && <div className="text-red-600 mb-2">{purchaseError}</div>}
-        {purchaseSuccess && <div className="text-green-600 mb-2">{purchaseSuccess}</div>}
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-2 py-1 text-left">ID</th>
-                <th className="px-2 py-1 text-left">Тип</th>
-                <th className="px-2 py-1 text-left">Описание</th>
-                <th className="px-2 py-1 text-left">Сумма</th>
-                <th className="px-2 py-1 text-left">Дата</th>
-              </tr>
-            </thead>
-            <tbody>
-              {oneTimePurchases.length === 0 && <tr><td colSpan={5} className="text-center text-gray-400 py-2">Нет покупок</td></tr>}
-              {oneTimePurchases.map((p: any) => (
-                <tr key={p.id} className="border-b">
-                  <td className="px-2 py-1">{p.id}</td>
-                  <td className="px-2 py-1">{p.type}</td>
-                  <td className="px-2 py-1">{p.description}</td>
-                  <td className="px-2 py-1">{p.amount} {p.currency}</td>
-                  <td className="px-2 py-1">{formatDate(p.created_at)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      {/* Разовые покупки удалены по требованию */}
       <ConfirmActionModal
         isOpen={showCancelModal}
         onClose={() => setShowCancelModal(false)}
