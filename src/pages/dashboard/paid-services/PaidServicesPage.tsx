@@ -149,78 +149,94 @@ const PaidServicesPage = () => {
   if (loading) return <PageLoading message="Загрузка платных услуг..." />;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12 space-y-14">
+    <div className="container mx-auto max-w-6xl px-4 py-10 space-y-12">
       <h1 className="text-3xl font-bold mb-6">Платные услуги</h1>
       {error && <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded">{error}</div>}
 
       {/* Текущая подписка */}
-      <section className="bg-white shadow-lg rounded-2xl p-8 mb-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-        <h2 className="text-xl font-semibold mb-4">Текущая подписка</h2>
+      <section className="bg-white shadow-lg rounded-2xl p-8 mb-10 ring-1 ring-gray-100">
+        <h2 className="text-2xl font-bold mb-6 text-steel-900">Текущая подписка</h2>
         {subscription && subscription.status === 'active' && currentPlan ? (
-          <div className="space-y-3 max-w-3xl">
-            <div className="inline-flex items-center gap-3">
-              <span className="text-3xl font-extrabold text-primary-700">{currentPlan.name}</span>
-              <span className="px-3 py-0.5 rounded-full text-sm bg-green-100 text-green-800">Активен</span>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2">
+                <span className="text-2xl font-bold text-primary-700">{currentPlan.name}</span>
+                <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">Активен</span>
+              </div>
+              <div className="text-gray-600">{currentPlan.description}</div>
+              <div className="text-sm text-gray-500">Действует до: {formatDate(subscription.ends_at)}</div>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-sm">Автоплатёж</span>
+                <Switch
+                  checked={autoPayEnabled || false}
+                  onChange={handleToggleAutoPay}
+                  disabled={autoPayEnabled===null || autoPayUpdating}
+                  className={`${autoPayEnabled ? 'bg-primary-600' : 'bg-gray-300'} relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`${autoPayEnabled ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform`}
+                  />
+                </Switch>
+              </div>
             </div>
-            <div className="text-steel-700 leading-relaxed">{currentPlan.description}</div>
-            <div className="text-sm text-steel-500">Действует до: {formatDate(subscription.ends_at)}</div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm">Автоплатёж</span>
-              <Switch
-                checked={autoPayEnabled || false}
-                onChange={handleToggleAutoPay}
-                disabled={autoPayEnabled===null || autoPayUpdating}
-                className={`${autoPayEnabled ? 'bg-primary-600' : 'bg-gray-300'} relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500`}
-              >
-                <span
-                  aria-hidden="true"
-                  className={`${autoPayEnabled ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform`}
-                />
-              </Switch>
+            <div className="flex flex-wrap gap-2">
+              {plans.filter(p => p.id !== currentPlan.id).map(plan => (
+                <button key={plan.slug} onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-outline disabled:opacity-60">
+                  {planAction===plan.slug ? 'Обновление…' : `Перейти на ${plan.name}`}
+                </button>
+              ))}
+              <button onClick={() => setShowCancelModal(true)} className="btn btn-outline text-red-600">Отменить подписку</button>
             </div>
           </div>
         ) : (
           <div className="text-gray-500">Нет активной подписки</div>
         )}
-        <div className="flex flex-wrap gap-3">
-          {plans.filter(p => p.id !== currentPlan.id).map(plan => (
-            <button key={plan.slug} onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-outline hover:shadow-md disabled:opacity-60">
-              {planAction===plan.slug ? 'Обновление…' : `Перейти на ${plan.name}`}
-            </button>
-          ))}
-          <button onClick={() => setShowCancelModal(true)} className="btn btn-outline hover:shadow-md text-red-600">Отменить подписку</button>
-        </div>
       </section>
 
       {/* Тарифные планы */}
-      <section className="bg-white shadow-lg rounded-2xl p-8 mb-12">
-        <h2 className="text-xl font-semibold mb-4">Тарифные планы</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {plans.map(plan => (
-            <div key={plan.id} className={`rounded-2xl p-6 flex flex-col shadow-md transition hover:shadow-xl cursor-pointer border ${currentPlan && currentPlan.id === plan.id ? 'border-primary-500 ring-2 ring-primary-200 bg-primary-50' : 'border-gray-100 bg-white'}`}>
-              <div className="font-extrabold text-xl mb-2 text-steel-900">{plan.name}</div>
-              <div className="text-primary-700 text-2xl font-bold mb-3">{plan.price.toLocaleString('ru-RU', { style: 'currency', currency: plan.currency })} <span className="text-base font-medium text-steel-600">/ {plan.duration_in_days === 30 ? 'мес.' : `${plan.duration_in_days} дн.`}</span></div>
-              <div className="text-gray-600 text-sm mb-2">{plan.description}</div>
-              <ul className="text-sm text-steel-600 mb-4 space-y-1">
-                {plan.features?.map((f: string, i: number) => <li key={i} className="flex items-center gap-1"><CheckCircleIcon className="h-4 w-4 text-green-500" />{f}</li>)}
-                {plan.max_foremen && <li>Прорабы: {plan.max_foremen}</li>}
-                {plan.max_projects && <li>Проекты: {plan.max_projects}</li>}
-                {plan.max_storage_gb && <li>Хранилище: {plan.max_storage_gb} ГБ</li>}
-              </ul>
-              {currentPlan && currentPlan.id === plan.id ? (
-                <span className="mt-auto inline-block px-4 py-1.5 text-sm font-semibold text-white bg-primary-600 rounded-lg">Ваш тариф</span>
-              ) : (
-                <button onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-primary mt-auto hover:shadow-lg disabled:opacity-60">
-                  {planAction===plan.slug ? 'Подписка…' : 'Выбрать'}
-                </button>
-              )}
-            </div>
-          ))}
-          </div>
+      <section className="bg-white shadow-lg rounded-2xl p-8 mb-10 ring-1 ring-gray-100">
+        <h2 className="text-2xl font-bold mb-6 text-steel-900">Тарифные планы</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {plans.map(plan => {
+            const isActive = currentPlan && currentPlan.id === plan.id;
+            return (
+              <div
+                key={plan.id}
+                className={`group relative rounded-2xl p-6 flex flex-col shadow-sm transition-transform hover:-translate-y-1 hover:shadow-lg cursor-pointer ${isActive ? 'border-2 border-primary-600 bg-primary-50 ring-1 ring-primary-500' : 'border border-gray-200 bg-white'}`}
+              >
+                <div className="mb-3">
+                  <h3 className="font-extrabold text-lg text-steel-900 group-hover:text-primary-700">{plan.name}</h3>
+                  <p className="text-2xl font-bold text-primary-700 mt-1">{plan.price.toLocaleString('ru-RU', { style: 'currency', currency: plan.currency })}<span className="text-base font-medium text-steel-600"> / {plan.duration_in_days === 30 ? 'мес.' : `${plan.duration_in_days} дн.`}</span></p>
+                  {plan.description && <p className="text-sm text-steel-600 mt-2 leading-snug">{plan.description}</p>}
+                </div>
+                <ul className="text-sm text-steel-700 space-y-1 mb-6 flex-1">
+                  {plan.features?.map((f: string, i: number) => (
+                    <li key={i} className="flex items-start gap-2"><CheckCircleIcon className="h-5 w-5 text-green-500 shrink-0" /> <span>{f}</span></li>
+                  ))}
+                  {plan.max_foremen && <li>Прорабы: {plan.max_foremen}</li>}
+                  {plan.max_projects && <li>Проекты: {plan.max_projects}</li>}
+                  {plan.max_storage_gb && <li>Хранилище: {plan.max_storage_gb} ГБ</li>}
+                </ul>
+                {isActive ? (
+                  <span className="inline-block w-full text-center py-2 text-sm font-semibold text-white rounded-md bg-gradient-to-r from-blue-500 to-blue-600">Ваш тариф</span>
+                ) : (
+                  <button
+                    onClick={() => handlePlanChange(plan.slug)}
+                    disabled={planAction === plan.slug}
+                    className="inline-block w-full py-2 text-sm font-semibold text-white rounded-md bg-gradient-to-r from-orange-500 to-primary-600 hover:from-orange-600 hover:to-primary-700 disabled:opacity-60"
+                  >
+                    {planAction === plan.slug ? 'Подписка…' : 'Выбрать'}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       {/* Add-ons */}
-      <section className="bg-white shadow-lg rounded-2xl p-8 mb-12">
+      <section className="bg-white shadow rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Дополнительные услуги (Add-ons)</h2>
           <button className="btn btn-outline flex items-center gap-1" onClick={() => setShowAddonsModal(true)}><PuzzlePieceIcon className="h-5 w-5" /> Управлять</button>
