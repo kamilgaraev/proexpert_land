@@ -239,7 +239,7 @@ const PaidServicesPage = () => {
         <div className="flex flex-wrap gap-2">
           {connectedAddons.length === 0 && <span className="text-gray-500">Нет подключённых add-on</span>}
           {connectedAddons.map((addon: any) => (
-            <span key={addon.id} className="inline-flex items-center px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm">
+            <span key={addon.id} className="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">
               {addon.name}
             </span>
           ))}
