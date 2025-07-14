@@ -42,8 +42,8 @@ const PaidServicesPage = () => {
       }
       const fetchedPlans = Array.isArray(plansRes.data) ? plansRes.data : [];
       setPlans(fetchedPlans);
-      // определяем текущий план по subscription_plan_id
-      const cp = subRes.data ? fetchedPlans.find((p: any) => p.id === subRes.data.subscription_plan_id) : null;
+      // определяем текущий план: API может вернуть subscription_plan_id или объект plan.id
+      const cp = subRes.data ? fetchedPlans.find((p: any) => p.id === (subRes.data.subscription_plan_id ?? subRes.data.plan?.id)) : null;
       setCurrentPlan(cp || null);
       setAddons(Array.isArray(addonsRes.data.all) ? addonsRes.data.all : []);
       setConnectedAddons(Array.isArray(addonsRes.data.connected) ? addonsRes.data.connected : []);
@@ -64,7 +64,7 @@ const PaidServicesPage = () => {
       await billingService.subscribeToPlan({ plan_slug });
       await fetchAll();
     } catch (e: any) {
-      setError(e.message || 'Ошибка смены тарифа');
+      setError(e.message || 'Ошибка оформления тарифа');
     } finally {
       setPlanAction(null);
     }
