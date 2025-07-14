@@ -171,7 +171,7 @@ const PaidServicesPage = () => {
                   checked={autoPayEnabled || false}
                   onChange={handleToggleAutoPay}
                   disabled={autoPayEnabled===null || autoPayUpdating}
-                  className={`${autoPayEnabled ? 'bg-primary-600' : 'bg-gray-300'} relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500`}
+                  className={`${autoPayEnabled ? 'bg-orange-500' : 'bg-gray-300'} relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500`}
                 >
                   <span
                     aria-hidden="true"
@@ -198,11 +198,11 @@ const PaidServicesPage = () => {
             return (
               <div
                 key={plan.id}
-                className={`group relative rounded-2xl p-6 flex flex-col shadow-sm transition-transform hover:-translate-y-1 hover:shadow-lg cursor-pointer ${isActive ? 'border-2 border-primary-600 bg-primary-50 ring-1 ring-primary-500' : 'border border-gray-200 bg-white'}`}
+                className={`group relative rounded-2xl p-6 flex flex-col shadow-sm transition-transform hover:-translate-y-1 hover:shadow-lg cursor-pointer ${isActive ? 'border-2 border-orange-500 bg-orange-50 ring-1 ring-orange-500' : 'border border-gray-200 bg-white'}`}
               >
                 <div className="mb-3">
-                  <h3 className="font-extrabold text-lg text-steel-900 group-hover:text-primary-700">{plan.name}</h3>
-                  <p className="text-2xl font-bold text-primary-700 mt-1">{plan.price.toLocaleString('ru-RU', { style: 'currency', currency: plan.currency })}<span className="text-base font-medium text-steel-600"> / {plan.duration_in_days === 30 ? 'мес.' : `${plan.duration_in_days} дн.`}</span></p>
+                  <h3 className="font-extrabold text-lg text-steel-900 group-hover:text-orange-600">{plan.name}</h3>
+                  <p className="text-2xl font-bold text-orange-600 mt-1">{plan.price.toLocaleString('ru-RU', { style: 'currency', currency: plan.currency })}<span className="text-base font-medium text-steel-600"> / {plan.duration_in_days === 30 ? 'мес.' : `${plan.duration_in_days} дн.`}</span></p>
                   {plan.description && <p className="text-sm text-steel-600 mt-2 leading-snug">{plan.description}</p>}
                 </div>
                 <ul className="text-sm text-steel-700 space-y-1 mb-6 flex-1">
