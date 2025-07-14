@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { billingService } from '@utils/api';
 import { CheckCircleIcon, XCircleIcon, PuzzlePieceIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Switch } from '@headlessui/react';
+import ConfirmActionModal from '@components/shared/ConfirmActionModal';
 import { PageLoading } from '@components/common/PageLoading'; // Предполагаем наличие компонента-заглушки
 
 const PaidServicesPage = () => {
@@ -11,6 +13,10 @@ const PaidServicesPage = () => {
   const [connectedAddons, setConnectedAddons] = useState<any[]>([]);
   const [oneTimePurchases, setOneTimePurchases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [autoPayEnabled, setAutoPayEnabled] = useState<boolean | null>(null);
+  const [autoPayUpdating, setAutoPayUpdating] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAddonsModal, setShowAddonsModal] = useState(false);
   const [purchaseForm, setPurchaseForm] = useState({ type: '', description: '', amount: '', currency: 'RUB' });
@@ -31,6 +37,9 @@ const PaidServicesPage = () => {
         billingService.getOneTimePurchases(),
       ]);
       setSubscription(subRes.data);
+      if (subRes.data && typeof subRes.data.is_auto_payment_enabled === 'boolean') {
+        setAutoPayEnabled(subRes.data.is_auto_payment_enabled);
+      }
       const fetchedPlans = Array.isArray(plansRes.data) ? plansRes.data : [];
       setPlans(fetchedPlans);
       // определяем текущий план по subscription_plan_id
@@ -108,6 +117,33 @@ const PaidServicesPage = () => {
     }
   };
   
+  const handleToggleAutoPay = async () => {
+    if (autoPayEnabled === null) return;
+    const newValue = !autoPayEnabled;
+    setAutoPayUpdating(true);
+    try {
+      await billingService.updateAutoPayment(newValue);
+      setAutoPayEnabled(newValue);
+    } catch (e: any) {
+      setError(e.message || 'Ошибка обновления автоплатежа');
+    } finally {
+      setAutoPayUpdating(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    setCancelLoading(true);
+    try {
+      await billingService.cancelSubscription();
+      setShowCancelModal(false);
+      await fetchAll();
+    } catch (e: any) {
+      setError(e.message || 'Ошибка отмены подписки');
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   const formatDate = (date?: string) => date ? new Date(date).toLocaleDateString('ru-RU') : '—';
 
   if (loading) return <PageLoading message="Загрузка платных услуг..." />;
@@ -129,6 +165,20 @@ const PaidServicesPage = () => {
               </div>
               <div className="text-gray-600">{currentPlan.description}</div>
               <div className="text-sm text-gray-500">Действует до: {formatDate(subscription.ends_at)}</div>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-sm">Автоплатёж</span>
+                <Switch
+                  checked={autoPayEnabled || false}
+                  onChange={handleToggleAutoPay}
+                  disabled={autoPayEnabled===null || autoPayUpdating}
+                  className={`${autoPayEnabled ? 'bg-primary-600' : 'bg-gray-300'} relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`${autoPayEnabled ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform`}
+                  />
+                </Switch>
+              </div>
             </div>
             <div className="flex flex-wrap gap-2">
               {plans.filter(p => p.id !== currentPlan.id).map(plan => (
@@ -136,6 +186,7 @@ const PaidServicesPage = () => {
                   {planAction===plan.slug ? 'Обновление…' : `Перейти на ${plan.name}`}
                 </button>
               ))}
+              <button onClick={() => setShowCancelModal(true)} className="btn btn-outline text-red-600">Отменить подписку</button>
             </div>
           </div>
         ) : (
@@ -263,6 +314,16 @@ const PaidServicesPage = () => {
           </table>
         </div>
       </section>
+      <ConfirmActionModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelSubscription}
+        title="Отменить подписку?"
+        message="После отмены услуги будут действовать до конца оплаченного периода."
+        confirmLabel="Отменить"
+        confirmColorClass="red"
+        isLoading={cancelLoading}
+      />
     </div>
   );
 };

@@ -1258,6 +1258,21 @@ export const billingService = {
       return { data: responseData as ErrorResponse, status: response.status, statusText: response.statusText };
     }
   },
+
+  // Включить / выключить автоплатёж для подписки
+  updateAutoPayment: async (is_auto_payment_enabled: boolean): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/subscription/auto-payment`;
+    const options: RequestInit = {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ is_auto_payment_enabled }),
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
 };
 
 export const userManagementService = {
