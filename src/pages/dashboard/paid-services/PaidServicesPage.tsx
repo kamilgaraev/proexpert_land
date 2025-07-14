@@ -11,7 +11,6 @@ const PaidServicesPage = () => {
   const [plans, setPlans] = useState<any[]>([]);
   const [addons, setAddons] = useState<any[]>([]);
   const [connectedAddons, setConnectedAddons] = useState<any[]>([]);
-  const [oneTimePurchases, setOneTimePurchases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [autoPayEnabled, setAutoPayEnabled] = useState<boolean | null>(null);
   const [autoPayUpdating, setAutoPayUpdating] = useState(false);
@@ -19,10 +18,7 @@ const PaidServicesPage = () => {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAddonsModal, setShowAddonsModal] = useState(false);
-  const [purchaseForm, setPurchaseForm] = useState({ type: '', description: '', amount: '', currency: 'RUB' });
-  const [purchaseLoading, setPurchaseLoading] = useState(false);
-  const [purchaseError, setPurchaseError] = useState<string | null>(null);
-  const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
+  // Функция для разовых покупок и связанные состояния удалены как неиспользуемые
   const [addonAction, setAddonAction] = useState<number | null>(null);
   const [planAction, setPlanAction] = useState<string | null>(null);
 
@@ -30,11 +26,10 @@ const PaidServicesPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const [subRes, plansRes, addonsRes, otpRes] = await Promise.all([
+      const [subRes, plansRes, addonsRes] = await Promise.all([
         billingService.getOrgSubscription(),
         billingService.getPlans(),
         billingService.getAddons(),
-        billingService.getOneTimePurchases(),
       ]);
       setSubscription(subRes.data);
       if (subRes.data && typeof subRes.data.is_auto_payment_enabled === 'boolean') {
@@ -47,7 +42,6 @@ const PaidServicesPage = () => {
       setCurrentPlan(cp || null);
       setAddons(Array.isArray(addonsRes.data.all) ? addonsRes.data.all : []);
       setConnectedAddons(Array.isArray(addonsRes.data.connected) ? addonsRes.data.connected : []);
-      setOneTimePurchases(Array.isArray(otpRes.data) ? otpRes.data : []);
     } catch (e: any) {
       setError(e.message || 'Ошибка загрузки данных');
     } finally {
@@ -94,29 +88,8 @@ const PaidServicesPage = () => {
     }
   };
 
-  const handleOneTimePurchase = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPurchaseLoading(true);
-    setPurchaseError(null);
-    setPurchaseSuccess(null);
-    try {
-      const { type, description, amount, currency } = purchaseForm;
-      if (!type || !description || !amount || isNaN(Number(amount))) {
-        setPurchaseError('Заполните все поля корректно');
-        setPurchaseLoading(false);
-        return;
-      }
-      await billingService.oneTimePurchase({ type, description, amount: Number(amount), currency });
-      setPurchaseSuccess('Покупка успешно совершена');
-      setPurchaseForm({ type: '', description: '', amount: '', currency: 'RUB' });
-      await fetchAll();
-    } catch (e: any) {
-      setPurchaseError(e.message || 'Ошибка покупки');
-    } finally {
-      setPurchaseLoading(false);
-    }
-  };
-  
+  // Функция для разовых покупок и связанные состояния удалены как неиспользуемые
+
   const handleToggleAutoPay = async () => {
     if (autoPayEnabled === null) return;
     const newValue = !autoPayEnabled;
