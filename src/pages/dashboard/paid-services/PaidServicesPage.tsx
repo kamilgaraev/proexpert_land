@@ -181,11 +181,6 @@ const PaidServicesPage = () => {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              {plans.filter(p => p.id !== currentPlan.id).map(plan => (
-                <button key={plan.slug} onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-outline disabled:opacity-60">
-                  {planAction===plan.slug ? 'Обновление…' : `Перейти на ${plan.name}`}
-                </button>
-              ))}
               <button onClick={() => setShowCancelModal(true)} className="btn btn-outline text-red-600">Отменить подписку</button>
             </div>
           </div>
@@ -219,12 +214,12 @@ const PaidServicesPage = () => {
                   {plan.max_storage_gb && <li>Хранилище: {plan.max_storage_gb} ГБ</li>}
                 </ul>
                 {isActive ? (
-                  <span className="inline-block w-full text-center py-2 text-sm font-semibold text-white rounded-md bg-gradient-to-r from-blue-500 to-blue-600">Ваш тариф</span>
+                  <span className="inline-block w-full text-center py-2 text-sm font-semibold text-white rounded-md bg-gradient-to-r from-orange-500 to-orange-600">Ваш тариф</span>
                 ) : (
                   <button
                     onClick={() => handlePlanChange(plan.slug)}
                     disabled={planAction === plan.slug}
-                    className="inline-block w-full py-2 text-sm font-semibold text-white rounded-md bg-gradient-to-r from-orange-500 to-primary-600 hover:from-orange-600 hover:to-primary-700 disabled:opacity-60"
+                    className="inline-block w-full py-2 text-sm font-semibold text-white rounded-md bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-60"
                   >
                     {planAction === plan.slug ? 'Подписка…' : 'Выбрать'}
                   </button>
