@@ -149,70 +149,68 @@ const PaidServicesPage = () => {
   if (loading) return <PageLoading message="Загрузка платных услуг..." />;
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-10">
+    <div className="max-w-6xl mx-auto px-4 py-12 space-y-14">
       <h1 className="text-3xl font-bold mb-6">Платные услуги</h1>
       {error && <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded">{error}</div>}
 
       {/* Текущая подписка */}
-      <section className="bg-white shadow rounded-xl p-6 mb-8">
+      <section className="bg-white shadow-lg rounded-2xl p-8 mb-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         <h2 className="text-xl font-semibold mb-4">Текущая подписка</h2>
         {subscription && subscription.status === 'active' && currentPlan ? (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2">
-                <span className="text-2xl font-bold text-primary-700">{currentPlan.name}</span>
-                <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">Активен</span>
-              </div>
-              <div className="text-gray-600">{currentPlan.description}</div>
-              <div className="text-sm text-gray-500">Действует до: {formatDate(subscription.ends_at)}</div>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm">Автоплатёж</span>
-                <Switch
-                  checked={autoPayEnabled || false}
-                  onChange={handleToggleAutoPay}
-                  disabled={autoPayEnabled===null || autoPayUpdating}
-                  className={`${autoPayEnabled ? 'bg-primary-600' : 'bg-gray-300'} relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500`}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`${autoPayEnabled ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform`}
-                  />
-                </Switch>
-              </div>
+          <div className="space-y-3 max-w-3xl">
+            <div className="inline-flex items-center gap-3">
+              <span className="text-3xl font-extrabold text-primary-700">{currentPlan.name}</span>
+              <span className="px-3 py-0.5 rounded-full text-sm bg-green-100 text-green-800">Активен</span>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {plans.filter(p => p.id !== currentPlan.id).map(plan => (
-                <button key={plan.slug} onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-outline disabled:opacity-60">
-                  {planAction===plan.slug ? 'Обновление…' : `Перейти на ${plan.name}`}
-                </button>
-              ))}
-              <button onClick={() => setShowCancelModal(true)} className="btn btn-outline text-red-600">Отменить подписку</button>
+            <div className="text-steel-700 leading-relaxed">{currentPlan.description}</div>
+            <div className="text-sm text-steel-500">Действует до: {formatDate(subscription.ends_at)}</div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm">Автоплатёж</span>
+              <Switch
+                checked={autoPayEnabled || false}
+                onChange={handleToggleAutoPay}
+                disabled={autoPayEnabled===null || autoPayUpdating}
+                className={`${autoPayEnabled ? 'bg-primary-600' : 'bg-gray-300'} relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`${autoPayEnabled ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform`}
+                />
+              </Switch>
             </div>
           </div>
         ) : (
           <div className="text-gray-500">Нет активной подписки</div>
         )}
+        <div className="flex flex-wrap gap-3">
+          {plans.filter(p => p.id !== currentPlan.id).map(plan => (
+            <button key={plan.slug} onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-outline hover:shadow-md disabled:opacity-60">
+              {planAction===plan.slug ? 'Обновление…' : `Перейти на ${plan.name}`}
+            </button>
+          ))}
+          <button onClick={() => setShowCancelModal(true)} className="btn btn-outline hover:shadow-md text-red-600">Отменить подписку</button>
+        </div>
       </section>
 
       {/* Тарифные планы */}
-      <section className="bg-white shadow rounded-xl p-6 mb-8">
+      <section className="bg-white shadow-lg rounded-2xl p-8 mb-12">
         <h2 className="text-xl font-semibold mb-4">Тарифные планы</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {plans.map(plan => (
-            <div key={plan.id} className={`rounded-lg p-4 flex flex-col border-2 ${currentPlan && currentPlan.id === plan.id ? 'border-primary-600 bg-primary-50' : 'border-gray-200 bg-white'}`}>
-              <div className="font-bold text-lg mb-1">{plan.name}</div>
-              <div className="text-primary-700 text-xl font-semibold mb-2">{plan.price.toLocaleString('ru-RU', { style: 'currency', currency: plan.currency })} / {plan.duration_in_days === 30 ? 'мес.' : `${plan.duration_in_days} дн.`}</div>
+            <div key={plan.id} className={`rounded-2xl p-6 flex flex-col shadow-md transition hover:shadow-xl cursor-pointer border ${currentPlan && currentPlan.id === plan.id ? 'border-primary-500 ring-2 ring-primary-200 bg-primary-50' : 'border-gray-100 bg-white'}`}>
+              <div className="font-extrabold text-xl mb-2 text-steel-900">{plan.name}</div>
+              <div className="text-primary-700 text-2xl font-bold mb-3">{plan.price.toLocaleString('ru-RU', { style: 'currency', currency: plan.currency })} <span className="text-base font-medium text-steel-600">/ {plan.duration_in_days === 30 ? 'мес.' : `${plan.duration_in_days} дн.`}</span></div>
               <div className="text-gray-600 text-sm mb-2">{plan.description}</div>
-              <ul className="text-xs text-gray-500 mb-2 space-y-1">
+              <ul className="text-sm text-steel-600 mb-4 space-y-1">
                 {plan.features?.map((f: string, i: number) => <li key={i} className="flex items-center gap-1"><CheckCircleIcon className="h-4 w-4 text-green-500" />{f}</li>)}
                 {plan.max_foremen && <li>Прорабы: {plan.max_foremen}</li>}
                 {plan.max_projects && <li>Проекты: {plan.max_projects}</li>}
                 {plan.max_storage_gb && <li>Хранилище: {plan.max_storage_gb} ГБ</li>}
               </ul>
               {currentPlan && currentPlan.id === plan.id ? (
-                <span className="mt-auto inline-block px-3 py-1 text-sm text-white bg-primary-600 rounded">Ваш тариф</span>
+                <span className="mt-auto inline-block px-4 py-1.5 text-sm font-semibold text-white bg-primary-600 rounded-lg">Ваш тариф</span>
               ) : (
-                <button onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-primary mt-auto disabled:opacity-60">
+                <button onClick={() => handlePlanChange(plan.slug)} disabled={planAction===plan.slug} className="btn btn-primary mt-auto hover:shadow-lg disabled:opacity-60">
                   {planAction===plan.slug ? 'Подписка…' : 'Выбрать'}
                 </button>
               )}
@@ -222,7 +220,7 @@ const PaidServicesPage = () => {
       </section>
 
       {/* Add-ons */}
-      <section className="bg-white shadow rounded-xl p-6 mb-8">
+      <section className="bg-white shadow-lg rounded-2xl p-8 mb-12">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Дополнительные услуги (Add-ons)</h2>
           <button className="btn btn-outline flex items-center gap-1" onClick={() => setShowAddonsModal(true)}><PuzzlePieceIcon className="h-5 w-5" /> Управлять</button>
