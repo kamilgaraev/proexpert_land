@@ -2,6 +2,9 @@ import { useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getPageSEOData, generateSoftwareSchema, generateOrganizationSchema } from '../utils/seo';
 
+// Определяем, доступен ли DOM (браузерный контекст).
+const isBrowser = typeof document !== 'undefined';
+
 interface UseSEOProps {
   title?: string;
   description?: string;
@@ -16,6 +19,20 @@ interface UseSEOProps {
 }
 
 export const useSEO = (props: UseSEOProps = {}) => {
+  // Если мы на сервере (SSR), возвращаем no-op API, чтобы избежать ошибок.
+  if (!isBrowser) {
+    const noop = () => {};
+    return {
+      updateSEO: noop,
+      addBreadcrumbSchema: noop,
+      addFAQSchema: noop,
+      addProductSchema: noop,
+      setMetaTag: noop,
+      setLinkTag: noop,
+      setStructuredData: noop,
+    } as const;
+  }
+
   const location = useLocation();
   
   const setMetaTag = useCallback((name: string, content: string, property = false) => {

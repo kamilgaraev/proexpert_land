@@ -1,0 +1,53 @@
+name: Deploy LK via SSH
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**'
+      - '!apps/marketing-ssr/**'  # маркетинг билдом другой workflow
+      - '!packages/**'
+
+jobs:
+  deploy-lk:
+    runs-on: ubuntu-latest
+
+    env:
+      TARGET_PATH: /var/www/prohelper_lk
+      NODE_VERSION: '20'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies & build LK
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build:lk
+
+      - name: Upload artefacts to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          key: ${{ secrets.SSH_KEY }}
+          username: root
+          source: "dist-lk/*"
+          target: "/var/www/prohelper_lk/"
+          strip_components: 1
+
+      - name: Clean old files on server (optional)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          key: ${{ secrets.SSH_KEY }}
+          username: root
+          script: |
+            set -e
+            mkdir -p /var/www/prohelper_lk
+            # Nothing else; scp already overwrites files 

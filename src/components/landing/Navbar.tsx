@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +9,9 @@ import {
   ChevronDownIcon,
   PhoneIcon
 } from '@heroicons/react/24/outline';
+
+// Базовый URL личного кабинета, берём из env, иначе дефолт.
+const LK_URL = (import.meta.env.VITE_LK_URL as string | undefined) ?? 'https://lk.prohelper.pro';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -185,8 +189,8 @@ const Navbar = () => {
               <span className="hidden xl:inline">+7 (999) 123-45-67</span>
             </a>
             
-            <Link
-              to="/login"
+            <a
+              href={`${LK_URL}/login`}
               className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
                 isScrolled || location.pathname !== '/' 
                   ? 'text-steel-700 hover:text-construction-600 hover:bg-construction-50' 
@@ -196,16 +200,16 @@ const Navbar = () => {
               data-seo-keyword="вход личный кабинет"
             >
               Войти
-            </Link>
+            </a>
             
-            <Link
-              to="/register"
+            <a
+              href={`${LK_URL}/register`}
               className="px-6 py-3 bg-gradient-to-r from-construction-600 to-construction-500 text-white font-semibold rounded-lg hover:shadow-construction transition-all duration-300 hover:scale-105"
               data-seo-track="register_navbar_click"
               data-seo-keyword="регистрация попробовать бесплатно"
             >
               Попробовать бесплатно
-            </Link>
+            </a>
           </div>
 
           <div className="lg:hidden">
@@ -302,25 +306,25 @@ const Navbar = () => {
                     +7 (999) 123-45-67
                   </a>
                   
-                  <Link
-                    to="/login"
+                  <a
+                    href={`${LK_URL}/login`}
                     className="block px-3 py-2 text-steel-700 hover:text-construction-600 font-medium"
                     onClick={() => setIsOpen(false)}
                     data-seo-track="mobile_login_click"
                     data-seo-keyword="вход мобильный"
                   >
                     Войти
-                  </Link>
+                  </a>
                   
-                  <Link
-                    to="/register"
+                  <a
+                    href={`${LK_URL}/register`}
                     className="block w-full px-6 py-3 bg-gradient-to-r from-construction-600 to-construction-500 text-white font-semibold rounded-lg text-center hover:shadow-construction transition-all duration-300"
                     onClick={() => setIsOpen(false)}
                     data-seo-track="mobile_register_click"
                     data-seo-keyword="регистрация мобильный бесплатно"
                   >
                     Попробовать бесплатно
-                  </Link>
+                  </a>
                 </div>
               </div>
             </motion.div>

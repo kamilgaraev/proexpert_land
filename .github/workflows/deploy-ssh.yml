@@ -1,4 +1,4 @@
-name: Deploy via SSH
+name: Deploy Marketing via SSH
 
 on:
   push:
@@ -7,39 +7,52 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
+    env:
+      TARGET_PATH: /var/www/prohelper_marketing
+      NODE_VERSION: '20'
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: Install and Build
-      run: |
-        npm install --no-audit --no-fund
-        npm run build
-        
-    - name: Deploy to Server
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.HOST }}
-        username: root
-        key: ${{ secrets.SSH_KEY }}
-        script: |
-          cd /var/www/proexpert_land
-          rm -rf ./dist/*
-          mkdir -p ./dist
-          
-    - name: Copy files to server
-      uses: appleboy/scp-action@v0.1.4
-      with:
-        host: ${{ secrets.HOST }}
-        username: root
-        key: ${{ secrets.SSH_KEY }}
-        source: "dist/*"
-        target: "/var/www/proexpert_land/dist/"
-        strip_components: 1 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies & build SSR
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build   # vite build + vite-plugin-ssr build + prerender
+
+      - name: Pack artefacts
+        run: |
+          tar -czf marketing.tgz -C dist client prerender server
+
+      - name: Upload artefacts to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          key: ${{ secrets.SSH_KEY }}
+          username: root
+          source: "marketing.tgz"
+          target: "/tmp/marketing.tgz"
+
+      - name: Deploy on server & restart PM2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          key: ${{ secrets.SSH_KEY }}
+          username: root
+          script: |
+            set -e
+            TARGET_PATH=${{ env.TARGET_PATH }}
+            mkdir -p $TARGET_PATH
+            tar -xzf /tmp/marketing.tgz -C $TARGET_PATH
+            rm /tmp/marketing.tgz
+            cd $TARGET_PATH/server
+            npm ci --production --no-audit --no-fund
+            pm2 reload prohelper-ssr || pm2 start /var/www/prohelper_marketing/server/index.js --name prohelper-ssr --port 3001 --time
+            pm2 save 

@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx tsc && node ./node_modules/vite/bin/vite.js build",
+    "build": "npx tsc && vite build && vite-plugin-ssr build && vite-plugin-ssr prerender",
+    "build:lk": "cross-env BUILD_TARGET=lk npx tsc && vite build --outDir dist-lk",
+    "ssr:dev": "vite",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite-plugin-ssr preview"
   },
   "keywords": [
     "ProHelper",
@@ -34,11 +36,12 @@
     "framer-motion": "^12.9.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.5.3",
+    "react-router-dom": "^6.23.0",
     "react-toastify": "^11.0.5",
     "typescript": "^5.8.3",
     "chart.js": "^4.4.1",
-    "react-chartjs-2": "^5.3.0"
+    "react-chartjs-2": "^5.3.0",
+    "vite-plugin-ssr": "^0.4.0"
   },
   "devDependencies": {
     "@types/axios": "^0.9.36",
@@ -48,6 +51,7 @@
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.1.4"
+    "vite": "^5.1.4",
+    "cross-env": "^7.0.3"
   }
 }
