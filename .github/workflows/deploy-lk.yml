@@ -29,6 +29,7 @@ jobs:
       - name: Install dependencies & build LK
         run: |
           npm install --no-audit --no-fund --include=dev
+          chmod +x node_modules/.bin/* || true
           npm run build:lk
 
       - name: Upload artefacts to server

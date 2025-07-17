@@ -25,6 +25,7 @@ jobs:
       - name: Install dependencies & build SSR
         run: |
           npm install --no-audit --no-fund --include=dev
+          chmod +x node_modules/.bin/* || true
           npm run build   # vite build + vite-plugin-ssr build + prerender
 
       - name: Pack artefacts
