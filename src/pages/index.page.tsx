@@ -1,4 +1,3 @@
-import React from 'react';
 import LandingPage from '@pages/landing/LandingPage';
 
 export const Page = () => <LandingPage />;

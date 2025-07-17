@@ -1,4 +1,3 @@
-import React from 'react';
 import { hydrateRoot } from 'react-dom/client';
 // @ts-expect-error vite-plugin-ssr предоставляет типы в рантайме
 import type { PageContextClient } from 'vite-plugin-ssr/client';
