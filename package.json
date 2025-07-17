@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npx tsc && vite build && vite-plugin-ssr build && vite-plugin-ssr prerender",
-    "build:lk": "cross-env BUILD_TARGET=lk npx tsc && vite build --outDir dist-lk",
+    "build:lk": "BUILD_TARGET=lk npx tsc && vite build --outDir dist-lk",
     "ssr:dev": "vite",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite-plugin-ssr preview"
@@ -51,7 +51,6 @@
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.1.4",
-    "cross-env": "^7.0.3"
+    "vite": "^5.1.4"
   }
 }
