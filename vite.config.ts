@@ -20,6 +20,7 @@ export default defineConfig({
       '@hooks': path.resolve(__dirname, './src/hooks'),
       '@utils': path.resolve(__dirname, './src/utils'),
       '@renderer': path.resolve(__dirname, './src/renderer'),
+      'react-router': path.resolve(__dirname, './node_modules/react-router/index.js'),
     },
   },
 }); 
