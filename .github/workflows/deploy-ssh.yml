@@ -24,9 +24,8 @@ jobs:
 
       - name: Install dependencies & build SSR
         run: |
-          npm install --no-audit --no-fund --include=dev
+          npm install --no-audit --no-fund
           chmod +x node_modules/.bin/* || true
-          npm install react-router@^6.23.0 --no-save --include=dev
           npm run build   # vite build + vite-plugin-ssr build + prerender
 
       - name: Pack artefacts

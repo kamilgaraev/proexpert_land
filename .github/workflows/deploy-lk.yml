@@ -28,9 +28,8 @@ jobs:
 
       - name: Install dependencies & build LK
         run: |
-          npm install --no-audit --no-fund --include=dev
+          npm install --no-audit --no-fund
           chmod +x node_modules/.bin/* || true
-          npm install react-router@^6.23.0 --no-save --include=dev
           npm run build:lk
 
       - name: Upload artefacts to server
