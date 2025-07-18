@@ -9,6 +9,23 @@ const server = http.createServer(async (req, res) => {
   const url = req.url.split('?')[0];
   const staticFilePath = path.join(distDir, url);
   if (fs.existsSync(staticFilePath) && fs.statSync(staticFilePath).isFile()) {
+    const ext = path.extname(staticFilePath).toLowerCase();
+    const mime = {
+      '.js': 'application/javascript',
+      '.mjs': 'application/javascript',
+      '.css': 'text/css',
+      '.json': 'application/json',
+      '.svg': 'image/svg+xml',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.ico': 'image/x-icon',
+      '.woff2': 'font/woff2',
+      '.woff': 'font/woff',
+      '.ttf': 'font/ttf',
+    }[ext] || 'application/octet-stream';
+    res.writeHead(200, { 'Content-Type': mime, 'Cache-Control': 'public, max-age=31536000, immutable' });
     fs.createReadStream(staticFilePath).pipe(res);
     return;
   }
