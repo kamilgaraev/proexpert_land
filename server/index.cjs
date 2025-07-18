@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const { renderPage } = require('vite-plugin-ssr/server');
 
-const distDir = path.resolve(__dirname, '../dist');
+const distDir = path.resolve(__dirname, '../dist/client');
 
 const server = http.createServer(async (req, res) => {
   const url = req.url.split('?')[0];
@@ -44,6 +44,11 @@ const server = http.createServer(async (req, res) => {
       res.end('Not found');
       return;
     }
+  }
+  if (httpResponse.statusCode === 404) {
+    const html = await fs.promises.readFile(path.join(distDir, 'index.html'));
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    return res.end(html);
   }
   res.writeHead(httpResponse.statusCode, httpResponse.headers);
   res.end(httpResponse.body);
