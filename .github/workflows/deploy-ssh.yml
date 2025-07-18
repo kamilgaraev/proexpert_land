@@ -46,7 +46,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           username: root
           source: "marketing.tgz"
-          target: "/tmp/marketing.tgz"
+          target: "/tmp/"
 
       - name: Deploy on server & restart PM2
         uses: appleboy/ssh-action@v1.0.0
@@ -57,11 +57,15 @@ jobs:
           script: |
             set -e
             TARGET_PATH=${{ env.TARGET_PATH }}
-            # Удаляем возможную директорию, оставшуюся с предыдущего деплоя
-            if [ -d /tmp/marketing.tgz ]; then rm -rf /tmp/marketing.tgz; fi
+            # Удаляем предыдущие раскладки
+            rm -rf /tmp/marketing.tgz.dir || true
             mkdir -p $TARGET_PATH
-            tar -xzf /tmp/marketing.tgz -C $TARGET_PATH
-            rm /tmp/marketing.tgz
+            if [ -f /tmp/marketing.tgz ]; then
+              tar -xzf /tmp/marketing.tgz -C $TARGET_PATH
+              rm /tmp/marketing.tgz
+            else
+              echo "Файл /tmp/marketing.tgz не найден" && exit 1
+            fi
             cd $TARGET_PATH/server
             npm ci --production --no-audit --no-fund
             pm2 reload prohelper-ssr || pm2 start /var/www/prohelper_marketing/server/index.js --name prohelper-ssr --port 3001 --time
