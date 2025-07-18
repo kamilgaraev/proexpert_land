@@ -57,11 +57,20 @@ function App() {
   const isHoldingSubdomain = () => {
     const hostname = window.location.hostname;
     const mainDomain = 'prohelper.pro';
-    
-    if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+
+    if (
+      hostname.includes('localhost') ||
+      hostname.includes('127.0.0.1')
+    ) {
       return false;
     }
-    
+
+    // Зарезервированные субдомены, которые НЕ считаются холдингами
+    const reserved = new Set(['lk', 'api', 'www']);
+    if (reserved.has(hostname.split('.')[0])) {
+      return false;
+    }
+
     return hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`);
   };
 
