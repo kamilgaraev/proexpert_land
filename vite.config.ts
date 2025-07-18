@@ -24,6 +24,9 @@ export default defineConfig({
       // алиасы на react-router больше не нужны — Vite берёт ESM-entry из поля "module"
     },
   },
+  // Делает ссылки в HTML вида "/assets/…" вместо относительных "assets/…",
+  // чтобы при переходе на вложенные маршруты (/blog) браузер не запрашивал /blog/assets/…
+  base: '/',
   build: {
     manifest: 'manifest.json',
     // Не даём commonjs-плагину повторно обрабатывать чистые ESM-модули

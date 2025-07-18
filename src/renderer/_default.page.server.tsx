@@ -5,6 +5,14 @@ import { escapeInject, dangerouslySkipEscape, type PageContextServer } from 'vit
 import { StaticRouter } from 'react-router-dom/server';
 import { PageShell } from './PageShell';
 
+
+import {
+  getPageSEOData,
+  generateOrganizationSchema,
+  generateSoftwareSchema,
+  type PageSEOData
+} from '@utils/seo';
+
 export async function render(pageContext: PageContextServer) {
   const { Page, pageProps, documentProps } = pageContext;
 
@@ -16,14 +24,59 @@ export async function render(pageContext: PageContextServer) {
     </StaticRouter>,
   );
 
-  const { title, description } = documentProps || {};
+  // Derive base SEO data from URL slug ("/integrations" => "integrations")
+  const slug = (pageContext.urlPathname || '/').replace(/^\/+|\/+$/g, '') || 'home';
+  const baseSeo: PageSEOData = getPageSEOData(slug);
+
+  const {
+    title = baseSeo.title,
+    description = baseSeo.description,
+    keywords = baseSeo.keywords,
+    canonicalUrl = baseSeo.canonicalUrl,
+    ogImage = baseSeo.ogImage || 'https://prohelper.pro/logo.svg',
+    type: ogType = 'website',
+    structuredData
+  } = (documentProps as Partial<PageSEOData & {
+    ogImage?: string;
+    type?: string;
+    structuredData?: unknown;
+  }>) || {};
+
+  const allMeta = [
+    `<meta name="description" content="${description}" />`,
+    `<meta name="keywords" content="${keywords}" />`,
+    `<meta name="robots" content="index, follow" />`,
+    `<meta property="og:title" content="${title}" />`,
+    `<meta property="og:description" content="${description}" />`,
+    `<meta property="og:image" content="${ogImage}" />`,
+    `<meta property="og:url" content="${canonicalUrl}" />`,
+    `<meta property="og:type" content="${ogType}" />`,
+    `<meta property="og:site_name" content="ProHelper" />`,
+    `<meta property="og:locale" content="ru_RU" />`,
+    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:title" content="${title}" />`,
+    `<meta name="twitter:description" content="${description}" />`,
+    `<meta name="twitter:image" content="${ogImage}" />`
+  ].join("\n");
+
+  const structuredJson = JSON.stringify({
+    "@graph": [
+      generateOrganizationSchema(),
+      generateSoftwareSchema(),
+      structuredData || null
+    ].filter(Boolean)
+  });
+
+  const structuredDataTag = `<script id="ld-json" type="application/ld+json">${structuredJson}</script>`;
 
   return escapeInject`<!DOCTYPE html>
     <html lang="ru">
       <head>
         <meta charset="UTF-8" />
-        ${title ? escapeInject`<title>${title}</title>` : ''}
-        ${description ? escapeInject`<meta name="description" content="${description}" />` : ''}
+        ${escapeInject`<title>${title}</title>`}
+        ${dangerouslySkipEscape(allMeta)}
+        <link rel="canonical" href="${canonicalUrl}" />
+        ${dangerouslySkipEscape(structuredDataTag)}
       </head>
       <body>
         <div id="root">${dangerouslySkipEscape(html)}</div>
