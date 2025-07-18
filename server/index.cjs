@@ -3,11 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const { renderPage } = require('vite-plugin-ssr/server');
 
-const distClientDir = path.resolve(__dirname, '../dist/client');
+const distDir = path.resolve(__dirname, '../dist');
 
 const server = http.createServer(async (req, res) => {
   const url = req.url.split('?')[0];
-  const staticFilePath = path.join(distClientDir, url);
+  const staticFilePath = path.join(distDir, url);
   if (fs.existsSync(staticFilePath) && fs.statSync(staticFilePath).isFile()) {
     const ext = path.extname(staticFilePath).toLowerCase();
     const mime = {
@@ -34,7 +34,7 @@ const server = http.createServer(async (req, res) => {
   const { httpResponse } = pageContext;
   if (!httpResponse) {
     // SSR не нашёл страницу — отдаём client/index.html как fallback
-    const htmlPath = path.join(distClientDir, 'index.html');
+    const htmlPath = path.join(distDir, 'index.html');
     try {
       const html = await fs.promises.readFile(htmlPath);
       res.writeHead(200, { 'Content-Type': 'text/html' });
