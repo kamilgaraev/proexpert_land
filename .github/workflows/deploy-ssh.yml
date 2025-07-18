@@ -67,6 +67,10 @@ jobs:
               echo "Файл /tmp/marketing.tgz не найден" && exit 1
             fi
             cd $TARGET_PATH/server
-            npm ci --production --no-audit --no-fund
+            if [ -f package-lock.json ]; then
+              npm ci --omit=dev --no-audit --no-fund
+            else
+              npm install --omit=dev --no-audit --no-fund
+            fi
             pm2 reload prohelper-ssr || pm2 start /var/www/prohelper_marketing/server/index.js --name prohelper-ssr --port 3001 --time
             pm2 save 
