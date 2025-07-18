@@ -78,7 +78,7 @@ jobs:
               npm install --omit=dev --no-audit --no-fund
 
               # Запускаем встроенный preview-сервер vite-plugin-ssr
-              pm2 reload prohelper-ssr || pm2 start "npx vike preview --root dist --port 3001 --production" --name prohelper-ssr --time
+              pm2 reload prohelper-ssr || pm2 start "npx vike preview --port 3001 --production" --name prohelper-ssr --time
               pm2 save
             else
               echo "SSR-entry не найден — деплой только статики, pm2 не требуется."
