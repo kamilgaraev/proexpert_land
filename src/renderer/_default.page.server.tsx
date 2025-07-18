@@ -1,6 +1,6 @@
 import ReactDOMServer from 'react-dom/server';
 // @ts-ignore vite-plugin-ssr может не предоставлять типы в версии 0.4.x
-import { escapeInject, dangerouslySkipEscape, type PageContextServer } from 'vite-plugin-ssr/server';
+import { escapeInject, dangerouslySkipEscape, type PageContextServer } from 'vite-plugin-ssr';
 // @ts-ignore типы для server-рендера есть в react-router-dom, могут конфликтовать с TS
 import { StaticRouter } from 'react-router-dom/server';
 import { PageShell } from './PageShell';
