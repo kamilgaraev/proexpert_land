@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { BuildingOfficeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { SEOHead } from './SEOHead';
 import { getPageSEOData, generateOrganizationSchema } from '../../utils/seo';
+import Footer from '@components/landing/Footer';
 
 interface PageLayoutProps {
   title: string;
@@ -12,6 +13,7 @@ interface PageLayoutProps {
   backTo?: string;
   hero?: boolean;
   seoPage?: string;
+  showFooter?: boolean;
 }
 
 const PageLayout: React.FC<PageLayoutProps> = ({ 
@@ -21,7 +23,8 @@ const PageLayout: React.FC<PageLayoutProps> = ({
   showBackButton = true, 
   backTo = '/',
   hero = true,
-  seoPage 
+  seoPage,
+  showFooter = true
 }) => {
   const seoData = seoPage ? getPageSEOData(seoPage) : null;
   const organizationSchema = generateOrganizationSchema();
@@ -74,6 +77,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({
       <div className="container-custom py-16">
         {children}
       </div>
+      {showFooter && <Footer />}
     </div>
     </>
   );
