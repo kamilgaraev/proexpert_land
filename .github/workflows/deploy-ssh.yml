@@ -39,9 +39,9 @@ jobs:
 
           # Пакуем client, server и package*.json. Каталог prerender может отсутствовать.
           if [ -d dist/prerender ]; then
-            tar -czf marketing.tgz -C dist client prerender server package.json package-lock.json || true
+            tar -czf marketing.tgz -C dist client prerender server assets.json package.json package-lock.json || true
           else
-            tar -czf marketing.tgz -C dist client server package.json package-lock.json || true
+            tar -czf marketing.tgz -C dist client server assets.json package.json package-lock.json || true
           fi
 
       - name: Upload artefacts to server
