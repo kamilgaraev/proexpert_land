@@ -32,11 +32,16 @@ jobs:
 
       - name: Pack artefacts
         run: |
-          # Пакуем dist. Каталог prerender может отсутствовать.
+          # Копируем runtime package.json + lock внутрь dist,
+          # чтобы после распаковки на сервере можно было установить зависимости.
+          cp package.json dist/
+          if [ -f package-lock.json ]; then cp package-lock.json dist/; fi
+
+          # Пакуем client, server и package*.json. Каталог prerender может отсутствовать.
           if [ -d dist/prerender ]; then
-            tar -czf marketing.tgz -C dist client prerender server
+            tar -czf marketing.tgz -C dist client prerender server package.json package-lock.json || true
           else
-            tar -czf marketing.tgz -C dist client server
+            tar -czf marketing.tgz -C dist client server package.json package-lock.json || true
           fi
 
       - name: Upload artefacts to server
