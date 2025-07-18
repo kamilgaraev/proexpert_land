@@ -12,6 +12,8 @@ import HelpPage from '@pages/dashboard/HelpPage';
 import SupportPage from '@pages/dashboard/SupportPage';
 import NotFoundPage from '@pages/NotFoundPage';
 import ProtectedRoute from '@components/ProtectedRoute';
+import AdminProtectedRoute from '@components/AdminProtectedRoute';
+import AdminLayout from '@layouts/AdminLayout';
 import AdminsPage from '@pages/dashboard/AdminsPage';
 import BillingPage from '@pages/dashboard/BillingPage';
 import AddFundsPage from '@pages/dashboard/billing/AddFundsPage';
@@ -175,12 +177,17 @@ function App() {
         
         {/* Административные маршруты */}
         <Route path="/admin" element={
-          <ProtectedRoute>
-            <DashboardLayout />
-          </ProtectedRoute>
+          <AdminProtectedRoute>
+            <AdminLayout />
+          </AdminProtectedRoute>
         }>
+          {/* Здесь добавляются страницы админки */}
+          <Route index element={<Navigate to="/admin/blog" replace />} />
           <Route path="users" element={<UsersList />} />
           <Route path="projects" element={<ProjectsList />} />
+          {/* Плейсхолдеры для будущих страниц */}
+          <Route path="blog" element={<div>Блог админка (скоро)</div>} />
+          <Route path="vacancies" element={<div>Вакансии админка (скоро)</div>} />
         </Route>
         
         {/* Страница 404 для несуществующих маршрутов */}
