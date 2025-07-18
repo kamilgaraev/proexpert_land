@@ -16,7 +16,7 @@ const server = http.createServer(async (req, res) => {
   const pageContext = await renderPage({ urlOriginal: req.url });
   const { httpResponse } = pageContext;
   if (!httpResponse) {
-    res.statusCode = 404;
+    res.writeHead(404);
     res.end('Not found');
     return;
   }

@@ -79,7 +79,7 @@ jobs:
 
               # Перезапускаем SSR: удаляем старый процесс (если есть) и создаём заново
               pm2 delete prohelper-ssr || true
-              PORT=3001 pm2 start "$TARGET_PATH/server/index.js" --name prohelper-ssr --time
+              PORT=3001 pm2 start "$TARGET_PATH/server/index.cjs" --name prohelper-ssr --time
               pm2 save
             else
               echo "SSR-entry не найден — деплой только статики, pm2 не требуется."

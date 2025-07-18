@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'prohelper-ssr',
       cwd: '/var/www/prohelper_marketing', // рабочая папка на сервере
-      script: 'server/index.js',           // SSR entry
+      script: 'server/index.cjs',           // SSR entry
       args: '--port 3001',
       instances: 'max',
       exec_mode: 'cluster',
