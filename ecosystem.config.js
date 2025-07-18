@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'prohelper-ssr',
       cwd: '/var/www/prohelper_marketing', // рабочая папка на сервере
-      script: 'server/index.js',           // точка входа vite-plugin-ssr
+      script: 'dist/server/index.js',      // точка входа vite-plugin-ssr после сборки
       args: '--port 3001',
       instances: 'max',
       exec_mode: 'cluster',
