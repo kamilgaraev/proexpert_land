@@ -57,6 +57,8 @@ jobs:
           script: |
             set -e
             TARGET_PATH=${{ env.TARGET_PATH }}
+            # Удаляем возможную директорию, оставшуюся с предыдущего деплоя
+            if [ -d /tmp/marketing.tgz ]; then rm -rf /tmp/marketing.tgz; fi
             mkdir -p $TARGET_PATH
             tar -xzf /tmp/marketing.tgz -C $TARGET_PATH
             rm /tmp/marketing.tgz
