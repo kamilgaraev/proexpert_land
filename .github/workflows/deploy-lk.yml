@@ -41,10 +41,13 @@ jobs:
           host: ${{ secrets.HOST }}
           key: ${{ secrets.SSH_KEY }}
           username: root
-          # Копируем только содержимое dist-lk/client, чтобы index.html оказался в корне target
-          source: "dist-lk/client/**"
+          # Копируем production-билд ЛК целиком: index.html + client/assets
+          # strip_components 1 убирает корневую папку dist-lk, т.е. в target попадут
+          #   ├── index.html
+          #   └── client/**  (assets, manifest и т.д.)
+          source: "dist-lk/**"
           target: "/var/www/prohelper_lk/"
-          strip_components: 2
+          strip_components: 1
 
       - name: Clean old files on server (optional)
         uses: appleboy/ssh-action@v1.0.0
