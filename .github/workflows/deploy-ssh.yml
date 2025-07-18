@@ -76,7 +76,7 @@ jobs:
               fi
 
               pm2 reload prohelper-ssr \
-                || PORT=3001 pm2 start index.js --name prohelper-ssr --time
+                || PORT=3001 pm2 start $( [ -f importBuild.cjs ] && echo importBuild.cjs || echo index.js ) --name prohelper-ssr --time
               pm2 save
             else
               echo "SSR-entry не найден — деплой только статики, pm2 не требуется."
