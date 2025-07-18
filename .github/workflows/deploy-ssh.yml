@@ -32,7 +32,12 @@ jobs:
 
       - name: Pack artefacts
         run: |
-          tar -czf marketing.tgz -C dist client prerender server
+          # Пакуем dist. Каталог prerender может отсутствовать.
+          if [ -d dist/prerender ]; then
+            tar -czf marketing.tgz -C dist client prerender server
+          else
+            tar -czf marketing.tgz -C dist client server
+          fi
 
       - name: Upload artefacts to server
         uses: appleboy/scp-action@v0.1.4
