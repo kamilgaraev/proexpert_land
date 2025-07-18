@@ -4,7 +4,7 @@ module.exports = {
       name: 'prohelper-ssr',
       cwd: '/var/www/prohelper_marketing', // рабочая папка на сервере
       script: 'npx',                       // запускаем встроенный preview-сервер vite-plugin-ssr
-      args: 'vite-plugin-ssr preview --port 3001',
+      args: 'vite-plugin-ssr preview --root dist --port 3001 --production',
       instances: 'max',
       exec_mode: 'cluster',
       env: {
