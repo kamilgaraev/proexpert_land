@@ -75,11 +75,7 @@ jobs:
             if [ -f "$TARGET_PATH/server/index.js" ]; then
               # Устанавливаем runtime-зависимости в корень, чтобы server/* видел ../../node_modules
               cd "$TARGET_PATH"
-              if [ -f package-lock.json ]; then
-                npm ci --omit=dev --no-audit --no-fund
-              else
-                npm install --omit=dev --no-audit --no-fund
-              fi
+              npm install --omit=dev --no-audit --no-fund
 
               # Выбираем entry: importBuild.cjs, если он существует, иначе index.js
               entry="$TARGET_PATH/server/$( [ -f "$TARGET_PATH/server/importBuild.cjs" ] && echo importBuild.cjs || echo index.js )"
