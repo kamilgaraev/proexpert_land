@@ -28,6 +28,9 @@ jobs:
 
       - name: Install dependencies & build LK
         run: |
+          # Полная очистка локального кэша зависимостей, чтобы сбросить возможные
+          # несинхронизированные версии пакетов (react-router и т.д.)
+          rm -rf node_modules package-lock.json || true
           npm install --include=dev --no-audit --no-fund
           chmod +x node_modules/.bin/* || true
           npm run build:lk

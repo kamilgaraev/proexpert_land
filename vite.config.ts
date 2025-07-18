@@ -21,12 +21,7 @@ export default defineConfig({
       '@hooks': path.resolve(__dirname, './src/hooks'),
       '@utils': path.resolve(__dirname, './src/utils'),
       '@renderer': path.resolve(__dirname, './src/renderer'),
-      // "react-router" начиная с 6.23.0 публикуется только в ESM и без поля "main".
-      // Это ломает rollup-plugin-commonjs внутри Vite 5 (ошибка
-      // "[commonjs--resolver] Failed to resolve entry for package \"react-router\""),
-      // поэтому явно указываем, какой файл считать точкой входа.
-      'react-router': path.resolve(__dirname, './node_modules/react-router/dist/index.js'),
-      'react-router-dom': path.resolve(__dirname, './node_modules/react-router-dom/dist/index.js'),
+      // алиасы на react-router больше не нужны — Vite берёт ESM-entry из поля "module"
     },
   },
   build: {

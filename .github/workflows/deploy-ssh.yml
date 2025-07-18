@@ -24,6 +24,8 @@ jobs:
 
       - name: Install dependencies & build SSR
         run: |
+          # Полная очистка локальной копии зависимостей
+          rm -rf node_modules package-lock.json || true
           npm install --include=dev --no-audit --no-fund
           chmod +x node_modules/.bin/* || true
           npm run build   # vite build + copy-manifest
