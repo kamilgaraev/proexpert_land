@@ -55,6 +55,11 @@ function App() {
   }, [location.pathname]);
 
   const isHoldingSubdomain = () => {
+    // На сервере объекта window нет, поэтому холдинг-лендинг никогда не рендерим
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
     const hostname = window.location.hostname;
     const mainDomain = 'prohelper.pro';
 
