@@ -24,9 +24,9 @@ jobs:
 
       - name: Install dependencies & build SSR
         run: |
-          npm install --no-audit --no-fund
+          NODE_ENV=development npm install --no-audit --no-fund
           chmod +x node_modules/.bin/* || true
-          npm run build   # vite build + vite-plugin-ssr build + prerender
+          npm run build   # vite build + copy-manifest
 
       - name: Pack artefacts
         run: |
