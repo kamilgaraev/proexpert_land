@@ -75,7 +75,7 @@ jobs:
             if [ -d "$TARGET_PATH/server" ]; then
               # Устанавливаем runtime-зависимости в корень, чтобы server/* видел ../../node_modules
               cd "$TARGET_PATH"
-              npm install --omit=dev --no-audit --no-fund
+                npm install --omit=dev --no-audit --no-fund
 
               # Перезапускаем SSR: удаляем старый процесс (если есть) и создаём заново
               pm2 delete prohelper-ssr || true
