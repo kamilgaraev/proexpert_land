@@ -1,6 +1,6 @@
 import { hydrateRoot } from 'react-dom/client';
 // @ts-expect-error vite-plugin-ssr предоставляет типы в рантайме
-import type { PageContextClient } from 'vike/client';
+import type { PageContextClient } from 'vite-plugin-ssr/client';
 import { PageShell } from './PageShell';
 import { BrowserRouter } from 'react-router-dom';
 

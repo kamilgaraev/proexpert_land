@@ -3,8 +3,8 @@ module.exports = {
     {
       name: 'prohelper-ssr',
       cwd: '/var/www/prohelper_marketing', // рабочая папка на сервере
-      script: 'npx',                       // запускаем встроенный preview-сервер vite-plugin-ssr
-      args: 'vike preview --port 3001 --production',
+      script: 'server/index.js',           // SSR entry
+      args: '--port 3001',
       instances: 'max',
       exec_mode: 'cluster',
       env: {

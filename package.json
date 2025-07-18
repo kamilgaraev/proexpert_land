@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "cross-env ROLLUP_NO_NATIVE=1 npx tsc && npx vite build && npm run copy-manifest",
-    "build:marketing": "cross-env ROLLUP_NO_NATIVE=1 vike build --outDir dist && npm run copy-manifest",
+    "build:marketing": "cross-env ROLLUP_NO_NATIVE=1 vite build && mkdir -p dist/server && cp server/index.js dist/server/ && npm run copy-manifest",
     "build:lk": "cross-env ROLLUP_NO_NATIVE=1 BUILD_TARGET=lk npx tsc && npx vite build --outDir dist-lk && npm run copy-manifest:lk",
     "copy-manifest": "node scripts/copyManifest.js dist/client",
     "copy-manifest:lk": "node scripts/copyManifest.js dist-lk/client",
