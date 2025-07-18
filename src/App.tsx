@@ -17,6 +17,7 @@ import BillingPage from '@pages/dashboard/BillingPage';
 import AddFundsPage from '@pages/dashboard/billing/AddFundsPage';
 import UsersList from '@pages/admin/users/UsersList';
 import ProjectsList from '@pages/admin/projects/ProjectsList';
+import AdminLoginPage from '@pages/admin/AdminLoginPage';
 import FAQPage from '@pages/dashboard/FAQPage';
 import PaidServicesPage from '@pages/dashboard/paid-services/PaidServicesPage';
 import SubscriptionLimitsPage from '@pages/dashboard/SubscriptionLimitsPage';
@@ -120,6 +121,8 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        {/* Админка: страница логина */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         
         {/* Продуктовые страницы */}
