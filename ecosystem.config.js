@@ -3,8 +3,8 @@ module.exports = {
     {
       name: 'prohelper-ssr',
       cwd: '/var/www/prohelper_marketing', // рабочая папка на сервере
-      script: 'server/index.js',           // точка входа vite-plugin-ssr (GitHub Actions кладет в server/)
-      args: '--port 3001',
+      script: 'npx',                       // запускаем встроенный preview-сервер vite-plugin-ssr
+      args: 'vite-plugin-ssr preview --port 3001',
       instances: 'max',
       exec_mode: 'cluster',
       env: {
