@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "ROLLUP_NO_NATIVE=1 npx tsc && npx vite build && npx vite-plugin-ssr prerender",
-    "build:lk": "ROLLUP_NO_NATIVE=1 BUILD_TARGET=lk npx tsc && npx vite build --outDir dist-lk",
+    "build": "ROLLUP_NO_NATIVE=1 npx tsc && npx vite build && npm run copy-manifest && npx vite-plugin-ssr prerender",
+    "build:lk": "ROLLUP_NO_NATIVE=1 BUILD_TARGET=lk npx tsc && npx vite build --outDir dist-lk && npm run copy-manifest:lk",
+    "copy-manifest": "node scripts/copyManifest.js dist/client",
+    "copy-manifest:lk": "node scripts/copyManifest.js dist-lk/client",
     "ssr:dev": "vite",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite-plugin-ssr preview"
