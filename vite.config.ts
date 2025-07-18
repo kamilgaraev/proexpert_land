@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+// @ts-ignore - vite-plugin-ssr типы не публикует для /plugin
 import ssr from 'vite-plugin-ssr/plugin';
 import path from 'path';
 
@@ -22,4 +23,7 @@ export default defineConfig({
       '@renderer': path.resolve(__dirname, './src/renderer'),
     },
   },
+  build: {
+    manifest: 'manifest.json',
+  }
 }); 
