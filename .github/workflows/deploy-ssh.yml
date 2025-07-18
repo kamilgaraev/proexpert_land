@@ -68,15 +68,18 @@ jobs:
             fi
             # Если после раскладки есть SSR-сервер, устанавливаем deps и (ре)стартуем pm2
             if [ -f "$TARGET_PATH/server/index.js" ]; then
-              cd "$TARGET_PATH/server"
+              # Устанавливаем runtime-зависимости в корень, чтобы server/* видел ../../node_modules
+              cd "$TARGET_PATH"
               if [ -f package-lock.json ]; then
                 npm ci --omit=dev --no-audit --no-fund
               else
                 npm install --omit=dev --no-audit --no-fund
               fi
 
-              pm2 reload prohelper-ssr \
-                || PORT=3001 pm2 start $( [ -f importBuild.cjs ] && echo importBuild.cjs || echo index.js ) --name prohelper-ssr --time
+              # Выбираем entry: importBuild.cjs, если он существует, иначе index.js
+              entry="$TARGET_PATH/server/$( [ -f "$TARGET_PATH/server/importBuild.cjs" ] && echo importBuild.cjs || echo index.js )"
+
+              pm2 reload prohelper-ssr || PORT=3001 pm2 start "$entry" --name prohelper-ssr --time
               pm2 save
             else
               echo "SSR-entry не найден — деплой только статики, pm2 не требуется."

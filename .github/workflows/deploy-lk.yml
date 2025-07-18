@@ -41,9 +41,10 @@ jobs:
           host: ${{ secrets.HOST }}
           key: ${{ secrets.SSH_KEY }}
           username: root
-          source: "dist-lk/*"
+          # Копируем только содержимое dist-lk/client, чтобы index.html оказался в корне target
+          source: "dist-lk/client/**"
           target: "/var/www/prohelper_lk/"
-          strip_components: 1
+          strip_components: 2
 
       - name: Clean old files on server (optional)
         uses: appleboy/ssh-action@v1.0.0
