@@ -16,9 +16,17 @@ const server = http.createServer(async (req, res) => {
   const pageContext = await renderPage({ urlOriginal: req.url });
   const { httpResponse } = pageContext;
   if (!httpResponse) {
-    res.writeHead(404);
-    res.end('Not found');
-    return;
+    // SSR не нашёл страницу — отдаём client/index.html как fallback
+    const htmlPath = path.join(distDir, 'index.html');
+    try {
+      const html = await fs.promises.readFile(htmlPath);
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      return res.end(html);
+    } catch (e) {
+      res.writeHead(404);
+      res.end('Not found');
+      return;
+    }
   }
   res.writeHead(httpResponse.statusCode, httpResponse.headers);
   res.end(httpResponse.body);
