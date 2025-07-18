@@ -72,5 +72,7 @@ jobs:
             else
               npm install --omit=dev --no-audit --no-fund
             fi
-            pm2 reload prohelper-ssr || pm2 start /var/www/prohelper_marketing/server/index.js --name prohelper-ssr --port 3001 --time
+            # Перезапускаем процесс, если он уже есть; иначе стартуем новый.
+            # Порт передаём через переменную окружения, флаг --port у pm2 отсутствует.
+            pm2 reload prohelper-ssr || PORT=3001 pm2 start /var/www/prohelper_marketing/server/index.js --name prohelper-ssr --time
             pm2 save 
