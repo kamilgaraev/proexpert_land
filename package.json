@@ -51,11 +51,11 @@
     "@types/axios": "^0.9.36",
     "@types/node": "^22.15.3",
     "@types/react-toastify": "^4.0.2",
-    "@vitejs/plugin-react": "^4.4.0",
+    "@vitejs/plugin-react": "6.0.0-beta.0",
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.3.1",
+    "vite": "6.0.0-beta.4",
     "esbuild": "^0.18.15",
     "cross-env": "^7.0.3"
   },
