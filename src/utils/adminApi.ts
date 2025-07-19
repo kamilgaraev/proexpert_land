@@ -8,24 +8,40 @@ const ADMIN_API_URL = `${ADMIN_API_BASE_DOMAIN}/api/v1`;
 // Ключи для хранилища токена админа
 const ADMIN_TOKEN_KEY = 'admin_token';
 
+const isBrowser = typeof window !== 'undefined';
+
 export const getAdminToken = (): string | null => {
-  let token = localStorage.getItem(ADMIN_TOKEN_KEY);
-  if (!token) token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+  if (!isBrowser) return null;
+  let token: string | null = null;
+  try {
+    token = window.localStorage.getItem(ADMIN_TOKEN_KEY) || null;
+  } catch {}
+  if (!token) {
+    try {
+      token = window.sessionStorage.getItem(ADMIN_TOKEN_KEY) || null;
+    } catch {}
+  }
   return token;
 };
 
 export const saveAdminToken = (token: string) => {
+  if (!isBrowser) return;
   try {
-    localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    window.localStorage.setItem(ADMIN_TOKEN_KEY, token);
   } catch {}
   try {
-    sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
+    window.sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
   } catch {}
 };
 
 export const clearAdminToken = () => {
-  localStorage.removeItem(ADMIN_TOKEN_KEY);
-  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  if (!isBrowser) return;
+  try {
+    window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+  } catch {}
+  try {
+    window.sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  } catch {}
 };
 
 export const adminApi = axios.create({
