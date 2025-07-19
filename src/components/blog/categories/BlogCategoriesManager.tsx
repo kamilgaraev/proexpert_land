@@ -331,8 +331,8 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, category, onClose
                       src={formData.image}
                       alt="Preview"
                       className="w-full h-32 object-cover rounded border"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
+                      onError={(_e) => {
+                        (_e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />
                   </div>
