@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { blogApi } from '../../utils/blogApi';
-import type { BlogDashboardOverview, BlogAnalytics, BlogQuickStats } from '../../types/blog';
+import type { BlogDashboardOverview, BlogQuickStats } from '../../types/blog';
 
 interface StatCardProps {
   title: string;

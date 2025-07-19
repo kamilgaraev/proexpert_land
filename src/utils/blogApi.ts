@@ -1,18 +1,9 @@
 import axios from 'axios';
 import { getAdminToken } from './adminApi';
 import type {
-  BlogArticle,
-  BlogCategory,
-  BlogComment,
   BlogSEOSettings,
-  BlogDashboardOverview,
-  BlogAnalytics,
-  BlogQuickStats,
-  BlogCommentsStats,
   BlogArticleCreateRequest,
   BlogCategoryCreateRequest,
-  BlogApiResponse,
-  BlogPaginatedResponse,
   BlogArticleFilters,
   BlogCommentFilters,
   BlogAnalyticsFilters
