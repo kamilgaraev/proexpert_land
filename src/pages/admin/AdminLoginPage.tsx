@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 
 const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated, isLoading } = useAdminAuth();
+  const { login, isAuthenticated } = useAdminAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
