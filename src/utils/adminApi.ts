@@ -45,6 +45,23 @@ adminApi.interceptors.request.use((config) => {
   return config;
 });
 
+// Debug: логировать все запросы
+adminApi.interceptors.request.use((config) => {
+  console.log('[adminApi] REQUEST', config.method?.toUpperCase(), config.url, config.data || '');
+  return config;
+});
+
+adminApi.interceptors.response.use(
+  (response) => {
+    console.log('[adminApi] RESPONSE', response.status, response.config.url, response.data);
+    return response;
+  },
+  (error) => {
+    console.error('[adminApi] ERROR', error.response?.status, error.config?.url, error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
+
 export const adminAuthService = {
   login: async (email: string, password: string) => {
     const res = await adminApi.post('/landingAdminAuth/login', { email, password });
