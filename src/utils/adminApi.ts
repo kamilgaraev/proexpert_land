@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Базовый домен API можно переопределить через .env
 const ADMIN_API_BASE_DOMAIN = (import.meta.env.VITE_ADMIN_API_BASE as string | undefined) ?? 'https://api.prohelper.pro';
-// В отличие от landing-API, здесь префикс /api/v1 без /landing
-const ADMIN_API_URL = `${ADMIN_API_BASE_DOMAIN}/api/v1`;
+// Админ эндпоинты тоже висят под /api/v1/landing/…
+const ADMIN_API_URL = `${ADMIN_API_BASE_DOMAIN}/api/v1/landing`;
 
 // Ключи для хранилища токена админа
 const ADMIN_TOKEN_KEY = 'admin_token';
