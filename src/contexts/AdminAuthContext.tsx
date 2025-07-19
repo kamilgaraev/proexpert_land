@@ -68,7 +68,9 @@ export const AdminAuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      console.log('[AdminAuth] login() start', email);
       const res = await adminAuthService.login(email, password);
+      console.log('[AdminAuth] login() got response', res);
       const resData: any = res.data;
       const newToken = resData?.data?.token || resData?.token;
       if (newToken) {
