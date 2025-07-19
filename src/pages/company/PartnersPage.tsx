@@ -1,12 +1,10 @@
 import PageLayout from '../../components/shared/PageLayout';
 import { 
   UserGroupIcon,
-  CurrencyDollarIcon,
   AcademicCapIcon,
   ShieldCheckIcon,
   ArrowRightIcon,
   CheckCircleIcon,
-  ChartBarIcon,
   BuildingOfficeIcon,
   CogIcon
 } from '@heroicons/react/24/outline';
