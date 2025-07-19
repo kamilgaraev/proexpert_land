@@ -52,6 +52,10 @@ import {
   BlogCommentsPage,
   BlogSEOPage
 } from '@pages/admin/blog';
+import BlogPublicPage from '@components/blog/public/BlogPublicPage';
+import BlogArticlePage from '@components/blog/public/BlogArticlePage';
+import BlogCategoryPage from '@components/blog/public/BlogCategoryPage';
+import BlogTagPage from '@components/blog/public/BlogTagPage';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -157,7 +161,10 @@ function App() {
         {/* Ресурсы */}
         <Route path="/docs" element={<DocsPage />} />
         <Route path="/help" element={<DocsPage />} />
-        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog" element={<BlogPublicPage />} />
+        <Route path="/blog/category/:slug" element={<BlogCategoryPage />} />
+        <Route path="/blog/tag/:slug" element={<BlogTagPage />} />
+        <Route path="/blog/:slug" element={<BlogArticlePage />} />
         <Route path="/webinars" element={<WebinarsPage />} />
         
         {/* Компания */}
