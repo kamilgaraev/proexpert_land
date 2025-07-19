@@ -36,7 +36,7 @@ import SmallBusinessPage from '@pages/solutions/SmallBusinessPage';
 import EnterprisePage from '@pages/solutions/EnterprisePage';
 import ContractorsPage from '@pages/solutions/ContractorsPage';
 import DevelopersPage from '@pages/solutions/DevelopersPage';
-import BlogPage from '@pages/resources/BlogPage';
+
 import DocsPage from '@pages/resources/DocsPage';
 import WebinarsPage from '@pages/resources/WebinarsPage';
 import AboutPage from '@pages/company/AboutPage';
