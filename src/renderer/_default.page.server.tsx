@@ -45,6 +45,7 @@ export async function render(pageContext: PageContextServer) {
   const allMeta = [
     `<meta name="description" content="${description}" />`,
     `<meta name="keywords" content="${keywords}" />`,
+    `<meta name="yandex-verification" content="94e8b4142ec2a8e3" />`,
     `<meta name="robots" content="index, follow" />`,
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
