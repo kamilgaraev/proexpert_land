@@ -33,7 +33,14 @@ const AdminLayout = () => {
       name: 'Блог', 
       href: '/admin/blog', 
       icon: DocumentTextIcon,
-      description: 'Управление контентом'
+      description: 'Управление контентом',
+      subItems: [
+        { name: '📊 Дашборд', href: '/admin/blog' },
+        { name: '📝 Статьи', href: '/admin/blog/articles' },
+        { name: '📂 Категории', href: '/admin/blog/categories' },
+        { name: '💬 Комментарии', href: '/admin/blog/comments' },
+        { name: '🔍 SEO', href: '/admin/blog/seo' },
+      ]
     },
     { 
       name: 'Вакансии', 
@@ -103,32 +110,51 @@ const AdminLayout = () => {
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2">
             {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={classNames(
-                  'group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200',
-                  isActive(item.href)
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                )}
-              >
-                <item.icon 
+              <div key={item.name}>
+                <Link
+                  to={item.href}
                   className={classNames(
-                    'mr-4 h-6 w-6 transition-colors',
-                    isActive(item.href) ? 'text-white' : 'text-slate-400 group-hover:text-white'
-                  )} 
-                />
-                <div className="flex-1">
-                  <div className="font-medium">{item.name}</div>
-                  <div className={classNames(
-                    'text-xs mt-0.5',
-                    isActive(item.href) ? 'text-indigo-200' : 'text-slate-500 group-hover:text-slate-300'
-                  )}>
-                    {item.description}
+                    'group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200',
+                    isActive(item.href)
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  )}
+                >
+                  <item.icon 
+                    className={classNames(
+                      'mr-4 h-6 w-6 transition-colors',
+                      isActive(item.href) ? 'text-white' : 'text-slate-400 group-hover:text-white'
+                    )} 
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium">{item.name}</div>
+                    <div className={classNames(
+                      'text-xs mt-0.5',
+                      isActive(item.href) ? 'text-indigo-200' : 'text-slate-500 group-hover:text-slate-300'
+                    )}>
+                      {item.description}
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+                {item.subItems && isActive(item.href) && (
+                  <div className="mt-2 ml-6 space-y-1">
+                    {item.subItems.map((subItem) => (
+                      <Link
+                        key={subItem.href}
+                        to={subItem.href}
+                        className={classNames(
+                          'block px-3 py-2 text-sm rounded-lg transition-colors duration-200',
+                          location.pathname === subItem.href
+                            ? 'bg-indigo-500 text-white'
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                        )}
+                      >
+                        {subItem.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
 
@@ -243,33 +269,53 @@ const AdminLayout = () => {
             {/* Mobile navigation */}
             <nav className="flex-1 px-4 py-6 space-y-2">
               {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={classNames(
-                    'group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200',
-                    isActive(item.href)
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  )}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon 
+                <div key={item.name}>
+                  <Link
+                    to={item.href}
                     className={classNames(
-                      'mr-4 h-6 w-6 transition-colors',
-                      isActive(item.href) ? 'text-white' : 'text-slate-400 group-hover:text-white'
-                    )} 
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium">{item.name}</div>
-                    <div className={classNames(
-                      'text-xs mt-0.5',
-                      isActive(item.href) ? 'text-indigo-200' : 'text-slate-500 group-hover:text-slate-300'
-                    )}>
-                      {item.description}
+                      'group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200',
+                      isActive(item.href)
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    )}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <item.icon 
+                      className={classNames(
+                        'mr-4 h-6 w-6 transition-colors',
+                        isActive(item.href) ? 'text-white' : 'text-slate-400 group-hover:text-white'
+                      )} 
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium">{item.name}</div>
+                      <div className={classNames(
+                        'text-xs mt-0.5',
+                        isActive(item.href) ? 'text-indigo-200' : 'text-slate-500 group-hover:text-slate-300'
+                      )}>
+                        {item.description}
+                      </div>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+                  {item.subItems && isActive(item.href) && (
+                    <div className="mt-2 ml-6 space-y-1">
+                      {item.subItems.map((subItem) => (
+                        <Link
+                          key={subItem.href}
+                          to={subItem.href}
+                          className={classNames(
+                            'block px-3 py-2 text-sm rounded-lg transition-colors duration-200',
+                            location.pathname === subItem.href
+                              ? 'bg-indigo-500 text-white'
+                              : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                          )}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          {subItem.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </nav>
 

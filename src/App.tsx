@@ -44,6 +44,14 @@ import CareersPage from '@pages/company/CareersPage';
 import PressPage from '@pages/company/PressPage';
 import PartnersPage from '@pages/company/PartnersPage';
 import AdminDashboardPage from '@pages/admin/AdminDashboardPage';
+import {
+  BlogDashboardPage,
+  BlogArticlesPage,
+  BlogArticleEditorPage,
+  BlogCategoriesPage,
+  BlogCommentsPage,
+  BlogSEOPage
+} from '@pages/admin/blog';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -194,8 +202,16 @@ function App() {
           <Route index element={<AdminDashboardPage />} />
           <Route path="users" element={<UsersList />} />
           <Route path="projects" element={<ProjectsList />} />
+          {/* Блог админка */}
+          <Route path="blog" element={<BlogDashboardPage />} />
+          <Route path="blog/articles" element={<BlogArticlesPage />} />
+          <Route path="blog/articles/create" element={<BlogArticleEditorPage />} />
+          <Route path="blog/articles/:id/edit" element={<BlogArticleEditorPage />} />
+          <Route path="blog/articles/:id" element={<BlogArticleEditorPage />} />
+          <Route path="blog/categories" element={<BlogCategoriesPage />} />
+          <Route path="blog/comments" element={<BlogCommentsPage />} />
+          <Route path="blog/seo" element={<BlogSEOPage />} />
           {/* Плейсхолдеры для будущих страниц */}
-          <Route path="blog" element={<div>Блог админка (скоро)</div>} />
           <Route path="vacancies" element={<div>Вакансии админка (скоро)</div>} />
         </Route>
         
