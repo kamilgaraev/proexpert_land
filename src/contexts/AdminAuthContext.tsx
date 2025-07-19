@@ -39,7 +39,9 @@ export const AdminAuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchAdmin = useCallback(async () => {
     if (!getAdminToken()) return;
     try {
+      console.log('[AdminAuth] fetchAdmin start');
       const res = await adminAuthService.me();
+      console.log('[AdminAuth] fetchAdmin response', res);
       const resData: any = res.data;
       const adminInfo = resData?.data || resData;
       setAdmin(adminInfo as AdminUser);
