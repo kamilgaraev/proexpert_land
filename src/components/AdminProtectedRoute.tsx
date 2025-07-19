@@ -1,21 +1,13 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@hooks/useAuth';
+import { useAdminAuth } from '@hooks/useAdminAuth';
 
 interface AdminProtectedRouteProps {
   children: ReactNode;
 }
 
-const adminRoles = new Set([
-  'admin',
-  'super_admin',
-  'web_admin',
-  'content_admin',
-  'support_admin',
-]);
-
 const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading } = useAdminAuth();
   const location = useLocation();
 
   // Пока проверяем авторизацию
@@ -35,11 +27,7 @@ const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
-  // Проверяем роль
-  if (!adminRoles.has(user?.user_type || '')) {
-    // Авторизован, но не администратор – перенаправим в личный кабинет
-    return <Navigate to="/dashboard" replace />;
-  }
+  // Нет дополнительной проверки роли — токен выдаётся лишь админам.
 
   // Всё ок – рендерим контент
   return <>{children}</>;
