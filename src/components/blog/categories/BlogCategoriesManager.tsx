@@ -445,7 +445,7 @@ const BlogCategoriesManager: React.FC = () => {
     }
   };
 
-  const handleDragStart = (e: React.DragEvent, id: number) => {
+  const handleDragStart = (_e: React.DragEvent, id: number) => {
     setDraggedCategoryId(id);
   };
 
