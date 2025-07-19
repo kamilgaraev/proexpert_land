@@ -19,11 +19,13 @@ const AdminLoginPage: React.FC = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      console.log('[AdminLogin] Отправка login', email);
       await login(email, password);
+      console.log('[AdminLogin] Успешный login – переход на /admin');
       toast.success('Успешный вход');
       navigate('/admin', { replace: true });
     } catch (error) {
-      console.error(error);
+      console.error('[AdminLogin] Ошибка login', error);
       toast.error('Ошибка входа, проверьте данные');
     } finally {
       setSubmitting(false);
