@@ -78,10 +78,10 @@ const AdminLoginPage: React.FC = () => {
           <div>
             <button
               type="submit"
-              disabled={submitting || isLoading}
+              disabled={submitting}
               className="relative w-full flex justify-center py-3 px-6 text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 disabled:opacity-50 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
-              {submitting || isLoading ? 'Входим...' : 'Войти'}
+              {submitting ? 'Входим...' : 'Войти'}
             </button>
           </div>
         </form>
