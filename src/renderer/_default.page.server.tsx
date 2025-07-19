@@ -10,6 +10,7 @@ import {
   getPageSEOData,
   generateOrganizationSchema,
   generateSoftwareSchema,
+  generateBreadcrumbSchema,
   type PageSEOData
 } from '@utils/seo';
 
@@ -60,10 +61,19 @@ export async function render(pageContext: PageContextServer) {
     `<meta name="twitter:image" content="${ogImage}" />`
   ].join("\n");
 
+  // Создаём схему хлебных крошек: Главная → Текущая страница (если не home)
+  const breadcrumbItems = [
+    { name: 'Главная', url: 'https://prohelper.pro/' }
+  ];
+  if (slug !== 'home') {
+    breadcrumbItems.push({ name: title, url: canonicalUrl });
+  }
+
   const structuredJson = JSON.stringify({
     "@graph": [
       generateOrganizationSchema(),
       generateSoftwareSchema(),
+      generateBreadcrumbSchema(breadcrumbItems),
       structuredData || null
     ].filter(Boolean)
   });
