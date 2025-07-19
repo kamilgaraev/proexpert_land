@@ -18,8 +18,8 @@ const Footer = () => {
     {
       title: 'Продукт',
       links: [
-        { name: 'Возможности', href: '#features', keywords: 'возможности функции' },
-        { name: 'Тарифы', href: '#pricing', keywords: 'цены тарифы стоимость' },
+        { name: 'Возможности', href: '/features', keywords: 'возможности функции' },
+        { name: 'Тарифы', href: '/pricing', keywords: 'цены тарифы стоимость' },
         { name: 'Интеграции', href: '/integrations', keywords: 'интеграция 1С API' },
         { name: 'API', href: '/api', keywords: 'API разработчики' },
       ]

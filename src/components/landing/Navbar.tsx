@@ -31,12 +31,12 @@ const Navbar = () => {
   const navigation = [
     { 
       name: 'Возможности', 
-      href: '#features',
+      href: '/features',
       keywords: 'возможности функции система'
     },
     { 
       name: 'Тарифы', 
-      href: '#pricing',
+      href: '/pricing',
       keywords: 'тарифы цены стоимость планы'
     },
     {

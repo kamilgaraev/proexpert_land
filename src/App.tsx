@@ -30,13 +30,19 @@ import HoldingRouter from '@/HoldingRouter';
 // Новые страницы
 import IntegrationsPage from '@pages/product/IntegrationsPage';
 import ApiPage from '@pages/product/ApiPage';
+import FeaturesPage from '@pages/product/FeaturesPage';
+import PricingPage from '@pages/product/PricingPage';
 import SmallBusinessPage from '@pages/solutions/SmallBusinessPage';
 import EnterprisePage from '@pages/solutions/EnterprisePage';
 import ContractorsPage from '@pages/solutions/ContractorsPage';
+import DevelopersPage from '@pages/solutions/DevelopersPage';
 import BlogPage from '@pages/resources/BlogPage';
 import DocsPage from '@pages/resources/DocsPage';
+import WebinarsPage from '@pages/resources/WebinarsPage';
 import AboutPage from '@pages/company/AboutPage';
 import CareersPage from '@pages/company/CareersPage';
+import PressPage from '@pages/company/PressPage';
+import PartnersPage from '@pages/company/PartnersPage';
 import AdminDashboardPage from '@pages/admin/AdminDashboardPage';
 
 import { ToastContainer } from 'react-toastify';
@@ -129,6 +135,8 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         
         {/* Продуктовые страницы */}
+        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/integrations" element={<IntegrationsPage />} />
         <Route path="/api" element={<ApiPage />} />
         
@@ -136,19 +144,19 @@ function App() {
         <Route path="/small-business" element={<SmallBusinessPage />} />
         <Route path="/enterprise" element={<EnterprisePage />} />
         <Route path="/contractors" element={<ContractorsPage />} />
-        <Route path="/developers" element={<EnterprisePage />} />
+        <Route path="/developers" element={<DevelopersPage />} />
         
         {/* Ресурсы */}
         <Route path="/docs" element={<DocsPage />} />
         <Route path="/help" element={<DocsPage />} />
         <Route path="/blog" element={<BlogPage />} />
-        <Route path="/webinars" element={<BlogPage />} />
+        <Route path="/webinars" element={<WebinarsPage />} />
         
         {/* Компания */}
         <Route path="/about" element={<AboutPage />} />
         <Route path="/careers" element={<CareersPage />} />
-        <Route path="/press" element={<BlogPage />} />
-        <Route path="/partners" element={<AboutPage />} />
+        <Route path="/press" element={<PressPage />} />
+        <Route path="/partners" element={<PartnersPage />} />
         
         {/* Защищенные маршруты внутри личного кабинета */}
         <Route path="/dashboard" element={

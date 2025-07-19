@@ -3,15 +3,21 @@ Allow: /
 
 # Основные страницы сайта
 Allow: /
+Allow: /features
+Allow: /pricing
 Allow: /integrations
 Allow: /api
 Allow: /small-business
 Allow: /enterprise  
 Allow: /contractors
+Allow: /developers
 Allow: /blog
+Allow: /webinars
 Allow: /docs
 Allow: /about
 Allow: /careers
+Allow: /press
+Allow: /partners
 
 # Дашборд - закрыт для индексации
 Disallow: /dashboard
