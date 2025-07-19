@@ -37,7 +37,7 @@ import BlogPage from '@pages/resources/BlogPage';
 import DocsPage from '@pages/resources/DocsPage';
 import AboutPage from '@pages/company/AboutPage';
 import CareersPage from '@pages/company/CareersPage';
-import AdminHomePage from '@pages/admin/AdminHomePage';
+import AdminDashboardPage from '@pages/admin/AdminDashboardPage';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -183,7 +183,7 @@ function App() {
           </AdminProtectedRoute>
         }>
           {/* Здесь добавляются страницы админки */}
-          <Route index element={<AdminHomePage />} />
+          <Route index element={<AdminDashboardPage />} />
           <Route path="users" element={<UsersList />} />
           <Route path="projects" element={<ProjectsList />} />
           {/* Плейсхолдеры для будущих страниц */}
