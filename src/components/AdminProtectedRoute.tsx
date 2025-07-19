@@ -11,7 +11,7 @@ const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   const location = useLocation();
 
   // Пока проверяем авторизацию
-  if (isLoading) {
+  if (isLoading && !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <svg className="animate-spin h-10 w-10 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
