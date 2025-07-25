@@ -10,7 +10,6 @@ import {
   PhoneIcon
 } from '@heroicons/react/24/outline';
 
-// Базовый URL личного кабинета, берём из env, иначе дефолт.
 const LK_URL = (import.meta.env.VITE_LK_URL as string | undefined) ?? 'https://lk.prohelper.pro';
 
 const Navbar = () => {
@@ -82,23 +81,23 @@ const Navbar = () => {
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
         isScrolled || location.pathname !== '/' 
           ? 'bg-white/95 backdrop-blur-sm shadow-lg border-b border-steel-200' 
-          : 'bg-transparent'
+          : 'bg-white/20 backdrop-blur-md'
       }`}
       data-seo-track="navbar_view"
     >
       <div className="container-custom">
-        <div className="flex items-center justify-between h-16 md:h-20">
+        <div className="flex items-center justify-between h-14 sm:h-16 md:h-18 lg:h-20">
           <Link 
             to="/" 
-            className="flex items-center gap-3 group"
+            className="flex items-center gap-2 sm:gap-3 group"
             data-seo-track="logo_click"
             data-seo-keyword="ProHelper главная страница"
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-construction-500 to-construction-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <BuildingOfficeIcon className="w-6 h-6 text-white" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-construction-500 to-construction-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <BuildingOfficeIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <span 
-              className={`text-2xl font-bold transition-colors duration-300 ${
+              className={`text-xl sm:text-2xl font-bold transition-colors duration-300 ${
                 isScrolled || location.pathname !== '/' ? 'text-steel-900' : 'text-white'
               }`}
               data-seo-keyword="ProHelper строительство CRM"
@@ -107,7 +106,7 @@ const Navbar = () => {
             </span>
           </Link>
 
-          <div className="hidden lg:flex items-center space-x-8">
+          <div className="hidden xl:flex items-center space-x-6 2xl:space-x-8">
             {navigation.map((item) => (
               <div key={item.name} className="relative group">
                 {item.dropdown ? (
@@ -117,7 +116,7 @@ const Navbar = () => {
                     onMouseLeave={() => setActiveDropdown(null)}
                   >
                     <button
-                      className={`flex items-center gap-1 px-3 py-2 rounded-lg font-medium transition-all duration-300 hover:bg-construction-50 ${
+                      className={`flex items-center gap-1 px-2 py-2 rounded-lg font-medium transition-all duration-300 hover:bg-construction-50 ${
                         isScrolled || location.pathname !== '/' 
                           ? 'text-steel-700 hover:text-construction-600' 
                           : 'text-white hover:text-construction-200'
@@ -158,7 +157,7 @@ const Navbar = () => {
                 ) : (
                   <Link
                     to={item.href}
-                    className={`px-3 py-2 rounded-lg font-medium transition-all duration-300 hover:bg-construction-50 ${
+                    className={`px-2 py-2 rounded-lg font-medium transition-all duration-300 hover:bg-construction-50 ${
                       isScrolled || location.pathname !== '/' 
                         ? 'text-steel-700 hover:text-construction-600' 
                         : 'text-white hover:text-construction-200'
@@ -174,10 +173,10 @@ const Navbar = () => {
             ))}
           </div>
 
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-2 xl:gap-4">
             <a
               href="tel:+79991234567"
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105 ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105 ${
                 isScrolled || location.pathname !== '/' 
                   ? 'text-steel-700 hover:text-construction-600 hover:bg-construction-50' 
                   : 'text-white hover:text-construction-200 hover:bg-white/10'
@@ -186,12 +185,12 @@ const Navbar = () => {
               data-seo-keyword="телефон консультация звонок"
             >
               <PhoneIcon className="w-4 h-4" />
-              <span className="hidden xl:inline">+7 (999) 123-45-67</span>
+              <span className="hidden lg:inline xl:inline text-sm xl:text-base">+7 (999) 123-45-67</span>
             </a>
             
             <a
               href={`${LK_URL}/login`}
-              className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+              className={`px-3 xl:px-4 py-2 rounded-lg font-medium transition-all duration-300 text-sm xl:text-base ${
                 isScrolled || location.pathname !== '/' 
                   ? 'text-steel-700 hover:text-construction-600 hover:bg-construction-50' 
                   : 'text-white hover:text-construction-200 hover:bg-white/10'
@@ -204,11 +203,12 @@ const Navbar = () => {
             
             <a
               href={`${LK_URL}/register`}
-              className="px-6 py-3 bg-gradient-to-r from-construction-600 to-construction-500 text-white font-semibold rounded-lg hover:shadow-construction transition-all duration-300 hover:scale-105"
+              className="px-4 xl:px-6 py-2 xl:py-3 bg-gradient-to-r from-construction-600 to-construction-500 text-white font-semibold rounded-lg hover:shadow-construction transition-all duration-300 hover:scale-105 text-sm xl:text-base"
               data-seo-track="register_navbar_click"
               data-seo-keyword="регистрация попробовать бесплатно"
             >
-              Попробовать бесплатно
+              <span className="hidden lg:inline xl:hidden">Попробовать</span>
+              <span className="hidden xl:inline">Попробовать бесплатно</span>
             </a>
           </div>
 
@@ -248,7 +248,7 @@ const Navbar = () => {
                       <div>
                         <button
                           onClick={() => setActiveDropdown(activeDropdown === item.name ? null : item.name)}
-                          className="flex items-center justify-between w-full px-3 py-2 text-steel-700 hover:text-construction-600 font-medium"
+                          className="flex items-center justify-between w-full px-3 py-3 text-steel-700 hover:text-construction-600 font-medium text-base"
                           data-seo-track="mobile_dropdown_toggle"
                           data-seo-keyword={item.keywords}
                         >
@@ -269,7 +269,7 @@ const Navbar = () => {
                                 <Link
                                   key={dropdownItem.name}
                                   to={dropdownItem.href}
-                                  className="block px-3 py-2 text-steel-600 hover:text-construction-600"
+                                  className="block px-3 py-3 text-steel-600 hover:text-construction-600 text-base"
                                   onClick={() => handleLinkClick(dropdownItem.href)}
                                   data-seo-track="mobile_dropdown_item_click"
                                   data-seo-keyword={dropdownItem.keywords}
@@ -284,7 +284,7 @@ const Navbar = () => {
                     ) : (
                       <Link
                         to={item.href}
-                        className="block px-3 py-2 text-steel-700 hover:text-construction-600 font-medium"
+                        className="block px-3 py-3 text-steel-700 hover:text-construction-600 font-medium text-base"
                         onClick={() => handleLinkClick(item.href)}
                         data-seo-track="mobile_nav_link_click"
                         data-seo-keyword={item.keywords}
@@ -295,10 +295,10 @@ const Navbar = () => {
                   </div>
                 ))}
                 
-                <div className="pt-4 border-t border-steel-200 space-y-3">
+                <div className="pt-4 border-t border-steel-200 space-y-4">
                   <a
                     href="tel:+79991234567"
-                    className="flex items-center gap-3 px-3 py-2 text-steel-700 hover:text-construction-600"
+                    className="flex items-center gap-3 px-3 py-3 text-steel-700 hover:text-construction-600 text-base"
                     data-seo-track="mobile_phone_click"
                     data-seo-keyword="телефон мобильный"
                   >
@@ -308,7 +308,7 @@ const Navbar = () => {
                   
                   <a
                     href={`${LK_URL}/login`}
-                    className="block px-3 py-2 text-steel-700 hover:text-construction-600 font-medium"
+                    className="block px-3 py-3 text-steel-700 hover:text-construction-600 font-medium text-base"
                     onClick={() => setIsOpen(false)}
                     data-seo-track="mobile_login_click"
                     data-seo-keyword="вход мобильный"
@@ -318,7 +318,7 @@ const Navbar = () => {
                   
                   <a
                     href={`${LK_URL}/register`}
-                    className="block w-full px-6 py-3 bg-gradient-to-r from-construction-600 to-construction-500 text-white font-semibold rounded-lg text-center hover:shadow-construction transition-all duration-300"
+                    className="block w-full px-6 py-4 bg-gradient-to-r from-construction-600 to-construction-500 text-white font-semibold rounded-lg text-center hover:shadow-construction transition-all duration-300 text-base"
                     onClick={() => setIsOpen(false)}
                     data-seo-track="mobile_register_click"
                     data-seo-keyword="регистрация мобильный бесплатно"

@@ -119,23 +119,23 @@ const Features = () => {
 
   return (
     <section 
-      className="py-24 bg-gradient-to-b from-steel-50 to-concrete-100 relative overflow-hidden"
+      className="py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-steel-50 to-concrete-100 relative overflow-hidden"
       data-seo-track="features_section_view"
     >
       <div className="absolute inset-0 bg-blueprint opacity-20"></div>
       
       <div className="container-custom relative z-10">
         <motion.div
-          className="text-center mb-20"
+          className="text-center mb-12 sm:mb-16 lg:mb-20 px-4 sm:px-0"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-construction-100 to-safety-100 border border-construction-300 rounded-full mb-6">
-            <WrenchScrewdriverIcon className="w-4 h-4 text-construction-600" />
+          <div className="inline-flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 bg-gradient-to-r from-construction-100 to-safety-100 border border-construction-300 rounded-full mb-4 sm:mb-6">
+            <WrenchScrewdriverIcon className="w-3 h-3 sm:w-4 sm:h-4 text-construction-600" />
             <span 
-              className="text-construction-800 text-sm font-semibold"
+              className="text-construction-800 text-xs sm:text-sm font-semibold"
               data-seo-keyword="возможности платформы"
             >
               Возможности платформы
@@ -143,7 +143,7 @@ const Features = () => {
           </div>
           
           <h2 
-            className="text-4xl md:text-6xl font-bold text-steel-900 mb-6 font-construction"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-steel-900 mb-4 sm:mb-6 font-construction"
             data-seo-keyword="управление строительством"
           >
             Всё для управления <br />
@@ -153,14 +153,14 @@ const Features = () => {
           </h2>
           
           <p 
-            className="text-xl text-steel-600 max-w-3xl mx-auto"
+            className="text-base sm:text-lg md:text-xl text-steel-600 max-w-3xl mx-auto"
             data-seo-keyword="система управления строительными проектами"
           >
             Комплексная система управления строительными проектами от планирования до сдачи объекта
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16 lg:mb-20 px-4 sm:px-0">
           {features.map((feature, index) => (
             <motion.div
               key={index}
@@ -173,7 +173,7 @@ const Features = () => {
               data-seo-keyword={feature.keywords}
             >
               <div className={`
-                bg-white/90 border-2 rounded-xl p-8 backdrop-blur-sm transition-all duration-300 
+                bg-white/90 border-2 rounded-xl p-6 sm:p-8 backdrop-blur-sm transition-all duration-300 
                 hover:scale-105 hover:shadow-${feature.color} group-hover:border-${feature.color}-400
                 ${feature.color === 'construction' ? 'border-construction-200' : ''}
                 ${feature.color === 'safety' ? 'border-safety-200' : ''}
@@ -183,7 +183,7 @@ const Features = () => {
                 ${feature.color === 'concrete' ? 'border-concrete-200' : ''}
               `}>
                 <div className={`
-                  w-16 h-16 rounded-xl flex items-center justify-center mb-6 group-hover:animate-build
+                  w-12 h-12 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center mb-4 sm:mb-6 group-hover:animate-build
                   ${feature.color === 'construction' ? 'bg-gradient-to-br from-construction-500 to-construction-600' : ''}
                   ${feature.color === 'safety' ? 'bg-gradient-to-br from-safety-500 to-safety-600' : ''}
                   ${feature.color === 'steel' ? 'bg-gradient-to-br from-steel-500 to-steel-600' : ''}
@@ -191,19 +191,19 @@ const Features = () => {
                   ${feature.color === 'primary' ? 'bg-gradient-to-br from-primary-500 to-primary-600' : ''}
                   ${feature.color === 'concrete' ? 'bg-gradient-to-br from-concrete-500 to-concrete-600' : ''}
                 `}>
-                  <feature.icon className="w-8 h-8 text-white" />
+                  <feature.icon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
                 
                 <h3 
-                  className="text-xl font-semibold text-steel-900 mb-4"
+                  className="text-lg sm:text-xl font-semibold text-steel-900 mb-3 sm:mb-4"
                   data-seo-keyword={feature.keywords}
                 >
                   {feature.title}
                 </h3>
-                <p className="text-steel-600 mb-4 leading-relaxed">{feature.description}</p>
+                <p className="text-steel-600 mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">{feature.description}</p>
                 
                 <div className={`
-                  inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium
+                  inline-flex items-center gap-2 px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium
                   ${feature.color === 'construction' ? 'bg-construction-100 text-construction-700' : ''}
                   ${feature.color === 'safety' ? 'bg-safety-100 text-safety-700' : ''}
                   ${feature.color === 'steel' ? 'bg-steel-100 text-steel-700' : ''}
@@ -219,7 +219,7 @@ const Features = () => {
         </div>
 
         <motion.div
-          className="bg-gradient-to-r from-construction-600 to-safety-600 rounded-2xl p-12 text-center relative overflow-hidden"
+          className="bg-gradient-to-r from-construction-600 to-safety-600 rounded-2xl p-6 sm:p-8 lg:p-12 text-center relative overflow-hidden mx-4 sm:mx-0"
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
@@ -231,21 +231,21 @@ const Features = () => {
           
           <div className="relative z-10">
             <h3 
-              className="text-3xl md:text-4xl font-bold text-white mb-6 font-construction"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 sm:mb-6 font-construction"
               data-seo-keyword="результаты внедрения ProHelper"
             >
               Результаты внедрения ProHelper
             </h3>
             
-            <p className="text-xl text-white/90 mb-12 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-white/90 mb-8 sm:mb-12 max-w-3xl mx-auto">
               Реальные показатели эффективности от наших клиентов
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {results.map((result, index) => (
                 <motion.div
                   key={index}
-                  className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
+                  className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: index * 0.2 }}
@@ -254,17 +254,17 @@ const Features = () => {
                   data-seo-keyword={result.keywords}
                 >
                   <div className={`
-                    w-12 h-12 rounded-lg flex items-center justify-center mb-4 mx-auto
+                    w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mb-3 sm:mb-4 mx-auto
                     ${result.color === 'construction' ? 'bg-construction-500/20' : ''}
                     ${result.color === 'safety' ? 'bg-safety-500/20' : ''}
                     ${result.color === 'steel' ? 'bg-steel-500/20' : ''}
                   `}>
-                    <result.icon className="w-6 h-6 text-white" />
+                    <result.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   
-                  <div className="text-3xl font-bold text-white mb-2">{result.percentage}</div>
-                  <h4 className="text-lg font-semibold text-white mb-2">{result.title}</h4>
-                  <p className="text-white/80 text-sm">{result.description}</p>
+                  <div className="text-2xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">{result.percentage}</div>
+                  <h4 className="text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2">{result.title}</h4>
+                  <p className="text-white/80 text-xs sm:text-sm">{result.description}</p>
                 </motion.div>
               ))}
             </div>

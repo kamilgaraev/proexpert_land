@@ -136,7 +136,19 @@
   }
 }
 
+@media (min-width: 768px) {
+  .container-custom {
+    padding: 0 2rem;
+  }
+}
+
 @media (min-width: 1024px) {
+  .container-custom {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
   .container-custom {
     padding: 0 2rem;
   }
@@ -160,27 +172,27 @@
 }
 
 .btn-primary {
-  @apply px-6 py-3 bg-gradient-to-r from-construction-600 to-construction-500 text-white font-semibold rounded-lg hover:shadow-construction transition-all duration-300 hover:scale-105;
+  @apply px-4 py-3 sm:px-6 sm:py-3 bg-gradient-to-r from-construction-600 to-construction-500 text-white font-semibold rounded-lg hover:shadow-construction transition-all duration-300 hover:scale-105;
 }
 
 .btn-secondary {
-  @apply px-6 py-3 border-2 border-construction-400 text-construction-600 font-semibold rounded-lg hover:bg-construction-50 transition-all duration-300;
+  @apply px-4 py-3 sm:px-6 sm:py-3 border-2 border-construction-400 text-construction-600 font-semibold rounded-lg hover:bg-construction-50 transition-all duration-300;
 }
 
 .btn-outline {
-  @apply px-6 py-3 border-2 border-steel-400 text-steel-700 font-semibold rounded-lg hover:border-construction-500 hover:text-construction-600 transition-all duration-300;
+  @apply px-4 py-3 sm:px-6 sm:py-3 border-2 border-steel-400 text-steel-700 font-semibold rounded-lg hover:border-construction-500 hover:text-construction-600 transition-all duration-300;
 }
 
 .card {
-  @apply bg-white/90 border-2 border-steel-200 rounded-xl p-6 backdrop-blur-sm hover:border-construction-300 hover:shadow-construction transition-all duration-300;
+  @apply bg-white/90 border-2 border-steel-200 rounded-xl p-4 sm:p-6 backdrop-blur-sm hover:border-construction-300 hover:shadow-construction transition-all duration-300;
 }
 
 .card-construction {
-  @apply bg-white/90 border-2 border-construction-200 rounded-xl p-6 backdrop-blur-sm hover:border-construction-400 hover:shadow-construction transition-all duration-300;
+  @apply bg-white/90 border-2 border-construction-200 rounded-xl p-4 sm:p-6 backdrop-blur-sm hover:border-construction-400 hover:shadow-construction transition-all duration-300;
 }
 
 .card-safety {
-  @apply bg-white/90 border-2 border-safety-200 rounded-xl p-6 backdrop-blur-sm hover:border-safety-400 hover:shadow-safety transition-all duration-300;
+  @apply bg-white/90 border-2 border-safety-200 rounded-xl p-4 sm:p-6 backdrop-blur-sm hover:border-safety-400 hover:shadow-safety transition-all duration-300;
 }
 
 .text-gradient-construction {
@@ -196,7 +208,7 @@
 }
 
 .input-field {
-  @apply w-full px-4 py-3 border-2 border-steel-200 rounded-lg focus:border-construction-500 focus:outline-none transition-colors bg-white/90 backdrop-blur-sm;
+  @apply w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-steel-200 rounded-lg focus:border-construction-500 focus:outline-none transition-colors bg-white/90 backdrop-blur-sm;
 }
 
 .input-field:focus {
@@ -204,19 +216,19 @@
 }
 
 .loading-spinner {
-  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-construction-600;
+  @apply animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-construction-600;
 }
 
 .badge-construction {
-  @apply inline-flex items-center gap-2 px-3 py-1 bg-construction-100 text-construction-700 text-sm font-medium rounded-full;
+  @apply inline-flex items-center gap-2 px-2 py-1 sm:px-3 sm:py-1 bg-construction-100 text-construction-700 text-xs sm:text-sm font-medium rounded-full;
 }
 
 .badge-safety {
-  @apply inline-flex items-center gap-2 px-3 py-1 bg-safety-100 text-safety-700 text-sm font-medium rounded-full;
+  @apply inline-flex items-center gap-2 px-2 py-1 sm:px-3 sm:py-1 bg-safety-100 text-safety-700 text-xs sm:text-sm font-medium rounded-full;
 }
 
 .badge-steel {
-  @apply inline-flex items-center gap-2 px-3 py-1 bg-steel-100 text-steel-700 text-sm font-medium rounded-full;
+  @apply inline-flex items-center gap-2 px-2 py-1 sm:px-3 sm:py-1 bg-steel-100 text-steel-700 text-xs sm:text-sm font-medium rounded-full;
 }
 
 .hero-section {
@@ -224,19 +236,19 @@
 }
 
 .section-padding {
-  @apply py-24;
+  @apply py-16 sm:py-20 lg:py-24;
 }
 
 .section-title {
-  @apply text-4xl md:text-6xl font-bold text-steel-900 mb-6 font-construction;
+  @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-steel-900 mb-4 sm:mb-6 font-construction;
 }
 
 .section-subtitle {
-  @apply text-xl text-steel-600 max-w-3xl mx-auto;
+  @apply text-base sm:text-lg md:text-xl text-steel-600 max-w-3xl mx-auto;
 }
 
 .feature-icon {
-  @apply w-16 h-16 rounded-xl flex items-center justify-center mb-6;
+  @apply w-12 h-12 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center mb-4 sm:mb-6;
 }
 
 .feature-icon-construction {
@@ -252,11 +264,11 @@
 }
 
 .stats-card {
-  @apply bg-white/90 border-2 border-construction-300 rounded-2xl p-8 backdrop-blur-sm shadow-construction;
+  @apply bg-white/90 border-2 border-construction-300 rounded-2xl p-6 sm:p-8 backdrop-blur-sm shadow-construction;
 }
 
 .cta-section {
-  @apply bg-gradient-to-r from-construction-600 to-safety-600 rounded-2xl p-12 text-center relative overflow-hidden;
+  @apply bg-gradient-to-r from-construction-600 to-safety-600 rounded-2xl p-8 sm:p-12 text-center relative overflow-hidden;
 }
 
 .nav-link {
@@ -332,11 +344,46 @@
   }
   
   .section-title {
-    @apply text-3xl md:text-5xl;
+    @apply text-2xl;
+  }
+  
+  .section-subtitle {
+    @apply text-base;
+  }
+  
+  .hero-section {
+    min-height: calc(100vh - 3.5rem);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 767px) {
+  .container-custom {
+    padding: 0 1.5rem;
+  }
+  
+  .section-title {
+    @apply text-3xl;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container-custom {
+    padding: 0 2rem;
+    max-width: 90%;
+  }
+  
+  .section-title {
+    @apply text-4xl;
   }
   
   .section-subtitle {
     @apply text-lg;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .container-custom {
+    max-width: 95%;
   }
 }
 
