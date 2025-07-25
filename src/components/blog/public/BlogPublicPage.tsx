@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { 
+  MagnifyingGlassIcon, 
+  FunnelIcon,
+  SparklesIcon,
+  ArrowRightIcon
+} from '@heroicons/react/24/outline';
 import BlogPublicLayout from './BlogPublicLayout';
 import BlogArticleCard from './BlogArticleCard';
 import BlogSidebar from './BlogSidebar';
@@ -40,38 +47,50 @@ const BlogPublicPage: React.FC = () => {
     try {
       if (reset) {
         setLoading(true);
+        setError(null);
       } else {
         setLoadingMore(true);
       }
 
-      const page = reset ? 1 : currentPage + 1;
+      const params = new URLSearchParams();
+      params.set('page', reset ? '1' : (currentPage + 1).toString());
+      params.set('per_page', '12');
+      
+      if (selectedCategory) {
+        params.set('category', selectedCategory);
+      }
+      
+      if (searchQuery) {
+        params.set('search', searchQuery);
+      }
+
       const categoryId = selectedCategory 
         ? categories.find(c => c.slug === selectedCategory)?.id 
         : undefined;
 
       const response = await blogPublicApi.getArticles({
-        page,
+        page: reset ? 1 : currentPage + 1,
         per_page: 12,
         category_id: categoryId,
         search: searchQuery || undefined,
       });
+      const newArticles = (response.data as any).data;
+      const pagination = (response.data as any).meta;
 
-      const data = (response.data as any);
-      
       if (reset) {
-        setArticles(data.data);
+        setArticles(newArticles);
       } else {
-        setArticles(prev => [...prev, ...data.data]);
-        setSearchParams({ 
-          ...Object.fromEntries(searchParams), 
-          page: page.toString() 
+        setArticles(prev => [...prev, ...newArticles]);
+        setSearchParams(prev => {
+          prev.set('page', (currentPage + 1).toString());
+          return prev;
         });
       }
 
-      setHasMore(data.meta.current_page < data.meta.last_page);
+      setHasMore(pagination.current_page < pagination.last_page);
     } catch (err) {
-      setError('Ошибка загрузки статей');
       console.error('Error fetching articles:', err);
+      setError('Ошибка загрузки статей. Попробуйте позже.');
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -79,204 +98,217 @@ const BlogPublicPage: React.FC = () => {
   };
 
   const handleCategoryFilter = (categorySlug: string | null) => {
-    const newParams = new URLSearchParams(searchParams);
-    if (categorySlug) {
-      newParams.set('category', categorySlug);
-    } else {
-      newParams.delete('category');
-    }
-    newParams.delete('page');
-    setSearchParams(newParams);
+    setSearchParams(prev => {
+      if (categorySlug) {
+        prev.set('category', categorySlug);
+      } else {
+        prev.delete('category');
+      }
+      prev.delete('page');
+      prev.delete('search');
+      return prev;
+    });
   };
 
   const handleSearch = (query: string) => {
-    const newParams = new URLSearchParams(searchParams);
-    if (query.trim()) {
-      newParams.set('search', query);
-    } else {
-      newParams.delete('search');
-    }
-    newParams.delete('page');
-    setSearchParams(newParams);
+    setSearchParams(prev => {
+      if (query.trim()) {
+        prev.set('search', query.trim());
+      } else {
+        prev.delete('search');
+      }
+      prev.delete('page');
+      prev.delete('category');
+      return prev;
+    });
   };
-
-  if (loading) {
-    return (
-      <BlogPublicLayout>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-white rounded-xl shadow-sm border animate-pulse">
-                  <div className="h-48 bg-gray-200 rounded-t-xl"></div>
-                  <div className="p-6 space-y-3">
-                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                    <div className="h-6 bg-gray-200 rounded"></div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-gray-200 rounded"></div>
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="space-y-6">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm border p-6 animate-pulse">
-                <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </BlogPublicLayout>
-    );
-  }
 
   return (
     <BlogPublicLayout>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-3">
-          {/* Filters */}
-          <div className="bg-white rounded-xl shadow-sm border p-6 mb-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => handleCategoryFilter(null)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    !selectedCategory
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Все статьи
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => handleCategoryFilter(category.slug)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      selectedCategory === category.slug
-                        ? 'text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                    style={{
-                      backgroundColor: selectedCategory === category.slug ? category.color : undefined
-                    }}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-
+          {/* Search & Filters */}
+          <motion.div 
+            className="bg-white/90 border-2 border-steel-200 rounded-2xl backdrop-blur-sm p-6 mb-8 hover:border-construction-300 transition-all duration-300"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="flex flex-col space-y-6">
+              {/* Search Bar */}
               <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Поиск статей..."
-                  value={searchQuery || ''}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 w-full md:w-64"
-                />
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+                <div className="flex items-center gap-3 mb-4">
+                  <MagnifyingGlassIcon className="w-5 h-5 text-construction-500" />
+                  <h3 className="text-lg font-semibold text-steel-900 font-construction">Поиск и фильтры</h3>
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Поиск статей о строительстве..."
+                    defaultValue={searchQuery || ''}
+                    onChange={(e) => {
+                      const timer = setTimeout(() => handleSearch(e.target.value), 500);
+                      return () => clearTimeout(timer);
+                    }}
+                    className="w-full pl-12 pr-4 py-3 border-2 border-steel-200 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 bg-white/80 backdrop-blur-sm transition-all duration-300 font-medium"
+                  />
+                  <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-steel-400" />
                 </div>
               </div>
-            </div>
 
-            {(selectedCategory || searchQuery) && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>Показано результатов: {articles.length}</span>
-                  {selectedCategory && (
-                    <span className="flex items-center">
-                      • Категория: 
-                      <span 
-                        className="ml-1 px-2 py-1 rounded text-white text-xs"
-                        style={{ backgroundColor: categories.find(c => c.slug === selectedCategory)?.color }}
-                      >
-                        {categories.find(c => c.slug === selectedCategory)?.name}
-                      </span>
+              {/* Category Filters */}
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <FunnelIcon className="w-5 h-5 text-safety-500" />
+                  <h4 className="text-base font-semibold text-steel-900 font-construction">Категории</h4>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <motion.button
+                    onClick={() => handleCategoryFilter(null)}
+                    className={`px-4 py-2.5 rounded-xl font-semibold transition-all duration-300 hover:scale-105 ${
+                      !selectedCategory
+                        ? 'bg-gradient-to-r from-construction-500 to-construction-600 text-white shadow-construction'
+                        : 'bg-steel-100 hover:bg-construction-100 text-steel-700 hover:text-construction-700'
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <span className="flex items-center gap-2">
+                      <SparklesIcon className="w-4 h-4" />
+                      Все статьи
                     </span>
-                  )}
-                  {searchQuery && (
-                    <span>• Поиск: "{searchQuery}"</span>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-8">
-              <div className="flex">
-                <span className="text-red-400 text-xl">⚠️</span>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Ошибка</h3>
-                  <p className="mt-1 text-sm text-red-700">{error}</p>
+                  </motion.button>
+                  {categories.map((category) => (
+                    <motion.button
+                      key={category.id}
+                      onClick={() => handleCategoryFilter(category.slug)}
+                      className={`px-4 py-2.5 rounded-xl font-semibold transition-all duration-300 hover:scale-105 ${
+                        selectedCategory === category.slug
+                          ? 'text-white shadow-lg'
+                          : 'bg-steel-100 hover:bg-construction-100 text-steel-700 hover:text-construction-700'
+                      }`}
+                      style={{
+                        backgroundColor: selectedCategory === category.slug ? category.color : undefined
+                      }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {category.name}
+                    </motion.button>
+                  ))}
                 </div>
               </div>
             </div>
-          )}
+          </motion.div>
 
           {/* Articles Grid */}
-          {articles.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-400 text-6xl mb-4">📝</div>
-              <h3 className="text-xl font-medium text-gray-900 mb-2">
-                {searchQuery || selectedCategory ? 'Статьи не найдены' : 'Статей пока нет'}
-              </h3>
-              <p className="text-gray-600">
-                {searchQuery || selectedCategory 
-                  ? 'Попробуйте изменить параметры поиска'
-                  : 'Скоро здесь появятся интересные статьи'
-                }
-              </p>
+          {loading ? (
+            <div className="flex justify-center items-center py-16">
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-steel-200 border-t-construction-500 rounded-full animate-spin"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-construction-500 to-safety-500 rounded-full animate-pulse"></div>
+                </div>
+              </div>
             </div>
+          ) : error ? (
+            <motion.div 
+              className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-200 rounded-2xl p-8 text-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              <div className="text-red-600 text-lg font-semibold mb-2">Ошибка загрузки</div>
+              <div className="text-red-500 mb-4">{error}</div>
+              <button
+                onClick={() => fetchArticles(true)}
+                className="px-6 py-3 bg-gradient-to-r from-construction-500 to-construction-600 text-white font-semibold rounded-xl hover:from-construction-600 hover:to-construction-700 transition-all duration-300 hover:scale-105"
+              >
+                Попробовать снова
+              </button>
+            </motion.div>
+          ) : articles.length === 0 ? (
+            <motion.div 
+              className="bg-gradient-to-br from-steel-50 to-construction-50 border-2 border-steel-200 rounded-2xl p-12 text-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="w-24 h-24 bg-gradient-to-br from-construction-400 to-safety-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                <MagnifyingGlassIcon className="w-12 h-12 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-steel-900 mb-4 font-construction">Статьи не найдены</h3>
+              <p className="text-steel-600 mb-6 text-lg">
+                Попробуйте изменить критерии поиска или выбрать другую категорию
+              </p>
+              <button
+                onClick={() => {
+                  setSearchParams(new URLSearchParams());
+                }}
+                className="px-6 py-3 bg-gradient-to-r from-construction-500 to-construction-600 text-white font-semibold rounded-xl hover:from-construction-600 hover:to-construction-700 transition-all duration-300 hover:scale-105"
+              >
+                Сбросить фильтры
+              </button>
+            </motion.div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {articles.map((article) => (
-                  <BlogArticleCard key={article.id} article={article} />
+              <motion.div 
+                className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                {articles.map((article, index) => (
+                  <motion.div
+                    key={article.id}
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                  >
+                    <BlogArticleCard article={article} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
               {/* Load More Button */}
               {hasMore && (
-                <div className="text-center">
+                <motion.div 
+                  className="text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
                   <button
                     onClick={() => fetchArticles(false)}
                     disabled={loadingMore}
-                    className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-construction-500 to-construction-600 text-white font-semibold rounded-xl hover:from-construction-600 hover:to-construction-700 transition-all duration-300 hover:scale-105 hover:shadow-construction disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loadingMore ? (
-                      <span className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Загружаем...
-                      </span>
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Загружаем статьи...
+                      </>
                     ) : (
-                      'Загрузить еще статьи'
+                      <>
+                        Загрузить еще статьи
+                        <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </>
                     )}
                   </button>
-                </div>
+                </motion.div>
               )}
             </>
           )}
         </div>
 
         {/* Sidebar */}
-        <div className="lg:col-span-1">
+        <motion.div 
+          className="lg:col-span-1"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
           <BlogSidebar />
-        </div>
+        </motion.div>
       </div>
     </BlogPublicLayout>
   );
