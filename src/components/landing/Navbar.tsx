@@ -97,9 +97,7 @@ const Navbar = () => {
               <BuildingOfficeIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <span 
-              className={`text-xl sm:text-2xl font-bold transition-colors duration-300 ${
-                isScrolled || location.pathname !== '/' ? 'text-steel-900' : 'text-white'
-              }`}
+              className={`text-xl sm:text-2xl font-bold transition-colors duration-300 text-steel-900`}
               data-seo-keyword="ProHelper строительство CRM"
             >
               ProHelper
@@ -116,11 +114,7 @@ const Navbar = () => {
                     onMouseLeave={() => setActiveDropdown(null)}
                   >
                     <button
-                      className={`flex items-center gap-1 px-2 py-2 rounded-lg font-medium transition-all duration-300 hover:bg-construction-50 ${
-                        isScrolled || location.pathname !== '/' 
-                          ? 'text-steel-700 hover:text-construction-600' 
-                          : 'text-white hover:text-construction-200'
-                      }`}
+                      className={`flex items-center gap-1 px-2 py-2 rounded-lg font-medium transition-all duration-300 hover:bg-construction-50 text-steel-700 hover:text-construction-600`}
                       data-seo-track="dropdown_toggle"
                       data-seo-keyword={item.keywords}
                     >
@@ -157,11 +151,7 @@ const Navbar = () => {
                 ) : (
                   <Link
                     to={item.href}
-                    className={`px-2 py-2 rounded-lg font-medium transition-all duration-300 hover:bg-construction-50 ${
-                      isScrolled || location.pathname !== '/' 
-                        ? 'text-steel-700 hover:text-construction-600' 
-                        : 'text-white hover:text-construction-200'
-                    }`}
+                    className={`px-2 py-2 rounded-lg font-medium transition-all duration-300 hover:bg-construction-50 text-steel-700 hover:text-construction-600`}
                     onClick={() => handleLinkClick(item.href)}
                     data-seo-track="nav_link_click"
                     data-seo-keyword={item.keywords}
@@ -176,11 +166,7 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center gap-2 xl:gap-4">
             <a
               href="tel:+79991234567"
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105 ${
-                isScrolled || location.pathname !== '/' 
-                  ? 'text-steel-700 hover:text-construction-600 hover:bg-construction-50' 
-                  : 'text-white hover:text-construction-200 hover:bg-white/10'
-              }`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105 text-steel-700 hover:text-construction-600 hover:bg-construction-50`}
               data-seo-track="phone_navbar_click"
               data-seo-keyword="телефон консультация звонок"
             >
@@ -190,11 +176,7 @@ const Navbar = () => {
             
             <a
               href={`${LK_URL}/login`}
-              className={`px-3 xl:px-4 py-2 rounded-lg font-medium transition-all duration-300 text-sm xl:text-base ${
-                isScrolled || location.pathname !== '/' 
-                  ? 'text-steel-700 hover:text-construction-600 hover:bg-construction-50' 
-                  : 'text-white hover:text-construction-200 hover:bg-white/10'
-              }`}
+              className={`px-3 xl:px-4 py-2 rounded-lg font-medium transition-all duration-300 text-sm xl:text-base text-steel-700 hover:text-construction-600 hover:bg-construction-50`}
               data-seo-track="login_navbar_click"
               data-seo-keyword="вход личный кабинет"
             >
@@ -215,11 +197,7 @@ const Navbar = () => {
           <div className="lg:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className={`p-2 rounded-lg transition-colors duration-300 ${
-                isScrolled || location.pathname !== '/' 
-                  ? 'text-steel-700 hover:bg-steel-100' 
-                  : 'text-white hover:bg-white/10'
-              }`}
+              className={`p-2 rounded-lg transition-colors duration-300 text-steel-700 hover:bg-steel-100`}
               data-seo-track="mobile_menu_toggle"
             >
               {isOpen ? (

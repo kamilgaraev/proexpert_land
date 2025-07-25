@@ -139,7 +139,7 @@ const Hero = () => {
               data-seo-track="hero_features"
             >
               <div className="group relative" data-seo-track="feature_mobile">
-                <div className="bg-white/80 border-2 border-construction-200 rounded-xl p-4 sm:p-6 backdrop-blur-sm hover:shadow-construction transition-all duration-300 hover:scale-105 hover:border-construction-400">
+                <div className="bg-white/80 border-2 border-construction-200 rounded-xl p-4 sm:p-6 backdrop-blur-sm hover:shadow-construction transition-all duration-300 hover:scale-105 hover:border-construction-400 h-full">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-lg flex items-center justify-center mb-3 sm:mb-4 group-hover:animate-build">
                     <DevicePhoneMobileIcon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                   </div>
@@ -149,12 +149,12 @@ const Hero = () => {
                       onClick={() => handleKeywordClick('мобильное приложение для прораба')}
                     >Мобильное приложение</span>
                   </h3>
-                  <p className="text-steel-600 text-sm sm:text-base">Для прорабов - учет материалов и работ прямо на объекте с QR-сканером</p>
+                  <p className="text-steel-600 text-sm sm:text-base flex-grow">Для прорабов - учет материалов и работ прямо на объекте с QR-сканером</p>
                 </div>
               </div>
 
               <div className="group relative" data-seo-track="feature_web">
-                <div className="bg-white/80 border-2 border-safety-200 rounded-xl p-4 sm:p-6 backdrop-blur-sm hover:shadow-safety transition-all duration-300 hover:scale-105 hover:border-safety-400">
+                <div className="bg-white/80 border-2 border-safety-200 rounded-xl p-4 sm:p-6 backdrop-blur-sm hover:shadow-safety transition-all duration-300 hover:scale-105 hover:border-safety-400 h-full">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-safety-500 to-safety-600 rounded-lg flex items-center justify-center mb-3 sm:mb-4 group-hover:animate-build">
                     <ComputerDesktopIcon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                   </div>
@@ -164,12 +164,12 @@ const Hero = () => {
                       onClick={() => handleKeywordClick('CRM для строителей')}
                     >CRM для строителей</span>
                   </h3>
-                  <p className="text-steel-600 text-sm sm:text-base">Для администраторов - полное управление проектами и контроль бюджета</p>
+                  <p className="text-steel-600 text-sm sm:text-base flex-grow">Для администраторов - полное управление проектами и контроль бюджета</p>
                 </div>
               </div>
 
               <div className="group relative sm:col-span-2 lg:col-span-1" data-seo-track="feature_sync">
-                <div className="bg-white/80 border-2 border-steel-200 rounded-xl p-4 sm:p-6 backdrop-blur-sm hover:shadow-steel transition-all duration-300 hover:scale-105 hover:border-steel-400">
+                <div className="bg-white/80 border-2 border-steel-200 rounded-xl p-4 sm:p-6 backdrop-blur-sm hover:shadow-steel transition-all duration-300 hover:scale-105 hover:border-steel-400 h-full flex flex-col">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-steel-500 to-steel-600 rounded-lg flex items-center justify-center mb-3 sm:mb-4 group-hover:animate-build">
                     <CloudIcon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                   </div>
@@ -179,7 +179,7 @@ const Hero = () => {
                       onClick={() => handleKeywordClick('синхронизация данных стройка')}
                     >Облачная синхронизация</span>
                   </h3>
-                  <p className="text-steel-600 text-sm sm:text-base">Все данные в реальном времени доступны всем участникам проекта</p>
+                  <p className="text-steel-600 text-sm sm:text-base flex-grow">Все данные в реальном времени доступны всем участникам проекта</p>
                 </div>
               </div>
             </motion.div>
