@@ -7,8 +7,7 @@ import {
   FireIcon,
   EnvelopeIcon,
   PhoneIcon,
-  WrenchScrewdriverIcon,
-  BuildingOfficeIcon
+  WrenchScrewdriverIcon
 } from '@heroicons/react/24/outline';
 import { blogPublicApi } from '../../../utils/blogPublicApi';
 import type { BlogCategory, BlogArticle } from '../../../types/blog';
