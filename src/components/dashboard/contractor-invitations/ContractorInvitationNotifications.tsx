@@ -8,7 +8,6 @@ import { Link } from 'react-router-dom';
 import {
   BellIcon,
   XMarkIcon,
-  EnvelopeIcon,
   ClockIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,

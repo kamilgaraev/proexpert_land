@@ -17,7 +17,7 @@ import {
 import { useInvitationDetails } from '../../../hooks/useContractorInvitations';
 import { usePageTitle } from '../../../hooks/useSEO';
 import ContractorInvitationDetails from '../../../components/dashboard/contractor-invitations/ContractorInvitationDetails';
-import PageLoading from '../../../components/common/PageLoading';
+import { PageLoading } from '../../../components/common/PageLoading';
 import { INVITATION_STATUSES } from '../../../types/contractor-invitations';
 
 const ContractorInvitationTokenPage: React.FC = () => {

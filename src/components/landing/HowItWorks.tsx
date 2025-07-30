@@ -1,13 +1,10 @@
 import { motion } from 'framer-motion';
 import { 
   DocumentCheckIcon,
-  WrenchScrewdriverIcon,
   UserGroupIcon,
   ChartBarIcon,
   ArrowRightIcon,
   ClipboardDocumentListIcon,
-  TruckIcon,
-  ShieldCheckIcon,
   CogIcon
 } from '@heroicons/react/24/outline';
 

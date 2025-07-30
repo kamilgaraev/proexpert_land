@@ -15,7 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useInvitationStats } from '../../../hooks/useContractorInvitations';
 import type { InvitationStats } from '../../../types/contractor-invitations';
-import PageLoading from '../../common/PageLoading';
+import { PageLoading } from '../../common/PageLoading';
 
 interface StatsCardProps {
   title: string;

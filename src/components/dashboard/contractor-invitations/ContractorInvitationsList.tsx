@@ -28,7 +28,7 @@ import {
   getTimeUntilExpiry,
   isInvitationExpiringSoon,
 } from '../../../utils/contractorInvitationsApi';
-import PageLoading from '../../common/PageLoading';
+import { PageLoading } from '../../common/PageLoading';
 
 interface ContractorInvitationsListProps {
   onInvitationSelect?: (invitation: ContractorInvitation) => void;
@@ -40,7 +40,7 @@ const ContractorInvitationsList: React.FC<ContractorInvitationsListProps> = ({
   showFilters = true,
 }) => {
   const [selectedStatus, setSelectedStatus] = useState<InvitationStatus | 'all'>('all');
-  const { filters, setStatusFilter, resetFilters } = useInvitationFilters();
+  const { filters, setStatusFilter } = useInvitationFilters();
   
   const {
     invitations,

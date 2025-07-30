@@ -208,4 +208,13 @@ export const useSEO = (props: UseSEOProps = {}) => {
     setLinkTag,
     setStructuredData
   };
+};
+
+// Хук для установки заголовка страницы
+export const usePageTitle = (title: string) => {
+  useEffect(() => {
+    if (isBrowser) {
+      document.title = title;
+    }
+  }, [title]);
 }; 

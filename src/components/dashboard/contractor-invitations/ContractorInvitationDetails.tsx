@@ -9,7 +9,7 @@ import {
   CheckCircleIcon,
   ClockIcon,
   EnvelopeIcon,
-  PhoneIcon,
+
   MapPinIcon,
   ExclamationTriangleIcon,
   HandThumbUpIcon,
@@ -379,43 +379,60 @@ const ContractorInvitationDetails: React.FC<ContractorInvitationDetailsProps> = 
         onClose={() => setShowAcceptModal(false)}
         onConfirm={handleAccept}
         title="Принять приглашение?"
-        description={`Вы уверены, что хотите принять приглашение от "${invitation.from_organization.name}"? После принятия между вашими организациями будет установлена подрядная связь.`}
-        confirmText="Принять"
-        cancelText="Отмена"
-        loading={accepting}
-        confirmButtonClass="bg-construction-600 hover:bg-construction-700"
+        message={`Вы уверены, что хотите принять приглашение от "${invitation.from_organization.name}"? После принятия между вашими организациями будет установлена подрядная связь.`}
+        confirmLabel="Принять"
+        isLoading={accepting}
+        confirmColorClass="primary"
       />
 
-      {/* Модал подтверждения отклонения */}
-      <ConfirmActionModal
-        isOpen={showDeclineModal}
-        onClose={() => setShowDeclineModal(false)}
-        onConfirm={handleDecline}
-        title="Отклонить приглашение?"
-        description="Вы можете указать причину отклонения (необязательно)."
-        confirmText="Отклонить"
-        cancelText="Отмена"
-        loading={declining}
-        confirmButtonClass="bg-steel-600 hover:bg-steel-700"
-      >
-        <div className="mt-4">
-          <label htmlFor="decline-reason" className="block text-sm font-medium text-steel-900 mb-2">
-            Причина отклонения (необязательно)
-          </label>
-          <textarea
-            id="decline-reason"
-            value={declineReason}
-            onChange={(e) => setDeclineReason(e.target.value)}
-            rows={3}
-            maxLength={500}
-            className="w-full px-3 py-2 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500"
-            placeholder="Укажите причину отклонения..."
-          />
-          <p className="text-xs text-steel-500 mt-1">
-            {declineReason.length}/500 символов
-          </p>
+      {/* Простой модал для отклонения */}
+      {showDeclineModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-steel-900 mb-4">
+              Отклонить приглашение?
+            </h3>
+            <p className="text-steel-600 mb-4">
+              Вы можете указать причину отклонения (необязательно).
+            </p>
+            
+            <div className="mb-6">
+              <label htmlFor="decline-reason" className="block text-sm font-medium text-steel-900 mb-2">
+                Причина отклонения (необязательно)
+              </label>
+              <textarea
+                id="decline-reason"
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                rows={3}
+                maxLength={500}
+                className="w-full px-3 py-2 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500"
+                placeholder="Укажите причину отклонения..."
+              />
+              <p className="text-xs text-steel-500 mt-1">
+                {declineReason.length}/500 символов
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeclineModal(false)}
+                className="flex-1 px-4 py-2 border border-steel-300 text-steel-700 rounded-lg hover:bg-steel-50"
+                disabled={declining}
+              >
+                Отмена
+              </button>
+              <button
+                onClick={handleDecline}
+                disabled={declining}
+                className="flex-1 px-4 py-2 bg-steel-600 text-white rounded-lg hover:bg-steel-700 disabled:opacity-50"
+              >
+                {declining ? 'Отклоняю...' : 'Отклонить'}
+              </button>
+            </div>
+          </div>
         </div>
-      </ConfirmActionModal>
+      )}
     </div>
   );
 };

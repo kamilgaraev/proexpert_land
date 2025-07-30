@@ -9,9 +9,7 @@ import type {
   InvitationStats,
   InvitationFilters,
   InvitationAcceptResponse,
-  InvitationDeclineRequest,
-  ApiResponse,
-  ApiError
+  InvitationDeclineRequest
 } from '../types/contractor-invitations';
 
 // Базовый URL для API личного кабинета
@@ -31,7 +29,7 @@ const contractorInvitationsApi = axios.create({
 contractorInvitationsApi.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('authToken');
-    if (token) {
+    if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -82,7 +80,7 @@ export const contractorInvitationsService = {
       `/contractor-invitations?${params.toString()}`
     );
     
-    return response.data.data;
+    return response.data.data as InvitationListResponse;
   },
 
   /**
@@ -93,7 +91,7 @@ export const contractorInvitationsService = {
       `/contractor-invitations/${token}`
     );
     
-    return response.data.data;
+    return response.data.data as ContractorInvitation;
   },
 
   /**
@@ -104,7 +102,7 @@ export const contractorInvitationsService = {
       `/contractor-invitations/${token}/accept`
     );
     
-    return response.data.data;
+    return response.data.data as InvitationAcceptResponse;
   },
 
   /**
@@ -121,7 +119,7 @@ export const contractorInvitationsService = {
       data
     );
     
-    return response.data;
+    return response.data as { message: string };
   },
 
   /**
@@ -132,7 +130,7 @@ export const contractorInvitationsService = {
       '/contractor-invitations/stats'
     );
     
-    return response.data.data;
+    return response.data.data as InvitationStats;
   },
 
   /**
@@ -143,7 +141,7 @@ export const contractorInvitationsService = {
       `/contractor-invitations/id/${id}`
     );
     
-    return response.data.data;
+    return response.data.data as ContractorInvitation;
   },
 };
 
