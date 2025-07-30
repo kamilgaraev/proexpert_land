@@ -73,27 +73,6 @@ const HowItWorks = () => {
 
   const benefits = [
     {
-      icon: WrenchScrewdriverIcon,
-      title: 'Быстрое внедрение',
-      description: 'Система готова к работе за 24 часа',
-      value: '1 день',
-      keywords: 'экономия времени автоматизация'
-    },
-    {
-      icon: TruckIcon,
-      title: 'Экономия ресурсов',
-      description: 'Снижение затрат на материалы и логистику',
-      value: '40%',
-      keywords: 'снижение затрат учет материалов'
-    },
-    {
-      icon: ShieldCheckIcon,
-      title: 'Надежность',
-      description: 'Гарантированная сохранность данных',
-      value: '99.9%',
-      keywords: 'доступность данные облако'
-    },
-    {
       number: '3 часа',
       title: 'экономии времени в день',
       description: 'за счет автоматизации рутинных процессов',
@@ -121,23 +100,23 @@ const HowItWorks = () => {
 
   return (
     <section 
-      className="py-24 bg-gradient-to-b from-white to-steel-50 relative overflow-hidden"
+      className="py-12 sm:py-16 lg:py-24 bg-gradient-to-b from-white to-steel-50 relative overflow-hidden"
       data-seo-track="how_it_works_section_view"
     >
       <div className="absolute inset-0 bg-construction-grid opacity-5"></div>
       
-      <div className="container-custom relative z-10">
+      <div className="container-custom relative z-10 px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="text-center mb-20"
+          className="text-center mb-12 sm:mb-16 lg:mb-20"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-construction-100 to-safety-100 border border-construction-300 rounded-full mb-6">
-            <CogIcon className="w-4 h-4 text-construction-600" />
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-construction-100 to-safety-100 border border-construction-300 rounded-full mb-4 sm:mb-6">
+            <CogIcon className="w-3 h-3 sm:w-4 sm:h-4 text-construction-600" />
             <span 
-              className="text-construction-800 text-sm font-semibold"
+              className="text-construction-800 text-xs sm:text-sm font-semibold"
               data-seo-keyword="как это работает"
             >
               Как это работает
@@ -145,7 +124,7 @@ const HowItWorks = () => {
           </div>
           
           <h2 
-            className="text-4xl md:text-6xl font-bold text-steel-900 mb-6 font-construction"
+            className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-steel-900 mb-4 sm:mb-6 font-construction"
             data-seo-keyword="внедрение системы управления строительством"
           >
             Простое внедрение <br />
@@ -155,18 +134,18 @@ const HowItWorks = () => {
           </h2>
           
           <p 
-            className="text-xl text-steel-600 max-w-3xl mx-auto"
+            className="text-sm sm:text-base md:text-lg lg:text-xl text-steel-600 max-w-3xl mx-auto"
             data-seo-keyword="быстрое внедрение CRM строительство"
           >
             От регистрации до получения первых результатов всего за несколько дней
           </p>
         </motion.div>
 
-        <div className="space-y-20 mb-24">
+        <div className="space-y-12 sm:space-y-16 lg:space-y-20 mb-12 sm:mb-16 lg:mb-24">
           {steps.map((step, index) => (
             <motion.div
               key={index}
-              className={`flex flex-col lg:flex-row items-center gap-12 ${
+              className={`flex flex-col lg:flex-row items-center gap-8 sm:gap-10 lg:gap-12 ${
                 index % 2 === 1 ? 'lg:flex-row-reverse' : ''
               }`}
               initial={{ opacity: 0, y: 50 }}
@@ -178,30 +157,30 @@ const HowItWorks = () => {
             >
               <div className="flex-1 text-center lg:text-left">
                 <div className={`
-                  inline-flex items-center gap-3 px-4 py-2 rounded-full mb-6
+                  inline-flex items-center gap-2 sm:gap-3 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-4 sm:mb-6
                   ${step.color === 'construction' ? 'bg-construction-100 text-construction-700' : ''}
                   ${step.color === 'safety' ? 'bg-safety-100 text-safety-700' : ''}
                   ${step.color === 'steel' ? 'bg-steel-100 text-steel-700' : ''}
                   ${step.color === 'earth' ? 'bg-earth-100 text-earth-700' : ''}
                 `}>
-                  <span className="text-lg font-bold">{step.step}</span>
-                  <ArrowRightIcon className="w-4 h-4" />
+                  <span className="text-sm sm:text-base lg:text-lg font-bold">{step.step}</span>
+                  <ArrowRightIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                 </div>
                 
-                <h3 className="text-3xl font-bold text-steel-900 mb-6">{step.title}</h3>
-                <p className="text-lg text-steel-600 mb-8 leading-relaxed">{step.description}</p>
+                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-steel-900 mb-4 sm:mb-6">{step.title}</h3>
+                <p className="text-sm sm:text-base lg:text-lg text-steel-600 mb-6 sm:mb-8 leading-relaxed">{step.description}</p>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {step.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
+                    <div key={idx} className="flex items-center gap-2 sm:gap-3">
                       <div className={`
-                        w-2 h-2 rounded-full
+                        w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full
                         ${step.color === 'construction' ? 'bg-construction-500' : ''}
                         ${step.color === 'safety' ? 'bg-safety-500' : ''}
                         ${step.color === 'steel' ? 'bg-steel-500' : ''}
                         ${step.color === 'earth' ? 'bg-earth-500' : ''}
                       `}></div>
-                      <span className="text-steel-700 font-medium">{feature}</span>
+                      <span className="text-steel-700 font-medium text-sm sm:text-base">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -209,25 +188,25 @@ const HowItWorks = () => {
 
               <div className="flex-1 relative">
                 <div className={`
-                  relative bg-white/90 border-2 rounded-2xl p-8 backdrop-blur-sm shadow-lg hover:scale-105 transition-all duration-300
+                  relative bg-white/90 border-2 rounded-2xl p-6 sm:p-8 backdrop-blur-sm shadow-lg hover:scale-105 transition-all duration-300
                   ${step.color === 'construction' ? 'border-construction-300 hover:shadow-construction' : ''}
                   ${step.color === 'safety' ? 'border-safety-300 hover:shadow-safety' : ''}
                   ${step.color === 'steel' ? 'border-steel-300 hover:shadow-steel' : ''}
                   ${step.color === 'earth' ? 'border-earth-300 hover:shadow-concrete' : ''}
                 `}>
                   <div className={`
-                    w-20 h-20 rounded-2xl flex items-center justify-center mb-6 mx-auto
+                    w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 mx-auto
                     ${step.color === 'construction' ? 'bg-gradient-to-br from-construction-500 to-construction-600' : ''}
                     ${step.color === 'safety' ? 'bg-gradient-to-br from-safety-500 to-safety-600' : ''}
                     ${step.color === 'steel' ? 'bg-gradient-to-br from-steel-500 to-steel-600' : ''}
                     ${step.color === 'earth' ? 'bg-gradient-to-br from-earth-500 to-earth-600' : ''}
                   `}>
-                    <step.icon className="w-10 h-10 text-white" />
+                    <step.icon className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                   </div>
                   
                   <div className="text-center">
                     <div className={`
-                      text-4xl font-bold mb-2
+                      text-3xl sm:text-4xl font-bold mb-2
                       ${step.color === 'construction' ? 'text-construction-600' : ''}
                       ${step.color === 'safety' ? 'text-safety-600' : ''}
                       ${step.color === 'steel' ? 'text-steel-600' : ''}
@@ -235,12 +214,12 @@ const HowItWorks = () => {
                     `}>
                       {step.step}
                     </div>
-                    <div className="text-steel-600 font-medium">Этап</div>
+                    <div className="text-steel-600 font-medium text-sm sm:text-base">Этап</div>
                   </div>
                 </div>
 
                 <div className={`
-                  absolute -top-6 -right-6 w-12 h-12 rounded-full blur-xl animate-pulse-construction
+                  absolute -top-3 -right-3 sm:-top-6 sm:-right-6 w-8 h-8 sm:w-12 sm:h-12 rounded-full blur-xl animate-pulse-construction
                   ${step.color === 'construction' ? 'bg-construction-400/50' : ''}
                   ${step.color === 'safety' ? 'bg-safety-400/50' : ''}
                   ${step.color === 'steel' ? 'bg-steel-400/50' : ''}
@@ -252,7 +231,7 @@ const HowItWorks = () => {
         </div>
 
         <motion.div
-          className="bg-gradient-to-r from-construction-600 to-safety-600 rounded-2xl p-12 relative overflow-hidden"
+          className="bg-gradient-to-r from-construction-600 to-safety-600 rounded-2xl p-6 sm:p-8 lg:p-12 relative overflow-hidden"
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
@@ -262,23 +241,23 @@ const HowItWorks = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-construction-600/90 to-safety-600/90"></div>
           <div className="absolute top-0 left-0 w-full h-full bg-construction-grid opacity-20"></div>
           
-          <div className="relative z-10 text-center mb-12">
+          <div className="relative z-10 text-center mb-8 sm:mb-10 lg:mb-12">
             <h3 
-              className="text-3xl md:text-4xl font-bold text-white mb-4 font-construction"
+              className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4 font-construction"
               data-seo-keyword="преимущества ProHelper цифры"
             >
               Преимущества в цифрах
             </h3>
-            <p className="text-xl text-white/90 max-w-3xl mx-auto">
+            <p className="text-sm sm:text-base lg:text-xl text-white/90 max-w-3xl mx-auto">
               Реальные показатели от наших клиентов, которые уже используют ProHelper
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 relative z-10">
             {benefits.map((benefit, index) => (
               <motion.div
                 key={index}
-                className="text-center bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20"
+                className="text-center bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: index * 0.1 }}
@@ -287,13 +266,13 @@ const HowItWorks = () => {
                 data-seo-keyword={benefit.keywords}
               >
                 <div 
-                  className="text-4xl md:text-5xl font-bold text-white mb-2"
+                  className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-2"
                   data-seo-keyword={benefit.keywords}
                 >
                   {benefit.number}
                 </div>
-                <h4 className="text-lg font-semibold text-white mb-2">{benefit.title}</h4>
-                <p className="text-white/80 text-sm">{benefit.description}</p>
+                <h4 className="text-sm sm:text-base lg:text-lg font-semibold text-white mb-2">{benefit.title}</h4>
+                <p className="text-white/80 text-xs sm:text-sm">{benefit.description}</p>
               </motion.div>
             ))}
           </div>
