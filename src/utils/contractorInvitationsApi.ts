@@ -29,7 +29,10 @@ const contractorInvitationsApi = axios.create({
 contractorInvitationsApi.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('authToken');
-    if (token && config.headers) {
+    if (token) {
+      if (!config.headers) {
+        config.headers = {};
+      }
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -76,9 +79,10 @@ export const contractorInvitationsService = {
       params.append('per_page', filters.per_page.toString());
     }
 
-    const response = await contractorInvitationsApi.get(
-      `/contractor-invitations?${params.toString()}`
-    );
+    const queryString = params.toString();
+    const endpoint = queryString ? `/contractor-invitations?${queryString}` : '/contractor-invitations';
+
+    const response = await contractorInvitationsApi.get(endpoint);
     
     return (response.data as { data: InvitationListResponse }).data;
   },
