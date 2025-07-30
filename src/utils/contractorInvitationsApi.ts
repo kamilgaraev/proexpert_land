@@ -80,7 +80,7 @@ export const contractorInvitationsService = {
       `/contractor-invitations?${params.toString()}`
     );
     
-    return response.data.data as InvitationListResponse;
+    return (response.data as { data: InvitationListResponse }).data;
   },
 
   /**
@@ -91,7 +91,7 @@ export const contractorInvitationsService = {
       `/contractor-invitations/${token}`
     );
     
-    return response.data.data as ContractorInvitation;
+    return (response.data as { data: ContractorInvitation }).data;
   },
 
   /**
@@ -102,7 +102,7 @@ export const contractorInvitationsService = {
       `/contractor-invitations/${token}/accept`
     );
     
-    return response.data.data as InvitationAcceptResponse;
+    return (response.data as { data: InvitationAcceptResponse }).data;
   },
 
   /**
@@ -130,7 +130,7 @@ export const contractorInvitationsService = {
       '/contractor-invitations/stats'
     );
     
-    return response.data.data as InvitationStats;
+    return (response.data as { data: InvitationStats }).data;
   },
 
   /**
@@ -141,7 +141,7 @@ export const contractorInvitationsService = {
       `/contractor-invitations/id/${id}`
     );
     
-    return response.data.data as ContractorInvitation;
+    return (response.data as { data: ContractorInvitation }).data;
   },
 };
 
