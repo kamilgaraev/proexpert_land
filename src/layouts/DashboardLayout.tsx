@@ -17,7 +17,8 @@ import {
   ShieldCheckIcon,
   ChartPieIcon,
   PuzzlePieceIcon,
-  BuildingOffice2Icon
+  BuildingOffice2Icon,
+  EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
 import { useModules } from '@hooks/useModules';
@@ -141,6 +142,12 @@ const DashboardLayout = () => {
         href: '/dashboard/modules', 
         icon: PuzzlePieceIcon,
         description: 'Модули организации'
+      },
+      { 
+        name: 'Приглашения', 
+        href: '/dashboard/contractor-invitations', 
+        icon: EnvelopeIcon,
+        description: 'Приглашения подрядчиков'
       }
     ];
 

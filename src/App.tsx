@@ -27,6 +27,10 @@ import ModulesPage from '@pages/dashboard/ModulesPage';
 import MultiOrganizationPage from '@pages/dashboard/MultiOrganizationPage';
 import HoldingRouter from '@/HoldingRouter';
 
+// Contractor Invitations
+import ContractorInvitationsPage from '@pages/dashboard/contractor-invitations/ContractorInvitationsPage';
+import ContractorInvitationTokenPage from '@pages/dashboard/contractor-invitations/ContractorInvitationTokenPage';
+
 // Новые страницы
 import IntegrationsPage from '@pages/product/IntegrationsPage';
 import ApiPage from '@pages/product/ApiPage';
@@ -197,6 +201,10 @@ function App() {
           <Route path="modules" element={<ModulesPage />} />
           <Route path="multi-organization" element={<MultiOrganizationPage />} />
           <Route path="organization" element={<OrganizationPage />} />
+          
+          {/* Приглашения подрядчиков */}
+          <Route path="contractor-invitations" element={<ContractorInvitationsPage />} />
+          <Route path="contractor-invitations/token/:token" element={<ContractorInvitationTokenPage />} />
         </Route>
         
         {/* Административные маршруты */}
