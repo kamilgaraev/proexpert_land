@@ -108,7 +108,62 @@ export const getPageSEOData = (page: string): PageSEOData => {
     }
   };
 
-  return seoData[page] || seoData.home;
+  if (seoData[page]) {
+    return seoData[page];
+  }
+
+  const canonicalUrl = `${baseUrl}/${page}`.replace(/\/+$/g, '');
+
+  const toTitleCase = (s: string) => s
+    .split('-')
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(' ');
+
+  if (page.startsWith('blog/category/')) {
+    const slug = decodeURIComponent(page.replace('blog/category/', '')) || 'Категория';
+    const name = toTitleCase(slug);
+    return {
+      title: `Блог ProHelper — Категория: ${name}`,
+      description: `Статьи блога ProHelper по категории «${name}»: автоматизация строительства, учет материалов, управление проектами.`,
+      keywords: `блог строительство категория ${slug}, статьи ProHelper ${slug}`,
+      canonicalUrl
+    };
+  }
+
+  if (page.startsWith('blog/tag/')) {
+    const slug = decodeURIComponent(page.replace('blog/tag/', '')) || 'Тег';
+    const name = toTitleCase(slug);
+    return {
+      title: `Блог ProHelper — Тег: ${name}`,
+      description: `Материалы с тегом «${name}»: учет материалов, цифровизация стройки, управление проектами.`,
+      keywords: `блог строительство тег ${slug}, ProHelper ${slug}`,
+      canonicalUrl
+    };
+  }
+
+  if (page.startsWith('blog/')) {
+    const slug = decodeURIComponent(page.replace('blog/', '')) || 'Статья';
+    const name = toTitleCase(slug);
+    return {
+      title: `Блог ProHelper — ${name}`,
+      description: `Статья «${name}» в блоге ProHelper: технологии для учета материалов и управления строительством.`,
+      keywords: `блог ProHelper ${slug}, строительство ${slug}`,
+      canonicalUrl
+    };
+  }
+
+  // Фоллбек для неизвестных путей — делаем тайтл уникальным по слагу
+  if (page && page !== 'home') {
+    const last = toTitleCase(decodeURIComponent(page.split('/').pop() || '')) || 'Страница';
+    return {
+      title: `ProHelper — ${last}`,
+      description: `Страница «${last}» платформы ProHelper: цифровые инструменты для учета материалов и управления строительными проектами.`,
+      keywords: `ProHelper ${last}, управление строительством, учет материалов, автоматизация стройки`,
+      canonicalUrl
+    } as PageSEOData;
+  }
+
+  return seoData.home;
 };
 
 export const generateOrganizationSchema = () => ({
