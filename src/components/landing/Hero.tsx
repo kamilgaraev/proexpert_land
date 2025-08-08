@@ -32,7 +32,7 @@ const Hero = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-concrete-50 via-concrete-100 to-steel-100 relative overflow-hidden">
+    <div className="min-h-[100svh] bg-gradient-to-br from-concrete-50 via-concrete-100 to-steel-100 relative overflow-hidden">
       <div className="absolute inset-0 bg-construction-grid opacity-30"></div>
       
       <div className="absolute top-4 left-4 sm:top-10 sm:left-10 w-32 h-32 sm:w-72 sm:h-72 bg-construction-500/20 rounded-full blur-3xl animate-pulse-construction"></div>

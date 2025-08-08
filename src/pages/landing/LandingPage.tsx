@@ -36,7 +36,7 @@ const LandingPage = () => {
   addFAQSchema(faqs);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cyber-bg to-slate-900">
+    <div className="min-h-[100svh] bg-gradient-to-b from-cyber-bg to-slate-900">
       <Navbar />
       <div className="pt-16">
         <Hero />

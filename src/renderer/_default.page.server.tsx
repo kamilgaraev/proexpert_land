@@ -84,6 +84,7 @@ export async function render(pageContext: PageContextServer) {
     <html lang="ru">
       <head>
         <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         ${escapeInject`<title>${title}</title>`}
         ${dangerouslySkipEscape(allMeta)}
         <link rel="canonical" href="${canonicalUrl}" />
