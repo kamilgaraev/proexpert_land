@@ -9,7 +9,6 @@ on:
       - 'server/**'
       - 'vite.config.ts'
       - 'package.json'
-      - '.github/workflows/deploy-ssh.yml'
 
 jobs:
   deploy:
