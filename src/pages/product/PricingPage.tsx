@@ -149,11 +149,11 @@ const PricingPage = () => {
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-5 gap-4 max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
               {plans.map((plan, index) => (
                 <div 
                   key={index} 
-                  className={`relative rounded-2xl p-8 ${
+                  className={`relative rounded-2xl p-6 min-h-[520px] flex flex-col ${
                     plan.featured 
                       ? 'bg-gradient-to-b from-construction-50 to-white border-2 border-construction-500 shadow-xl' 
                       : 'bg-white border border-slate-200 shadow-sm'
@@ -168,42 +168,42 @@ const PricingPage = () => {
                     </div>
                   )}
 
-                  <div className="text-center mb-8">
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2">{plan.name}</h3>
-                    <p className="text-slate-600 mb-4">{plan.description}</p>
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h3>
+                    <p className="text-slate-600 mb-4 text-sm">{plan.description}</p>
                     
-                    <div className="mb-6">
-                      <span className="text-4xl font-bold text-slate-900">{plan.price}</span>
-                      {plan.period && <span className="text-slate-600 ml-1">{plan.period}</span>}
+                    <div className="mb-4">
+                      <span className="text-3xl font-bold text-slate-900">{plan.price}</span>
+                      {plan.period && <span className="text-slate-600 ml-1 text-sm">{plan.period}</span>}
                     </div>
-
-                    <a 
-                      href={plan.href}
-                      className={`w-full inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold transition-all ${
-                        plan.featured
-                          ? 'bg-construction-500 text-white hover:bg-construction-600 shadow-lg'
-                          : 'bg-slate-900 text-white hover:bg-slate-800'
-                      }`}
-                    >
-                      {plan.cta}
-                      <ArrowRightIcon className="w-4 h-4 ml-2" />
-                    </a>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-3 mb-6 flex-grow">
                     {plan.features.map((feature, idx) => (
                       <div key={idx} className="flex items-center">
                         {feature.included ? (
-                          <CheckIcon className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
+                          <CheckIcon className="w-4 h-4 text-emerald-500 mr-3 flex-shrink-0" />
                         ) : (
-                          <XMarkIcon className="w-5 h-5 text-slate-300 mr-3 flex-shrink-0" />
+                          <XMarkIcon className="w-4 h-4 text-slate-300 mr-3 flex-shrink-0" />
                         )}
-                        <span className={feature.included ? 'text-slate-700' : 'text-slate-400'}>
+                        <span className={`text-sm ${feature.included ? 'text-slate-700' : 'text-slate-400'}`}>
                           {feature.name}
                         </span>
                       </div>
                     ))}
                   </div>
+
+                  <a 
+                    href={plan.href}
+                    className={`w-full inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold transition-all text-sm ${
+                      plan.featured
+                        ? 'bg-construction-500 text-white hover:bg-construction-600 shadow-lg'
+                        : 'bg-slate-900 text-white hover:bg-slate-800'
+                    }`}
+                  >
+                    {plan.cta}
+                    <ArrowRightIcon className="w-4 h-4 ml-2" />
+                  </a>
                 </div>
               ))}
             </div>

@@ -195,7 +195,7 @@ const Pricing = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-4 mb-12 sm:mb-16 lg:mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12 sm:mb-16 lg:mb-20">
           {plans.map((plan, index) => (
             <motion.div
               key={index}
@@ -220,56 +220,56 @@ const Pricing = () => {
               )}
               
               <div className={`
-                bg-white/90 border-2 rounded-2xl p-4 sm:p-6 lg:p-8 backdrop-blur-sm transition-all duration-300 hover:scale-105 h-full flex flex-col
+                bg-white/90 border-2 rounded-2xl p-6 lg:p-6 backdrop-blur-sm transition-all duration-300 hover:scale-105 h-full flex flex-col min-h-[500px] lg:min-h-[520px]
                 ${plan.popular ? 'border-construction-400 shadow-construction' : 'border-steel-200 hover:border-construction-300'}
                 ${plan.color === 'construction' ? 'hover:shadow-construction' : ''}
                 ${plan.color === 'safety' ? 'hover:shadow-safety' : ''}
                 ${plan.color === 'concrete' ? 'hover:shadow-concrete' : ''}
                 ${plan.color === 'steel' ? 'hover:shadow-steel' : ''}
               `}>
-                <div className="text-center mb-4 sm:mb-6 lg:mb-8">
+                <div className="text-center mb-6">
                   <div className={`
-                    w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-2xl flex items-center justify-center mb-3 sm:mb-4 mx-auto
+                    w-12 h-12 rounded-2xl flex items-center justify-center mb-4 mx-auto
                     ${plan.color === 'construction' ? 'bg-gradient-to-br from-construction-500 to-construction-600' : ''}
                     ${plan.color === 'safety' ? 'bg-gradient-to-br from-safety-500 to-safety-600' : ''}
                     ${plan.color === 'concrete' ? 'bg-gradient-to-br from-concrete-500 to-concrete-600' : ''}
                     ${plan.color === 'steel' ? 'bg-gradient-to-br from-steel-500 to-steel-600' : ''}
                   `}>
-                    <plan.icon className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" />
+                    <plan.icon className="w-6 h-6 text-white" />
                   </div>
                   
                   <h3 
-                    className="text-lg sm:text-xl lg:text-2xl font-bold text-steel-900 mb-2"
+                    className="text-xl font-bold text-steel-900 mb-2"
                     data-seo-keyword={plan.keywords}
                   >
                     {plan.name}
                   </h3>
-                  <p className="text-steel-600 mb-4 sm:mb-6 text-sm sm:text-base">{plan.description}</p>
+                  <p className="text-steel-600 mb-4 text-sm">{plan.description}</p>
                   
-                  <div className="mb-4 sm:mb-6">
+                  <div className="mb-4">
                     <span 
-                      className="text-2xl sm:text-3xl lg:text-4xl font-bold text-steel-900"
+                      className="text-3xl font-bold text-steel-900"
                       data-seo-keyword="цена план"
                     >
                       {plan.price}
                     </span>
                     {plan.period && (
-                      <span className="text-steel-600 ml-2 text-xs sm:text-sm lg:text-base">/ {plan.period}</span>
+                      <span className="text-steel-600 ml-2 text-sm">/ {plan.period}</span>
                     )}
                   </div>
                 </div>
 
-                <div className="space-y-2 sm:space-y-3 lg:space-y-4 mb-6 sm:mb-8 flex-grow">
+                <div className="space-y-3 mb-6 flex-grow">
                   {plan.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-start gap-2 sm:gap-3">
-                      <CheckIcon className="w-4 h-4 sm:w-5 sm:h-5 text-construction-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-steel-700 text-sm sm:text-base">{feature}</span>
+                    <div key={idx} className="flex items-start gap-3">
+                      <CheckIcon className="w-4 h-4 text-construction-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-steel-700 text-sm">{feature}</span>
                     </div>
                   ))}
                   {plan.limitations.map((limitation, idx) => (
-                    <div key={idx} className="flex items-start gap-2 sm:gap-3">
-                      <XMarkIcon className="w-4 h-4 sm:w-5 sm:h-5 text-steel-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-steel-500 text-sm sm:text-base">{limitation}</span>
+                    <div key={idx} className="flex items-start gap-3">
+                      <XMarkIcon className="w-4 h-4 text-steel-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-steel-500 text-sm">{limitation}</span>
                     </div>
                   ))}
                 </div>
@@ -278,8 +278,8 @@ const Pricing = () => {
                   to="/register"
                   onClick={() => handlePlanClick(plan.name)}
                   className={`
-                    w-full px-4 py-3 sm:px-6 sm:py-3 lg:px-8 lg:py-4 rounded-lg font-semibold transition-all duration-300 
-                    hover:scale-105 text-center text-sm sm:text-base ${plan.buttonStyle}
+                    w-full px-6 py-3 rounded-lg font-semibold transition-all duration-300 
+                    hover:scale-105 text-center text-sm ${plan.buttonStyle}
                   `}
                   data-seo-track="pricing_plan_click"
                   data-seo-keyword={plan.keywords}
