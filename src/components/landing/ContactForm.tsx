@@ -71,24 +71,41 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Простая валидация
-    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
-      NotificationService.show({
-        type: 'error',
-        title: 'Ошибка',
-        message: 'Пожалуйста, заполните все обязательные поля'
-      });
-      setIsSubmitting(false);
-      return;
+    // Валидация на клиенте
+    const errors: string[] = [];
+
+    // Обязательные поля
+    if (!formData.name.trim() || formData.name.length < 2 || formData.name.length > 255) {
+      errors.push('Имя должно содержать от 2 до 255 символов');
     }
 
-    // Валидация email
+    if (!formData.email.trim() || formData.email.length > 255) {
+      errors.push('Email обязателен и не должен превышать 255 символов');
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
+    if (formData.email && !emailRegex.test(formData.email)) {
+      errors.push('Введите корректный email адрес');
+    }
+
+    if (!formData.message.trim() || formData.message.length < 10 || formData.message.length > 5000) {
+      errors.push('Сообщение должно содержать от 10 до 5000 символов');
+    }
+
+    // Необязательные поля
+    if (formData.phone && (formData.phone.length > 20 || !/^[\d\s\-\+\(\)]+$/.test(formData.phone))) {
+      errors.push('Телефон должен содержать только цифры, скобки, пробелы, дефисы и плюс (до 20 символов)');
+    }
+
+    if (formData.company && formData.company.length > 255) {
+      errors.push('Название компании не должно превышать 255 символов');
+    }
+
+    if (errors.length > 0) {
       NotificationService.show({
         type: 'error',
-        title: 'Ошибка',
-        message: 'Пожалуйста, введите корректный email'
+        title: 'Ошибка валидации',
+        message: errors.join('; ')
       });
       setIsSubmitting(false);
       return;
@@ -103,36 +120,86 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
         timestamp: new Date().toISOString()
       });
 
-      // TODO: Заменить на реальный API вызов
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      console.log('Отправлены данные формы:', formData);
-      
-      setIsSubmitted(true);
-      NotificationService.show({
-        type: 'success',
-        title: 'Спасибо за обращение!',
-        message: 'Мы свяжемся с вами в течение рабочего дня'
+      // Найти название темы для отправки
+      const selectedSubject = subjects.find(s => s.value === formData.subject);
+      const subjectLabel = selectedSubject ? selectedSubject.label : formData.subject;
+
+      // Подготовка данных для API
+      const apiData = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim() || undefined,
+        company: formData.company.trim() || undefined,
+        subject: subjectLabel,
+        message: formData.message.trim()
+      };
+
+      // Удаляем undefined поля
+      Object.keys(apiData).forEach(key => {
+        if (apiData[key as keyof typeof apiData] === undefined) {
+          delete apiData[key as keyof typeof apiData];
+        }
       });
 
-      // Сброс формы
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        company: '',
-        message: '',
-        subject: 'consultation'
+      // Отправка на API
+      const response = await fetch('/api/public/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(apiData)
       });
 
-      // Убираем состояние "отправлено" через 3 секунды
-      setTimeout(() => setIsSubmitted(false), 3000);
+      const result = await response.json();
+
+      if (result.success) {
+        setIsSubmitted(true);
+        NotificationService.show({
+          type: 'success',
+          title: 'Спасибо за обращение!',
+          message: result.message || 'Мы свяжемся с вами в ближайшее время'
+        });
+
+        // Сброс формы
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          company: '',
+          message: '',
+          subject: 'consultation'
+        });
+
+        // Убираем состояние "отправлено" через 3 секунды
+        setTimeout(() => setIsSubmitted(false), 3000);
+      } else {
+        // Обработка ошибок валидации
+        if (response.status === 422 && result.errors) {
+          const errorMessages = Object.values(result.errors)
+            .flat()
+            .join('; ');
+          
+          NotificationService.show({
+            type: 'error',
+            title: 'Ошибка валидации',
+            message: errorMessages
+          });
+        } else {
+          NotificationService.show({
+            type: 'error',
+            title: 'Ошибка отправки',
+            message: result.message || 'Произошла ошибка при отправке заявки'
+          });
+        }
+      }
       
     } catch (error) {
+      console.error('Ошибка отправки формы:', error);
       NotificationService.show({
         type: 'error',
-        title: 'Ошибка отправки',
-        message: 'Попробуйте еще раз или свяжитесь с нами по телефону'
+        title: 'Ошибка соединения',
+        message: 'Не удалось отправить заявку. Проверьте интернет-соединение или попробуйте позже'
       });
     } finally {
       setIsSubmitting(false);
@@ -185,7 +252,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
               name="message"
               value={formData.message}
               onChange={handleInputChange}
-              placeholder="Ваш вопрос *"
+              placeholder="Ваш вопрос (минимум 10 символов) *"
               rows={3}
               className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors resize-vertical"
               required
@@ -289,7 +356,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
-              placeholder="+7 (___) ___-__-__"
+              placeholder="+7 (900) 123-45-67"
               className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
             />
           </div>
@@ -330,7 +397,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
             name="message"
             value={formData.message}
             onChange={handleInputChange}
-            placeholder="Расскажите подробнее о ваших потребностях и вопросах..."
+            placeholder="Расскажите подробнее о ваших потребностях и вопросах (минимум 10 символов)..."
             rows={5}
             className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors resize-vertical"
             required
