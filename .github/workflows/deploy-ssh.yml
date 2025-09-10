@@ -10,7 +10,7 @@ jobs:
 
     env:
       TARGET_PATH: /var/www/prohelper_marketing
-      NODE_VERSION: '20'
+      NODE_VERSION: '22'
 
     steps:
       - name: Checkout repository
