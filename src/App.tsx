@@ -33,7 +33,6 @@ import ContractorInvitationTokenPage from '@pages/dashboard/contractor-invitatio
 
 // Новые страницы
 import IntegrationsPage from '@pages/product/IntegrationsPage';
-import ApiPage from '@pages/product/ApiPage';
 import FeaturesPage from '@pages/product/FeaturesPage';
 import PricingPage from '@pages/product/PricingPage';
 import SmallBusinessPage from '@pages/solutions/SmallBusinessPage';
@@ -154,7 +153,6 @@ function App() {
         <Route path="/features" element={<FeaturesPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/integrations" element={<IntegrationsPage />} />
-        <Route path="/api" element={<ApiPage />} />
         
         {/* Страницы решений */}
         <Route path="/small-business" element={<SmallBusinessPage />} />

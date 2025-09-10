@@ -40,19 +40,6 @@ const DocsPage = () => {
       ]
     },
     {
-      title: 'API документация',
-      icon: CodeBracketIcon,
-      description: 'Техническая документация для разработчиков',
-      items: [
-        'Аутентификация',
-        'Endpoints справочник',
-        'Примеры запросов',
-        'SDK и библиотеки',
-        'Webhooks',
-        'Rate limiting'
-      ]
-    },
-    {
       title: 'Интеграции',
       icon: WrenchScrewdriverIcon,
       description: 'Подключение к внешним системам',
@@ -85,7 +72,6 @@ const DocsPage = () => {
     { title: 'Добавление задач', href: '/docs/tasks/add' },
     { title: 'Настройка ролей', href: '/docs/users/roles' },
     { title: 'Генерация отчетов', href: '/docs/reports/generate' },
-    { title: 'API ключи', href: '/docs/api/keys' },
     { title: 'Мобильное приложение', href: '/docs/mobile/setup' }
   ];
 
