@@ -75,6 +75,9 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       return;
     }
     
+    console.log('🚀 Form submit started, variant:', variant);
+    console.log('📝 Form data:', formData);
+    
     setIsSubmitting(true);
 
     // Валидация на клиенте
@@ -98,6 +101,15 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       errors.push('Сообщение должно содержать от 10 до 5000 символов');
     }
 
+    // Проверка subject для полной формы
+    if (variant === 'full') {
+      const selectedSubject = subjects.find(s => s.value === formData.subject);
+      const subjectLabel = selectedSubject ? selectedSubject.label : formData.subject;
+      if (!subjectLabel || subjectLabel.length < 5 || subjectLabel.length > 255) {
+        errors.push('Выберите тему обращения');
+      }
+    }
+
     // Необязательные поля
     if (formData.phone && (formData.phone.length > 20 || !/^[\d\s\-\+\(\)]+$/.test(formData.phone))) {
       errors.push('Телефон должен содержать только цифры, скобки, пробелы, дефисы и плюс (до 20 символов)');
@@ -108,6 +120,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     }
 
     if (errors.length > 0) {
+      console.log('❌ Validation errors:', errors);
       NotificationService.show({
         type: 'error',
         title: 'Ошибка валидации',
@@ -116,6 +129,8 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       setIsSubmitting(false);
       return;
     }
+
+    console.log('✅ Validation passed');
 
     try {
       // Трекинг аналитики (только на клиенте)
@@ -131,7 +146,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
 
       // Найти название темы для отправки
       const selectedSubject = subjects.find(s => s.value === formData.subject);
-      const subjectLabel = selectedSubject ? selectedSubject.label : formData.subject;
+      const subjectLabel = selectedSubject ? selectedSubject.label : (variant === 'compact' ? 'Общий вопрос' : formData.subject);
 
       // Подготовка данных для API
       const apiData = {
@@ -151,7 +166,8 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       });
 
       // Отправка на API
-      const response = await fetch('/api/public/contact', {
+      console.log('📤 Sending API request with data:', apiData);
+      const response = await fetch('https://api.prohelper.pro/api/public/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -160,7 +176,9 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
         body: JSON.stringify(apiData)
       });
 
+      console.log('📥 API response status:', response.status);
       const result = await response.json();
+      console.log('📋 API response data:', result);
 
       if (result.success) {
         setIsSubmitted(true);
@@ -205,7 +223,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       
     } catch (error) {
       if (typeof window !== 'undefined') {
-        console.error('Ошибка отправки формы:', error);
+        console.error('❌ Form submission error:', error);
       }
       NotificationService.show({
         type: 'error',
@@ -213,6 +231,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
         message: 'Не удалось отправить заявку. Проверьте интернет-соединение или попробуйте позже'
       });
     } finally {
+      console.log('🔄 Resetting isSubmitting');
       setIsSubmitting(false);
     }
   };
@@ -234,6 +253,8 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Скрытое поле для темы в компактной форме */}
+          <input type="hidden" name="subject" value="consultation" />
           <div>
             <input
               type="text"
