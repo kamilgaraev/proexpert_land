@@ -71,19 +71,12 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('🔥 handleSubmit called! Event:', e);
-    console.log('🔥 Form variant:', variant);
-    
     e.preventDefault();
     
     // Не обрабатываем форму на сервере
     if (typeof window === 'undefined') {
-      console.log('🔥 Window undefined, returning');
       return;
     }
-    
-    console.log('🚀 Form submit started, variant:', variant);
-    console.log('📝 Form data:', formData);
     
     setIsSubmitting(true);
 
@@ -127,7 +120,6 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     }
 
     if (errors.length > 0) {
-      console.log('❌ Validation errors:', errors);
       NotificationService.show({
         type: 'error',
         title: 'Ошибка валидации',
@@ -136,8 +128,6 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       setIsSubmitting(false);
       return;
     }
-
-    console.log('✅ Validation passed');
 
     try {
       // Трекинг аналитики (только на клиенте)
@@ -173,7 +163,6 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       });
 
       // Отправка на API
-      console.log('📤 Sending API request with data:', apiData);
       const response = await fetch('https://api.prohelper.pro/api/public/contact', {
         method: 'POST',
         headers: {
@@ -183,9 +172,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
         body: JSON.stringify(apiData)
       });
 
-      console.log('📥 API response status:', response.status);
       const result = await response.json();
-      console.log('📋 API response data:', result);
 
        if (result.success) {
          setIsSubmitted(true);
@@ -226,16 +213,12 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       }
       
     } catch (error) {
-      if (typeof window !== 'undefined') {
-        console.error('❌ Form submission error:', error);
-      }
       NotificationService.show({
         type: 'error',
         title: 'Ошибка соединения',
         message: 'Не удалось отправить заявку. Проверьте интернет-соединение или попробуйте позже'
       });
     } finally {
-      console.log('🔄 Resetting isSubmitting');
       setIsSubmitting(false);
     }
   };
@@ -355,13 +338,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
         </p>
       </div>
 
-       <form 
-         onSubmit={(e) => {
-           console.log('🔥 BIG FORM onSubmit event fired!', e);
-           handleSubmit(e);
-         }} 
-         className="space-y-6"
-       >
+       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block text-steel-700 font-medium mb-2">
@@ -473,12 +450,6 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
          <button
            type="submit"
            disabled={isSubmitting || isSubmitted}
-           onClick={(e) => {
-             console.log('🔥 BIG FORM button clicked!', e);
-             console.log('🔥 Button type:', e.currentTarget.type);
-             console.log('🔥 isSubmitting:', isSubmitting);
-             console.log('🔥 isSubmitted:', isSubmitted);
-           }}
            className={`w-full flex items-center justify-center gap-3 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
              isSubmitted
                ? 'bg-green-500 text-white cursor-default'
