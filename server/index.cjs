@@ -59,4 +59,5 @@ const server = http.createServer(async (req, res) => {
 const port = process.env.PORT || 3001;
 server.listen(port, () => {
   console.log(`SSR server listening on ${port}`);
+  console.log('Marketing SSR server started with unified workflow');
 });
