@@ -25,6 +25,7 @@ jobs:
               - 'src/**'
               - 'public/**'
               - '!src/renderer/**'
+              - '!server/**'
 
   deploy-marketing:
     needs: detect-changes
