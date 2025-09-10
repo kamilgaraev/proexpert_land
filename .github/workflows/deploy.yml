@@ -1,21 +1,38 @@
-name: Deploy Marketing via SSH
+name: Deploy ProHelper
 
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'src/pages/**'
-      - 'src/renderer/**'  
-      - 'server/**'
 
 jobs:
-  deploy:
+  detect-changes:
     runs-on: ubuntu-latest
+    outputs:
+      marketing: ${{ steps.changes.outputs.marketing }}
+      lk: ${{ steps.changes.outputs.lk }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Detect changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            marketing:
+              - 'src/renderer/**'
+              - 'server/**'
+            lk:
+              - 'src/**'
+              - 'public/**'
+              - '!src/renderer/**'
 
+  deploy-marketing:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.marketing == 'true'
+    runs-on: ubuntu-latest
     env:
       TARGET_PATH: /var/www/prohelper_marketing
       NODE_VERSION: '22'
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,20 +45,15 @@ jobs:
 
       - name: Install dependencies & build SSR
         run: |
-          # Полная очистка локальной копии зависимостей
           rm -rf node_modules package-lock.json || true
           npm install --include=dev --no-audit --no-fund
           chmod +x node_modules/.bin/* || true
-          npm run build:marketing   # vike build + copy-manifest
+          npm run build:marketing
 
       - name: Pack artefacts
         run: |
-          # Копируем runtime package.json + lock внутрь dist,
-          # чтобы после распаковки на сервере можно было установить зависимости.
           cp package.json dist/
           if [ -f package-lock.json ]; then cp package-lock.json dist/; fi
-
-          # Пакуем client, server и package*.json. Каталог prerender может отсутствовать.
           if [ -d dist/prerender ]; then
             tar -czf marketing.tgz -C dist client prerender server assets.json package.json package-lock.json || true
           else
@@ -66,7 +78,6 @@ jobs:
           script: |
             set -e
             TARGET_PATH=${{ env.TARGET_PATH }}
-            # Удаляем предыдущие раскладки
             rm -rf /tmp/marketing.tgz.dir || true
             mkdir -p $TARGET_PATH
             if [ -f /tmp/marketing.tgz ]; then
@@ -75,16 +86,56 @@ jobs:
             else
               echo "Файл /tmp/marketing.tgz не найден" && exit 1
             fi
-            # Если после раскладки есть SSR-сервер, устанавливаем deps и (ре)стартуем pm2
             if [ -d "$TARGET_PATH/server" ]; then
-              # Устанавливаем runtime-зависимости в корень, чтобы server/* видел ../../node_modules
               cd "$TARGET_PATH"
                 npm install --omit=dev --no-audit --no-fund
-
-              # Перезапускаем SSR: удаляем старый процесс (если есть) и создаём заново
               pm2 delete prohelper-ssr || true
               PORT=3001 pm2 start "$TARGET_PATH/server/index.cjs" --name prohelper-ssr --time
               pm2 save
             else
               echo "SSR-entry не найден — деплой только статики, pm2 не требуется."
             fi 
+
+  deploy-lk:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.lk == 'true'
+    runs-on: ubuntu-latest
+    env:
+      TARGET_PATH: /var/www/prohelper_lk
+      NODE_VERSION: '22'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies & build LK
+        run: |
+          rm -rf node_modules package-lock.json || true
+          npm install --include=dev --no-audit --no-fund
+          chmod +x node_modules/.bin/* || true
+          npm run build:lk
+
+      - name: Upload artefacts to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          key: ${{ secrets.SSH_KEY }}
+          username: root
+          source: "dist-lk/**"
+          target: "/var/www/prohelper_lk/"
+          strip_components: 1
+
+      - name: Clean old files on server (optional)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          key: ${{ secrets.SSH_KEY }}
+          username: root
+          script: |
+            set -e
+            mkdir -p /var/www/prohelper_lk
