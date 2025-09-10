@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import NotificationService from '@components/shared/NotificationService';
 import CustomSelect from '@components/shared/CustomSelect';
+import SuccessModal from '@components/shared/SuccessModal';
 import useAnalytics from '@hooks/useAnalytics';
 
 interface ContactFormData {
@@ -46,6 +47,8 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const { trackContactForm, trackButtonClick } = useAnalytics();
 
   const subjects = [
@@ -68,10 +71,14 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('🔥 handleSubmit called! Event:', e);
+    console.log('🔥 Form variant:', variant);
+    
     e.preventDefault();
     
     // Не обрабатываем форму на сервере
     if (typeof window === 'undefined') {
+      console.log('🔥 Window undefined, returning');
       return;
     }
     
@@ -180,26 +187,23 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       const result = await response.json();
       console.log('📋 API response data:', result);
 
-      if (result.success) {
-        setIsSubmitted(true);
-        NotificationService.show({
-          type: 'success',
-          title: 'Спасибо за обращение!',
-          message: result.message || 'Мы свяжемся с вами в ближайшее время'
-        });
+       if (result.success) {
+         setIsSubmitted(true);
+         setSuccessMessage(result.message || 'Мы свяжемся с вами в ближайшее время');
+         setShowSuccessModal(true);
 
-        // Сброс формы
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          company: '',
-          message: '',
-          subject: 'consultation'
-        });
+         // Сброс формы
+         setFormData({
+           name: '',
+           email: '',
+           phone: '',
+           company: '',
+           message: '',
+           subject: 'consultation'
+         });
 
-        // Убираем состояние "отправлено" через 3 секунды
-        setTimeout(() => setIsSubmitted(false), 3000);
+         // Убираем состояние "отправлено" через 3 секунды
+         setTimeout(() => setIsSubmitted(false), 3000);
       } else {
         // Обработка ошибок валидации
         if (response.status === 422 && result.errors) {
@@ -279,17 +283,20 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
             />
           </div>
 
-          <div>
-            <textarea
-              name="message"
-              value={formData.message}
-              onChange={handleInputChange}
-              placeholder="Ваш вопрос (минимум 10 символов) *"
-              rows={3}
-              className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors resize-vertical"
-              required
-            />
-          </div>
+           <div>
+             <textarea
+               name="message"
+               value={formData.message}
+               onChange={handleInputChange}
+               placeholder="Ваш вопрос (минимум 10 символов) *"
+               rows={3}
+               className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors resize-vertical text-steel-900 placeholder-steel-500"
+               required
+             />
+             <div className="mt-1 text-xs text-steel-500">
+               Минимум 10 символов {formData.message.length > 0 && `(введено: ${formData.message.length})`}
+             </div>
+           </div>
 
           <button
             type="submit"
@@ -318,11 +325,18 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
                 Отправить
               </>
             )}
-          </button>
-        </form>
-      </motion.div>
-    );
-  }
+           </button>
+         </form>
+         
+         <SuccessModal
+           isOpen={showSuccessModal}
+           onClose={() => setShowSuccessModal(false)}
+           title="Спасибо за обращение!"
+           message={successMessage}
+         />
+       </motion.div>
+     );
+   }
 
   return (
     <motion.div
@@ -341,22 +355,31 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+       <form 
+         onSubmit={(e) => {
+           console.log('🔥 BIG FORM onSubmit event fired!', e);
+           handleSubmit(e);
+         }} 
+         className="space-y-6"
+       >
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block text-steel-700 font-medium mb-2">
               <UserIcon className="w-4 h-4 inline mr-2" />
               Имя *
             </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Введите ваше имя"
-              className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-              required
-            />
+             <input
+               type="text"
+               name="name"
+               value={formData.name}
+               onChange={handleInputChange}
+               placeholder="Введите ваше имя"
+               className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
+               required
+             />
+             <div className="mt-1 text-xs text-steel-500">
+               Минимум 2 символа {formData.name.length > 0 && `(введено: ${formData.name.length})`}
+             </div>
           </div>
           
           <div>
@@ -424,15 +447,18 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
           <label className="block text-steel-700 font-medium mb-2">
             Сообщение *
           </label>
-          <textarea
-            name="message"
-            value={formData.message}
-            onChange={handleInputChange}
-            placeholder="Расскажите подробнее о ваших потребностях и вопросах (минимум 10 символов)..."
-            rows={5}
-            className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors resize-vertical"
-            required
-          />
+           <textarea
+             name="message"
+             value={formData.message}
+             onChange={handleInputChange}
+             placeholder="Расскажите подробнее о ваших потребностях и вопросах..."
+             rows={5}
+             className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors resize-vertical text-steel-900 placeholder-steel-500"
+             required
+           />
+           <div className="mt-1 text-xs text-steel-500">
+             Минимум 10 символов, максимум 5000 {formData.message.length > 0 && `(введено: ${formData.message.length})`}
+           </div>
         </div>
 
         <div className="bg-steel-50 rounded-lg p-4 border border-steel-200">
@@ -444,17 +470,23 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting || isSubmitted}
-          className={`w-full flex items-center justify-center gap-3 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
-            isSubmitted
-              ? 'bg-green-500 text-white cursor-default'
-              : isSubmitting
-              ? 'bg-steel-400 text-white cursor-not-allowed'
-              : 'bg-gradient-to-r from-construction-600 to-construction-500 text-white hover:shadow-construction transform hover:scale-105'
-          }`}
-        >
+         <button
+           type="submit"
+           disabled={isSubmitting || isSubmitted}
+           onClick={(e) => {
+             console.log('🔥 BIG FORM button clicked!', e);
+             console.log('🔥 Button type:', e.currentTarget.type);
+             console.log('🔥 isSubmitting:', isSubmitting);
+             console.log('🔥 isSubmitted:', isSubmitted);
+           }}
+           className={`w-full flex items-center justify-center gap-3 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
+             isSubmitted
+               ? 'bg-green-500 text-white cursor-default'
+               : isSubmitting
+               ? 'bg-steel-400 text-white cursor-not-allowed'
+               : 'bg-gradient-to-r from-construction-600 to-construction-500 text-white hover:shadow-construction transform hover:scale-105'
+           }`}
+         >
           {isSubmitted ? (
             <>
               <CheckCircleIcon className="w-6 h-6" />
@@ -471,10 +503,17 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
               Отправить заявку
             </>
           )}
-        </button>
-      </form>
-    </motion.div>
-  );
-};
-
-export default ContactForm;
+         </button>
+       </form>
+       
+       <SuccessModal
+         isOpen={showSuccessModal}
+         onClose={() => setShowSuccessModal(false)}
+         title="Спасибо за обращение!"
+         message={successMessage}
+       />
+     </motion.div>
+   );
+ };
+ 
+ export default ContactForm;
