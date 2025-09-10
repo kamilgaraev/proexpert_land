@@ -46,6 +46,7 @@ import AboutPage from '@pages/company/AboutPage';
 import CareersPage from '@pages/company/CareersPage';
 import PressPage from '@pages/company/PressPage';
 import PartnersPage from '@pages/company/PartnersPage';
+import ContactPage from '@pages/company/ContactPage';
 import AdminDashboardPage from '@pages/admin/AdminDashboardPage';
 import {
   BlogDashboardPage,
@@ -174,6 +175,7 @@ function App() {
         <Route path="/careers" element={<CareersPage />} />
         <Route path="/press" element={<PressPage />} />
         <Route path="/partners" element={<PartnersPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         
         {/* Защищенные маршруты внутри личного кабинета */}
         <Route path="/dashboard" element={

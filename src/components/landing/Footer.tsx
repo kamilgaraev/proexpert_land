@@ -10,6 +10,7 @@ import {
   DocumentTextIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
+import ContactForm from './ContactForm';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -45,6 +46,7 @@ const Footer = () => {
       title: 'Компания',
       links: [
         { name: 'О нас', href: '/about', keywords: 'о компании история' },
+        { name: 'Контакты', href: '/contact', keywords: 'контакты связаться телефон' },
         { name: 'Карьера', href: '/careers', keywords: 'работа вакансии карьера' },
         { name: 'Пресс-центр', href: '/press', keywords: 'пресса новости СМИ' },
         { name: 'Партнеры', href: '/partners', keywords: 'партнеры сотрудничество' },
@@ -205,31 +207,35 @@ const Footer = () => {
                     </div>
                   ))}
                 </div>
+                
+                <div className="mt-6">
+                  <h4 
+                    className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4"
+                    data-seo-keyword="социальные сети"
+                  >
+                    Мы в соцсетях
+                  </h4>
+                  <div className="flex gap-3 sm:gap-4">
+                    {socialLinks.map((social, index) => (
+                      <a
+                        key={index}
+                        href={social.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-8 h-8 sm:w-10 sm:h-10 bg-steel-700 hover:bg-construction-600 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110"
+                        title={social.name}
+                        data-seo-track="social_link_click"
+                        data-seo-keyword={social.keywords}
+                      >
+                        <span className="text-sm sm:text-lg">{social.icon}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div>
-                <h4 
-                  className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4"
-                  data-seo-keyword="социальные сети"
-                >
-                  Мы в соцсетях
-                </h4>
-                <div className="flex gap-3 sm:gap-4">
-                  {socialLinks.map((social, index) => (
-                    <a
-                      key={index}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-8 h-8 sm:w-10 sm:h-10 bg-steel-700 hover:bg-construction-600 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110"
-                      title={social.name}
-                      data-seo-track="social_link_click"
-                      data-seo-keyword={social.keywords}
-                    >
-                      <span className="text-sm sm:text-lg">{social.icon}</span>
-                    </a>
-                  ))}
-                </div>
+                <ContactForm variant="compact" />
               </div>
             </div>
           </div>

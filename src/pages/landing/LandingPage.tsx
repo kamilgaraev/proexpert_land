@@ -2,6 +2,7 @@ import Navbar from '@components/landing/Navbar';
 import Hero from '@components/landing/Hero';
 import Features from '@components/landing/Features';
 import HowItWorks from '@components/landing/HowItWorks';
+import ContactForm from '@components/landing/ContactForm';
 import Pricing from '@components/landing/Pricing';
 import Footer from '@components/landing/Footer';
 import { useSEO } from '@hooks/useSEO';
@@ -42,6 +43,11 @@ const LandingPage = () => {
         <Hero />
         <Features />
         <HowItWorks />
+        <div className="py-16 lg:py-24 px-4 lg:px-8">
+          <div className="container-custom max-w-4xl mx-auto">
+            <ContactForm />
+          </div>
+        </div>
         <Pricing />
       </div>
       <Footer />
