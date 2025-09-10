@@ -9,76 +9,107 @@ import {
 const PricingPage = () => {
   const plans = [
     {
-      name: 'Старт',
-      price: 'Бесплатно',
-      period: '',
-      description: 'Для небольших проектов и знакомства с системой',
+      name: 'Free',
+      price: '0',
+      period: '₽/мес',
+      description: 'Бесплатный тариф для знакомства',
       featured: false,
       features: [
-        { name: '1 проект', included: true },
+        { name: '1 прораб', included: true },
+        { name: '1 объект', included: true },
         { name: '3 пользователя', included: true },
-        { name: 'Базовый учет материалов', included: true },
-        { name: 'Мобильное приложение', included: true },
-        { name: 'Email поддержка', included: true },
-        { name: 'Финансовые отчеты', included: false },
-        { name: 'Интеграция с 1С', included: false },
+        { name: '1 ГБ хранилища', included: true },
+        { name: '10 операций/мес', included: true },
+        { name: 'Только базовые функции', included: true },
+        { name: 'Интеграции', included: false },
         { name: 'API доступ', included: false },
-        { name: 'Приоритетная поддержка', included: false }
+        { name: 'White Label', included: false }
       ],
-      cta: 'Начать бесплатно',
+      cta: 'Выбрать',
       href: '/register'
     },
     {
-      name: 'Проф',
+      name: 'Start',
       price: '4 900',
       period: '₽/мес',
-      description: 'Для растущих строительных компаний',
+      description: '2 прораба, 3 объекта, 5 пользователей',
       featured: true,
       features: [
-        { name: '10 проектов', included: true },
-        { name: '15 пользователей', included: true },
-        { name: 'Полный учет материалов', included: true },
+        { name: '2 прораба', included: true },
+        { name: '3 проекта', included: true },
+        { name: '5 пользователей', included: true },
+        { name: '1 ГБ хранилища', included: true },
+        { name: 'Базовые отчёты', included: true },
         { name: 'Мобильное приложение', included: true },
-        { name: 'Email и чат поддержка', included: true },
-        { name: 'Финансовые отчеты', included: true },
-        { name: 'Интеграция с 1С', included: true },
-        { name: 'Базовый API', included: true },
-        { name: 'Приоритетная поддержка', included: false }
+        { name: 'Email поддержка', included: true },
+        { name: 'API доступ', included: false },
+        { name: 'White Label', included: false }
       ],
-      cta: 'Попробовать 14 дней',
-      href: '/register?plan=pro'
+      cta: 'Выбрать',
+      href: '/register?plan=start'
     },
     {
-      name: 'Бизнес',
+      name: 'Business',
       price: '9 900',
       period: '₽/мес',
-      description: 'Для крупных компаний с множеством проектов',
+      description: '10 прорабов, 15 объектов, интеграции',
       featured: false,
       features: [
-        { name: 'Неограниченно проектов', included: true },
-        { name: '50 пользователей', included: true },
-        { name: 'Расширенный учет материалов', included: true },
-        { name: 'Мобильное приложение', included: true },
-        { name: '24/7 поддержка', included: true },
-        { name: 'Расширенные отчеты', included: true },
-        { name: 'Полная интеграция с 1С', included: true },
-        { name: 'Полный API доступ', included: true },
-        { name: 'Приоритетная поддержка', included: true }
+        { name: '10 прорабов', included: true },
+        { name: '15 проектов', included: true },
+        { name: '15 пользователей', included: true },
+        { name: '5 ГБ хранилища', included: true },
+        { name: 'Интеграции', included: true },
+        { name: 'Расширенные отчёты', included: true },
+        { name: 'Приоритетная поддержка', included: true },
+        { name: 'API доступ', included: false },
+        { name: 'White Label', included: false }
       ],
-      cta: 'Попробовать 14 дней',
+      cta: 'Выбрать',
       href: '/register?plan=business'
+    },
+    {
+      name: 'Profi',
+      price: '19 900',
+      period: '₽/мес',
+      description: '30 прорабов, 50 объектов, API, BI',
+      featured: false,
+      features: [
+        { name: '30 прорабов', included: true },
+        { name: '50 проектов', included: true },
+        { name: '50 пользователей', included: true },
+        { name: '20 ГБ хранилища', included: true },
+        { name: 'API доступ', included: true },
+        { name: 'BI аналитика', included: true },
+        { name: 'White Label', included: true },
+        { name: '24/7 поддержка', included: true },
+        { name: 'Персональный менеджер', included: true }
+      ],
+      cta: 'Выбрать',
+      href: '/register?plan=profi'
+    },
+    {
+      name: 'Enterprise',
+      price: '49 900',
+      period: '₽/мес',
+      description: 'Индивидуальные условия для корпораций',
+      featured: false,
+      features: [
+        { name: 'Индивидуальные условия', included: true },
+        { name: 'От 49 900 руб./мес', included: true },
+        { name: 'Персональный менеджер', included: true },
+        { name: 'Кастомизация', included: true },
+        { name: 'Приоритетная поддержка 24/7', included: true },
+        { name: 'On-premise размещение', included: true },
+        { name: 'SLA 99.9%', included: true },
+        { name: 'Обучение команды', included: true },
+        { name: 'Неограниченные интеграции', included: true }
+      ],
+      cta: 'Выбрать',
+      href: '/contact'
     }
   ];
 
-  const enterpriseFeatures = [
-    'Неограниченное количество пользователей и проектов',
-    'Персональный менеджер и техническая поддержка',
-    'Индивидуальные интеграции и кастомизация',
-    'Размещение на ваших серверах (on-premise)',
-    'SLA 99.9% доступности',
-    'Обучение команды и внедрение',
-    'Белый лейбл (white-label) решение'
-  ];
 
   const faqs = [
     {
@@ -118,7 +149,7 @@ const PricingPage = () => {
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-5 gap-4 max-w-7xl mx-auto">
               {plans.map((plan, index) => (
                 <div 
                   key={index} 
@@ -179,47 +210,6 @@ const PricingPage = () => {
           </div>
         </section>
 
-        {/* Enterprise Section */}
-        <section className="py-24 bg-slate-900 text-white">
-          <div className="container-custom">
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-4xl font-bold mb-6">
-                Нужно решение для крупной компании?
-              </h2>
-              <p className="text-xl text-slate-300 mb-12">
-                Enterprise план включает все необходимое для крупных строительных холдингов и корпораций
-              </p>
-
-              <div className="grid md:grid-cols-2 gap-8 mb-12">
-                <div className="text-left">
-                  <h3 className="text-2xl font-semibold mb-6">Enterprise включает:</h3>
-                  <ul className="space-y-3">
-                    {enterpriseFeatures.map((feature, index) => (
-                      <li key={index} className="flex items-start">
-                        <CheckIcon className="w-5 h-5 text-emerald-400 mr-3 mt-1 flex-shrink-0" />
-                        <span className="text-slate-300">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div className="bg-slate-800 rounded-2xl p-8">
-                  <h3 className="text-2xl font-semibold mb-4">Индивидуальный расчет</h3>
-                  <p className="text-slate-300 mb-6">
-                    Стоимость рассчитывается индивидуально в зависимости от количества пользователей, проектов и требований к интеграции.
-                  </p>
-                  <a 
-                    href="/contact" 
-                    className="w-full inline-flex items-center justify-center px-6 py-3 bg-construction-500 text-white rounded-xl font-semibold hover:bg-construction-600 transition-colors"
-                  >
-                    Обсудить проект
-                    <ArrowRightIcon className="w-4 h-4 ml-2" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* FAQ Section */}
         <section className="py-24 bg-slate-50">

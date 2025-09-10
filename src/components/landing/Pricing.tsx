@@ -22,23 +22,20 @@ const Pricing = () => {
 
   const plans = [
     {
-      name: 'Стартовый',
-      price: 'Бесплатно',
-      period: 'навсегда',
-      description: 'Идеально для малых объектов и знакомства с системой',
+      name: 'Free',
+      price: '₽0',
+      period: 'в месяц',
+      description: 'Бесплатный тариф для знакомства с системой',
       features: [
-        'До 3 пользователей',
-        'Мобильное приложение',
-        'Базовый учет материалов',
-        'Простые отчеты',
-        'Техподдержка по email'
+        '1 прораб',
+        '1 объект', 
+        '3 пользователя',
+        '1 ГБ хранилища',
+        '10 операций/мес',
+        'Только базовые функции'
       ],
-      limitations: [
-        'Без веб-платформы',
-        'Ограниченная аналитика',
-        'Базовый функционал'
-      ],
-      buttonText: 'Начать бесплатно',
+      limitations: [],
+      buttonText: 'Выбрать',
       buttonStyle: 'border-2 border-construction-400 text-construction-600 hover:bg-construction-50',
       popular: false,
       color: 'concrete',
@@ -46,57 +43,91 @@ const Pricing = () => {
       keywords: 'бесплатный тариф строительство малый бизнес'
     },
     {
-      name: 'Профессиональный',
-      price: '₽3,990',
+      name: 'Start',
+      price: '₽4,900',
       period: 'в месяц',
-      description: 'Для средних строительных компаний с несколькими объектами',
+      description: '2 прораба, 3 объекта, 5 пользователей',
       features: [
-        'До 15 пользователей',
-        'Полная веб-платформа',
-        'Управление проектами',
-        'Детальная аналитика',
-        'Управление подрядчиками',
-        'Финансовый контроль',
-        'Приоритетная поддержка',
-        'Интеграции с 1С'
+        '2 прораба',
+        '3 проекта',
+        '5 пользователей',
+        '1 ГБ хранилища',
+        'Базовые отчёты'
       ],
       limitations: [],
-      buttonText: 'Выбрать план',
+      buttonText: 'Выбрать',
       buttonStyle: 'bg-gradient-to-r from-construction-600 to-construction-500 text-white hover:shadow-construction',
       popular: true,
       color: 'construction',
       icon: BuildingOfficeIcon,
-      keywords: 'профессиональный тариф CRM строительство средний бизнес'
+      keywords: 'стартовый тариф CRM строительство малый бизнес'
     },
     {
-      name: 'Корпоративный',
-      price: '₽9,990',
+      name: 'Business',
+      price: '₽9,900',
       period: 'в месяц',
-      description: 'Для крупных строительных холдингов с множеством проектов',
+      description: '10 прорабов, 15 объектов, интеграции',
       features: [
-        'Неограниченное количество пользователей',
-        'Все функции системы',
-        'Персональный менеджер',
-        'Кастомизация под потребности',
-        'Приоритетная техподдержка 24/7',
-        'Расширенная аналитика',
-        'Корпоративные интеграции',
-        'Обучение команды'
+        '10 прорабов',
+        '15 проектов',
+        '15 пользователей',
+        '5 ГБ хранилища',
+        'Интеграции'
       ],
       limitations: [],
-      buttonText: 'Связаться с нами',
+      buttonText: 'Выбрать',
+      buttonStyle: 'border-2 border-steel-400 text-steel-600 hover:bg-steel-50',
+      popular: false,
+      color: 'safety',
+      icon: TruckIcon,
+      keywords: 'бизнес тариф строительство средний бизнес'
+    },
+    {
+      name: 'Profi',
+      price: '₽19,900',
+      period: 'в месяц',
+      description: '30 прорабов, 50 объектов, API, BI, White Label',
+      features: [
+        '30 прорабов',
+        '50 проектов', 
+        '50 пользователей',
+        '20 ГБ хранилища',
+        'API, BI, White Label'
+      ],
+      limitations: [],
+      buttonText: 'Выбрать',
       buttonStyle: 'border-2 border-steel-400 text-steel-600 hover:bg-steel-50',
       popular: false,
       color: 'steel',
-      icon: TruckIcon,
-      keywords: 'корпоративный тариф enterprise строительство'
+      icon: StarIcon,
+      keywords: 'профессиональный тариф CRM строительство'
+    },
+    {
+      name: 'Enterprise',
+      price: '₽49,900',
+      period: 'в месяц',
+      description: 'Индивидуальные условия для крупных компаний',
+      features: [
+        'Индивидуальные условия',
+        'От 49,900 руб./мес',
+        'Персональный менеджер',
+        'Кастомизация',
+        'Приоритетная поддержка 24/7'
+      ],
+      limitations: [],
+      buttonText: 'Выбрать',
+      buttonStyle: 'bg-gradient-to-r from-steel-600 to-steel-500 text-white hover:shadow-steel',
+      popular: false,
+      color: 'steel',
+      icon: BuildingOfficeIcon,
+      keywords: 'энтерпрайз тариф корпоративный строительство'
     }
   ];
 
   const faqs = [
     {
       question: 'Можно ли попробовать систему бесплатно?',
-      answer: 'Да, у нас есть бесплатный тариф "Стартовый" без ограничений по времени. Он включает базовый функционал для знакомства с системой.',
+      answer: 'Да, у нас есть бесплатный тариф "Free" без ограничений по времени. Он включает базовый функционал для знакомства с системой.',
       keywords: 'бесплатная версия пробный период'
     },
     {
@@ -164,13 +195,13 @@ const Pricing = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-16 lg:mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-4 mb-12 sm:mb-16 lg:mb-20">
           {plans.map((plan, index) => (
             <motion.div
               key={index}
               className={`
                 relative group
-                ${plan.popular ? 'md:col-span-2 lg:col-span-1 lg:scale-105 lg:-mt-4' : ''}
+                ${plan.popular ? 'lg:scale-105 lg:-mt-4' : ''}
               `}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
