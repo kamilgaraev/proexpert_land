@@ -69,6 +69,12 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Не обрабатываем форму на сервере
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
     setIsSubmitting(true);
 
     // Валидация на клиенте
@@ -112,14 +118,16 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     }
 
     try {
-      // Трекинг аналитики
-      trackButtonClick('contact_form_submit', `contact_form_${variant}`);
-      trackContactForm(variant, {
-        subject: formData.subject,
-        has_company: !!formData.company,
-        has_phone: !!formData.phone,
-        timestamp: new Date().toISOString()
-      });
+      // Трекинг аналитики (только на клиенте)
+      if (typeof window !== 'undefined') {
+        trackButtonClick('contact_form_submit', `contact_form_${variant}`);
+        trackContactForm(variant, {
+          subject: formData.subject,
+          has_company: !!formData.company,
+          has_phone: !!formData.phone,
+          timestamp: new Date().toISOString()
+        });
+      }
 
       // Найти название темы для отправки
       const selectedSubject = subjects.find(s => s.value === formData.subject);
@@ -196,7 +204,9 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       }
       
     } catch (error) {
-      console.error('Ошибка отправки формы:', error);
+      if (typeof window !== 'undefined') {
+        console.error('Ошибка отправки формы:', error);
+      }
       NotificationService.show({
         type: 'error',
         title: 'Ошибка соединения',

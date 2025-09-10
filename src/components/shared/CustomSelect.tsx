@@ -25,7 +25,12 @@ const CustomSelect = ({
   name 
 }: CustomSelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const selectedOption = options.find(option => option.value === value);
 
@@ -98,7 +103,7 @@ const CustomSelect = ({
         />
       </button>
 
-      {isOpen && (
+      {isMounted && isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-steel-300 rounded-lg shadow-lg max-h-60 overflow-auto">
           {options.map((option) => (
             <button

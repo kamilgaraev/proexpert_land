@@ -20,14 +20,14 @@ export const useAnalytics = () => {
   const trackButtonClick = useCallback((buttonName: string, location?: string) => {
     trackEvent('button_click', {
       button_name: buttonName,
-      location: location || window.location.pathname
+      location: location || (typeof window !== 'undefined' ? window.location.pathname : '/')
     });
   }, []);
 
   const trackPageView = useCallback((pageName: string, additionalParams?: Record<string, any>) => {
     trackEvent('page_view', {
       page_name: pageName,
-      url: window.location.href,
+      url: typeof window !== 'undefined' ? window.location.href : '',
       ...additionalParams
     });
   }, []);
