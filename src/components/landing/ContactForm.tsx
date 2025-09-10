@@ -113,6 +113,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
 
     try {
       // Трекинг аналитики
+      trackButtonClick('contact_form_submit', `contact_form_${variant}`);
       trackContactForm(variant, {
         subject: formData.subject,
         has_company: !!formData.company,
@@ -262,7 +263,6 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
           <button
             type="submit"
             disabled={isSubmitting || isSubmitted}
-            onClick={() => trackButtonClick('contact_form_submit', `contact_form_${variant}`)}
             className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
               isSubmitted
                 ? 'bg-green-500 text-white cursor-default'
@@ -416,7 +416,6 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
         <button
           type="submit"
           disabled={isSubmitting || isSubmitted}
-          onClick={() => trackButtonClick('contact_form_submit', `contact_form_${variant}`)}
           className={`w-full flex items-center justify-center gap-3 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
             isSubmitted
               ? 'bg-green-500 text-white cursor-default'
