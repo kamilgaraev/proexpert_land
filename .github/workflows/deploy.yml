@@ -27,6 +27,8 @@ jobs:
           npm install --include=dev --no-audit --no-fund
           chmod +x node_modules/.bin/* || true
           npm run build:marketing
+          # Исправляем неправильные пути в importBuild.cjs
+          sed -i 's|../../node_modules|../node_modules|g' dist/server/importBuild.cjs
 
       - name: Pack artefacts
         run: |
