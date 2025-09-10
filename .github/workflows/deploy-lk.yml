@@ -6,8 +6,6 @@ on:
     paths:
       - 'src/**'
       - 'public/**'
-      - 'vite.config.ts'
-      - 'package.json'
 
 jobs:
   deploy-lk:

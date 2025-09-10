@@ -7,8 +7,6 @@ on:
       - 'src/pages/**'
       - 'src/renderer/**'  
       - 'server/**'
-      - 'vite.config.ts'
-      - 'package.json'
 
 jobs:
   deploy:
