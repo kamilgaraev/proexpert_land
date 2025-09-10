@@ -3,9 +3,9 @@ const path = require('path');
 const fs = require('fs');
 const { renderPage } = require('vite-plugin-ssr/server');
 // Регистрация pageFiles и client манифеста, сгенерированных Vite
-require(path.resolve(__dirname, '../dist/server/importBuild.cjs'));
+require(path.resolve(__dirname, './importBuild.cjs'));
 
-const distDir = path.resolve(__dirname, '../dist/client');
+const distDir = path.resolve(__dirname, '../client');
 
 const server = http.createServer(async (req, res) => {
   const url = req.url.split('?')[0];
