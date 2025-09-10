@@ -7,9 +7,18 @@ import {
   ChatBubbleLeftRightIcon,
   PaperAirplaneIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  QuestionMarkCircleIcon,
+  PlayCircleIcon,
+  CurrencyDollarIcon,
+  WrenchScrewdriverIcon,
+  LifebuoyIcon,
+  HandshakeIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import NotificationService from '@components/shared/NotificationService';
+import CustomSelect from '@components/shared/CustomSelect';
+import useAnalytics from '@hooks/useAnalytics';
 
 interface ContactFormData {
   name: string;
@@ -37,20 +46,25 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const { trackContactForm, trackButtonClick } = useAnalytics();
 
   const subjects = [
-    { value: 'consultation', label: 'Консультация по продукту' },
-    { value: 'demo', label: 'Заказать демонстрацию' },
-    { value: 'pricing', label: 'Вопросы по тарифам' },
-    { value: 'integration', label: 'Интеграция с 1С/ERP' },
-    { value: 'support', label: 'Техническая поддержка' },
-    { value: 'partnership', label: 'Партнерство' },
-    { value: 'other', label: 'Другое' }
+    { value: 'consultation', label: 'Консультация по продукту', icon: QuestionMarkCircleIcon },
+    { value: 'demo', label: 'Заказать демонстрацию', icon: PlayCircleIcon },
+    { value: 'pricing', label: 'Вопросы по тарифам', icon: CurrencyDollarIcon },
+    { value: 'integration', label: 'Интеграция с 1С/ERP', icon: WrenchScrewdriverIcon },
+    { value: 'support', label: 'Техническая поддержка', icon: LifebuoyIcon },
+    { value: 'partnership', label: 'Партнерство', icon: HandshakeIcon },
+    { value: 'other', label: 'Другое', icon: DocumentTextIcon }
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (value: string) => {
+    setFormData(prev => ({ ...prev, subject: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,6 +95,14 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     }
 
     try {
+      // Трекинг аналитики
+      trackContactForm(variant, {
+        subject: formData.subject,
+        has_company: !!formData.company,
+        has_phone: !!formData.phone,
+        timestamp: new Date().toISOString()
+      });
+
       // TODO: Заменить на реальный API вызов
       await new Promise(resolve => setTimeout(resolve, 1500));
       
@@ -173,6 +195,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
           <button
             type="submit"
             disabled={isSubmitting || isSubmitted}
+            onClick={() => trackButtonClick('contact_form_submit', `contact_form_${variant}`)}
             className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
               isSubmitted
                 ? 'bg-green-500 text-white cursor-default'
@@ -290,18 +313,13 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
           <label className="block text-steel-700 font-medium mb-2">
             Тема обращения
           </label>
-          <select
+          <CustomSelect
             name="subject"
             value={formData.subject}
-            onChange={handleInputChange}
-            className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-          >
-            {subjects.map((subject) => (
-              <option key={subject.value} value={subject.value}>
-                {subject.label}
-              </option>
-            ))}
-          </select>
+            onChange={handleSelectChange}
+            options={subjects}
+            placeholder="Выберите тему обращения"
+          />
         </div>
 
         <div>
@@ -331,6 +349,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
         <button
           type="submit"
           disabled={isSubmitting || isSubmitted}
+          onClick={() => trackButtonClick('contact_form_submit', `contact_form_${variant}`)}
           className={`w-full flex items-center justify-center gap-3 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
             isSubmitted
               ? 'bg-green-500 text-white cursor-default'
