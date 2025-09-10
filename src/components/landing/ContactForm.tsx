@@ -13,7 +13,7 @@ import {
   CurrencyDollarIcon,
   WrenchScrewdriverIcon,
   LifebuoyIcon,
-  HandshakeIcon,
+  UsersIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import NotificationService from '@components/shared/NotificationService';
@@ -54,7 +54,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     { value: 'pricing', label: 'Вопросы по тарифам', icon: CurrencyDollarIcon },
     { value: 'integration', label: 'Интеграция с 1С/ERP', icon: WrenchScrewdriverIcon },
     { value: 'support', label: 'Техническая поддержка', icon: LifebuoyIcon },
-    { value: 'partnership', label: 'Партнерство', icon: HandshakeIcon },
+    { value: 'partnership', label: 'Партнерство', icon: UsersIcon },
     { value: 'other', label: 'Другое', icon: DocumentTextIcon }
   ];
 
