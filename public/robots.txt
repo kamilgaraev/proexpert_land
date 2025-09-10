@@ -6,7 +6,7 @@ Allow: /
 Allow: /features
 Allow: /pricing
 Allow: /integrations
-Allow: /api
+Allow: /contact
 Allow: /small-business
 Allow: /enterprise  
 Allow: /contractors

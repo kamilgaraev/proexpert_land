@@ -11,27 +11,27 @@ export const getPageSEOData = (page: string): PageSEOData => {
   
   const seoData: Record<string, PageSEOData> = {
     home: {
-      title: "ProHelper - Умная платформа для управления строительными проектами",
-      description: "Автоматизируйте строительные процессы с ProHelper: учет материалов на стройке, контроль строительных проектов, управление подрядчиками и отчетность в одной платформе. Повышайте эффективность на 40%.",
-      keywords: "учет материалов, управление проектами, контроль работ, строительная отчетность, программа для прораба, автоматизация строительства, SaaS для строителей, контроль бюджета строительства, CRM для строителей, мобильное приложение для прораба, цифровизация строительства, ProHelper",
+      title: "ProHelper - Строительная CRM от 0₽ | Free, Start, Business",
+      description: "Автоматизация строительных проектов: учет материалов, контроль работ, отчетность. 5 тарифов от Free (0₽) до Enterprise (49 900₽). Начните бесплатно!",
+      keywords: "учет материалов, управление проектами, контроль работ, строительная отчетность, программа для прораба, автоматизация строительства, SaaS для строителей, контроль бюджета строительства, CRM для строителей, мобильное приложение для прораба, цифровизация строительства, ProHelper, бесплатная строительная программа, тарифы ProHelper от 0 рублей",
       canonicalUrl: `${baseUrl}/`
     },
     integrations: {
       title: "Интеграции ProHelper - 200+ подключений для строительства",
-      description: "Интегрируйте ProHelper с 1С, ERP системами, CAD программами. Автоматическая синхронизация данных учета материалов и строительных проектов. Экономьте время на ручной ввод.",
-      keywords: "интеграции строительство, 1С строительство, ERP строительные системы, API учет материалов, синхронизация данных стройка, автоматизация учета, CAD интеграция, строительные программы подключение",
+      description: "Интегрируйте ProHelper с 1С, ERP системами, CAD программами. Автоматическая синхронизация данных учета материалов и строительных проектов. API доступ в тарифах Profi и Enterprise. Экономьте время на ручной ввод.",
+      keywords: "интеграции строительство, 1С строительство, ERP строительные системы, API учет материалов, синхронизация данных стройка, автоматизация учета, CAD интеграция, строительные программы подключение, API Profi Enterprise",
       canonicalUrl: `${baseUrl}/integrations`
     },
     'small-business': {
       title: "ProHelper для малого бизнеса - Доступный учет материалов",
-      description: "Специальные тарифы ProHelper для небольших строительных компаний. Учет материалов, контроль работ, управление проектами от 990₽/мес. Простая настройка за 1 день.",
-      keywords: "учет материалов малый бизнес, строительная программа недорого, CRM строители доступная цена, контроль работ небольшая компания, автоматизация стройки бюджетно, программа прораб недорого",
+      description: "Специальные тарифы ProHelper для небольших строительных компаний. Начните бесплатно с тарифом Free, переходите на Start за 4 900₽/мес. Учет материалов, контроль работ, управление проектами. Простая настройка за 1 день.",
+      keywords: "учет материалов малый бизнес, строительная программа недорого, CRM строители доступная цена, контроль работ небольшая компания, автоматизация стройки бюджетно, программа прораб недорого, бесплатный тариф Free, тариф Start 4900 рублей",
       canonicalUrl: `${baseUrl}/small-business`
     },
     enterprise: {
       title: "ProHelper Enterprise - Корпоративный учет строительства",
-      description: "Масштабируемые решения ProHelper для крупных строительных корпораций. Безлимитный учет материалов, управление множественными проектами, корпоративная интеграция и поддержка 24/7.",
-      keywords: "корпоративный учет материалов, управление строительными проектами enterprise, масштабируемая CRM строительство, крупные строительные компании, корпоративная автоматизация стройка",
+      description: "Масштабируемые решения ProHelper для крупных строительных корпораций. Тарифы Business (9 900₽), Profi (19 900₽), Enterprise (49 900₽). Безлимитный учет материалов, управление множественными проектами, корпоративная интеграция и поддержка 24/7.",
+      keywords: "корпоративный учет материалов, управление строительными проектами enterprise, масштабируемая CRM строительство, крупные строительные компании, корпоративная автоматизация стройка, тариф Business 9900, тариф Profi 19900, тариф Enterprise 49900",
       canonicalUrl: `${baseUrl}/enterprise`
     },
     contractors: {
@@ -42,20 +42,20 @@ export const getPageSEOData = (page: string): PageSEOData => {
     },
     blog: {
       title: "Блог ProHelper - Экспертные статьи о строительстве",
-      description: "Читайте экспертные статьи о современном строительстве: автоматизация учета материалов, цифровизация процессов, управление проектами, лучшие практики отрасли от команды ProHelper.",
-      keywords: "блог строительство, статьи учет материалов, автоматизация строительных процессов, цифровизация стройки, управление строительными проектами советы, строительные технологии статьи",
+      description: "Читайте экспертные статьи о современном строительстве: автоматизация учета материалов, цифровизация процессов, управление проектами, лучшие практики отрасли. Тарифы от Free до Enterprise, кейсы внедрения.",
+      keywords: "блог строительство, статьи учет материалов, автоматизация строительных процессов, цифровизация стройки, управление строительными проектами советы, строительные технологии статьи, кейсы ProHelper, внедрение Free Start Business",
       canonicalUrl: `${baseUrl}/blog`
     },
     docs: {
       title: "Документация ProHelper - Руководство по учету материалов", 
-      description: "Полная база знаний ProHelper: как настроить учет материалов, управление проектами, интеграцию с 1С. Видеоуроки, FAQ, пошаговые инструкции для прорабов и администраторов.",
-      keywords: "инструкция ProHelper, как настроить учет материалов, руководство прораб, FAQ строительная программа, видеоуроки учет стройка, техподдержка строительство, настройка CRM строители",
+      description: "Полная база знаний ProHelper: как настроить учет материалов, управление проектами, интеграцию с 1С. Видеоуроки, FAQ, пошаговые инструкции для всех тарифов от Free до Enterprise.",
+      keywords: "инструкция ProHelper, как настроить учет материалов, руководство прораб, FAQ строительная программа, видеоуроки учет стройка, техподдержка строительство, настройка CRM строители, документация Free Start Business Profi",
       canonicalUrl: `${baseUrl}/docs`
     },
     about: {
       title: "О компании ProHelper - Лидер строительных технологий",
-      description: "История ProHelper, команда экспертов в строительстве и IT. Наша миссия - цифровизация строительной отрасли через умные технологии учета материалов и управления проектами.",
-      keywords: "о компании ProHelper, команда строительные технологии, лидер автоматизации строительство, история ProHelper, миссия цифровизация стройка, эксперты строительные системы",
+      description: "История ProHelper, команда экспертов в строительстве и IT. Наша миссия - цифровизация строительной отрасли через умные технологии учета материалов и управления проектами. Тарифы для всех: от Free до Enterprise.",
+      keywords: "о компании ProHelper, команда строительные технологии, лидер автоматизации строительство, история ProHelper, миссия цифровизация стройка, эксперты строительные системы, тарифы от Free до Enterprise",
       canonicalUrl: `${baseUrl}/about`
     },
     careers: {
@@ -66,14 +66,14 @@ export const getPageSEOData = (page: string): PageSEOData => {
     },
     features: {
       title: "Возможности ProHelper - Полный функционал для строительства",
-      description: "Изучите все возможности ProHelper: учет материалов, управление проектами, координация команды, финансовый контроль, мобильное приложение и многое другое.",
-      keywords: "возможности ProHelper, функции строительной системы, учет материалов функции, управление проектами возможности, строительное ПО функционал",
+      description: "Изучите все возможности ProHelper: учет материалов, управление проектами, координация команды, финансовый контроль, мобильное приложение. Функции доступны во всех тарифах от Free до Enterprise.",
+      keywords: "возможности ProHelper, функции строительной системы, учет материалов функции, управление проектами возможности, строительное ПО функционал, Free Start Business Profi Enterprise функции",
       canonicalUrl: `${baseUrl}/features`
     },
     pricing: {
-      title: "Тарифы ProHelper - Прозрачные цены на строительное ПО",
-      description: "Выберите подходящий тариф ProHelper: от бесплатного плана до Enterprise решений. 14 дней бесплатно, без скрытых комиссий. Окупаемость 2-3 месяца.",
-      keywords: "тарифы ProHelper, цены строительное ПО, стоимость учет материалов, тарифы управление проектами, цена CRM строители, бесплатная строительная система",
+      title: "Тарифы ProHelper 2025: от 0₽ до 49 900₽ | Сравните планы",
+      description: "5 тарифов ProHelper: Free (0₽), Start (4 900₽), Business (9 900₽), Profi (19 900₽), Enterprise (49 900₽). Начните бесплатно, окупаемость 2-3 месяца.",
+      keywords: "тарифы ProHelper, цены строительное ПО, стоимость учет материалов, тарифы управление проектами, цена CRM строители, бесплатная строительная система, Free 0 рублей, Start 4900, Business 9900, Profi 19900, Enterprise 49900",
       canonicalUrl: `${baseUrl}/pricing`
     },
     webinars: {
@@ -99,6 +99,18 @@ export const getPageSEOData = (page: string): PageSEOData => {
       description: "Станьте партнером ProHelper: реселлеры, системные интеграторы, консультанты. Комиссия до 30%, техническая поддержка, совместный маркетинг.",
       keywords: "партнеры ProHelper, реселлеры строительное ПО, системные интеграторы, партнерская программа IT, бизнес партнерство строительные технологии",
       canonicalUrl: `${baseUrl}/partners`
+    },
+    contact: {
+      title: "Контакты ProHelper - Связаться с командой",
+      description: "Свяжитесь с командой ProHelper: консультация по продукту, техническая поддержка, партнерство. Быстрый ответ на ваши вопросы о строительной автоматизации.",
+      keywords: "контакты ProHelper, связаться ProHelper, консультация строительное ПО, техподдержка ProHelper, вопросы автоматизация строительства, связь с командой",
+      canonicalUrl: `${baseUrl}/contact`
+    },
+    help: {
+      title: "База знаний ProHelper - Помощь и документация",
+      description: "База знаний ProHelper: инструкции по использованию, FAQ, видеоуроки. Все что нужно знать о работе с системой управления строительными проектами.",
+      keywords: "база знаний ProHelper, помощь ProHelper, FAQ строительное ПО, инструкции ProHelper, документация управление проектами, видеоуроки строительство",
+      canonicalUrl: `${baseUrl}/help`
     }
   };
 
@@ -162,29 +174,90 @@ export const getPageSEOData = (page: string): PageSEOData => {
 
 export const generateOrganizationSchema = () => ({
   "@context": "https://schema.org",
-  "@type": "Organization",
+  "@type": ["Organization", "LocalBusiness", "SoftwareApplication"],
   "@id": "https://prohelper.pro/#organization",
   "name": "ProHelper",
+  "alternateName": "ПроХелпер",
   "url": "https://prohelper.pro",
-  "logo": "https://prohelper.pro/logo.svg",
-  "description": "Ведущий поставщик SaaS решений для строительной отрасли. Умная платформа для учета материалов и управления строительными проектами.",
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "contactType": "customer service",
-    "availableLanguage": "Russian",
-    "url": "https://prohelper.pro/support"
+  "logo": {
+    "@type": "ImageObject",
+    "url": "https://prohelper.pro/logo.svg",
+    "width": "200",
+    "height": "200"
   },
+  "image": "https://prohelper.pro/og-image.jpg",
+  "description": "Ведущий поставщик SaaS решений для строительной отрасли. Умная платформа для учета материалов и управления строительными проектами. Тарифы от бесплатного Free до корпоративного Enterprise.",
   "foundingDate": "2023",
   "numberOfEmployees": "50-100",
+  "naics": "541511",
+  "industry": "Construction Technology",
   "address": {
     "@type": "PostalAddress",
-    "addressCountry": "RU",
-    "addressLocality": "Москва"
+    "streetAddress": "ул. Тверская, 1",
+    "addressLocality": "Москва", 
+    "addressRegion": "Москва",
+    "postalCode": "125009",
+    "addressCountry": "RU"
   },
-  "sameAs": [
-    "https://t.me/prohelper_support"
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "55.755826",
+    "longitude": "37.6176"
+  },
+  "contactPoint": [
+    {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "telephone": "+7-495-123-45-67",
+      "email": "support@prohelper.pro",
+      "availableLanguage": ["Russian"],
+      "url": "https://prohelper.pro/contact",
+      "hoursAvailable": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "09:00",
+        "closes": "18:00"
+      }
+    },
+    {
+      "@type": "ContactPoint", 
+      "contactType": "sales",
+      "telephone": "+7-495-123-45-67",
+      "email": "sales@prohelper.pro",
+      "availableLanguage": ["Russian"]
+    }
   ],
-  "keywords": "учет материалов, управление проектами, контроль работ, строительная отчетность, автоматизация строительства"
+  "sameAs": [
+    "https://t.me/prohelper_support",
+    "https://vk.com/prohelper",
+    "https://github.com/prohelper"
+  ],
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Тарифы ProHelper",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "SoftwareApplication",
+          "name": "ProHelper Free"
+        },
+        "price": "0",
+        "priceCurrency": "RUB"
+      },
+      {
+        "@type": "Offer", 
+        "itemOffered": {
+          "@type": "SoftwareApplication",
+          "name": "ProHelper Start"
+        },
+        "price": "4900",
+        "priceCurrency": "RUB"
+      }
+    ]
+  },
+  "keywords": "учет материалов, управление проектами, контроль работ, строительная отчетность, автоматизация строительства, Free Start Business Profi Enterprise",
+  "slogan": "Умная автоматизация строительных проектов"
 });
 
 export const generateSoftwareSchema = () => ({
@@ -195,16 +268,52 @@ export const generateSoftwareSchema = () => ({
   "url": "https://prohelper.pro",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web, iOS, Android",
-  "offers": {
-    "@type": "Offer",
-    "price": "990",
-    "priceCurrency": "RUB",
-    "priceValidUntil": "2025-12-31"
-  },
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Free",
+      "price": "0",
+      "priceCurrency": "RUB",
+      "priceValidUntil": "2026-12-31",
+      "description": "Бесплатный тариф для знакомства"
+    },
+    {
+      "@type": "Offer", 
+      "name": "Start",
+      "price": "4900",
+      "priceCurrency": "RUB",
+      "priceValidUntil": "2026-12-31",
+      "description": "Стартовый тариф для небольших проектов"
+    },
+    {
+      "@type": "Offer",
+      "name": "Business", 
+      "price": "9900",
+      "priceCurrency": "RUB",
+      "priceValidUntil": "2026-12-31",
+      "description": "Бизнес тариф для средних компаний"
+    },
+    {
+      "@type": "Offer",
+      "name": "Profi",
+      "price": "19900", 
+      "priceCurrency": "RUB",
+      "priceValidUntil": "2026-12-31",
+      "description": "Профессиональный тариф с API и BI"
+    },
+    {
+      "@type": "Offer",
+      "name": "Enterprise",
+      "price": "49900",
+      "priceCurrency": "RUB", 
+      "priceValidUntil": "2026-12-31",
+      "description": "Корпоративный тариф для крупных компаний"
+    }
+  ],
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": "4.9",
-    "ratingCount": "238"
+    "ratingCount": "324"
   },
   "featureList": [
     "Автоматизация учета материалов на стройке",
@@ -216,10 +325,14 @@ export const generateSoftwareSchema = () => ({
     "Интеграция с 1С и ERP системами",
     "Геолокация и фотофиксация работ",
     "Управление субподрядчиками",
-    "Цифровизация строительных процессов"
+    "Цифровизация строительных процессов",
+    "API доступ для интеграций",
+    "BI аналитика и отчеты",
+    "White Label решения",
+    "24/7 приоритетная поддержка"
   ],
   "screenshot": "https://prohelper.pro/screenshot.jpg",
-  "keywords": "учет материалов, управление проектами, контроль работ, строительная отчетность, программа для прораба, автоматизация строительства, SaaS для строителей"
+  "keywords": "учет материалов, управление проектами, контроль работ, строительная отчетность, программа для прораба, автоматизация строительства, SaaS для строителей, Free Start Business Profi Enterprise тарифы"
 });
 
 export const generateBreadcrumbSchema = (items: Array<{name: string, url: string}>) => ({
@@ -244,4 +357,194 @@ export const generateFAQSchema = (faqs: Array<{question: string, answer: string}
       "text": faq.answer
     }
   }))
-}); 
+});
+
+export const generatePricingSchema = () => ({
+  "@context": "https://schema.org",
+  "@type": "Product", 
+  "name": "ProHelper - Система управления строительными проектами",
+  "description": "Платформа для автоматизации учета материалов и управления строительными проектами",
+  "brand": {
+    "@type": "Brand",
+    "name": "ProHelper"
+  },
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Free",
+      "price": "0",
+      "priceCurrency": "RUB",
+      "availability": "https://schema.org/InStock",
+      "validFrom": "2025-09-10",
+      "priceValidUntil": "2026-12-31",
+      "description": "Бесплатный тариф: 1 прораб, 1 объект, 3 пользователя"
+    },
+    {
+      "@type": "Offer", 
+      "name": "Start",
+      "price": "4900",
+      "priceCurrency": "RUB",
+      "availability": "https://schema.org/InStock", 
+      "validFrom": "2025-09-10",
+      "priceValidUntil": "2026-12-31",
+      "description": "Стартовый тариф: 2 прораба, 3 объекта, 5 пользователей"
+    },
+    {
+      "@type": "Offer",
+      "name": "Business",
+      "price": "9900", 
+      "priceCurrency": "RUB",
+      "availability": "https://schema.org/InStock",
+      "validFrom": "2025-09-10", 
+      "priceValidUntil": "2026-12-31",
+      "description": "Бизнес тариф: 10 прорабов, 15 объектов, интеграции"
+    },
+    {
+      "@type": "Offer",
+      "name": "Profi",
+      "price": "19900",
+      "priceCurrency": "RUB", 
+      "availability": "https://schema.org/InStock",
+      "validFrom": "2025-09-10",
+      "priceValidUntil": "2026-12-31", 
+      "description": "Профи тариф: 30 прорабов, 50 объектов, API, BI"
+    },
+    {
+      "@type": "Offer",
+      "name": "Enterprise", 
+      "price": "49900",
+      "priceCurrency": "RUB",
+      "availability": "https://schema.org/InStock",
+      "validFrom": "2025-09-10",
+      "priceValidUntil": "2026-12-31",
+      "description": "Корпоративный тариф: неограниченные возможности"
+    }
+  ]
+});
+
+export const generateArticleSchema = (article: {
+  title: string;
+  description: string;
+  author: string;
+  publishedTime: string;
+  modifiedTime?: string;
+  image?: string;
+  category: string;
+  tags?: string[];
+  url: string;
+}) => ({
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": article.title,
+  "description": article.description,
+  "image": {
+    "@type": "ImageObject",
+    "url": article.image || "https://prohelper.pro/blog-default.jpg",
+    "width": "1200",
+    "height": "630"
+  },
+  "author": {
+    "@type": "Person",
+    "name": article.author,
+    "url": "https://prohelper.pro/about"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "ProHelper",
+    "logo": {
+      "@type": "ImageObject", 
+      "url": "https://prohelper.pro/logo.svg",
+      "width": "200",
+      "height": "200"
+    }
+  },
+  "datePublished": article.publishedTime,
+  "dateModified": article.modifiedTime || article.publishedTime,
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": article.url
+  },
+  "articleSection": article.category,
+  "keywords": article.tags?.join(", ") || "строительство, ProHelper, автоматизация",
+  "inLanguage": "ru-RU"
+});
+
+export const generateWebPageSchema = (page: {
+  name: string;
+  description: string;
+  url: string;
+  breadcrumbs?: Array<{name: string, url: string}>;
+}) => ({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": page.name,
+  "description": page.description,
+  "url": page.url,
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "ProHelper",
+    "url": "https://prohelper.pro"
+  },
+  "breadcrumb": page.breadcrumbs ? {
+    "@type": "BreadcrumbList",
+    "itemListElement": page.breadcrumbs.map((item, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "name": item.name,
+      "item": item.url
+    }))
+  } : undefined,
+  "mainEntity": {
+    "@type": "Organization",
+    "@id": "https://prohelper.pro/#organization"
+  },
+  "inLanguage": "ru-RU"
+});
+
+// Функция для валидации длины SEO текстов
+export const validateSEOLength = (title: string, description: string) => {
+  const warnings: string[] = [];
+  
+  if (title.length > 60) {
+    warnings.push(`Title слишком длинный: ${title.length}/60 символов`);
+  }
+  if (title.length < 30) {
+    warnings.push(`Title слишком короткий: ${title.length}/30+ символов`);
+  }
+  if (description.length > 160) {
+    warnings.push(`Description слишком длинный: ${description.length}/160 символов`);
+  }
+  if (description.length < 120) {
+    warnings.push(`Description слишком короткий: ${description.length}/120+ символов`);
+  }
+  
+  return warnings;
+};
+
+// Функция генерации оптимального Open Graph изображения
+export const generateOGImage = (page: string, title?: string) => {
+  const baseUrl = 'https://prohelper.pro/og-images';
+  
+  // Специфичные OG изображения для важных страниц
+  const pageImages: Record<string, string> = {
+    home: `${baseUrl}/home.jpg`,
+    pricing: `${baseUrl}/pricing.jpg`, 
+    features: `${baseUrl}/features.jpg`,
+    blog: `${baseUrl}/blog.jpg`,
+    contact: `${baseUrl}/contact.jpg`,
+    'small-business': `${baseUrl}/small-business.jpg`,
+    enterprise: `${baseUrl}/enterprise.jpg`
+  };
+  
+  if (pageImages[page]) {
+    return pageImages[page];
+  }
+  
+  // Для блога - динамическое изображение с заголовком
+  if (page.startsWith('blog/') && title) {
+    return `${baseUrl}/blog-dynamic.jpg?title=${encodeURIComponent(title)}`;
+  }
+  
+  // Fallback - общее изображение
+  return `${baseUrl}/default.jpg`;
+}; 

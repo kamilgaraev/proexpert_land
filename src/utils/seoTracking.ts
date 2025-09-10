@@ -34,7 +34,7 @@ export class SEOTracker {
         k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
       })(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");
 
-      ym(95234567, "init", {
+      ym(102888970, "init", {
         clickmap: true,
         trackLinks: true,
         accurateTrackBounce: true,
@@ -51,7 +51,7 @@ export class SEOTracker {
 
     const ymGlobal = (window as any).ym;
     if (ymGlobal) {
-      ymGlobal(95234567, 'hit', currentUrl, {
+      ymGlobal(102888970, 'hit', currentUrl, {
         title: pageTitle
       });
     }
@@ -60,7 +60,7 @@ export class SEOTracker {
   trackEvent(event: SEOEvent) {
     const ymGlobal = (window as any).ym;
     if (ymGlobal) {
-      ymGlobal(95234567, 'reachGoal', event.action, {
+      ymGlobal(102888970, 'reachGoal', event.action, {
         category: event.category,
         label: event.label,
         value: event.value
@@ -113,7 +113,7 @@ export class SEOTracker {
 
     const ymGlobal = (window as any).ym;
     if (ymGlobal) {
-      ymGlobal(95234567, 'reachGoal', goal.toUpperCase());
+      ymGlobal(102888970, 'reachGoal', goal.toUpperCase());
     }
   }
 }
