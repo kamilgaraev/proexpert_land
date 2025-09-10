@@ -161,7 +161,7 @@ const AdminLoginPage: React.FC = () => {
             </p>
             <div className="mt-4 flex items-center justify-center space-x-2">
               <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-              <span className="text-xs text-slate-400">Защищенное соединение</span>
+              <span className="text-xs text-slate-400">Защищенное соединение </span>
             </div>
           </div>
         </div>
