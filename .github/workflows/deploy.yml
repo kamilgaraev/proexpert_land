@@ -5,31 +5,8 @@ on:
     branches: [ main ]
 
 jobs:
-  detect-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      marketing: ${{ steps.changes.outputs.marketing }}
-      lk: ${{ steps.changes.outputs.lk }}
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Detect changes
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            marketing:
-              - 'src/renderer/**'
-              - 'server/**'
-            lk:
-              - 'src/**'
-              - 'public/**'
-              - '!src/renderer/**'
-              - '!server/**'
-
   deploy-marketing:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.marketing == 'true'
+    if: contains(github.event.head_commit.message, '[marketing]') || contains(github.event.head_commit.message, '[both]')
     runs-on: ubuntu-latest
     env:
       TARGET_PATH: /var/www/prohelper_marketing
@@ -98,8 +75,7 @@ jobs:
             fi 
 
   deploy-lk:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.lk == 'true'
+    if: contains(github.event.head_commit.message, '[lk]') || contains(github.event.head_commit.message, '[both]')
     runs-on: ubuntu-latest
     env:
       TARGET_PATH: /var/www/prohelper_lk
