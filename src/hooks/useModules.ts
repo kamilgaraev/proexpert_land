@@ -140,6 +140,50 @@ export const useModules = () => {
     return modules.data.filter(module => module.module?.category === category);
   }, [modules]);
 
+  // Унифицированный поиск активации по ID модуля организации
+  const findActivationByModuleId = useCallback((organizationModuleId: number): ActivatedModule | null => {
+    if (!modules || !modules.data) return null;
+    const raw = modules.data as any;
+
+    // Вариант 1: сервер вернул плоский массив ActivatedModule[]
+    if (Array.isArray(raw)) {
+      const match = (raw as ActivatedModule[]).find(
+        (am) => am.organization_module_id === organizationModuleId || am.module?.id === organizationModuleId
+      );
+      return match || null;
+    }
+
+    // Вариант 2: сервер вернул объект категорий { analytics: ModuleWithActivation[], ... }
+    if (raw && typeof raw === 'object') {
+      for (const value of Object.values(raw)) {
+        if (!Array.isArray(value)) continue;
+        for (const item of value as any[]) {
+          const moduleId = item?.module?.id ?? item?.organization_module_id ?? item?.id;
+          if (moduleId === organizationModuleId) {
+            if (item?.activation) {
+              return item.activation as ActivatedModule;
+            }
+            // Сконструируем минимальную запись ActivatedModule, если её нет
+            const constructed: ActivatedModule = {
+              id: item?.id ?? 0,
+              organization_id: item?.organization_id ?? 0,
+              organization_module_id: moduleId,
+              module: item?.module,
+              activated_at: item?.activated_at ?? null,
+              expires_at: item?.expires_at ?? null,
+              status: (item?.status ?? (item?.is_activated ? 'active' : 'inactive')) as any,
+              paid_amount: item?.paid_amount ?? 0,
+              payment_method: (item?.payment_method ?? 'balance') as any,
+            };
+            return constructed;
+          }
+        }
+      }
+    }
+
+    return null;
+  }, [modules]);
+
   const getAvailableModulesByCategory = useCallback((category: string): ModuleWithActivation[] => {
     if (!availableModules || !availableModules[category] || !Array.isArray(availableModules[category])) {
       return [];
@@ -147,7 +191,7 @@ export const useModules = () => {
     
     // Преобразуем OrganizationModule в ModuleWithActivation
     const modulesWithStatus = availableModules[category].map((orgModule: OrganizationModule): ModuleWithActivation => {
-      const activatedModule = modules?.data?.find((am: ActivatedModule) => am.organization_module_id === orgModule.id);
+      const activatedModule = findActivationByModuleId(orgModule.id);
       
       return {
         module: orgModule,
@@ -160,7 +204,7 @@ export const useModules = () => {
     });
     
     return modulesWithStatus;
-  }, [availableModules, modules]);
+  }, [availableModules, findActivationByModuleId]);
 
   const getAllActiveModules = useCallback((): ActivatedModule[] => {
     if (!modules || !modules.data || !Array.isArray(modules.data)) return [];
