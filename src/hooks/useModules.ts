@@ -138,6 +138,21 @@ export const useModules = () => {
     return modules.data.filter(module => module.module.category === category);
   }, [modules]);
 
+  const getAvailableModulesByCategory = useCallback((category: string): OrganizationModule[] => {
+    if (!availableModules || !availableModules[category]) return [];
+    return availableModules[category];
+  }, [availableModules]);
+
+  const getModuleWithStatus = useCallback((module: OrganizationModule) => {
+    const activatedModule = modules?.data?.find(am => am.module.id === module.id);
+    return {
+      ...module,
+      isActivated: !!activatedModule,
+      activatedInfo: activatedModule || null,
+      status: activatedModule?.status || 'inactive'
+    };
+  }, [modules]);
+
   const getAllActiveModules = useCallback((): ActivatedModule[] => {
     if (!modules || !modules.data) return [];
     return modules.data.filter(module => module.status === 'active');
@@ -209,6 +224,8 @@ export const useModules = () => {
     renewModule,
     checkModuleAccess,
     getModulesByCategory,
+    getAvailableModulesByCategory,
+    getModuleWithStatus,
     getAllActiveModules,
     getActiveModuleSlugs,
     getCancelPreview,

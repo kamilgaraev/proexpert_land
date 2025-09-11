@@ -52,7 +52,8 @@ const ModulesPage = () => {
     activateModule,
     deactivateModule,
     renewModule,
-    getModulesByCategory,
+    getAvailableModulesByCategory,
+    getModuleWithStatus,
     getCancelPreview,
     cancelModule,
   } = useModules();
@@ -143,7 +144,8 @@ const ModulesPage = () => {
   }
 
   const categories = Object.keys(categoryNames);
-  const currentModules = getModulesByCategory(selectedCategory);
+  const availableModulesInCategory = getAvailableModulesByCategory(selectedCategory);
+  const currentModules = availableModulesInCategory.map(module => getModuleWithStatus(module));
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -205,13 +207,13 @@ const ModulesPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {currentModules.map((moduleItem) => {
-                const status = getModuleStatus(moduleItem);
+                const status = moduleItem.isActivated && moduleItem.activatedInfo ? getModuleStatus(moduleItem.activatedInfo) : 'inactive';
                 const statusColor = getStatusColor(status);
                 const statusText = getStatusText(status);
 
                 return (
                   <motion.div
-                    key={moduleItem.module.id}
+                    key={moduleItem.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
@@ -222,7 +224,7 @@ const ModulesPage = () => {
                           <PuzzlePieceIcon className="h-6 w-6 text-orange-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">{moduleItem.module.name}</h3>
+                          <h3 className="font-semibold text-gray-900">{moduleItem.name}</h3>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}`}>
                             {statusText}
                           </span>
@@ -230,19 +232,19 @@ const ModulesPage = () => {
                       </div>
                     </div>
 
-                    <p className="text-gray-600 text-sm mb-4">{moduleItem.module.description}</p>
+                    <p className="text-gray-600 text-sm mb-4">{moduleItem.description}</p>
 
                     <div className="mb-4">
                       <p className="text-2xl font-bold text-gray-900">
-                        {moduleItem.module.price.toLocaleString('ru-RU')} ₽
+                        {moduleItem.price.toLocaleString('ru-RU')} ₽
                         <span className="text-sm font-normal text-gray-500">/мес</span>
                       </p>
                     </div>
 
-                    {moduleItem.module.features.length > 0 && (
+                    {moduleItem.features && moduleItem.features.length > 0 && (
                       <div className="mb-4">
                         <ul className="space-y-1">
-                          {moduleItem.module.features.slice(0, 3).map((feature, index) => (
+                          {moduleItem.features.slice(0, 3).map((feature, index) => (
                             <li key={index} className="flex items-center text-sm text-gray-600">
                               <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
                               {feature}
@@ -252,14 +254,14 @@ const ModulesPage = () => {
                       </div>
                     )}
 
-                    {moduleItem.expires_at && (
+                    {moduleItem.activatedInfo?.expires_at && (
                       <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center text-sm text-gray-600">
                           <CalendarIcon className="h-4 w-4 mr-2" />
-                          Действует до: {new Date(moduleItem.expires_at).toLocaleDateString('ru-RU')}
+                          Действует до: {new Date(moduleItem.activatedInfo.expires_at).toLocaleDateString('ru-RU')}
                         </div>
                         {(() => {
-                          const daysUntilExpiration = Math.ceil((new Date(moduleItem.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                          const daysUntilExpiration = Math.ceil((new Date(moduleItem.activatedInfo.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                           return daysUntilExpiration > 0 && (
                             <p className="text-xs text-gray-500 mt-1">
                               Осталось дней: {daysUntilExpiration}
@@ -270,11 +272,11 @@ const ModulesPage = () => {
                     )}
 
                     <div className="flex space-x-2">
-                      {moduleItem.status === 'active' ? (
+                      {moduleItem.isActivated && moduleItem.activatedInfo?.status === 'active' ? (
                         <>
-                          {status === 'expiring' && (
+                          {status === 'expiring' && moduleItem.activatedInfo && (
                             <button
-                              onClick={() => handleRenewModule(moduleItem.id)}
+                              onClick={() => handleRenewModule(moduleItem.activatedInfo!.id)}
                               disabled={loading}
                               className="flex-1 flex items-center justify-center px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-lg hover:bg-yellow-700 disabled:opacity-50"
                             >
@@ -282,25 +284,27 @@ const ModulesPage = () => {
                               Продлить
                             </button>
                           )}
-                          <ModuleCancelButton
-                            module={moduleItem}
-                            onCancelPreview={getCancelPreview}
-                            onCancel={handleCancelModule}
-                            loading={loading}
-                          />
+                          {moduleItem.activatedInfo && (
+                            <ModuleCancelButton
+                              module={moduleItem.activatedInfo}
+                              onCancelPreview={getCancelPreview}
+                              onCancel={handleCancelModule}
+                              loading={loading}
+                            />
+                          )}
                         </>
-                      ) : moduleItem.status === 'pending' ? (
+                      ) : moduleItem.isActivated && moduleItem.activatedInfo?.status === 'pending' ? (
                         <div className="w-full flex items-center justify-center px-4 py-2 bg-blue-100 text-blue-700 text-sm font-medium rounded-lg">
                           <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
                           Активация...
                         </div>
                       ) : (
                         <button
-                          onClick={() => handleActivateModule(moduleItem.module)}
-                          disabled={loading || activatingModuleId === moduleItem.module.id}
+                          onClick={() => handleActivateModule(moduleItem)}
+                          disabled={loading || activatingModuleId === moduleItem.id}
                           className="w-full flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50"
                         >
-                          {activatingModuleId === moduleItem.module.id ? (
+                          {activatingModuleId === moduleItem.id ? (
                             <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
                           ) : (
                             <PlayIcon className="h-4 w-4 mr-2" />
