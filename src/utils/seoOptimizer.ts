@@ -206,7 +206,7 @@ export class SEOOptimizer {
 export const optimizeContentForSEO = (
   content: string,
   currentPage: string,
-  targetKeywords: string[] = []
+  _targetKeywords: string[] = []
 ): string => {
   let optimizedContent = content;
   
@@ -216,7 +216,7 @@ export const optimizeContentForSEO = (
   // Добавляем schema markup для изображений
   optimizedContent = optimizedContent.replace(
     /<img([^>]*)src=["']([^"']*)["']([^>]*)alt=["']([^"']*)["']([^>]*)>/gi,
-    (match, before, src, middle, alt, after) => {
+    (_match, before, src, middle, alt, after) => {
       return `<img${before}src="${src}"${middle}alt="${alt}"${after} itemProp="image">`;
     }
   );
