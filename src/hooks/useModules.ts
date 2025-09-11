@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react';
-import { modulesService, type ModulesResponse, type ModuleWithActivation, type ActivatedModule, type ActivateModuleRequest, type RenewModuleRequest, type CancelPreviewResponse, type CancelModuleRequest, type CancelModuleResponse } from '@utils/api';
+import { modulesService, type ModulesResponse, type ModuleWithActivation, type OrganizationModule, type ActivatedModule, type ActivateModuleRequest, type RenewModuleRequest, type CancelPreviewResponse, type CancelModuleRequest, type CancelModuleResponse } from '@utils/api';
 import { toast } from 'react-toastify';
 
 export const useModules = () => {
   const [modules, setModules] = useState<ModulesResponse | null>(null);
-  const [availableModules, setAvailableModules] = useState<Record<string, ModuleWithActivation[]>>({});
+  const [availableModules, setAvailableModules] = useState<Record<string, OrganizationModule[]>>({});
   const [expiringModules, setExpiringModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,10 +35,7 @@ export const useModules = () => {
       const response = await modulesService.getAvailableModules();
       
       if (response.data && response.data.success) {
-        console.log('DEBUG: fetchAvailableModules response:', response.data);
         setAvailableModules(response.data.data);
-      } else {
-        console.log('DEBUG: fetchAvailableModules failed:', response.data);
       }
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки доступных модулей');
@@ -144,17 +141,26 @@ export const useModules = () => {
   }, [modules]);
 
   const getAvailableModulesByCategory = useCallback((category: string): ModuleWithActivation[] => {
-    console.log('DEBUG: getAvailableModulesByCategory called with:', category);
-    console.log('DEBUG: availableModules:', availableModules);
-    console.log('DEBUG: availableModules[category]:', availableModules[category]);
-    
     if (!availableModules || !availableModules[category] || !Array.isArray(availableModules[category])) {
-      console.log('DEBUG: returning empty array');
       return [];
     }
-    console.log('DEBUG: returning modules:', availableModules[category]);
-    return availableModules[category];
-  }, [availableModules]);
+    
+    // Преобразуем OrganizationModule в ModuleWithActivation
+    const modulesWithStatus = availableModules[category].map((orgModule: OrganizationModule): ModuleWithActivation => {
+      const activatedModule = modules?.data?.find((am: ActivatedModule) => am.organization_module_id === orgModule.id);
+      
+      return {
+        module: orgModule,
+        is_activated: !!activatedModule,
+        activation: activatedModule || null,
+        days_until_expiration: null,
+        expires_at: activatedModule?.expires_at || null,
+        status: activatedModule?.status || 'inactive'
+      };
+    });
+    
+    return modulesWithStatus;
+  }, [availableModules, modules]);
 
   const getAllActiveModules = useCallback((): ActivatedModule[] => {
     if (!modules || !modules.data || !Array.isArray(modules.data)) return [];

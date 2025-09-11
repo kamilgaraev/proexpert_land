@@ -1411,7 +1411,7 @@ export interface ModuleWithActivation {
 
 export interface AvailableModulesResponse {
   success: boolean;
-  data: Record<string, ModuleWithActivation[]>;
+  data: Record<string, OrganizationModule[]>;
 }
 
 export interface ActivateModuleRequest {
