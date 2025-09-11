@@ -1419,7 +1419,8 @@ export interface ModuleActivation {
 export interface ActivatedModule {
   id: number;
   organization_id: number;
-  module: OrganizationModule;
+  organization_module_id?: number;
+  module?: OrganizationModule;
   activated_at: string;
   expires_at: string | null;
   status: 'active' | 'expired' | 'pending';
@@ -1432,9 +1433,18 @@ export interface ModulesResponse {
   data: ActivatedModule[];
 }
 
+export interface ModuleWithActivation {
+  module: OrganizationModule;
+  is_activated: boolean;
+  activation: ActivatedModule | null;
+  days_until_expiration: number | null;
+  expires_at: string | null;
+  status: 'active' | 'expired' | 'pending' | 'inactive';
+}
+
 export interface AvailableModulesResponse {
   success: boolean;
-  data: Record<string, OrganizationModule[]>;
+  data: Record<string, ModuleWithActivation[]>;
 }
 
 export interface ActivateModuleRequest {

@@ -18,7 +18,7 @@ import { useModules } from '@hooks/useModules';
 import { PageLoading } from '@components/common/PageLoading';
 import ConfirmDeleteModal from '@components/shared/ConfirmDeleteModal';
 import { ModuleCancelButton } from '@components/dashboard/ModuleCancelButton';
-import type { ActivatedModule, OrganizationModule } from '@utils/api';
+import type { ActivatedModule, OrganizationModule, ModuleWithActivation } from '@utils/api';
 
 const categoryIcons: Record<string, any> = {
   analytics: ChartBarIcon,
@@ -53,7 +53,6 @@ const ModulesPage = () => {
     deactivateModule,
     renewModule,
     getAvailableModulesByCategory,
-    getModuleWithStatus,
     getCancelPreview,
     cancelModule,
   } = useModules();
@@ -69,11 +68,11 @@ const ModulesPage = () => {
     fetchExpiringModules();
   }, [fetchModules, fetchAvailableModules, fetchExpiringModules]);
 
-  const handleActivateModule = async (module: OrganizationModule) => {
+  const handleActivateModule = async (moduleItem: ModuleWithActivation) => {
     try {
-      setActivatingModuleId(module.id);
+      setActivatingModuleId(moduleItem.module.id);
       await activateModule({
-        module_id: module.id,
+        module_id: moduleItem.module.id,
         payment_method: 'balance',
       });
     } catch (error) {
@@ -108,6 +107,7 @@ const ModulesPage = () => {
       console.error('Ошибка отмены модуля:', error);
     }
   };
+
 
   const getModuleStatus = (module: ActivatedModule) => {
     if (module.status === 'expired') return 'expired';
@@ -144,8 +144,7 @@ const ModulesPage = () => {
   }
 
   const categories = Object.keys(categoryNames);
-  const availableModulesInCategory = getAvailableModulesByCategory(selectedCategory);
-  const currentModules = availableModulesInCategory.map(module => getModuleWithStatus(module));
+  const currentModules = getAvailableModulesByCategory(selectedCategory);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -207,13 +206,13 @@ const ModulesPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {currentModules.map((moduleItem) => {
-                const status = moduleItem.isActivated && moduleItem.activatedInfo ? getModuleStatus(moduleItem.activatedInfo) : 'inactive';
+                const status = moduleItem.is_activated && moduleItem.activation ? getModuleStatus(moduleItem.activation) : 'inactive';
                 const statusColor = getStatusColor(status);
                 const statusText = getStatusText(status);
 
                 return (
                   <motion.div
-                    key={moduleItem.id}
+                    key={moduleItem.module.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
@@ -224,7 +223,7 @@ const ModulesPage = () => {
                           <PuzzlePieceIcon className="h-6 w-6 text-orange-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">{moduleItem.name}</h3>
+                          <h3 className="font-semibold text-gray-900">{moduleItem.module.name}</h3>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}`}>
                             {statusText}
                           </span>
@@ -232,19 +231,19 @@ const ModulesPage = () => {
                       </div>
                     </div>
 
-                    <p className="text-gray-600 text-sm mb-4">{moduleItem.description}</p>
+                    <p className="text-gray-600 text-sm mb-4">{moduleItem.module.description}</p>
 
                     <div className="mb-4">
                       <p className="text-2xl font-bold text-gray-900">
-                        {moduleItem.price.toLocaleString('ru-RU')} ₽
+                        {Number(moduleItem.module.price).toLocaleString('ru-RU')} ₽
                         <span className="text-sm font-normal text-gray-500">/мес</span>
                       </p>
                     </div>
 
-                    {moduleItem.features && moduleItem.features.length > 0 && (
+                    {moduleItem.module.features && moduleItem.module.features.length > 0 && (
                       <div className="mb-4">
                         <ul className="space-y-1">
-                          {moduleItem.features.slice(0, 3).map((feature, index) => (
+                          {moduleItem.module.features.slice(0, 3).map((feature, index) => (
                             <li key={index} className="flex items-center text-sm text-gray-600">
                               <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
                               {feature}
@@ -254,30 +253,27 @@ const ModulesPage = () => {
                       </div>
                     )}
 
-                    {moduleItem.activatedInfo?.expires_at && (
+                    {moduleItem.expires_at && (
                       <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center text-sm text-gray-600">
                           <CalendarIcon className="h-4 w-4 mr-2" />
-                          Действует до: {new Date(moduleItem.activatedInfo.expires_at).toLocaleDateString('ru-RU')}
+                          Действует до: {new Date(moduleItem.expires_at).toLocaleDateString('ru-RU')}
                         </div>
-                        {(() => {
-                          const daysUntilExpiration = Math.ceil((new Date(moduleItem.activatedInfo.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                          return daysUntilExpiration > 0 && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              Осталось дней: {daysUntilExpiration}
-                            </p>
-                          );
-                        })()}
+                        {moduleItem.days_until_expiration !== null && moduleItem.days_until_expiration > 0 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Осталось дней: {moduleItem.days_until_expiration}
+                          </p>
+                        )}
                       </div>
                     )}
 
                     <div className="flex space-x-2">
-                      {moduleItem.isActivated && moduleItem.activatedInfo?.status === 'active' ? (
+                      {moduleItem.is_activated && moduleItem.activation?.status === 'active' ? (
                         <>
-                          {status === 'expiring' && moduleItem.activatedInfo && (
+                          {status === 'expiring' && moduleItem.activation && (
                             <button
                               type="button"
-                              onClick={() => handleRenewModule(moduleItem.activatedInfo!.id)}
+                              onClick={() => handleRenewModule(moduleItem.activation!.id)}
                               disabled={loading}
                               className="flex-1 flex items-center justify-center px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-lg hover:bg-yellow-700 disabled:opacity-50"
                             >
@@ -285,16 +281,16 @@ const ModulesPage = () => {
                               Продлить
                             </button>
                           )}
-                          {moduleItem.activatedInfo && (
+                          {moduleItem.activation && (
                             <ModuleCancelButton
-                              module={moduleItem.activatedInfo}
+                              module={moduleItem.activation}
                               onCancelPreview={getCancelPreview}
                               onCancel={handleCancelModule}
                               loading={loading}
                             />
                           )}
                         </>
-                      ) : moduleItem.isActivated && moduleItem.activatedInfo?.status === 'pending' ? (
+                      ) : moduleItem.is_activated && moduleItem.activation?.status === 'pending' ? (
                         <div className="w-full flex items-center justify-center px-4 py-2 bg-blue-100 text-blue-700 text-sm font-medium rounded-lg">
                           <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
                           Активация...
@@ -303,10 +299,10 @@ const ModulesPage = () => {
                         <button
                           type="button"
                           onClick={() => handleActivateModule(moduleItem)}
-                          disabled={loading || activatingModuleId === moduleItem.id}
+                          disabled={loading || activatingModuleId === moduleItem.module.id}
                           className="w-full flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50"
                         >
-                          {activatingModuleId === moduleItem.id ? (
+                          {activatingModuleId === moduleItem.module.id ? (
                             <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
                           ) : (
                             <PlayIcon className="h-4 w-4 mr-2" />
