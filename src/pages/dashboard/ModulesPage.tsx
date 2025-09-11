@@ -205,7 +205,7 @@ const ModulesPage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentModules.filter(moduleItem => moduleItem?.module).map((moduleItem) => {
+              {Array.isArray(currentModules) ? currentModules.filter(moduleItem => moduleItem?.module).map((moduleItem) => {
                 const status = moduleItem.is_activated && moduleItem.activation ? getModuleStatus(moduleItem.activation) : 'inactive';
                 const statusColor = getStatusColor(status);
                 const statusText = getStatusText(status);
@@ -313,7 +313,7 @@ const ModulesPage = () => {
                     </div>
                   </motion.div>
                 );
-              })}
+              }) : []}
             </div>
           )}
         </div>

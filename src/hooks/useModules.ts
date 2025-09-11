@@ -136,17 +136,17 @@ export const useModules = () => {
   };
 
   const getModulesByCategory = useCallback((category: string): ActivatedModule[] => {
-    if (!modules || !modules.data) return [];
+    if (!modules || !modules.data || !Array.isArray(modules.data)) return [];
     return modules.data.filter(module => module.module?.category === category);
   }, [modules]);
 
   const getAvailableModulesByCategory = useCallback((category: string): ModuleWithActivation[] => {
-    if (!availableModules || !availableModules[category]) return [];
+    if (!availableModules || !availableModules[category] || !Array.isArray(availableModules[category])) return [];
     return availableModules[category];
   }, [availableModules]);
 
   const getAllActiveModules = useCallback((): ActivatedModule[] => {
-    if (!modules || !modules.data) return [];
+    if (!modules || !modules.data || !Array.isArray(modules.data)) return [];
     return modules.data.filter(module => module.status === 'active');
   }, [modules]);
 
