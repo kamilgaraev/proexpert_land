@@ -145,6 +145,11 @@ const ModulesPage = () => {
 
   const categories = Object.keys(categoryNames);
   const currentModules = getAvailableModulesByCategory(selectedCategory);
+  
+  console.log('DEBUG: selectedCategory:', selectedCategory);
+  console.log('DEBUG: currentModules:', currentModules);
+  console.log('DEBUG: modules:', modules);
+  console.log('DEBUG: loading:', loading);
 
   return (
     <div className="container mx-auto px-4 py-8">

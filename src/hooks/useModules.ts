@@ -35,7 +35,10 @@ export const useModules = () => {
       const response = await modulesService.getAvailableModules();
       
       if (response.data && response.data.success) {
+        console.log('DEBUG: fetchAvailableModules response:', response.data);
         setAvailableModules(response.data.data);
+      } else {
+        console.log('DEBUG: fetchAvailableModules failed:', response.data);
       }
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки доступных модулей');
@@ -141,7 +144,15 @@ export const useModules = () => {
   }, [modules]);
 
   const getAvailableModulesByCategory = useCallback((category: string): ModuleWithActivation[] => {
-    if (!availableModules || !availableModules[category] || !Array.isArray(availableModules[category])) return [];
+    console.log('DEBUG: getAvailableModulesByCategory called with:', category);
+    console.log('DEBUG: availableModules:', availableModules);
+    console.log('DEBUG: availableModules[category]:', availableModules[category]);
+    
+    if (!availableModules || !availableModules[category] || !Array.isArray(availableModules[category])) {
+      console.log('DEBUG: returning empty array');
+      return [];
+    }
+    console.log('DEBUG: returning modules:', availableModules[category]);
     return availableModules[category];
   }, [availableModules]);
 
