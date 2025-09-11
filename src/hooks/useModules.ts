@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { modulesService, type ModulesResponse, type ActivatedModule, type OrganizationModule, type ActivateModuleRequest, type RenewModuleRequest, type CancelPreviewResponse, type CancelModuleRequest, type CancelModuleResponse } from '@utils/api';
+import { modulesService, type ModulesResponse, type AvailableModulesResponse, type ActivatedModule, type OrganizationModule, type ActivateModuleRequest, type RenewModuleRequest, type CancelPreviewResponse, type CancelModuleRequest, type CancelModuleResponse } from '@utils/api';
 import { toast } from 'react-toastify';
 
 export const useModules = () => {
@@ -17,7 +17,8 @@ export const useModules = () => {
       const response = await modulesService.getModules();
       
       if (response.data && response.data.success) {
-        setModules(response.data.data);
+        console.log('Загруженные модули:', response.data);
+        setModules(response.data);
       } else {
         setError(response.data?.message || 'Ошибка загрузки модулей');
       }
@@ -35,6 +36,7 @@ export const useModules = () => {
       const response = await modulesService.getAvailableModules();
       
       if (response.data && response.data.success) {
+        console.log('Доступные модули:', response.data.data);
         setAvailableModules(response.data.data);
       }
     } catch (err: any) {
@@ -62,8 +64,13 @@ export const useModules = () => {
       const response = await modulesService.activateModule(moduleData);
       
       if (response.data.success) {
+        console.log('Модуль успешно активирован:', response.data);
         toast.success(response.data.message || 'Модуль успешно активирован');
-        await fetchModules();
+        console.log('Обновляем список модулей...');
+        setTimeout(async () => {
+          await fetchModules();
+          await fetchAvailableModules();
+        }, 500);
         return response.data;
       }
       throw new Error(response.data.message || 'Ошибка активации модуля');
@@ -144,13 +151,18 @@ export const useModules = () => {
   }, [availableModules]);
 
   const getModuleWithStatus = useCallback((module: OrganizationModule) => {
+    console.log('Проверяем модуль:', module.name, 'ID:', module.id);
+    console.log('Активированные модули:', modules?.data);
     const activatedModule = modules?.data?.find(am => am.module.id === module.id);
-    return {
+    console.log('Найден активированный модуль:', activatedModule);
+    const result = {
       ...module,
       isActivated: !!activatedModule,
       activatedInfo: activatedModule || null,
       status: activatedModule?.status || 'inactive'
     };
+    console.log('Результат для модуля', module.name, ':', result);
+    return result;
   }, [modules]);
 
   const getAllActiveModules = useCallback((): ActivatedModule[] => {

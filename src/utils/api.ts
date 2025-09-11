@@ -1428,7 +1428,13 @@ export interface ActivatedModule {
 }
 
 export interface ModulesResponse {
+  success: boolean;
   data: ActivatedModule[];
+}
+
+export interface AvailableModulesResponse {
+  success: boolean;
+  data: Record<string, OrganizationModule[]>;
 }
 
 export interface ActivateModuleRequest {

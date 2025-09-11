@@ -276,6 +276,7 @@ const ModulesPage = () => {
                         <>
                           {status === 'expiring' && moduleItem.activatedInfo && (
                             <button
+                              type="button"
                               onClick={() => handleRenewModule(moduleItem.activatedInfo!.id)}
                               disabled={loading}
                               className="flex-1 flex items-center justify-center px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-lg hover:bg-yellow-700 disabled:opacity-50"
@@ -300,6 +301,7 @@ const ModulesPage = () => {
                         </div>
                       ) : (
                         <button
+                          type="button"
                           onClick={() => handleActivateModule(moduleItem)}
                           disabled={loading || activatingModuleId === moduleItem.id}
                           className="w-full flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50"
