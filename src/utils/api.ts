@@ -1417,21 +1417,18 @@ export interface ModuleActivation {
 }
 
 export interface ActivatedModule {
+  id: number;
+  organization_id: number;
   module: OrganizationModule;
-  is_activated: boolean;
-  activation: ModuleActivation | null;
+  activated_at: string;
   expires_at: string | null;
-  days_until_expiration: number | null;
-  status: 'active' | 'expired' | 'pending' | 'inactive';
+  status: 'active' | 'expired' | 'pending';
+  paid_amount: number;
+  payment_method: 'balance' | 'card' | 'invoice' | 'free';
 }
 
 export interface ModulesResponse {
-  analytics: ActivatedModule[];
-  integrations: ActivatedModule[];
-  automation: ActivatedModule[];
-  customization: ActivatedModule[];
-  security: ActivatedModule[];
-  support: ActivatedModule[];
+  data: ActivatedModule[];
 }
 
 export interface ActivateModuleRequest {
@@ -1446,6 +1443,37 @@ export interface RenewModuleRequest {
 
 export interface CheckAccessRequest {
   module_slug: string;
+}
+
+export interface ModuleActivationResponse {
+  id: number;
+  organization_id: number;
+  organization_module_id: number;
+  activated_at: string;
+  expires_at: string | null;
+  status: 'active' | 'expired' | 'pending';
+  paid_amount: number;
+  payment_method: 'balance' | 'card' | 'invoice';
+}
+
+export interface CancelPreviewResponse {
+  can_cancel: boolean;
+  refund_amount: number;
+  days_used: number;
+  days_remaining: number;
+  daily_cost: number;
+  message: string;
+}
+
+export interface CancelModuleRequest {
+  confirm: boolean;
+  reason?: string;
+}
+
+export interface CancelModuleResponse {
+  refund_amount: number;
+  days_used: number;
+  days_remaining: number;
 }
 
 export interface MultiOrganizationAvailability {
@@ -1680,6 +1708,17 @@ export const modulesService = {
 
   getExpiringModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const response = await api.get('/modules/expiring');
+    return response;
+  },
+
+  // Новые методы для работы с отменой модулей
+  getCancelPreview: async (moduleSlug: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get(`/modules/${moduleSlug}/cancel-preview`);
+    return response;
+  },
+
+  cancelModule: async (moduleSlug: string, cancelData: CancelModuleRequest): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post(`/modules/${moduleSlug}/cancel`, cancelData);
     return response;
   },
 };

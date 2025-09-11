@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { modulesService, type ModulesResponse, type ActivatedModule, type OrganizationModule, type ActivateModuleRequest, type RenewModuleRequest } from '@utils/api';
+import { modulesService, type ModulesResponse, type ActivatedModule, type OrganizationModule, type ActivateModuleRequest, type RenewModuleRequest, type CancelPreviewResponse, type CancelModuleRequest, type CancelModuleResponse } from '@utils/api';
 import { toast } from 'react-toastify';
 
 export const useModules = () => {
@@ -8,6 +8,7 @@ export const useModules = () => {
   const [expiringModules, setExpiringModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cancelPreview, setCancelPreview] = useState<CancelPreviewResponse | null>(null);
 
   const fetchModules = useCallback(async () => {
     try {
@@ -133,18 +134,65 @@ export const useModules = () => {
   };
 
   const getModulesByCategory = useCallback((category: string): ActivatedModule[] => {
-    if (!modules) return [];
-    return modules[category as keyof ModulesResponse] || [];
+    if (!modules || !modules.data) return [];
+    return modules.data.filter(module => module.module.category === category);
   }, [modules]);
 
   const getAllActiveModules = useCallback((): ActivatedModule[] => {
-    if (!modules) return [];
-    return Object.values(modules).flat().filter(module => module.is_activated && module.status === 'active');
+    if (!modules || !modules.data) return [];
+    return modules.data.filter(module => module.status === 'active');
   }, [modules]);
 
   const getActiveModuleSlugs = useCallback((): string[] => {
     return getAllActiveModules().map(module => module.module.slug);
   }, [getAllActiveModules]);
+
+  // Новые методы для работы с отменой модулей
+  const getCancelPreview = async (moduleSlug: string): Promise<CancelPreviewResponse | null> => {
+    try {
+      setLoading(true);
+      const response = await modulesService.getCancelPreview(moduleSlug);
+      
+      if (response.data && response.data.success) {
+        setCancelPreview(response.data.data);
+        return response.data.data;
+      }
+      throw new Error(response.data?.message || 'Ошибка получения предварительного просмотра отмены');
+    } catch (err: any) {
+      const errorMsg = err.message || 'Ошибка получения предварительного просмотра отмены';
+      setError(errorMsg);
+      toast.error(errorMsg);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelModule = async (moduleSlug: string, cancelData: CancelModuleRequest): Promise<CancelModuleResponse | null> => {
+    try {
+      setLoading(true);
+      const response = await modulesService.cancelModule(moduleSlug, cancelData);
+      
+      if (response.data && response.data.success) {
+        toast.success(response.data.message || 'Модуль успешно отменен');
+        await fetchModules(); // Обновляем список модулей
+        setCancelPreview(null); // Очищаем предварительный просмотр
+        return response.data.data;
+      }
+      throw new Error(response.data?.message || 'Ошибка отмены модуля');
+    } catch (err: any) {
+      const errorMsg = err.message || 'Ошибка отмены модуля';
+      setError(errorMsg);
+      toast.error(errorMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearCancelPreview = () => {
+    setCancelPreview(null);
+  };
 
   return {
     modules,
@@ -152,6 +200,7 @@ export const useModules = () => {
     expiringModules,
     loading,
     error,
+    cancelPreview,
     fetchModules,
     fetchAvailableModules,
     fetchExpiringModules,
@@ -162,5 +211,8 @@ export const useModules = () => {
     getModulesByCategory,
     getAllActiveModules,
     getActiveModuleSlugs,
+    getCancelPreview,
+    cancelModule,
+    clearCancelPreview,
   };
 }; 

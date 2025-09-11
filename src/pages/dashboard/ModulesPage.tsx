@@ -18,6 +18,7 @@ import {
 import { useModules } from '@hooks/useModules';
 import { PageLoading } from '@components/common/PageLoading';
 import ConfirmDeleteModal from '@components/shared/ConfirmDeleteModal';
+import { ModuleCancelButton } from '@components/dashboard/ModuleCancelButton';
 import type { ActivatedModule, OrganizationModule } from '@utils/api';
 
 const categoryIcons: Record<string, any> = {
@@ -53,6 +54,8 @@ const ModulesPage = () => {
     deactivateModule,
     renewModule,
     getModulesByCategory,
+    getCancelPreview,
+    cancelModule,
   } = useModules();
 
   const [selectedCategory, setSelectedCategory] = useState('analytics');
@@ -98,11 +101,22 @@ const ModulesPage = () => {
     }
   };
 
+  const handleCancelModule = async (moduleSlug: string, reason: string) => {
+    try {
+      await cancelModule(moduleSlug, { confirm: true, reason });
+    } catch (error) {
+      console.error('Ошибка отмены модуля:', error);
+    }
+  };
+
   const getModuleStatus = (module: ActivatedModule) => {
-    if (!module.is_activated) return 'inactive';
     if (module.status === 'expired') return 'expired';
-    if (module.days_until_expiration !== null && module.days_until_expiration <= 7) return 'expiring';
-    return 'active';
+    if (module.status === 'pending') return 'pending';
+    if (module.expires_at) {
+      const daysUntilExpiration = Math.ceil((new Date(module.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      if (daysUntilExpiration <= 7) return 'expiring';
+    }
+    return module.status === 'active' ? 'active' : 'inactive';
   };
 
   const getStatusColor = (status: string) => {
@@ -110,6 +124,7 @@ const ModulesPage = () => {
       case 'active': return 'text-green-600 bg-green-50';
       case 'expired': return 'text-red-600 bg-red-50';
       case 'expiring': return 'text-yellow-600 bg-yellow-50';
+      case 'pending': return 'text-blue-600 bg-blue-50';
       default: return 'text-gray-600 bg-gray-50';
     }
   };
@@ -119,6 +134,7 @@ const ModulesPage = () => {
       case 'active': return 'Активен';
       case 'expired': return 'Истек';
       case 'expiring': return 'Истекает';
+      case 'pending': return 'Ожидает';
       default: return 'Неактивен';
     }
   };
@@ -237,26 +253,29 @@ const ModulesPage = () => {
                       </div>
                     )}
 
-                    {moduleItem.is_activated && moduleItem.expires_at && (
+                    {moduleItem.expires_at && (
                       <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center text-sm text-gray-600">
                           <CalendarIcon className="h-4 w-4 mr-2" />
                           Действует до: {new Date(moduleItem.expires_at).toLocaleDateString('ru-RU')}
                         </div>
-                        {moduleItem.days_until_expiration !== null && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Осталось дней: {moduleItem.days_until_expiration}
-                          </p>
-                        )}
+                        {(() => {
+                          const daysUntilExpiration = Math.ceil((new Date(moduleItem.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                          return daysUntilExpiration > 0 && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Осталось дней: {daysUntilExpiration}
+                            </p>
+                          );
+                        })()}
                       </div>
                     )}
 
                     <div className="flex space-x-2">
-                      {moduleItem.is_activated ? (
+                      {moduleItem.status === 'active' ? (
                         <>
                           {status === 'expiring' && (
                             <button
-                              onClick={() => handleRenewModule(moduleItem.module.id)}
+                              onClick={() => handleRenewModule(moduleItem.id)}
                               disabled={loading}
                               className="flex-1 flex items-center justify-center px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-lg hover:bg-yellow-700 disabled:opacity-50"
                             >
@@ -264,18 +283,18 @@ const ModulesPage = () => {
                               Продлить
                             </button>
                           )}
-                          <button
-                            onClick={() => {
-                              setSelectedModule(moduleItem.module);
-                              setShowDeactivateModal(true);
-                            }}
-                            disabled={loading}
-                            className="flex items-center justify-center px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 disabled:opacity-50"
-                          >
-                            <StopIcon className="h-4 w-4 mr-2" />
-                            Деактивировать
-                          </button>
+                          <ModuleCancelButton
+                            module={moduleItem}
+                            onCancelPreview={getCancelPreview}
+                            onCancel={handleCancelModule}
+                            loading={loading}
+                          />
                         </>
+                      ) : moduleItem.status === 'pending' ? (
+                        <div className="w-full flex items-center justify-center px-4 py-2 bg-blue-100 text-blue-700 text-sm font-medium rounded-lg">
+                          <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
+                          Активация...
+                        </div>
                       ) : (
                         <button
                           onClick={() => handleActivateModule(moduleItem.module)}
