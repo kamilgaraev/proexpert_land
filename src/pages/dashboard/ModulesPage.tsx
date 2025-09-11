@@ -205,7 +205,7 @@ const ModulesPage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentModules.map((moduleItem) => {
+              {currentModules.filter(moduleItem => moduleItem?.module).map((moduleItem) => {
                 const status = moduleItem.is_activated && moduleItem.activation ? getModuleStatus(moduleItem.activation) : 'inactive';
                 const statusColor = getStatusColor(status);
                 const statusText = getStatusText(status);
@@ -223,7 +223,7 @@ const ModulesPage = () => {
                           <PuzzlePieceIcon className="h-6 w-6 text-orange-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">{moduleItem.module.name}</h3>
+                          <h3 className="font-semibold text-gray-900">{moduleItem.module?.name}</h3>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}`}>
                             {statusText}
                           </span>
@@ -231,16 +231,16 @@ const ModulesPage = () => {
                       </div>
                     </div>
 
-                    <p className="text-gray-600 text-sm mb-4">{moduleItem.module.description}</p>
+                    <p className="text-gray-600 text-sm mb-4">{moduleItem.module?.description}</p>
 
                     <div className="mb-4">
                       <p className="text-2xl font-bold text-gray-900">
-                        {Number(moduleItem.module.price).toLocaleString('ru-RU')} ₽
+                        {Number(moduleItem.module?.price || 0).toLocaleString('ru-RU')} ₽
                         <span className="text-sm font-normal text-gray-500">/мес</span>
                       </p>
                     </div>
 
-                    {moduleItem.module.features && moduleItem.module.features.length > 0 && (
+                    {moduleItem.module?.features && moduleItem.module.features.length > 0 && (
                       <div className="mb-4">
                         <ul className="space-y-1">
                           {moduleItem.module.features.slice(0, 3).map((feature, index) => (

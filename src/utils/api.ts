@@ -12,12 +12,10 @@ import NotificationService from '@components/shared/NotificationService';
 // БЛОК ОПРЕДЕЛЕНИЯ URL
 // Базовый домен API
 const API_BASE_DOMAIN = 'https://api.prohelper.pro';
-console.log('ОТЛАДКА: API_BASE_DOMAIN определен как:', API_BASE_DOMAIN);
 
 // Базовый путь для всех API v1, включая /landing
 // Результат: https://api.prohelper.pro/api/v1/landing
 const API_URL = `${API_BASE_DOMAIN}/api/v1/landing`;
-console.log('ОТЛАДКА: API_URL сформирован как:', API_URL);
 
 // URL для эндпоинтов биллинга, который должен быть https://api.prohelper.pro/api/v1/landing/billing
 // Строится от API_URL (который уже .../landing) добавлением /billing
@@ -107,7 +105,6 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && originalRequest.url !== '/auth/refresh') {
       // Попытка обновить токен
       try {
-        console.log('Attempting to refresh token...'); // Добавим лог
         const refreshResponse = await api.post('/auth/refresh'); // Предполагается, что refresh-токен обрабатывается бэкендом через httpOnly cookie или сессию
         const token = (refreshResponse.data as any).token; // ВАЖНО: Убедитесь, что API /auth/refresh возвращает access_token в поле token
         
@@ -119,7 +116,6 @@ api.interceptors.response.use(
         }
 
         saveTokenToMultipleStorages(token);
-        console.log('Token refreshed successfully.');
         
         // Повторяем оригинальный запрос с новым токеном
         if (originalRequest.headers) {
@@ -127,7 +123,6 @@ api.interceptors.response.use(
         }
         return api(originalRequest);
       } catch (refreshError: any) {
-        console.error('Failed to refresh token:', refreshError.response?.data || refreshError.message);
         clearTokenFromStorages();
         window.location.href = '/login'; // Или другой обработчик
         return Promise.reject(refreshError);
@@ -207,10 +202,6 @@ export const authService = {
   
   // Вход в систему
   login: async (credentials: LoginRequest): Promise<any> => {
-    console.log('API: Начало функции login');
-    console.log('API: Используемый URL:', `${API_URL}/auth/login`);
-    console.log('API: API_URL переменная:', API_URL);
-    console.log('API: API_BASE_DOMAIN переменная:', API_BASE_DOMAIN);
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -221,15 +212,10 @@ export const authService = {
     });
     
     const data = await response.json();
-    console.log('API: Ответ от сервера:', data);
     
     // Сразу сохраняем токен в хранилище
     if (data && data.success && data.data && data.data.token) {
-      console.log('API: Токен получен, сохраняем в хранилища:', data.data.token);
       saveTokenToMultipleStorages(data.data.token);
-      console.log('API: Проверка токена после сохранения:', getTokenFromStorages());
-    } else {
-      console.log('API: Токен не получен или структура ответа некорректна:', data);
     }
     
     // Создаем объект, имитирующий ответ Axios
@@ -425,7 +411,6 @@ export const userService = {
     });
     
     const data = await response.json();
-    console.log('API response for users (raw fetch response):', data);
     
     return {
       data: {
@@ -966,27 +951,9 @@ export interface SubscriptionLimitsResponse {
   upgrade_required: boolean;
 }
 
-// Вспомогательная функция для логирования запросов и ответов
+// Вспомогательная функция для запросов
 async function fetchWithBillingLogging(url: string, options: RequestInit): Promise<Response> {
-  console.log(`[BillingService] Requesting: ${options.method} ${url}`);
-  if (options.headers) {
-    console.log('[BillingService] Request Headers:', JSON.parse(JSON.stringify(options.headers))); // Клонируем для логирования
-  }
-  if (options.body) {
-    console.log('[BillingService] Request Body:', options.body);
-  }
-
   const response = await fetch(url, options);
-
-  console.log(`[BillingService] Response Status: ${response.status} ${response.statusText} for ${options.method} ${url}`);
-  // Клонируем ответ, чтобы безопасно прочитать тело для лога, а затем снова для JSON
-  const clonedResponse = response.clone();
-  try {
-    const responseBodyText = await clonedResponse.text();
-    console.log('[BillingService] Raw Response Body:', responseBodyText);
-  } catch (e) {
-    console.error('[BillingService] Error reading raw response body for logging:', e);
-  }
   
   // Если токен истёк или сессия недействительна, перенаправляем на страницу логина
   if (response.status === 401 || response.status === 419) {
