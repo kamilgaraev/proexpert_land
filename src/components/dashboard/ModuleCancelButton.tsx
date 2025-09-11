@@ -20,7 +20,13 @@ export const ModuleCancelButton: React.FC<ModuleCancelButtonProps> = ({
   const [preview, setPreview] = useState<CancelPreviewResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  if (!module.module) {
+    return null;
+  }
+
   const handleCancelClick = async () => {
+    if (!module.module?.slug) return;
+    
     setIsLoading(true);
     try {
       const previewData = await onCancelPreview(module.module.slug);
@@ -36,6 +42,8 @@ export const ModuleCancelButton: React.FC<ModuleCancelButtonProps> = ({
   };
 
   const handleConfirmCancel = async (reason: string) => {
+    if (!module.module?.slug) return;
+    
     try {
       await onCancel(module.module.slug, reason);
       setShowPreview(false);
@@ -83,7 +91,7 @@ export const ModuleCancelButton: React.FC<ModuleCancelButtonProps> = ({
           onClose={handleClosePreview}
           onConfirm={handleConfirmCancel}
           preview={preview}
-          moduleName={module.module.name}
+          moduleName={module.module?.name || 'Модуль'}
           loading={loading}
         />
       )}

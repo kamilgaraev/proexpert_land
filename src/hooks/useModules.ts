@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { modulesService, type ModulesResponse, type AvailableModulesResponse, type ModuleWithActivation, type ActivatedModule, type OrganizationModule, type ActivateModuleRequest, type RenewModuleRequest, type CancelPreviewResponse, type CancelModuleRequest, type CancelModuleResponse } from '@utils/api';
+import { modulesService, type ModulesResponse, type ModuleWithActivation, type ActivatedModule, type ActivateModuleRequest, type RenewModuleRequest, type CancelPreviewResponse, type CancelModuleRequest, type CancelModuleResponse } from '@utils/api';
 import { toast } from 'react-toastify';
 
 export const useModules = () => {
@@ -137,7 +137,7 @@ export const useModules = () => {
 
   const getModulesByCategory = useCallback((category: string): ActivatedModule[] => {
     if (!modules || !modules.data) return [];
-    return modules.data.filter(module => module.module.category === category);
+    return modules.data.filter(module => module.module?.category === category);
   }, [modules]);
 
   const getAvailableModulesByCategory = useCallback((category: string): ModuleWithActivation[] => {
@@ -151,7 +151,7 @@ export const useModules = () => {
   }, [modules]);
 
   const getActiveModuleSlugs = useCallback((): string[] => {
-    return getAllActiveModules().map(module => module.module.slug);
+    return getAllActiveModules().map(module => module.module?.slug).filter(Boolean) as string[];
   }, [getAllActiveModules]);
 
   // Новые методы для работы с отменой модулей
