@@ -1875,18 +1875,20 @@ export const multiOrganizationService = {
 
 // Новые типы для модульной системы
 export interface Module {
-  id: number;
-  name: string;
   slug: string;
-  type: 'core' | 'addon';
+  name: string;
+  description: string;
+  type: 'core' | 'addon' | 'premium';
+  category: string;
   billing_model: 'subscription' | 'one_time';
   price: number;
   currency: string;
   duration_days: number;
-  description: string;
   features: string[];
+  permissions: string[];
+  icon: string;
   is_active: boolean;
-  expires_at: string | null;
+  activation: any | null;
 }
 
 export interface NewModuleActivation {

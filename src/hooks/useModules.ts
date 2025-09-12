@@ -84,15 +84,50 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       ]);
 
       if (modulesResponse.status === 200 && activeResponse.status === 200) {
-        const allModulesData = modulesResponse.data?.success ? modulesResponse.data.data.modules : [];
-        const activeModulesData = activeResponse.data?.success ? activeResponse.data.data.modules : [];
-        const expiringModulesData = expiringResponse.data?.success ? expiringResponse.data.data.modules : [];
+        // Обрабатываем новый формат данных API - модули группируются по категориям
+        let allModulesData: Module[] = [];
+        if (modulesResponse.data?.success && modulesResponse.data.data) {
+          const moduleData = modulesResponse.data.data;
+          // Собираем модули из всех категорий
+          if (moduleData.core) allModulesData = [...allModulesData, ...moduleData.core];
+          if (moduleData.addon) allModulesData = [...allModulesData, ...moduleData.addon];
+          if (moduleData.premium) allModulesData = [...allModulesData, ...moduleData.premium];
+        }
+
+        // Для активных модулей используем тот же подход
+        let activeModulesData: Module[] = [];
+        if (activeResponse.data?.success && activeResponse.data.data) {
+          if (activeResponse.data.data.modules) {
+            activeModulesData = activeResponse.data.data.modules;
+          } else {
+            // Если структура такая же как в основном запросе
+            const activeData = activeResponse.data.data;
+            if (activeData.core) activeModulesData = [...activeModulesData, ...activeData.core];
+            if (activeData.addon) activeModulesData = [...activeModulesData, ...activeData.addon];
+            if (activeData.premium) activeModulesData = [...activeModulesData, ...activeData.premium];
+          }
+        }
+
+        // Для истекающих модулей используем тот же подход
+        let expiringModulesData: Module[] = [];
+        if (expiringResponse.data?.success && expiringResponse.data.data) {
+          if (expiringResponse.data.data.modules) {
+            expiringModulesData = expiringResponse.data.data.modules;
+          } else {
+            // Если структура такая же как в основном запросе
+            const expiringData = expiringResponse.data.data;
+            if (expiringData.core) expiringModulesData = [...expiringModulesData, ...expiringData.core];
+            if (expiringData.addon) expiringModulesData = [...expiringModulesData, ...expiringData.addon];
+            if (expiringData.premium) expiringModulesData = [...expiringModulesData, ...expiringData.premium];
+          }
+        }
+        
         const billingData = billingResponse.data?.success ? billingResponse.data.data : null;
 
         setState({
-          allModules: allModulesData || [],
-          activeModules: activeModulesData || [],
-          expiringModules: expiringModulesData || [],
+          allModules: allModulesData,
+          activeModules: activeModulesData,
+          expiringModules: expiringModulesData,
           billingInfo: billingData,
           loading: false,
           error: null,
@@ -231,8 +266,14 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
 
   // Вспомогательные методы
   const isModuleActive = useCallback((moduleSlug: string): boolean => {
-    return state.activeModules.some(module => module.slug === moduleSlug && module.is_active);
-  }, [state.activeModules]);
+    // Сначала проверяем в активных модулях
+    const isInActiveList = state.activeModules.some(module => module.slug === moduleSlug);
+    if (isInActiveList) return true;
+    
+    // Затем проверяем флаг is_active у модуля
+    const module = state.allModules.find(m => m.slug === moduleSlug);
+    return module?.is_active || false;
+  }, [state.activeModules, state.allModules]);
 
   const getModule = useCallback((moduleSlug: string): Module | null => {
     return state.allModules.find(module => module.slug === moduleSlug) || null;

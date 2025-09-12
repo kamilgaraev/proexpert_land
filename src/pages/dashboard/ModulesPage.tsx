@@ -235,7 +235,12 @@ const ModulesPage = () => {
     return new Date(dateString).toLocaleDateString('ru-RU');
   };
 
-  const isExpiringSoon = (expiresAt: string | null) => {
+  const getModuleExpiresAt = (module: Module) => {
+    return module.activation?.expires_at || null;
+  };
+
+  const isExpiringSoon = (module: Module) => {
+    const expiresAt = getModuleExpiresAt(module);
     if (!expiresAt) return false;
     const expiry = new Date(expiresAt);
     const now = new Date();
@@ -245,7 +250,7 @@ const ModulesPage = () => {
 
   const getModuleStatusIcon = (module: Module) => {
     const active = isModuleActive(module.slug);
-    const expiring = isExpiringSoon(module.expires_at);
+    const expiring = isExpiringSoon(module);
     
     if (!active) {
       return <XCircleIcon className="h-5 w-5 text-gray-400" />;
@@ -258,7 +263,7 @@ const ModulesPage = () => {
 
   const getModuleStatusText = (module: Module) => {
     const active = isModuleActive(module.slug);
-    const expiring = isExpiringSoon(module.expires_at);
+    const expiring = isExpiringSoon(module);
     
     if (!active) {
       return { text: 'Неактивен', className: 'text-gray-600' };
@@ -331,8 +336,8 @@ const ModulesPage = () => {
               </div>
               <div className="mt-2 space-y-1">
                 {expiringModules.map((module) => (
-                  <div key={module.id} className="text-sm text-yellow-700">
-                    <span className="font-medium">{module.name}</span> — истекает {formatDate(module.expires_at)}
+                  <div key={module.slug} className="text-sm text-yellow-700">
+                    <span className="font-medium">{module.name}</span> — истекает {formatDate(getModuleExpiresAt(module))}
                   </div>
                 ))}
               </div>
@@ -353,7 +358,7 @@ const ModulesPage = () => {
             
             return (
               <div
-                key={module.id}
+                key={module.slug}
                 className={`relative border rounded-xl p-6 transition-all duration-200 hover:shadow-md ${
                   active 
                     ? 'border-orange-200 bg-orange-50 ring-1 ring-orange-500' 
@@ -409,11 +414,11 @@ const ModulesPage = () => {
                   </div>
                 )}
 
-                {active && module.expires_at && (
+                {active && getModuleExpiresAt(module) && (
                   <div className="mb-4 p-3 bg-white rounded-lg border border-orange-200">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-steel-600">Активен до:</span>
-                      <span className="font-medium text-steel-900">{formatDate(module.expires_at)}</span>
+                      <span className="font-medium text-steel-900">{formatDate(getModuleExpiresAt(module))}</span>
                     </div>
                   </div>
                 )}
