@@ -87,12 +87,9 @@ const MemberCreate: React.FC = () => {
         throw new Error(response.data.message || 'Ошибка при создании участника');
       }
       
-      console.log('Участник успешно создан:', response.data);
-      
       // После успешного создания перенаправляем на список участников
       navigate('/dashboard/members');
     } catch (error: any) {
-      console.error('Ошибка при создании участника:', error);
       
       // Обработка ошибок валидации с сервера
       if (error.response?.status === 422 && error.response?.data?.data?.errors) {

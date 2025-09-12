@@ -29,10 +29,8 @@ const SubscriptionLimitsPage: React.FC = () => {
   } = useSubscriptionLimits({
     autoRefresh: false, // Отключаем автообновление на странице лимитов
     onCritical: (warnings) => {
-      console.log('Критические предупреждения:', warnings);
     },
     onWarning: (warnings) => {
-      console.log('Обычные предупреждения:', warnings);
     }
   });
 
@@ -41,7 +39,6 @@ const SubscriptionLimitsPage: React.FC = () => {
   };
 
   const handleUpgradeClick = () => {
-    console.log('Переход к обновлению тарифа');
   };
 
   const visibleWarnings = data?.warnings?.filter(

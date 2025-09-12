@@ -21,10 +21,8 @@ const MembersList: React.FC = () => {
       try {
         // Используем API для получения пользователей организации
         const response = await userService.getOrganizationUsers();
-        console.log('Полный ответ API:', response);
         
         if (!response || !response.data || !response.data.data) {
-          console.error('Некорректный формат ответа API:', response);
           setMembers([]);
           setIsLoading(false);
           return;
@@ -34,17 +32,12 @@ const MembersList: React.FC = () => {
         const users = response.data.data;
         
         if (!Array.isArray(users) || users.length === 0) {
-          console.log('Список пользователей пуст или не является массивом:', users);
           setMembers([]);
           setIsLoading(false);
           return;
         }
         
-        console.log('Данные пользователей:', users);
-        
-        // Преобразуем данные в формат Member для отображения
         const formattedMembers = users.map((user: any) => {
-          console.log('Обрабатываем пользователя:', user);
           
           // Простое присвоение роли
           let role = user.role || 'Пользователь';
@@ -60,10 +53,8 @@ const MembersList: React.FC = () => {
           };
         });
         
-        console.log('Форматированные данные участников:', formattedMembers);
         setMembers(formattedMembers);
       } catch (err) {
-        console.error('Ошибка при загрузке списка пользователей:', err);
       } finally {
         setIsLoading(false);
       }
@@ -150,7 +141,6 @@ const MembersList: React.FC = () => {
                     <button
                       onClick={() => {
                         if (window.confirm('Вы уверены, что хотите удалить этого участника?')) {
-                          console.log('Удаление участника', member.id);
                         }
                       }}
                       className="text-red-600 hover:text-red-900"

@@ -54,7 +54,6 @@ const OrganizationPage = () => {
         });
       }
     } catch (error) {
-      console.error('Ошибка загрузки организации:', error);
       toast.error('Не удалось загрузить данные организации');
     } finally {
       setLoading(false);
@@ -74,7 +73,6 @@ const OrganizationPage = () => {
         toast.success('Данные организации обновлены');
       }
     } catch (error) {
-      console.error('Ошибка сохранения:', error);
       toast.error('Не удалось сохранить изменения');
     } finally {
       setIsSaving(false);
@@ -94,7 +92,6 @@ const OrganizationPage = () => {
         }, 500);
       }
     } catch (error) {
-      console.error('Ошибка верификации:', error);
       toast.error('Не удалось выполнить верификацию');
     } finally {
       setIsVerifying(false);
@@ -501,7 +498,6 @@ const OrganizationPage = () => {
       <VerificationRecommendationsComponent 
         organizationId={organization.id}
         onRecommendationsLoad={(recommendations: any) => {
-          console.log('Рекомендации загружены:', recommendations);
         }}
         onVerificationRequest={handleVerification}
         isVerifying={isVerifying}

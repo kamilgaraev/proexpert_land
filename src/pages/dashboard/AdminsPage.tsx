@@ -73,8 +73,6 @@ const AdminsPage = () => {
   useEffect(() => {
     const initUserManagementData = async () => {
       try {
-        console.log('Инициализация данных для таба:', activeTab);
-        
         if (activeTab === 'users') {
           await fetchUsers();
         } else if (activeTab === 'invitations') {
@@ -90,7 +88,6 @@ const AdminsPage = () => {
           ]);
         }
       } catch (err) {
-        console.error('Ошибка загрузки данных управления пользователями:', err);
       }
     };
 
@@ -101,7 +98,6 @@ const AdminsPage = () => {
 
   useEffect(() => {
     if (userManagementError) {
-      console.error('Ошибка управления пользователями:', userManagementError);
       clearError();
     }
   }, [userManagementError, clearError]);

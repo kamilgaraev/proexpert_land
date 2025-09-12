@@ -36,16 +36,13 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
     try {
       setLoading(true);
       setError(null);
-      console.log('Загрузка рекомендаций...');
       const response = await organizationService.getVerificationRecommendations();
       if (response.success) {
-        console.log('Рекомендации получены:', response.data);
         setRecommendations(response.data.recommendations);
         setUserMessage(response.data.user_message);
         onRecommendationsLoad?.(response.data.recommendations);
       }
     } catch (err: any) {
-      console.error('Ошибка загрузки рекомендаций:', err);
       setError('Не удалось загрузить рекомендации');
     } finally {
       setLoading(false);

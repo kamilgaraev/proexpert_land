@@ -40,10 +40,8 @@ const DashboardPage = () => {
     autoRefresh: true,
     refreshInterval: 300000, // 5 минут
     onCritical: (warnings) => {
-      console.log('🚨 Критические лимиты на главной:', warnings);
     },
     onWarning: (warnings) => {
-      console.log('⚠️ Предупреждения о лимитах на главной:', warnings);
     }
   });
 
@@ -59,7 +57,6 @@ const DashboardPage = () => {
         setDashboardError(null);
         setDashboardLoading(false);
       } catch (e: any) {
-        console.error('Ошибка загрузки данных:', e);
         setDashboardError(e.message || 'Ошибка загрузки данных');
         setDashboardLoading(false);
       }

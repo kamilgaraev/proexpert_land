@@ -106,7 +106,6 @@ export const ChildOrganizationManager: React.FC = () => {
       ];
       setOrganizations(mockData);
     } catch (error) {
-      console.error('Ошибка загрузки организаций:', error);
     } finally {
       setLoading(false);
     }
@@ -129,7 +128,6 @@ export const ChildOrganizationManager: React.FC = () => {
       };
       setOrganizationStats(mockStats);
     } catch (error) {
-      console.error('Ошибка загрузки статистики:', error);
     }
   };
 
@@ -141,12 +139,10 @@ export const ChildOrganizationManager: React.FC = () => {
 
   const handleEdit = (org: ChildOrganization) => {
     setSelectedOrganization(org);
-    console.log('Редактирование организации:', org.name);
   };
 
   const handleDelete = (org: ChildOrganization) => {
     setSelectedOrganization(org);
-    console.log('Удаление организации:', org.name);
   };
 
   const formatCurrency = (amount: number) => {

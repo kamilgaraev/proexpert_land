@@ -85,22 +85,35 @@ const PaidServicesPage = () => {
         setPlanAction(null);
       }
     } else {
-      // Смена тарифа
+      // Получаем preview смены тарифа (без реального изменения)
       setChangePlanLoading(plan.slug);
       try {
-        const response = await billingService.changePlan({ plan_slug: plan.slug });
+        const response = await billingService.changePlanPreview({ plan_slug: plan.slug });
         
-        if (response.data.success) {
-          setChangePlanModal({ plan, billingInfo: response.data.billing_info });
+        if (response.data.success || response.status === 200) {
+          // Проверяем структуру ответа
+          const actualData = (response.data as any)?.data || response.data;
+          const billingInfo = actualData.billing_info || response.data.billing_info;
+          
+          // Показываем модальное окно с расчётами для подтверждения
+          setChangePlanModal({ plan, billingInfo });
         } else if (response.status === 400) {
-          // Недостаточно средств - показываем модальное окно с информацией о доплате
-          setChangePlanModal({ plan, billingInfo: response.data.billing_info });
+          // Недостаточно средств - показываем информацию о доплате
+          const actualData = (response.data as any)?.data || response.data;
+          const billingInfo = actualData.billing_info || response.data.billing_info;
+          setChangePlanModal({ plan, billingInfo });
         }
       } catch (e: any) {
-        if (e.response?.status === 400 && e.response?.data?.billing_info) {
-          setChangePlanModal({ plan, billingInfo: e.response.data.billing_info });
+        // Более детальная обработка ошибок
+        const errorData = e.response?.data;
+        if (errorData?.billing_info) {
+          setChangePlanModal({ plan, billingInfo: errorData.billing_info });
+        } else if (e.response?.status === 400 && errorData?.data?.billing_info) {
+          setChangePlanModal({ plan, billingInfo: errorData.data.billing_info });
         } else {
-          setError(e.message || 'Ошибка смены тарифа');
+          // Если preview API недоступен, показываем простое модальное окно подтверждения
+          console.warn('Preview API недоступен, показываем упрощённое подтверждение');
+          setChangePlanModal({ plan, billingInfo: null });
         }
       } finally {
         setChangePlanLoading(null);
@@ -113,9 +126,23 @@ const PaidServicesPage = () => {
     
     setChangePlanLoading(changePlanModal.plan.slug);
     try {
-      await billingService.changePlan({ plan_slug: changePlanModal.plan.slug });
-      setChangePlanModal(null);
-      await fetchAll();
+      // Теперь делаем реальную смену тарифа
+      const response = await billingService.changePlan({ plan_slug: changePlanModal.plan.slug });
+      
+      if (response.data.success || response.status === 200) {
+        setChangePlanModal(null);
+        
+        // Показываем сообщение об успешной смене
+        const successMessage = response.data.message || `Тариф успешно изменён на "${changePlanModal.plan.name}"`;
+        console.log('✅ Тариф успешно изменён:', successMessage);
+        
+        // Очищаем предыдущие ошибки
+        setError(null);
+        
+        await fetchAll();
+      } else {
+        setError(response.data.message || 'Ошибка смены тарифа');
+      }
     } catch (e: any) {
       setError(e.message || 'Ошибка смены тарифа');
     } finally {
@@ -337,14 +364,18 @@ const PaidServicesPage = () => {
       {changePlanModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-bold mb-4">Смена тарифного плана</h3>
+            <h3 className="text-lg font-bold mb-4">Подтверждение смены тарифа</h3>
             
             {changePlanModal.billingInfo ? (
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-600">
-                    Смена тарифа с <strong>{changePlanModal.billingInfo.current_plan}</strong> на{' '}
+                  <p className="text-sm text-gray-600 mb-2">
+                    <strong>Предварительный расчёт</strong> смены тарифа с{' '}
+                    <strong>{changePlanModal.billingInfo.current_plan}</strong> на{' '}
                     <strong>{changePlanModal.billingInfo.new_plan}</strong>
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Тариф будет изменён только после нажатия кнопки "Подтвердить"
                   </p>
                 </div>
                 
@@ -390,7 +421,14 @@ const PaidServicesPage = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                <p>Сменить тариф на <strong>{changePlanModal.plan.name}</strong>?</p>
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Вы действительно хотите сменить тариф на <strong>{changePlanModal.plan.name}</strong>?
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Изменение будет применено только после подтверждения
+                  </p>
+                </div>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setChangePlanModal(null)}

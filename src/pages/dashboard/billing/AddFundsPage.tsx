@@ -34,9 +34,7 @@ const AddFundsPage = () => {
     }
 
     setLoading(true);
-    console.log(`Попытка пополнения на сумму: ${numericAmount} ₽`);
     await new Promise(resolve => setTimeout(resolve, 1500));
-    console.log('Баланс успешно пополнен (имитация).');
     setLoading(false);
     alert(`Баланс успешно пополнен на ${numericAmount} ₽ (имитация).`);
     navigate('/dashboard/billing');

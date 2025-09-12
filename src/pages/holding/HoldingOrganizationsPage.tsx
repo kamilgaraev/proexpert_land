@@ -128,7 +128,6 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
         setRoleTemplates(data.data.templates);
       }
     } catch (error) {
-      console.error('Ошибка загрузки шаблонов ролей:', error);
     }
   };
 
@@ -172,7 +171,6 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
       
       setUsers(usersData);
     } catch (error) {
-      console.error('Ошибка загрузки пользователей:', error);
       setUsers([]);
     } finally {
       setLoading(false);
@@ -223,7 +221,6 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
       });
       await loadUsers();
     } catch (error) {
-      console.error('Ошибка добавления пользователя:', error);
     }
   };
 
@@ -236,7 +233,6 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
       setSelectedUser(null);
       await loadUsers();
     } catch (error) {
-      console.error('Ошибка удаления пользователя:', error);
     }
   };
 
@@ -386,7 +382,6 @@ const OrganizationUsersModal: React.FC<OrganizationUsersModalProps> = ({ organiz
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => {
-                          console.log('Редактирование пользователя будет доступно в следующих обновлениях');
                         }}
                         className="text-blue-600 hover:text-blue-800 transition-colors"
                         title="Редактировать (скоро)"
@@ -707,13 +702,11 @@ const HoldingOrganizationsPage = () => {
             const grpId = hierarchyResp.data?.data?.parent?.group_id ?? 0;
             setParentOrgId(grpId);
           } catch (e) {
-            console.warn('Не удалось обновить group_id', e);
           }
         } else {
           throw new Error('Неверный поддомен');
         }
       } catch (err) {
-        console.error('Ошибка загрузки организаций:', err);
         if (err instanceof Error && err.message === 'UNAUTHORIZED') {
           navigate('/login');
           return;
@@ -785,7 +778,6 @@ const HoldingOrganizationsPage = () => {
         }
       }
     } catch (error) {
-      console.error('Ошибка сохранения организации:', error);
     }
   };
 
@@ -812,9 +804,7 @@ const HoldingOrganizationsPage = () => {
         organization_ids: filteredOrganizations.map(org => org.id)
       });
       
-      console.log(`Экспорт организаций в формате ${format} завершен`);
     } catch (error) {
-      console.error('Ошибка экспорта:', error);
     }
   };
 
@@ -2043,8 +2033,6 @@ const HoldingOrganizationsPage = () => {
                   </button>
                   <button
                     onClick={() => {
-                      // TODO: Реализовать удаление через API
-                      console.log('Удаление организации:', selectedOrganization.id);
                       setShowDeleteModal(false);
                     }}
                     className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-xl font-medium transition-colors duration-200"

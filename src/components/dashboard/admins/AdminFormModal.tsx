@@ -61,7 +61,6 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    console.log('AdminFormModal: handleSubmit initiated. isEditing:', isEditing, 'Data:', formData);
 
     if (!isEditing && !formData.password) {
       setError('Пароль обязателен при создании нового администратора.');
@@ -91,7 +90,6 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
           dataToSendForUpdate.password = formData.password;
           dataToSendForUpdate.password_confirmation = formData.password_confirmation;
         }
-        console.log('AdminFormModal: Attempting to update admin ID:', adminToEdit.id, 'Payload:', dataToSendForUpdate);
         response = await adminPanelUserService.updateAdminPanelUser(adminToEdit.id, dataToSendForUpdate);
       } else {
         const dataToSendForCreate = {
@@ -102,11 +100,8 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
           password_confirmation: formData.password_confirmation,
           organization_id: user?.current_organization_id,
         };
-        console.log('AdminFormModal: Attempting to create admin. Payload:', dataToSendForCreate);
         response = await adminPanelUserService.createAdminPanelUser(dataToSendForCreate);
       }
-
-      console.log('AdminFormModal: API Response:', response);
 
       if (response.success && response.data) {
         toast.success(response.message || `Администратор успешно ${isEditing ? 'обновлен' : 'создан'}.`);
@@ -122,7 +117,6 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
         toast.error(errorMessage);
       }
     } catch (err: any) {
-      console.error(`AdminFormModal: Catch block error during ${isEditing ? 'update' : 'create'}:`, err);
       const apiErrorMessage = err.response?.data?.message || err.message || `Произошла ошибка при ${isEditing ? 'обновлении' : 'создании'} администратора.`;
       let detailedMessage = apiErrorMessage;
       if (err.response?.data?.errors) {
@@ -133,7 +127,6 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
       toast.error(detailedMessage);
     } finally {
       setIsLoading(false);
-      console.log('AdminFormModal: handleSubmit finished.');
     }
   };
 

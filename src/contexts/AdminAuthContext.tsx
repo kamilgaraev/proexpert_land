@@ -39,14 +39,11 @@ export const AdminAuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchAdmin = useCallback(async () => {
     if (!getAdminToken()) return;
     try {
-      console.log('[AdminAuth] fetchAdmin start');
       const res = await adminAuthService.me();
-      console.log('[AdminAuth] fetchAdmin response', res);
       const resData: any = res.data;
       const adminInfo = resData?.data || resData;
       setAdmin(adminInfo as AdminUser);
     } catch (e) {
-      console.error('[AdminAuth] fetchAdmin error', e);
     }
   }, []);
 
@@ -68,9 +65,7 @@ export const AdminAuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      console.log('[AdminAuth] login() start', email);
       const res = await adminAuthService.login(email, password);
-      console.log('[AdminAuth] login() got response', res);
       const resData: any = res.data;
       const newToken = resData?.data?.token || resData?.token;
       if (newToken) {
