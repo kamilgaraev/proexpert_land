@@ -673,10 +673,10 @@ const ModulesPage = () => {
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                       active ? 'bg-orange-100' : 'bg-steel-100'
                     }`}>
-                      <PuzzlePieceIcon className={`h-6 w-6 ${
+                      <ModuleIconComponent className={`h-6 w-6 ${
                         active ? 'text-orange-600' : 'text-steel-600'
                       }`} />
-                        </div>
+                    </div>
                         <div>
                       <h3 className="font-semibold text-steel-900">{module.name}</h3>
                       <div className="flex items-center space-x-2 mt-1">
