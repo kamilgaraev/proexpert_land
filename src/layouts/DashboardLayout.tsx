@@ -21,7 +21,6 @@ import {
   EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
-import { useModules } from '@hooks/useModules';
 import { Menu, Transition } from '@headlessui/react';
 import { classNames } from '@utils/classNames';
 import { billingService, OrganizationBalance, ErrorResponse } from '@utils/api';
@@ -29,7 +28,6 @@ import { billingService, OrganizationBalance, ErrorResponse } from '@utils/api';
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { logout, user } = useAuth();
-  const { getActiveModuleSlugs, fetchModules } = useModules();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -78,18 +76,12 @@ const DashboardLayout = () => {
       
       // Загружаем модули
       if (!moduleLoadedRef.current) {
-        try {
-          await fetchModules();
-          moduleLoadedRef.current = true;
-        } catch (error) {
-          console.error('Ошибка загрузки модулей:', error);
-          moduleLoadedRef.current = true;
-        }
+        moduleLoadedRef.current = true;
       }
     };
     
     loadData();
-  }, [fetchHeaderBalance, fetchModules]);
+  }, [fetchHeaderBalance]);
 
   const handleLogout = () => {
     logout();
@@ -97,7 +89,7 @@ const DashboardLayout = () => {
   };
   
   const mainNavigation = useMemo(() => {
-    const activeModules = getActiveModuleSlugs();
+    const activeModules: string[] = [];
     const hasMultiOrgAccess = activeModules.includes('multi_organization');
 
     const baseNavigation = [
@@ -169,7 +161,7 @@ const DashboardLayout = () => {
     });
 
     return baseNavigation;
-  }, [getActiveModuleSlugs]);
+  }, []);
 
   const supportNavigation = [
     { 
