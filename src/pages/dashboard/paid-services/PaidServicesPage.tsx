@@ -31,13 +31,16 @@ const PaidServicesPage = () => {
         billingService.getPlans(),
         billingService.getAddons(),
       ]);
-      const subscriptionData = subRes.data && typeof subRes.data === 'object' 
-        ? ('has_subscription' in subRes.data && (subRes.data as any).has_subscription 
-          ? (subRes.data as any).subscription 
-          : (subRes.data as any).status ? subRes.data : null)
+      const actualData = (subRes.data as any)?.data || subRes.data;
+      const subscriptionData = actualData && typeof actualData === 'object' 
+        ? ('has_subscription' in actualData && actualData.has_subscription 
+          ? actualData.subscription 
+          : actualData.status ? actualData : null)
         : null;
       console.log('API Response:', subRes.data);
+      console.log('Actual Data:', actualData);
       console.log('Subscription Data:', subscriptionData);
+      console.log('Plan Name from subscription:', subscriptionData?.plan_name);
       
       setSubscription(subscriptionData);
       if (subscriptionData && typeof subscriptionData.is_auto_payment_enabled === 'boolean') {
@@ -52,7 +55,9 @@ const PaidServicesPage = () => {
         p.id === subscriptionData.subscription_plan_id ||
         p.id === (subscriptionData.plan?.id) ||
         p.name === subscriptionData.plan_name ||
-        p.slug === subscriptionData.plan_name
+        p.slug === subscriptionData.plan_name ||
+        p.name?.toLowerCase() === subscriptionData.plan_name?.toLowerCase() ||
+        p.slug?.toLowerCase() === subscriptionData.plan_name?.toLowerCase()
       ) : null;
       console.log('Current Plan:', cp);
       console.log('subscription_plan_id:', subscriptionData?.subscription_plan_id);
