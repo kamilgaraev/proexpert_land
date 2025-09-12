@@ -11,7 +11,29 @@ import {
   XMarkIcon,
   BoltIcon,
   ChevronDownIcon,
-  ChevronUpIcon
+  ChevronUpIcon,
+  BuildingOfficeIcon,
+  UsersIcon,
+  ShareIcon,
+  ChartBarIcon,
+  ChartPieIcon,
+  DocumentChartBarIcon,
+  CpuChipIcon,
+  ServerIcon,
+  BeakerIcon,
+  CloudIcon,
+  CogIcon,
+  ShieldCheckIcon,
+  BanknotesIcon,
+  CalendarIcon,
+  ClockIcon,
+  DocumentDuplicateIcon,
+  GlobeAltIcon,
+  KeyIcon,
+  LockClosedIcon,
+  MagnifyingGlassIcon,
+  PaperAirplaneIcon,
+  WrenchScrewdriverIcon
 } from '@heroicons/react/24/outline';
 import ConfirmActionModal from '@components/shared/ConfirmActionModal';
 import { PageLoading } from '@components/common/PageLoading';
@@ -196,6 +218,215 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
   );
 };
 
+// Умный маппинг иконок модулей
+const getModuleIcon = (iconName: string, module?: Module) => {
+  // Все доступные иконки из библиотеки
+  const availableIcons: { [key: string]: any } = {
+    'building': BuildingOfficeIcon,
+    'building-office': BuildingOfficeIcon,
+    'office': BuildingOfficeIcon,
+    'organization': BuildingOfficeIcon,
+    'company': BuildingOfficeIcon,
+    
+    'users': UsersIcon,
+    'user': UsersIcon,
+    'people': UsersIcon,
+    'team': UsersIcon,
+    
+    'sitemap': ShareIcon,
+    'share': ShareIcon,
+    'network': ShareIcon,
+    'multi': ShareIcon,
+    'hierarchy': ShareIcon,
+    
+    'chart-bar': ChartBarIcon,
+    'chart': ChartBarIcon,
+    'bar': ChartBarIcon,
+    'analytics': ChartBarIcon,
+    'stats': ChartBarIcon,
+    
+    'chart-line': ChartPieIcon,
+    'chart-pie': ChartPieIcon,
+    'pie': ChartPieIcon,
+    'advanced': ChartPieIcon,
+    
+    'document-chart': DocumentChartBarIcon,
+    'document': DocumentChartBarIcon,
+    'report': DocumentChartBarIcon,
+    'reports': DocumentChartBarIcon,
+    
+    'cpu-chip': CpuChipIcon,
+    'cpu': CpuChipIcon,
+    'chip': CpuChipIcon,
+    'processing': CpuChipIcon,
+    
+    'server': ServerIcon,
+    'database': ServerIcon,
+    'storage': ServerIcon,
+    
+    'beaker': BeakerIcon,
+    'experiment': BeakerIcon,
+    'test': BeakerIcon,
+    'lab': BeakerIcon,
+    
+    'cloud': CloudIcon,
+    'api': CloudIcon,
+    'service': CloudIcon,
+    
+    'puzzle': PuzzlePieceIcon,
+    'puzzle-piece': PuzzlePieceIcon,
+    'module': PuzzlePieceIcon,
+    'addon': PuzzlePieceIcon,
+    'plugin': PuzzlePieceIcon,
+    
+    'cog': CogIcon,
+    'settings': CogIcon,
+    'config': CogIcon,
+    'configuration': CogIcon,
+    'gear': CogIcon,
+    
+    'shield': ShieldCheckIcon,
+    'shield-check': ShieldCheckIcon,
+    'security': ShieldCheckIcon,
+    'protection': ShieldCheckIcon,
+    'auth': ShieldCheckIcon,
+    'authentication': ShieldCheckIcon,
+    'permissions': ShieldCheckIcon,
+    
+    'banknotes': BanknotesIcon,
+    'money': BanknotesIcon,
+    'finance': BanknotesIcon,
+    'financial': BanknotesIcon,
+    'billing': BanknotesIcon,
+    'payment': BanknotesIcon,
+    'invoice': BanknotesIcon,
+    
+    'calendar': CalendarIcon,
+    'schedule': CalendarIcon,
+    'time': CalendarIcon,
+    'date': CalendarIcon,
+    'planning': CalendarIcon,
+    
+    'clock': ClockIcon,
+    'timer': ClockIcon,
+    'history': ClockIcon,
+    'tracking': ClockIcon,
+    
+    'document-duplicate': DocumentDuplicateIcon,
+    'copy': DocumentDuplicateIcon,
+    'duplicate': DocumentDuplicateIcon,
+    'backup': DocumentDuplicateIcon,
+    'export': DocumentDuplicateIcon,
+    'import': DocumentDuplicateIcon,
+    
+    'globe': GlobeAltIcon,
+    'globe-alt': GlobeAltIcon,
+    'web': GlobeAltIcon,
+    'website': GlobeAltIcon,
+    'internet': GlobeAltIcon,
+    'integration': GlobeAltIcon,
+    'external': GlobeAltIcon,
+    
+    'key': KeyIcon,
+    'password': KeyIcon,
+    'access': KeyIcon,
+    'credential': KeyIcon,
+    'token': KeyIcon,
+    
+    'lock': LockClosedIcon,
+    'lock-closed': LockClosedIcon,
+    'locked': LockClosedIcon,
+    'private': LockClosedIcon,
+    'secure': LockClosedIcon,
+    'encrypted': LockClosedIcon,
+    
+    'magnifying-glass': MagnifyingGlassIcon,
+    'search': MagnifyingGlassIcon,
+    'find': MagnifyingGlassIcon,
+    'lookup': MagnifyingGlassIcon,
+    'filter': MagnifyingGlassIcon,
+    
+    'paper-airplane': PaperAirplaneIcon,
+    'send': PaperAirplaneIcon,
+    'message': PaperAirplaneIcon,
+    'notification': PaperAirplaneIcon,
+    'email': PaperAirplaneIcon,
+    'mail': PaperAirplaneIcon,
+    
+    'wrench-screwdriver': WrenchScrewdriverIcon,
+    'tools': WrenchScrewdriverIcon,
+    'maintenance': WrenchScrewdriverIcon,
+    'repair': WrenchScrewdriverIcon,
+    'fix': WrenchScrewdriverIcon,
+    'utility': WrenchScrewdriverIcon
+  };
+
+  // Функция для попытки найти иконку
+  const findIcon = (searchTerm: string): any => {
+    // Прямое совпадение
+    if (availableIcons[searchTerm.toLowerCase()]) {
+      return availableIcons[searchTerm.toLowerCase()];
+    }
+    
+    // Поиск по частичному совпадению
+    const partial = Object.keys(availableIcons).find(key => 
+      key.includes(searchTerm.toLowerCase()) || searchTerm.toLowerCase().includes(key)
+    );
+    if (partial) {
+      return availableIcons[partial];
+    }
+    
+    return null;
+  };
+
+  // 1. Пробуем прямой поиск по названию иконки
+  let IconComponent = findIcon(iconName);
+  
+  // 2. Если не найдено, пробуем по категории модуля
+  if (!IconComponent && module?.category) {
+    IconComponent = findIcon(module.category);
+  }
+  
+  // 3. Если не найдено, пробуем по типу модуля
+  if (!IconComponent && module?.type) {
+    IconComponent = findIcon(module.type);
+  }
+  
+  // 4. Если не найдено, пробуем найти по ключевым словам в названии модуля
+  if (!IconComponent && module?.name) {
+    const nameWords = module.name.toLowerCase().split(/\s+/);
+    for (const word of nameWords) {
+      IconComponent = findIcon(word);
+      if (IconComponent) break;
+    }
+  }
+  
+  // 5. Категорийный fallback
+  if (!IconComponent && module) {
+    const categoryFallbacks: { [key: string]: any } = {
+      'core': BuildingOfficeIcon,
+      'reports': ChartBarIcon,
+      'analytics': ChartPieIcon,
+      'addon': PuzzlePieceIcon,
+      'premium': CpuChipIcon,
+      'feature': BeakerIcon
+    };
+    IconComponent = categoryFallbacks[module.category] || categoryFallbacks[module.type];
+  }
+  
+  // 6. Общий fallback
+  if (!IconComponent) {
+    console.log(`🎨 Icon not found for: "${iconName}". Using fallback.`, { 
+      module: module?.name, 
+      category: module?.category, 
+      type: module?.type 
+    });
+    IconComponent = PuzzlePieceIcon;
+  }
+  
+  return <IconComponent className="h-6 w-6 text-orange-600" />;
+};
+
 const ModulesPage = () => {
   const {
     allModules,
@@ -321,11 +552,11 @@ const ModulesPage = () => {
     const expiring = isExpiringSoon(module);
     
     if (!active) {
-      return <XCircleIcon className="h-5 w-5 text-gray-400" />;
+      return <XCircleIcon className="h-3 w-3 text-gray-400 bg-white rounded-full" />;
     } else if (expiring) {
-      return <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />;
+      return <ExclamationTriangleIcon className="h-3 w-3 text-yellow-500 bg-white rounded-full" />;
     } else {
-      return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
+      return <CheckCircleIcon className="h-3 w-3 text-green-500 bg-white rounded-full" />;
     }
   };
 
@@ -445,7 +676,13 @@ const ModulesPage = () => {
                         <div>
                       <h3 className="font-semibold text-steel-900">{module.name}</h3>
                       <div className="flex items-center space-x-2 mt-1">
-                        {getModuleStatusIcon(module)}
+                        <div className="relative">
+                          {getModuleIcon(module.icon, module)}
+                          {/* Маленький статусный индикатор */}
+                          <div className="absolute -bottom-1 -right-1">
+                            {getModuleStatusIcon(module)}
+                          </div>
+                        </div>
                         <span className={`text-sm font-medium ${status.className}`}>
                           {status.text}
                           </span>
@@ -531,7 +768,7 @@ const ModulesPage = () => {
                           Постоянно активен
                         </div>
                       ) : (
-                        <button
+                            <button
                           onClick={() => handleRenewModule(module)}
                           disabled={actionInProgress}
                           className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50"
@@ -544,8 +781,8 @@ const ModulesPage = () => {
                               Продлить
                             </>
                           )}
-                        </button>
-                      )}
+                            </button>
+                          )}
                       {module.can_deactivate !== false && (
                         <button
                           onClick={() => handleDeactivateClick(module)}
@@ -559,10 +796,10 @@ const ModulesPage = () => {
                             <XMarkIcon className="h-4 w-4" />
                           )}
                         </button>
-                      )}
-                    </>
-                  ) : (
-                    <button
+                          )}
+                        </>
+                      ) : (
+                        <button
                       onClick={() => handleActivateClick(module)}
                       disabled={actionInProgress}
                       className="w-full inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50"
@@ -571,13 +808,13 @@ const ModulesPage = () => {
                         <ArrowPathIcon className="h-4 w-4 animate-spin" />
                       ) : (
                         <>
-                          <PlayIcon className="h-4 w-4 mr-2" />
+                            <PlayIcon className="h-4 w-4 mr-2" />
                           Активировать
                         </>
+                          )}
+                        </button>
                       )}
-                    </button>
-                  )}
-                </div>
+                    </div>
               </div>
                 );
           })}
