@@ -22,7 +22,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AdminAuthProvider>
         <AuthProvider>
-          <PermissionsProvider autoLoad={true} interfaceType="lk" refreshInterval={300000}>
+          <PermissionsProvider autoLoad={true} interfaceType="lk" refreshInterval={900000}>
             <App />
           </PermissionsProvider>
         </AuthProvider>

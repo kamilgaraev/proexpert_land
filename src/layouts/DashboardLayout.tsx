@@ -42,7 +42,7 @@ const DashboardLayout = () => {
     expiringModules, 
     hasExpiring, 
     isModuleActive
-  } = useModules({ autoRefresh: true, refreshInterval: 300000 });
+  } = useModules({ autoRefresh: true, refreshInterval: 900000 });
 
   // Вызываем все хуки для проверки прав на верхнем уровне
   const canViewOrganization = useCanAccess({ permission: 'organization.view' }) || 

@@ -50,7 +50,13 @@ export const useCanAccessInterface = (interfaceName: AccessInterface): boolean =
  * Хук для комплексной проверки доступа
  */
 export const useCanAccess = (options: CanAccessOptions): boolean => {
-  const { canAccess } = usePermissionsContext();
+  const { canAccess, isLoaded, error } = usePermissionsContext();
+  
+  // Если права не загружены или есть ошибка - запрещаем доступ (безопасность)
+  if (!isLoaded || error) {
+    return false;
+  }
+  
   return canAccess(options);
 };
 

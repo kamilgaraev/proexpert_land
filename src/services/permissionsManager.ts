@@ -24,6 +24,12 @@ export class PermissionsManager {
   private organizationId: number | null = null;
   private isLoaded = false;
   private isLoading = false;
+  private lastLoadTime = 0;
+  private loadPromise: Promise<boolean> | null = null;
+
+  // Настройки дебаунса
+  private readonly MIN_RELOAD_INTERVAL = 120000; // 2 минуты между загрузками
+  private readonly REQUEST_TIMEOUT = 10000; // 10 секунд таймаут запроса
 
   constructor() {
     this.permissions = [];
@@ -36,8 +42,35 @@ export class PermissionsManager {
    * Загрузить права с сервера
    */
   async load(interfaceType: AccessInterface = 'lk'): Promise<boolean> {
+    // Проверяем, не слишком ли часто загружаем
+    const now = Date.now();
+    if (this.lastLoadTime && (now - this.lastLoadTime) < this.MIN_RELOAD_INTERVAL) {
+      console.log(`⏳ Слишком частые запросы прав. Подождите ${Math.ceil((this.MIN_RELOAD_INTERVAL - (now - this.lastLoadTime)) / 1000)}с`);
+      return this.isLoaded;
+    }
+
+    // Если уже загружается, возвращаем текущий промис
+    if (this.loadPromise) {
+      console.log('⏳ Права уже загружаются, ждем...');
+      return this.loadPromise;
+    }
+
+    // Создаем новый промис загрузки
+    this.loadPromise = this.performLoad(interfaceType);
+    const result = await this.loadPromise;
+    
+    // Очищаем промис после завершения
+    this.loadPromise = null;
+    this.lastLoadTime = now;
+    
+    return result;
+  }
+
+  /**
+   * Внутренний метод загрузки
+   */
+  private async performLoad(interfaceType: AccessInterface): Promise<boolean> {
     if (this.isLoading) {
-      console.log('⏳ Права уже загружаются...');
       return false;
     }
 
@@ -51,12 +84,35 @@ export class PermissionsManager {
       }
 
       const endpoint = this.getEndpoint(interfaceType);
+      
+      // Добавляем контроллер для отмены запроса по таймауту
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
+
+      console.log(`🔄 Загрузка прав с: ${endpoint}`);
+
       const response = await fetch(endpoint, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.error(`❌ HTTP ошибка: ${response.status} ${response.statusText} для ${endpoint}`);
+        
+        // Если 404, значит endpoint не существует - не нужно спамить
+        if (response.status === 404) {
+          console.warn('⚠️ Endpoint прав не найден. Ждем появления API.');
+          return false;
+        }
+        
+        return false;
+      }
 
       const data: PermissionsResponse = await response.json();
 
@@ -77,16 +133,21 @@ export class PermissionsManager {
 
         return true;
       } else {
-        console.error('❌ Ошибка загрузки прав:', data.message);
+        console.error('❌ Ошибка загрузки прав:', data.message || 'Неизвестная ошибка');
         return false;
       }
-    } catch (error) {
-      console.error('❌ Ошибка загрузки прав:', error);
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.error('❌ Таймаут загрузки прав');
+      } else {
+        console.error('❌ Ошибка загрузки прав:', error);
+      }
       return false;
     } finally {
       this.isLoading = false;
     }
   }
+
 
   /**
    * Проверить право

@@ -49,7 +49,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
   children,
   autoLoad = true,
   interfaceType = 'lk',
-  refreshInterval = 5 * 60 * 1000 // 5 минут по умолчанию
+  refreshInterval = 15 * 60 * 1000 // 15 минут по умолчанию (было 5)
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -149,19 +149,23 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
     }
   }, [autoLoad, isLoaded, isLoading, load]);
 
-  // Автообновление прав
+  // Автообновление прав (только если загружены успешно)
   useEffect(() => {
-    if (!refreshInterval || refreshInterval <= 0) return;
+    if (!refreshInterval || refreshInterval <= 0 || !isLoaded || error) {
+      return;
+    }
 
     const interval = setInterval(() => {
-      if (isLoaded && !isLoading) {
+      if (isLoaded && !isLoading && !error) {
         console.log('🔄 Автообновление прав...');
-        reload();
+        reload().catch(err => {
+          console.warn('⚠️ Ошибка автообновления прав:', err);
+        });
       }
     }, refreshInterval);
 
     return () => clearInterval(interval);
-  }, [refreshInterval, isLoaded, isLoading, reload]);
+  }, [refreshInterval, isLoaded, isLoading, error, reload]);
 
   // Обработка событий смены организации/входа/выхода
   useEffect(() => {
