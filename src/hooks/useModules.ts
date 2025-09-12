@@ -255,11 +255,15 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       const response = await newModulesService.getActivationPreview(moduleSlug);
       
       if (response.status === 200 && response.data?.success) {
-        return response.data.data;
+        // Проверяем, есть ли двойная вложенность данных
+        const previewData = response.data.data || response.data;
+        console.log('Preview data received:', previewData); // Для отладки
+        return previewData;
       } else {
         throw new Error(response.data?.message || 'Ошибка получения предпросмотра');
       }
     } catch (error: any) {
+      console.error('Error in getActivationPreview:', error); // Для отладки
       throw new Error(error.response?.data?.message || error.message || 'Ошибка получения предпросмотра');
     }
   }, []);

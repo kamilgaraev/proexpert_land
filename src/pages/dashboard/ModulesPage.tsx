@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useModules } from '@hooks/useModules';
 import { Module } from '@utils/api';
-import { 
-  PuzzlePieceIcon, 
-  CheckCircleIcon, 
+import {
+  PuzzlePieceIcon,
+  CheckCircleIcon,
   XCircleIcon, 
   ExclamationTriangleIcon,
   ArrowPathIcon,
   PlayIcon,
   StopIcon,
-  BoltIcon
+  BoltIcon,
+  ChevronDownIcon,
+  ChevronUpIcon
 } from '@heroicons/react/24/outline';
 import ConfirmActionModal from '@components/shared/ConfirmActionModal';
 import { PageLoading } from '@components/common/PageLoading';
@@ -101,20 +103,69 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
           {previewData && (
             <div>
               <h4 className="font-semibold text-gray-900 mb-3">Информация об активации</h4>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+              <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span>Стоимость:</span>
-                  <span>{previewData.cost_breakdown?.total?.toLocaleString('ru-RU', { style: 'currency', currency: module.currency })}</span>
+                  <span>{previewData.module?.price?.toLocaleString('ru-RU', { style: 'currency', currency: previewData.module?.currency || 'RUB' })}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Баланс организации:</span>
-                  <span className={previewData.can_afford ? 'text-green-600' : 'text-red-600'}>
-                    {previewData.organization_balance?.toLocaleString('ru-RU', { style: 'currency', currency: module.currency })}
+                  <span className={previewData.checks?.can_afford ? 'text-green-600' : 'text-red-600'}>
+                    {previewData.checks?.current_balance?.toLocaleString('ru-RU', { style: 'currency', currency: previewData.module?.currency || 'RUB' })}
                   </span>
                 </div>
-                {!previewData.can_afford && (
-                  <div className="text-red-600 text-xs">
-                    ⚠️ Недостаточно средств на балансе
+                
+                {/* Проверка средств */}
+                {!previewData.checks?.can_afford && (
+                  <div className="bg-red-50 border border-red-200 rounded p-2">
+                    <div className="text-red-800 text-xs font-medium">
+                      ⚠️ Недостаточно средств на балансе
+                    </div>
+                  </div>
+                )}
+                
+                {/* Недостающие зависимости */}
+                {previewData.checks?.missing_dependencies?.length > 0 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                    <div className="text-yellow-800 text-xs">
+                      <div className="font-medium mb-1">⚠️ Недостающие зависимости:</div>
+                      <ul className="list-disc list-inside space-y-0.5">
+                        {previewData.checks.missing_dependencies.map((dep: string, index: number) => (
+                          <li key={index} className="text-yellow-700">
+                            {dep === 'organizations' ? 'Организации' : 
+                             dep === 'users' ? 'Пользователи' : 
+                             dep === 'projects' ? 'Проекты' : dep}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-2 text-xs text-yellow-700 bg-yellow-100 rounded p-2">
+                        <div className="font-medium mb-1">Что нужно сделать:</div>
+                        <div>Настройте указанные компоненты системы, а затем повторите попытку активации модуля.</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Конфликты */}
+                {previewData.checks?.conflicts?.length > 0 && (
+                  <div className="bg-red-50 border border-red-200 rounded p-2">
+                    <div className="text-red-800 text-xs">
+                      <div className="font-medium mb-1">⚠️ Конфликты:</div>
+                      <ul className="list-disc list-inside">
+                        {previewData.checks.conflicts.map((conflict: string, index: number) => (
+                          <li key={index}>{conflict}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Уже активен */}
+                {previewData.checks?.is_already_active && (
+                  <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                    <div className="text-blue-800 text-xs font-medium">
+                      ℹ️ Модуль уже активирован
+                    </div>
                   </div>
                 )}
               </div>
@@ -132,10 +183,11 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
             
             <button
               onClick={handleConfirm}
-              disabled={isLoading || (previewData && !previewData.can_afford)}
+              disabled={isLoading || (previewData && !previewData.can_activate)}
               className="flex-1 py-3 px-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-60 font-medium"
             >
-              {isLoading ? 'Активация...' : 'Активировать'}
+              {isLoading ? 'Активация...' : 
+               (previewData && !previewData.can_activate) ? 'Невозможно активировать' : 'Активировать'}
             </button>
           </div>
         </div>
@@ -166,6 +218,19 @@ const ModulesPage = () => {
   const [showDeactivationModal, setShowDeactivationModal] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<any>(null);
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+
+  const toggleModuleExpanded = (moduleSlug: string) => {
+    setExpandedModules(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(moduleSlug)) {
+        newSet.delete(moduleSlug);
+      } else {
+        newSet.add(moduleSlug);
+      }
+      return newSet;
+    });
+  };
 
   const handleActivateClick = async (module: Module) => {
     setSelectedModule(module);
@@ -191,7 +256,7 @@ const ModulesPage = () => {
       const success = await activateModule(selectedModule.slug, durationDays);
       if (success) {
         setShowActivationModal(false);
-        setSelectedModule(null);
+      setSelectedModule(null);
         setPreviewData(null);
       }
     } finally {
@@ -355,8 +420,8 @@ const ModulesPage = () => {
             const active = isModuleActive(module.slug);
             const status = getModuleStatusText(module);
             const actionInProgress = actionLoading?.includes(module.slug);
-            
-            return (
+
+                return (
               <div
                 key={module.slug}
                 className={`relative border rounded-xl p-6 transition-all duration-200 hover:shadow-md ${
@@ -364,8 +429,8 @@ const ModulesPage = () => {
                     ? 'border-orange-200 bg-orange-50 ring-1 ring-orange-500' 
                     : 'border-steel-200 bg-white hover:border-construction-300'
                 }`}
-              >
-                <div className="flex items-start justify-between mb-4">
+                  >
+                    <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                       active ? 'bg-orange-100' : 'bg-steel-100'
@@ -373,60 +438,82 @@ const ModulesPage = () => {
                       <PuzzlePieceIcon className={`h-6 w-6 ${
                         active ? 'text-orange-600' : 'text-steel-600'
                       }`} />
-                    </div>
-                    <div>
+                        </div>
+                        <div>
                       <h3 className="font-semibold text-steel-900">{module.name}</h3>
                       <div className="flex items-center space-x-2 mt-1">
                         {getModuleStatusIcon(module)}
                         <span className={`text-sm font-medium ${status.className}`}>
                           {status.text}
-                        </span>
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
+
                   <div className="text-right">
                     <div className="text-lg font-bold text-construction-600">
                       {module.price.toLocaleString('ru-RU', { style: 'currency', currency: module.currency })}
                     </div>
                     <div className="text-xs text-steel-500">за {module.duration_days} дней</div>
                   </div>
-                </div>
+                    </div>
 
                 <p className="text-steel-600 text-sm mb-4">{module.description}</p>
 
                 {module.features.length > 0 && (
-                  <div className="mb-4">
+                      <div className="mb-4">
                     <div className="text-xs font-medium text-steel-700 mb-2">Возможности:</div>
                     <div className="space-y-1">
-                      {module.features.slice(0, 3).map((feature, index) => (
-                        <div key={index} className="flex items-start text-xs text-steel-600">
-                          <CheckCircleIcon className="h-3 w-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                          {feature}
-                        </div>
-                      ))}
-                      {module.features.length > 3 && (
-                        <div className="text-xs text-steel-500">
-                          +{module.features.length - 3} возможностей
-                        </div>
-                      )}
+                      {(() => {
+                        const isExpanded = expandedModules.has(module.slug);
+                        const featuresToShow = isExpanded ? module.features : module.features.slice(0, 3);
+                        
+                        return (
+                          <>
+                            {featuresToShow.map((feature, index) => (
+                              <div key={index} className="flex items-start text-xs text-steel-600">
+                                <CheckCircleIcon className="h-3 w-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                              {feature}
+                              </div>
+                            ))}
+                            {module.features.length > 3 && (
+                              <button
+                                onClick={() => toggleModuleExpanded(module.slug)}
+                                className="text-xs text-orange-600 hover:text-orange-700 font-medium flex items-center mt-1 transition-colors"
+                              >
+                                {isExpanded ? (
+                                  <>
+                                    <ChevronUpIcon className="h-3 w-3 mr-1" />
+                                    <span>Скрыть</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDownIcon className="h-3 w-3 mr-1" />
+                                    <span>+{module.features.length - 3} возможностей — показать все</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
-                  </div>
-                )}
+                      </div>
+                    )}
 
                 {active && getModuleExpiresAt(module) && (
                   <div className="mb-4 p-3 bg-white rounded-lg border border-orange-200">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-steel-600">Активен до:</span>
                       <span className="font-medium text-steel-900">{formatDate(getModuleExpiresAt(module))}</span>
-                    </div>
-                  </div>
-                )}
+                        </div>
+                      </div>
+                    )}
 
                 <div className="flex items-center space-x-2">
                   {active ? (
-                    <>
-                      <button
+                        <>
+                            <button
                         onClick={() => handleRenewModule(module)}
                         disabled={actionInProgress}
                         className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50"
@@ -436,10 +523,10 @@ const ModulesPage = () => {
                         ) : (
                           <>
                             <BoltIcon className="h-4 w-4 mr-2" />
-                            Продлить
+                              Продлить
                           </>
                         )}
-                      </button>
+                            </button>
                       <button
                         onClick={() => handleDeactivateClick(module)}
                         disabled={actionInProgress}
@@ -452,8 +539,8 @@ const ModulesPage = () => {
                         )}
                       </button>
                     </>
-                  ) : (
-                    <button
+                      ) : (
+                        <button
                       onClick={() => handleActivateClick(module)}
                       disabled={actionInProgress}
                       className="w-full inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50"
@@ -462,15 +549,15 @@ const ModulesPage = () => {
                         <ArrowPathIcon className="h-4 w-4 animate-spin" />
                       ) : (
                         <>
-                          <PlayIcon className="h-4 w-4 mr-2" />
+                            <PlayIcon className="h-4 w-4 mr-2" />
                           Активировать
                         </>
+                          )}
+                        </button>
                       )}
-                    </button>
-                  )}
-                </div>
+                    </div>
               </div>
-            );
+                );
           })}
         </div>
       </div>
@@ -491,10 +578,10 @@ const ModulesPage = () => {
 
       <ConfirmActionModal
         isOpen={showDeactivationModal}
-        onClose={() => {
+          onClose={() => {
           setShowDeactivationModal(false);
-          setSelectedModule(null);
-        }}
+            setSelectedModule(null);
+          }}
         onConfirm={handleDeactivateConfirm}
         title="Деактивировать модуль?"
         message={`Вы действительно хотите деактивировать модуль "${selectedModule?.name}"? Все связанные функции станут недоступны.`}
@@ -506,4 +593,4 @@ const ModulesPage = () => {
   );
 };
 
-export default ModulesPage;
+export default ModulesPage; 

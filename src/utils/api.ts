@@ -1901,17 +1901,23 @@ export interface NewModuleActivation {
 }
 
 export interface ModulePreview {
+  success: boolean;
   module: {
     name: string;
+    description: string;
     price: number;
     currency: string;
+    duration_days: number;
+    features: string[];
   };
-  organization_balance: number;
-  can_afford: boolean;
-  cost_breakdown: {
-    base_price: number;
-    total: number;
+  checks: {
+    can_afford: boolean;
+    current_balance: number;
+    missing_dependencies: string[];
+    conflicts: string[];
+    is_already_active: boolean;
   };
+  can_activate: boolean;
 }
 
 export interface ModuleCheckAccess {
