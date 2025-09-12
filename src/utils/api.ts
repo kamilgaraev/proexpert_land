@@ -1878,9 +1878,9 @@ export interface Module {
   slug: string;
   name: string;
   description: string;
-  type: 'core' | 'addon' | 'premium';
+  type: 'core' | 'addon' | 'premium' | 'feature';
   category: string;
-  billing_model: 'subscription' | 'one_time';
+  billing_model: 'subscription' | 'one_time' | 'free';
   price: number;
   currency: string;
   duration_days: number;

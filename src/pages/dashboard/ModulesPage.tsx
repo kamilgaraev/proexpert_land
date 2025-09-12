@@ -305,6 +305,9 @@ const ModulesPage = () => {
   };
 
   const isExpiringSoon = (module: Module) => {
+    // Бесплатные модули никогда не истекают
+    if (module.billing_model === 'free') return false;
+    
     const expiresAt = getModuleExpiresAt(module);
     if (!expiresAt) return false;
     const expiry = new Date(expiresAt);
@@ -451,10 +454,18 @@ const ModulesPage = () => {
                     </div>
 
                   <div className="text-right">
-                    <div className="text-lg font-bold text-construction-600">
-                      {module.price.toLocaleString('ru-RU', { style: 'currency', currency: module.currency })}
-                    </div>
-                    <div className="text-xs text-steel-500">за {module.duration_days} дней</div>
+                    {module.billing_model === 'free' ? (
+                      <div className="text-lg font-bold text-green-600">
+                        Бесплатно
+                      </div>
+                    ) : (
+                      <>
+                        <div className="text-lg font-bold text-construction-600">
+                          {module.price.toLocaleString('ru-RU', { style: 'currency', currency: module.currency })}
+                        </div>
+                        <div className="text-xs text-steel-500">за {module.duration_days} дней</div>
+                      </>
+                    )}
                   </div>
                     </div>
 
@@ -501,7 +512,7 @@ const ModulesPage = () => {
                       </div>
                     )}
 
-                {active && getModuleExpiresAt(module) && (
+                {active && getModuleExpiresAt(module) && module.billing_model !== 'free' && (
                   <div className="mb-4 p-3 bg-white rounded-lg border border-orange-200">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-steel-600">Активен до:</span>
@@ -512,21 +523,29 @@ const ModulesPage = () => {
 
                 <div className="flex items-center space-x-2">
                   {active ? (
-                        <>
-                            <button
-                        onClick={() => handleRenewModule(module)}
-                        disabled={actionInProgress}
-                        className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50"
-                      >
-                        {actionLoading === `renew-${module.slug}` ? (
-                          <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <>
-                            <BoltIcon className="h-4 w-4 mr-2" />
+                    <>
+                      {module.billing_model === 'free' ? (
+                        // Для бесплатных модулей показываем информационный блок вместо кнопки продления
+                        <div className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-50 border border-green-200 text-green-700 text-sm font-medium rounded-lg">
+                          <CheckCircleIcon className="h-4 w-4 mr-2" />
+                          Постоянно активен
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleRenewModule(module)}
+                          disabled={actionInProgress}
+                          className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50"
+                        >
+                          {actionLoading === `renew-${module.slug}` ? (
+                            <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <>
+                              <BoltIcon className="h-4 w-4 mr-2" />
                               Продлить
-                          </>
-                        )}
-                            </button>
+                            </>
+                          )}
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDeactivateClick(module)}
                         disabled={actionInProgress}
@@ -539,8 +558,8 @@ const ModulesPage = () => {
                         )}
                       </button>
                     </>
-                      ) : (
-                        <button
+                  ) : (
+                    <button
                       onClick={() => handleActivateClick(module)}
                       disabled={actionInProgress}
                       className="w-full inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50"
@@ -549,13 +568,13 @@ const ModulesPage = () => {
                         <ArrowPathIcon className="h-4 w-4 animate-spin" />
                       ) : (
                         <>
-                            <PlayIcon className="h-4 w-4 mr-2" />
+                          <PlayIcon className="h-4 w-4 mr-2" />
                           Активировать
                         </>
-                          )}
-                        </button>
                       )}
-                    </div>
+                    </button>
+                  )}
+                </div>
               </div>
                 );
           })}
