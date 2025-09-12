@@ -62,6 +62,20 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
     }
   }, []);
 
+  // Функция для динамического извлечения модулей из всех категорий
+  const extractModulesFromCategories = useCallback((responseData: any): Module[] => {
+    let modules: Module[] = [];
+    if (responseData && typeof responseData === 'object') {
+      // Перебираем все категории в ответе (core, reports, addon, premium и т.д.)
+      Object.keys(responseData).forEach(category => {
+        if (Array.isArray(responseData[category])) {
+          modules = [...modules, ...responseData[category]];
+        }
+      });
+    }
+    return modules;
+  }, []);
+
   const fetchAllData = useCallback(async () => {
     if (isLoadingRef.current) {
       return;
@@ -87,24 +101,19 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
         // Обрабатываем новый формат данных API - модули группируются по категориям
         let allModulesData: Module[] = [];
         if (modulesResponse.data?.success && modulesResponse.data.data) {
-          const moduleData = modulesResponse.data.data;
-          // Собираем модули из всех категорий
-          if (moduleData.core) allModulesData = [...allModulesData, ...moduleData.core];
-          if (moduleData.addon) allModulesData = [...allModulesData, ...moduleData.addon];
-          if (moduleData.premium) allModulesData = [...allModulesData, ...moduleData.premium];
+          // Динамически извлекаем модули из всех категорий (core, reports, addon, premium и др.)
+          allModulesData = extractModulesFromCategories(modulesResponse.data.data);
         }
 
         // Для активных модулей используем тот же подход
         let activeModulesData: Module[] = [];
         if (activeResponse.data?.success && activeResponse.data.data) {
           if (activeResponse.data.data.modules) {
+            // Если есть прямое поле modules
             activeModulesData = activeResponse.data.data.modules;
           } else {
-            // Если структура такая же как в основном запросе
-            const activeData = activeResponse.data.data;
-            if (activeData.core) activeModulesData = [...activeModulesData, ...activeData.core];
-            if (activeData.addon) activeModulesData = [...activeModulesData, ...activeData.addon];
-            if (activeData.premium) activeModulesData = [...activeModulesData, ...activeData.premium];
+            // Иначе динамически извлекаем из категорий
+            activeModulesData = extractModulesFromCategories(activeResponse.data.data);
           }
         }
 
@@ -112,13 +121,11 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
         let expiringModulesData: Module[] = [];
         if (expiringResponse.data?.success && expiringResponse.data.data) {
           if (expiringResponse.data.data.modules) {
+            // Если есть прямое поле modules
             expiringModulesData = expiringResponse.data.data.modules;
           } else {
-            // Если структура такая же как в основном запросе
-            const expiringData = expiringResponse.data.data;
-            if (expiringData.core) expiringModulesData = [...expiringModulesData, ...expiringData.core];
-            if (expiringData.addon) expiringModulesData = [...expiringModulesData, ...expiringData.addon];
-            if (expiringData.premium) expiringModulesData = [...expiringModulesData, ...expiringData.premium];
+            // Иначе динамически извлекаем из категорий
+            expiringModulesData = extractModulesFromCategories(expiringResponse.data.data);
           }
         }
         
@@ -144,7 +151,7 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       handleError(error.message || 'Не удалось загрузить модули');
       isLoadingRef.current = false;
     }
-  }, [handleError]);
+  }, [handleError, extractModulesFromCategories]);
 
   // Первоначальная загрузка
   useEffect(() => {
