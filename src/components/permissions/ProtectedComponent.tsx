@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCanAccess } from '@/hooks/usePermissions';
+import { useCanAccess, usePermissions } from '@/hooks/usePermissions';
 import { CanAccessOptions } from '@/types/permissions';
 
 interface ProtectedComponentProps extends CanAccessOptions {
@@ -90,11 +90,11 @@ export const DisabledComponent: React.FC<DisabledComponentProps> = ({
 }) => {
   const hasAccess = useCanAccess(options);
 
-  return React.cloneElement(children, {
-    className: `${children.props.className || ''} ${className || ''} ${
+  return React.cloneElement(children as React.ReactElement<any>, {
+    className: `${(children as any).props?.className || ''} ${className || ''} ${
       hasAccess ? '' : disabledClassName
     }`.trim(),
-    disabled: hasAccess ? children.props.disabled : true,
+    disabled: hasAccess ? (children as any).props?.disabled : true,
     'aria-disabled': !hasAccess
   });
 };
@@ -132,8 +132,7 @@ export const PermissionsGuard: React.FC<PermissionsLoadingProps> = ({
   fallback = <div className="flex items-center justify-center p-4">🔄 Загрузка прав...</div>,
   className
 }) => {
-  const { isLoaded, isLoading } = useCanAccess.length ? { isLoaded: true, isLoading: false } : 
-    require('@/hooks/usePermissions').usePermissions();
+  const { isLoaded, isLoading } = usePermissions();
 
   if (isLoading || !isLoaded) {
     return <div className={className}>{fallback}</div>;

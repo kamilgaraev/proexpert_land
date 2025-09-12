@@ -9,7 +9,7 @@ import {
   AccessInterface,
   ActiveModule
 } from '@/types/permissions';
-import { API_URL, getTokenFromStorages } from '@/utils/api';
+import { getTokenFromStorages } from '@/utils/api';
 
 /**
  * Централизованный менеджер для управления правами пользователей
@@ -99,7 +99,7 @@ export class PermissionsManager {
 
     // Проверка wildcard прав (например, projects.*)
     if (permission.includes('.')) {
-      const [module, action] = permission.split('.');
+      const [module] = permission.split('.');
       const wildcardPermission = `${module}.*`;
       
       if (this.permissions.includes(wildcardPermission)) {
