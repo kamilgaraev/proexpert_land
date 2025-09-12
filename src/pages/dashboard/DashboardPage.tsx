@@ -39,9 +39,9 @@ const DashboardPage = () => {
   } = useSubscriptionLimits({
     autoRefresh: true,
     refreshInterval: 300000, // 5 минут
-    onCritical: (warnings) => {
+    onCritical: (_warnings) => {
     },
-    onWarning: (warnings) => {
+    onWarning: (_warnings) => {
     }
   });
 

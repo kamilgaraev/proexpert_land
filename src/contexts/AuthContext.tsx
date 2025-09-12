@@ -285,7 +285,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     const currentTokenForLogout = token;
     if (currentTokenForLogout) {
-      authService.logout().catch((err: Error) => {
+      authService.logout().catch((_err: Error) => {
       });
     }
     

@@ -28,10 +28,10 @@ const SubscriptionLimitsPage: React.FC = () => {
     lastUpdated
   } = useSubscriptionLimits({
     autoRefresh: false, // Отключаем автообновление на странице лимитов
-    onCritical: (warnings) => {
-    },
-    onWarning: (warnings) => {
-    }
+      onCritical: (_warnings) => {
+      },
+      onWarning: (_warnings) => {
+      }
   });
 
   const handleDismissWarning = (warningType: string) => {

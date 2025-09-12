@@ -497,7 +497,7 @@ const OrganizationPage = () => {
       {/* Рекомендации по верификации */}
       <VerificationRecommendationsComponent 
         organizationId={organization.id}
-        onRecommendationsLoad={(recommendations: any) => {
+        onRecommendationsLoad={(_recommendations: any) => {
         }}
         onVerificationRequest={handleVerification}
         isVerifying={isVerifying}
