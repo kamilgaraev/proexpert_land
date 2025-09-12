@@ -153,6 +153,14 @@ const DashboardLayout = () => {
         visible: canManageUsers
       },
       { 
+        name: 'Роли', 
+        href: '/dashboard/custom-roles', 
+        icon: ShieldCheckIcon,
+        description: 'Кастомные роли организации',
+        // Роли могут управлять только владельцы организации
+        visible: canViewOrganization && canManageUsers
+      },
+      { 
         name: 'Финансы', 
         href: '/dashboard/billing', 
         icon: BanknotesIcon,

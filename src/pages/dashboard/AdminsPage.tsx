@@ -9,7 +9,8 @@ import {
   UsersIcon,
   ShieldCheckIcon,
   CalendarIcon,
-  EnvelopeIcon
+  EnvelopeIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline';
 import { adminPanelUserService } from '@utils/api';
 import { AdminPanelUser } from '@/types/admin';
@@ -17,12 +18,14 @@ import AdminFormModal from '@components/dashboard/admins/AdminFormModal';
 import ConfirmDeleteModal from '@components/shared/ConfirmDeleteModal';
 import { toast } from 'react-toastify';
 import { useUserManagement } from '@hooks/useUserManagement';
+import { useCustomRoles } from '@hooks/useCustomRoles';
 import UsersList from '@components/dashboard/users/UsersList';
 import InvitationsList from '@components/dashboard/users/InvitationsList';
 import RolesList from '@components/dashboard/users/RolesList';
 import InviteUserModal from '@components/dashboard/users/InviteUserModal';
+import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 
-type TabType = 'admins' | 'users' | 'invitations' | 'roles';
+type TabType = 'admins' | 'users' | 'invitations' | 'roles' | 'custom-roles';
 
 const AdminsPage = () => {
   const [activeTab, setActiveTab] = useState<TabType>('admins');
@@ -49,6 +52,16 @@ const AdminsPage = () => {
     fetchRoles,
     clearError
   } = useUserManagement();
+
+  const {
+    customRoles,
+    loading: customRolesLoading,
+    error: customRolesError,
+    fetchCustomRoles,
+    createCustomRole,
+    deleteCustomRole,
+    cloneCustomRole
+  } = useCustomRoles();
 
   const fetchAdmins = useCallback(async () => {
     setIsLoading(true);
@@ -79,12 +92,15 @@ const AdminsPage = () => {
           await fetchInvitations();
         } else if (activeTab === 'roles') {
           await fetchRoles();
+        } else if (activeTab === 'custom-roles') {
+          await fetchCustomRoles();
         } else {
           // Загружаем все данные для общего обзора
           await Promise.all([
             fetchUsers(),
             fetchInvitations(),
-            fetchRoles()
+            fetchRoles(),
+            fetchCustomRoles()
           ]);
         }
       } catch (err) {
@@ -94,7 +110,7 @@ const AdminsPage = () => {
     if (activeTab !== 'admins') {
       initUserManagementData();
     }
-  }, [activeTab, fetchUsers, fetchInvitations, fetchRoles]);
+  }, [activeTab, fetchUsers, fetchInvitations, fetchRoles, fetchCustomRoles]);
 
   useEffect(() => {
     if (userManagementError) {
@@ -230,13 +246,14 @@ const AdminsPage = () => {
     { id: 'admins' as TabType, name: 'Администраторы', count: admins.length },
     { id: 'users' as TabType, name: 'Пользователи', count: users.length },
     { id: 'invitations' as TabType, name: 'Приглашения', count: invitations.length },
-    { id: 'roles' as TabType, name: 'Роли', count: roles.length }
+    { id: 'roles' as TabType, name: 'Роли', count: roles.length },
+    { id: 'custom-roles' as TabType, name: 'Кастомные роли', count: customRoles.length }
   ];
 
   const renderContent = () => {
     // Показываем ошибки управления пользователями для соответствующих табов
-    if (userManagementError && activeTab !== 'admins') {
-  return (
+    if (userManagementError && ['users', 'invitations', 'roles'].includes(activeTab)) {
+      return (
         <div className="p-6">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <h3 className="text-lg font-medium text-red-900">Ошибка загрузки данных</h3>
@@ -252,7 +269,25 @@ const AdminsPage = () => {
             >
               Попробовать снова
             </button>
-                </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Показываем ошибки кастомных ролей для соответствующего таба
+    if (customRolesError && activeTab === 'custom-roles') {
+      return (
+        <div className="p-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h3 className="text-lg font-medium text-red-900">Ошибка загрузки кастомных ролей</h3>
+            <p className="text-sm text-red-700 mt-1">{customRolesError}</p>
+            <button 
+              onClick={() => fetchCustomRoles()}
+              className="mt-3 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium"
+            >
+              Попробовать снова
+            </button>
+          </div>
         </div>
       );
     }
@@ -281,10 +316,128 @@ const AdminsPage = () => {
         );
       case 'roles':
         return <RolesList roles={roles} loading={userManagementLoading} onRefresh={fetchRoles} />;
+      case 'custom-roles':
+        return renderCustomRolesContent();
       case 'admins':
       default:
         return renderAdminsContent();
     }
+  };
+
+  const renderCustomRolesContent = () => {
+    if (customRolesLoading) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-construction-200 border-t-construction-600"></div>
+        </div>
+      );
+    }
+
+    if (customRoles.length === 0 && !customRolesError) {
+      return (
+        <div className="text-center py-12">
+          <ShieldCheckIcon className="h-16 w-16 text-steel-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-steel-900 mb-2">Нет кастомных ролей</h3>
+          <p className="text-steel-600 mb-6">
+            Создайте кастомные роли для управления правами пользователей
+          </p>
+          <ProtectedComponent 
+            permission="roles.create_custom"
+            role="organization_owner"
+            requireAll={false}
+            showFallback={false}
+          >
+            <motion.button
+              onClick={() => window.location.href = '/dashboard/custom-roles'}
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-construction-500 to-construction-600 text-white rounded-xl hover:shadow-construction transition-all duration-200"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <PlusIcon className="w-5 h-5 mr-2" />
+              Создать роль
+            </motion.button>
+          </ProtectedComponent>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {customRoles.map((role, index) => (
+          <motion.div
+            key={role.id}
+            className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
+            whileHover={{ y: -2 }}
+          >
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 p-0.5">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center">
+                    <ShieldCheckIcon className="w-10 h-10 text-orange-500" />
+                  </div>
+                </div>
+                {role.is_active && (
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-earth-500 rounded-full flex items-center justify-center">
+                    <ShieldCheckIcon className="w-3 h-3 text-white" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-steel-900 truncate">{role.name}</h3>
+                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                  role.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {role.is_active ? 'Активна' : 'Неактивна'}
+                </span>
+              </div>
+            </div>
+
+            {role.description && (
+              <p className="text-steel-600 text-sm mb-4 line-clamp-2">{role.description}</p>
+            )}
+
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center text-sm text-steel-600">
+                <CheckIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span>{role.system_permissions.length} системных прав</span>
+              </div>
+              
+              <div className="flex items-center text-sm text-steel-600">
+                <UsersIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span>{Object.keys(role.module_permissions || {}).length} модулей</span>
+              </div>
+              
+              <div className="flex items-center text-sm text-steel-600">
+                <CalendarIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span>Создана: {new Date(role.created_at).toLocaleDateString('ru-RU')}</span>
+              </div>
+            </div>
+
+            <div className="flex space-x-2">
+              <ProtectedComponent 
+                permission="roles.view_custom"
+                role="organization_owner"
+                requireAll={false}
+                showFallback={false}
+              >
+                <motion.button
+                  onClick={() => window.location.href = '/dashboard/custom-roles'}
+                  className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-steel-300 text-steel-700 rounded-lg hover:bg-steel-50 transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <PencilIcon className="w-4 h-4 mr-2" />
+                  Управление
+                </motion.button>
+              </ProtectedComponent>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    );
   };
 
   const renderAdminsContent = () => {
@@ -430,6 +583,24 @@ const AdminsPage = () => {
               Добавить администратора
             </motion.button>
           )}
+          {activeTab === 'custom-roles' && (
+            <ProtectedComponent 
+              permission="roles.create_custom"
+              role="organization_owner"
+              requireAll={false}
+              showFallback={false}
+            >
+              <motion.button
+                onClick={() => window.location.href = '/dashboard/custom-roles'}
+                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:shadow-orange transition-all duration-200"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <ShieldCheckIcon className="w-5 h-5 mr-2" />
+                Управление ролями
+              </motion.button>
+            </ProtectedComponent>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -504,6 +675,7 @@ const AdminsPage = () => {
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">Роли</h3>
                   <p className="text-2xl font-bold text-gray-900">{roles.length}</p>
+                  <p className="text-xs text-gray-500">+{customRoles.length} кастомных</p>
                 </div>
               </div>
             </div>

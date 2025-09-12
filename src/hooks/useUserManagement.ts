@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { userManagementService } from '@utils/api';
+import { userManagementService, customRolesService, CreateUserWithCustomRolesData } from '@utils/api';
 
 export interface OrganizationRole {
   id: number;
@@ -257,6 +257,71 @@ export const useUserManagement = () => {
     }
   };
 
+  // Новые методы для работы с кастомными ролями
+  const createUserWithCustomRoles = async (userData: CreateUserWithCustomRolesData) => {
+    try {
+      setLoading(true);
+      const response = await customRolesService.createUserWithCustomRoles(userData);
+      if (response.data && response.data.success) {
+        await fetchUsers(); // Обновляем список пользователей
+        return response.data;
+      }
+      throw new Error(response.data?.message || 'Ошибка создания пользователя');
+    } catch (err: any) {
+      setError(err.message || 'Ошибка создания пользователя');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getUserRoles = async (userId: number) => {
+    try {
+      const response = await userManagementService.getUserRoles(userId);
+      if (response.data && response.data.success) {
+        return response.data.data;
+      }
+      throw new Error(response.data?.message || 'Ошибка загрузки ролей пользователя');
+    } catch (err: any) {
+      setError(err.message || 'Ошибка загрузки ролей пользователя');
+      throw err;
+    }
+  };
+
+  const assignRoleToUser = async (userId: number, roleId: number) => {
+    try {
+      setLoading(true);
+      const response = await userManagementService.assignRoleToUser(userId, roleId);
+      if (response.data && response.data.success) {
+        await fetchUsers(); // Обновляем список пользователей
+        return response.data;
+      }
+      throw new Error(response.data?.message || 'Ошибка назначения роли');
+    } catch (err: any) {
+      setError(err.message || 'Ошибка назначения роли');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const unassignRoleFromUser = async (userId: number, roleId: number) => {
+    try {
+      setLoading(true);
+      const response = await userManagementService.unassignRoleFromUser(userId, roleId);
+      if (response.data && response.data.success) {
+        await fetchUsers(); // Обновляем список пользователей
+        return response.data;
+      }
+      throw new Error(response.data?.message || 'Ошибка отзыва роли');
+    } catch (err: any) {
+      setError(err.message || 'Ошибка отзыва роли');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -280,6 +345,10 @@ export const useUserManagement = () => {
     sendInvitation,
     updateUserRoles,
     resendInvitation,
+    createUserWithCustomRoles,
+    getUserRoles,
+    assignRoleToUser,
+    unassignRoleFromUser,
     clearError
   };
 }; 

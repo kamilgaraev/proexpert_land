@@ -25,6 +25,7 @@ import FAQPage from '@pages/dashboard/FAQPage';
 import PaidServicesPage from '@pages/dashboard/paid-services/PaidServicesPage';
 import SubscriptionLimitsPage from '@pages/dashboard/SubscriptionLimitsPage';
 import ModulesPage from '@pages/dashboard/ModulesPage';
+import CustomRolesPage from '@pages/dashboard/CustomRolesPage';
 import MultiOrganizationPage from '@pages/dashboard/MultiOrganizationPage';
 import HoldingRouter from '@/HoldingRouter';
 
@@ -224,6 +225,17 @@ function App() {
             </ProtectedComponent>
           } />
           <Route path="admins/create" element={<Navigate to="/dashboard/admins" replace />} />
+          
+          <Route path="custom-roles" element={
+            <ProtectedComponent 
+              permission="roles.view_custom"
+              role="organization_owner"
+              requireAll={false}
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <CustomRolesPage />
+            </ProtectedComponent>
+          } />
 
           <Route path="paid-services" element={
             <ProtectedComponent 

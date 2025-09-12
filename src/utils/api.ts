@@ -1227,6 +1227,145 @@ export const billingService = {
   },
 };
 
+// Интерфейсы для кастомных ролей
+export interface CustomRole {
+  id: number;
+  organization_id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  system_permissions: string[];
+  module_permissions?: {
+    [module: string]: string[];
+  };
+  interface_access: string[];
+  conditions?: {
+    [key: string]: any;
+  };
+  is_active: boolean;
+  created_by: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateCustomRoleData {
+  name: string;
+  description?: string;
+  system_permissions: string[];
+  module_permissions?: {
+    [module: string]: string[];
+  };
+  interface_access: string[];
+  conditions?: {
+    [key: string]: any;
+  };
+}
+
+export interface AvailableRole {
+  id?: number;
+  name: string;
+  slug: string;
+  description?: string;
+  is_active?: boolean;
+  type: 'system' | 'custom';
+}
+
+export interface AvailableRolesResponse {
+  success: boolean;
+  data: {
+    system_roles: string[];
+    custom_roles: AvailableRole[];
+    organization_id: number;
+  };
+}
+
+export interface CreateUserWithCustomRolesData {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  custom_role_ids: number[];
+  send_credentials?: boolean;
+}
+
+// Новый сервис для управления кастомными ролями
+export const customRolesService = {
+  // Просмотр ролей
+  getCustomRoles: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/user-management/custom-roles');
+    return response;
+  },
+
+  getCustomRole: async (roleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get(`/user-management/custom-roles/${roleId}`);
+    return response;
+  },
+
+  getCustomRoleUsers: async (roleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get(`/user-management/custom-roles/${roleId}/users`);
+    return response;
+  },
+
+  // Создание и управление ролями
+  createCustomRole: async (roleData: CreateCustomRoleData): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post('/user-management/custom-roles', roleData);
+    return response;
+  },
+
+  updateCustomRole: async (roleId: number, roleData: Partial<CreateCustomRoleData>): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.put(`/user-management/custom-roles/${roleId}`, roleData);
+    return response;
+  },
+
+  deleteCustomRole: async (roleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.delete(`/user-management/custom-roles/${roleId}`);
+    return response;
+  },
+
+  cloneCustomRole: async (roleId: number, newName: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post(`/user-management/custom-roles/${roleId}/clone`, { name: newName });
+    return response;
+  },
+
+  // Назначение ролей
+  assignRole: async (roleId: number, userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post(`/user-management/custom-roles/${roleId}/assign`, { user_id: userId });
+    return response;
+  },
+
+  unassignRole: async (roleId: number, userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.request({
+      method: 'DELETE',
+      url: `/user-management/custom-roles/${roleId}/unassign`,
+      data: { user_id: userId }
+    });
+    return response;
+  },
+
+  // Создание пользователя с кастомными ролями
+  createUserWithCustomRoles: async (userData: CreateUserWithCustomRolesData): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post('/user-management/create-user-with-custom-roles', userData);
+    return response;
+  },
+
+  // Вспомогательные методы
+  getAvailableRoles: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/user-management/available-roles');
+    return response;
+  },
+
+  getAvailablePermissions: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/user-management/available-permissions');
+    return response;
+  },
+
+  getCustomRolePermissions: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get('/user-management/custom-roles/permissions/available');
+    return response;
+  },
+};
+
+// Обновленный сервис управления пользователями
 export const userManagementService = {
   getRoles: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const response = await api.get('/user-management/roles');
@@ -1251,10 +1390,6 @@ export const userManagementService = {
     return response;
   },
 
-  assignRoleToUser: async (roleId: number, userId: number): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.post(`/user-management/roles/${roleId}/assign-user`, { user_id: userId });
-    return response;
-  },
 
   duplicateRole: async (roleId: number, name: string): Promise<{ data: any, status: number, statusText: string }> => {
     const response = await api.post(`/user-management/roles/${roleId}/duplicate`, { name });
@@ -1306,12 +1441,28 @@ export const userManagementService = {
     return response;
   },
 
+  // Управление ролями пользователей - обновлено для кастомных ролей
+  getUserRoles: async (userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get(`/user-management/organization-users/${userId}/roles`);
+    return response;
+  },
+
   updateUserRoles: async (userId: number, rolesData: {
     system_roles?: string[];
     custom_roles?: number[];
     action: 'replace' | 'add' | 'remove';
   }): Promise<{ data: any, status: number, statusText: string }> => {
     const response = await api.post(`/user-management/organization-users/${userId}/roles`, rolesData);
+    return response;
+  },
+
+  assignRoleToUser: async (userId: number, roleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post(`/user-management/organization-users/${userId}/assign-role/${roleId}`);
+    return response;
+  },
+
+  unassignRoleFromUser: async (userId: number, roleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.delete(`/user-management/organization-users/${userId}/unassign-role/${roleId}`);
     return response;
   },
 
