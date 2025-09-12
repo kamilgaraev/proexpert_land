@@ -126,10 +126,10 @@ const DashboardLayout = () => {
         description: 'Лимиты подписки и использование'
       },
       { 
-        name: 'Услуги', 
+        name: 'Подписки', 
         href: '/dashboard/paid-services', 
         icon: TicketIcon,
-        description: 'Дополнительные возможности'
+        description: 'Управление подписками'
       },
       { 
         name: 'Модули', 

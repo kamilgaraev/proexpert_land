@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { billingService } from '@utils/api';
-import { CheckCircleIcon, XCircleIcon, PuzzlePieceIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import { Switch } from '@headlessui/react';
 import ConfirmActionModal from '@components/shared/ConfirmActionModal';
 import { PageLoading } from '@components/common/PageLoading'; // Предполагаем наличие компонента-заглушки
@@ -9,8 +9,6 @@ const PaidServicesPage = () => {
   const [subscription, setSubscription] = useState<any>(null);
   const [currentPlan, setCurrentPlan] = useState<any | null>(null);
   const [plans, setPlans] = useState<any[]>([]);
-  const [addons, setAddons] = useState<any[]>([]);
-  const [connectedAddons, setConnectedAddons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [autoPayEnabled, setAutoPayEnabled] = useState<boolean | null>(null);
   const [autoPayUpdating, setAutoPayUpdating] = useState(false);
@@ -29,19 +27,16 @@ const PaidServicesPage = () => {
     } 
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showAddonsModal, setShowAddonsModal] = useState(false);
   // Функция для разовых покупок и связанные состояния удалены как неиспользуемые
-  const [addonAction, setAddonAction] = useState<number | null>(null);
   const [planAction, setPlanAction] = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [subRes, plansRes, addonsRes] = await Promise.all([
+      const [subRes, plansRes] = await Promise.all([
         billingService.getCurrentSubscription(),
         billingService.getPlans(),
-        billingService.getAddons(),
       ]);
       const actualData = (subRes.data as any)?.data || subRes.data;
       const subscriptionData = actualData && typeof actualData === 'object' 
@@ -66,8 +61,6 @@ const PaidServicesPage = () => {
         p.slug?.toLowerCase() === subscriptionData.plan_name?.toLowerCase()
       ) : null;
       setCurrentPlan(cp || null);
-      setAddons(Array.isArray(addonsRes.data.all) ? addonsRes.data.all : []);
-      setConnectedAddons(Array.isArray(addonsRes.data.connected) ? addonsRes.data.connected : []);
     } catch (e: any) {
       setError(e.message || 'Ошибка загрузки данных');
     } finally {
@@ -172,29 +165,6 @@ const PaidServicesPage = () => {
     }
   };
 
-  const handleAddonConnect = async (addon_id: number) => {
-    setAddonAction(addon_id);
-    try {
-      await billingService.connectAddon(addon_id);
-      await fetchAll();
-    } catch (e: any) {
-      setError(e.message || 'Ошибка подключения add-on');
-    } finally {
-      setAddonAction(null);
-    }
-  };
-
-  const handleAddonDisconnect = async (subscription_addon_id: number) => {
-    setAddonAction(subscription_addon_id);
-    try {
-      await billingService.disconnectAddon(subscription_addon_id);
-      await fetchAll();
-    } catch (e: any) {
-      setError(e.message || 'Ошибка отключения add-on');
-    } finally {
-      setAddonAction(null);
-    }
-  };
 
   // Функция для разовых покупок и связанные состояния удалены как неиспользуемые
 
@@ -323,52 +293,6 @@ const PaidServicesPage = () => {
         </div>
       </section>
 
-      {/* Add-ons */}
-      <section className="bg-white shadow rounded-xl p-6 mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Дополнительные услуги (Add-ons)</h2>
-          <button className="btn btn-outline flex items-center gap-1" onClick={() => setShowAddonsModal(true)}><PuzzlePieceIcon className="h-5 w-5" /> Управлять</button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {connectedAddons.length === 0 && <span className="text-gray-500">Нет подключённых add-on</span>}
-          {connectedAddons.map((addon: any) => (
-            <span key={addon.id} className="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">
-              {addon.name}
-            </span>
-          ))}
-        </div>
-        {showAddonsModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg relative">
-              <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-700" onClick={() => setShowAddonsModal(false)}><XCircleIcon className="h-6 w-6" /></button>
-              <h3 className="text-lg font-bold mb-4">Управление add-on</h3>
-              <ul className="space-y-3">
-                {addons.map((addon: any) => {
-                  const connected = connectedAddons.some((a: any) => a.id === addon.id);
-                  const subAddon = connectedAddons.find((a: any) => a.id === addon.id);
-              return (
-                    <li key={addon.id} className="flex items-center justify-between border-b pb-2">
-                      <div>
-                        <div className="font-medium">{addon.name}</div>
-                        <div className="text-xs text-gray-500">{addon.description}</div>
-                      </div>
-                      {connected ? (
-                        <button disabled={addonAction === subAddon.subscription_addon_id} onClick={() => handleAddonDisconnect(subAddon.subscription_addon_id)} className="btn btn-outline text-red-600 flex items-center gap-1">
-                          <TrashIcon className="h-4 w-4" /> Отключить
-                        </button>
-                      ) : (
-                        <button disabled={addonAction === addon.id} onClick={() => handleAddonConnect(addon.id)} className="btn btn-primary flex items-center gap-1">
-                          <PlusIcon className="h-4 w-4" /> Подключить
-                      </button>
-                    )}
-                    </li>
-              );
-            })}
-              </ul>
-            </div>
-      </div>
-        )}
-      </section>
 
       {/* Разовые покупки удалены по требованию */}
       <ConfirmActionModal
