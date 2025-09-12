@@ -424,7 +424,21 @@ const getModuleIcon = (iconName: string, module?: Module) => {
     IconComponent = PuzzlePieceIcon;
   }
   
-  return <IconComponent className="h-6 w-6 text-orange-600" />;
+  return IconComponent;
+};
+
+// Определение цвета иконки на основе статуса модуля
+const getModuleIconColor = (module: Module, isModuleActive: (slug: string) => boolean, isExpiringSoon: (module: Module) => boolean) => {
+  const active = isModuleActive(module.slug);
+  const expiring = isExpiringSoon(module);
+  
+  if (!active) {
+    return 'text-gray-400';
+  } else if (expiring) {
+    return 'text-yellow-500';
+  } else {
+    return 'text-green-500';
+  }
 };
 
 const ModulesPage = () => {
@@ -547,18 +561,6 @@ const ModulesPage = () => {
     return daysUntilExpiry <= 7 && daysUntilExpiry > 0;
   };
 
-  const getModuleStatusIcon = (module: Module) => {
-    const active = isModuleActive(module.slug);
-    const expiring = isExpiringSoon(module);
-    
-    if (!active) {
-      return <XCircleIcon className="h-3 w-3 text-gray-400 bg-white rounded-full" />;
-    } else if (expiring) {
-      return <ExclamationTriangleIcon className="h-3 w-3 text-yellow-500 bg-white rounded-full" />;
-    } else {
-      return <CheckCircleIcon className="h-3 w-3 text-green-500 bg-white rounded-full" />;
-    }
-  };
 
   const getModuleStatusText = (module: Module) => {
     const active = isModuleActive(module.slug);
@@ -650,9 +652,11 @@ const ModulesPage = () => {
         <h2 className="text-xl font-semibold mb-6">Все модули</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {allModules.map((module) => {
-            const active = isModuleActive(module.slug);
-            const status = getModuleStatusText(module);
+              {allModules.map((module) => {
+                const active = isModuleActive(module.slug);
+                const status = getModuleStatusText(module);
+                const ModuleIconComponent = getModuleIcon(module.icon, module);
+                const iconColor = getModuleIconColor(module, isModuleActive, isExpiringSoon);
             const actionInProgress = actionLoading?.includes(module.slug);
 
                 return (
@@ -676,17 +680,11 @@ const ModulesPage = () => {
                         <div>
                       <h3 className="font-semibold text-steel-900">{module.name}</h3>
                       <div className="flex items-center space-x-2 mt-1">
-                        <div className="relative">
-                          {getModuleIcon(module.icon, module)}
-                          {/* Маленький статусный индикатор */}
-                          <div className="absolute -bottom-1 -right-1">
-                            {getModuleStatusIcon(module)}
-                          </div>
-                        </div>
+                        <ModuleIconComponent className={`h-5 w-5 ${iconColor}`} />
                         <span className={`text-sm font-medium ${status.className}`}>
                           {status.text}
-                          </span>
-                        </div>
+                        </span>
+                      </div>
                       </div>
                     </div>
 
