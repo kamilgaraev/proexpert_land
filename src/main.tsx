@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from '@contexts/AuthContext';
 import { AdminAuthProvider } from '@contexts/AdminAuthContext';
+import { PermissionsProvider } from '@/contexts/PermissionsContext';
 import './index.css';
 
 function handleSpaRedirect() {
@@ -21,7 +22,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AdminAuthProvider>
         <AuthProvider>
-          <App />
+          <PermissionsProvider autoLoad={true} interfaceType="lk" refreshInterval={300000}>
+            <App />
+          </PermissionsProvider>
         </AuthProvider>
       </AdminAuthProvider>
     </BrowserRouter>

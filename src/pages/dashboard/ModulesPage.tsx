@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useModules } from '@hooks/useModules';
 import { Module } from '@utils/api';
+import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 import {
   PuzzlePieceIcon,
   CheckCircleIcon,
@@ -676,15 +677,15 @@ const ModulesPage = () => {
                       <ModuleIconComponent className={`h-6 w-6 ${
                         active ? 'text-orange-600' : 'text-steel-600'
                       }`} />
-                    </div>
+                        </div>
                         <div>
                       <h3 className="font-semibold text-steel-900">{module.name}</h3>
                       <div className="flex items-center space-x-2 mt-1">
                         <ModuleIconComponent className={`h-5 w-5 ${iconColor}`} />
                         <span className={`text-sm font-medium ${status.className}`}>
                           {status.text}
-                        </span>
-                      </div>
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -766,51 +767,80 @@ const ModulesPage = () => {
                           Постоянно активен
                         </div>
                       ) : (
+                            <ProtectedComponent
+                              permission="modules.renew"
+                              role="organization_owner"
+                              requireAll={false}
+                              fallback={
+                                <div className="flex-1 px-4 py-2 bg-gray-200 text-gray-500 text-sm font-medium rounded-lg text-center">
+                                  Нет прав на продление
+                                </div>
+                              }
+                            >
                             <button
-                          onClick={() => handleRenewModule(module)}
-                          disabled={actionInProgress}
-                          className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50"
-                        >
-                          {actionLoading === `renew-${module.slug}` ? (
-                            <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <BoltIcon className="h-4 w-4 mr-2" />
+                            onClick={() => handleRenewModule(module)}
+                            disabled={actionInProgress}
+                            className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50"
+                          >
+                            {actionLoading === `renew-${module.slug}` ? (
+                              <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <BoltIcon className="h-4 w-4 mr-2" />
                               Продлить
-                            </>
-                          )}
+                              </>
+                            )}
                             </button>
+                            </ProtectedComponent>
                           )}
                       {module.can_deactivate !== false && (
-                        <button
-                          onClick={() => handleDeactivateClick(module)}
-                          disabled={actionInProgress}
-                          className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 disabled:opacity-50 flex items-center"
-                          title="Деактивировать модуль"
+                        <ProtectedComponent
+                          permission="modules.deactivate"
+                          role="organization_owner"
+                          requireAll={false}
+                          showFallback={false}
                         >
-                          {actionLoading === `deactivate-${module.slug}` ? (
-                            <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <XMarkIcon className="h-4 w-4" />
-                          )}
-                        </button>
+                          <button
+                            onClick={() => handleDeactivateClick(module)}
+                            disabled={actionInProgress}
+                            className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 disabled:opacity-50 flex items-center"
+                            title="Деактивировать модуль"
+                          >
+                            {actionLoading === `deactivate-${module.slug}` ? (
+                              <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <XMarkIcon className="h-4 w-4" />
+                            )}
+                          </button>
+                        </ProtectedComponent>
                           )}
                         </>
                       ) : (
+                        <ProtectedComponent
+                          permission="modules.activate"
+                          role="organization_owner"
+                          requireAll={false}
+                          fallback={
+                            <div className="w-full px-4 py-2 bg-gray-200 text-gray-500 text-sm font-medium rounded-lg text-center">
+                              Нет прав на активацию
+                        </div>
+                          }
+                        >
                         <button
-                      onClick={() => handleActivateClick(module)}
-                      disabled={actionInProgress}
-                      className="w-full inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50"
-                    >
-                      {actionLoading === `activate-${module.slug}` || actionLoading === `preview-${module.slug}` ? (
-                        <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
+                        onClick={() => handleActivateClick(module)}
+                        disabled={actionInProgress}
+                        className="w-full inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50"
+                      >
+                        {actionLoading === `activate-${module.slug}` || actionLoading === `preview-${module.slug}` ? (
+                          <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
                             <PlayIcon className="h-4 w-4 mr-2" />
-                          Активировать
-                        </>
+                            Активировать
+                          </>
                           )}
                         </button>
+                        </ProtectedComponent>
                       )}
                     </div>
               </div>

@@ -13,6 +13,7 @@ import SupportPage from '@pages/dashboard/SupportPage';
 import NotFoundPage from '@pages/NotFoundPage';
 import ProtectedRoute from '@components/ProtectedRoute';
 import AdminProtectedRoute from '@components/AdminProtectedRoute';
+import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 import AdminLayout from '@layouts/AdminLayout';
 import AdminsPage from '@pages/dashboard/AdminsPage';
 import BillingPage from '@pages/dashboard/BillingPage';
@@ -191,19 +192,91 @@ function App() {
           <Route path="faq" element={<FAQPage />} />
           <Route path="limits" element={<SubscriptionLimitsPage />} />
           
-          {/* Маршруты управления организацией */}
-          <Route path="billing" element={<BillingPage />} />
-          <Route path="billing/add-funds" element={<AddFundsPage />} />
-          <Route path="admins" element={<AdminsPage />} />
+          {/* Маршруты управления организацией с проверкой прав */}
+          <Route path="billing" element={
+            <ProtectedComponent 
+              permission="billing.view"
+              role="organization_owner"
+              requireAll={false}
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <BillingPage />
+            </ProtectedComponent>
+          } />
+          <Route path="billing/add-funds" element={
+            <ProtectedComponent 
+              permission="billing.manage"
+              role="organization_owner"
+              requireAll={false}
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <AddFundsPage />
+            </ProtectedComponent>
+          } />
+          <Route path="admins" element={
+            <ProtectedComponent 
+              permission="users.manage"
+              role="organization_owner"
+              requireAll={false}
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <AdminsPage />
+            </ProtectedComponent>
+          } />
           <Route path="admins/create" element={<Navigate to="/dashboard/admins" replace />} />
 
-          <Route path="paid-services" element={<PaidServicesPage />} />
-          <Route path="modules" element={<ModulesPage />} />
-          <Route path="multi-organization" element={<MultiOrganizationPage />} />
-          <Route path="organization" element={<OrganizationPage />} />
+          <Route path="paid-services" element={
+            <ProtectedComponent 
+              permission="billing.manage"
+              role="organization_owner"
+              requireAll={false}
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <PaidServicesPage />
+            </ProtectedComponent>
+          } />
+          <Route path="modules" element={
+            <ProtectedComponent 
+              permission="modules.manage"
+              role="organization_owner"
+              requireAll={false}
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <ModulesPage />
+            </ProtectedComponent>
+          } />
+          <Route path="multi-organization" element={
+            <ProtectedComponent 
+              module="multi-organization"
+              permission="multi_organization.manage"
+              requireAll={true}
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <MultiOrganizationPage />
+            </ProtectedComponent>
+          } />
+          <Route path="organization" element={
+            <ProtectedComponent 
+              permission="organization.view"
+              role="organization_owner"
+              requireAll={false}
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <OrganizationPage />
+            </ProtectedComponent>
+          } />
           
           {/* Приглашения подрядчиков */}
-          <Route path="contractor-invitations" element={<ContractorInvitationsPage />} />
+          <Route path="contractor-invitations" element={
+            <ProtectedComponent 
+              permission="users.invite"
+              role="organization_owner"
+              requireAll={false}
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <ContractorInvitationsPage />
+            </ProtectedComponent>
+          } />
           <Route path="contractor-invitations/token/:token" element={<ContractorInvitationTokenPage />} />
         </Route>
         

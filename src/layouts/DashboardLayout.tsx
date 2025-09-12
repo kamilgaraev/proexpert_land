@@ -22,6 +22,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
 import { useModules } from '@hooks/useModules';
+import { useCanAccess } from '@/hooks/usePermissions';
 import { Menu, Transition } from '@headlessui/react';
 import { classNames } from '@utils/classNames';
 import { billingService, OrganizationBalance, ErrorResponse } from '@utils/api';
@@ -42,6 +43,37 @@ const DashboardLayout = () => {
     hasExpiring, 
     isModuleActive
   } = useModules({ autoRefresh: true, refreshInterval: 300000 });
+
+  // Вызываем все хуки для проверки прав на верхнем уровне
+  const canViewOrganization = useCanAccess({ permission: 'organization.view' }) || 
+                              useCanAccess({ role: 'organization_owner' }) ||
+                              useCanAccess({ role: 'organization_admin' });
+  
+  const canManageUsers = useCanAccess({ permission: 'users.manage' }) ||
+                         useCanAccess({ permission: 'users.manage_admin' }) ||
+                         useCanAccess({ role: 'organization_owner' }) ||
+                         useCanAccess({ role: 'organization_admin' });
+  
+  const canViewBilling = useCanAccess({ permission: 'billing.manage' }) ||
+                         useCanAccess({ permission: 'billing.view' }) ||
+                         useCanAccess({ role: 'organization_owner' }) ||
+                         useCanAccess({ role: 'accountant' });
+  
+  const canViewLimits = useCanAccess({ role: 'organization_owner' }) ||
+                        useCanAccess({ role: 'organization_admin' });
+  
+  const canManageBilling = useCanAccess({ permission: 'billing.manage' }) ||
+                           useCanAccess({ role: 'organization_owner' });
+  
+  const canManageModules = useCanAccess({ permission: 'modules.manage' }) ||
+                           useCanAccess({ role: 'organization_owner' }) ||
+                           useCanAccess({ role: 'organization_admin' });
+  
+  const canInviteUsers = useCanAccess({ permission: 'users.invite' }) ||
+                         useCanAccess({ role: 'organization_owner' }) ||
+                         useCanAccess({ role: 'organization_admin' });
+
+  const canManageMultiOrg = useCanAccess({ permission: 'multi_organization.manage' });
 
   const fetchHeaderBalance = useCallback(async () => {
     if (balanceLoadedRef.current) return; // Предотвращаем повторные вызовы
@@ -94,65 +126,86 @@ const DashboardLayout = () => {
     // Проверяем активность модуля мультиорганизации через новую систему
     const hasMultiOrgAccess = isModuleActive('multi-organization');
 
-    const baseNavigation = [
+    // Определяем все возможные пункты навигации с проверками прав
+    const allNavigationItems = [
       { 
         name: 'Обзор', 
         href: '/dashboard', 
         icon: HomeIcon,
-        description: 'Общая статистика проектов'
+        description: 'Общая статистика проектов',
+        // Обзор доступен всем авторизованным пользователям
+        visible: true
       },
       { 
         name: 'Организация', 
         href: '/dashboard/organization', 
         icon: BuildingOfficeIcon,
-        description: 'Данные и верификация'
+        description: 'Данные и верификация',
+        // Организация доступна всем, кто может просматривать организацию
+        visible: canViewOrganization
       },
       { 
         name: 'Команда', 
         href: '/dashboard/admins', 
         icon: UsersIcon,
-        description: 'Администраторы и прорабы'
+        description: 'Администраторы и прорабы',
+        // Команда доступна тем, кто может управлять пользователями
+        visible: canManageUsers
       },
       { 
         name: 'Финансы', 
         href: '/dashboard/billing', 
         icon: BanknotesIcon,
-        description: 'Баланс и платежи'
+        description: 'Баланс и платежи',
+        // Финансы доступны тем, кто может просматривать или управлять биллингом
+        visible: canViewBilling
       },
       { 
         name: 'Лимиты', 
         href: '/dashboard/limits', 
         icon: ChartPieIcon,
-        description: 'Лимиты подписки и использование'
+        description: 'Лимиты подписки и использование',
+        // Лимиты могут просматривать владельцы и админы
+        visible: canViewLimits
       },
       { 
         name: 'Подписки', 
         href: '/dashboard/paid-services', 
         icon: TicketIcon,
-        description: 'Управление подписками'
+        description: 'Управление подписками',
+        // Подписки могут управлять только владельцы организации
+        visible: canManageBilling
       },
       { 
         name: 'Модули', 
         href: '/dashboard/modules', 
         icon: PuzzlePieceIcon,
         description: 'Модули организации',
-        badge: hasExpiring ? expiringModules.length : undefined
+        badge: hasExpiring ? expiringModules.length : undefined,
+        // Модули могут управлять владельцы и админы
+        visible: canManageModules
       },
       { 
         name: 'Приглашения', 
         href: '/dashboard/contractor-invitations', 
         icon: EnvelopeIcon,
-        description: 'Приглашения подрядчиков'
+        description: 'Приглашения подрядчиков',
+        // Приглашения могут отправлять те, кто может управлять пользователями
+        visible: canInviteUsers
       }
     ];
 
-    // Добавляем мультиорганизацию только если модуль активирован
-    if (hasMultiOrgAccess) {
+    // Фильтруем видимые пункты меню
+    const baseNavigation = allNavigationItems.filter(item => item.visible);
+
+    // Добавляем мультиорганизацию только если модуль активирован И есть права
+    if (hasMultiOrgAccess && canManageMultiOrg) {
       baseNavigation.push({
         name: 'Холдинг', 
         href: '/dashboard/multi-organization', 
         icon: BuildingOffice2Icon,
-        description: 'Управление холдингом'
+        description: 'Управление холдингом',
+        visible: true
       });
     }
 
@@ -160,11 +213,14 @@ const DashboardLayout = () => {
       name: 'Настройки', 
       href: '/dashboard/profile', 
       icon: CogIcon,
-      description: 'Профиль и настройки'
+      description: 'Профиль и настройки',
+      visible: true
     });
 
     return baseNavigation;
-  }, [isModuleActive, hasExpiring, expiringModules.length]);
+  }, [isModuleActive, hasExpiring, expiringModules.length, 
+      canViewOrganization, canManageUsers, canViewBilling, canViewLimits, 
+      canManageBilling, canManageModules, canInviteUsers, canManageMultiOrg]);
 
   const supportNavigation = [
     { 

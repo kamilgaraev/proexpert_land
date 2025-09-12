@@ -20,6 +20,9 @@ const API_URL = `${API_BASE_DOMAIN}/api/v1/landing`;
 // URL для эндпоинтов биллинга, который должен быть https://api.prohelper.pro/api/v1/landing/billing
 // Строится от API_URL (который уже .../landing) добавлением /billing
 const BILLING_API_URL = `${API_URL}/billing`;
+
+// Экспортируем API_URL для использования в других модулях
+export { API_URL };
 // КОНЕЦ БЛОКА
 
 // Создаем экземпляр axios с базовым URL
