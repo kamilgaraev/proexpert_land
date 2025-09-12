@@ -4,6 +4,7 @@ import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import { Switch } from '@headlessui/react';
 import ConfirmActionModal from '@components/shared/ConfirmActionModal';
 import { PageLoading } from '@components/common/PageLoading'; // Предполагаем наличие компонента-заглушки
+import NotificationService from '@components/shared/NotificationService';
 
 const PaidServicesPage = () => {
   const [subscription, setSubscription] = useState<any>(null);
@@ -77,13 +78,59 @@ const PaidServicesPage = () => {
       // Новая подписка
       setPlanAction(plan.slug);
       try {
-        await billingService.subscribeToPlan({ 
+        const response = await billingService.subscribeToPlan({ 
           plan_slug: plan.slug, 
           is_auto_payment_enabled: true 
         });
+
+        // Проверяем статус ответа
+        if (response.status === 402) {
+          // Ошибка недостаточности средств
+          const message = response.data?.message || 'Недостаточно средств на балансе';
+          setError(message);
+          NotificationService.show({
+            type: 'error',
+            title: 'Ошибка оплаты',
+            message: message
+          });
+          return;
+        } else if (response.status !== 200 && response.status !== 201) {
+          // Другие ошибки сервера
+          const message = response.data?.message || `Ошибка сервера: ${response.status}`;
+          setError(message);
+          NotificationService.show({
+            type: 'error',
+            title: 'Ошибка',
+            message: message
+          });
+          return;
+        } else if (!response.data?.success) {
+          // Ошибка в логике приложения
+          const message = response.data?.message || 'Не удалось оформить подписку';
+          setError(message);
+          NotificationService.show({
+            type: 'error',
+            title: 'Ошибка',
+            message: message
+          });
+          return;
+        }
+
+        // Успешно - обновляем данные
         await fetchAll();
+        NotificationService.show({
+          type: 'success',
+          title: 'Подписка оформлена',
+          message: 'Тариф успешно активирован'
+        });
       } catch (e: any) {
-        setError(e.message || 'Ошибка оформления тарифа');
+        const errorMessage = e.message || 'Ошибка оформления тарифа';
+        setError(errorMessage);
+        NotificationService.show({
+          type: 'error',
+          title: 'Ошибка',
+          message: errorMessage
+        });
       } finally {
         setPlanAction(null);
       }

@@ -180,6 +180,11 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       if (response.status === 200 && response.data?.success) {
         await fetchAllData();
         return true;
+      } else if (response.status === 402) {
+        // Ошибка недостаточности средств
+        const errorMessage = response.data?.message || 'Недостаточно средств для активации модуля';
+        handleError(errorMessage);
+        return false;
       } else {
         const errorMessage = response.data?.message || 'Ошибка активации модуля';
         handleError(errorMessage);
@@ -218,6 +223,11 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       if (response.status === 200 && response.data?.success) {
         await fetchAllData();
         return true;
+      } else if (response.status === 402) {
+        // Ошибка недостаточности средств
+        const errorMessage = response.data?.message || 'Недостаточно средств для продления модуля';
+        handleError(errorMessage);
+        return false;
       } else {
         const errorMessage = response.data?.message || 'Ошибка продления модуля';
         handleError(errorMessage);

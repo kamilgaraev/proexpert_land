@@ -38,6 +38,7 @@ import {
 } from '@heroicons/react/24/outline';
 import ConfirmActionModal from '@components/shared/ConfirmActionModal';
 import { PageLoading } from '@components/common/PageLoading';
+import NotificationService from '@components/shared/NotificationService';
 
 interface ModuleActivationModalProps {
   module: Module | null;
@@ -457,7 +458,18 @@ const ModulesPage = () => {
     hasExpiring,
     totalMonthlyCost,
     activeModulesCount
-  } = useModules({ autoRefresh: true, refreshInterval: 300000 });
+  } = useModules({ 
+    autoRefresh: true, 
+    refreshInterval: 900000,
+    onError: (errorMessage: string) => {
+      // Показываем уведомление пользователю при ошибке
+      NotificationService.show({
+        type: 'error',
+        title: 'Ошибка',
+        message: errorMessage
+      });
+    }
+  });
 
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [showActivationModal, setShowActivationModal] = useState(false);
