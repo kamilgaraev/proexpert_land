@@ -31,9 +31,9 @@ const PaidServicesPage = () => {
         billingService.getPlans(),
         billingService.getAddons(),
       ]);
-      const subscriptionData = subRes.data && typeof subRes.data === 'object' && 'has_subscription' in subRes.data && subRes.data.has_subscription 
-        ? subRes.data.subscription 
-        : subRes.data;
+      const subscriptionData = subRes.data && typeof subRes.data === 'object' && 'has_subscription' in subRes.data && (subRes.data as any).has_subscription 
+        ? (subRes.data as any).subscription 
+        : null;
       setSubscription(subscriptionData);
       if (subscriptionData && typeof subscriptionData.is_auto_payment_enabled === 'boolean') {
         setAutoPayEnabled(subscriptionData.is_auto_payment_enabled);
