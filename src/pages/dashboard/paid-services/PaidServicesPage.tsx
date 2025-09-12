@@ -355,19 +355,19 @@ const PaidServicesPage = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>Остаток по текущему тарифу:</span>
-                    <span>{changePlanModal.billingInfo.remaining_value?.toFixed(2)} ₽</span>
+                    <span>{Number(changePlanModal.billingInfo.remaining_value || 0).toFixed(2)} ₽</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Стоимость нового тарифа:</span>
-                    <span>{changePlanModal.billingInfo.new_plan_cost?.toFixed(2)} ₽</span>
+                    <span>{Number(changePlanModal.billingInfo.new_plan_cost || 0).toFixed(2)} ₽</span>
                   </div>
                   <hr />
                   <div className="flex justify-between font-semibold">
                     <span>
-                      {changePlanModal.billingInfo.amount_to_charge > 0 ? 'К доплате:' : 'К возврату:'}
+                      {(changePlanModal.billingInfo.amount_to_charge || 0) > 0 ? 'К доплате:' : 'К возврату:'}
                     </span>
-                    <span className={changePlanModal.billingInfo.amount_to_charge > 0 ? 'text-red-600' : 'text-green-600'}>
-                      {Math.abs(changePlanModal.billingInfo.difference || 0).toFixed(2)} ₽
+                    <span className={(changePlanModal.billingInfo.amount_to_charge || 0) > 0 ? 'text-red-600' : 'text-green-600'}>
+                      {Math.abs(Number(changePlanModal.billingInfo.difference || 0)).toFixed(2)} ₽
                     </span>
                   </div>
                 </div>

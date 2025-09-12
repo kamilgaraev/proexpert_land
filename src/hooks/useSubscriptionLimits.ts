@@ -59,14 +59,24 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
       setState(prev => ({ ...prev, error: null }));
       
       const response = await billingService.getSubscriptionLimits();
-      console.log('🔍 Ответ API лимитов:', response);
 
       if (response.status === 200) {
-        const data = response.data as SubscriptionLimitsResponse;
-        console.log('📊 Данные лимитов:', data);
+        const actualData = (response.data as any)?.data || response.data;
+        const data = actualData as SubscriptionLimitsResponse;
+
+        // Добавляем базовые значения для лимитов если они отсутствуют
+        const safeData = {
+          ...data,
+          limits: data.limits || {
+            foremen: { limit: 0, used: 0, remaining: 0, percentage_used: 0, is_unlimited: false, status: 'normal' },
+            projects: { limit: 0, used: 0, remaining: 0, percentage_used: 0, is_unlimited: false, status: 'normal' },
+            storage: { limit_gb: 0, used_gb: 0, remaining_gb: 0, percentage_used: 0, is_unlimited: false, status: 'normal' }
+          },
+          warnings: data.warnings || []
+        };
 
         setState({
-          data,
+          data: safeData,
           loading: false,
           error: null,
           lastUpdated: new Date()
@@ -74,9 +84,9 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
         isLoadingRef.current = false;
 
         // Вызываем колбэки для предупреждений только если они переданы
-        if (data.warnings?.length > 0) {
-          const criticalWarnings = data.warnings.filter(w => w.level === 'critical');
-          const normalWarnings = data.warnings.filter(w => w.level === 'warning');
+        if (safeData.warnings?.length > 0) {
+          const criticalWarnings = safeData.warnings.filter(w => w.level === 'critical');
+          const normalWarnings = safeData.warnings.filter(w => w.level === 'warning');
 
           if (criticalWarnings.length > 0 && onCriticalRef.current) {
             onCriticalRef.current(criticalWarnings);

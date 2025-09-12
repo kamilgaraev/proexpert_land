@@ -48,8 +48,6 @@ const SubscriptionLimitsPage: React.FC = () => {
     warning => !dismissedWarnings.includes(warning.type)
   ) || [];
 
-  // Отладочная информация
-  console.log('🎯 SubscriptionLimitsPage - состояние:', { data, loading, error, hasSubscription });
 
   if (loading && !data) {
     return (
@@ -243,32 +241,34 @@ const SubscriptionLimitsPage: React.FC = () => {
         )}
 
         {/* Виджеты лимитов */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-        >
-          <LimitWidget
-            title="Прорабы"
-            limit={data.limits.foremen}
-            unit="чел."
-            icon={UsersIcon}
-          />
-          <LimitWidget
-            title="Проекты"
-            limit={data.limits.projects}
-            unit="шт."
-            icon={BuildingOfficeIcon}
-          />
-          <LimitWidget
-            title="Хранилище"
-            limit={data.limits.storage}
-            unit="ГБ"
-            icon={CircleStackIcon}
-            isStorage={true}
-          />
-        </motion.div>
+        {data.limits && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          >
+            <LimitWidget
+              title="Прорабы"
+              limit={data.limits.foremen}
+              unit="чел."
+              icon={UsersIcon}
+            />
+            <LimitWidget
+              title="Проекты"
+              limit={data.limits.projects}
+              unit="шт."
+              icon={BuildingOfficeIcon}
+            />
+            <LimitWidget
+              title="Хранилище"
+              limit={data.limits.storage}
+              unit="ГБ"
+              icon={CircleStackIcon}
+              isStorage={true}
+            />
+          </motion.div>
+        )}
 
         {/* Панель предупреждений */}
         {visibleWarnings.length > 0 && (
