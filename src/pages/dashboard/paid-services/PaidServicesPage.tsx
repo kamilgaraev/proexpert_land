@@ -392,9 +392,20 @@ const PaidServicesPage = () => {
               <div className="space-y-6">
                 {/* Сообщение */}
                 <div className={`p-4 rounded-lg ${changePlanModal.previewData.can_proceed ? 'bg-blue-50 border border-blue-200' : 'bg-red-50 border border-red-200'}`}>
-                  <p className={`text-sm ${changePlanModal.previewData.can_proceed ? 'text-blue-800' : 'text-red-800'}`}>
-                    {changePlanModal.previewData.message}
-                  </p>
+                  {changePlanModal.previewData.can_proceed ? (
+                    <div className="text-sm text-blue-800">
+                      <div className="font-medium mb-1">Готово к смене тарифа</div>
+                      <div>Смена с "{changePlanModal.previewData.current_subscription.plan_name}" на "{changePlanModal.previewData.new_subscription.plan_name}". {
+                        Number(changePlanModal.previewData.billing_calculation.difference) >= 0 
+                          ? `Будет списано: ${Math.abs(Number(changePlanModal.previewData.billing_calculation.difference || 0)).toFixed(2)} ₽`
+                          : `Будет возвращено: ${Math.abs(Number(changePlanModal.previewData.billing_calculation.difference || 0)).toFixed(2)} ₽`
+                      }</div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-red-800">
+                      {changePlanModal.previewData.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Сравнение планов */}
@@ -488,7 +499,7 @@ const PaidServicesPage = () => {
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Оставшиеся дни:</span>
-                      <span>{changePlanModal.previewData.billing_calculation.remaining_days}</span>
+                      <span>{Math.round(Number(changePlanModal.previewData.billing_calculation.remaining_days || 0))}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Остаток по текущему тарифу:</span>
