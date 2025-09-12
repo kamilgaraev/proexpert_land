@@ -1119,49 +1119,6 @@ export const billingService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  // Получить текущую подписку организации
-  getOrgSubscription: async (): Promise<{ data: any, status: number, statusText: string }> => {
-    const token = getTokenFromStorages();
-    if (!token) throw new Error('Токен авторизации отсутствует');
-    const url = `${BILLING_API_URL}/subscription`;
-    const options: RequestInit = {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-    };
-    const response = await fetchWithBillingLogging(url, options);
-    const responseData = await response.json();
-    return { data: responseData, status: response.status, statusText: response.statusText };
-  },
-
-  // Оформить/сменить подписку
-  orgSubscribe: async (plan_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
-    const token = getTokenFromStorages();
-    if (!token) throw new Error('Токен авторизации отсутствует');
-    const url = `${BILLING_API_URL}/subscribe`;
-    const options: RequestInit = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ plan_slug }),
-    };
-    const response = await fetchWithBillingLogging(url, options);
-    const responseData = await response.json();
-    return { data: responseData, status: response.status, statusText: response.statusText };
-  },
-
-  // Изменить параметры подписки (апгрейд/даунгрейд)
-  updateOrgSubscription: async (plan_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
-    const token = getTokenFromStorages();
-    if (!token) throw new Error('Токен авторизации отсутствует');
-    const url = `${BILLING_API_URL}/subscription`;
-    const options: RequestInit = {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ plan_slug }),
-    };
-    const response = await fetchWithBillingLogging(url, options);
-    const responseData = await response.json();
-    return { data: responseData, status: response.status, statusText: response.statusText };
-  },
 
   // Совершить одноразовую покупку
   oneTimePurchase: async (payload: { type: string; description: string; amount: number; currency: string }): Promise<{ data: any, status: number, statusText: string }> => {

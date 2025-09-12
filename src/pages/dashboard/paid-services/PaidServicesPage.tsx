@@ -27,18 +27,25 @@ const PaidServicesPage = () => {
     setError(null);
     try {
       const [subRes, plansRes, addonsRes] = await Promise.all([
-        billingService.getOrgSubscription(),
+        billingService.getCurrentSubscription(),
         billingService.getPlans(),
         billingService.getAddons(),
       ]);
-      setSubscription(subRes.data);
-      if (subRes.data && typeof subRes.data.is_auto_payment_enabled === 'boolean') {
-        setAutoPayEnabled(subRes.data.is_auto_payment_enabled);
+      const subscriptionData = subRes.data && typeof subRes.data === 'object' && 'has_subscription' in subRes.data && subRes.data.has_subscription 
+        ? subRes.data.subscription 
+        : subRes.data;
+      setSubscription(subscriptionData);
+      if (subscriptionData && typeof subscriptionData.is_auto_payment_enabled === 'boolean') {
+        setAutoPayEnabled(subscriptionData.is_auto_payment_enabled);
       }
       const fetchedPlans = Array.isArray(plansRes.data) ? plansRes.data : [];
       setPlans(fetchedPlans);
-      // определяем текущий план: API может вернуть subscription_plan_id или объект plan.id
-      const cp = subRes.data ? fetchedPlans.find((p: any) => p.id === (subRes.data.subscription_plan_id ?? subRes.data.plan?.id)) : null;
+      // определяем текущий план по plan_name или slug
+      const cp = subscriptionData ? fetchedPlans.find((p: any) => 
+        p.id === (subscriptionData.subscription_plan_id ?? subscriptionData.plan?.id) ||
+        p.name === subscriptionData.plan_name ||
+        p.slug === subscriptionData.plan_name
+      ) : null;
       setCurrentPlan(cp || null);
       setAddons(Array.isArray(addonsRes.data.all) ? addonsRes.data.all : []);
       setConnectedAddons(Array.isArray(addonsRes.data.connected) ? addonsRes.data.connected : []);
