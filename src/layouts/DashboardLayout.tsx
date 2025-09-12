@@ -21,6 +21,7 @@ import {
   EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
+import { useModules } from '@hooks/useModules';
 import { Menu, Transition } from '@headlessui/react';
 import { classNames } from '@utils/classNames';
 import { billingService, OrganizationBalance, ErrorResponse } from '@utils/api';
@@ -34,7 +35,13 @@ const DashboardLayout = () => {
   const [actualBalance, setActualBalance] = useState<OrganizationBalance | null>(null);
   const [balanceError, setBalanceError] = useState<string | null>(null);
   const balanceLoadedRef = useRef(false);
-  const moduleLoadedRef = useRef(false);
+  
+  // Используем новую систему модулей
+  const { 
+    expiringModules, 
+    hasExpiring, 
+    isModuleActive
+  } = useModules({ autoRefresh: true, refreshInterval: 300000 });
 
   const fetchHeaderBalance = useCallback(async () => {
     if (balanceLoadedRef.current) return; // Предотвращаем повторные вызовы
@@ -73,11 +80,6 @@ const DashboardLayout = () => {
       if (!balanceLoadedRef.current) {
         fetchHeaderBalance();
       }
-      
-      // Загружаем модули
-      if (!moduleLoadedRef.current) {
-        moduleLoadedRef.current = true;
-      }
     };
     
     loadData();
@@ -89,8 +91,8 @@ const DashboardLayout = () => {
   };
   
   const mainNavigation = useMemo(() => {
-    const activeModules: string[] = [];
-    const hasMultiOrgAccess = activeModules.includes('multi_organization');
+    // Проверяем активность модуля мультиорганизации через новую систему
+    const hasMultiOrgAccess = isModuleActive('multi-organization');
 
     const baseNavigation = [
       { 
@@ -133,7 +135,8 @@ const DashboardLayout = () => {
         name: 'Модули', 
         href: '/dashboard/modules', 
         icon: PuzzlePieceIcon,
-        description: 'Модули организации'
+        description: 'Модули организации',
+        badge: hasExpiring ? expiringModules.length : undefined
       },
       { 
         name: 'Приглашения', 
@@ -161,7 +164,7 @@ const DashboardLayout = () => {
     });
 
     return baseNavigation;
-  }, []);
+  }, [isModuleActive, hasExpiring, expiringModules.length]);
 
   const supportNavigation = [
     { 
@@ -239,7 +242,14 @@ const DashboardLayout = () => {
                       : 'text-steel-500 group-hover:text-construction-600'
                   }`} aria-hidden="true" />
                   <div className="flex-1">
-                    <div className="font-medium">{item.name}</div>
+                    <div className="flex items-center">
+                      <span className="font-medium">{item.name}</span>
+                      {(item as any).badge && (
+                        <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                          {(item as any).badge}
+                        </span>
+                      )}
+                    </div>
                     <div className={`text-xs ${
                       isActive(item.href) 
                         ? 'text-construction-100' 
@@ -336,7 +346,14 @@ const DashboardLayout = () => {
                       : 'text-steel-500 group-hover:text-construction-600'
                   }`} aria-hidden="true" />
                   <div className="flex-1">
-                    <div className="font-medium">{item.name}</div>
+                    <div className="flex items-center">
+                      <span className="font-medium">{item.name}</span>
+                      {(item as any).badge && (
+                        <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                          {(item as any).badge}
+                        </span>
+                      )}
+                    </div>
                     <div className={`text-xs ${
                       isActive(item.href) 
                         ? 'text-construction-100' 
@@ -444,7 +461,9 @@ const DashboardLayout = () => {
               {/* Уведомления */}
               <button className="relative p-2 text-steel-500 hover:text-construction-600 hover:bg-construction-50 rounded-xl transition-colors">
                 <BellIcon className="h-6 w-6" />
-                <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-construction-500"></span>
+                {hasExpiring && (
+                  <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500"></span>
+                )}
               </button>
               
               {/* Админ панель */}

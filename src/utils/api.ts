@@ -1345,101 +1345,6 @@ export const userManagementService = {
   },
 };
 
-export interface OrganizationModule {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-  price: number;
-  currency: string;
-  features: string[];
-  category: string;
-  icon: string;
-  is_premium: boolean;
-}
-
-export interface ModuleActivation {
-  id: number;
-  activated_at: string;
-  expires_at: string | null;
-  status: 'active' | 'expired' | 'pending';
-}
-
-export interface ActivatedModule {
-  id: number;
-  organization_id: number;
-  organization_module_id?: number;
-  module?: OrganizationModule;
-  activated_at: string;
-  expires_at: string | null;
-  status: 'active' | 'expired' | 'pending';
-  paid_amount: number;
-  payment_method: 'balance' | 'card' | 'invoice' | 'free';
-}
-
-export interface ModulesResponse {
-  success: boolean;
-  data: ActivatedModule[];
-}
-
-export interface ModuleWithActivation {
-  module: OrganizationModule;
-  is_activated: boolean;
-  activation: ActivatedModule | null;
-  days_until_expiration: number | null;
-  expires_at: string | null;
-  status: 'active' | 'expired' | 'pending' | 'inactive';
-}
-
-export interface AvailableModulesResponse {
-  success: boolean;
-  data: Record<string, OrganizationModule[]>;
-}
-
-export interface ActivateModuleRequest {
-  module_id: number;
-  payment_method?: 'balance' | 'card' | 'invoice';
-  settings?: Record<string, any>;
-}
-
-export interface RenewModuleRequest {
-  days?: number;
-}
-
-export interface CheckAccessRequest {
-  module_slug: string;
-}
-
-export interface ModuleActivationResponse {
-  id: number;
-  organization_id: number;
-  organization_module_id: number;
-  activated_at: string;
-  expires_at: string | null;
-  status: 'active' | 'expired' | 'pending';
-  paid_amount: number;
-  payment_method: 'balance' | 'card' | 'invoice';
-}
-
-export interface CancelPreviewResponse {
-  can_cancel: boolean;
-  refund_amount: number;
-  days_used: number;
-  days_remaining: number;
-  daily_cost: number;
-  message: string;
-}
-
-export interface CancelModuleRequest {
-  confirm: boolean;
-  reason?: string;
-}
-
-export interface CancelModuleResponse {
-  refund_amount: number;
-  days_used: number;
-  days_remaining: number;
-}
 
 export interface MultiOrganizationAvailability {
   available: boolean;
@@ -1640,53 +1545,6 @@ export interface HoldingOrganization {
   };
 }
 
-export const modulesService = {
-  getModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.get('/modules/');
-    return response;
-  },
-
-  getAvailableModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.get('/modules/available');
-    return response;
-  },
-
-  activateModule: async (moduleData: ActivateModuleRequest): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.post('/modules/activate', moduleData);
-    return response;
-  },
-
-  deactivateModule: async (moduleId: number): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.delete(`/modules/${moduleId}`);
-    return response;
-  },
-
-  renewModule: async (moduleId: number, renewData: RenewModuleRequest): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.patch(`/modules/${moduleId}/renew`, renewData);
-    return response;
-  },
-
-  checkAccess: async (accessData: CheckAccessRequest): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.post('/modules/check-access', accessData);
-    return response;
-  },
-
-  getExpiringModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.get('/modules/expiring');
-    return response;
-  },
-
-  // Новые методы для работы с отменой модулей
-  getCancelPreview: async (moduleSlug: string): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.get(`/modules/${moduleSlug}/cancel-preview`);
-    return response;
-  },
-
-  cancelModule: async (moduleSlug: string, cancelData: CancelModuleRequest): Promise<{ data: any, status: number, statusText: string }> => {
-    const response = await api.post(`/modules/${moduleSlug}/cancel`, cancelData);
-    return response;
-  },
-};
 
 export const multiOrganizationService = {
   checkAvailability: async (): Promise<{ data: any, status: number, statusText: string }> => {
@@ -2013,6 +1871,293 @@ export const multiOrganizationService = {
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
+};
+
+// Новые типы для модульной системы
+export interface Module {
+  id: number;
+  name: string;
+  slug: string;
+  type: 'core' | 'addon';
+  billing_model: 'subscription' | 'one_time';
+  price: number;
+  currency: string;
+  duration_days: number;
+  description: string;
+  features: string[];
+  is_active: boolean;
+  expires_at: string | null;
+}
+
+export interface NewModuleActivation {
+  id: number;
+  module_slug: string;
+  activated_at: string;
+  expires_at: string;
+  cost: number;
+  remaining_balance: number;
+}
+
+export interface ModulePreview {
+  module: {
+    name: string;
+    price: number;
+    currency: string;
+  };
+  organization_balance: number;
+  can_afford: boolean;
+  cost_breakdown: {
+    base_price: number;
+    total: number;
+  };
+}
+
+export interface ModuleCheckAccess {
+  has_access: boolean;
+  has_permission: boolean;
+  expires_at: string | null;
+}
+
+export interface ModuleBillingInfo {
+  total_monthly_cost: number;
+  active_modules_count: number;
+  next_payment_date: string;
+  balance: number;
+}
+
+export interface ModuleBillingHistoryItem {
+  id: number;
+  module_slug: string;
+  action: 'activated' | 'deactivated' | 'renewed';
+  amount: number;
+  date: string;
+  description: string;
+}
+
+// Новый сервис для модулей
+export const newModulesService = {
+  // Получение списка доступных модулей
+  getModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/modules`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Получение активных модулей
+  getActiveModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/modules/active`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Проверка доступа к модулю
+  checkAccess: async (module_slug: string, permission?: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/modules/check-access`;
+    const payload: any = { module_slug };
+    if (permission) payload.permission = permission;
+    
+    const options: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Активация модуля
+  activateModule: async (module_slug: string, duration_days: number = 30): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/modules/activate`;
+    const options: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ module_slug, duration_days })
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Деактивация модуля
+  deactivateModule: async (module_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/modules/${module_slug}`;
+    const options: RequestInit = {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Предварительный просмотр активации
+  getActivationPreview: async (module_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/modules/${module_slug}/preview`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Получение модулей с истекающим сроком
+  getExpiringModules: async (days: number = 7): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/modules/expiring?days=${days}`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Продление модуля
+  renewModule: async (module_slug: string, duration_days: number = 30): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/modules/${module_slug}/renew`;
+    const options: RequestInit = {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ duration_days })
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Массовая активация модулей
+  bulkActivateModules: async (modules: Array<{ slug: string; duration_days: number }>): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/modules/bulk-activate`;
+    const options: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ modules })
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Биллинг информация
+  getBillingInfo: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/modules/billing`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // История биллинга
+  getBillingHistory: async (page: number = 1, per_page: number = 20, from?: string, to?: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const params = new URLSearchParams({
+      page: page.toString(),
+      per_page: per_page.toString()
+    });
+    if (from) params.append('from', from);
+    if (to) params.append('to', to);
+    
+    const url = `${API_URL}/modules/billing/history?${params}`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  }
 };
 
 export const landingService = {
