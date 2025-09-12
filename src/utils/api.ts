@@ -1888,6 +1888,7 @@ export interface Module {
   permissions: string[];
   icon: string;
   is_active: boolean;
+  can_deactivate?: boolean;
   activation: any | null;
 }
 

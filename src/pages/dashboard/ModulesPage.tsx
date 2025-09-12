@@ -8,7 +8,7 @@ import {
   ExclamationTriangleIcon,
   ArrowPathIcon,
   PlayIcon,
-  StopIcon,
+  XMarkIcon,
   BoltIcon,
   ChevronDownIcon,
   ChevronUpIcon
@@ -546,17 +546,20 @@ const ModulesPage = () => {
                           )}
                         </button>
                       )}
-                      <button
-                        onClick={() => handleDeactivateClick(module)}
-                        disabled={actionInProgress}
-                        className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 disabled:opacity-50"
-                      >
-                        {actionLoading === `deactivate-${module.slug}` ? (
-                          <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <StopIcon className="h-4 w-4" />
-                        )}
-                      </button>
+                      {module.can_deactivate !== false && (
+                        <button
+                          onClick={() => handleDeactivateClick(module)}
+                          disabled={actionInProgress}
+                          className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 disabled:opacity-50 flex items-center"
+                          title="Деактивировать модуль"
+                        >
+                          {actionLoading === `deactivate-${module.slug}` ? (
+                            <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <XMarkIcon className="h-4 w-4" />
+                          )}
+                        </button>
+                      )}
                     </>
                   ) : (
                     <button
