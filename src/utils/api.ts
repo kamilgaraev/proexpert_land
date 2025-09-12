@@ -1123,7 +1123,7 @@ export const billingService = {
   getOrgSubscription: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const url = `${BILLING_API_URL}/org-subscription`;
+    const url = `${BILLING_API_URL}/subscription`;
     const options: RequestInit = {
       method: 'GET',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -1137,7 +1137,7 @@ export const billingService = {
   orgSubscribe: async (plan_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const url = `${BILLING_API_URL}/org-subscribe`;
+    const url = `${BILLING_API_URL}/subscribe`;
     const options: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -1152,7 +1152,7 @@ export const billingService = {
   updateOrgSubscription: async (plan_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const url = `${BILLING_API_URL}/org-subscription`;
+    const url = `${BILLING_API_URL}/subscription`;
     const options: RequestInit = {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
