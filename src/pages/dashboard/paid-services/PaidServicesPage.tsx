@@ -17,7 +17,17 @@ const PaidServicesPage = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [changePlanLoading, setChangePlanLoading] = useState<string | null>(null);
-  const [changePlanModal, setChangePlanModal] = useState<{ plan: any; billingInfo?: any } | null>(null);
+  const [changePlanModal, setChangePlanModal] = useState<{ 
+    plan: any; 
+    previewData?: {
+      current_subscription: any;
+      new_subscription: any;
+      billing_calculation: any;
+      balance_check: any;
+      can_proceed: boolean;
+      message: string;
+    } 
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAddonsModal, setShowAddonsModal] = useState(false);
   // Функция для разовых покупок и связанные состояния удалены как неиспользуемые
@@ -91,29 +101,41 @@ const PaidServicesPage = () => {
         const response = await billingService.changePlanPreview({ plan_slug: plan.slug });
         
         if (response.data.success || response.status === 200) {
-          // Проверяем структуру ответа
-          const actualData = (response.data as any)?.data || response.data;
-          const billingInfo = actualData.billing_info || response.data.billing_info;
+          // Извлекаем данные из новой структуры ответа с безопасной обработкой
+          const apiData = response.data.data || {};
+          const previewData = {
+            current_subscription: apiData.current_subscription || {},
+            new_subscription: apiData.new_subscription || {},
+            billing_calculation: apiData.billing_calculation || {},
+            balance_check: apiData.balance_check || {},
+            can_proceed: apiData.can_proceed || false,
+            message: response.data.message || 'Предпросмотр смены тарифа'
+          };
           
-          // Показываем модальное окно с расчётами для подтверждения
-          setChangePlanModal({ plan, billingInfo });
-        } else if (response.status === 400) {
-          // Недостаточно средств - показываем информацию о доплате
-          const actualData = (response.data as any)?.data || response.data;
-          const billingInfo = actualData.billing_info || response.data.billing_info;
-          setChangePlanModal({ plan, billingInfo });
+          
+          // Показываем модальное окно с детальным предпросмотром
+          setChangePlanModal({ plan, previewData });
         }
       } catch (e: any) {
-        // Более детальная обработка ошибок
+        // Обработка ошибок предпросмотра
         const errorData = e.response?.data;
-        if (errorData?.billing_info) {
-          setChangePlanModal({ plan, billingInfo: errorData.billing_info });
-        } else if (e.response?.status === 400 && errorData?.data?.billing_info) {
-          setChangePlanModal({ plan, billingInfo: errorData.data.billing_info });
+        
+        if (errorData?.success && errorData?.data) {
+          // Недостаточно средств - API возвращает данные в ошибке
+          const apiData = errorData.data || {};
+          const previewData = {
+            current_subscription: apiData.current_subscription || {},
+            new_subscription: apiData.new_subscription || {},
+            billing_calculation: apiData.billing_calculation || {},
+            balance_check: apiData.balance_check || {},
+            can_proceed: apiData.can_proceed || false,
+            message: errorData.message || 'Недостаточно средств для смены тарифа'
+          };
+          
+          setChangePlanModal({ plan, previewData });
         } else {
-          // Если preview API недоступен, показываем простое модальное окно подтверждения
-          console.warn('Preview API недоступен, показываем упрощённое подтверждение');
-          setChangePlanModal({ plan, billingInfo: null });
+          // Реальная ошибка API
+          setError(e.message || errorData?.message || 'Ошибка получения информации о смене тарифа');
         }
       } finally {
         setChangePlanLoading(null);
@@ -363,60 +385,183 @@ const PaidServicesPage = () => {
       {/* Модальное окно смены тарифа */}
       {changePlanModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-bold mb-4">Подтверждение смены тарифа</h3>
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-6">Предпросмотр смены тарифа</h3>
             
-            {changePlanModal.billingInfo ? (
-              <div className="space-y-4">
+            {changePlanModal.previewData ? (
+              <div className="space-y-6">
+                {/* Сообщение */}
+                <div className={`p-4 rounded-lg ${changePlanModal.previewData.can_proceed ? 'bg-blue-50 border border-blue-200' : 'bg-red-50 border border-red-200'}`}>
+                  <p className={`text-sm ${changePlanModal.previewData.can_proceed ? 'text-blue-800' : 'text-red-800'}`}>
+                    {changePlanModal.previewData.message}
+                  </p>
+                </div>
+
+                {/* Сравнение планов */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3">Текущий тариф</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="font-medium text-gray-800">
+                        {changePlanModal.previewData.current_subscription.plan_name}
+                      </div>
+                      <div className="text-gray-600">
+                        {Number(changePlanModal.previewData.current_subscription.price).toFixed(2)} ₽/мес
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Действует до: {new Date(changePlanModal.previewData.current_subscription.ends_at).toLocaleDateString('ru-RU')}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-orange-200 bg-orange-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-orange-900 mb-3">Новый тариф</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="font-medium text-orange-800">
+                        {changePlanModal.previewData.new_subscription.plan_name}
+                      </div>
+                      <div className="text-orange-700">
+                        {Number(changePlanModal.previewData.new_subscription.price).toFixed(2)} ₽/мес
+                      </div>
+                      {changePlanModal.previewData.new_subscription.plan_description && (
+                        <div className="text-xs text-orange-600">
+                          {changePlanModal.previewData.new_subscription.plan_description}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Сравнение лимитов */}
+                {changePlanModal.previewData.new_subscription.limits && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3">Сравнение лимитов</h4>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <div className="font-medium text-gray-700 mb-2">Прорабы</div>
+                          <div className="text-gray-600">
+                            <span className="inline-block w-8 text-right">{currentPlan?.max_foremen || 0}</span>
+                            <span className="mx-2 text-gray-400">→</span>
+                            <span className={`font-medium ${
+                              (changePlanModal.previewData.new_subscription.limits.max_foremen || 0) > (currentPlan?.max_foremen || 0) 
+                                ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {changePlanModal.previewData.new_subscription.limits.max_foremen}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-700 mb-2">Проекты</div>
+                          <div className="text-gray-600">
+                            <span className="inline-block w-8 text-right">{currentPlan?.max_projects || 0}</span>
+                            <span className="mx-2 text-gray-400">→</span>
+                            <span className={`font-medium ${
+                              (changePlanModal.previewData.new_subscription.limits.max_projects || 0) > (currentPlan?.max_projects || 0) 
+                                ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {changePlanModal.previewData.new_subscription.limits.max_projects}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-700 mb-2">Хранилище</div>
+                          <div className="text-gray-600">
+                            <span className="inline-block w-8 text-right">{currentPlan?.max_storage_gb || 0}</span>
+                            <span className="mx-2 text-gray-400">→</span>
+                            <span className={`font-medium ${
+                              (changePlanModal.previewData.new_subscription.limits.max_storage_gb || 0) > (currentPlan?.max_storage_gb || 0) 
+                                ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {changePlanModal.previewData.new_subscription.limits.max_storage_gb} ГБ
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Расчёт платежа */}
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">
-                    <strong>Предварительный расчёт</strong> смены тарифа с{' '}
-                    <strong>{changePlanModal.billingInfo.current_plan}</strong> на{' '}
-                    <strong>{changePlanModal.billingInfo.new_plan}</strong>
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Тариф будет изменён только после нажатия кнопки "Подтвердить"
-                  </p>
-                </div>
-                
-                <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Оставшиеся дни:</span>
-                    <span>{changePlanModal.billingInfo.remaining_days}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Остаток по текущему тарифу:</span>
-                    <span>{Number(changePlanModal.billingInfo.remaining_value || 0).toFixed(2)} ₽</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Стоимость нового тарифа:</span>
-                    <span>{Number(changePlanModal.billingInfo.new_plan_cost || 0).toFixed(2)} ₽</span>
-                  </div>
-                  <hr />
-                  <div className="flex justify-between font-semibold">
-                    <span>
-                      {(changePlanModal.billingInfo.amount_to_charge || 0) > 0 ? 'К доплате:' : 'К возврату:'}
-                    </span>
-                    <span className={(changePlanModal.billingInfo.amount_to_charge || 0) > 0 ? 'text-red-600' : 'text-green-600'}>
-                      {Math.abs(Number(changePlanModal.billingInfo.difference || 0)).toFixed(2)} ₽
-                    </span>
+                  <h4 className="font-semibold text-gray-900 mb-3">Детализация расчёта</h4>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Оставшиеся дни:</span>
+                      <span>{changePlanModal.previewData.billing_calculation.remaining_days}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Остаток по текущему тарифу:</span>
+                      <span>{Number(changePlanModal.previewData.billing_calculation.remaining_value || 0).toFixed(2)} ₽</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Стоимость нового тарифа:</span>
+                      <span>{Number(changePlanModal.previewData.billing_calculation.new_plan_cost || 0).toFixed(2)} ₽</span>
+                    </div>
+                    <hr className="my-2" />
+                    <div className="flex justify-between font-semibold">
+                      <span>
+                        {Number(changePlanModal.previewData.billing_calculation.difference) >= 0 ? 'К доплате:' : 'К возврату:'}
+                      </span>
+                      <span className={Number(changePlanModal.previewData.billing_calculation.difference) >= 0 ? 'text-red-600' : 'text-green-600'}>
+                        {Math.abs(Number(changePlanModal.previewData.billing_calculation.difference || 0)).toFixed(2)} ₽
+                      </span>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="flex gap-3">
+
+                {/* Информация о балансе */}
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Баланс</h4>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Текущий баланс:</span>
+                      <span>{Number(changePlanModal.previewData.balance_check.current_balance || 0).toFixed(2)} ₽</span>
+                    </div>
+                    {changePlanModal.previewData.balance_check.required_amount > 0 && (
+                      <div className="flex justify-between">
+                        <span>Требуется:</span>
+                        <span className="text-red-600">{Number(changePlanModal.previewData.balance_check.required_amount || 0).toFixed(2)} ₽</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-semibold">
+                      <span>Баланс после изменения:</span>
+                      <span className={Number(changePlanModal.previewData.balance_check.balance_after_change) >= 0 ? 'text-green-600' : 'text-red-600'}>
+                        {Number(changePlanModal.previewData.balance_check.balance_after_change || 0).toFixed(2)} ₽
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Кнопки действий */}
+                <div className="flex gap-3 pt-4">
                   <button
                     onClick={() => setChangePlanModal(null)}
-                    className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    className="flex-1 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
                   >
                     Отменить
                   </button>
-                  <button
-                    onClick={confirmPlanChange}
-                    disabled={changePlanLoading !== null}
-                    className="flex-1 py-2 px-4 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-60"
-                  >
-                    {changePlanLoading ? 'Смена...' : 'Подтвердить'}
-                  </button>
+                  
+                  {changePlanModal.previewData.can_proceed ? (
+                    <button
+                      onClick={confirmPlanChange}
+                      disabled={changePlanLoading !== null}
+                      className="flex-1 py-3 px-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-60 font-medium"
+                    >
+                      {changePlanLoading ? 'Смена тарифа...' : 'Подтвердить смену'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setChangePlanModal(null);
+                        // Можно добавить переход к пополнению баланса
+                        console.log('Переход к пополнению баланса');
+                      }}
+                      className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                    >
+                      Пополнить баланс
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (

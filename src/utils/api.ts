@@ -1040,30 +1040,16 @@ export const billingService = {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     
-    // Пробуем сначала отдельный endpoint для preview
-    let url = `${BILLING_API_URL}/subscription/change-plan-preview`;
-    let options: RequestInit = {
+    const url = `${BILLING_API_URL}/subscription/change-plan-preview`;
+    const options: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(payload),
     };
     
-    try {
-      const response = await fetchWithBillingLogging(url, options);
-      const responseData = await response.json();
-      return { data: responseData, status: response.status, statusText: response.statusText };
-    } catch (error: any) {
-      // Если endpoint не найден (404), используем основной endpoint с параметром preview
-      if (error.status === 404) {
-        url = `${BILLING_API_URL}/subscription/change-plan`;
-        options.body = JSON.stringify({ ...payload, preview: true });
-        
-        const response = await fetchWithBillingLogging(url, options);
-        const responseData = await response.json();
-        return { data: responseData, status: response.status, statusText: response.statusText };
-      }
-      throw error;
-    }
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
   changePlan: async (payload: { plan_slug: string }): Promise<{ data: any, status: number, statusText: string }> => {
