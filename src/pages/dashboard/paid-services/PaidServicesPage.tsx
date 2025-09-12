@@ -16,6 +16,8 @@ const PaidServicesPage = () => {
   const [autoPayUpdating, setAutoPayUpdating] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [changePlanLoading, setChangePlanLoading] = useState<string | null>(null);
+  const [changePlanModal, setChangePlanModal] = useState<{ plan: any; billingInfo?: any } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAddonsModal, setShowAddonsModal] = useState(false);
   // Функция для разовых покупок и связанные состояния удалены как неиспользуемые
@@ -37,10 +39,6 @@ const PaidServicesPage = () => {
           ? actualData.subscription 
           : actualData.status ? actualData : null)
         : null;
-      console.log('API Response:', subRes.data);
-      console.log('Actual Data:', actualData);
-      console.log('Subscription Data:', subscriptionData);
-      console.log('Plan Name from subscription:', subscriptionData?.plan_name);
       
       setSubscription(subscriptionData);
       if (subscriptionData && typeof subscriptionData.is_auto_payment_enabled === 'boolean') {
@@ -48,8 +46,6 @@ const PaidServicesPage = () => {
       }
       const fetchedPlans = Array.isArray(plansRes.data) ? plansRes.data : [];
       setPlans(fetchedPlans);
-      console.log('Fetched Plans:', fetchedPlans);
-      
       // определяем текущий план по subscription_plan_id, plan_name или slug
       const cp = subscriptionData ? fetchedPlans.find((p: any) => 
         p.id === subscriptionData.subscription_plan_id ||
@@ -59,8 +55,6 @@ const PaidServicesPage = () => {
         p.name?.toLowerCase() === subscriptionData.plan_name?.toLowerCase() ||
         p.slug?.toLowerCase() === subscriptionData.plan_name?.toLowerCase()
       ) : null;
-      console.log('Current Plan:', cp);
-      console.log('subscription_plan_id:', subscriptionData?.subscription_plan_id);
       setCurrentPlan(cp || null);
       setAddons(Array.isArray(addonsRes.data.all) ? addonsRes.data.all : []);
       setConnectedAddons(Array.isArray(addonsRes.data.connected) ? addonsRes.data.connected : []);
@@ -73,16 +67,59 @@ const PaidServicesPage = () => {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const handlePlanChange = async (plan_slug: string) => {
+  const handlePlanChange = async (plan: any) => {
     setError(null);
-    setPlanAction(plan_slug);
+    
+    if (!subscription) {
+      // Новая подписка
+      setPlanAction(plan.slug);
+      try {
+        await billingService.subscribeToPlan({ 
+          plan_slug: plan.slug, 
+          is_auto_payment_enabled: true 
+        });
+        await fetchAll();
+      } catch (e: any) {
+        setError(e.message || 'Ошибка оформления тарифа');
+      } finally {
+        setPlanAction(null);
+      }
+    } else {
+      // Смена тарифа
+      setChangePlanLoading(plan.slug);
+      try {
+        const response = await billingService.changePlan({ plan_slug: plan.slug });
+        
+        if (response.data.success) {
+          setChangePlanModal({ plan, billingInfo: response.data.billing_info });
+        } else if (response.status === 400) {
+          // Недостаточно средств - показываем модальное окно с информацией о доплате
+          setChangePlanModal({ plan, billingInfo: response.data.billing_info });
+        }
+      } catch (e: any) {
+        if (e.response?.status === 400 && e.response?.data?.billing_info) {
+          setChangePlanModal({ plan, billingInfo: e.response.data.billing_info });
+        } else {
+          setError(e.message || 'Ошибка смены тарифа');
+        }
+      } finally {
+        setChangePlanLoading(null);
+      }
+    }
+  };
+
+  const confirmPlanChange = async () => {
+    if (!changePlanModal) return;
+    
+    setChangePlanLoading(changePlanModal.plan.slug);
     try {
-      await billingService.subscribeToPlan({ plan_slug });
+      await billingService.changePlan({ plan_slug: changePlanModal.plan.slug });
+      setChangePlanModal(null);
       await fetchAll();
     } catch (e: any) {
-      setError(e.message || 'Ошибка оформления тарифа');
+      setError(e.message || 'Ошибка смены тарифа');
     } finally {
-      setPlanAction(null);
+      setChangePlanLoading(null);
     }
   };
 
@@ -151,18 +188,24 @@ const PaidServicesPage = () => {
       {/* Текущая подписка */}
       <section className="bg-white shadow-lg rounded-2xl p-8 mb-10 ring-1 ring-gray-100">
         <h2 className="text-2xl font-bold mb-6 text-steel-900">Текущая подписка</h2>
-        {(() => {
-          console.log('Render check:', { subscription, status: subscription?.status, currentPlan });
-          return subscription && subscription.status === 'active' && currentPlan;
-        })() ? (
+        {subscription && (subscription.status === 'active' || subscription.status === 'canceled_active') && currentPlan ? (
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2">
                 <span className="text-2xl font-bold text-orange-600">{currentPlan.name}</span>
-                <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">Активен</span>
+                {subscription.status === 'canceled_active' ? (
+                  <span className="px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-800">Отменён</span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">Активен</span>
+                )}
               </div>
               <div className="text-gray-600">{currentPlan.description}</div>
               <div className="text-sm text-gray-500">Действует до: {formatDate(subscription.ends_at)}</div>
+              {subscription.status === 'canceled_active' && (
+                <div className="text-sm text-yellow-600 font-medium">
+                  ⚠️ Подписка отменена. Доступ сохранится до {formatDate(subscription.ends_at)}
+                </div>
+              )}
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-sm">Автоплатёж</span>
                 <Switch
@@ -215,11 +258,14 @@ const PaidServicesPage = () => {
                   <span className="inline-block w-full text-center py-2 text-sm font-semibold text-white rounded-md bg-gradient-to-r from-orange-500 to-orange-600">Ваш тариф</span>
                 ) : (
                   <button
-                    onClick={() => handlePlanChange(plan.slug)}
-                    disabled={planAction === plan.slug}
+                    onClick={() => handlePlanChange(plan)}
+                    disabled={planAction === plan.slug || changePlanLoading === plan.slug}
                     className="inline-block w-full py-2 text-sm font-semibold text-white rounded-md bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-60"
                   >
-                    {planAction === plan.slug ? 'Подписка…' : 'Выбрать'}
+                    {planAction === plan.slug || changePlanLoading === plan.slug 
+                      ? (subscription ? 'Смена...' : 'Подписка…') 
+                      : (subscription ? 'Сменить' : 'Выбрать')
+                    }
                   </button>
                 )}
               </div>
@@ -286,6 +332,85 @@ const PaidServicesPage = () => {
         confirmColorClass="red"
         isLoading={cancelLoading}
       />
+
+      {/* Модальное окно смены тарифа */}
+      {changePlanModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-bold mb-4">Смена тарифного плана</h3>
+            
+            {changePlanModal.billingInfo ? (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-600">
+                    Смена тарифа с <strong>{changePlanModal.billingInfo.current_plan}</strong> на{' '}
+                    <strong>{changePlanModal.billingInfo.new_plan}</strong>
+                  </p>
+                </div>
+                
+                <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Оставшиеся дни:</span>
+                    <span>{changePlanModal.billingInfo.remaining_days}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Остаток по текущему тарифу:</span>
+                    <span>{changePlanModal.billingInfo.remaining_value?.toFixed(2)} ₽</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Стоимость нового тарифа:</span>
+                    <span>{changePlanModal.billingInfo.new_plan_cost?.toFixed(2)} ₽</span>
+                  </div>
+                  <hr />
+                  <div className="flex justify-between font-semibold">
+                    <span>
+                      {changePlanModal.billingInfo.amount_to_charge > 0 ? 'К доплате:' : 'К возврату:'}
+                    </span>
+                    <span className={changePlanModal.billingInfo.amount_to_charge > 0 ? 'text-red-600' : 'text-green-600'}>
+                      {Math.abs(changePlanModal.billingInfo.difference || 0).toFixed(2)} ₽
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setChangePlanModal(null)}
+                    className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  >
+                    Отменить
+                  </button>
+                  <button
+                    onClick={confirmPlanChange}
+                    disabled={changePlanLoading !== null}
+                    className="flex-1 py-2 px-4 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-60"
+                  >
+                    {changePlanLoading ? 'Смена...' : 'Подтвердить'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p>Сменить тариф на <strong>{changePlanModal.plan.name}</strong>?</p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setChangePlanModal(null)}
+                    className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  >
+                    Отменить
+                  </button>
+                  <button
+                    onClick={confirmPlanChange}
+                    disabled={changePlanLoading !== null}
+                    className="flex-1 py-2 px-4 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-60"
+                  >
+                    {changePlanLoading ? 'Смена...' : 'Подтвердить'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -995,7 +995,7 @@ export const billingService = {
     }
   },
 
-  getCurrentSubscription: async (): Promise<{ data: UserSubscription | ErrorResponse, status: number, statusText: string }> => {
+  getCurrentSubscription: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/subscription`;
@@ -1005,10 +1005,10 @@ export const billingService = {
     };
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    return { data: responseData as UserSubscription | ErrorResponse, status: response.status, statusText: response.statusText };
+    return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  subscribeToPlan: async (payload: SubscribeToPlanRequest): Promise<{ data: UserSubscription | ErrorResponse, status: number, statusText: string }> => {
+  subscribeToPlan: async (payload: { plan_slug: string; is_auto_payment_enabled?: boolean }): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/subscribe`;
@@ -1019,22 +1019,50 @@ export const billingService = {
     };
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    return { data: responseData as UserSubscription | ErrorResponse, status: response.status, statusText: response.statusText };
+    return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  cancelSubscription: async (payload?: CancelSubscriptionRequest): Promise<{ data: UserSubscription | ErrorResponse, status: number, statusText: string }> => {
+  cancelSubscription: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/subscription/cancel`;
     const options: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(payload || {}),
+      body: JSON.stringify({}),
     };
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    return { data: responseData as UserSubscription | ErrorResponse, status: response.status, statusText: response.statusText };
+    return { data: responseData, status: response.status, statusText: response.statusText };
   },
+
+  changePlan: async (payload: { plan_slug: string }): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/subscription/change-plan`;
+    const options: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  getSubscriptionLimits: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/subscription/limits`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
 
   getBalance: async (): Promise<{ data: OrganizationBalance | ErrorResponse, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
@@ -1163,25 +1191,6 @@ export const billingService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  // Получить лимиты подписки
-  getSubscriptionLimits: async (): Promise<{ data: SubscriptionLimitsResponse | ErrorResponse, status: number, statusText: string }> => {
-    const token = getTokenFromStorages();
-    if (!token) throw new Error('Токен авторизации отсутствует');
-    const url = `${BILLING_API_URL}/subscription/limits`;
-    const options: RequestInit = {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-    };
-    const response = await fetchWithBillingLogging(url, options);
-    const responseData = await response.json();
-    
-    // API возвращает { success: true, data: {...} }, нам нужны только data
-    if (responseData.success && responseData.data) {
-      return { data: responseData.data as SubscriptionLimitsResponse, status: response.status, statusText: response.statusText };
-    } else {
-      return { data: responseData as ErrorResponse, status: response.status, statusText: response.statusText };
-    }
-  },
 
   // Включить / выключить автоплатёж для подписки
   updateAutoPayment: async (is_auto_payment_enabled: boolean): Promise<{ data: any, status: number, statusText: string }> => {
