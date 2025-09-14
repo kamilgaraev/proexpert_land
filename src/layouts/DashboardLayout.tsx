@@ -72,7 +72,9 @@ const DashboardLayout = () => {
                          useCanAccess({ role: 'organization_owner' }) ||
                          useCanAccess({ role: 'organization_admin' });
 
-  const canManageMultiOrg = useCanAccess({ permission: 'multi_organization.manage' });
+  const canManageMultiOrg = useCanAccess({ permission: 'multi-organization.manage' }) || 
+                            useCanAccess({ permission: 'multi_organization.manage' }) ||
+                            useCanAccess({ permission: 'multi-organization.*' });
   const hasMultiOrgModule = useCanAccess({ module: 'multi-organization' });
 
   const fetchHeaderBalance = useCallback(async () => {

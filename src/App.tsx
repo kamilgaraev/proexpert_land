@@ -260,7 +260,7 @@ function App() {
           <Route path="multi-organization" element={
             <ProtectedComponent 
               module="multi-organization"
-              permission="multi_organization.manage"
+              permission="multi-organization.manage"
               requireAll={true}
               fallback={<Navigate to="/dashboard" replace />}
             >
