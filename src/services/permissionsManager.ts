@@ -44,7 +44,7 @@ export class PermissionsManager {
   async load(interfaceType: AccessInterface = 'lk'): Promise<boolean> {
     // Проверяем, не слишком ли часто загружаем
     const now = Date.now();
-    if (this.lastLoadTime && (now - this.lastLoadTime) < this.MIN_RELOAD_INTERVAL) {
+    if (this.isLoaded && this.lastLoadTime && (now - this.lastLoadTime) < this.MIN_RELOAD_INTERVAL) {
       console.log(`⏳ Слишком частые запросы прав. Подождите ${Math.ceil((this.MIN_RELOAD_INTERVAL - (now - this.lastLoadTime)) / 1000)}с`);
       return this.isLoaded;
     }
@@ -61,7 +61,9 @@ export class PermissionsManager {
     
     // Очищаем промис после завершения
     this.loadPromise = null;
-    this.lastLoadTime = now;
+    if (result) {
+      this.lastLoadTime = Date.now();
+    }
     
     return result;
   }

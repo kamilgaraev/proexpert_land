@@ -144,7 +144,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
 
   // Автоматическая загрузка при монтировании
   useEffect(() => {
-    if (autoLoad && !isLoaded && !isLoading) {
+    if (autoLoad && !isLoading) {
       load();
     }
   }, [autoLoad, isLoaded, isLoading, load]);
