@@ -28,14 +28,14 @@ export const useCustomRoles = () => {
       setError(null);
       
       const response = await customRolesService.getCustomRoles();
-      
-      if (response.data && response.data.success) {
-        const roles = response.data.data || [];
-        setCustomRoles(Array.isArray(roles) ? roles : []);
-      } else {
-        setError(response.data?.message || 'Ошибка загрузки ролей');
-        setCustomRoles([]);
-      }
+      const payload = response.data;
+      const roles = Array.isArray(payload?.data)
+        ? payload.data
+        : Array.isArray(payload?.data?.data)
+          ? payload.data.data
+          : [];
+
+      setCustomRoles(roles);
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки ролей');
       setCustomRoles([]);
@@ -47,9 +47,7 @@ export const useCustomRoles = () => {
   const fetchAvailableRoles = useCallback(async () => {
     try {
       const response = await customRolesService.getAvailableRoles();
-      if (response.data && response.data.success) {
-        setAvailableRoles(response.data);
-      }
+      if (response.data) setAvailableRoles(response.data);
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки доступных ролей');
     }
@@ -58,9 +56,30 @@ export const useCustomRoles = () => {
   const fetchAvailablePermissions = useCallback(async () => {
     try {
       const response = await customRolesService.getCustomRolePermissions();
-      if (response.data && response.data.success) {
-        setAvailablePermissions(response.data.data);
-      }
+      const raw = response?.data?.data || response?.data;
+      if (!raw) return;
+
+      const systemPermissionsObj = raw.system_permissions || {};
+      const modulePermissionsObj = raw.module_permissions || {};
+
+      const system_permissions: Permission[] = Object.entries(systemPermissionsObj).map(([key, name]: [string, any]) => ({
+        key,
+        name: String(name ?? key)
+      }));
+
+      const module_permissions: { [module: string]: Permission[] } = Object.entries(modulePermissionsObj).reduce(
+        (acc, [module, perms]) => {
+          const asArray = Array.isArray(perms) ? perms : [];
+          acc[module] = asArray.map((perm: any) => ({
+            key: String(perm),
+            name: String(perm)
+          }));
+          return acc;
+        },
+        {} as { [module: string]: Permission[] }
+      );
+
+      setAvailablePermissions({ system_permissions, module_permissions });
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки доступных прав');
     }
