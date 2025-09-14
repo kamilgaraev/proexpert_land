@@ -183,12 +183,9 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       const response = await newModulesService.activateModule(moduleSlug, durationDays);
       
       if (response.status === 200 && response.data?.success) {
-        console.log('✅ Модуль активирован, обновляем данные и права');
         await fetchAllData();
         // Обновляем права после активации модуля
-        console.log('🔄 Перезагружаем права после активации модуля');
         await reloadPermissions();
-        console.log('✅ Права перезагружены после активации модуля');
         return true;
       } else if (response.status === 402) {
         // Ошибка недостаточности средств

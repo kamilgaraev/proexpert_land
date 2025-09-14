@@ -50,29 +50,14 @@ export const useCanAccessInterface = (interfaceName: AccessInterface): boolean =
  * Хук для комплексной проверки доступа
  */
 export const useCanAccess = (options: CanAccessOptions): boolean => {
-  const { canAccess, isLoaded, error, permissions } = usePermissionsContext();
-  
-  // Отладочное логирование
-  const debugInfo = {
-    options,
-    isLoaded,
-    error,
-    permissionsData: {
-      permissions_flat: permissions?.permissions_flat || [],
-      roles: permissions?.roles || [],
-      active_modules: permissions?.active_modules || []
-    }
-  };
+  const { canAccess, isLoaded, error } = usePermissionsContext();
   
   // Если права не загружены или есть ошибка - запрещаем доступ (безопасность)
   if (!isLoaded || error) {
-    console.log('⚠️ useCanAccess: права не готовы', debugInfo);
     return false;
   }
   
-  const result = canAccess(options);
-  console.log('🔍 useCanAccess вызов:', { ...debugInfo, result });
-  return result;
+  return canAccess(options);
 };
 
 /**

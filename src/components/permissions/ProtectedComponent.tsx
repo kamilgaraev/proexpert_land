@@ -44,39 +44,20 @@ export const ProtectedComponent: React.FC<ProtectedComponentProps> = ({
 }) => {
   const { isLoaded, isLoading, error } = usePermissions();
 
-  console.log('🔍 ProtectedComponent проверка:', {
-    options,
-    isLoaded,
-    isLoading,
-    error,
-    className
-  });
-
   if (isLoading || (!isLoaded && !error)) {
-    console.log('⏳ ProtectedComponent: загрузка прав');
     return <div className={className}><PageLoading message="Загрузка прав..." /></div>;
   }
 
   const hasAccess = useCanAccess(options);
 
-  console.log('🔍 ProtectedComponent результат доступа:', {
-    hasAccess,
-    options,
-    willShowChildren: hasAccess,
-    willShowFallback: !hasAccess && showFallback && !!fallback
-  });
-
   if (hasAccess) {
-    console.log('✅ ProtectedComponent: доступ разрешен, показываем children');
     return <div className={className}>{children}</div>;
   }
 
   if (showFallback && fallback) {
-    console.log('❌ ProtectedComponent: доступ запрещен, показываем fallback');
     return <div className={className}>{fallback}</div>;
   }
 
-  console.log('❌ ProtectedComponent: доступ запрещен, скрываем компонент');
   return null;
 };
 

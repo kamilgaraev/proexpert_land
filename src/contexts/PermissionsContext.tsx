@@ -65,36 +65,27 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
 
   const updatePermissions = useCallback(() => {
     const data = permissionsManager.getPermissions();
-    console.log('🔄 PermissionsContext.updatePermissions:', {
-      data,
-      isReady: permissionsManager.isReady()
-    });
     setPermissions(data);
     setIsLoaded(permissionsManager.isReady());
   }, []);
 
   const load = useCallback(async (iType: AccessInterface = interfaceType): Promise<boolean> => {
-    console.log('🔄 PermissionsContext.load запуск:', { interfaceType: iType });
     setIsLoading(true);
     setError(null);
 
     try {
       const success = await permissionsManager.load(iType);
-      console.log('🔄 PermissionsContext.load результат:', { success });
       
       if (success) {
         updatePermissions();
         setError(null);
-        console.log('✅ PermissionsContext.load завершен успешно');
       } else {
         setError('Не удалось загрузить права доступа');
-        console.log('❌ PermissionsContext.load завершен с ошибкой');
       }
       
       return success;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
-      console.log('❌ PermissionsContext.load исключение:', errorMessage);
       setError(errorMessage);
       console.error('❌ Ошибка загрузки прав:', err);
       return false;
