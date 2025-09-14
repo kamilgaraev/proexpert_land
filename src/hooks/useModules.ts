@@ -85,12 +85,7 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       isLoadingRef.current = true;
       setState(prev => ({ ...prev, error: null }));
       
-      const [
-        modulesResponse,
-        activeResponse,
-        expiringResponse,
-        billingResponse
-      ] = await Promise.all([
+      const [modulesResponse, activeResponse, expiringResponse, billingResponse] = await Promise.all([
         newModulesService.getModules(),
         newModulesService.getActiveModules(),
         newModulesService.getExpiringModules(7),
@@ -98,38 +93,45 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       ]);
 
       if (modulesResponse.status === 200 && activeResponse.status === 200) {
-        // Обрабатываем новый формат данных API - модули группируются по категориям
+        // Унифицированный доступ к полезной части ответа
+        const unwrap = (resp: any) => (resp?.data?.data ?? resp?.data ?? null);
+
+        // Все модули
         let allModulesData: Module[] = [];
-        if (modulesResponse.data?.success && modulesResponse.data.data) {
-          // Динамически извлекаем модули из всех категорий (core, reports, addon, premium и др.)
-          allModulesData = extractModulesFromCategories(modulesResponse.data.data);
+        const allRaw = unwrap(modulesResponse);
+        if (Array.isArray(allRaw)) {
+          allModulesData = allRaw as Module[];
+        } else if (allRaw?.modules && Array.isArray(allRaw.modules)) {
+          allModulesData = allRaw.modules as Module[];
+        } else {
+          allModulesData = extractModulesFromCategories(allRaw);
         }
 
-        // Для активных модулей используем тот же подход
+        // Активные модули
         let activeModulesData: Module[] = [];
-        if (activeResponse.data?.success && activeResponse.data.data) {
-          if (activeResponse.data.data.modules) {
-            // Если есть прямое поле modules
-            activeModulesData = activeResponse.data.data.modules;
-          } else {
-            // Иначе динамически извлекаем из категорий
-            activeModulesData = extractModulesFromCategories(activeResponse.data.data);
-          }
+        const activeRaw = unwrap(activeResponse);
+        if (Array.isArray(activeRaw)) {
+          activeModulesData = activeRaw as Module[];
+        } else if (activeRaw?.modules && Array.isArray(activeRaw.modules)) {
+          activeModulesData = activeRaw.modules as Module[];
+        } else {
+          activeModulesData = extractModulesFromCategories(activeRaw);
         }
 
-        // Для истекающих модулей используем тот же подход
+        // Истекающие модули
         let expiringModulesData: Module[] = [];
-        if (expiringResponse.data?.success && expiringResponse.data.data) {
-          if (expiringResponse.data.data.modules) {
-            // Если есть прямое поле modules
-            expiringModulesData = expiringResponse.data.data.modules;
-          } else {
-            // Иначе динамически извлекаем из категорий
-            expiringModulesData = extractModulesFromCategories(expiringResponse.data.data);
-          }
+        const expiringRaw = unwrap(expiringResponse);
+        if (Array.isArray(expiringRaw)) {
+          expiringModulesData = expiringRaw as Module[];
+        } else if (expiringRaw?.modules && Array.isArray(expiringRaw.modules)) {
+          expiringModulesData = expiringRaw.modules as Module[];
+        } else {
+          expiringModulesData = extractModulesFromCategories(expiringRaw);
         }
-        
-        const billingData = billingResponse.data?.success ? billingResponse.data.data : null;
+
+        // Биллинг
+        const billingRaw = unwrap(billingResponse);
+        const billingData: ModuleBillingInfo | null = (billingRaw?.billing_info ?? billingRaw) || null;
 
         setState({
           allModules: allModulesData,
