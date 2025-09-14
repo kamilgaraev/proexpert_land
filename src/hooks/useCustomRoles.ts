@@ -13,6 +13,8 @@ export interface AvailablePermissions {
   module_permissions: {
     [module: string]: Permission[];
   };
+  module_groups?: Record<string, string>;
+  interface_access?: Record<string, string>;
 }
 
 export const useCustomRoles = () => {
@@ -61,6 +63,8 @@ export const useCustomRoles = () => {
 
       const systemPermissionsObj = raw.system_permissions || {};
       const modulePermissionsObj = raw.module_permissions || {};
+      const moduleGroupsObj = raw.module_groups || {};
+      const interfaceAccessObj = raw.interface_access || {};
 
       const system_permissions: Permission[] = Object.entries(systemPermissionsObj).map(([key, name]: [string, any]) => ({
         key,
@@ -85,7 +89,12 @@ export const useCustomRoles = () => {
         {} as { [module: string]: Permission[] }
       );
 
-      setAvailablePermissions({ system_permissions, module_permissions });
+      setAvailablePermissions({ 
+        system_permissions, 
+        module_permissions,
+        module_groups: moduleGroupsObj,
+        interface_access: interfaceAccessObj
+      });
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки доступных прав');
     }

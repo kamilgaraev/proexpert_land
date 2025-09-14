@@ -9,8 +9,7 @@ import {
   UsersIcon,
   ShieldCheckIcon,
   CalendarIcon,
-  EnvelopeIcon,
-  CheckIcon
+  EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import { adminPanelUserService } from '@utils/api';
 import { AdminPanelUser } from '@/types/admin';
@@ -421,24 +420,7 @@ const AdminsPage = () => {
               Добавить администратора
             </motion.button>
           )}
-          {activeTab === 'custom-roles' && (
-            <ProtectedComponent 
-              permission="roles.create_custom"
-              role="organization_owner"
-              requireAll={false}
-              showFallback={false}
-            >
-              <motion.button
-                onClick={() => window.location.href = '/dashboard/custom-roles'}
-                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:shadow-orange transition-all duration-200"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <ShieldCheckIcon className="w-5 h-5 mr-2" />
-                Управление ролями
-              </motion.button>
-            </ProtectedComponent>
-          )}
+          {/* Кнопка к управлению ролями теперь в блоке ниже */}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
