@@ -122,7 +122,28 @@ export class PermissionsManager {
         this.permissions = data.data.permissions_flat || [];
         this.roles = data.data.roles || [];
         this.interfaces = data.data.interfaces || [];
-        this.activeModules = data.data.active_modules || [];
+        // Нормализуем активные модули: API может вернуть массив строк или объектов с полем slug
+        const rawModules: any = (data as any).data?.active_modules ?? [];
+        let normalized: string[] = [];
+        if (Array.isArray(rawModules)) {
+          if (rawModules.length === 0) {
+            normalized = [];
+          } else if (typeof rawModules[0] === 'string') {
+            normalized = rawModules as string[];
+          } else if (typeof rawModules[0] === 'object') {
+            normalized = (rawModules as any[])
+              .map((m) => (m?.slug ? String(m.slug) : null))
+              .filter((s): s is string => Boolean(s));
+          }
+        }
+        // Добавляем синонимы c дефисом/подчеркиванием для надежной проверки
+        const withSynonyms = new Set<string>();
+        normalized.forEach((s) => {
+          withSynonyms.add(s);
+          if (s.includes('-')) withSynonyms.add(s.replace(/-/g, '_'));
+          if (s.includes('_')) withSynonyms.add(s.replace(/_/g, '-'));
+        });
+        this.activeModules = Array.from(withSynonyms);
         this.userId = data.data.user_id || null;
         this.organizationId = data.data.organization_id || null;
         this.isLoaded = true;

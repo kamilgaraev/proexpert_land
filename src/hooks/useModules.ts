@@ -288,6 +288,21 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
   }, []);
 
   // Вспомогательные методы
+  const computeMonthlyCost = useCallback((modules: Module[]): number => {
+    try {
+      return modules.reduce((sum, m) => {
+        // Бесплатные/без цены не учитываем
+        if (!m || (m as any).billing_model === 'free') return sum;
+        const price = typeof m.price === 'number' ? m.price : 0;
+        const durationDays = typeof m.duration_days === 'number' && m.duration_days > 0 ? m.duration_days : 30;
+        const monthly = price * (30 / durationDays);
+        return sum + monthly;
+      }, 0);
+    } catch {
+      return 0;
+    }
+  }, []);
+
   const isModuleActive = useCallback((moduleSlug: string): boolean => {
     // Сначала проверяем в активных модулях
     const isInActiveList = state.activeModules.some(module => module.slug === moduleSlug);
@@ -304,7 +319,9 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
 
   // Вспомогательные геттеры
   const hasExpiring = state.expiringModules.length > 0;
-  const totalMonthlyCost = state.billingInfo?.total_monthly_cost || 0;
+  const totalMonthlyCost = (state.billingInfo && (state.billingInfo as any).total_monthly_cost != null)
+    ? Number((state.billingInfo as any).total_monthly_cost)
+    : computeMonthlyCost(state.activeModules);
   const activeModulesCount = state.billingInfo?.active_modules_count || state.activeModules.length;
 
   return {
