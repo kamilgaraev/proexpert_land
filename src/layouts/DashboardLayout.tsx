@@ -75,6 +75,13 @@ const DashboardLayout = () => {
   const canManageMultiOrg = useCanAccess({ permission: 'multi_organization.manage' });
   const hasMultiOrgModule = useCanAccess({ module: 'multi-organization' });
 
+  // Отладочное логирование для мультиорганизации
+  console.log('🔍 DashboardLayout мультиорганизация проверки:', {
+    canManageMultiOrg,
+    hasMultiOrgModule,
+    timestamp: new Date().toISOString()
+  });
+
   const fetchHeaderBalance = useCallback(async () => {
     if (balanceLoadedRef.current) return; // Предотвращаем повторные вызовы
     
@@ -207,13 +214,25 @@ const DashboardLayout = () => {
     const baseNavigation = allNavigationItems.filter(item => item.visible);
 
     // Добавляем мультиорганизацию только если модуль активирован И есть права
+    console.log('🔍 Проверка добавления пункта "Холдинг":', {
+      hasMultiOrgAccess,
+      canManageMultiOrg,
+      shouldAdd: hasMultiOrgAccess && canManageMultiOrg,
+      currentNavigationCount: baseNavigation.length
+    });
+    
     if (hasMultiOrgAccess && canManageMultiOrg) {
+      console.log('✅ Добавляем пункт "Холдинг" в навигацию');
       baseNavigation.push({
         name: 'Холдинг', 
         href: '/dashboard/multi-organization', 
         icon: BuildingOffice2Icon,
         description: 'Управление холдингом',
         visible: true
+      });
+    } else {
+      console.log('❌ НЕ добавляем пункт "Холдинг":', {
+        reason: !hasMultiOrgAccess ? 'Модуль неактивен' : 'Нет прав на управление'
       });
     }
 
@@ -223,6 +242,11 @@ const DashboardLayout = () => {
       icon: CogIcon,
       description: 'Профиль и настройки',
       visible: true
+    });
+
+    console.log('🔍 Финальная навигация:', {
+      itemsCount: baseNavigation.length,
+      items: baseNavigation.map(item => ({ name: item.name, href: item.href }))
     });
 
     return baseNavigation;
