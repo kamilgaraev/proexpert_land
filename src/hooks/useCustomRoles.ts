@@ -68,12 +68,18 @@ export const useCustomRoles = () => {
       }));
 
       const module_permissions: { [module: string]: Permission[] } = Object.entries(modulePermissionsObj).reduce(
-        (acc, [module, perms]) => {
-          const asArray = Array.isArray(perms) ? perms : [];
-          acc[module] = asArray.map((perm: any) => ({
-            key: String(perm),
-            name: String(perm)
-          }));
+        (acc, [module, perms]: [string, any]) => {
+          // В ответе может прийти либо массив строк, либо объект { slug: translated_name }
+          if (Array.isArray(perms)) {
+            acc[module] = perms.map((perm: any) => ({ key: String(perm), name: String(perm) }));
+          } else if (perms && typeof perms === 'object') {
+            acc[module] = Object.entries(perms).map(([permKey, permName]: [string, any]) => ({
+              key: permKey,
+              name: String(permName ?? permKey)
+            }));
+          } else {
+            acc[module] = [];
+          }
           return acc;
         },
         {} as { [module: string]: Permission[] }
