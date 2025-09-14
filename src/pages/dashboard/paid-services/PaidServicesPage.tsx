@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { billingService } from '@utils/api';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import { Switch } from '@headlessui/react';
@@ -30,6 +31,7 @@ const PaidServicesPage = () => {
   const [error, setError] = useState<string | null>(null);
   // Функция для разовых покупок и связанные состояния удалены как неиспользуемые
   const [planAction, setPlanAction] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -249,7 +251,22 @@ const PaidServicesPage = () => {
   return (
     <div className="container mx-auto max-w-6xl px-4 py-10 space-y-12">
       <h1 className="text-3xl font-bold mb-6">Платные услуги</h1>
-      {error && <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded">{error}</div>}
+      {error && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <div className="font-medium">Требуется пополнение баланса</div>
+            <div className="text-sm">{error}</div>
+          </div>
+          <div className="shrink-0">
+            <Link
+              to="/dashboard/billing/add-funds"
+              className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm font-semibold"
+            >
+              Пополнить баланс
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Текущая подписка */}
       <section className="bg-white shadow-lg rounded-2xl p-8 mb-10 ring-1 ring-gray-100">
@@ -536,8 +553,7 @@ const PaidServicesPage = () => {
                     <button
                       onClick={() => {
                         setChangePlanModal(null);
-                        // Можно добавить переход к пополнению баланса
-                        console.log('Переход к пополнению баланса');
+                        navigate('/dashboard/billing/add-funds');
                       }}
                       className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
                     >
