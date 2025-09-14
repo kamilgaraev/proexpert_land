@@ -57,10 +57,7 @@ const AdminsPage = () => {
     customRoles,
     loading: customRolesLoading,
     error: customRolesError,
-    fetchCustomRoles,
-    createCustomRole,
-    deleteCustomRole,
-    cloneCustomRole
+    fetchCustomRoles
   } = useCustomRoles();
 
   const fetchAdmins = useCallback(async () => {

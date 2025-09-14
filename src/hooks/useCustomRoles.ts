@@ -203,7 +203,8 @@ export const useCustomRoles = () => {
 
   const getRolesByUser = useCallback((userId: number): CustomRole[] => {
     // Эта функция будет реализована после интеграции с основными данными пользователей
-    return customRoles.filter(role => {
+    void userId;
+    return customRoles.filter(() => {
       // TODO: добавить логику фильтрации по пользователю
       return false;
     });

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useUserManagement } from '../../../hooks/useUserManagement';
 import { useCustomRoles } from '../../../hooks/useCustomRoles';
-import { CreateUserWithCustomRolesData } from '../../../utils/api';
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -11,7 +10,7 @@ interface InviteUserModalProps {
 
 const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSave }) => {
   const { roles, sendInvitation, fetchRoles, createUserWithCustomRoles } = useUserManagement();
-  const { customRoles, availableRoles } = useCustomRoles();
+  const { customRoles } = useCustomRoles();
   const [formData, setFormData] = useState({
     email: '',
     name: '',

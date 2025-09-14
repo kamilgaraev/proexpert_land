@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useCustomRoles } from '@hooks/useCustomRoles';
 import { CustomRole, CreateCustomRoleData } from '@utils/api';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
@@ -287,7 +287,6 @@ const CustomRolesPage = () => {
     updateCustomRole,
     deleteCustomRole,
     cloneCustomRole,
-    getRoleUsers
   } = useCustomRoles();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
