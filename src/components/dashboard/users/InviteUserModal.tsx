@@ -10,7 +10,7 @@ interface InviteUserModalProps {
 
 const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSave }) => {
   const { roles, sendInvitation, fetchRoles, createUserWithCustomRoles } = useUserManagement();
-  const { customRoles } = useCustomRoles();
+  const { customRoles, fetchCustomRoles } = useCustomRoles();
   const [formData, setFormData] = useState({
     email: '',
     name: '',
@@ -28,6 +28,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSa
   useEffect(() => {
     if (isOpen) {
       fetchRoles();
+      fetchCustomRoles();
       setFormData({ 
         email: '', 
         name: '', 
@@ -41,7 +42,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSa
       setErrors({});
       setInviteType('invitation');
     }
-  }, [isOpen, fetchRoles]);
+  }, [isOpen, fetchRoles, fetchCustomRoles]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -284,7 +285,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSa
             ) : (
               /* System Roles */
               <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
-                {roles.map((role) => (
+                {roles.filter((r: any) => r.is_system).map((role) => (
                   <label key={role.id} className="flex items-center">
                     <input
                       type="checkbox"

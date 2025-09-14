@@ -100,19 +100,50 @@ export const useUserManagement = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await userManagementService.getRoles();
-      
-      if (response.data && response.data.success) {
-        const customRoles = response.data.data?.custom_roles || [];
-        const systemRoles = response.data.data?.system_roles || [];
-        const allRoles = [...customRoles, ...systemRoles];
-        
-        setRoles(allRoles);
-      } else {
-        setError(response.data?.message || 'Ошибка загрузки ролей');
-        setRoles([]);
-      }
+
+      const response = await customRolesService.getAvailableRoles();
+      const payload = response?.data;
+      const data = payload?.data ?? payload;
+
+      const systemSlugs: string[] = Array.isArray(data?.system_roles) ? data.system_roles : [];
+      const customRolesRaw: any[] = Array.isArray(data?.custom_roles) ? data.custom_roles : [];
+
+      const humanize = (slug: string) => slug
+        .split('_')
+        .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(' ');
+
+      const normalizedSystemRoles: OrganizationRole[] = systemSlugs.map((slug, idx) => ({
+        id: -1000 - idx,
+        name: humanize(slug),
+        slug,
+        description: '',
+        color: '#64748b',
+        is_active: true,
+        is_system: true,
+        display_order: idx,
+        permissions: [],
+        permissions_formatted: {},
+        users_count: 0,
+        created_at: ''
+      }));
+
+      const normalizedCustomRoles: OrganizationRole[] = customRolesRaw.map((r: any, idx: number) => ({
+        id: typeof r.id === 'number' ? r.id : (-2000 - idx),
+        name: r.name ?? r.slug,
+        slug: r.slug,
+        description: r.description ?? '',
+        color: r.color ?? '#f97316',
+        is_active: r.is_active ?? true,
+        is_system: false,
+        display_order: typeof r.display_order === 'number' ? r.display_order : idx,
+        permissions: Array.isArray(r.permissions) ? r.permissions : [],
+        permissions_formatted: {},
+        users_count: typeof r.users_count === 'number' ? r.users_count : 0,
+        created_at: r.created_at ?? ''
+      }));
+
+      setRoles([...normalizedCustomRoles, ...normalizedSystemRoles]);
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки ролей');
       setRoles([]);
