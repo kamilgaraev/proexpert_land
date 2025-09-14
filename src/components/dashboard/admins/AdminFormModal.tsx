@@ -41,7 +41,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
   const [formData, setFormData] = useState<AdminFormData>(initialFormState);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [roleOptions, setRoleOptions] = useState<Array<{ slug: string; name: string }>>([]);
+  const [roleOptions, setRoleOptions] = useState<Array<{ slug: string; name: string; type: 'system' | 'custom' }>>([]);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
@@ -102,10 +102,18 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
         const payload = resp?.data;
         const data = payload?.data ?? payload;
         const system: string[] = Array.isArray(data?.system_roles) ? data.system_roles : [];
-        const opts = system.map((slug: string) => ({ slug, name: mapSlugToRu(slug) }));
+        const custom: any[] = Array.isArray(data?.custom_roles) ? data.custom_roles : [];
+
+        const systemOpts = system.map((slug: string) => ({ slug, name: mapSlugToRu(slug), type: 'system' as const }));
+        const customOpts = custom
+          .filter((r) => r && r.slug && (r.is_active === undefined || r.is_active))
+          .map((r) => ({ slug: String(r.slug), name: String(r.name ?? r.slug), type: 'custom' as const }));
+
+        const opts = [...systemOpts, ...customOpts];
         setRoleOptions(opts);
         if (!isEditing) {
-          setFormData((prev) => ({ ...prev, role_slug: prev.role_slug || (opts[0]?.slug ?? '') }));
+          const defaultSlug = systemOpts[0]?.slug || customOpts[0]?.slug || '';
+          setFormData((prev) => ({ ...prev, role_slug: prev.role_slug || defaultSlug }));
         }
       } catch {
       } finally {
@@ -387,9 +395,20 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                           className="block w-full rounded-xl border-2 border-steel-200 transition-all duration-200 px-4 py-3 text-steel-900 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium focus:border-construction-500 focus:ring-construction-500/20 focus:ring-4 hover:border-steel-300"
                         >
                           {!formData.role_slug && <option value="" disabled>{rolesLoading ? 'Загрузка...' : 'Выберите роль'}</option>}
-                          {roleOptions.map((r) => (
-                            <option key={r.slug} value={r.slug}>{r.name}</option>
-                          ))}
+                          {roleOptions.some((r) => r.type === 'system') && (
+                            <optgroup label="Системные роли">
+                              {roleOptions.filter((r) => r.type === 'system').map((r) => (
+                                <option key={`system:${r.slug}`} value={r.slug}>{r.name}</option>
+                              ))}
+                            </optgroup>
+                          )}
+                          {roleOptions.some((r) => r.type === 'custom') && (
+                            <optgroup label="Кастомные роли">
+                              {roleOptions.filter((r) => r.type === 'custom').map((r) => (
+                                <option key={`custom:${r.slug}`} value={r.slug}>{r.name}</option>
+                              ))}
+                            </optgroup>
+                          )}
                         </select>
                       </div>
                     </div>
