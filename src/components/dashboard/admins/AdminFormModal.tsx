@@ -246,16 +246,16 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-3xl bg-gradient-to-br from-white to-gray-50 px-8 pt-10 pb-8 text-left shadow-2xl ring-1 ring-gray-200/50 transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-10">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-3xl bg-gradient-to-br from-white to-concrete-50 px-8 pt-10 pb-8 text-left shadow-construction-lg ring-1 ring-construction-200/50 transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-10">
                 <div className="flex items-center mb-8">
-                  <div className="flex-shrink-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full p-3 mr-4 shadow-lg">
+                  <div className="flex-shrink-0 bg-gradient-to-r from-construction-500 to-construction-600 rounded-full p-3 mr-4 shadow-construction">
                     <UserCircleIcon className="h-10 w-10 text-white" />
                   </div>
                   <div>
-                    <Dialog.Title as="h3" className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                    <Dialog.Title as="h3" className="text-3xl font-bold bg-gradient-to-r from-steel-800 to-steel-600 bg-clip-text text-transparent">
                       {isEditing ? 'Редактировать администратора' : 'Добавить администратора'}
                     </Dialog.Title>
-                    <p className="text-gray-600 mt-1">
+                    <p className="text-steel-600 mt-1">
                       {isEditing ? 'Измените данные администратора' : 'Создайте нового администратора системы'}
                     </p>
                   </div>
@@ -269,14 +269,14 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                   </div>
                 )}
                 <form onSubmit={handleSubmit} className="space-y-8">
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                  <div className="bg-gradient-to-r from-construction-50 to-construction-100 rounded-2xl p-6 border border-construction-200">
                     <div className="flex items-center mb-4">
-                      <UserCircleIcon className="h-6 w-6 text-indigo-600 mr-2" />
-                      <h4 className="text-xl font-bold text-gray-800">Данные администратора</h4>
+                      <UserCircleIcon className="h-6 w-6 text-construction-600 mr-2" />
+                      <h4 className="text-xl font-bold text-steel-800">Данные администратора</h4>
                     </div>
                     <div className="space-y-6">
                       <div>
-                        <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">Имя и Фамилия</label>
+                        <label htmlFor="name" className="block text-sm font-semibold text-steel-700 mb-2">Имя и Фамилия</label>
                         <input
                           type="text"
                           name="name"
@@ -285,10 +285,10 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                           autoFocus
                           value={formData.name}
                           onChange={handleChange}
-                          className={`block w-full rounded-xl border-2 transition-all duration-200 px-4 py-3 text-gray-900 placeholder-gray-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
+                          className={`block w-full rounded-xl border-2 transition-all duration-200 px-4 py-3 text-steel-900 placeholder-steel-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
                             fieldErrors.name 
                               ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 focus:ring-4' 
-                              : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20 focus:ring-4 hover:border-gray-300'
+                              : 'border-steel-200 focus:border-construction-500 focus:ring-construction-500/20 focus:ring-4 hover:border-steel-300'
                           }`}
                           placeholder="Введите ФИО полностью"
                         />
@@ -301,10 +301,10 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                       </div>
                       
                       <div>
-                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                        <label htmlFor="email" className="block text-sm font-semibold text-steel-700 mb-2">Email</label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+                            <EnvelopeIcon className="h-5 w-5 text-steel-400" />
                           </div>
                           <input
                             type="email"
@@ -314,10 +314,10 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                             maxLength={255}
                             value={formData.email}
                             onChange={handleChange}
-                            className={`block w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 placeholder-gray-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
+                            className={`block w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 text-steel-900 placeholder-steel-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
                               fieldErrors.email 
                                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 focus:ring-4' 
-                                : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20 focus:ring-4 hover:border-gray-300'
+                                : 'border-steel-200 focus:border-construction-500 focus:ring-construction-500/20 focus:ring-4 hover:border-steel-300'
                             }`}
                             placeholder="admin@example.com"
                           />
@@ -331,14 +331,14 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                       </div>
                       
                       <div>
-                        <label htmlFor="role_slug" className="block text-sm font-semibold text-gray-700 mb-2">Роль</label>
+                        <label htmlFor="role_slug" className="block text-sm font-semibold text-steel-700 mb-2">Роль</label>
                         <select
                           id="role_slug"
                           name="role_slug"
                           required
                           value={formData.role_slug}
                           onChange={handleChange}
-                          className="block w-full rounded-xl border-2 border-gray-200 transition-all duration-200 px-4 py-3 text-gray-900 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium focus:border-indigo-500 focus:ring-indigo-500/20 focus:ring-4 hover:border-gray-300"
+                          className="block w-full rounded-xl border-2 border-steel-200 transition-all duration-200 px-4 py-3 text-steel-900 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium focus:border-construction-500 focus:ring-construction-500/20 focus:ring-4 hover:border-steel-300"
                         >
                           {SYSTEM_ROLES.map(role => (
                             <option key={role.slug} value={role.slug}>{role.name}</option>
@@ -348,17 +348,17 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                     </div>
                   </div>
                   
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+                  <div className="bg-gradient-to-r from-safety-50 to-safety-100 rounded-2xl p-6 border border-safety-200">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center">
-                        <LockClosedIcon className="h-6 w-6 text-purple-600 mr-2" />
-                        <h4 className="text-xl font-bold text-gray-800">Безопасность</h4>
+                        <LockClosedIcon className="h-6 w-6 text-safety-600 mr-2" />
+                        <h4 className="text-xl font-bold text-steel-800">Безопасность</h4>
                       </div>
                       {!isEditing && (
                         <button
                           type="button"
                           onClick={generatePassword}
-                          className="inline-flex items-center px-3 py-2 text-xs font-medium rounded-lg text-purple-700 bg-purple-100 hover:bg-purple-200 transition-colors duration-200"
+                          className="inline-flex items-center px-3 py-2 text-xs font-medium rounded-lg text-safety-700 bg-safety-100 hover:bg-safety-200 transition-colors duration-200"
                         >
                           <SparklesIcon className="h-4 w-4 mr-1" />
                           Сгенерировать
@@ -367,12 +367,12 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                     </div>
                     <div className="space-y-6">
                       <div>
-                        <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
-                          Пароль {isEditing ? <span className="text-gray-500 font-normal">(оставьте пустым, чтобы не менять)</span> : <span className="text-gray-500 font-normal">(мин. 8 символов)</span>}
+                        <label htmlFor="password" className="block text-sm font-semibold text-steel-700 mb-2">
+                          Пароль {isEditing ? <span className="text-steel-500 font-normal">(оставьте пустым, чтобы не менять)</span> : <span className="text-steel-500 font-normal">(мин. 8 символов)</span>}
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                            <LockClosedIcon className="h-5 w-5 text-steel-400" />
                           </div>
                           <input
                             type={showPassword ? "text" : "password"}
@@ -382,17 +382,17 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                             minLength={isEditing && !formData.password ? undefined : 8}
                             value={formData.password}
                             onChange={handleChange}
-                            className={`block w-full pl-12 pr-12 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 placeholder-gray-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
+                            className={`block w-full pl-12 pr-12 py-3 rounded-xl border-2 transition-all duration-200 text-steel-900 placeholder-steel-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
                               fieldErrors.password 
                                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 focus:ring-4' 
-                                : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 focus:ring-4 hover:border-gray-300'
+                                : 'border-steel-200 focus:border-safety-500 focus:ring-safety-500/20 focus:ring-4 hover:border-steel-300'
                             }`}
                             placeholder="Введите пароль"
                           />
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-steel-400 hover:text-steel-600 transition-colors duration-200"
                           >
                             {showPassword ? (
                               <EyeSlashIcon className="h-5 w-5" />
@@ -405,23 +405,23 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                         {formData.password && (
                           <div className="mt-3">
                             <div className="flex items-center justify-between text-xs mb-1">
-                              <span className="text-gray-600 font-medium">Сложность пароля</span>
+                              <span className="text-steel-600 font-medium">Сложность пароля</span>
                               <span className={`font-bold ${
                                 passwordStrength <= 1 ? 'text-red-600' : 
-                                passwordStrength <= 2 ? 'text-yellow-600' : 
-                                passwordStrength <= 3 ? 'text-blue-600' : 'text-green-600'
+                                passwordStrength <= 2 ? 'text-safety-600' : 
+                                passwordStrength <= 3 ? 'text-construction-600' : 'text-green-600'
                               }`}>
                                 {passwordStrength <= 1 ? 'Слабый' : 
                                  passwordStrength <= 2 ? 'Средний' : 
                                  passwordStrength <= 3 ? 'Хороший' : 'Отличный'}
                               </span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="w-full bg-steel-200 rounded-full h-2">
                               <div 
                                 className={`h-2 rounded-full transition-all duration-300 ${
                                   passwordStrength <= 1 ? 'bg-red-500 w-1/4' : 
-                                  passwordStrength <= 2 ? 'bg-yellow-500 w-2/4' : 
-                                  passwordStrength <= 3 ? 'bg-blue-500 w-3/4' : 'bg-green-500 w-full'
+                                  passwordStrength <= 2 ? 'bg-safety-500 w-2/4' : 
+                                  passwordStrength <= 3 ? 'bg-construction-500 w-3/4' : 'bg-green-500 w-full'
                                 }`}
                               />
                             </div>
@@ -435,7 +435,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                           </p>
                         )}
                         {!fieldErrors.password && formData.password && (
-                          <p className="text-xs text-gray-600 mt-2 flex items-center">
+                          <p className="text-xs text-steel-600 mt-2 flex items-center">
                             <CheckCircleIcon className="h-4 w-4 mr-1 text-green-500" />
                             Используйте буквы разного регистра, цифры и специальные символы для большей безопасности
                           </p>
@@ -443,10 +443,10 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                       </div>
                       
                       <div>
-                        <label htmlFor="password_confirmation" className="block text-sm font-semibold text-gray-700 mb-2">Подтверждение пароля</label>
+                        <label htmlFor="password_confirmation" className="block text-sm font-semibold text-steel-700 mb-2">Подтверждение пароля</label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                            <LockClosedIcon className="h-5 w-5 text-steel-400" />
                           </div>
                           <input
                             type={showPasswordConfirmation ? "text" : "password"}
@@ -455,17 +455,17 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                             required={!!formData.password}
                             value={formData.password_confirmation}
                             onChange={handleChange}
-                            className={`block w-full pl-12 pr-12 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 placeholder-gray-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
+                            className={`block w-full pl-12 pr-12 py-3 rounded-xl border-2 transition-all duration-200 text-steel-900 placeholder-steel-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
                               fieldErrors.password_confirmation 
                                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 focus:ring-4' 
-                                : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 focus:ring-4 hover:border-gray-300'
+                                : 'border-steel-200 focus:border-safety-500 focus:ring-safety-500/20 focus:ring-4 hover:border-steel-300'
                             }`}
                             placeholder="Повторите пароль"
                           />
                           <button
                             type="button"
                             onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)}
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-steel-400 hover:text-steel-600 transition-colors duration-200"
                           >
                             {showPasswordConfirmation ? (
                               <EyeSlashIcon className="h-5 w-5" />
@@ -488,7 +488,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                         )}
                       </div>
                       
-                      <div className="bg-white/50 rounded-xl p-4 border border-purple-200">
+                      <div className="bg-white/50 rounded-xl p-4 border border-safety-200">
                         <div className="flex items-center">
                           <input
                             id="is_active"
@@ -496,11 +496,11 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                             type="checkbox"
                             checked={formData.is_active}
                             onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                            className="h-5 w-5 rounded-lg border-2 border-gray-300 text-purple-600 focus:ring-purple-500/20 focus:ring-4 transition-all duration-200"
+                            className="h-5 w-5 rounded-lg border-2 border-steel-300 text-safety-600 focus:ring-safety-500/20 focus:ring-4 transition-all duration-200"
                           />
                           <label htmlFor="is_active" className="ml-3 flex items-center">
-                            <span className="text-sm font-semibold text-gray-800">Активен</span>
-                            <span className="ml-2 text-xs text-gray-600">Администратор сможет войти в систему</span>
+                            <span className="text-sm font-semibold text-steel-800">Активен</span>
+                            <span className="ml-2 text-xs text-steel-600">Администратор сможет войти в систему</span>
                           </label>
                         </div>
                       </div>
@@ -510,7 +510,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-200 hover:scale-105 hover:shadow-lg shadow-md"
+                      className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-construction-600 to-construction-500 hover:from-construction-700 hover:to-construction-600 focus:outline-none focus:ring-4 focus:ring-construction-500/20 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-200 hover:scale-105 shadow-construction hover:shadow-construction-lg"
                     >
                       {isLoading ? (
                         <>
@@ -530,7 +530,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                     <button
                       type="button"
                       disabled={isLoading}
-                      className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-base font-semibold text-gray-700 bg-white border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-4 focus:ring-gray-200/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
+                      className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-base font-semibold text-steel-700 bg-white border-2 border-steel-200 hover:border-construction-300 hover:bg-construction-50 hover:text-construction-700 focus:outline-none focus:ring-4 focus:ring-steel-200/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
                       onClick={onClose}
                     >
                       <XMarkIcon className="h-5 w-5 mr-2" />
