@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { newModulesService, Module, ModuleBillingInfo } from '@utils/api';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface UseModulesOptions {
   autoRefresh?: boolean;
@@ -47,6 +48,8 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
     error: null,
     lastUpdated: null
   });
+
+  const { reload: reloadPermissions } = usePermissions();
 
   const onErrorRef = useRef(onError);
   const isLoadingRef = useRef(false);
@@ -181,6 +184,8 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       
       if (response.status === 200 && response.data?.success) {
         await fetchAllData();
+        // Обновляем права после активации модуля
+        await reloadPermissions();
         return true;
       } else if (response.status === 402) {
         // Ошибка недостаточности средств
@@ -197,7 +202,7 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       handleError(errorMessage);
       return false;
     }
-  }, [fetchAllData, handleError]);
+  }, [fetchAllData, handleError, reloadPermissions]);
 
   const deactivateModule = useCallback(async (moduleSlug: string): Promise<boolean> => {
     try {
@@ -291,14 +296,42 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
   const computeMonthlyCost = useCallback((modules: Module[]): number => {
     try {
       return modules.reduce((sum, m) => {
-        // Бесплатные/без цены не учитываем
-        if (!m || (m as any).billing_model === 'free') return sum;
-        const price = typeof m.price === 'number' ? m.price : 0;
-        const durationDays = typeof m.duration_days === 'number' && m.duration_days > 0 ? m.duration_days : 30;
+        if (!m) return sum;
+        
+        // Проверяем различные варианты структуры данных для цены
+        let price = 0;
+        let durationDays = 30;
+        
+        // Вариант 1: прямые поля price/duration_days
+        if (typeof m.price === 'number') {
+          price = m.price;
+        }
+        
+        // Вариант 2: pricing_config.base_price/duration_days
+        const pricingConfig = (m as any).pricing_config;
+        if (pricingConfig && typeof pricingConfig.base_price === 'number') {
+          price = pricingConfig.base_price;
+          if (typeof pricingConfig.duration_days === 'number' && pricingConfig.duration_days > 0) {
+            durationDays = pricingConfig.duration_days;
+          }
+        }
+        
+        // Вариант 3: duration_days в корне объекта
+        if (typeof m.duration_days === 'number' && m.duration_days > 0) {
+          durationDays = m.duration_days;
+        }
+        
+        // Пропускаем бесплатные модули
+        if (price === 0 || (m as any).billing_model === 'free') {
+          return sum;
+        }
+        
         const monthly = price * (30 / durationDays);
+        console.log(`📊 Модуль ${m.name}: цена=${price}, дни=${durationDays}, месячная=${monthly.toFixed(2)}`);
         return sum + monthly;
       }, 0);
-    } catch {
+    } catch (error) {
+      console.error('Ошибка подсчета месячной стоимости:', error);
       return 0;
     }
   }, []);

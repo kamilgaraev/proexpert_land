@@ -40,8 +40,7 @@ const DashboardLayout = () => {
   // Используем новую систему модулей
   const { 
     expiringModules, 
-    hasExpiring, 
-    isModuleActive
+    hasExpiring
   } = useModules({ autoRefresh: true, refreshInterval: 900000 });
 
   // Вызываем все хуки для проверки прав на верхнем уровне
@@ -74,6 +73,7 @@ const DashboardLayout = () => {
                          useCanAccess({ role: 'organization_admin' });
 
   const canManageMultiOrg = useCanAccess({ permission: 'multi_organization.manage' });
+  const hasMultiOrgModule = useCanAccess({ module: 'multi-organization' });
 
   const fetchHeaderBalance = useCallback(async () => {
     if (balanceLoadedRef.current) return; // Предотвращаем повторные вызовы
@@ -123,8 +123,8 @@ const DashboardLayout = () => {
   };
   
   const mainNavigation = useMemo(() => {
-    // Проверяем активность модуля мультиорганизации через новую систему
-    const hasMultiOrgAccess = isModuleActive('multi-organization');
+    // Проверяем активность модуля мультиорганизации через систему прав
+    const hasMultiOrgAccess = hasMultiOrgModule;
 
     // Определяем все возможные пункты навигации с проверками прав
     const allNavigationItems = [
@@ -226,9 +226,9 @@ const DashboardLayout = () => {
     });
 
     return baseNavigation;
-  }, [isModuleActive, hasExpiring, expiringModules.length, 
+  }, [hasExpiring, expiringModules.length, 
       canViewOrganization, canManageUsers, canViewBilling, canViewLimits, 
-      canManageBilling, canManageModules, canInviteUsers, canManageMultiOrg]);
+      canManageBilling, canManageModules, canInviteUsers, canManageMultiOrg, hasMultiOrgModule]);
 
   const supportNavigation = [
     { 
