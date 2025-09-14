@@ -1,6 +1,18 @@
 import { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon, UserCircleIcon, ExclamationTriangleIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { 
+  XMarkIcon, 
+  UserCircleIcon, 
+  ExclamationTriangleIcon, 
+  PlusIcon, 
+  EyeIcon, 
+  EyeSlashIcon,
+  EnvelopeIcon,
+  LockClosedIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  SparklesIcon
+} from '@heroicons/react/24/outline';
 import { adminPanelUserService } from '@utils/api';
 import { AdminPanelUser, AdminFormData, SYSTEM_ROLES } from '@/types/admin';
 import { toast } from 'react-toastify';
@@ -31,6 +43,10 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
   const [formData, setFormData] = useState<AdminFormData>(initialFormState);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [passwordStrength, setPasswordStrength] = useState(0);
 
   useEffect(() => {
     if (isOpen) {
@@ -54,8 +70,82 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
     }
   }, [isOpen, isEditing, adminToEdit]);
 
+  const getPasswordStrength = (password: string) => {
+    if (password.length === 0) return 0;
+    let strength = 0;
+    if (password.length >= 8) strength += 1;
+    if (password.length >= 12) strength += 1;
+    if (/[a-z]/.test(password)) strength += 1;
+    if (/[A-Z]/.test(password)) strength += 1;
+    if (/[0-9]/.test(password)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    return Math.min(strength, 4);
+  };
+
+  const validateField = (name: string, value: string) => {
+    const errors: Record<string, string> = {};
+    
+    switch (name) {
+      case 'name':
+        if (!value.trim()) {
+          errors.name = 'Имя обязательно для заполнения';
+        } else if (value.trim().length < 2) {
+          errors.name = 'Имя должно содержать минимум 2 символа';
+        }
+        break;
+      case 'email':
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!value.trim()) {
+          errors.email = 'Email обязателен для заполнения';
+        } else if (!emailRegex.test(value)) {
+          errors.email = 'Введите корректный email';
+        }
+        break;
+      case 'password':
+        if (!isEditing && !value) {
+          errors.password = 'Пароль обязателен при создании администратора';
+        } else if (value && value.length < 8) {
+          errors.password = 'Пароль должен содержать минимум 8 символов';
+        }
+        break;
+      case 'password_confirmation':
+        if (formData.password && value !== formData.password) {
+          errors.password_confirmation = 'Пароли не совпадают';
+        }
+        break;
+    }
+    
+    setFieldErrors(prev => ({
+      ...prev,
+      [name]: errors[name] || ''
+    }));
+  };
+
+  const generatePassword = () => {
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    setFormData({ ...formData, password, password_confirmation: password });
+    setPasswordStrength(getPasswordStrength(password));
+    validateField('password', password);
+    validateField('password_confirmation', password);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    if (name === 'password') {
+      setPasswordStrength(getPasswordStrength(value));
+    }
+    
+    validateField(name, value);
+    
+    if (name === 'password' && formData.password_confirmation) {
+      validateField('password_confirmation', formData.password_confirmation);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -156,29 +246,37 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-2xl bg-white px-6 pt-8 pb-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-8">
-                <div className="flex items-center mb-6">
-                  <div className="flex-shrink-0 bg-indigo-100 rounded-full p-2 mr-3">
-                    <UserCircleIcon className="h-8 w-8 text-indigo-600" />
+              <Dialog.Panel className="relative transform overflow-hidden rounded-3xl bg-gradient-to-br from-white to-gray-50 px-8 pt-10 pb-8 text-left shadow-2xl ring-1 ring-gray-200/50 transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-10">
+                <div className="flex items-center mb-8">
+                  <div className="flex-shrink-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full p-3 mr-4 shadow-lg">
+                    <UserCircleIcon className="h-10 w-10 text-white" />
                   </div>
-                  <Dialog.Title as="h3" className="text-2xl font-bold leading-7 text-gray-900">
-                    {isEditing ? 'Редактировать администратора' : 'Добавить администратора'}
-                  </Dialog.Title>
+                  <div>
+                    <Dialog.Title as="h3" className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                      {isEditing ? 'Редактировать администратора' : 'Добавить администратора'}
+                    </Dialog.Title>
+                    <p className="text-gray-600 mt-1">
+                      {isEditing ? 'Измените данные администратора' : 'Создайте нового администратора системы'}
+                    </p>
+                  </div>
                 </div>
                 {error && (
-                  <div className="rounded-md bg-red-50 p-4 mb-4 flex items-start">
-                    <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mt-0.5 mr-2" />
+                  <div className="rounded-xl bg-gradient-to-r from-red-50 to-red-100 border border-red-200 p-4 mb-6 flex items-start shadow-sm">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-red-800">{error}</p>
                     </div>
                   </div>
                 )}
                 <form onSubmit={handleSubmit} className="space-y-8">
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-700 mb-2">Данные администратора</h4>
-                    <div className="grid grid-cols-1 gap-4">
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                    <div className="flex items-center mb-4">
+                      <UserCircleIcon className="h-6 w-6 text-indigo-600 mr-2" />
+                      <h4 className="text-xl font-bold text-gray-800">Данные администратора</h4>
+                    </div>
+                    <div className="space-y-6">
                       <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">Имя и Фамилия</label>
+                        <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">Имя и Фамилия</label>
                         <input
                           type="text"
                           name="name"
@@ -187,32 +285,60 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                           autoFocus
                           value={formData.name}
                           onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+                          className={`block w-full rounded-xl border-2 transition-all duration-200 px-4 py-3 text-gray-900 placeholder-gray-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
+                            fieldErrors.name 
+                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 focus:ring-4' 
+                              : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20 focus:ring-4 hover:border-gray-300'
+                          }`}
                           placeholder="Введите ФИО полностью"
                         />
+                        {fieldErrors.name && (
+                          <p className="mt-2 text-sm text-red-600 flex items-center">
+                            <ExclamationCircleIcon className="h-4 w-4 mr-1" />
+                            {fieldErrors.name}
+                          </p>
+                        )}
                       </div>
+                      
                       <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                        <input
-                          type="email"
-                          name="email"
-                          id="email"
-                          required
-                          maxLength={255}
-                          value={formData.email}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                        />
+                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <input
+                            type="email"
+                            name="email"
+                            id="email"
+                            required
+                            maxLength={255}
+                            value={formData.email}
+                            onChange={handleChange}
+                            className={`block w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 placeholder-gray-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
+                              fieldErrors.email 
+                                ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 focus:ring-4' 
+                                : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20 focus:ring-4 hover:border-gray-300'
+                            }`}
+                            placeholder="admin@example.com"
+                          />
+                        </div>
+                        {fieldErrors.email && (
+                          <p className="mt-2 text-sm text-red-600 flex items-center">
+                            <ExclamationCircleIcon className="h-4 w-4 mr-1" />
+                            {fieldErrors.email}
+                          </p>
+                        )}
                       </div>
+                      
                       <div>
-                        <label htmlFor="role_slug" className="block text-sm font-medium text-gray-700">Роль</label>
+                        <label htmlFor="role_slug" className="block text-sm font-semibold text-gray-700 mb-2">Роль</label>
                         <select
                           id="role_slug"
                           name="role_slug"
                           required
                           value={formData.role_slug}
                           onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+                          className="block w-full rounded-xl border-2 border-gray-200 transition-all duration-200 px-4 py-3 text-gray-900 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium focus:border-indigo-500 focus:ring-indigo-500/20 focus:ring-4 hover:border-gray-300"
                         >
                           {SYSTEM_ROLES.map(role => (
                             <option key={role.slug} value={role.slug}>{role.name}</option>
@@ -221,69 +347,190 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                       </div>
                     </div>
                   </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-700 mb-2">Безопасность</h4>
-                    <div className="grid grid-cols-1 gap-4">
+                  
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center">
+                        <LockClosedIcon className="h-6 w-6 text-purple-600 mr-2" />
+                        <h4 className="text-xl font-bold text-gray-800">Безопасность</h4>
+                      </div>
+                      {!isEditing && (
+                        <button
+                          type="button"
+                          onClick={generatePassword}
+                          className="inline-flex items-center px-3 py-2 text-xs font-medium rounded-lg text-purple-700 bg-purple-100 hover:bg-purple-200 transition-colors duration-200"
+                        >
+                          <SparklesIcon className="h-4 w-4 mr-1" />
+                          Сгенерировать
+                        </button>
+                      )}
+                    </div>
+                    <div className="space-y-6">
                       <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                          Пароль {isEditing ? <span className="text-gray-400">(оставьте пустым, чтобы не менять)</span> : <span className="text-gray-400">(мин. 8 символов)</span>}
+                        <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                          Пароль {isEditing ? <span className="text-gray-500 font-normal">(оставьте пустым, чтобы не менять)</span> : <span className="text-gray-500 font-normal">(мин. 8 символов)</span>}
                         </label>
-                        <input
-                          type="password"
-                          name="password"
-                          id="password"
-                          required={!isEditing}
-                          minLength={isEditing && !formData.password ? undefined : 8}
-                          value={formData.password}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                          placeholder="Введите пароль"
-                        />
-                        <p className="text-xs text-gray-400 mt-1">Минимум 8 символов. Используйте буквы и цифры.</p>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            id="password"
+                            required={!isEditing}
+                            minLength={isEditing && !formData.password ? undefined : 8}
+                            value={formData.password}
+                            onChange={handleChange}
+                            className={`block w-full pl-12 pr-12 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 placeholder-gray-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
+                              fieldErrors.password 
+                                ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 focus:ring-4' 
+                                : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 focus:ring-4 hover:border-gray-300'
+                            }`}
+                            placeholder="Введите пароль"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                          >
+                            {showPassword ? (
+                              <EyeSlashIcon className="h-5 w-5" />
+                            ) : (
+                              <EyeIcon className="h-5 w-5" />
+                            )}
+                          </button>
+                        </div>
+                        
+                        {formData.password && (
+                          <div className="mt-3">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <span className="text-gray-600 font-medium">Сложность пароля</span>
+                              <span className={`font-bold ${
+                                passwordStrength <= 1 ? 'text-red-600' : 
+                                passwordStrength <= 2 ? 'text-yellow-600' : 
+                                passwordStrength <= 3 ? 'text-blue-600' : 'text-green-600'
+                              }`}>
+                                {passwordStrength <= 1 ? 'Слабый' : 
+                                 passwordStrength <= 2 ? 'Средний' : 
+                                 passwordStrength <= 3 ? 'Хороший' : 'Отличный'}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-300 ${
+                                  passwordStrength <= 1 ? 'bg-red-500 w-1/4' : 
+                                  passwordStrength <= 2 ? 'bg-yellow-500 w-2/4' : 
+                                  passwordStrength <= 3 ? 'bg-blue-500 w-3/4' : 'bg-green-500 w-full'
+                                }`}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {fieldErrors.password && (
+                          <p className="mt-2 text-sm text-red-600 flex items-center">
+                            <ExclamationCircleIcon className="h-4 w-4 mr-1" />
+                            {fieldErrors.password}
+                          </p>
+                        )}
+                        {!fieldErrors.password && formData.password && (
+                          <p className="text-xs text-gray-600 mt-2 flex items-center">
+                            <CheckCircleIcon className="h-4 w-4 mr-1 text-green-500" />
+                            Используйте буквы разного регистра, цифры и специальные символы для большей безопасности
+                          </p>
+                        )}
                       </div>
+                      
                       <div>
-                        <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">Подтверждение пароля</label>
-                        <input
-                          type="password"
-                          name="password_confirmation"
-                          id="password_confirmation"
-                          required={!!formData.password}
-                          value={formData.password_confirmation}
-                          onChange={handleChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
-                          placeholder="Повторите пароль"
-                        />
+                        <label htmlFor="password_confirmation" className="block text-sm font-semibold text-gray-700 mb-2">Подтверждение пароля</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <input
+                            type={showPasswordConfirmation ? "text" : "password"}
+                            name="password_confirmation"
+                            id="password_confirmation"
+                            required={!!formData.password}
+                            value={formData.password_confirmation}
+                            onChange={handleChange}
+                            className={`block w-full pl-12 pr-12 py-3 rounded-xl border-2 transition-all duration-200 text-gray-900 placeholder-gray-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
+                              fieldErrors.password_confirmation 
+                                ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 focus:ring-4' 
+                                : 'border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 focus:ring-4 hover:border-gray-300'
+                            }`}
+                            placeholder="Повторите пароль"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)}
+                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                          >
+                            {showPasswordConfirmation ? (
+                              <EyeSlashIcon className="h-5 w-5" />
+                            ) : (
+                              <EyeIcon className="h-5 w-5" />
+                            )}
+                          </button>
+                        </div>
+                        {fieldErrors.password_confirmation && (
+                          <p className="mt-2 text-sm text-red-600 flex items-center">
+                            <ExclamationCircleIcon className="h-4 w-4 mr-1" />
+                            {fieldErrors.password_confirmation}
+                          </p>
+                        )}
+                        {!fieldErrors.password_confirmation && formData.password_confirmation && formData.password === formData.password_confirmation && (
+                          <p className="mt-2 text-sm text-green-600 flex items-center">
+                            <CheckCircleIcon className="h-4 w-4 mr-1" />
+                            Пароли совпадают
+                          </p>
+                        )}
                       </div>
-                      <div className="flex items-center mt-2">
-                        <input
-                          id="is_active"
-                          name="is_active"
-                          type="checkbox"
-                          checked={formData.is_active}
-                          onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">Активен</label>
+                      
+                      <div className="bg-white/50 rounded-xl p-4 border border-purple-200">
+                        <div className="flex items-center">
+                          <input
+                            id="is_active"
+                            name="is_active"
+                            type="checkbox"
+                            checked={formData.is_active}
+                            onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                            className="h-5 w-5 rounded-lg border-2 border-gray-300 text-purple-600 focus:ring-purple-500/20 focus:ring-4 transition-all duration-200"
+                          />
+                          <label htmlFor="is_active" className="ml-3 flex items-center">
+                            <span className="text-sm font-semibold text-gray-800">Активен</span>
+                            <span className="ml-2 text-xs text-gray-600">Администратор сможет войти в систему</span>
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="pt-4 sm:flex sm:flex-row-reverse gap-2">
+                  <div className="pt-6 flex flex-col sm:flex-row-reverse gap-3">
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="inline-flex items-center justify-center w-full sm:w-auto rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:ml-3 sm:text-sm disabled:opacity-50 transition-all"
+                      className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-200 hover:scale-105 hover:shadow-lg shadow-md"
                     >
                       {isLoading ? (
-                        <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <>
+                          <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          {isEditing ? 'Сохранение...' : 'Создание...'}
+                        </>
                       ) : (
-                        <PlusIcon className="h-5 w-5 mr-2" />
+                        <>
+                          <PlusIcon className="h-5 w-5 mr-2" />
+                          {isEditing ? 'Сохранить изменения' : 'Добавить администратора'}
+                        </>
                       )}
-                      {isEditing ? 'Сохранить изменения' : 'Добавить'}
                     </button>
                     <button
                       type="button"
                       disabled={isLoading}
-                      className="inline-flex items-center justify-center w-full sm:w-auto rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:text-sm disabled:opacity-50 transition-all"
+                      className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-base font-semibold text-gray-700 bg-white border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-4 focus:ring-gray-200/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
                       onClick={onClose}
                     >
                       <XMarkIcon className="h-5 w-5 mr-2" />

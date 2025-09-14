@@ -231,9 +231,11 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
             <div className="space-y-6">
               {availablePermissions?.module_permissions && Object.entries(availablePermissions.module_permissions).map(([module, permissions]: [string, any]) => (
                 <div key={module} className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-lg font-medium text-gray-900 mb-3 capitalize">{module}</h4>
+                  <h4 className="text-lg font-medium text-gray-900 mb-3">
+                    {availablePermissions?.module_groups?.[module] || module}
+                  </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {permissions.map((permission: any) => (
+                    {(Array.isArray(permissions) ? permissions : []).map((permission: any) => (
                       <label key={permission.key} className="flex items-start">
                         <input
                           type="checkbox"
