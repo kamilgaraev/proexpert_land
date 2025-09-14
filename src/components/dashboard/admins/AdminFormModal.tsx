@@ -13,8 +13,8 @@ import {
   ExclamationCircleIcon,
   SparklesIcon
 } from '@heroicons/react/24/outline';
-import { adminPanelUserService } from '@utils/api';
-import { AdminPanelUser, AdminFormData, SYSTEM_ROLES } from '@/types/admin';
+import { adminPanelUserService, customRolesService } from '@utils/api';
+import { AdminPanelUser, AdminFormData } from '@/types/admin';
 import { toast } from 'react-toastify';
 import { useAuth } from '@hooks/useAuth';
 
@@ -29,12 +29,10 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
   const isEditing = !!adminToEdit;
   const { user } = useAuth();
 
-  const defaultRoleSlug = SYSTEM_ROLES.length > 0 ? SYSTEM_ROLES[0].slug : '';
-
   const initialFormState: AdminFormData = {
     name: '',
     email: '',
-    role_slug: defaultRoleSlug,
+    role_slug: '',
     password: '',
     password_confirmation: '',
     is_active: true,
@@ -43,6 +41,8 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
   const [formData, setFormData] = useState<AdminFormData>(initialFormState);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [roleOptions, setRoleOptions] = useState<Array<{ slug: string; name: string }>>([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -54,13 +54,13 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
         setFormData({
           name: adminToEdit.name,
           email: adminToEdit.email,
-          role_slug: adminToEdit.roles && adminToEdit.roles.length > 0 ? adminToEdit.roles[0].slug : defaultRoleSlug,
+          role_slug: adminToEdit.roles && adminToEdit.roles.length > 0 ? adminToEdit.roles[0].slug : '',
           password: '',
           password_confirmation: '',
           is_active: adminToEdit.is_active !== undefined ? adminToEdit.is_active : true,
         });
       } else {
-        setFormData({...initialFormState, role_slug: defaultRoleSlug});
+        setFormData({ ...initialFormState });
       }
       setError(null);
       setIsLoading(false);
@@ -69,6 +69,52 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
       setError(null);
     }
   }, [isOpen, isEditing, adminToEdit]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const mapSlugToRu = (slug: string) => {
+      const dict: Record<string, string> = {
+        super_admin: 'Суперадминистратор',
+        support: 'Поддержка',
+        system_admin: 'Системный администратор',
+        accountant: 'Бухгалтер',
+        organization_admin: 'Администратор организации',
+        organization_owner: 'Владелец организации',
+        viewer: 'Просмотр (только чтение)',
+        foreman: 'Прораб',
+        observer: 'Наблюдатель',
+        worker: 'Рабочий',
+        contractor: 'Подрядчик',
+        project_manager: 'Руководитель проекта',
+        site_engineer: 'Инженер ПТО',
+      };
+      if (dict[slug]) return dict[slug];
+      return slug
+        .split('_')
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(' ');
+    };
+
+    const loadRoles = async () => {
+      try {
+        setRolesLoading(true);
+        const resp = await customRolesService.getAvailableRoles();
+        const payload = resp?.data;
+        const data = payload?.data ?? payload;
+        const system: string[] = Array.isArray(data?.system_roles) ? data.system_roles : [];
+        const opts = system.map((slug: string) => ({ slug, name: mapSlugToRu(slug) }));
+        setRoleOptions(opts);
+        if (!isEditing) {
+          setFormData((prev) => ({ ...prev, role_slug: prev.role_slug || (opts[0]?.slug ?? '') }));
+        }
+      } catch {
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+
+    loadRoles();
+  }, [isOpen, isEditing]);
 
   const getPasswordStrength = (password: string) => {
     if (password.length === 0) return 0;
@@ -340,8 +386,9 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                           onChange={handleChange}
                           className="block w-full rounded-xl border-2 border-steel-200 transition-all duration-200 px-4 py-3 text-steel-900 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium focus:border-construction-500 focus:ring-construction-500/20 focus:ring-4 hover:border-steel-300"
                         >
-                          {SYSTEM_ROLES.map(role => (
-                            <option key={role.slug} value={role.slug}>{role.name}</option>
+                          {!formData.role_slug && <option value="" disabled>{rolesLoading ? 'Загрузка...' : 'Выберите роль'}</option>}
+                          {roleOptions.map((r) => (
+                            <option key={r.slug} value={r.slug}>{r.name}</option>
                           ))}
                         </select>
                       </div>
