@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCanAccess, usePermissions } from '@/hooks/usePermissions';
+import { PageLoading } from '@components/common/PageLoading';
 import { CanAccessOptions } from '@/types/permissions';
 
 interface ProtectedComponentProps extends CanAccessOptions {
@@ -41,6 +42,12 @@ export const ProtectedComponent: React.FC<ProtectedComponentProps> = ({
   className,
   ...options
 }) => {
+  const { isLoaded, isLoading, error } = usePermissions();
+
+  if (isLoading || (!isLoaded && !error)) {
+    return <div className={className}><PageLoading message="Загрузка прав..." /></div>;
+  }
+
   const hasAccess = useCanAccess(options);
 
   if (hasAccess) {
