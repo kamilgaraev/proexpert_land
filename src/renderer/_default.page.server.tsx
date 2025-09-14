@@ -47,7 +47,7 @@ export async function render(pageContext: PageContextServer) {
     `<meta name="description" content="${description}" />`,
     `<meta name="keywords" content="${keywords}" />`,
     `<meta name="yandex-verification" content="94e8b4142ec2a8e3" />`,
-    `<meta name="robots" content="index, follow" />`,
+    `<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />`,
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
     `<meta property="og:image" content="${ogImage}" />`,
