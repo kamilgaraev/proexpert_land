@@ -45,6 +45,7 @@ const AdminsPage = () => {
     error: userManagementError,
     fetchUsers,
     fetchInvitations,
+    fetchRoles,
     clearError
   } = useUserManagement();
 
@@ -72,13 +73,20 @@ const AdminsPage = () => {
     const initUserManagementData = async () => {
       try {
         if (activeTab === 'users') {
-          await fetchUsers();
+          await Promise.all([
+            fetchUsers(),
+            fetchRoles(),
+          ]);
         } else if (activeTab === 'invitations') {
-          await fetchInvitations();
+          await Promise.all([
+            fetchInvitations(),
+            fetchRoles(),
+          ]);
         } else {
           await Promise.all([
             fetchUsers(),
-            fetchInvitations()
+            fetchInvitations(),
+            fetchRoles(),
           ]);
         }
       } catch (err) {
@@ -88,13 +96,18 @@ const AdminsPage = () => {
     if (activeTab !== 'admins') {
       initUserManagementData();
     }
-  }, [activeTab, fetchUsers, fetchInvitations]);
+  }, [activeTab, fetchUsers, fetchInvitations, fetchRoles]);
 
   useEffect(() => {
     if (userManagementError) {
       clearError();
     }
   }, [userManagementError, clearError]);
+
+  // Загружаем роли всегда при заходе на страницу, чтобы эндпоинт available-roles вызывался сразу
+  useEffect(() => {
+    fetchRoles().catch(() => {});
+  }, [fetchRoles]);
 
   const filteredAdmins = useMemo(() => {
     if (!searchTerm) {

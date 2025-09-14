@@ -108,7 +108,23 @@ export const useUserManagement = () => {
       const systemSlugs: string[] = Array.isArray(data?.system_roles) ? data.system_roles : [];
       const customRolesRaw: any[] = Array.isArray(data?.custom_roles) ? data.custom_roles : [];
 
-      const humanize = (slug: string) => slug
+      const SYSTEM_ROLE_NAME_MAP: Record<string, string> = {
+        super_admin: 'Суперадминистратор',
+        support: 'Поддержка',
+        system_admin: 'Системный администратор',
+        accountant: 'Бухгалтер',
+        organization_admin: 'Администратор организации',
+        organization_owner: 'Владелец организации',
+        viewer: 'Просмотр (только чтение)',
+        foreman: 'Прораб',
+        observer: 'Наблюдатель',
+        worker: 'Рабочий',
+        contractor: 'Подрядчик',
+        project_manager: 'Руководитель проекта',
+        site_engineer: 'Инженер ПТО',
+      };
+
+      const humanize = (slug: string) => SYSTEM_ROLE_NAME_MAP[slug] ?? slug
         .split('_')
         .map(s => s.charAt(0).toUpperCase() + s.slice(1))
         .join(' ');
