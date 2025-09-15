@@ -7,7 +7,6 @@ import type {
   UpdateLandingRequest,
   CreateBlockRequest,
   UpdateBlockRequest,
-  UploadAssetRequest,
   UpdateAssetRequest,
   BlockFilters,
   AssetFilters

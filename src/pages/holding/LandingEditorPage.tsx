@@ -15,7 +15,13 @@ import {
 import { useHoldingLanding, useLandingBlocks, useLandingAssets } from '@/hooks/useHoldingLanding';
 import { usePermissionsContext } from '@/contexts/PermissionsContext';
 import { useTheme } from '@components/shared/ThemeProvider';
-import type { BlockType } from '@/types/holding-landing';
+import type { 
+  BlockType, 
+  UpdateBlockRequest, 
+  UpdateLandingRequest,
+  UpdateAssetRequest,
+  AssetUsageContext 
+} from '@/types/holding-landing';
 
 const LandingEditorPage: React.FC = () => {
   const { holdingId } = useParams<{ holdingId: string }>();
@@ -58,7 +64,7 @@ const LandingEditorPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [hasUnsavedChanges] = useState(false);
   const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -169,11 +175,11 @@ const LandingEditorPage: React.FC = () => {
           blocks={blocks}
           selectedBlockId={selectedBlockId}
           onSelectBlock={setSelectedBlockId}
-          onUpdateBlock={(blockId, data) => updateBlock(parseInt(holdingId!), blockId, data)}
-          onPublishBlock={(blockId) => publishBlock(parseInt(holdingId!), blockId)}
-          onDuplicateBlock={(blockId) => duplicateBlock(parseInt(holdingId!), blockId)}
-          onDeleteBlock={(blockId) => deleteBlock(parseInt(holdingId!), blockId)}
-          onReorderBlocks={(order) => reorderBlocks(parseInt(holdingId!), order)}
+          onUpdateBlock={(blockId: number, data: UpdateBlockRequest) => updateBlock(parseInt(holdingId!), blockId, data)}
+          onPublishBlock={(blockId: number) => publishBlock(parseInt(holdingId!), blockId)}
+          onDuplicateBlock={(blockId: number) => duplicateBlock(parseInt(holdingId!), blockId)}
+          onDeleteBlock={(blockId: number) => deleteBlock(parseInt(holdingId!), blockId)}
+          onReorderBlocks={(order: number[]) => reorderBlocks(parseInt(holdingId!), order)}
           loading={blocksLoading}
           error={blocksError}
         />
@@ -185,9 +191,9 @@ const LandingEditorPage: React.FC = () => {
       component: (
         <MediaManager 
           assets={assets}
-          onUpload={(file, context, metadata) => uploadAsset(parseInt(holdingId!), file, context, metadata)}
-          onUpdate={(assetId, metadata) => updateAsset(parseInt(holdingId!), assetId, metadata)}
-          onDelete={(assetId) => deleteAsset(parseInt(holdingId!), assetId)}
+          onUpload={(file: File, context?: AssetUsageContext, metadata?: any) => uploadAsset(parseInt(holdingId!), file, context, metadata)}
+          onUpdate={(assetId: number, metadata: UpdateAssetRequest['metadata']) => updateAsset(parseInt(holdingId!), assetId, metadata)}
+          onDelete={(assetId: number) => deleteAsset(parseInt(holdingId!), assetId)}
           loading={assetsLoading}
           error={assetsError}
         />
@@ -199,7 +205,7 @@ const LandingEditorPage: React.FC = () => {
       component: (
         <LandingSettings 
           landing={landing}
-          onUpdate={(data) => updateLanding(parseInt(holdingId!), data)}
+          onUpdate={(data: UpdateLandingRequest) => updateLanding(parseInt(holdingId!), data)}
           loading={landingLoading}
           error={landingError}
         />
