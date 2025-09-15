@@ -223,7 +223,7 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ siteId, holdingId }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tab.Group selectedIndex={activeTab} onChange={setActiveTab}>
           <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1 mb-6">
-            {availableTabs.map((tab, index) => (
+            {availableTabs.map((tab) => (
               <Tab
                 key={tab.name}
                 className={({ selected }) =>
