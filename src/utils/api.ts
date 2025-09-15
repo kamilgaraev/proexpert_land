@@ -2344,6 +2344,131 @@ export const landingService = {
   }
 };
 
+export const holdingReportsService = {
+  // Основной дашборд холдинга
+  getDashboard: async (holdingId: number, period?: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+
+    const url = new URL(`${API_URL}/holdings/${holdingId}/reports/dashboard`);
+    if (period) url.searchParams.append('period', period);
+
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url.toString(), options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Сравнение организаций
+  getOrganizationsComparison: async (holdingId: number, period?: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+
+    const url = new URL(`${API_URL}/holdings/${holdingId}/reports/organizations-comparison`);
+    if (period) url.searchParams.append('period', period);
+
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url.toString(), options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Финансовый отчет
+  getFinancialReport: async (holdingId: number, startDate: string, endDate: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+
+    const url = new URL(`${API_URL}/holdings/${holdingId}/reports/financial`);
+    url.searchParams.append('start_date', startDate);
+    url.searchParams.append('end_date', endDate);
+
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url.toString(), options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // KPI метрики
+  getKpiReport: async (holdingId: number, period?: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+
+    const url = new URL(`${API_URL}/holdings/${holdingId}/reports/kpi`);
+    if (period) url.searchParams.append('period', period);
+
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url.toString(), options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Быстрые метрики для виджетов
+  getQuickMetrics: async (holdingId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+
+    const url = `${API_URL}/holdings/${holdingId}/reports/quick-metrics`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Очистка кэша
+  clearCache: async (holdingId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+
+    const url = `${API_URL}/holdings/${holdingId}/reports/cache`;
+    const options: RequestInit = {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  }
+};
+
 // --- Глобальный перехват fetch, чтобы при любом 401/419 делать redirect на /login ---
 if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(window as any).__authFetchPatched) {
   const nativeFetch = window.fetch.bind(window);

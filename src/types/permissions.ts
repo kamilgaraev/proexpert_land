@@ -96,7 +96,13 @@ export type ModulePermission =
   | 'finance.approve_payments'
   | 'personnel.view'
   | 'personnel.manage'
-  | 'personnel.assign_tasks';
+  | 'personnel.assign_tasks'
+  | 'multi-organization.reports.dashboard'
+  | 'multi-organization.reports.comparison'
+  | 'multi-organization.reports.financial'
+  | 'multi-organization.reports.kpi'
+  | 'multi-organization.reports.view'
+  | 'multi-organization.cache.clear';
 
 // Объединенный тип прав
 export type Permission = SystemPermission | ModulePermission | string;

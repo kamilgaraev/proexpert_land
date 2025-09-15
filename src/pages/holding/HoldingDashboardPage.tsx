@@ -464,10 +464,13 @@ const HoldingDashboardPage = () => {
                     <span>Добавить организацию</span>
                   </Link>
                   
-                  <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+                  <Link
+                    to={`/reports/${holding.id}`}
+                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+                  >
                     <ChartBarIcon className="h-5 w-5" />
                     <span>Отчеты</span>
-                  </button>
+                  </Link>
                   
                   <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
                     <CogIcon className="h-5 w-5" />
