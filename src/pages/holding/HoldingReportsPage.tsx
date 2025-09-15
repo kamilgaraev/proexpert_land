@@ -31,12 +31,20 @@ const HoldingReportsPage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
 
-  const navigation = [
+  const navigationItems = [
     { name: 'Дашборд', href: '/dashboard', icon: HomeIcon, current: false },
     { name: 'Организации', href: '/organizations', icon: BuildingOfficeIcon, current: false },
-    { name: 'Отчеты', href: `/reports/${holdingId}`, icon: ChartBarIcon, current: true },
+    { 
+      name: 'Отчеты', 
+      href: `/reports/${holdingId}`, 
+      icon: ChartBarIcon, 
+      current: true,
+      permission: 'multi-organization.reports.view'
+    },
     { name: 'Настройки', href: '/settings', icon: CogIcon, current: false },
   ];
+
+  const navigation = navigationItems.filter(item => !item.permission || can(item.permission));
 
   const colorOptions: { value: ThemeColor; name: string; preview: string }[] = [
     { value: 'blue', name: 'Синий', preview: 'bg-blue-500' },
@@ -93,18 +101,33 @@ const HoldingReportsPage: React.FC = () => {
   if (availableTabs.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-red-100 rounded-full p-3 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-            <ChartBarIcon className="h-8 w-8 text-red-600" />
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-amber-100 rounded-full p-4 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+            <ChartBarIcon className="h-10 w-10 text-amber-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Нет доступа</h1>
-          <p className="text-gray-600 mb-4">У вас нет прав для просмотра отчетов холдинга</p>
-          <button
-            onClick={() => navigate('/')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-          >
-            Вернуться на главную
-          </button>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">Доступ ограничен</h1>
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            У вас нет прав для просмотра отчетов холдинга. Обратитесь к администратору для получения необходимых разрешений.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className={`${theme.primary} ${theme.hover} text-white px-6 py-3 rounded-lg font-medium transition-colors`}
+            >
+              Перейти к дашборду
+            </button>
+            <button
+              onClick={() => navigate('/organizations')}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              Управление организациями
+            </button>
+          </div>
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Необходимые права:</strong> просмотр отчетов мультиорганизации
+            </p>
+          </div>
         </div>
       </div>
     );

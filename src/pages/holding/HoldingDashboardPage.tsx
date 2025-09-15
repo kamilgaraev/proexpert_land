@@ -17,6 +17,7 @@ import { multiOrganizationService, getTokenFromStorages } from '@utils/api';
 import type { HoldingDashboardData } from '@utils/api';
 import { SEOHead } from '@components/shared/SEOHead';
 import { useTheme, type ThemeColor } from '@components/shared/ThemeProvider';
+import { usePermissionsContext } from '@/contexts/PermissionsContext';
 import HoldingSummaryPanel from '@components/holding/HoldingSummaryPanel';
 
 const HoldingDashboardPage = () => {
@@ -28,14 +29,23 @@ const HoldingDashboardPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { color, setColor, getThemeClasses } = useTheme();
+  const { can } = usePermissionsContext();
   const theme = getThemeClasses();
 
-  const navigation = [
+  const navigationItems = [
     { name: 'Дашборд', href: '/dashboard', icon: HomeIcon, current: location.pathname === '/dashboard' },
     { name: 'Организации', href: '/organizations', icon: BuildingOfficeIcon, current: location.pathname === '/organizations' },
-    { name: 'Отчеты', href: `/reports/${dashboardData?.holding?.id || 1}`, icon: ChartBarIcon, current: location.pathname.includes('/reports') },
+    { 
+      name: 'Отчеты', 
+      href: `/reports/${dashboardData?.holding?.id || 1}`, 
+      icon: ChartBarIcon, 
+      current: location.pathname.includes('/reports'),
+      permission: 'multi-organization.reports.view'
+    },
     { name: 'Настройки', href: '/settings', icon: CogIcon, current: location.pathname === '/settings' },
   ];
+
+  const navigation = navigationItems.filter(item => !item.permission || can(item.permission));
 
   const colorOptions: { value: ThemeColor; name: string; preview: string }[] = [
     { value: 'blue', name: 'Синий', preview: 'bg-blue-500' },
@@ -582,6 +592,42 @@ const HoldingDashboardPage = () => {
             {/* Сводка по холдингу */}
             <div className="mt-8">
               <HoldingSummaryPanel />
+              
+              {/* Дополнительная информация для пользователей с доступом к отчетам */}
+              {can('multi-organization.reports.view') && (
+                <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                        📊 Расширенная аналитика
+                      </h3>
+                      <p className="text-blue-700 mb-3 text-sm lg:text-base">
+                        Получите подробные отчеты по KPI, финансовым показателям и сравнению организаций
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          KPI метрики
+                        </span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Финансовые отчеты
+                        </span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          Сравнение организаций
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <Link
+                        to={`/reports/${dashboardData?.holding?.id || 1}`}
+                        className={`${theme.primary} ${theme.hover} text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 shadow-md w-full lg:w-auto`}
+                      >
+                        <ChartBarIcon className="h-5 w-5" />
+                        <span>Открыть отчеты</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </main>
