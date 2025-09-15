@@ -147,6 +147,71 @@ const LandingEditorPage: React.FC = () => {
     { type: 'custom', name: 'Произвольный', description: 'Кастомный блок', icon: '🔧' }
   ];
 
+  const getDefaultContent = (blockType: BlockType) => {
+    const contentTemplates = {
+      hero: {
+        title: 'Заголовок блока',
+        subtitle: 'Подзаголовок блока',
+        description: 'Описание блока',
+        button_text: 'Перейти',
+        button_url: '#',
+        background_image: '',
+        text_color: '#000000',
+        background_color: '#ffffff'
+      },
+      about: {
+        title: 'О компании',
+        description: 'Здесь расположена информация о компании',
+        image: '',
+        features: []
+      },
+      services: {
+        title: 'Наши услуги',
+        description: 'Описание услуг компании',
+        services: []
+      },
+      projects: {
+        title: 'Наши проекты',
+        description: 'Портфолио выполненных проектов',
+        projects: []
+      },
+      team: {
+        title: 'Наша команда',
+        description: 'Познакомьтесь с нашей командой',
+        members: []
+      },
+      contacts: {
+        title: 'Контакты',
+        phone: '+7 (000) 000-00-00',
+        email: 'info@company.com',
+        address: 'Адрес компании',
+        working_hours: 'Пн-Пт: 9:00-18:00',
+        social_links: []
+      },
+      testimonials: {
+        title: 'Отзывы клиентов',
+        description: 'Что говорят о нас наши клиенты',
+        testimonials: []
+      },
+      gallery: {
+        title: 'Галерея',
+        description: 'Фотографии наших работ',
+        images: []
+      },
+      news: {
+        title: 'Новости',
+        description: 'Актуальные новости компании',
+        articles: []
+      },
+      custom: {
+        html_content: '<div>Пользовательский контент</div>',
+        css_styles: ''
+      }
+    };
+
+    return contentTemplates[blockType] || { title: 'Новый блок', description: 'Описание блока' };
+  };
+
   const handleAddBlock = async (blockType: BlockType) => {
     if (!holdingId) return;
     
@@ -154,8 +219,12 @@ const LandingEditorPage: React.FC = () => {
     const newBlock = await createBlock(parseInt(holdingId), {
       block_type: blockType,
       title: blockConfig?.name || 'Новый блок',
-      content: {},
-      settings: {},
+      content: getDefaultContent(blockType),
+      settings: {
+        visible: true,
+        animation: 'none',
+        padding: 'normal'
+      },
       sort_order: blocks.length,
       is_active: true
     });
