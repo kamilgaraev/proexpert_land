@@ -2518,7 +2518,7 @@ export const holdingSitesService = {
     
     const queryString = params.toString() ? `?${params.toString()}` : '';
     
-    const response = await fetch(`${API_URL}/api/v1/landing/holdings/${holdingId}/sites${queryString}`, {
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/sites${queryString}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2549,7 +2549,7 @@ export const holdingSitesService = {
       }
     });
     
-    const response = await fetch(`${API_URL}/api/v1/landing/holdings/${holdingId}/sites`, {
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/sites`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2569,7 +2569,7 @@ export const holdingSitesService = {
   getSite: async (siteId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2589,7 +2589,7 @@ export const holdingSitesService = {
   updateSite: async (siteId: number, siteData: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2610,7 +2610,7 @@ export const holdingSitesService = {
   publishSite: async (siteId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}/publish`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}/publish`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2630,7 +2630,7 @@ export const holdingSitesService = {
   deleteSite: async (siteId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2662,7 +2662,7 @@ export const holdingSitesService = {
     
     const queryString = params.toString() ? `?${params.toString()}` : '';
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}/blocks${queryString}`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}/blocks${queryString}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2682,7 +2682,7 @@ export const holdingSitesService = {
   createBlock: async (siteId: number, blockData: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}/blocks`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}/blocks`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2703,7 +2703,7 @@ export const holdingSitesService = {
   updateBlock: async (siteId: number, blockId: number, blockData: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}/blocks/${blockId}`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}/blocks/${blockId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2724,7 +2724,7 @@ export const holdingSitesService = {
   publishBlock: async (siteId: number, blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}/blocks/${blockId}/publish`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}/blocks/${blockId}/publish`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2744,7 +2744,7 @@ export const holdingSitesService = {
   duplicateBlock: async (siteId: number, blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}/blocks/${blockId}/duplicate`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}/blocks/${blockId}/duplicate`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2764,7 +2764,7 @@ export const holdingSitesService = {
   deleteBlock: async (siteId: number, blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}/blocks/${blockId}`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}/blocks/${blockId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2784,7 +2784,7 @@ export const holdingSitesService = {
   reorderBlocks: async (siteId: number, blockOrder: number[]): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}/blocks/reorder`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}/blocks/reorder`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2817,7 +2817,7 @@ export const holdingSitesService = {
     
     const queryString = params.toString() ? `?${params.toString()}` : '';
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}/assets${queryString}`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}/assets${queryString}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2843,7 +2843,7 @@ export const holdingSitesService = {
       formData.append('usage_context', usageContext);
     }
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}/assets`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}/assets`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2863,7 +2863,7 @@ export const holdingSitesService = {
   updateAsset: async (siteId: number, assetId: number, metadata: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}/assets/${assetId}`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}/assets/${assetId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2884,7 +2884,7 @@ export const holdingSitesService = {
   deleteAsset: async (siteId: number, assetId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/sites/${siteId}/assets/${assetId}`, {
+    const response = await fetch(`${API_URL}/sites/${siteId}/assets/${assetId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2905,7 +2905,7 @@ export const holdingSitesService = {
   getTemplates: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/api/v1/landing/templates`, {
+    const response = await fetch(`${API_URL}/templates`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
