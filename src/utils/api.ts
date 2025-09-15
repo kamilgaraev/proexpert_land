@@ -2503,6 +2503,328 @@ if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(win
 // --- конец перехвата ---
 
 
+// API сервис для управления лендингами холдингов
+export const holdingLandingService = {
+  // Управление лендингом холдинга
+  getLanding: async (holdingId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  updateLanding: async (holdingId: number, landingData: any): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(landingData)
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  publishLanding: async (holdingId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/publish`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  // Управление блоками контента
+  getBlocks: async (holdingId: number, filters?: any): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    const params = new URLSearchParams();
+    
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== '') {
+          params.append(key, String(value));
+        }
+      });
+    }
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks${queryString}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  createBlock: async (holdingId: number, blockData: any): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(blockData)
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  updateBlock: async (holdingId: number, blockId: number, blockData: any): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks/${blockId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(blockData)
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  publishBlock: async (holdingId: number, blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks/${blockId}/publish`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  duplicateBlock: async (holdingId: number, blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks/${blockId}/duplicate`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  deleteBlock: async (holdingId: number, blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks/${blockId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  reorderBlocks: async (holdingId: number, blockOrder: number[]): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks/reorder`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ block_order: blockOrder })
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  // Управление медиафайлами
+  getAssets: async (holdingId: number, filters?: any): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    const params = new URLSearchParams();
+    
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== '') {
+          params.append(key, String(value));
+        }
+      });
+    }
+    
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/assets${queryString}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  uploadAsset: async (holdingId: number, file: File, usageContext?: string, metadata?: any): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    if (usageContext) {
+      formData.append('usage_context', usageContext);
+    }
+    if (metadata) {
+      formData.append('metadata', JSON.stringify(metadata));
+    }
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/assets`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  updateAsset: async (holdingId: number, assetId: number, metadata: any): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/assets/${assetId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ metadata })
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  deleteAsset: async (holdingId: number, assetId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    
+    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/assets/${assetId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  }
+};
+
 export default api; 
 
 // --- Типы дашборда лендинга ---

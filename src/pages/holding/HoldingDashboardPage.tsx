@@ -42,6 +42,13 @@ const HoldingDashboardPage = () => {
       current: location.pathname.includes('/reports'),
       permission: 'multi-organization.reports.view'
     },
+    { 
+      name: 'Лендинг', 
+      href: `/holding/${dashboardData?.holding?.id || 1}/landing/edit`, 
+      icon: DocumentTextIcon, 
+      current: location.pathname.includes('/landing'),
+      permission: 'multi-organization.website.view'
+    },
     { name: 'Настройки', href: '/settings', icon: CogIcon, current: location.pathname === '/settings' },
   ];
 
