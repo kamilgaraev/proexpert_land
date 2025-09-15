@@ -154,7 +154,7 @@ const LandingEditorPage: React.FC = () => {
         subtitle: 'Подзаголовок блока',
         description: 'Описание блока',
         button_text: 'Перейти',
-        button_url: '#',
+        button_url: 'https://example.com',
         background_image: '',
         text_color: '#000000',
         background_color: '#ffffff'
