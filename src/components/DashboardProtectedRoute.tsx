@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
 import { usePermissions } from '@hooks/usePermissions';
@@ -8,9 +8,21 @@ interface DashboardProtectedRouteProps {
 }
 
 const DashboardProtectedRoute = ({ children }: DashboardProtectedRouteProps) => {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { isLoaded: permissionsLoaded, isLoading: permissionsLoading, error: permissionsError } = usePermissions();
+  const { isAuthenticated, isLoading: authLoading, token } = useAuth();
+  const { isLoaded: permissionsLoaded, isLoading: permissionsLoading, error: permissionsError, load: loadPermissions } = usePermissions();
   const location = useLocation();
+
+  // Принудительная загрузка прав через 3 секунды, если они не загрузились
+  useEffect(() => {
+    if (isAuthenticated && token && !permissionsLoaded && !permissionsLoading && !permissionsError) {
+      const timeout = setTimeout(() => {
+        console.log('🔄 Принудительная загрузка прав через 3 секунды...');
+        loadPermissions();
+      }, 3000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isAuthenticated, token, permissionsLoaded, permissionsLoading, permissionsError, loadPermissions]);
 
   if (authLoading) {
     return (

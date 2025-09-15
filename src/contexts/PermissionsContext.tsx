@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { permissionsManager } from '@/services/permissionsManager';
+import { getTokenFromStorages } from '@/utils/api';
 import {
   PermissionsData,
   CanAccessOptions,
@@ -62,6 +63,8 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
     interfaces: [],
     active_modules: []
   });
+  
+  const hasAutoLoaded = useRef(false);
 
   const updatePermissions = useCallback(() => {
     const data = permissionsManager.getPermissions();
@@ -111,6 +114,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
     });
     setIsLoaded(false);
     setError(null);
+    hasAutoLoaded.current = false;
   }, []);
 
   // Методы проверки (прокси к permissionsManager)
@@ -142,12 +146,18 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
     return await permissionsManager.checkPermission(permission, context, iType);
   }, [interfaceType]);
 
-  // Автоматическая загрузка при монтировании
+  // Автоматическая загрузка при монтировании (один раз)
   useEffect(() => {
-    if (autoLoad && !isLoading) {
-      load();
+    if (autoLoad && !hasAutoLoaded.current) {
+      const token = getTokenFromStorages();
+      if (token) {
+        hasAutoLoaded.current = true;
+        load();
+      } else {
+        console.log('⚠️ Токен отсутствует, пропускаем загрузку прав');
+      }
     }
-  }, [autoLoad, isLoaded, isLoading, load]);
+  }, [autoLoad, load]);
 
   // Автообновление прав (только если загружены успешно)
   useEffect(() => {

@@ -28,8 +28,8 @@ export class PermissionsManager {
   private loadPromise: Promise<boolean> | null = null;
 
   // Настройки дебаунса
-  private readonly MIN_RELOAD_INTERVAL = 120000; // 2 минуты между загрузками
-  private readonly REQUEST_TIMEOUT = 10000; // 10 секунд таймаут запроса
+  private readonly MIN_RELOAD_INTERVAL = 300000; // 5 минут между загрузками (увеличено для защиты от 429)
+  private readonly REQUEST_TIMEOUT = 15000; // 15 секунд таймаут запроса
 
   constructor() {
     this.permissions = [];
