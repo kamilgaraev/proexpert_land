@@ -160,7 +160,7 @@ const FinancialReport: React.FC<FinancialReportProps> = ({ holdingId }) => {
             </thead>
             <tbody>
               {financialData.breakdown_by_organization.map((org) => {
-                const revenueShare = (org.revenue / financialData.consolidated_financials.total_revenue) * 100;
+                const revenueShare = ((org.revenue || 0) / (financialData.consolidated_financials?.total_revenue || 1)) * 100;
                 
                 return (
                   <tr key={org.organization_id} className="border-b border-gray-100 hover:bg-gray-50">
@@ -169,16 +169,16 @@ const FinancialReport: React.FC<FinancialReportProps> = ({ holdingId }) => {
                       <div className="text-sm text-gray-500">ID: {org.organization_id}</div>
                     </td>
                     <td className="py-3 px-4 text-right font-medium text-green-600">
-                      {formatCurrency(org.revenue)}
+                      {formatCurrency(org.revenue || 0)}
                     </td>
                     <td className="py-3 px-4 text-right font-medium text-red-600">
-                      {formatCurrency(org.expenses)}
+                      {formatCurrency(org.expenses || 0)}
                     </td>
                     <td className="py-3 px-4 text-right font-medium text-blue-600">
-                      {formatCurrency(org.profit)}
+                      {formatCurrency(org.profit || 0)}
                     </td>
                     <td className="py-3 px-4 text-right font-medium text-purple-600">
-                      {formatPercent(org.profit_margin)}
+                      {formatPercent(org.profit_margin || 0)}
                     </td>
                     <td className="py-3 px-4 text-right font-medium text-gray-900">
                       {revenueShare.toFixed(1)}%
@@ -214,21 +214,21 @@ const FinancialReport: React.FC<FinancialReportProps> = ({ holdingId }) => {
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Выручка:</span>
                   <span className="text-sm font-medium text-green-600">
-                    {formatCurrency(month.revenue)}
+                    {formatCurrency(month.revenue || 0)}
                   </span>
                 </div>
                 
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Расходы:</span>
                   <span className="text-sm font-medium text-red-600">
-                    {formatCurrency(month.expenses)}
+                    {formatCurrency(month.expenses || 0)}
                   </span>
                 </div>
                 
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Прибыль:</span>
                   <span className="text-sm font-medium text-blue-600">
-                    {formatCurrency(month.profit)}
+                    {formatCurrency(month.profit || 0)}
                   </span>
                 </div>
               </div>
@@ -252,19 +252,19 @@ const FinancialReport: React.FC<FinancialReportProps> = ({ holdingId }) => {
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-gray-900">{category.category}</span>
-                  <span className="text-sm text-gray-600">{category.percentage.toFixed(1)}%</span>
+                  <span className="text-sm text-gray-600">{(category.percentage || 0).toFixed(1)}%</span>
                 </div>
                 
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-primary-500 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${category.percentage}%` }}
+                    style={{ width: `${category.percentage || 0}%` }}
                   ></div>
                 </div>
               </div>
               
               <div className="ml-4 text-right">
-                <span className="font-medium text-gray-900">{formatCurrency(category.amount)}</span>
+                <span className="font-medium text-gray-900">{formatCurrency(category.amount || 0)}</span>
               </div>
             </div>
           ))}

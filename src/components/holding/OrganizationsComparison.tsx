@@ -82,36 +82,36 @@ const OrganizationsComparison: React.FC<OrganizationsComparisonProps> = ({ holdi
                     <div className="text-sm text-gray-500">ID: {org.organization_id}</div>
                   </td>
                   <td className="py-3 px-4 text-right font-medium text-green-600">
-                    {formatCurrency(org.metrics.revenue)}
+                    {formatCurrency(org.metrics?.revenue || 0)}
                   </td>
                   <td className="py-3 px-4 text-right font-medium text-blue-600">
-                    {formatPercent(org.metrics.profit_margin)}
+                    {formatPercent(org.metrics?.profit_margin || 0)}
                   </td>
                   <td className="py-3 px-4 text-right text-gray-900">
-                    {org.metrics.employees_count}
+                    {org.metrics?.employees_count || 0}
                   </td>
                   <td className="py-3 px-4 text-right text-gray-900">
-                    {org.metrics.projects_count}
+                    {org.metrics?.projects_count || 0}
                   </td>
                   <td className="py-3 px-4 text-right font-medium text-purple-600">
-                    {org.metrics.efficiency_score.toFixed(1)}
+                    {org.metrics?.efficiency_score?.toFixed(1) || '0.0'}
                   </td>
                   <td className="py-3 px-4 text-right font-medium text-indigo-600">
-                    {formatPercent(org.metrics.completion_rate)}
+                    {formatPercent(org.metrics?.completion_rate || 0)}
                   </td>
                   <td className="py-3 px-4 text-center">
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-center gap-1">
                         <span className="text-xs text-gray-500">В:</span>
-                        {getRankBadge(org.ranking.revenue_rank)}
+                        {getRankBadge(org.ranking?.revenue_rank || 999)}
                       </div>
                       <div className="flex items-center justify-center gap-1">
                         <span className="text-xs text-gray-500">Э:</span>
-                        {getRankBadge(org.ranking.efficiency_rank)}
+                        {getRankBadge(org.ranking?.efficiency_rank || 999)}
                       </div>
                       <div className="flex items-center justify-center gap-1">
                         <span className="text-xs text-gray-500">Р:</span>
-                        {getRankBadge(org.ranking.growth_rank)}
+                        {getRankBadge(org.ranking?.growth_rank || 999)}
                       </div>
                     </div>
                   </td>
@@ -131,9 +131,9 @@ const OrganizationsComparison: React.FC<OrganizationsComparisonProps> = ({ holdi
   const renderTopPerformers = () => {
     if (!comparisonData?.organizations?.length) return null;
 
-    const topByRevenue = [...comparisonData.organizations].sort((a, b) => a.ranking.revenue_rank - b.ranking.revenue_rank).slice(0, 3);
-    const topByEfficiency = [...comparisonData.organizations].sort((a, b) => a.ranking.efficiency_rank - b.ranking.efficiency_rank).slice(0, 3);
-    const topByGrowth = [...comparisonData.organizations].sort((a, b) => a.ranking.growth_rank - b.ranking.growth_rank).slice(0, 3);
+    const topByRevenue = [...comparisonData.organizations].sort((a, b) => (a.ranking?.revenue_rank || 999) - (b.ranking?.revenue_rank || 999)).slice(0, 3);
+    const topByEfficiency = [...comparisonData.organizations].sort((a, b) => (a.ranking?.efficiency_rank || 999) - (b.ranking?.efficiency_rank || 999)).slice(0, 3);
+    const topByGrowth = [...comparisonData.organizations].sort((a, b) => (a.ranking?.growth_rank || 999) - (b.ranking?.growth_rank || 999)).slice(0, 3);
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -147,7 +147,7 @@ const OrganizationsComparison: React.FC<OrganizationsComparisonProps> = ({ holdi
                   <span className="text-sm font-medium">{org.organization_name}</span>
                 </div>
                 <span className="text-sm font-semibold text-green-600">
-                  {formatCurrency(org.metrics.revenue)}
+                  {formatCurrency(org.metrics?.revenue || 0)}
                 </span>
               </div>
             ))}
@@ -164,7 +164,7 @@ const OrganizationsComparison: React.FC<OrganizationsComparisonProps> = ({ holdi
                   <span className="text-sm font-medium">{org.organization_name}</span>
                 </div>
                 <span className="text-sm font-semibold text-purple-600">
-                  {org.metrics.efficiency_score.toFixed(1)}
+                  {org.metrics?.efficiency_score?.toFixed(1) || '0.0'}
                 </span>
               </div>
             ))}
@@ -181,7 +181,7 @@ const OrganizationsComparison: React.FC<OrganizationsComparisonProps> = ({ holdi
                   <span className="text-sm font-medium">{org.organization_name}</span>
                 </div>
                 <span className="text-sm font-semibold text-indigo-600">
-                  {formatPercent(org.metrics.completion_rate)}
+                  {formatPercent(org.metrics?.completion_rate || 0)}
                 </span>
               </div>
             ))}
