@@ -364,17 +364,19 @@ const BlocksEditor: React.FC<any> = ({ blocks, loading, error }) => {
   if (loading) return <div className="text-center py-8">Загрузка блоков...</div>;
   if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
   
+  const blocksArray = Array.isArray(blocks) ? blocks : [];
+  
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Редактор блоков</h3>
       <p className="text-gray-600">Перетаскивайте блоки для изменения порядка</p>
-      {blocks.length === 0 ? (
+      {blocksArray.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
           <p className="text-gray-600">Нет блоков. Добавьте первый блок из библиотеки слева.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {blocks.map((block: any) => (
+          {blocksArray.map((block: any) => (
             <div key={block.id} className="p-4 border border-gray-200 rounded-lg">
               <h4 className="font-medium">{block.title}</h4>
               <p className="text-sm text-gray-600">Тип: {block.type}</p>
@@ -390,12 +392,14 @@ const MediaManager: React.FC<any> = ({ assets, loading, error }) => {
   if (loading) return <div className="text-center py-8">Загрузка медиафайлов...</div>;
   if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
   
+  const assetsArray = Array.isArray(assets) ? assets : [];
+  
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Медиафайлы</h3>
       <p className="text-gray-600">Загружайте и управляйте изображениями и документами</p>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {assets.map((asset: any) => (
+        {assetsArray.map((asset: any) => (
           <div key={asset.id} className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
             <PhotoIcon className="h-8 w-8 text-gray-400" />
           </div>

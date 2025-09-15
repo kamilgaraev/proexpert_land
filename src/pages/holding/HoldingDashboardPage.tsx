@@ -54,21 +54,6 @@ const HoldingDashboardPage = () => {
 
   const navigation = navigationItems.filter(item => !item.permission || can(item.permission));
   
-  // Отладка навигации
-  console.log('Navigation items:', navigationItems);
-  console.log('Filtered navigation:', navigation);
-  console.log('Holding ID:', dashboardData?.holding?.id);
-  console.log('Can access website view:', can('multi-organization.website.view'));
-  console.log('Can access reports view:', can('multi-organization.reports.view'));
-  
-  // Детальная проверка каждого элемента
-  navigationItems.forEach(item => {
-    if (item.permission) {
-      console.log(`${item.name}: permission=${item.permission}, can=${can(item.permission)}`);
-    } else {
-      console.log(`${item.name}: no permission required`);
-    }
-  });
 
   const colorOptions: { value: ThemeColor; name: string; preview: string }[] = [
     { value: 'blue', name: 'Синий', preview: 'bg-blue-500' },

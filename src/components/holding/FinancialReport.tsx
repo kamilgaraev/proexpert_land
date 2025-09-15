@@ -159,7 +159,7 @@ const FinancialReport: React.FC<FinancialReportProps> = ({ holdingId }) => {
               </tr>
             </thead>
             <tbody>
-              {financialData.breakdown_by_organization.map((org) => {
+              {(financialData.breakdown_by_organization || []).map((org) => {
                 const revenueShare = ((org.revenue || 0) / (financialData.consolidated_financials?.total_revenue || 1)) * 100;
                 
                 return (
@@ -201,7 +201,7 @@ const FinancialReport: React.FC<FinancialReportProps> = ({ holdingId }) => {
         <h3 className="text-lg font-semibold mb-6">Помесячная динамика</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {financialData.monthly_dynamics.map((month) => (
+          {(financialData.monthly_dynamics || []).map((month) => (
             <div key={month.month} className="border border-gray-200 rounded-lg p-4">
               <h4 className="font-medium text-gray-900 mb-3">
                 {month.month ? (() => {
@@ -257,7 +257,7 @@ const FinancialReport: React.FC<FinancialReportProps> = ({ holdingId }) => {
         <h3 className="text-lg font-semibold mb-6">Структура расходов</h3>
         
         <div className="space-y-4">
-          {financialData.expense_categories.map((category, index) => (
+          {(financialData.expense_categories || []).map((category, index) => (
             <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">

@@ -171,7 +171,7 @@ const HoldingReportsDashboard: React.FC<HoldingReportsDashboardProps> = ({ holdi
               </tr>
             </thead>
             <tbody>
-              {dashboardData.organization_breakdown.map((org) => (
+              {(dashboardData.organization_breakdown || []).map((org) => (
                 <tr key={org.organization_id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4">
                     <div className="font-medium text-gray-900">{org.organization_name}</div>

@@ -75,7 +75,7 @@ const OrganizationsComparison: React.FC<OrganizationsComparisonProps> = ({ holdi
               </tr>
             </thead>
             <tbody>
-              {comparisonData.organizations.map((org) => (
+              {(comparisonData.organizations || []).map((org) => (
                 <tr key={org.organization_id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4">
                     <div className="font-medium text-gray-900">{org.organization_name}</div>
@@ -131,9 +131,10 @@ const OrganizationsComparison: React.FC<OrganizationsComparisonProps> = ({ holdi
   const renderTopPerformers = () => {
     if (!comparisonData?.organizations?.length) return null;
 
-    const topByRevenue = [...comparisonData.organizations].sort((a, b) => (a.ranking?.revenue_rank || 999) - (b.ranking?.revenue_rank || 999)).slice(0, 3);
-    const topByEfficiency = [...comparisonData.organizations].sort((a, b) => (a.ranking?.efficiency_rank || 999) - (b.ranking?.efficiency_rank || 999)).slice(0, 3);
-    const topByGrowth = [...comparisonData.organizations].sort((a, b) => (a.ranking?.growth_rank || 999) - (b.ranking?.growth_rank || 999)).slice(0, 3);
+    const organizations = comparisonData.organizations || [];
+    const topByRevenue = [...organizations].sort((a, b) => (a.ranking?.revenue_rank || 999) - (b.ranking?.revenue_rank || 999)).slice(0, 3);
+    const topByEfficiency = [...organizations].sort((a, b) => (a.ranking?.efficiency_rank || 999) - (b.ranking?.efficiency_rank || 999)).slice(0, 3);
+    const topByGrowth = [...organizations].sort((a, b) => (a.ranking?.growth_rank || 999) - (b.ranking?.growth_rank || 999)).slice(0, 3);
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

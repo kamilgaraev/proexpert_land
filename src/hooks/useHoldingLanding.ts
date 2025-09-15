@@ -100,12 +100,15 @@ export const useLandingBlocks = () => {
     try {
       const response = await holdingLandingService.getBlocks(holdingId, filters);
       if (response.status === 200) {
-        setBlocks(response.data);
+        const blocksData = Array.isArray(response.data) ? response.data : [];
+        setBlocks(blocksData);
       } else {
         setError(response.data?.message || 'Ошибка загрузки блоков');
+        setBlocks([]);
       }
     } catch (err) {
       setError('Ошибка сети при загрузке блоков');
+      setBlocks([]);
       console.error('Blocks fetch error:', err);
     } finally {
       setLoading(false);
@@ -273,12 +276,15 @@ export const useLandingAssets = () => {
     try {
       const response = await holdingLandingService.getAssets(holdingId, filters);
       if (response.status === 200) {
-        setAssets(response.data);
+        const assetsData = Array.isArray(response.data) ? response.data : [];
+        setAssets(assetsData);
       } else {
         setError(response.data?.message || 'Ошибка загрузки медиафайлов');
+        setAssets([]);
       }
     } catch (err) {
       setError('Ошибка сети при загрузке медиафайлов');
+      setAssets([]);
       console.error('Assets fetch error:', err);
     } finally {
       setLoading(false);
