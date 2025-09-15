@@ -11,7 +11,7 @@ import OrganizationPage from '@pages/dashboard/OrganizationPage';
 import HelpPage from '@pages/dashboard/HelpPage';
 import SupportPage from '@pages/dashboard/SupportPage';
 import NotFoundPage from '@pages/NotFoundPage';
-import ProtectedRoute from '@components/ProtectedRoute';
+import DashboardProtectedRoute from '@components/DashboardProtectedRoute';
 import AdminProtectedRoute from '@components/AdminProtectedRoute';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 import AdminLayout from '@layouts/AdminLayout';
@@ -181,9 +181,9 @@ function App() {
         
         {/* Защищенные маршруты внутри личного кабинета */}
         <Route path="/dashboard" element={
-          <ProtectedRoute>
+          <DashboardProtectedRoute>
             <DashboardLayout />
-          </ProtectedRoute>
+          </DashboardProtectedRoute>
         }>
           <Route index element={<DashboardPage />} />
           <Route path="profile" element={<ProfilePage />} />
