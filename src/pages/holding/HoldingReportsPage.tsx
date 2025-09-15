@@ -7,7 +7,6 @@ import {
   CurrencyDollarIcon,
   ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
-import { useTheme } from '@components/shared/ThemeProvider';
 import { SEOHead } from '@components/shared/SEOHead';
 import HoldingReportsDashboard from '@/components/holding/HoldingReportsDashboard';
 import OrganizationsComparison from '@/components/holding/OrganizationsComparison';
