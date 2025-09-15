@@ -318,7 +318,7 @@ const HoldingReportsDashboard: React.FC<HoldingReportsDashboardProps> = ({ holdi
 
       {quickMetrics && (
         <div className="text-xs text-gray-500 text-center mt-8">
-          Последнее обновление: {formatDate(quickMetrics.updated_at)}
+          Последнее обновление: {quickMetrics.updated_at ? formatDate(quickMetrics.updated_at) : 'Не указано'}
         </div>
       )}
     </div>

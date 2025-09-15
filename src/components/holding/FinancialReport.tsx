@@ -204,10 +204,20 @@ const FinancialReport: React.FC<FinancialReportProps> = ({ holdingId }) => {
           {financialData.monthly_dynamics.map((month) => (
             <div key={month.month} className="border border-gray-200 rounded-lg p-4">
               <h4 className="font-medium text-gray-900 mb-3">
-                {new Date(month.month + '-01').toLocaleDateString('ru-RU', { 
-                  year: 'numeric', 
-                  month: 'long' 
-                })}
+                {month.month ? (() => {
+                  try {
+                    const date = new Date(month.month + '-01');
+                    if (isNaN(date.getTime())) {
+                      return month.month;
+                    }
+                    return date.toLocaleDateString('ru-RU', { 
+                      year: 'numeric', 
+                      month: 'long' 
+                    });
+                  } catch {
+                    return month.month;
+                  }
+                })() : 'Период не указан'}
               </h4>
               
               <div className="space-y-2">

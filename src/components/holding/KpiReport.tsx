@@ -58,8 +58,8 @@ const KpiReport: React.FC<KpiReportProps> = ({ holdingId }) => {
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <p className="text-sm text-green-600 mb-2">Рост выручки</p>
             <p className="text-2xl font-bold text-green-700 flex items-center justify-center">
-              {getTrendIcon(kpis.revenue_growth >= 0 ? 'growing' : 'declining')}
-              {formatPercent(Math.abs(kpis.revenue_growth))}
+              {getTrendIcon((kpis.revenue_growth || 0) >= 0 ? 'growing' : 'declining')}
+              {formatPercent(Math.abs(kpis.revenue_growth || 0))}
             </p>
             <div className={`inline-flex px-2 py-1 rounded-full text-xs mt-2 ${getKpiStatusColor(kpis.revenue_growth || 0, { good: 10, warning: 5 })}`}>
               {(kpis.revenue_growth || 0) >= 10 ? 'Отлично' : (kpis.revenue_growth || 0) >= 5 ? 'Хорошо' : 'Требует внимания'}
@@ -68,7 +68,7 @@ const KpiReport: React.FC<KpiReportProps> = ({ holdingId }) => {
           
           <div className="text-center p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-600 mb-2">Маржа прибыли</p>
-            <p className="text-2xl font-bold text-blue-700">{formatPercent(kpis.profit_margin)}</p>
+            <p className="text-2xl font-bold text-blue-700">{formatPercent(kpis.profit_margin || 0)}</p>
             <div className={`inline-flex px-2 py-1 rounded-full text-xs mt-2 ${getKpiStatusColor(kpis.profit_margin || 0, { good: 25, warning: 15 })}`}>
               {(kpis.profit_margin || 0) >= 25 ? 'Отлично' : (kpis.profit_margin || 0) >= 15 ? 'Хорошо' : 'Требует внимания'}
             </div>
@@ -76,7 +76,7 @@ const KpiReport: React.FC<KpiReportProps> = ({ holdingId }) => {
           
           <div className="text-center p-4 bg-purple-50 rounded-lg">
             <p className="text-sm text-purple-600 mb-2">ROI</p>
-            <p className="text-2xl font-bold text-purple-700">{formatPercent(kpis.roi)}</p>
+            <p className="text-2xl font-bold text-purple-700">{formatPercent(kpis.roi || 0)}</p>
             <div className={`inline-flex px-2 py-1 rounded-full text-xs mt-2 ${getKpiStatusColor(kpis.roi || 0, { good: 20, warning: 10 })}`}>
               {(kpis.roi || 0) >= 20 ? 'Отлично' : (kpis.roi || 0) >= 10 ? 'Хорошо' : 'Требует внимания'}
             </div>
@@ -84,7 +84,7 @@ const KpiReport: React.FC<KpiReportProps> = ({ holdingId }) => {
           
           <div className="text-center p-4 bg-indigo-50 rounded-lg">
             <p className="text-sm text-indigo-600 mb-2">Выручка на сотрудника</p>
-            <p className="text-2xl font-bold text-indigo-700">{formatCurrency(kpis.revenue_per_employee)}</p>
+            <p className="text-2xl font-bold text-indigo-700">{formatCurrency(kpis.revenue_per_employee || 0)}</p>
             <div className={`inline-flex px-2 py-1 rounded-full text-xs mt-2 ${getKpiStatusColor((kpis.revenue_per_employee || 0) / 1000, { good: 150, warning: 100 })}`}>
               {(kpis.revenue_per_employee || 0) >= 150000 ? 'Отлично' : (kpis.revenue_per_employee || 0) >= 100000 ? 'Хорошо' : 'Требует внимания'}
             </div>
@@ -106,7 +106,7 @@ const KpiReport: React.FC<KpiReportProps> = ({ holdingId }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <p className="text-sm text-green-600 mb-2">Завершенность проектов</p>
-            <p className="text-2xl font-bold text-green-700">{formatPercent(kpis.project_completion_rate)}</p>
+            <p className="text-2xl font-bold text-green-700">{formatPercent(kpis.project_completion_rate || 0)}</p>
             <div className={`inline-flex px-2 py-1 rounded-full text-xs mt-2 ${getKpiStatusColor(kpis.project_completion_rate || 0, { good: 90, warning: 80 })}`}>
               {(kpis.project_completion_rate || 0) >= 90 ? 'Отлично' : (kpis.project_completion_rate || 0) >= 80 ? 'Хорошо' : 'Требует внимания'}
             </div>
@@ -122,7 +122,7 @@ const KpiReport: React.FC<KpiReportProps> = ({ holdingId }) => {
           
           <div className="text-center p-4 bg-purple-50 rounded-lg">
             <p className="text-sm text-purple-600 mb-2">Использование ресурсов</p>
-            <p className="text-2xl font-bold text-purple-700">{formatPercent(kpis.resource_utilization)}</p>
+            <p className="text-2xl font-bold text-purple-700">{formatPercent(kpis.resource_utilization || 0)}</p>
             <div className={`inline-flex px-2 py-1 rounded-full text-xs mt-2 ${getKpiStatusColor(kpis.resource_utilization || 0, { good: 80, warning: 70 })}`}>
               {(kpis.resource_utilization || 0) >= 80 ? 'Отлично' : (kpis.resource_utilization || 0) >= 70 ? 'Хорошо' : 'Требует внимания'}
             </div>
@@ -160,7 +160,7 @@ const KpiReport: React.FC<KpiReportProps> = ({ holdingId }) => {
           
           <div className="text-center p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-600 mb-2">Эффективность времени</p>
-            <p className="text-2xl font-bold text-blue-700">{formatPercent(kpis.time_efficiency)}</p>
+            <p className="text-2xl font-bold text-blue-700">{formatPercent(kpis.time_efficiency || 0)}</p>
             <div className={`inline-flex px-2 py-1 rounded-full text-xs mt-2 ${getKpiStatusColor(kpis.time_efficiency || 0, { good: 90, warning: 80 })}`}>
               {(kpis.time_efficiency || 0) >= 90 ? 'Отлично' : (kpis.time_efficiency || 0) >= 80 ? 'Хорошо' : 'Требует внимания'}
             </div>
@@ -168,7 +168,7 @@ const KpiReport: React.FC<KpiReportProps> = ({ holdingId }) => {
           
           <div className="text-center p-4 bg-purple-50 rounded-lg">
             <p className="text-sm text-purple-600 mb-2">Уровень автоматизации</p>
-            <p className="text-2xl font-bold text-purple-700">{formatPercent(kpis.automation_level)}</p>
+            <p className="text-2xl font-bold text-purple-700">{formatPercent(kpis.automation_level || 0)}</p>
             <div className={`inline-flex px-2 py-1 rounded-full text-xs mt-2 ${getKpiStatusColor(kpis.automation_level || 0, { good: 60, warning: 40 })}`}>
               {(kpis.automation_level || 0) >= 60 ? 'Отлично' : (kpis.automation_level || 0) >= 40 ? 'Хорошо' : 'Требует внимания'}
             </div>
@@ -191,24 +191,24 @@ const KpiReport: React.FC<KpiReportProps> = ({ holdingId }) => {
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600 mb-3">Тренд выручки</p>
             <div className="flex items-center justify-center">
-              <span className="text-3xl mr-2">{getTrendIcon(trends.revenue_trend)}</span>
-              <span className="text-lg font-semibold capitalize">{trends.revenue_trend}</span>
+              <span className="text-3xl mr-2">{getTrendIcon(trends.revenue_trend || 'stable')}</span>
+              <span className="text-lg font-semibold capitalize">{trends.revenue_trend || 'stable'}</span>
             </div>
           </div>
           
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600 mb-3">Тренд эффективности</p>
             <div className="flex items-center justify-center">
-              <span className="text-3xl mr-2">{getTrendIcon(trends.efficiency_trend)}</span>
-              <span className="text-lg font-semibold capitalize">{trends.efficiency_trend}</span>
+              <span className="text-3xl mr-2">{getTrendIcon(trends.efficiency_trend || 'stable')}</span>
+              <span className="text-lg font-semibold capitalize">{trends.efficiency_trend || 'stable'}</span>
             </div>
           </div>
           
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600 mb-3">Тренд прибыльности</p>
             <div className="flex items-center justify-center">
-              <span className="text-3xl mr-2">{getTrendIcon(trends.profitability_trend)}</span>
-              <span className="text-lg font-semibold capitalize">{trends.profitability_trend}</span>
+              <span className="text-3xl mr-2">{getTrendIcon(trends.profitability_trend || 'stable')}</span>
+              <span className="text-lg font-semibold capitalize">{trends.profitability_trend || 'stable'}</span>
             </div>
           </div>
         </div>
@@ -229,15 +229,15 @@ const KpiReport: React.FC<KpiReportProps> = ({ holdingId }) => {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Название:</span>
-                <span className="font-medium">{kpiData.holding_name}</span>
+                <span className="font-medium">{kpiData.holding_name || 'Не указано'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">ID холдинга:</span>
-                <span className="font-medium">{kpiData.holding_id}</span>
+                <span className="font-medium">{kpiData.holding_id || 'Не указан'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Количество организаций:</span>
-                <span className="font-medium">{kpiData.organizations_count}</span>
+                <span className="font-medium">{kpiData.organizations_count || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Период:</span>

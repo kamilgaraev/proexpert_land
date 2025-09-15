@@ -140,6 +140,10 @@ export const useHoldingReports = () => {
   }, []);
 
   const formatCurrency = useCallback((amount: number) => {
+    if (typeof amount !== 'number' || isNaN(amount)) {
+      return '0 ₽';
+    }
+    
     return new Intl.NumberFormat('ru-RU', {
       style: 'currency',
       currency: 'RUB',
@@ -149,6 +153,10 @@ export const useHoldingReports = () => {
   }, []);
 
   const formatPercent = useCallback((value: number) => {
+    if (typeof value !== 'number' || isNaN(value)) {
+      return '0,0%';
+    }
+    
     return new Intl.NumberFormat('ru-RU', {
       style: 'percent',
       minimumFractionDigits: 1,
@@ -157,11 +165,18 @@ export const useHoldingReports = () => {
   }, []);
 
   const formatDate = useCallback((dateString: string) => {
+    if (!dateString) return 'Дата не указана';
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Некорректная дата';
+    }
+    
     return new Intl.DateTimeFormat('ru-RU', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
-    }).format(new Date(dateString));
+    }).format(date);
   }, []);
 
   const getTrendIcon = useCallback((trend: string) => {
