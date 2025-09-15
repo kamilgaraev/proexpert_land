@@ -45,7 +45,6 @@ const CreateSiteForm: React.FC<CreateSiteFormProps> = ({ holdingId }) => {
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<SiteTemplate | null>(null);
   const [step, setStep] = useState(1); // 1 - шаблон, 2 - настройки
 
   useEffect(() => {
@@ -80,7 +79,6 @@ const CreateSiteForm: React.FC<CreateSiteFormProps> = ({ holdingId }) => {
   };
 
   const handleTemplateSelect = (template: SiteTemplate) => {
-    setSelectedTemplate(template);
     setFormData(prev => ({
       ...prev,
       template_id: template.id,

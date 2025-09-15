@@ -7,7 +7,6 @@ import {
   PencilIcon,
   ClipboardDocumentIcon,
   MagnifyingGlassIcon,
-  FunnelIcon,
   CloudArrowUpIcon
 } from '@heroicons/react/24/outline';
 import { useSiteAssets } from '@/hooks/useHoldingSites';
@@ -37,7 +36,6 @@ const MediaManager: React.FC<MediaManagerProps> = ({
     loading,
     error,
     uploadProgress,
-    fetchAssets,
     uploadAsset,
     updateAsset,
     deleteAsset
@@ -46,7 +44,7 @@ const MediaManager: React.FC<MediaManagerProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [filters, setFilters] = useState<AssetFilters>({});
   const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode] = useState<'grid' | 'list'>('grid');
   const [editingAsset, setEditingAsset] = useState<SiteAsset | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
@@ -94,13 +92,6 @@ const MediaManager: React.FC<MediaManagerProps> = ({
     return <DocumentIcon className="h-6 w-6" />;
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ru-RU', {

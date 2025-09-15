@@ -3,16 +3,14 @@ import { Link } from 'react-router-dom';
 import { 
   PlusIcon, 
   EyeIcon,
-  PencilIcon,
   GlobeAltIcon,
   TrashIcon,
-  DocumentDuplicateIcon,
   ArrowTopRightOnSquareIcon
 } from '@heroicons/react/24/outline';
 import { useHoldingSites } from '@/hooks/useHoldingSites';
 import { usePermissionsContext } from '@/contexts/PermissionsContext';
 import { useTheme } from '@components/shared/ThemeProvider';
-import type { HoldingSite, SiteFilters } from '@/types/holding-sites';
+import type { SiteFilters } from '@/types/holding-sites';
 
 interface HoldingSitesListProps {
   holdingId: number;

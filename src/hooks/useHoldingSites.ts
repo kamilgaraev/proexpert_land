@@ -18,8 +18,6 @@ import type {
 export const useHoldingSites = () => {
   const [sites, setSites] = useState<HoldingSite[]>([]);
   const [currentSite, setCurrentSite] = useState<HoldingSite | null>(null);
-  const [blocks, setBlocks] = useState<SiteContentBlock[]>([]);
-  const [assets, setAssets] = useState<SiteAsset[]>([]);
   const [templates, setTemplates] = useState<SiteTemplate[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,12 +82,6 @@ export const useHoldingSites = () => {
       if (response.data && response.data.success) {
         const siteData = response.data.data;
         setCurrentSite(siteData);
-        if (siteData.blocks) {
-          setBlocks(siteData.blocks);
-        }
-        if (siteData.assets) {
-          setAssets(siteData.assets);
-        }
         return siteData;
       } else {
         setError(response.data?.message || 'Ошибка загрузки сайта');
