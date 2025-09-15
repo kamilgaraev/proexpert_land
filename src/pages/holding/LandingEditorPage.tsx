@@ -221,9 +221,9 @@ const LandingEditorPage: React.FC = () => {
       title: blockConfig?.name || 'Новый блок',
       content: getDefaultContent(blockType),
       settings: {
-        visible: true,
         animation: 'none',
-        padding: 'normal'
+        padding: 'normal',
+        text_align: 'left'
       },
       sort_order: blocks.length,
       is_active: true
