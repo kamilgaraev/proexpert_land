@@ -15,7 +15,7 @@ import { usePermissionsContext } from '@/contexts/PermissionsContext';
 import { useTheme } from '@components/shared/ThemeProvider';
 import BlockEditor from './BlockEditor';
 import MediaManager from './MediaManager';
-import type { HoldingSite, UpdateSiteRequest } from '@/types/holding-sites';
+import type { UpdateSiteRequest } from '@/types/holding-sites';
 
 interface SiteEditorProps {
   siteId: number;
@@ -245,8 +245,8 @@ const SiteEditor: React.FC<SiteEditorProps> = ({ siteId, holdingId }) => {
           </Tab.List>
 
           <Tab.Panels>
-            {availableTabs.map((tab, index) => (
-              <Tab.Panel key={index} className="focus:outline-none">
+            {availableTabs.map((tab) => (
+              <Tab.Panel key={tab.name} className="focus:outline-none">
                 {tab.component}
               </Tab.Panel>
             ))}
