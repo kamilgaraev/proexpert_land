@@ -104,17 +104,10 @@ export type ModulePermission =
   | 'multi-organization.reports.view'
   | 'multi-organization.cache.clear'
   | 'multi-organization.website.view'
-  | 'multi-organization.website.create'
   | 'multi-organization.website.edit'
   | 'multi-organization.website.publish'
-  | 'multi-organization.website.delete'
-  | 'multi-organization.website.blocks.create'
-  | 'multi-organization.website.blocks.edit'
-  | 'multi-organization.website.blocks.publish'
-  | 'multi-organization.website.blocks.delete'
   | 'multi-organization.website.assets.upload'
-  | 'multi-organization.website.assets.edit'
-  | 'multi-organization.website.assets.delete';
+  | 'multi-organization.website.assets.manage';
 
 // Объединенный тип прав
 export type Permission = SystemPermission | ModulePermission | string;

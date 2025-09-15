@@ -12,7 +12,6 @@ import {
   HomeIcon,
   Bars3Icon,
   XMarkIcon,
-  GlobeAltIcon
 } from '@heroicons/react/24/outline';
 import { multiOrganizationService, getTokenFromStorages } from '@utils/api';
 import type { HoldingDashboardData } from '@utils/api';
@@ -42,13 +41,6 @@ const HoldingDashboardPage = () => {
       icon: ChartBarIcon, 
       current: location.pathname.includes('/reports'),
       permission: 'multi-organization.reports.view'
-    },
-    { 
-      name: 'Сайты', 
-      href: `/holding/${dashboardData?.holding?.id || 1}/sites`, 
-      icon: GlobeAltIcon, 
-      current: location.pathname.includes('/sites'),
-      permission: 'multi-organization.website.view'
     },
     { name: 'Настройки', href: '/settings', icon: CogIcon, current: location.pathname === '/settings' },
   ];
