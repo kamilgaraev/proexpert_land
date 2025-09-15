@@ -242,8 +242,6 @@ const FinancialReport: React.FC<FinancialReportProps> = ({ holdingId }) => {
   const renderExpenseCategories = () => {
     if (!financialData?.expense_categories?.length) return null;
 
-    const totalExpenses = financialData.consolidated_financials.total_expenses;
-
     return (
       <div className={`bg-white rounded-xl p-6 border ${theme.border} shadow-sm mb-8`}>
         <h3 className="text-lg font-semibold mb-6">Структура расходов</h3>

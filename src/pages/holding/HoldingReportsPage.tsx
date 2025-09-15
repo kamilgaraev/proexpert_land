@@ -18,9 +18,7 @@ import { usePermissionsContext } from '@/contexts/PermissionsContext';
 const HoldingReportsPage: React.FC = () => {
   const { holdingId } = useParams<{ holdingId: string }>();
   const navigate = useNavigate();
-  const { getThemeClasses } = useTheme();
   const { can } = usePermissionsContext();
-  const theme = getThemeClasses();
   
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -119,7 +117,7 @@ const HoldingReportsPage: React.FC = () => {
         <Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
           <div className="bg-white border-b">
             <Tab.List className="flex space-x-8 px-4 sm:px-6 lg:px-8">
-              {availableTabs.map((tab, index) => (
+              {availableTabs.map((tab) => (
                 <Tab
                   key={tab.name}
                   className={({ selected }) =>
@@ -140,7 +138,7 @@ const HoldingReportsPage: React.FC = () => {
           </div>
 
           <Tab.Panels>
-            {availableTabs.map((tab, index) => (
+            {availableTabs.map((tab) => (
               <Tab.Panel key={tab.name} className="focus:outline-none">
                 {tab.component}
               </Tab.Panel>
