@@ -37,10 +37,8 @@ import {
   WrenchScrewdriverIcon,
   FunnelIcon,
   Squares2X2Icon,
-  EyeIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
-import ConfirmActionModal from '@components/shared/ConfirmActionModal';
 import { PageLoading } from '@components/common/PageLoading';
 import NotificationService from '@components/shared/NotificationService';
 
@@ -306,7 +304,7 @@ const ModuleDeactivationPreviewModal = ({ module, isOpen, onClose, onConfirm, is
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
         <h3 className="text-xl font-bold mb-6 text-red-900">
-          Отмена модуля "{module.name}"
+          Вы действительно хотите отключить модуль "{module.name}"?
         </h3>
         
         <div className="space-y-6">
@@ -441,7 +439,7 @@ const ModuleDeactivationPreviewModal = ({ module, isOpen, onClose, onConfirm, is
                 disabled={isLoading}
                 className="flex-1 py-3 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-60 font-medium"
               >
-                {isLoading ? 'Отключение...' : 'Отключить модуль'}
+                {isLoading ? 'Отключение...' : 'Да, отключить'}
               </button>
             ) : previewData?.dependent_modules && previewData.dependent_modules.length > 0 ? (
               <button
@@ -717,7 +715,6 @@ const ModulesPage = () => {
 
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [showActivationModal, setShowActivationModal] = useState(false);
-  const [showDeactivationModal, setShowDeactivationModal] = useState(false);
   const [showDeactivationPreviewModal, setShowDeactivationPreviewModal] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<any>(null);
@@ -790,18 +787,14 @@ const ModulesPage = () => {
     }
   };
 
-  const handleDeactivateClick = (module: Module) => {
-    setSelectedModule(module);
-    setShowDeactivationModal(true);
-  };
-
-  const handleDeactivatePreviewClick = async (module: Module) => {
+  const handleDeactivateClick = async (module: Module) => {
     setSelectedModule(module);
     setActionLoading(`deactivation-preview-${module.slug}`);
     
     try {
       const preview = await getDeactivationPreview(module.slug);
       setDeactivationPreviewData(preview);
+      setShowDeactivationPreviewModal(true);
     } catch (error: any) {
       console.error('Ошибка получения превью деактивации:', error);
       NotificationService.show({
@@ -811,25 +804,9 @@ const ModulesPage = () => {
       });
     } finally {
       setActionLoading(null);
-      setShowDeactivationPreviewModal(true);
     }
   };
 
-  const handleDeactivateConfirm = async () => {
-    if (!selectedModule) return;
-    
-    setActionLoading(`deactivate-${selectedModule.slug}`);
-    
-    try {
-      const success = await deactivateModule(selectedModule.slug);
-      if (success) {
-        setShowDeactivationModal(false);
-        setSelectedModule(null);
-      }
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
   const handleDeactivatePreviewConfirm = async () => {
     if (!selectedModule) return;
@@ -1205,32 +1182,18 @@ const ModulesPage = () => {
                           requireAll={false}
                           showFallback={false}
                         >
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleDeactivatePreviewClick(module)}
-                              disabled={actionInProgress}
-                              className="px-3 py-2 border border-orange-300 text-orange-700 text-sm font-medium rounded-lg hover:bg-orange-50 disabled:opacity-50 flex items-center"
-                              title="Предварительный просмотр деактивации"
-                            >
-                              {actionLoading === `deactivation-preview-${module.slug}` ? (
-                                <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <EyeIcon className="h-4 w-4" />
-                              )}
-                            </button>
-                            <button
-                              onClick={() => handleDeactivateClick(module)}
-                              disabled={actionInProgress}
-                              className="px-3 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 disabled:opacity-50 flex items-center"
-                              title="Деактивировать модуль"
-                            >
-                              {actionLoading === `deactivate-${module.slug}` ? (
-                                <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <XMarkIcon className="h-4 w-4" />
-                              )}
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleDeactivateClick(module)}
+                            disabled={actionInProgress}
+                            className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 disabled:opacity-50 flex items-center"
+                            title="Отменить модуль"
+                          >
+                            {actionLoading === `deactivation-preview-${module.slug}` || actionLoading === `deactivate-${module.slug}` ? (
+                              <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <XMarkIcon className="h-4 w-4" />
+                            )}
+                          </button>
                         </ProtectedComponent>
                           )}
                         </>
@@ -1296,20 +1259,6 @@ const ModulesPage = () => {
         onConfirm={handleActivateConfirm}
         isLoading={actionLoading?.startsWith('activate-') || false}
         previewData={previewData}
-      />
-
-      <ConfirmActionModal
-        isOpen={showDeactivationModal}
-          onClose={() => {
-          setShowDeactivationModal(false);
-            setSelectedModule(null);
-          }}
-        onConfirm={handleDeactivateConfirm}
-        title="Деактивировать модуль?"
-        message={`Вы действительно хотите деактивировать модуль "${selectedModule?.name}"? Все связанные функции станут недоступны.`}
-        confirmLabel="Деактивировать"
-        confirmColorClass="red"
-        isLoading={actionLoading?.startsWith('deactivate-') || false}
       />
 
       <ModuleDeactivationPreviewModal
