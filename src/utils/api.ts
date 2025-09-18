@@ -2199,6 +2199,35 @@ export const newModulesService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
+  // Предварительный просмотр деактивации модуля
+  getDeactivationPreview: async (module_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/modules/${module_slug}/deactivation-preview`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await fetchWithBillingLogging(url, options);
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('MODULE_NOT_FOUND');
+      } else if (response.status === 403) {
+        throw new Error('MODULE_CANNOT_BE_DEACTIVATED');
+      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
   // Предварительный просмотр активации
   getActivationPreview: async (module_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
