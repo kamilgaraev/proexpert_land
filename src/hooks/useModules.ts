@@ -298,7 +298,7 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       const response = await newModulesService.getDeactivationPreview(moduleSlug);
       
       if (response.status === 200 && response.data?.success) {
-        const previewData = response.data.preview || response.data.data || response.data;
+        const previewData = response.data.data?.preview || response.data.preview || response.data.data || response.data;
         return previewData;
       } else {
         throw new Error(response.data?.message || 'Ошибка получения предпросмотра отмены');
