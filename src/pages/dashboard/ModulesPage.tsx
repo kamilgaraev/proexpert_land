@@ -463,6 +463,7 @@ const ModuleDeactivationPreviewModal = ({ module, isOpen, onClose, onConfirm, is
   );
 };
 
+
 // Умный маппинг иконок модулей
 const getModuleIcon = (iconName: string, module?: Module) => {
   // Все доступные иконки из библиотеки
@@ -796,7 +797,6 @@ const ModulesPage = () => {
       setDeactivationPreviewData(preview);
       setShowDeactivationPreviewModal(true);
     } catch (error: any) {
-      console.error('Ошибка получения превью деактивации:', error);
       NotificationService.show({
         type: 'error',
         title: 'Ошибка',
@@ -830,6 +830,7 @@ const ModulesPage = () => {
       setActionLoading(null);
     }
   };
+
 
   const handleRenewModule = async (module: Module) => {
     setActionLoading(`renew-${module.slug}`);
@@ -1273,6 +1274,7 @@ const ModulesPage = () => {
         isLoading={actionLoading?.startsWith('deactivate-') || false}
         previewData={deactivationPreviewData}
       />
+
     </div>
   );
 };

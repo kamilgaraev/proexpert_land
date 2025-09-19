@@ -298,15 +298,12 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       const response = await newModulesService.getDeactivationPreview(moduleSlug);
       
       if (response.status === 200 && response.data?.success) {
-        // Проверяем, есть ли двойная вложенность данных
         const previewData = response.data.preview || response.data.data || response.data;
-        console.log('Deactivation preview data received:', previewData); // Для отладки
         return previewData;
       } else {
         throw new Error(response.data?.message || 'Ошибка получения предпросмотра отмены');
       }
     } catch (error: any) {
-      console.error('Error in getDeactivationPreview:', error); // Для отладки
       if (error.message === 'MODULE_NOT_FOUND') {
         throw new Error('Модуль не найден');
       } else if (error.message === 'MODULE_CANNOT_BE_DEACTIVATED') {
