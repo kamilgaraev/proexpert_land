@@ -339,7 +339,7 @@ const ModuleDeactivationPreviewModal = ({ module, isOpen, onClose, onConfirm, is
                   </div>
                   {previewData.activation && (
                     <div className="text-xs text-green-600">
-                      Использовано {previewData.activation.days_used} из {previewData.activation.days_used + (previewData.activation.days_remaining || 0)} дней
+                      Использовано {Math.round(previewData.activation.days_used)} из {Math.round(previewData.activation.days_used + (previewData.activation.days_remaining || 0))} дней
                     </div>
                   )}
                 </div>
