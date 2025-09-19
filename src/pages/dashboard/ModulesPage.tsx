@@ -1240,7 +1240,7 @@ const ModulesPage = () => {
             </h3>
             <p className="text-steel-600">
               {selectedCategory === 'all' 
-                ? 'Нет доступных модулей для организации'
+                ? 'Нет доступных модулей для организации!'
                 : `В категории "${MODULE_CATEGORIES[selectedCategory].name}" модули отсутствуют`
               }
             </p>
