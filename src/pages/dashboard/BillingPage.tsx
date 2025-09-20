@@ -85,13 +85,18 @@ const BillingPage = () => {
     try {
       const response = await newModulesService.getBillingStats();
       if (response.status === 200) {
-        setBillingStats(response.data as ModuleBillingResponse);
+        if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+          setBillingStats((response.data as any).data as ModuleBillingResponse);
+        } else {
+          setBillingStats(response.data as ModuleBillingResponse);
+        }
       } else {
         const errorData = response.data as unknown as ErrorResponse;
         throw new Error(errorData?.message || `Ошибка ${response.status}`);
       }
     } catch (err: any) {
       setErrorStats(err.message || 'Не удалось загрузить статистику модулей.');
+      console.error('Ошибка загрузки статистики модулей:', err);
     }
   }, []);
 
@@ -268,7 +273,7 @@ const BillingPage = () => {
               <p className="text-steel-600 text-sm font-medium">Всего потрачено</p>
               {errorStats ? (
                 <p className="text-construction-600 text-lg font-bold">Ошибка загрузки</p>
-              ) : billingStats ? (
+              ) : billingStats?.stats?.stats?.total_spent_all_time ? (
                 <p className="text-3xl font-bold text-steel-900">
                   ₽{billingStats.stats.stats.total_spent_all_time.toLocaleString()}
                 </p>
@@ -293,7 +298,7 @@ const BillingPage = () => {
               <p className="text-steel-600 text-sm font-medium">Ежемесячные платежи</p>
               {errorStats ? (
                 <p className="text-construction-600 text-lg font-bold">Ошибка загрузки</p>
-              ) : billingStats ? (
+              ) : billingStats?.stats?.stats?.monthly_recurring !== undefined ? (
                 <p className="text-3xl font-bold text-steel-900">
                   ₽{billingStats.stats.stats.monthly_recurring.toLocaleString()}
                 </p>
@@ -326,7 +331,7 @@ const BillingPage = () => {
               <p className="text-steel-600 text-sm font-medium">Активные модули</p>
               {errorStats ? (
                 <p className="text-construction-600 text-lg font-bold">Ошибка</p>
-              ) : billingStats ? (
+              ) : billingStats?.stats?.stats?.active_modules !== undefined ? (
                 <p className="text-3xl font-bold text-steel-900">
                   {billingStats.stats.stats.active_modules}
                 </p>
@@ -339,7 +344,7 @@ const BillingPage = () => {
             </div>
           </div>
           <div className="flex items-center text-sm text-steel-500">
-            <span>из {billingStats?.stats.stats.total_modules_ever || 0} всего</span>
+            <span>из {billingStats?.stats?.stats?.total_modules_ever || 0} всего</span>
           </div>
         </div>
 
@@ -350,7 +355,7 @@ const BillingPage = () => {
               <p className="text-steel-600 text-sm font-medium">Подписки</p>
               {errorStats ? (
                 <p className="text-construction-600 text-lg font-bold">Ошибка</p>
-              ) : billingStats ? (
+              ) : billingStats?.stats?.breakdown_by_type?.subscription !== undefined ? (
                 <p className="text-3xl font-bold text-steel-900">
                   {billingStats.stats.breakdown_by_type.subscription}
                 </p>
@@ -374,7 +379,7 @@ const BillingPage = () => {
               <p className="text-steel-600 text-sm font-medium">Разовые покупки</p>
               {errorStats ? (
                 <p className="text-construction-600 text-lg font-bold">Ошибка</p>
-              ) : billingStats ? (
+              ) : billingStats?.stats?.breakdown_by_type?.one_time !== undefined ? (
                 <p className="text-3xl font-bold text-steel-900">
                   {billingStats.stats.breakdown_by_type.one_time}
                 </p>
@@ -387,7 +392,7 @@ const BillingPage = () => {
             </div>
           </div>
           <div className="flex items-center text-sm text-steel-500">
-            <span>₽{billingStats?.stats.stats.one_time_this_month.toLocaleString() || 0} в этом месяце</span>
+            <span>₽{billingStats?.stats?.stats?.one_time_this_month?.toLocaleString() || 0} в этом месяце</span>
           </div>
         </div>
 
@@ -398,7 +403,7 @@ const BillingPage = () => {
               <p className="text-steel-600 text-sm font-medium">Бесплатные модули</p>
               {errorStats ? (
                 <p className="text-construction-600 text-lg font-bold">Ошибка</p>
-              ) : billingStats ? (
+              ) : billingStats?.stats?.breakdown_by_type?.free !== undefined ? (
                 <p className="text-3xl font-bold text-steel-900">
                   {billingStats.stats.breakdown_by_type.free}
                 </p>
