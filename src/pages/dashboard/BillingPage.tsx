@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { billingService, OrganizationBalance, BalanceTransaction, PaginatedBalanceTransactions, TopUpBalanceRequest, ErrorResponse, PaymentGatewayChargeResponse } from '@utils/api';
+import { billingService, newModulesService, OrganizationBalance, BalanceTransaction, PaginatedBalanceTransactions, TopUpBalanceRequest, ErrorResponse, PaymentGatewayChargeResponse, ModuleBillingResponse } from '@utils/api';
 import { 
   CreditCardIcon, 
   CurrencyDollarIcon, 
@@ -29,6 +29,9 @@ const BillingPage = () => {
   const [errorBalance, setErrorBalance] = useState<string | null>(null);
   const [errorTransactions, setErrorTransactions] = useState<string | null>(null);
   const [errorTopUp, setErrorTopUp] = useState<string | null>(null);
+  
+  const [billingStats, setBillingStats] = useState<ModuleBillingResponse | null>(null);
+  const [errorStats, setErrorStats] = useState<string | null>(null);
   
   const [topUpAmount, setTopUpAmount] = useState<string>('');
   const [paymentMethodToken, setPaymentMethodToken] = useState<string>('tok_mock_visa_chargeable_russian_STANDARD');
@@ -77,10 +80,26 @@ const BillingPage = () => {
     }
   }, []);
 
+  const fetchBillingStats = useCallback(async () => {
+    setErrorStats(null);
+    try {
+      const response = await newModulesService.getBillingStats();
+      if (response.status === 200) {
+        setBillingStats(response.data as ModuleBillingResponse);
+      } else {
+        const errorData = response.data as unknown as ErrorResponse;
+        throw new Error(errorData?.message || `Ошибка ${response.status}`);
+      }
+    } catch (err: any) {
+      setErrorStats(err.message || 'Не удалось загрузить статистику модулей.');
+    }
+  }, []);
+
   useEffect(() => {
     fetchBalance();
     fetchTransactions(currentPage);
-  }, [fetchBalance, fetchTransactions, currentPage]);
+    fetchBillingStats();
+  }, [fetchBalance, fetchTransactions, fetchBillingStats, currentPage]);
 
   const handleTopUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -247,7 +266,15 @@ const BillingPage = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-steel-600 text-sm font-medium">Всего потрачено</p>
-              <p className="text-3xl font-bold text-steel-900">₽127,500</p>
+              {errorStats ? (
+                <p className="text-construction-600 text-lg font-bold">Ошибка загрузки</p>
+              ) : billingStats ? (
+                <p className="text-3xl font-bold text-steel-900">
+                  ₽{billingStats.stats.stats.total_spent_all_time.toLocaleString()}
+                </p>
+              ) : (
+                <p className="text-steel-500">Загрузка...</p>
+              )}
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-safety-500 to-safety-600 rounded-xl flex items-center justify-center">
               <ChartBarIcon className="w-6 w-6 text-white" />
@@ -255,16 +282,24 @@ const BillingPage = () => {
           </div>
           <div className="flex items-center text-sm text-steel-500">
             <ArrowDownIcon className="w-4 h-4 mr-1" />
-            <span>За текущий месяц</span>
+            <span>За все время</span>
           </div>
         </div>
 
-        {/* Среднемесячный расход */}
+        {/* Ежемесячные платежи */}
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-steel-600 text-sm font-medium">Средний расход</p>
-              <p className="text-3xl font-bold text-steel-900">₽85,300</p>
+              <p className="text-steel-600 text-sm font-medium">Ежемесячные платежи</p>
+              {errorStats ? (
+                <p className="text-construction-600 text-lg font-bold">Ошибка загрузки</p>
+              ) : billingStats ? (
+                <p className="text-3xl font-bold text-steel-900">
+                  ₽{billingStats.stats.stats.monthly_recurring.toLocaleString()}
+                </p>
+              ) : (
+                <p className="text-steel-500">Загрузка...</p>
+              )}
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-earth-500 to-earth-600 rounded-xl flex items-center justify-center">
               <BanknotesIcon className="w-6 h-6 text-white" />
@@ -272,7 +307,111 @@ const BillingPage = () => {
           </div>
           <div className="flex items-center text-sm text-steel-500">
             <ChartBarIcon className="w-4 h-4 mr-1" />
-            <span>В месяц за последние 6 месяцев</span>
+            <span>Регулярные подписки</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Дополнительная статистика модулей */}
+      <motion.div 
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        {/* Активные модули */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-steel-600 text-sm font-medium">Активные модули</p>
+              {errorStats ? (
+                <p className="text-construction-600 text-lg font-bold">Ошибка</p>
+              ) : billingStats ? (
+                <p className="text-3xl font-bold text-steel-900">
+                  {billingStats.stats.stats.active_modules}
+                </p>
+              ) : (
+                <p className="text-steel-500">Загрузка...</p>
+              )}
+            </div>
+            <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center">
+              <CheckCircleIcon className="w-6 h-6 text-white" />
+            </div>
+          </div>
+          <div className="flex items-center text-sm text-steel-500">
+            <span>из {billingStats?.stats.stats.total_modules_ever || 0} всего</span>
+          </div>
+        </div>
+
+        {/* Подписки */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-steel-600 text-sm font-medium">Подписки</p>
+              {errorStats ? (
+                <p className="text-construction-600 text-lg font-bold">Ошибка</p>
+              ) : billingStats ? (
+                <p className="text-3xl font-bold text-steel-900">
+                  {billingStats.stats.breakdown_by_type.subscription}
+                </p>
+              ) : (
+                <p className="text-steel-500">Загрузка...</p>
+              )}
+            </div>
+            <div className="w-12 h-12 bg-gradient-to-br from-safety-500 to-safety-600 rounded-xl flex items-center justify-center">
+              <CreditCardIcon className="w-6 h-6 text-white" />
+            </div>
+          </div>
+          <div className="flex items-center text-sm text-steel-500">
+            <span>Регулярные платежи</span>
+          </div>
+        </div>
+
+        {/* Разовые покупки */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-steel-600 text-sm font-medium">Разовые покупки</p>
+              {errorStats ? (
+                <p className="text-construction-600 text-lg font-bold">Ошибка</p>
+              ) : billingStats ? (
+                <p className="text-3xl font-bold text-steel-900">
+                  {billingStats.stats.breakdown_by_type.one_time}
+                </p>
+              ) : (
+                <p className="text-steel-500">Загрузка...</p>
+              )}
+            </div>
+            <div className="w-12 h-12 bg-gradient-to-br from-earth-500 to-earth-600 rounded-xl flex items-center justify-center">
+              <CurrencyDollarIcon className="w-6 h-6 text-white" />
+            </div>
+          </div>
+          <div className="flex items-center text-sm text-steel-500">
+            <span>₽{billingStats?.stats.stats.one_time_this_month.toLocaleString() || 0} в этом месяце</span>
+          </div>
+        </div>
+
+        {/* Бесплатные модули */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-steel-600 text-sm font-medium">Бесплатные модули</p>
+              {errorStats ? (
+                <p className="text-construction-600 text-lg font-bold">Ошибка</p>
+              ) : billingStats ? (
+                <p className="text-3xl font-bold text-steel-900">
+                  {billingStats.stats.breakdown_by_type.free}
+                </p>
+              ) : (
+                <p className="text-steel-500">Загрузка...</p>
+              )}
+            </div>
+            <div className="w-12 h-12 bg-gradient-to-br from-steel-500 to-steel-600 rounded-xl flex items-center justify-center">
+              <CheckCircleIcon className="w-6 h-6 text-white" />
+            </div>
+          </div>
+          <div className="flex items-center text-sm text-steel-500">
+            <span>Без оплаты</span>
           </div>
         </div>
       </motion.div>

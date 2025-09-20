@@ -2097,6 +2097,38 @@ export interface ModuleBillingHistoryItem {
   description: string;
 }
 
+export interface ModuleBillingStats {
+  stats: {
+    active_modules: number;
+    total_modules_ever: number;
+    monthly_recurring: number;
+    one_time_this_month: number;
+    total_spent_all_time: number;
+    currency: string;
+  };
+  breakdown_by_type: {
+    subscription: number;
+    one_time: number;
+    free: number;
+  };
+}
+
+export interface UpcomingBilling {
+  upcoming_billing: any[];
+  summary: {
+    total_upcoming: number;
+    current_balance: number;
+    balance_after_billing: number;
+    sufficient_balance: boolean;
+    currency: string;
+  };
+}
+
+export interface ModuleBillingResponse {
+  stats: ModuleBillingStats;
+  upcoming: UpcomingBilling;
+}
+
 // Новый сервис для модулей
 export const newModulesService = {
   // Получение списка доступных модулей
@@ -2338,6 +2370,25 @@ export const newModulesService = {
     if (to) params.append('to', to);
     
     const url = `${API_URL}/modules/billing/history?${params}`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Статистика модулей биллинга
+  getBillingStats: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/modules/billing`;
     const options: RequestInit = {
       method: 'GET',
       headers: {
