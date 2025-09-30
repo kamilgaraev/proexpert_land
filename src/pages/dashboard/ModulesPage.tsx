@@ -465,7 +465,7 @@ const ModuleDeactivationPreviewModal = ({ module, isOpen, onClose, onConfirm, is
 
 
 // Умный маппинг иконок модулей
-const getModuleIcon = (iconName: string, module?: Module) => {
+const getModuleIcon = (iconName: string | null | undefined, module?: Module) => {
   // Все доступные иконки из библиотеки
   const availableIcons: { [key: string]: any } = {
     'building': BuildingOfficeIcon,
@@ -609,6 +609,8 @@ const getModuleIcon = (iconName: string, module?: Module) => {
 
   // Функция для попытки найти иконку
   const findIcon = (searchTerm: string): any => {
+    if (!searchTerm) return null;
+    
     // Прямое совпадение
     if (availableIcons[searchTerm.toLowerCase()]) {
       return availableIcons[searchTerm.toLowerCase()];
@@ -626,7 +628,7 @@ const getModuleIcon = (iconName: string, module?: Module) => {
   };
 
   // 1. Пробуем прямой поиск по названию иконки
-  let IconComponent = findIcon(iconName);
+  let IconComponent = iconName ? findIcon(iconName as string) : null;
   
   // 2. Если не найдено, пробуем по категории модуля
   if (!IconComponent && module?.category) {
@@ -920,7 +922,7 @@ const ModulesPage = () => {
             const stats = category === 'all' 
               ? { total: allModules.length, active: filteredModules.filter(m => isModuleActive(m.slug)).length }
               : categoryStats[category] || { total: 0, active: 0 };
-            const IconComponent = categoryInfo.icon;
+            const IconComponent = categoryInfo?.icon || Squares2X2Icon;
             const isSelected = selectedCategory === category;
             
             return (
@@ -933,8 +935,8 @@ const ModulesPage = () => {
                     : 'bg-white border-steel-200 text-steel-700 hover:bg-steel-50 hover:border-steel-300'
                 }`}
               >
-                <IconComponent className={`h-4 w-4 mr-2 ${isSelected ? 'text-orange-600' : categoryInfo.color}`} />
-                <span>{categoryInfo.name}</span>
+                <IconComponent className={`h-4 w-4 mr-2 ${isSelected ? 'text-orange-600' : categoryInfo?.color || 'text-gray-600'}`} />
+                <span>{categoryInfo?.name || 'Неизвестная категория'}</span>
                 <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${
                   isSelected 
                     ? 'bg-orange-100 text-orange-700'
@@ -955,7 +957,7 @@ const ModulesPage = () => {
             Сводка модулей
             {selectedCategory !== 'all' && (
               <span className="ml-2 text-base font-normal text-steel-600">
-                ({MODULE_CATEGORIES[selectedCategory].name})
+                ({MODULE_CATEGORIES[selectedCategory]?.name || 'Неизвестная категория'})
               </span>
             )}
           </h2>
@@ -1025,7 +1027,7 @@ const ModulesPage = () => {
       <div className="bg-white shadow-lg rounded-2xl p-6 border border-steel-200">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold">
-            {selectedCategory === 'all' ? 'Все модули' : MODULE_CATEGORIES[selectedCategory].name}
+            {selectedCategory === 'all' ? 'Все модули' : MODULE_CATEGORIES[selectedCategory]?.name || 'Неизвестная категория'}
           </h2>
           {filteredModules.length === 0 && selectedCategory !== 'all' && (
             <div className="text-sm text-steel-500">
@@ -1039,7 +1041,7 @@ const ModulesPage = () => {
             {filteredModules.map((module) => {
                 const active = isModuleActive(module.slug);
                 const status = getModuleStatusText(module);
-                const ModuleIconComponent = getModuleIcon(module.icon, module);
+                const ModuleIconComponent = getModuleIcon(module.icon || 'puzzle-piece', module);
                 const iconColor = getModuleIconColor(module, isModuleActive, isExpiringSoon);
             const actionInProgress = actionLoading?.includes(module.slug);
 
@@ -1241,7 +1243,7 @@ const ModulesPage = () => {
             <p className="text-steel-600">
               {selectedCategory === 'all' 
                 ? 'Нет доступных модулей для организации!'
-                : `В категории "${MODULE_CATEGORIES[selectedCategory].name}" модули отсутствуют`
+                : `В категории "${MODULE_CATEGORIES[selectedCategory]?.name || 'Неизвестная категория'}" модули отсутствуют`
               }
             </p>
           </div>
