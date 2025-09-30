@@ -68,25 +68,25 @@ const DashboardPage = () => {
   const statCards = landingData ? [
     {
       name: 'Проекты',
-      value: landingData.projects.total,
+      value: landingData.projects?.total || 0,
       icon: <BuildingOfficeIcon className="h-6 w-6 text-white" />,
       color: 'construction',
     },
     {
       name: 'Контракты',
-      value: landingData.contracts.total,
+      value: landingData.contracts?.total || 0,
       icon: <DocumentTextIcon className="h-6 w-6 text-white" />,
       color: 'safety',
     },
     {
       name: 'Команда',
-      value: landingData.team.total,
+      value: landingData.team?.total || 0,
       icon: <UsersIcon className="h-6 w-6 text-white" />,
       color: 'earth',
     },
     {
       name: 'Акты',
-      value: landingData.acts.total,
+      value: landingData.acts?.total || 0,
       icon: <CheckCircleIcon className="h-6 w-6 text-white" />,
       color: 'steel',
     },
@@ -288,9 +288,9 @@ const DashboardPage = () => {
           transition={{ duration: 0.6, delay: 0.1 }}
         >
           <FinancialCard
-            balance={landingData.financial.balance}
-            credits={landingData.financial.credits_this_month}
-            debits={landingData.financial.debits_this_month}
+            balance={landingData.financial?.balance || 0}
+            credits={landingData.financial?.credits_this_month || 0}
+            debits={landingData.financial?.debits_this_month || 0}
           />
           {statCards.map((card) => (
             <StatCard
@@ -314,23 +314,23 @@ const DashboardPage = () => {
         >
           <LineChart
             title="Проекты по месяцам"
-            labels={landingData.charts.projects_monthly.labels}
-            values={landingData.charts.projects_monthly.values}
+            labels={landingData.charts?.projects_monthly?.labels || []}
+            values={landingData.charts?.projects_monthly?.values || []}
           />
           <LineChart
             title="Контракты по месяцам"
-            labels={landingData.charts.contracts_monthly.labels}
-            values={landingData.charts.contracts_monthly.values}
+            labels={landingData.charts?.contracts_monthly?.labels || []}
+            values={landingData.charts?.contracts_monthly?.values || []}
           />
           <LineChart
             title="Завершённые работы"
-            labels={landingData.charts.completed_works_monthly.labels}
-            values={landingData.charts.completed_works_monthly.values}
+            labels={landingData.charts?.completed_works_monthly?.labels || []}
+            values={landingData.charts?.completed_works_monthly?.values || []}
           />
           <LineChart
             title="Баланс"
-            labels={landingData.charts.balance_monthly.labels}
-            values={landingData.charts.balance_monthly.values}
+            labels={landingData.charts?.balance_monthly?.labels || []}
+            values={landingData.charts?.balance_monthly?.values || []}
           />
         </motion.div>
       )}
@@ -343,8 +343,8 @@ const DashboardPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <DonutStatusChart title="Статусы проектов" data={landingData.charts.projects_status} />
-          <DonutStatusChart title="Статусы контрактов" data={landingData.charts.contracts_status} />
+          <DonutStatusChart title="Статусы проектов" data={landingData.charts?.projects_status || []} />
+          <DonutStatusChart title="Статусы контрактов" data={landingData.charts?.contracts_status || []} />
         </motion.div>
       )}
 
