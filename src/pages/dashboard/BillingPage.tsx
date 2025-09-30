@@ -96,7 +96,7 @@ const BillingPage = () => {
       }
     } catch (err: any) {
       setErrorStats(err.message || 'Не удалось загрузить статистику модулей.');
-      console.error('Ошибка загрузки статистики модулей:', err);
+      console.error('Ошибка загрузки статистики модулей: ', err);
     }
   }, []);
 
