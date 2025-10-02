@@ -1,7 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { billingService } from '@utils/api';
-import { CheckCircleIcon } from '@heroicons/react/24/outline';
+import { 
+  CheckCircleIcon, 
+  UserGroupIcon, 
+  BuildingOfficeIcon, 
+  CircleStackIcon,
+  ShieldCheckIcon 
+} from '@heroicons/react/24/outline';
 import { Switch } from '@headlessui/react';
 import ConfirmActionModal from '@components/shared/ConfirmActionModal';
 import { PageLoading } from '@components/common/PageLoading'; // Предполагаем наличие компонента-заглушки
@@ -246,6 +252,23 @@ const PaidServicesPage = () => {
 
   const formatDate = (date?: string) => date ? new Date(date).toLocaleDateString('ru-RU') : '—';
 
+  const getLimitIcon = (limitType: string) => {
+    if (limitType.includes('прораб')) return UserGroupIcon;
+    if (limitType.includes('проект')) return BuildingOfficeIcon;
+    if (limitType.includes('пользовател')) return UserGroupIcon;
+    if (limitType.includes('хранилищ') || limitType.includes('ГБ')) return CircleStackIcon;
+    if (limitType.includes('администратор')) return ShieldCheckIcon;
+    return CheckCircleIcon;
+  };
+
+  const formatLimitValue = (text: string) => {
+    const match = text.match(/^(\d+)\s+(.+)$/);
+    if (match) {
+      return { value: match[1], label: match[2] };
+    }
+    return { value: '', label: text };
+  };
+
   if (loading) return <PageLoading message="Загрузка платных услуг..." />;
 
   return (
@@ -313,6 +336,51 @@ const PaidServicesPage = () => {
               </div>
             </div>
             
+            {/* Лимиты текущей подписки */}
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold text-steel-900 mb-4">Ваши лимиты</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                {/* Найдем текущий план в списке планов для получения лимитов */}
+                {(() => {
+                  const currentPlanData = plans.find(p => p.slug === subscription.plan?.slug);
+                  if (!currentPlanData) return null;
+                  
+                  return (
+                    <>
+                      {currentPlanData.max_foremen && (
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center border border-blue-200">
+                          <UserGroupIcon className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                          <div className="text-2xl font-bold text-blue-900">{currentPlanData.max_foremen}</div>
+                          <div className="text-sm text-blue-700 font-medium">прорабов</div>
+                        </div>
+                      )}
+                      {currentPlanData.max_projects && (
+                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center border border-green-200">
+                          <BuildingOfficeIcon className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                          <div className="text-2xl font-bold text-green-900">{currentPlanData.max_projects}</div>
+                          <div className="text-sm text-green-700 font-medium">проектов</div>
+                        </div>
+                      )}
+                      {currentPlanData.max_storage_gb && (
+                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 text-center border border-purple-200">
+                          <CircleStackIcon className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                          <div className="text-2xl font-bold text-purple-900">{currentPlanData.max_storage_gb}</div>
+                          <div className="text-sm text-purple-700 font-medium">ГБ хранилища</div>
+                        </div>
+                      )}
+                      {!currentPlanData.max_foremen && !currentPlanData.max_projects && !currentPlanData.max_storage_gb && (
+                        <div className="col-span-2 md:col-span-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-6 text-center border border-orange-200">
+                          <div className="text-4xl font-bold text-orange-900 mb-2">∞</div>
+                          <div className="text-lg text-orange-700 font-medium">Безлимитный тариф</div>
+                          <div className="text-sm text-orange-600">Все ресурсы без ограничений</div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+
             {/* Features текущей подписки */}
             {subscription.plan?.features && (
               <div className="border-t pt-6">
@@ -356,12 +424,13 @@ const PaidServicesPage = () => {
                   <p className="text-2xl font-bold text-orange-600 mt-1">{plan.price.toLocaleString('ru-RU', { style: 'currency', currency: plan.currency })}<span className="text-base font-medium text-steel-600"> / {plan.duration_in_days === 30 ? 'мес.' : `${plan.duration_in_days} дн.`}</span></p>
                   {plan.description && <p className="text-sm text-steel-600 mt-2 leading-snug">{plan.description}</p>}
                 </div>
-                <ul className="text-sm text-steel-700 space-y-1 mb-6 flex-1">
+                {/* Features */}
+                <div className="text-sm text-steel-700 space-y-2 mb-4 flex-1">
                   {(() => {
                     // Обрабатываем features как массив строк или объект с массивами
                     if (Array.isArray(plan.features)) {
                       return plan.features.map((f: string, i: number) => (
-                        <li key={i} className="flex items-start gap-2"><CheckCircleIcon className="h-5 w-5 text-green-500 shrink-0" /> <span>{f}</span></li>
+                        <div key={i} className="flex items-start gap-2"><CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0 mt-0.5" /> <span className="text-xs">{f}</span></div>
                       ));
                     } else if (plan.features && typeof plan.features === 'object') {
                       // Если features - объект, показываем по категориям
@@ -369,20 +438,48 @@ const PaidServicesPage = () => {
                         <div key={category} className="mb-3">
                           <div className="text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">{category}</div>
                           {Array.isArray(items) && items.map((item, i) => (
-                            <li key={`${category}-${i}`} className="flex items-start gap-2 ml-2">
-                              <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0 mt-0.5" /> 
-                              <span className="text-xs">{String(item)}</span>
-                            </li>
+                            <div key={`${category}-${i}`} className="flex items-start gap-2 ml-2 mb-1">
+                              <CheckCircleIcon className="h-3 w-3 text-green-500 shrink-0 mt-1" /> 
+                              <span className="text-xs leading-tight">{String(item)}</span>
+                            </div>
                           ))}
                         </div>
                       ));
                     }
                     return null;
                   })()}
-                  {plan.max_foremen && <li>Прорабы: {plan.max_foremen}</li>}
-                  {plan.max_projects && <li>Проекты: {plan.max_projects}</li>}
-                  {plan.max_storage_gb && <li>Хранилище: {plan.max_storage_gb} ГБ</li>}
-                </ul>
+                </div>
+                
+                {/* Лимиты в виде красивых карточек */}
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {plan.max_foremen && (
+                    <div className="bg-blue-50 rounded-lg p-3 text-center">
+                      <UserGroupIcon className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+                      <div className="text-lg font-bold text-blue-900">{plan.max_foremen}</div>
+                      <div className="text-xs text-blue-700">прорабов</div>
+                    </div>
+                  )}
+                  {plan.max_projects && (
+                    <div className="bg-green-50 rounded-lg p-3 text-center">
+                      <BuildingOfficeIcon className="h-5 w-5 text-green-600 mx-auto mb-1" />
+                      <div className="text-lg font-bold text-green-900">{plan.max_projects}</div>
+                      <div className="text-xs text-green-700">проектов</div>
+                    </div>
+                  )}
+                  {plan.max_storage_gb && (
+                    <div className="bg-purple-50 rounded-lg p-3 text-center">
+                      <CircleStackIcon className="h-5 w-5 text-purple-600 mx-auto mb-1" />
+                      <div className="text-lg font-bold text-purple-900">{plan.max_storage_gb}</div>
+                      <div className="text-xs text-purple-700">ГБ</div>
+                    </div>
+                  )}
+                  {!plan.max_foremen && !plan.max_projects && !plan.max_storage_gb && (
+                    <div className="col-span-2 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-orange-900">∞</div>
+                      <div className="text-xs text-orange-700">Безлимитно</div>
+                    </div>
+                  )}
+                </div>
                 {isActive ? (
                   <span className="inline-block w-full text-center py-2 text-sm font-semibold text-white rounded-md bg-gradient-to-r from-orange-500 to-orange-600">Ваш тариф</span>
                 ) : (
