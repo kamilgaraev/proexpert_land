@@ -252,23 +252,6 @@ const PaidServicesPage = () => {
 
   const formatDate = (date?: string) => date ? new Date(date).toLocaleDateString('ru-RU') : '—';
 
-  const getLimitIcon = (limitType: string) => {
-    if (limitType.includes('прораб')) return UserGroupIcon;
-    if (limitType.includes('проект')) return BuildingOfficeIcon;
-    if (limitType.includes('пользовател')) return UserGroupIcon;
-    if (limitType.includes('хранилищ') || limitType.includes('ГБ')) return CircleStackIcon;
-    if (limitType.includes('администратор')) return ShieldCheckIcon;
-    return CheckCircleIcon;
-  };
-
-  const formatLimitValue = (text: string) => {
-    const match = text.match(/^(\d+)\s+(.+)$/);
-    if (match) {
-      return { value: match[1], label: match[2] };
-    }
-    return { value: '', label: text };
-  };
-
   if (loading) return <PageLoading message="Загрузка платных услуг..." />;
 
   return (
