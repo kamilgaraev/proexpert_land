@@ -271,42 +271,69 @@ const PaidServicesPage = () => {
       {/* Текущая подписка */}
       <section className="bg-white shadow-lg rounded-2xl p-8 mb-10 ring-1 ring-gray-100">
         <h2 className="text-2xl font-bold mb-6 text-steel-900">Текущая подписка</h2>
-        {subscription && (subscription.status === 'active' || subscription.status === 'canceled_active') && currentPlan ? (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2">
-                <span className="text-2xl font-bold text-orange-600">{currentPlan.name}</span>
-                {subscription.status === 'canceled_active' ? (
-                  <span className="px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-800">Отменён</span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">Активен</span>
-                )}
-              </div>
-              <div className="text-gray-600">{currentPlan.description}</div>
-              <div className="text-sm text-gray-500">Действует до: {formatDate(subscription.ends_at)}</div>
-              {subscription.status === 'canceled_active' && (
-                <div className="text-sm text-yellow-600 font-medium">
-                  ⚠️ Подписка отменена. Доступ сохранится до {formatDate(subscription.ends_at)}
+        {subscription && (subscription.status === 'active' || subscription.status === 'canceled_active') ? (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2">
+                  <span className="text-2xl font-bold text-orange-600">{subscription.plan?.name || 'Неизвестный план'}</span>
+                  {subscription.status === 'canceled_active' ? (
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-800">Отменён</span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">Активен</span>
+                  )}
                 </div>
-              )}
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm">Автоплатёж</span>
-                <Switch
-                  checked={autoPayEnabled || false}
-                  onChange={handleToggleAutoPay}
-                  disabled={autoPayEnabled===null || autoPayUpdating}
-                  className={`${autoPayEnabled ? 'bg-orange-500' : 'bg-gray-300'} relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500`}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`${autoPayEnabled ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform`}
-                  />
-                </Switch>
+                <div className="text-gray-600">{subscription.plan?.description}</div>
+                <div className="text-lg font-semibold text-orange-600">
+                  {subscription.plan?.price ? Number(subscription.plan.price).toLocaleString('ru-RU', { style: 'currency', currency: subscription.plan.currency || 'RUB' }) : ''} / мес.
+                </div>
+                <div className="text-sm text-gray-500">Действует до: {formatDate(subscription.ends_at)}</div>
+                {subscription.status === 'canceled_active' && (
+                  <div className="text-sm text-yellow-600 font-medium">
+                    ⚠️ Подписка отменена. Доступ сохранится до {formatDate(subscription.ends_at)}
+                  </div>
+                )}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-sm">Автоплатёж</span>
+                  <Switch
+                    checked={autoPayEnabled || false}
+                    onChange={handleToggleAutoPay}
+                    disabled={autoPayEnabled===null || autoPayUpdating}
+                    className={`${autoPayEnabled ? 'bg-orange-500' : 'bg-gray-300'} relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500`}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`${autoPayEnabled ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform`}
+                    />
+                  </Switch>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => setShowCancelModal(true)} className="btn btn-outline text-red-600">Отменить подписку</button>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button onClick={() => setShowCancelModal(true)} className="btn btn-outline text-red-600">Отменить подписку</button>
-            </div>
+            
+            {/* Features текущей подписки */}
+            {subscription.plan?.features && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold text-steel-900 mb-4">Включенные возможности</h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.entries(subscription.plan.features as Record<string, string[]>).map(([category, items]) => (
+                    <div key={category} className="bg-gray-50 rounded-lg p-4">
+                      <div className="text-sm font-semibold text-orange-600 uppercase tracking-wide mb-2">{category}</div>
+                      <ul className="space-y-1">
+                        {Array.isArray(items) && items.map((item, i) => (
+                          <li key={`${category}-${i}`} className="flex items-start gap-2">
+                            <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0 mt-0.5" /> 
+                            <span className="text-sm text-gray-700">{String(item)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-gray-500">Нет активной подписки</div>
@@ -337,11 +364,18 @@ const PaidServicesPage = () => {
                         <li key={i} className="flex items-start gap-2"><CheckCircleIcon className="h-5 w-5 text-green-500 shrink-0" /> <span>{f}</span></li>
                       ));
                     } else if (plan.features && typeof plan.features === 'object') {
-                      // Если features - объект, объединяем все массивы
-                      const allFeatures = Object.values(plan.features as Record<string, string[]>).flat().filter(Boolean);
-                      return Array.isArray(allFeatures) ? allFeatures.map((f, i) => (
-                        <li key={i} className="flex items-start gap-2"><CheckCircleIcon className="h-5 w-5 text-green-500 shrink-0" /> <span>{String(f)}</span></li>
-                      )) : null;
+                      // Если features - объект, показываем по категориям
+                      return Object.entries(plan.features as Record<string, string[]>).map(([category, items]) => (
+                        <div key={category} className="mb-3">
+                          <div className="text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">{category}</div>
+                          {Array.isArray(items) && items.map((item, i) => (
+                            <li key={`${category}-${i}`} className="flex items-start gap-2 ml-2">
+                              <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0 mt-0.5" /> 
+                              <span className="text-xs">{String(item)}</span>
+                            </li>
+                          ))}
+                        </div>
+                      ));
                     }
                     return null;
                   })()}
