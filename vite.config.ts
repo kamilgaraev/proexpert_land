@@ -10,6 +10,14 @@ const isLkBuild = process.env.BUILD_TARGET === 'lk';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: isLkBuild ? [react()] : [react(), ssr()],
+  define: {
+    '$': 'undefined',
+    'jQuery': 'undefined',
+    'window.$': 'undefined',
+    'window.jQuery': 'undefined',
+    'global.$': 'undefined',
+    'global.jQuery': 'undefined'
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -29,6 +37,16 @@ export default defineConfig({
   base: '/',
   build: {
     manifest: 'manifest.json',
+    rollupOptions: {
+      output: {
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop().replace('.tsx', '').replace('.ts', '') : 'chunk';
+          return `${facadeModuleId}-[hash].js`;
+        },
+        entryFileNames: '[name]-[hash].js',
+        assetFileNames: '[name]-[hash][extname]'
+      }
+    },
     // Не даём commonjs-плагину повторно обрабатывать чистые ESM-модули
     // react-router*, иначе он падает с ошибкой «Failed to resolve entry».
     commonjsOptions: {

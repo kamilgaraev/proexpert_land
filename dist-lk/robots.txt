@@ -6,7 +6,7 @@ Allow: /
 Allow: /features
 Allow: /pricing
 Allow: /integrations
-Allow: /api
+Allow: /contact
 Allow: /small-business
 Allow: /enterprise  
 Allow: /contractors
@@ -26,13 +26,10 @@ Disallow: /login
 Disallow: /register
 
 # Служебные файлы
-Disallow: *.json
-Disallow: *.xml
 Disallow: /src/
 Disallow: /node_modules/
 
 # Карта сайта
 Sitemap: https://prohelper.pro/sitemap.xml
 
-# Время задержки для ботов
-Crawl-delay: 1 
+ 
