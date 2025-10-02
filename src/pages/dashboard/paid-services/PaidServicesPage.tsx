@@ -338,9 +338,9 @@ const PaidServicesPage = () => {
                       ));
                     } else if (plan.features && typeof plan.features === 'object') {
                       // Если features - объект, объединяем все массивы
-                      const allFeatures = Object.values(plan.features).flat().filter(Boolean);
-                      return Array.isArray(allFeatures) ? allFeatures.map((f: string, i: number) => (
-                        <li key={i} className="flex items-start gap-2"><CheckCircleIcon className="h-5 w-5 text-green-500 shrink-0" /> <span>{f}</span></li>
+                      const allFeatures = Object.values(plan.features as Record<string, string[]>).flat().filter(Boolean);
+                      return Array.isArray(allFeatures) ? allFeatures.map((f, i) => (
+                        <li key={i} className="flex items-start gap-2"><CheckCircleIcon className="h-5 w-5 text-green-500 shrink-0" /> <span>{String(f)}</span></li>
                       )) : null;
                     }
                     return null;
