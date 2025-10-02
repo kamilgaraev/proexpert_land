@@ -5,8 +5,7 @@ import {
   CheckCircleIcon, 
   UserGroupIcon, 
   BuildingOfficeIcon, 
-  CircleStackIcon,
-  ShieldCheckIcon 
+  CircleStackIcon
 } from '@heroicons/react/24/outline';
 import { Switch } from '@headlessui/react';
 import ConfirmActionModal from '@components/shared/ConfirmActionModal';
