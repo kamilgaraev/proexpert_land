@@ -317,7 +317,7 @@ const PaidServicesPage = () => {
       <section className="bg-white shadow-lg rounded-2xl p-8 mb-10 ring-1 ring-gray-100">
         <h2 className="text-2xl font-bold mb-6 text-steel-900">Тарифные планы</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {plans.map(plan => {
+          {Array.isArray(plans) && plans.map(plan => {
             const isActive = currentPlan && currentPlan.id === plan.id;
             return (
               <div
@@ -330,9 +330,21 @@ const PaidServicesPage = () => {
                   {plan.description && <p className="text-sm text-steel-600 mt-2 leading-snug">{plan.description}</p>}
                 </div>
                 <ul className="text-sm text-steel-700 space-y-1 mb-6 flex-1">
-                  {plan.features?.map((f: string, i: number) => (
-                    <li key={i} className="flex items-start gap-2"><CheckCircleIcon className="h-5 w-5 text-green-500 shrink-0" /> <span>{f}</span></li>
-                  ))}
+                  {(() => {
+                    // Обрабатываем features как массив строк или объект с массивами
+                    if (Array.isArray(plan.features)) {
+                      return plan.features.map((f: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2"><CheckCircleIcon className="h-5 w-5 text-green-500 shrink-0" /> <span>{f}</span></li>
+                      ));
+                    } else if (plan.features && typeof plan.features === 'object') {
+                      // Если features - объект, объединяем все массивы
+                      const allFeatures = Object.values(plan.features).flat().filter(Boolean);
+                      return Array.isArray(allFeatures) ? allFeatures.map((f: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2"><CheckCircleIcon className="h-5 w-5 text-green-500 shrink-0" /> <span>{f}</span></li>
+                      )) : null;
+                    }
+                    return null;
+                  })()}
                   {plan.max_foremen && <li>Прорабы: {plan.max_foremen}</li>}
                   {plan.max_projects && <li>Проекты: {plan.max_projects}</li>}
                   {plan.max_storage_gb && <li>Хранилище: {plan.max_storage_gb} ГБ</li>}
