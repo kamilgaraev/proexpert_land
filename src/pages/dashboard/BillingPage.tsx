@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { billingService, newModulesService, OrganizationBalance, BalanceTransaction, PaginatedBalanceTransactions, TopUpBalanceRequest, ErrorResponse, PaymentGatewayChargeResponse, ModuleBillingResponse } from '@utils/api';
+import { billingService, newModulesService, OrganizationBalance, BalanceTransaction, PaginatedBalanceTransactions, TopUpBalanceRequest, ErrorResponse, PaymentGatewayChargeResponse, ModuleBillingResponse, SubscriptionResponse, Subscription } from '@utils/api';
 import { 
   CreditCardIcon, 
   CurrencyDollarIcon, 
@@ -15,7 +15,13 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
-  PlusIcon
+  PlusIcon,
+  StarIcon,
+  SparklesIcon,
+  UserGroupIcon,
+  ShieldCheckIcon,
+  DocumentTextIcon,
+  AcademicCapIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 
@@ -32,6 +38,10 @@ const BillingPage = () => {
   
   const [billingStats, setBillingStats] = useState<ModuleBillingResponse | null>(null);
   const [errorStats, setErrorStats] = useState<string | null>(null);
+  
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [loadingSubscription, setLoadingSubscription] = useState<boolean>(true);
+  const [errorSubscription, setErrorSubscription] = useState<string | null>(null);
   
   const [topUpAmount, setTopUpAmount] = useState<string>('');
   const [paymentMethodToken, setPaymentMethodToken] = useState<string>('tok_mock_visa_chargeable_russian_STANDARD');
@@ -100,11 +110,35 @@ const BillingPage = () => {
     }
   }, []);
 
+  const fetchSubscription = useCallback(async () => {
+    setLoadingSubscription(true);
+    setErrorSubscription(null);
+    try {
+      const response = await billingService.getCurrentSubscription();
+      if (response.status === 200) {
+        const subscriptionData = response.data as SubscriptionResponse;
+        if (subscriptionData.success && subscriptionData.data.has_subscription) {
+          setSubscription(subscriptionData.data.subscription);
+        } else {
+          setSubscription(null);
+        }
+      } else {
+        const errorData = response.data as unknown as ErrorResponse;
+        throw new Error(errorData?.message || `Ошибка ${response.status}`);
+      }
+    } catch (err: any) {
+      setErrorSubscription(err.message || 'Не удалось загрузить информацию о подписке.');
+    } finally {
+      setLoadingSubscription(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchBalance();
     fetchTransactions(currentPage);
     fetchBillingStats();
-  }, [fetchBalance, fetchTransactions, fetchBillingStats, currentPage]);
+    fetchSubscription();
+  }, [fetchBalance, fetchTransactions, fetchBillingStats, fetchSubscription, currentPage]);
 
   const handleTopUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -212,6 +246,30 @@ const BillingPage = () => {
     }
   };
 
+  const getSubscriptionStatus = (subscription: Subscription): { status: string; color: string; icon: any } => {
+    if (subscription.is_canceled) {
+      return { status: 'Отменена', color: 'bg-construction-100 text-construction-800', icon: XCircleIcon };
+    }
+    if (subscription.is_trial) {
+      return { status: 'Пробная', color: 'bg-safety-100 text-safety-800', icon: SparklesIcon };
+    }
+    if (subscription.status === 'active') {
+      return { status: 'Активна', color: 'bg-earth-100 text-earth-800', icon: CheckCircleIcon };
+    }
+    return { status: 'Неактивна', color: 'bg-steel-100 text-steel-800', icon: ClockIcon };
+  };
+
+  const getFeatureIcon = (feature: string) => {
+    if (feature.includes('прораб') || feature.includes('Прораб')) return UserGroupIcon;
+    if (feature.includes('проект') || feature.includes('Проект')) return DocumentTextIcon;
+    if (feature.includes('пользователь') || feature.includes('Пользователь')) return UserGroupIcon;
+    if (feature.includes('ГБ') || feature.includes('хранилищ')) return ShieldCheckIcon;
+    if (feature.includes('админ') || feature.includes('Админ')) return AcademicCapIcon;
+    if (feature.includes('API')) return ShieldCheckIcon;
+    if (feature.includes('менеджер') || feature.includes('SLA')) return StarIcon;
+    return CheckCircleIcon;
+  };
+
   const quickAmounts = [1000, 5000, 10000, 25000];
 
   if (loadingBalance) {
@@ -241,6 +299,106 @@ const BillingPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
       >
+        {/* Текущая подписка */}
+        <div className="bg-gradient-to-br from-construction-50 to-construction-100 rounded-2xl p-6 shadow-lg border border-construction-200 col-span-1 md:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center mr-4">
+                <StarIcon className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-steel-900">Текущая подписка</h3>
+                <p className="text-steel-600 text-sm">Информация о вашем тарифе</p>
+              </div>
+            </div>
+            {subscription && (() => {
+              const statusInfo = getSubscriptionStatus(subscription);
+              return (
+                <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color}`}>
+                  <statusInfo.icon className="w-4 h-4 mr-1" />
+                  {statusInfo.status}
+                </div>
+              );
+            })()}
+          </div>
+
+          {loadingSubscription ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-4 border-construction-200 border-t-construction-600"></div>
+            </div>
+          ) : errorSubscription ? (
+            <div className="text-center py-8">
+              <ExclamationTriangleIcon className="h-12 w-12 text-construction-400 mx-auto mb-3" />
+              <p className="text-construction-600">{errorSubscription}</p>
+            </div>
+          ) : subscription ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white/60 rounded-xl p-4">
+                  <h4 className="font-bold text-steel-900 text-lg">{subscription.plan.name}</h4>
+                  <p className="text-steel-600 text-sm mb-2">{subscription.plan.description}</p>
+                  <div className="flex items-baseline">
+                    <span className="text-2xl font-bold text-construction-600">
+                      ₽{Number(subscription.plan.price).toLocaleString('ru-RU')}
+                    </span>
+                    <span className="text-steel-600 ml-1">{subscription.plan.currency}/мес</span>
+                  </div>
+                </div>
+
+                <div className="bg-white/60 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-steel-600">Автоплатеж</span>
+                    <span className={`font-medium ${subscription.is_auto_payment_enabled ? 'text-earth-600' : 'text-construction-600'}`}>
+                      {subscription.is_auto_payment_enabled ? 'Включен' : 'Отключен'}
+                    </span>
+                  </div>
+                  {subscription.ends_at && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-steel-600">Действует до</span>
+                      <span className="font-medium text-steel-900">
+                        {formatDate(subscription.ends_at)}
+                      </span>
+                    </div>
+                  )}
+                  {subscription.next_billing_at && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-steel-600">Следующий платеж</span>
+                      <span className="font-medium text-steel-900">
+                        {formatDate(subscription.next_billing_at)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white/60 rounded-xl p-4">
+                <h5 className="font-bold text-steel-900 mb-3">Возможности тарифа</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {Object.entries(subscription.plan.features).map(([category, features]) => (
+                    <div key={category} className="space-y-2">
+                      <h6 className="font-semibold text-construction-700 text-sm">{category}</h6>
+                      {Array.isArray(features) && features.map((feature: string, index: number) => {
+                        const IconComponent = getFeatureIcon(feature);
+                        return (
+                          <div key={index} className="flex items-center text-sm text-steel-700">
+                            <IconComponent className="w-4 h-4 mr-2 text-earth-600 flex-shrink-0" />
+                            <span>{feature}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <SparklesIcon className="h-12 w-12 text-steel-300 mx-auto mb-3" />
+              <p className="text-steel-500">Подписка не оформлена</p>
+            </div>
+          )}
+        </div>
+
         {/* Текущий баланс */}
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
           <div className="flex items-center justify-between mb-4">
@@ -256,7 +414,7 @@ const BillingPage = () => {
                 <p className="text-steel-500">Загрузка...</p>
               )}
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-earth-500 to-earth-600 rounded-xl flex items-center justify-center">
               <WalletIcon className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -265,7 +423,15 @@ const BillingPage = () => {
             <span>Обновлено: {balance ? formatDate(balance.updated_at) : 'Н/Д'}</span>
           </div>
         </div>
+      </motion.div>
 
+      {/* Дополнительная статистика */}
+      <motion.div 
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
         {/* Всего потрачено */}
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
           <div className="flex items-center justify-between mb-4">
@@ -282,7 +448,7 @@ const BillingPage = () => {
               )}
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-safety-500 to-safety-600 rounded-xl flex items-center justify-center">
-              <ChartBarIcon className="w-6 w-6 text-white" />
+              <ChartBarIcon className="w-6 h-6 text-white" />
             </div>
           </div>
           <div className="flex items-center text-sm text-steel-500">
@@ -306,7 +472,7 @@ const BillingPage = () => {
                 <p className="text-steel-500">Загрузка...</p>
               )}
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-earth-500 to-earth-600 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center">
               <BanknotesIcon className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -315,15 +481,7 @@ const BillingPage = () => {
             <span>Регулярные подписки</span>
           </div>
         </div>
-      </motion.div>
 
-      {/* Дополнительная статистика модулей */}
-      <motion.div 
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-      >
         {/* Активные модули */}
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
           <div className="flex items-center justify-between mb-4">
@@ -339,7 +497,7 @@ const BillingPage = () => {
                 <p className="text-steel-500">Загрузка...</p>
               )}
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-earth-500 to-earth-600 rounded-xl flex items-center justify-center">
               <CheckCircleIcon className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -347,7 +505,15 @@ const BillingPage = () => {
             <span>из {billingStats?.stats?.stats?.total_modules_ever || 0} всего</span>
           </div>
         </div>
+      </motion.div>
 
+      {/* Дополнительная статистика модулей */}
+      <motion.div 
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
         {/* Подписки */}
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
           <div className="flex items-center justify-between mb-4">
@@ -387,7 +553,7 @@ const BillingPage = () => {
                 <p className="text-steel-500">Загрузка...</p>
               )}
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-earth-500 to-earth-600 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center">
               <CurrencyDollarIcon className="w-6 h-6 text-white" />
             </div>
           </div>

@@ -902,6 +902,39 @@ export interface ErrorResponse {
   errors?: Record<string, string[]>; // Для ошибок валидации (как в ValidationErrorResponse)
 }
 
+// Интерфейсы для подписки из нового API
+export interface NewSubscriptionPlan {
+  slug: string;
+  name: string;
+  description: string;
+  price: string;
+  currency: string;
+  features: Record<string, string[]>;
+}
+
+export interface Subscription {
+  id: number;
+  status: string;
+  plan: NewSubscriptionPlan;
+  is_trial: boolean;
+  trial_ends_at: string | null;
+  ends_at: string | null;
+  next_billing_at: string | null;
+  is_canceled: boolean;
+  canceled_at: string | null;
+  is_auto_payment_enabled: boolean;
+  bundled_modules: any[];
+  bundled_modules_count: number;
+}
+
+export interface SubscriptionResponse {
+  success: boolean;
+  data: {
+    has_subscription: boolean;
+    subscription: Subscription | null;
+  };
+}
+
 // Интерфейсы для API лимитов подписки
 export interface SubscriptionLimitItem {
   limit: number | null;
