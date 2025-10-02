@@ -1,13 +1,6 @@
 import { Doughnut } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import ChartJS from '@utils/chartConfig';
 import { ChartPieIcon } from '@heroicons/react/24/outline';
-
-ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface DonutStatusChartProps {
   data: Record<string, number>;

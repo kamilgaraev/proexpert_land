@@ -67,6 +67,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import YandexMetrika from '@components/analytics/YandexMetrika';
 import { initSEOTracking } from '@utils/seoTracking';
+// Инициализируем Chart.js конфигурацию для предотвращения конфликтов с jQuery
+import '@utils/chartConfig';
 
 function App() {
   const location = useLocation();

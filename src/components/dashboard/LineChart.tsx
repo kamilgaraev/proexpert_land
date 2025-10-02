@@ -1,15 +1,5 @@
 import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
+import ChartJS from '@utils/chartConfig';
 
 interface LineChartProps {
   labels: string[];
@@ -43,11 +33,16 @@ const LineChart: React.FC<LineChartProps> = ({ labels, values, title }) => {
     scales: {
       y: {
         ticks: {
-          callback: (v: any) => v.toLocaleString('ru-RU'),
+          callback: function(value: any, index: any, values: any) {
+            if (typeof value === 'number') {
+              return value.toLocaleString('ru-RU');
+            }
+            return value;
+          },
         },
       },
     },
-  } as const;
+  };
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300">
