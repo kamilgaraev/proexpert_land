@@ -1,5 +1,6 @@
 import { Doughnut } from 'react-chartjs-2';
-import ChartJS from '@utils/chartConfig';
+// Инициализируем Chart.js конфигурацию
+import '@utils/chartConfig';
 import { ChartPieIcon } from '@heroicons/react/24/outline';
 
 interface DonutStatusChartProps {

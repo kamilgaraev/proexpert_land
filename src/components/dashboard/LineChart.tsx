@@ -1,5 +1,6 @@
 import { Line } from 'react-chartjs-2';
-import ChartJS from '@utils/chartConfig';
+// Инициализируем Chart.js конфигурацию
+import '@utils/chartConfig';
 
 interface LineChartProps {
   labels: string[];
@@ -33,7 +34,7 @@ const LineChart: React.FC<LineChartProps> = ({ labels, values, title }) => {
     scales: {
       y: {
         ticks: {
-          callback: function(value: any, index: any, values: any) {
+          callback: function(value: any) {
             if (typeof value === 'number') {
               return value.toLocaleString('ru-RU');
             }
