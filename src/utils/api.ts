@@ -2062,21 +2062,41 @@ export const multiOrganizationService = {
 
 // Новые типы для модульной системы
 export interface Module {
+  id?: number;
   slug: string;
   name: string;
   description: string;
-  type: 'core' | 'addon' | 'premium' | 'feature';
+  type: 'core' | 'addon' | 'premium' | 'feature' | 'service';
   category: string;
   billing_model: 'subscription' | 'one_time' | 'free';
-  price: number;
-  currency: string;
-  duration_days: number;
+  pricing_config?: {
+    base_price: number;
+    currency: string;
+    included_in_plan?: boolean;
+    duration_days: number;
+  };
+  // Старые поля для обратной совместимости
+  price?: number;
+  currency?: string;
+  duration_days?: number;
   features: string[];
   permissions: string[];
+  dependencies?: string[];
+  conflicts?: string[];
+  limits?: {
+    [key: string]: any;
+  };
   icon: string;
+  display_order?: number;
   is_active: boolean;
+  is_system_module?: boolean;
   can_deactivate?: boolean;
-  activation: any | null;
+  is_free?: boolean;
+  requires_payment?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  version?: string;
+  activation?: any | null;
 }
 
 export interface NewModuleActivation {

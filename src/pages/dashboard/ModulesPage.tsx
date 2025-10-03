@@ -101,7 +101,10 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
             <h4 className="font-semibold text-orange-900 mb-3">{module.name}</h4>
             <div className="space-y-2 text-sm">
               <div className="text-orange-700">
-                {module.price.toLocaleString('ru-RU', { style: 'currency', currency: module.currency })} / {module.duration_days} дней
+                {(module.pricing_config?.base_price || module.price || 0).toLocaleString('ru-RU', { 
+                  style: 'currency', 
+                  currency: module.pricing_config?.currency || module.currency || 'RUB'
+                })} / {module.pricing_config?.duration_days || module.duration_days} дней
               </div>
               <div className="text-orange-600">{module.description}</div>
               <div className="space-y-1">
@@ -127,7 +130,10 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                     onChange={() => setDurationDays(30)}
                     className="mr-2"
                   />
-                  30 дней ({module.price.toLocaleString('ru-RU', { style: 'currency', currency: module.currency })})
+                  30 дней ({(module.pricing_config?.base_price || module.price || 0).toLocaleString('ru-RU', { 
+                    style: 'currency', 
+                    currency: module.pricing_config?.currency || module.currency || 'RUB'
+                  })})
                 </label>
                 <label className="flex items-center">
                   <input
@@ -136,7 +142,10 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                     onChange={() => setDurationDays(90)}
                     className="mr-2"
                   />
-                  90 дней ({(module.price * 3 * 0.95).toLocaleString('ru-RU', { style: 'currency', currency: module.currency })})
+                  90 дней ({((module.pricing_config?.base_price || module.price || 0) * 3 * 0.95).toLocaleString('ru-RU', { 
+                    style: 'currency', 
+                    currency: module.pricing_config?.currency || module.currency || 'RUB'
+                  })})
                   <span className="ml-1 text-xs text-green-600">-5%</span>
                 </label>
               </div>
@@ -148,7 +157,10 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                     onChange={() => setDurationDays(365)}
                     className="mr-2"
                   />
-                  365 дней ({(module.price * 12 * 0.85).toLocaleString('ru-RU', { style: 'currency', currency: module.currency })})
+                  365 дней ({((module.pricing_config?.base_price || module.price || 0) * 12 * 0.85).toLocaleString('ru-RU', { 
+                    style: 'currency', 
+                    currency: module.pricing_config?.currency || module.currency || 'RUB'
+                  })})
                   <span className="ml-1 text-xs text-green-600">-15%</span>
                 </label>
               </div>
@@ -160,67 +172,130 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
             <div>
               <h4 className="font-semibold text-gray-900 mb-3">Информация об активации</h4>
               <div className="bg-gray-50 rounded-lg p-4 space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span>Стоимость:</span>
-                  <span>{previewData.module?.price?.toLocaleString('ru-RU', { style: 'currency', currency: previewData.module?.currency || 'RUB' })}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Баланс организации:</span>
-                  <span className={previewData.checks?.can_afford ? 'text-green-600' : 'text-red-600'}>
-                    {previewData.checks?.current_balance?.toLocaleString('ru-RU', { style: 'currency', currency: previewData.module?.currency || 'RUB' })}
-                  </span>
-                </div>
-                
-                {/* Проверка средств */}
-                {!previewData.checks?.can_afford && (
-                  <div className="bg-red-50 border border-red-200 rounded p-2">
-                    <div className="text-red-800 text-xs font-medium">
-                      ⚠️ Недостаточно средств на балансе
+                {/* Информация о модуле */}
+                {previewData.module && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Стоимость:</span>
+                      <span className="font-semibold">
+                        {previewData.module.pricing_config?.base_price?.toLocaleString('ru-RU', { 
+                          style: 'currency', 
+                          currency: previewData.module.pricing_config?.currency || 'RUB' 
+                        })}
+                      </span>
                     </div>
-                  </div>
-                )}
-                
-                {/* Недостающие зависимости */}
-                {previewData.checks?.missing_dependencies?.length > 0 && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
-                    <div className="text-yellow-800 text-xs">
-                      <div className="font-medium mb-1">⚠️ Недостающие зависимости:</div>
-                      <ul className="list-disc list-inside space-y-0.5">
-                        {previewData.checks.missing_dependencies.map((dep: string, index: number) => (
-                          <li key={index} className="text-yellow-700">
-                            {dep === 'organizations' ? 'Организации' : 
-                             dep === 'users' ? 'Пользователи' : 
-                             dep === 'projects' ? 'Проекты' : dep}
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="mt-2 text-xs text-yellow-700 bg-yellow-100 rounded p-2">
-                        <div className="font-medium mb-1">Что нужно сделать:</div>
-                        <div>Настройте указанные компоненты системы, а затем повторите попытку активации модуля.</div>
+                    <div className="flex justify-between">
+                      <span>Модель биллинга:</span>
+                      <span className="capitalize">
+                        {previewData.module.billing_model === 'one_time' ? 'Разовый платеж' : 
+                         previewData.module.billing_model === 'subscription' ? 'Подписка' : 
+                         previewData.module.billing_model === 'free' ? 'Бесплатно' : 
+                         previewData.module.billing_model}
+                      </span>
+                    </div>
+                    {previewData.module.pricing_config?.duration_days > 0 && (
+                      <div className="flex justify-between">
+                        <span>Период:</span>
+                        <span>{previewData.module.pricing_config.duration_days} дней</span>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
                 
-                {/* Конфликты */}
-                {previewData.checks?.conflicts?.length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded p-2">
-                    <div className="text-red-800 text-xs">
-                      <div className="font-medium mb-1">⚠️ Конфликты:</div>
-                      <ul className="list-disc list-inside">
-                        {previewData.checks.conflicts.map((conflict: string, index: number) => (
-                          <li key={index}>{conflict}</li>
-                        ))}
-                      </ul>
-                    </div>
+                {/* Проверки */}
+                {previewData.checks && (
+                  <div className="space-y-3">
+                    {/* Проверка средств */}
+                    {!previewData.checks.can_afford && (
+                      <div className="bg-red-50 border border-red-200 rounded p-2">
+                        <div className="text-red-800 text-xs font-medium">
+                          ⚠️ Недостаточно средств на балансе
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Недостающие зависимости */}
+                    {previewData.checks.missing_dependencies?.length > 0 && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                        <div className="text-yellow-800 text-xs">
+                          <div className="font-medium mb-1">⚠️ Недостающие зависимости:</div>
+                          <ul className="list-disc list-inside space-y-0.5">
+                            {previewData.checks.missing_dependencies.map((dep: string, index: number) => (
+                              <li key={index} className="text-yellow-700">
+                                {dep === 'organizations' ? 'Организации' : 
+                                 dep === 'users' ? 'Пользователи' : 
+                                 dep === 'basic-reports' ? 'Базовые отчеты' : 
+                                 dep === 'projects' ? 'Проекты' : dep}
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="mt-2 text-xs text-yellow-700 bg-yellow-100 rounded p-2">
+                            <div className="font-medium mb-1">Что нужно сделать:</div>
+                            <div>Активируйте указанные модули-зависимости, а затем повторите попытку активации этого модуля.</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Конфликты */}
+                    {previewData.checks.conflicts?.length > 0 && (
+                      <div className="bg-red-50 border border-red-200 rounded p-2">
+                        <div className="text-red-800 text-xs">
+                          <div className="font-medium mb-1">⚠️ Конфликты:</div>
+                          <ul className="list-disc list-inside">
+                            {previewData.checks.conflicts.map((conflict: string, index: number) => (
+                              <li key={index}>{conflict}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Уже активен */}
+                    {previewData.checks.is_already_active && (
+                      <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                        <div className="text-blue-800 text-xs font-medium">
+                          ℹ️ Модуль уже активирован
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
-                
-                {/* Уже активен */}
-                {previewData.checks?.is_already_active && (
-                  <div className="bg-blue-50 border border-blue-200 rounded p-2">
-                    <div className="text-blue-800 text-xs font-medium">
-                      ℹ️ Модуль уже активирован
+
+                {/* Информация о функциях модуля */}
+                {previewData.module?.features?.length > 0 && (
+                  <div className="border-t pt-3">
+                    <div className="text-xs font-medium text-gray-700 mb-2">Возможности модуля:</div>
+                    <ul className="text-xs text-gray-600 space-y-1">
+                      {previewData.module.features.slice(0, 3).map((feature: string, index: number) => (
+                        <li key={index} className="flex items-start">
+                          <CheckCircleIcon className="h-3 w-3 text-green-500 mr-1 mt-0.5 flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                      {previewData.module.features.length > 3 && (
+                        <li className="text-gray-500 text-xs">
+                          И еще {previewData.module.features.length - 3} возможностей...
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Ограничения модуля */}
+                {previewData.module?.limits && Object.keys(previewData.module.limits).length > 0 && (
+                  <div className="border-t pt-3">
+                    <div className="text-xs font-medium text-gray-700 mb-2">Ограничения:</div>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                      {previewData.module.limits.max_templates && (
+                        <div>Шаблонов: до {previewData.module.limits.max_templates}</div>
+                      )}
+                      {previewData.module.limits.max_template_size_mb && (
+                        <div>Размер файла: до {previewData.module.limits.max_template_size_mb} МБ</div>
+                      )}
+                      {previewData.module.limits.version_history_count && (
+                        <div>История версий: {previewData.module.limits.version_history_count}</div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -981,7 +1056,7 @@ const ModulesPage = () => {
             <div className="text-2xl font-bold text-orange-600">
               {filteredModules
                 .filter(m => isModuleActive(m.slug))
-                .reduce((sum, m) => sum + (m.billing_model !== 'free' ? m.price : 0), 0)
+                .reduce((sum, m) => sum + (m.billing_model !== 'free' ? (m.pricing_config?.base_price || m.price || 0) : 0), 0)
                 .toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' })}
             </div>
             <div className="text-sm text-steel-600">Месячная стоимость</div>
@@ -1082,9 +1157,12 @@ const ModulesPage = () => {
                     ) : (
                       <>
                         <div className="text-lg font-bold text-construction-600">
-                          {module.price.toLocaleString('ru-RU', { style: 'currency', currency: module.currency })}
+                          {(module.pricing_config?.base_price || module.price || 0).toLocaleString('ru-RU', { 
+                            style: 'currency', 
+                            currency: module.pricing_config?.currency || module.currency || 'RUB'
+                          })}
                         </div>
-                        <div className="text-xs text-steel-500">за {module.duration_days} дней</div>
+                        <div className="text-xs text-steel-500">за {module.pricing_config?.duration_days || module.duration_days} дней</div>
                       </>
                     )}
                   </div>
