@@ -60,14 +60,44 @@ const PaidServicesPage = () => {
       const fetchedPlans = Array.isArray(plansRes.data) ? plansRes.data : [];
       setPlans(fetchedPlans);
       // определяем текущий план по subscription_plan_id, plan_name или slug
-      const cp = subscriptionData ? fetchedPlans.find((p: any) => 
-        p.id === subscriptionData.subscription_plan_id ||
-        p.id === (subscriptionData.plan?.id) ||
-        p.name === subscriptionData.plan_name ||
-        p.slug === subscriptionData.plan_name ||
-        p.name?.toLowerCase() === subscriptionData.plan_name?.toLowerCase() ||
-        p.slug?.toLowerCase() === subscriptionData.plan_name?.toLowerCase()
-      ) : null;
+      const cp = subscriptionData ? fetchedPlans.find((p: any) => {
+        // Проверяем по ID
+        if (p.id === subscriptionData.subscription_plan_id || 
+            p.id === subscriptionData.plan?.id ||
+            String(p.id) === String(subscriptionData.subscription_plan_id) ||
+            String(p.id) === String(subscriptionData.plan?.id)) {
+          return true;
+        }
+        
+        // Проверяем по названию плана
+        if (p.name === subscriptionData.plan_name ||
+            p.slug === subscriptionData.plan_name ||
+            p.name?.toLowerCase() === subscriptionData.plan_name?.toLowerCase() ||
+            p.slug?.toLowerCase() === subscriptionData.plan_name?.toLowerCase()) {
+          return true;
+        }
+        
+        // Проверяем по slug из subscription.plan
+        if (subscriptionData.plan && (
+            p.slug === subscriptionData.plan.slug ||
+            p.name === subscriptionData.plan.name ||
+            p.name?.toLowerCase() === subscriptionData.plan.name?.toLowerCase())) {
+          return true;
+        }
+        
+        return false;
+      }) : null;
+      
+      // Отладочная информация
+      console.log('Отладка определения плана:', {
+        subscriptionData,
+        fetchedPlans,
+        currentPlan: cp,
+        subscription_plan_id: subscriptionData?.subscription_plan_id,
+        plan_name: subscriptionData?.plan_name,
+        plan_id: subscriptionData?.plan?.id
+      });
+      
       setCurrentPlan(cp || null);
     } catch (e: any) {
       setError(e.message || 'Ошибка загрузки данных');
@@ -395,12 +425,40 @@ const PaidServicesPage = () => {
         <h2 className="text-2xl font-bold mb-6 text-steel-900">Тарифные планы</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {Array.isArray(plans) && plans.map(plan => {
-            const isActive = currentPlan && currentPlan.id === plan.id;
+            // Более надежная проверка активности плана
+            const isActive = currentPlan && (
+              String(currentPlan.id) === String(plan.id) ||
+              currentPlan.slug === plan.slug ||
+              currentPlan.name === plan.name ||
+              currentPlan.name?.toLowerCase() === plan.name?.toLowerCase()
+            );
+            
+            // Отладочная информация для каждого плана
+            console.log(`План ${plan.name}:`, {
+              planId: plan.id,
+              planSlug: plan.slug,
+              currentPlanId: currentPlan?.id,
+              currentPlanSlug: currentPlan?.slug,
+              currentPlanName: currentPlan?.name,
+              isActive,
+              stringComparison: String(currentPlan?.id) === String(plan.id),
+              slugComparison: currentPlan?.slug === plan.slug,
+              nameComparison: currentPlan?.name === plan.name
+            });
+            
             return (
               <div
                 key={plan.id}
                 className={`group relative rounded-2xl p-6 flex flex-col shadow-sm transition-transform hover:-translate-y-1 hover:shadow-lg cursor-pointer ${isActive ? 'border-2 border-orange-500 bg-orange-50 ring-1 ring-orange-500' : 'border border-gray-200 bg-white'}`}
               >
+                {/* Индикатор активного плана */}
+                {isActive && (
+                  <div className="absolute -top-3 -right-3">
+                    <div className="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                      Активный
+                    </div>
+                  </div>
+                )}
                 <div className="mb-3">
                   <h3 className={`font-extrabold text-lg ${isActive ? 'text-orange-600' : 'text-steel-900 group-hover:text-orange-600'}`}>{plan.name}</h3>
                   <p className="text-2xl font-bold text-orange-600 mt-1">{plan.price.toLocaleString('ru-RU', { style: 'currency', currency: plan.currency })}<span className="text-base font-medium text-steel-600"> / {plan.duration_in_days === 30 ? 'мес.' : `${plan.duration_in_days} дн.`}</span></p>
