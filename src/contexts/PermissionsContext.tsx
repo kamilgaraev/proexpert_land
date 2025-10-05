@@ -182,6 +182,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'organization_id' || e.key === 'token' || e.key === 'authToken') {
         console.log('🔄 Изменение в localStorage, перезагружаем права...');
+        hasAutoLoaded.current = false;
         reload();
       }
     };
@@ -193,6 +194,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
 
     const handleLogin = () => {
       console.log('🔄 Вход в систему, загружаем права...');
+      hasAutoLoaded.current = false;
       load();
     };
 

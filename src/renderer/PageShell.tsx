@@ -1,6 +1,7 @@
 import React from 'react';
 import { AuthProvider } from '@contexts/AuthContext';
 import { AdminAuthProvider } from '@contexts/AdminAuthContext';
+import { PermissionsProvider } from '@/contexts/PermissionsContext';
 // Глобальные стили (Tailwind) — нужен импорт, чтобы Vite подтянул CSS и вставил <link>.
 import '../index.css';
 
@@ -15,7 +16,11 @@ export function PageShell({ children }: PageShellProps) {
     <React.StrictMode>
       {isBrowser ? (
         <AdminAuthProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <PermissionsProvider autoLoad={true} interfaceType="lk" refreshInterval={900000}>
+              {children}
+            </PermissionsProvider>
+          </AuthProvider>
         </AdminAuthProvider>
       ) : (
         <>{children}</>

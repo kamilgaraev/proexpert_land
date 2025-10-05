@@ -196,6 +196,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         await fetchUser();
       }
+      
+      // Уведомляем другие части приложения о входе
+      window.dispatchEvent(new CustomEvent('user-login'));
     } catch (error) {
       if (window.clearTokenFromStorages) {
         window.clearTokenFromStorages();
@@ -300,6 +303,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(null);
     setUser(null);
     setIsLoading(false);
+    
+    // Уведомляем другие части приложения о выходе
+    window.dispatchEvent(new CustomEvent('user-logout'));
   };
 
   const value = {
