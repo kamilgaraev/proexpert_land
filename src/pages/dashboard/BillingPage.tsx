@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { billingService, newModulesService, OrganizationBalance, BalanceTransaction, PaginatedBalanceTransactions, TopUpBalanceRequest, ErrorResponse, PaymentGatewayChargeResponse, ModuleBillingResponse, SubscriptionResponse, Subscription } from '@utils/api';
+import { dispatchBalanceUpdate } from '@hooks/useBalance';
 import { 
   CreditCardIcon, 
   CurrencyDollarIcon, 
@@ -163,6 +164,7 @@ const BillingPage = () => {
         fetchBalance(); 
         fetchTransactions(1);
         setCurrentPage(1);
+        dispatchBalanceUpdate();
       } else {
         const errorData = response.data as unknown as ErrorResponse;
         throw new Error(errorData?.message || responseData.message || `Ошибка ${response.status}`);

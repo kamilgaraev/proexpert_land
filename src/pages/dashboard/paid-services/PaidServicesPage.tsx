@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { billingService } from '@utils/api';
+import { dispatchBalanceUpdate } from '@hooks/useBalance';
 import { 
   CheckCircleIcon, 
   UserGroupIcon, 
@@ -155,6 +156,7 @@ const PaidServicesPage = () => {
 
         // Успешно - обновляем данные
         await fetchAll();
+        dispatchBalanceUpdate();
         NotificationService.show({
           type: 'success',
           title: 'Подписка оформлена',
@@ -239,6 +241,7 @@ const PaidServicesPage = () => {
         setError(null);
         
         await fetchAll();
+        dispatchBalanceUpdate();
       } else {
         setError(response.data.message || 'Ошибка смены тарифа');
       }
@@ -272,6 +275,7 @@ const PaidServicesPage = () => {
       await billingService.cancelSubscription();
       setShowCancelModal(false);
       await fetchAll();
+      dispatchBalanceUpdate();
     } catch (e: any) {
       setError(e.message || 'Ошибка отмены подписки');
     } finally {

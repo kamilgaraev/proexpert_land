@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { Fragment, useState, useMemo } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Bars3Icon, 
@@ -23,9 +23,9 @@ import {
 import { useAuth } from '@hooks/useAuth';
 import { useModules } from '@hooks/useModules';
 import { useCanAccess } from '@/hooks/usePermissions';
+import { useBalance } from '@hooks/useBalance';
 import { Menu, Transition } from '@headlessui/react';
 import { classNames } from '@utils/classNames';
-import { billingService, OrganizationBalance, ErrorResponse } from '@utils/api';
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -33,9 +33,7 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const [actualBalance, setActualBalance] = useState<OrganizationBalance | null>(null);
-  const [balanceError, setBalanceError] = useState<string | null>(null);
-  const balanceLoadedRef = useRef(false);
+  const { balance: actualBalance, error: balanceError, refresh: refreshBalance } = useBalance();
   
   // Используем новую систему модулей
   const { 
@@ -77,47 +75,7 @@ const DashboardLayout = () => {
                             useCanAccess({ permission: 'multi-organization.*' });
   const hasMultiOrgModule = useCanAccess({ module: 'multi-organization' });
 
-  const fetchHeaderBalance = useCallback(async () => {
-    if (balanceLoadedRef.current) return; // Предотвращаем повторные вызовы
-    
-    setBalanceError(null);
-    try {
-      const response = await billingService.getBalance();
-      if (response.status === 200) {
-        if (response.data && typeof response.data === 'object' && 'data' in response.data) {
-          setActualBalance((response.data as any).data as OrganizationBalance);
-          balanceLoadedRef.current = true;
-        } else {
-          console.error('Unexpected balance data structure from API in Layout:', response.data);
-          setBalanceError('Ошибка формата баланса');
-          balanceLoadedRef.current = true;
-        }
-      } else if (response.status === 500) {
-        console.warn('Серверная ошибка при загрузке баланса, игнорируем');
-        setBalanceError('Временная ошибка сервера');
-        balanceLoadedRef.current = true;
-      } else {
-        const errorData = response.data as unknown as ErrorResponse;
-        setBalanceError(errorData?.message || `Ошибка ${response.status}`);
-        balanceLoadedRef.current = true;
-      }
-    } catch (err: any) {
-      console.error("Error fetching header balance:", err);
-      setBalanceError('Временная ошибка загрузки');
-      balanceLoadedRef.current = true;
-    }
-  }, []);
 
-  useEffect(() => {
-    const loadData = async () => {
-      // Загружаем баланс
-      if (!balanceLoadedRef.current) {
-        fetchHeaderBalance();
-      }
-    };
-    
-    loadData();
-  }, [fetchHeaderBalance]);
 
   const handleLogout = () => {
     logout();
@@ -513,12 +471,27 @@ const DashboardLayout = () => {
               <Link 
                 to="/dashboard/billing" 
                 className="hidden sm:flex items-center px-4 py-2 bg-gradient-to-r from-safety-500 to-safety-600 text-white rounded-xl hover:shadow-safety transition-all duration-200 hover:scale-105"
+                onClick={(e) => {
+                  if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    refreshBalance();
+                  }
+                }}
+                title="Ctrl+Click для обновления баланса"
               >
                 <WalletIcon className="h-5 w-5 mr-2" />
                 <div className="text-sm">
                   <div className="font-medium">
-                    {actualBalance ? actualBalance.balance_formatted : (balanceError ? 'Ошибка' : '...')}
-                    {actualBalance && actualBalance.currency && <span className="ml-1">{actualBalance.currency}</span>}
+                    {actualBalance !== null ? (
+                      <>
+                        {actualBalance.balance_formatted}
+                        {actualBalance.currency && <span className="ml-1">{actualBalance.currency}</span>}
+                      </>
+                    ) : balanceError ? (
+                      'Ошибка'
+                    ) : (
+                      '...'
+                    )}
                   </div>
                   <div className="text-xs text-safety-100">Баланс</div>
                 </div>
