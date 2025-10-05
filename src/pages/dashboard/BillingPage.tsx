@@ -193,12 +193,10 @@ const BillingPage = () => {
   };
 
   const getTransactionIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'deposit':
-      case 'top_up':
+    switch (type) {
+      case 'credit':
         return <ArrowUpIcon className="w-5 h-5 text-earth-600" />;
-      case 'withdrawal':
-      case 'charge':
+      case 'debit':
         return <ArrowDownIcon className="w-5 h-5 text-construction-600" />;
       default:
         return <CurrencyDollarIcon className="w-5 h-5 text-steel-600" />;
@@ -206,12 +204,10 @@ const BillingPage = () => {
   };
 
   const getTransactionColor = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'deposit':
-      case 'top_up':
+    switch (type) {
+      case 'credit':
         return 'text-earth-600 bg-earth-50';
-      case 'withdrawal':
-      case 'charge':
+      case 'debit':
         return 'text-construction-600 bg-construction-50';
       default:
         return 'text-steel-600 bg-steel-50';
@@ -749,14 +745,14 @@ const BillingPage = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                                                 <p className={`font-bold ${
-                           transaction.type.toLowerCase().includes('deposit') || transaction.type.toLowerCase().includes('top_up')
-                             ? 'text-earth-600' 
-                             : 'text-construction-600'
-                         }`}>
-                           {transaction.type.toLowerCase().includes('deposit') || transaction.type.toLowerCase().includes('top_up') ? '+' : '-'}
-                           {transaction.amount_formatted} {balance?.currency || 'RUB'}
-                         </p>
+                        <p className={`font-bold ${
+                          transaction.type === 'credit'
+                            ? 'text-earth-600' 
+                            : 'text-construction-600'
+                        }`}>
+                          {transaction.type === 'credit' ? '+' : '-'}
+                          {transaction.amount_formatted} {balance?.currency || 'RUB'}
+                        </p>
                          <div className="flex items-center justify-end mt-1">
                            {getStatusIcon('completed')}
                            <span className={`ml-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor('completed')}`}>
