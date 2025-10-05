@@ -172,12 +172,12 @@ const MultiOrganizationPage = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
-          <ExclamationTriangleIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Модуль недоступен</h3>
-          <p className="text-gray-500 mb-4">
+          <ExclamationTriangleIcon className="h-12 w-12 text-steel-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-steel-900 mb-2">Модуль недоступен</h3>
+          <p className="text-steel-500 mb-4">
             Модуль "Мультиорганизация" не активирован для вашей организации
           </p>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-steel-400">
             Активируйте модуль в разделе "Модули" для получения доступа к функциям холдинга
           </p>
         </div>
@@ -196,8 +196,8 @@ const MultiOrganizationPage = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Мультиорганизация</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-steel-900">Мультиорганизация</h1>
+          <p className="text-steel-600 mt-2">
             {getCurrentOrganizationType() === 'parent' 
               ? 'Управление холдинговой структурой' 
               : getCurrentOrganizationType() === 'child'
@@ -206,11 +206,11 @@ const MultiOrganizationPage = () => {
             }
           </p>
           {hierarchy?.parent && (
-            <div className="mt-3 flex items-center text-sm text-blue-600">
+            <div className="mt-3 flex items-center text-sm text-construction-600">
               <BuildingOfficeIcon className="h-4 w-4 mr-1" />
               Текущая организация: {hierarchy.parent.name}
               {hierarchy.parent.organization_type === 'parent' && (
-                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                <span className="ml-2 px-2 py-1 bg-construction-100 text-construction-800 rounded-full text-xs">
                   Головная организация
                 </span>
               )}
@@ -222,7 +222,7 @@ const MultiOrganizationPage = () => {
           {hierarchy?.parent?.slug && (
             <button
               onClick={() => window.open(`https://${hierarchy.parent.slug}.prohelper.pro/`, '_blank')}
-              className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-construction-600 to-construction-500 text-white rounded-lg hover:shadow-construction transition-all duration-200"
             >
               <ArrowTopRightOnSquareIcon className="h-5 w-5 mr-2" />
               Перейти на сайт холдинга
@@ -232,7 +232,7 @@ const MultiOrganizationPage = () => {
         {canCreateHolding() && !isHolding() && (
           <button
             onClick={() => setShowCreateHoldingModal(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-construction-500 to-construction-600 text-white rounded-lg hover:shadow-construction transition-all duration-200"
           >
             <PlusIcon className="h-5 w-5 mr-2" />
             Создать холдинг
@@ -242,7 +242,7 @@ const MultiOrganizationPage = () => {
           {isHolding() && hierarchy?.parent && (
           <button
             onClick={() => setShowAddChildModal(true)}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-safety-500 to-safety-600 text-white rounded-lg hover:shadow-safety transition-all duration-200"
           >
             <PlusIcon className="h-5 w-5 mr-2" />
               Добавить дочернюю организацию
@@ -252,8 +252,8 @@ const MultiOrganizationPage = () => {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-800">{error}</p>
+        <div className="mb-6 p-4 bg-construction-50 border border-construction-200 rounded-lg">
+          <p className="text-construction-800">{error}</p>
         </div>
       )}
 
@@ -268,8 +268,8 @@ const MultiOrganizationPage = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-construction-500 text-construction-600'
+                      : 'border-transparent text-steel-500 hover:text-steel-700 hover:border-steel-300'
                   }`}
                 >
                   <div className="flex items-center">
@@ -286,12 +286,12 @@ const MultiOrganizationPage = () => {
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
+                <div className="bg-gradient-to-r from-construction-50 to-construction-100 p-6 rounded-lg border border-construction-200">
                   <div className="flex items-center">
-                    <BuildingOfficeIcon className="h-8 w-8 text-blue-600 mr-3" />
+                    <BuildingOfficeIcon className="h-8 w-8 text-construction-600 mr-3" />
                     <div>
-                      <p className="text-sm font-medium text-blue-600">Тип организации</p>
-                      <p className="text-lg font-semibold text-blue-900">
+                      <p className="text-sm font-medium text-construction-600">Тип организации</p>
+                      <p className="text-lg font-semibold text-construction-900">
                         {getCurrentOrganizationType() === 'parent' ? 'Головная организация' : 
                          getCurrentOrganizationType() === 'child' ? 'Дочерняя организация' : 'Обычная организация'}
                       </p>
@@ -301,22 +301,22 @@ const MultiOrganizationPage = () => {
 
                 {hierarchy?.total_stats && (
                   <>
-                    <div className="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-lg border border-green-200">
+                    <div className="bg-gradient-to-r from-safety-50 to-safety-100 p-6 rounded-lg border border-safety-200">
                       <div className="flex items-center">
-                        <UsersIcon className="h-8 w-8 text-green-600 mr-3" />
+                        <UsersIcon className="h-8 w-8 text-safety-600 mr-3" />
                         <div>
-                          <p className="text-sm font-medium text-green-600">Всего пользователей</p>
-                          <p className="text-lg font-semibold text-green-900">{hierarchy.total_stats.total_users}</p>
+                          <p className="text-sm font-medium text-safety-600">Всего пользователей</p>
+                          <p className="text-lg font-semibold text-safety-900">{hierarchy.total_stats.total_users}</p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-6 rounded-lg border border-purple-200">
+                    <div className="bg-gradient-to-r from-steel-50 to-steel-100 p-6 rounded-lg border border-steel-200">
                       <div className="flex items-center">
-                        <DocumentTextIcon className="h-8 w-8 text-purple-600 mr-3" />
+                        <DocumentTextIcon className="h-8 w-8 text-steel-600 mr-3" />
                         <div>
-                          <p className="text-sm font-medium text-purple-600">Проектов в холдинге</p>
-                          <p className="text-lg font-semibold text-purple-900">{hierarchy.total_stats.total_projects}</p>
+                          <p className="text-sm font-medium text-steel-600">Проектов в холдинге</p>
+                          <p className="text-lg font-semibold text-steel-900">{hierarchy.total_stats.total_projects}</p>
                         </div>
                       </div>
                     </div>
@@ -325,28 +325,28 @@ const MultiOrganizationPage = () => {
               </div>
 
               {hierarchy?.parent && (
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Информация о холдинге</h3>
+                <div className="bg-concrete-50 p-6 rounded-lg">
+                  <h3 className="text-lg font-semibold text-steel-900 mb-4">Информация о холдинге</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Название</p>
-                      <p className="text-gray-900">{hierarchy.parent.name}</p>
+                      <p className="text-sm font-medium text-steel-500">Название</p>
+                      <p className="text-steel-900">{hierarchy.parent.name}</p>
                     </div>
                     {hierarchy.parent.tax_number && (
                       <div>
-                        <p className="text-sm font-medium text-gray-500">ИНН</p>
-                        <p className="text-gray-900">{hierarchy.parent.tax_number}</p>
+                        <p className="text-sm font-medium text-steel-500">ИНН</p>
+                        <p className="text-steel-900">{hierarchy.parent.tax_number}</p>
                     </div>
                     )}
                     {hierarchy.parent.address && (
                       <div>
-                        <p className="text-sm font-medium text-gray-500">Адрес</p>
-                        <p className="text-gray-900">{hierarchy.parent.address}</p>
+                        <p className="text-sm font-medium text-steel-500">Адрес</p>
+                        <p className="text-steel-900">{hierarchy.parent.address}</p>
                     </div>
                     )}
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Дочерних организаций</p>
-                      <p className="text-gray-900">{hierarchy.children.length}</p>
+                      <p className="text-sm font-medium text-steel-500">Дочерних организаций</p>
+                      <p className="text-steel-900">{hierarchy.children.length}</p>
                     </div>
                   </div>
                 </div>
@@ -358,7 +358,7 @@ const MultiOrganizationPage = () => {
             <div className="space-y-6">
               {hierarchy ? (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Структура холдинга</h3>
+                  <h3 className="text-lg font-semibold text-steel-900 mb-6">Структура холдинга</h3>
                   
                   <div className="relative">
                     <div className="flex flex-col items-center space-y-8">
@@ -370,11 +370,11 @@ const MultiOrganizationPage = () => {
                             </div>
                             <div className="flex-1">
                               <h4 className="font-bold text-lg">{hierarchy.parent.name}</h4>
-                              <p className="text-blue-100">Головная организация</p>
+                              <p className="text-construction-100">Головная организация</p>
                             </div>
                           </div>
                           
-                          <div className="text-sm text-blue-100 space-y-2">
+                          <div className="text-sm text-construction-100 space-y-2">
                             {hierarchy.parent.tax_number && (
                               <p>ИНН: {hierarchy.parent.tax_number}</p>
                             )}
@@ -389,25 +389,25 @@ const MultiOrganizationPage = () => {
                       </div>
 
                       {hierarchy.children.length > 0 && (
-                        <div className="w-px h-8 bg-gray-300"></div>
+                        <div className="w-px h-8 bg-steel-300"></div>
                       )}
 
                       {hierarchy.children.length > 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                           {hierarchy.children.map((child) => (
                             <div key={child.id} className="relative group">
-                              <div className="bg-white border-2 border-purple-200 rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                              <div className="bg-white border-2 border-safety-200 rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                               <div className="flex items-center mb-3">
-                                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center mr-3">
+                                <div className="w-10 h-10 bg-safety-500 rounded-full flex items-center justify-center mr-3">
                                   <BuildingOfficeIcon className="h-5 w-5 text-white" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h4 className="font-semibold text-gray-900 text-sm truncate">{child.name}</h4>
-                                  <p className="text-purple-600 text-xs">Дочерняя организация</p>
+                                  <h4 className="font-semibold text-steel-900 text-sm truncate">{child.name}</h4>
+                                  <p className="text-safety-600 text-xs">Дочерняя организация</p>
                                 </div>
                               </div>
                               
-                              <div className="text-xs text-gray-600 space-y-1">
+                              <div className="text-xs text-steel-600 space-y-1">
                                 <p>Уровень: {child.hierarchy_level}</p>
                                   {child.tax_number && (
                                     <p>ИНН: {child.tax_number}</p>
@@ -417,14 +417,14 @@ const MultiOrganizationPage = () => {
                                 <div className="flex space-x-2 mt-3">
                                   <button
                                     onClick={() => handleViewOrganizationDetails(child.id)}
-                                    className="flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded hover:bg-gray-200 transition-colors"
+                                    className="flex items-center px-2 py-1 bg-steel-100 text-steel-600 text-xs rounded hover:bg-steel-200 transition-colors"
                                   >
                                     <EyeIcon className="h-3 w-3 mr-1" />
                                     Детали
                                   </button>
                                   <button
                                     onClick={() => handleSwitchContext(child.id)}
-                                    className="flex items-center px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded hover:bg-purple-200 transition-colors"
+                                    className="flex items-center px-2 py-1 bg-safety-100 text-safety-600 text-xs rounded hover:bg-safety-200 transition-colors"
                                   >
                                     <ArrowPathIcon className="h-3 w-3 mr-1" />
                                     Переключиться
@@ -439,24 +439,24 @@ const MultiOrganizationPage = () => {
                   </div>
 
                   {hierarchy.total_stats && (
-                    <div className="mt-8 bg-gray-50 p-6 rounded-lg">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Статистика холдинга</h4>
+                    <div className="mt-8 bg-concrete-50 p-6 rounded-lg">
+                      <h4 className="text-lg font-semibold text-steel-900 mb-4">Статистика холдинга</h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-blue-600">{hierarchy.total_stats.total_organizations}</p>
-                          <p className="text-sm text-gray-600">Организаций</p>
+                          <p className="text-2xl font-bold text-construction-600">{hierarchy.total_stats.total_organizations}</p>
+                          <p className="text-sm text-steel-600">Организаций</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-green-600">{hierarchy.total_stats.total_users}</p>
-                          <p className="text-sm text-gray-600">Пользователей</p>
+                          <p className="text-2xl font-bold text-safety-600">{hierarchy.total_stats.total_users}</p>
+                          <p className="text-sm text-steel-600">Пользователей</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-purple-600">{hierarchy.total_stats.total_projects}</p>
-                          <p className="text-sm text-gray-600">Проектов</p>
+                          <p className="text-2xl font-bold text-steel-600">{hierarchy.total_stats.total_projects}</p>
+                          <p className="text-sm text-steel-600">Проектов</p>
                       </div>
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-orange-600">{hierarchy.total_stats.total_contracts}</p>
-                          <p className="text-sm text-gray-600">Договоров</p>
+                          <p className="text-2xl font-bold text-construction-600">{hierarchy.total_stats.total_contracts}</p>
+                          <p className="text-sm text-steel-600">Договоров</p>
                       </div>
                       </div>
                     </div>
@@ -464,9 +464,9 @@ const MultiOrganizationPage = () => {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <BuildingOfficeIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Нет данных о структуре</h3>
-                  <p className="text-gray-500">Создайте холдинг для просмотра структуры организаций</p>
+                  <BuildingOfficeIcon className="h-12 w-12 text-steel-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-steel-900 mb-2">Нет данных о структуре</h3>
+                  <p className="text-steel-500">Создайте холдинг для просмотра структуры организаций</p>
                 </div>
               )}
             </div>
@@ -474,23 +474,23 @@ const MultiOrganizationPage = () => {
 
           {activeTab === 'organizations' && (
             <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900">Быстрое переключение между организациями</h3>
+              <h3 className="text-lg font-semibold text-steel-900">Быстрое переключение между организациями</h3>
               {accessibleOrganizations.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {accessibleOrganizations.map((org) => (
                     <div key={org.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center">
-                          <BuildingOfficeIcon className="h-8 w-8 text-gray-500 mr-3" />
+                          <BuildingOfficeIcon className="h-8 w-8 text-steel-500 mr-3" />
                           <div>
-                            <h3 className="font-semibold text-gray-900">{org.name}</h3>
+                            <h3 className="font-semibold text-steel-900">{org.name}</h3>
                             <div className="flex items-center space-x-2">
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-steel-600">
                                 {org.organization_type === 'parent' ? 'Головная организация' : 
                                  org.organization_type === 'child' ? 'Дочерняя организация' : 'Обычная организация'}
                             </p>
                         {org.is_holding && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-construction-100 text-construction-800">
                             Холдинг
                           </span>
                         )}
@@ -502,14 +502,14 @@ const MultiOrganizationPage = () => {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleSwitchContext(org.id)}
-                          className="flex items-center px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                          className="flex items-center px-3 py-2 bg-gradient-to-r from-construction-500 to-construction-600 text-white text-sm rounded-lg hover:shadow-construction transition-all duration-200"
                         >
                           <ArrowPathIcon className="h-4 w-4 mr-1" />
                           Переключиться
                         </button>
                         <button
                           onClick={() => handleViewOrganizationDetails(org.id)}
-                          className="flex items-center px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors"
+                          className="flex items-center px-3 py-2 bg-steel-100 text-steel-700 text-sm rounded-lg hover:bg-steel-200 transition-colors"
                         >
                           <EyeIcon className="h-4 w-4 mr-1" />
                           Подробности
@@ -520,9 +520,9 @@ const MultiOrganizationPage = () => {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <UsersIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Нет доступных организаций</h3>
-                  <p className="text-gray-500">Создайте холдинг или получите доступ к другим организациям</p>
+                  <UsersIcon className="h-12 w-12 text-steel-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-steel-900 mb-2">Нет доступных организаций</h3>
+                  <p className="text-steel-500">Создайте холдинг или получите доступ к другим организациям</p>
                 </div>
               )}
             </div>
@@ -530,44 +530,44 @@ const MultiOrganizationPage = () => {
 
           {activeTab === 'analytics' && (
             <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900">Консолидированная аналитика</h3>
+              <h3 className="text-lg font-semibold text-steel-900">Консолидированная аналитика</h3>
               {hierarchy?.total_stats ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <div className="flex items-center">
-                      <UsersIcon className="h-8 w-8 text-blue-600 mr-3" />
+                      <UsersIcon className="h-8 w-8 text-safety-600 mr-3" />
                       <div>
-                        <p className="text-sm font-medium text-gray-500">Пользователи в холдинге</p>
-                        <p className="text-2xl font-bold text-gray-900">{hierarchy.total_stats.total_users}</p>
+                        <p className="text-sm font-medium text-steel-500">Пользователи в холдинге</p>
+                        <p className="text-2xl font-bold text-steel-900">{hierarchy.total_stats.total_users}</p>
                       </div>
                     </div>
                   </div>
                   
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <div className="flex items-center">
-                      <DocumentTextIcon className="h-8 w-8 text-green-600 mr-3" />
+                      <DocumentTextIcon className="h-8 w-8 text-construction-600 mr-3" />
                       <div>
-                        <p className="text-sm font-medium text-gray-500">Проекты в работе</p>
-                        <p className="text-2xl font-bold text-gray-900">{hierarchy.total_stats.total_projects}</p>
+                        <p className="text-sm font-medium text-steel-500">Проекты в работе</p>
+                        <p className="text-2xl font-bold text-steel-900">{hierarchy.total_stats.total_projects}</p>
                       </div>
                     </div>
                   </div>
                   
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <div className="flex items-center">
-                      <BanknotesIcon className="h-8 w-8 text-purple-600 mr-3" />
+                      <BanknotesIcon className="h-8 w-8 text-steel-600 mr-3" />
                       <div>
-                        <p className="text-sm font-medium text-gray-500">Договоры</p>
-                        <p className="text-2xl font-bold text-gray-900">{hierarchy.total_stats.total_contracts}</p>
+                        <p className="text-sm font-medium text-steel-500">Договоры</p>
+                        <p className="text-2xl font-bold text-steel-900">{hierarchy.total_stats.total_contracts}</p>
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <ChartBarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Нет данных для аналитики</h3>
-                  <p className="text-gray-500">Данные появятся после создания холдинга и добавления дочерних организаций</p>
+                  <ChartBarIcon className="h-12 w-12 text-steel-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-steel-900 mb-2">Нет данных для аналитики</h3>
+                  <p className="text-steel-500">Данные появятся после создания холдинга и добавления дочерних организаций</p>
                 </div>
               )}
             </div>
@@ -579,12 +579,12 @@ const MultiOrganizationPage = () => {
         <div className="mt-6 bg-white rounded-lg shadow-lg border border-gray-200">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Детали организации</h3>
+              <h3 className="text-lg font-semibold text-steel-900">Детали организации</h3>
               <button
                 onClick={() => {
                   setSelectedOrgForDetails(null);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-steel-400 hover:text-steel-600"
               >
                 ×
               </button>
@@ -592,61 +592,61 @@ const MultiOrganizationPage = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Основная информация</h4>
+                <h4 className="font-medium text-steel-900 mb-3">Основная информация</h4>
                 <div className="space-y-2">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Название</p>
-                    <p className="text-gray-900">{selectedOrganization.organization.name}</p>
+                    <p className="text-sm font-medium text-steel-500">Название</p>
+                    <p className="text-steel-900">{selectedOrganization.organization.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Тип</p>
-                    <p className="text-gray-900">
+                    <p className="text-sm font-medium text-steel-500">Тип</p>
+                    <p className="text-steel-900">
                       {selectedOrganization.organization.organization_type === 'parent' ? 'Головная организация' :
                        selectedOrganization.organization.organization_type === 'child' ? 'Дочерняя организация' : 'Обычная организация'}
                     </p>
                   </div>
                   {selectedOrganization.organization.inn && (
                     <div>
-                      <p className="text-sm font-medium text-gray-500">ИНН</p>
-                      <p className="text-gray-900">{selectedOrganization.organization.inn}</p>
+                      <p className="text-sm font-medium text-steel-500">ИНН</p>
+                      <p className="text-steel-900">{selectedOrganization.organization.inn}</p>
                     </div>
                   )}
                   {selectedOrganization.organization.address && (
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Адрес</p>
-                      <p className="text-gray-900">{selectedOrganization.organization.address}</p>
+                      <p className="text-sm font-medium text-steel-500">Адрес</p>
+                      <p className="text-steel-900">{selectedOrganization.organization.address}</p>
                     </div>
                   )}
                 </div>
               </div>
               
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Статистика</h4>
+                <h4 className="font-medium text-steel-900 mb-3">Статистика</h4>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <p className="text-lg font-bold text-blue-600">{selectedOrganization.stats.users_count}</p>
-                    <p className="text-xs text-blue-600">Пользователей</p>
+                  <div className="text-center p-3 bg-safety-50 rounded-lg">
+                    <p className="text-lg font-bold text-safety-600">{selectedOrganization.stats.users_count}</p>
+                    <p className="text-xs text-safety-600">Пользователей</p>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <p className="text-lg font-bold text-green-600">{selectedOrganization.stats.projects_count}</p>
-                    <p className="text-xs text-green-600">Проектов</p>
+                  <div className="text-center p-3 bg-construction-50 rounded-lg">
+                    <p className="text-lg font-bold text-construction-600">{selectedOrganization.stats.projects_count}</p>
+                    <p className="text-xs text-construction-600">Проектов</p>
                   </div>
-                  <div className="text-center p-3 bg-purple-50 rounded-lg">
-                    <p className="text-lg font-bold text-purple-600">{selectedOrganization.stats.contracts_count}</p>
-                    <p className="text-xs text-purple-600">Договоров</p>
+                  <div className="text-center p-3 bg-steel-50 rounded-lg">
+                    <p className="text-lg font-bold text-steel-600">{selectedOrganization.stats.contracts_count}</p>
+                    <p className="text-xs text-steel-600">Договоров</p>
                   </div>
-                  <div className="text-center p-3 bg-orange-50 rounded-lg">
-                    <p className="text-lg font-bold text-orange-600">
+                  <div className="text-center p-3 bg-concrete-50 rounded-lg">
+                    <p className="text-lg font-bold text-construction-600">
                       {formatCurrency(selectedOrganization.stats.active_contracts_value)}
                     </p>
-                    <p className="text-xs text-orange-600">Объем договоров</p>
+                    <p className="text-xs text-construction-600">Объем договоров</p>
                   </div>
                 </div>
                 
                 {selectedOrganization.recent_activity && (
                   <div className="mt-4">
-                    <h5 className="font-medium text-gray-900 mb-2">Последняя активность</h5>
-                    <div className="space-y-1 text-sm text-gray-600">
+                    <h5 className="font-medium text-steel-900 mb-2">Последняя активность</h5>
+                    <div className="space-y-1 text-sm text-steel-600">
                       {selectedOrganization.recent_activity.last_project_created && (
                         <p>Последний проект: {new Date(selectedOrganization.recent_activity.last_project_created).toLocaleDateString('ru-RU')}</p>
                       )}
@@ -669,12 +669,12 @@ const MultiOrganizationPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Создать холдинг</h2>
+              <h2 className="text-xl font-semibold text-steel-900 mb-4">Создать холдинг</h2>
               
             <form onSubmit={handleCreateHolding} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Название холдинга <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-steel-700 mb-1">
+                    Название холдинга <span className="text-construction-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -687,7 +687,7 @@ const MultiOrganizationPage = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-steel-700 mb-1">
                   Описание
                 </label>
                 <textarea
@@ -700,7 +700,7 @@ const MultiOrganizationPage = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-steel-700 mb-1">
                   Максимум дочерних организаций
                 </label>
                 <input
@@ -714,7 +714,7 @@ const MultiOrganizationPage = () => {
               </div>
               
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Настройки холдинга</label>
+                  <label className="block text-sm font-medium text-steel-700 mb-3">Настройки холдинга</label>
                   <div className="space-y-3">
                     <div className="flex items-center">
                       <input
@@ -725,9 +725,9 @@ const MultiOrganizationPage = () => {
                           ...holdingForm,
                           settings: { ...holdingForm.settings, consolidated_reports: e.target.checked }
                         })}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-construction-600 focus:ring-construction-500 border-steel-300 rounded"
                       />
-                      <label htmlFor="consolidated_reports" className="ml-2 text-sm text-gray-700">
+                      <label htmlFor="consolidated_reports" className="ml-2 text-sm text-steel-700">
                         Консолидированные отчеты
                       </label>
                     </div>
@@ -740,9 +740,9 @@ const MultiOrganizationPage = () => {
                           ...holdingForm,
                           settings: { ...holdingForm.settings, shared_materials: e.target.checked }
                         })}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-construction-600 focus:ring-construction-500 border-steel-300 rounded"
                       />
-                      <label htmlFor="shared_materials" className="ml-2 text-sm text-gray-700">
+                      <label htmlFor="shared_materials" className="ml-2 text-sm text-steel-700">
                         Общие материалы
                       </label>
                     </div>
@@ -755,9 +755,9 @@ const MultiOrganizationPage = () => {
                           ...holdingForm,
                           settings: { ...holdingForm.settings, unified_billing: e.target.checked }
                         })}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-construction-600 focus:ring-construction-500 border-steel-300 rounded"
                       />
-                      <label htmlFor="unified_billing" className="ml-2 text-sm text-gray-700">
+                      <label htmlFor="unified_billing" className="ml-2 text-sm text-steel-700">
                         Единый биллинг
                       </label>
                     </div>
@@ -768,7 +768,7 @@ const MultiOrganizationPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateHoldingModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-300 rounded-md text-steel-700 hover:bg-concrete-50"
                 >
                   Отмена
                 </button>
@@ -790,11 +790,11 @@ const MultiOrganizationPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Добавить дочернюю организацию</h2>
+              <h2 className="text-xl font-semibold text-steel-900 mb-4">Добавить дочернюю организацию</h2>
               
             <form onSubmit={handleAddChild} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-steel-700 mb-1">
                     Название организации <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -808,7 +808,7 @@ const MultiOrganizationPage = () => {
               </div>
               
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-steel-700 mb-1">
                     Описание
                   </label>
                   <textarea
@@ -822,7 +822,7 @@ const MultiOrganizationPage = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-steel-700 mb-1">
                   ИНН
                 </label>
                 <input
@@ -835,7 +835,7 @@ const MultiOrganizationPage = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-steel-700 mb-1">
                       КПП
                     </label>
                     <input
@@ -849,7 +849,7 @@ const MultiOrganizationPage = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-steel-700 mb-1">
                     Адрес
                   </label>
                   <input
@@ -863,7 +863,7 @@ const MultiOrganizationPage = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-steel-700 mb-1">
                       Телефон
                     </label>
                     <input
@@ -876,7 +876,7 @@ const MultiOrganizationPage = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-steel-700 mb-1">
                   Email
                 </label>
                 <input
@@ -891,10 +891,10 @@ const MultiOrganizationPage = () => {
               
               {/* Owner Information */}
               <div className="mt-4 border-t pt-4">
-                <h3 className="text-md font-medium text-gray-900 mb-2">Владелец организации</h3>
+                <h3 className="text-md font-medium text-steel-900 mb-2">Владелец организации</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-steel-700 mb-1">
                       Имя владельца <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -907,7 +907,7 @@ const MultiOrganizationPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-steel-700 mb-1">
                       Email владельца <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -921,7 +921,7 @@ const MultiOrganizationPage = () => {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-steel-700 mb-1">
                     Пароль владельца <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -939,7 +939,7 @@ const MultiOrganizationPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddChildModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-300 rounded-md text-steel-700 hover:bg-concrete-50"
                 >
                   Отмена
                 </button>
