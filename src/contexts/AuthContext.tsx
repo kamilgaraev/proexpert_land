@@ -122,7 +122,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authService.getCurrentUser(); // getCurrentUser уже использует getTokenFromStorages()
       
-      if (response.data?.data?.user) {
+      if (response.data?.user) {
+        setUser(response.data.user as unknown as User);
+      } else if (response.data?.data?.user) {
+        // Резервный вариант для старого формата ответа
         setUser(response.data.data.user as unknown as User);
       } else {
         // Если данные пользователя не получены, но токен был, это может быть ошибкой
@@ -191,7 +194,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setToken(currentToken);
       }
       
-      if (response.data?.data?.user) {
+      if (response.data?.user) {
+        setUser(response.data.user as unknown as User);
+      } else if (response.data?.data?.user) {
         setUser(response.data.data.user as unknown as User);
       } else {
         await fetchUser();
