@@ -82,26 +82,6 @@ function App() {
     });
   }, [location.pathname]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const hostname = window.location.hostname;
-    const pathname = window.location.pathname;
-    const search = window.location.search;
-    const hash = window.location.hash;
-    
-    const isMainDomain = hostname === 'prohelper.pro' || hostname === 'www.prohelper.pro';
-    const isDashboardRoute = pathname.startsWith('/dashboard') || 
-                            pathname === '/login' || 
-                            pathname === '/register' ||
-                            pathname === '/forgot-password';
-
-    if (isMainDomain && isDashboardRoute && !hostname.includes('localhost') && !hostname.includes('127.0.0.1')) {
-      const lkUrl = `https://lk.prohelper.pro${pathname}${search}${hash}`;
-      window.location.href = lkUrl;
-    }
-  }, [location.pathname]);
-
   const isHoldingSubdomain = () => {
     if (typeof window === 'undefined') {
       return false;
