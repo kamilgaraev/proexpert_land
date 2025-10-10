@@ -1,8 +1,10 @@
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="32" height="32" rx="6" fill="#EA580C"/>
-  <path d="M8 22V14L16 10L24 14V22" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M12 22V17H20V22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="16" cy="19" r="1" fill="white"/>
-  <path d="M16 10V6" stroke="white" stroke-width="2" stroke-linecap="round"/>
-  <path d="M14 7H18" stroke="white" stroke-width="2" stroke-linecap="round"/>
-</svg> 
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="32" height="32"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="6" fill="#EA580C"></rect>
+  <path d="M8 22V14L16 10L24 14V22" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+  <path d="M12 22V17H20V22" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+  <circle cx="16" cy="19" r="1" fill="white"></circle>
+  <path d="M16 10V6" stroke="white" stroke-width="2" stroke-linecap="round"></path>
+  <path d="M14 7H18" stroke="white" stroke-width="2" stroke-linecap="round"></path>
+</svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
+@media (prefers-color-scheme: dark) { :root { filter: none; } }
+</style></svg>

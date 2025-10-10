@@ -1,0 +1,67 @@
+====== КОМАНДЫ ДЛЯ УСТАНОВКИ NGINX КОНФИГУРАЦИИ ======
+
+ПАПКИ НА СЕРВЕРЕ:
+- Маркетинг: /var/www/prohelper_marketing/client
+- Личный кабинет: /var/www/prohelper_lk
+
+=== ВАРИАНТ 1: Через SCP (с локальной машины) ===
+
+1. Загрузить конфигурации на сервер:
+scp deploy/nginx/prohelper.pro.conf root@ваш-сервер:/tmp/
+scp deploy/nginx/lk.prohelper.pro.conf root@ваш-сервер:/tmp/
+
+2. Подключиться к серверу:
+ssh root@ваш-сервер
+
+3. Установить конфигурации:
+sudo cp /tmp/prohelper.pro.conf /etc/nginx/sites-available/
+sudo cp /tmp/lk.prohelper.pro.conf /etc/nginx/sites-available/
+sudo ln -sf /etc/nginx/sites-available/prohelper.pro.conf /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/lk.prohelper.pro.conf /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+
+4. Проверить и применить:
+sudo nginx -t
+sudo systemctl reload nginx
+
+=== ВАРИАНТ 2: Прямо на сервере ===
+
+1. Подключиться к серверу:
+ssh root@ваш-сервер
+
+2. Создать файлы конфигурации:
+sudo nano /etc/nginx/sites-available/prohelper.pro.conf
+(скопировать содержимое из deploy/nginx/prohelper.pro.conf)
+
+sudo nano /etc/nginx/sites-available/lk.prohelper.pro.conf
+(скопировать содержимое из deploy/nginx/lk.prohelper.pro.conf)
+
+3. Активировать конфигурации:
+sudo ln -sf /etc/nginx/sites-available/prohelper.pro.conf /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/lk.prohelper.pro.conf /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+
+4. Проверить и применить:
+sudo nginx -t
+sudo systemctl reload nginx
+
+=== ПРОВЕРКА РАБОТЫ ===
+
+Проверить редиректы:
+curl -I https://prohelper.pro/dashboard
+curl -I https://prohelper.pro/login
+
+Ожидаемый результат: 
+HTTP/1.1 301 Moved Permanently
+Location: https://lk.prohelper.pro/...
+
+====== ЕСЛИ НУЖНЫ SSL СЕРТИФИКАТЫ ======
+
+sudo certbot --nginx -d prohelper.pro -d www.prohelper.pro
+sudo certbot --nginx -d lk.prohelper.pro
+
+====== ПРОСМОТР ЛОГОВ ======
+
+sudo tail -f /var/log/nginx/prohelper-error.log
+sudo tail -f /var/log/nginx/lk-prohelper-error.log
+

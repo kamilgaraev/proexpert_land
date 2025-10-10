@@ -1,0 +1,36 @@
+====== КОМАНДЫ ДЛЯ ОБНОВЛЕНИЯ NGINX (КОПИРУЙ И ВСТАВЛЯЙ) ======
+
+=== ШАГ 1: С ЛОКАЛЬНОЙ МАШИНЫ ===
+
+scp deploy/nginx/prohelper.pro.conf root@your-server:/tmp/
+scp deploy/nginx/lk.prohelper.pro.conf root@your-server:/tmp/
+scp deploy/nginx/holdings.prohelper.pro.conf root@your-server:/tmp/
+
+=== ШАГ 2: НА СЕРВЕРЕ (одной командой) ===
+
+ssh root@your-server "sudo cp /tmp/prohelper.pro.conf /etc/nginx/sites-available/ && sudo cp /tmp/lk.prohelper.pro.conf /etc/nginx/sites-available/ && sudo cp /tmp/holdings.prohelper.pro.conf /etc/nginx/sites-available/ && sudo ln -sf /etc/nginx/sites-available/prohelper.pro.conf /etc/nginx/sites-enabled/ && sudo ln -sf /etc/nginx/sites-available/lk.prohelper.pro.conf /etc/nginx/sites-enabled/ && sudo ln -sf /etc/nginx/sites-available/holdings.prohelper.pro.conf /etc/nginx/sites-enabled/ && sudo nginx -t && sudo systemctl reload nginx && echo 'Готово!'"
+
+=== ИЛИ ШАГ 2 АЛЬТЕРНАТИВНЫЙ: Подключиться и выполнить по шагам ===
+
+ssh root@your-server
+
+sudo cp /tmp/prohelper.pro.conf /etc/nginx/sites-available/
+sudo cp /tmp/lk.prohelper.pro.conf /etc/nginx/sites-available/
+sudo cp /tmp/holdings.prohelper.pro.conf /etc/nginx/sites-available/
+
+sudo ln -sf /etc/nginx/sites-available/prohelper.pro.conf /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/lk.prohelper.pro.conf /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/holdings.prohelper.pro.conf /etc/nginx/sites-enabled/
+
+sudo nginx -t
+sudo systemctl reload nginx
+
+=== ПРОВЕРКА ===
+
+curl -I https://prohelper.pro/
+curl -I https://prohelper.pro/dashboard
+curl -I https://lk.prohelper.pro/
+
+Ожидаемый результат для /dashboard: HTTP/1.1 301 Moved Permanently
+
+

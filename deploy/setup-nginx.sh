@@ -4,7 +4,6 @@ set -e
 
 echo "=== Установка конфигураций Nginx для ProHelper ==="
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 NGINX_AVAILABLE="/etc/nginx/sites-available"
 NGINX_ENABLED="/etc/nginx/sites-enabled"
 
@@ -13,9 +12,17 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+if [ ! -f "/tmp/prohelper.pro.conf" ] || [ ! -f "/tmp/lk.prohelper.pro.conf" ]; then
+    echo "Ошибка: Конфигурационные файлы не найдены в /tmp/"
+    echo "Сначала загрузите файлы на сервер:"
+    echo "  scp deploy/nginx/prohelper.pro.conf user@server:/tmp/"
+    echo "  scp deploy/nginx/lk.prohelper.pro.conf user@server:/tmp/"
+    exit 1
+fi
+
 echo "1. Копирование конфигураций..."
-cp "$SCRIPT_DIR/nginx/prohelper.pro.conf" "$NGINX_AVAILABLE/"
-cp "$SCRIPT_DIR/nginx/lk.prohelper.pro.conf" "$NGINX_AVAILABLE/"
+cp "/tmp/prohelper.pro.conf" "$NGINX_AVAILABLE/"
+cp "/tmp/lk.prohelper.pro.conf" "$NGINX_AVAILABLE/"
 
 echo "2. Создание симлинков..."
 ln -sf "$NGINX_AVAILABLE/prohelper.pro.conf" "$NGINX_ENABLED/"
