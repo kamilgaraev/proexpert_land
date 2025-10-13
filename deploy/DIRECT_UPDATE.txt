@@ -175,3 +175,4 @@ sudo ln -sf /etc/nginx/sites-available/holdings.prohelper.pro.conf /etc/nginx/si
 sudo nginx -t && sudo systemctl reload nginx && echo "✅ Nginx успешно обновлен!"
 
 
+

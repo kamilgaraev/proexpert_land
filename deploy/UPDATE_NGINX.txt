@@ -34,3 +34,4 @@ curl -I https://lk.prohelper.pro/
 Ожидаемый результат для /dashboard: HTTP/1.1 301 Moved Permanently
 
 
+

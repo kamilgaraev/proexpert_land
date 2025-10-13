@@ -66,11 +66,9 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
     }
   }, []);
 
-  // Функция для динамического извлечения модулей из всех категорий
   const extractModulesFromCategories = useCallback((responseData: any): Module[] => {
     let modules: Module[] = [];
     if (responseData && typeof responseData === 'object') {
-      // Перебираем все категории в ответе (core, reports, addon, premium и т.д.)
       Object.keys(responseData).forEach(category => {
         if (Array.isArray(responseData[category])) {
           modules = [...modules, ...responseData[category]];
@@ -78,6 +76,27 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       });
     }
     return modules;
+  }, []);
+
+  const mapExpiringModulesToModules = useCallback((expiringData: any[]): Module[] => {
+    return expiringData.map(item => ({
+      id: item.id,
+      slug: item.module_slug || item.slug,
+      name: item.module_name || item.name,
+      description: item.description || '',
+      type: item.type || 'addon',
+      category: item.category || 'other',
+      billing_model: item.billing_model || 'subscription',
+      features: item.features || [],
+      permissions: item.permissions || [],
+      icon: item.icon || 'puzzle-piece',
+      is_active: item.is_active !== undefined ? item.is_active : true,
+      activation: item.expires_at ? {
+        expires_at: item.expires_at,
+        days_until_expiration: item.days_until_expiration,
+        can_renew: item.can_renew
+      } : null
+    }));
   }, []);
 
   const fetchAllData = useCallback(async () => {
@@ -122,13 +141,12 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
           activeModulesData = extractModulesFromCategories(activeRaw);
         }
 
-        // Истекающие модули
         let expiringModulesData: Module[] = [];
         const expiringRaw = unwrap(expiringResponse);
         if (Array.isArray(expiringRaw)) {
-          expiringModulesData = expiringRaw as Module[];
+          expiringModulesData = mapExpiringModulesToModules(expiringRaw);
         } else if (expiringRaw?.modules && Array.isArray(expiringRaw.modules)) {
-          expiringModulesData = expiringRaw.modules as Module[];
+          expiringModulesData = mapExpiringModulesToModules(expiringRaw.modules);
         } else {
           expiringModulesData = extractModulesFromCategories(expiringRaw);
         }
