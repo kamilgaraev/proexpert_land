@@ -75,8 +75,13 @@ export const RoleBadge = ({
   showIcon = true,
   className = ''
 }: RoleBadgeProps) => {
-  const config = ROLE_CONFIGS[role];
-  const icon = ROLE_ICONS[role];
+  const config = ROLE_CONFIGS[role] || {
+    label: role || 'Неизвестно',
+    color: 'text-gray-700',
+    bgColor: 'bg-gradient-to-r from-gray-100 to-slate-100',
+    borderColor: 'border-gray-400'
+  };
+  const icon = ROLE_ICONS[role] || '👤';
 
   const sizeClasses = {
     sm: 'px-2 py-0.5 text-xs',
@@ -95,7 +100,7 @@ export const RoleBadge = ({
         ${className}
       `}
     >
-      {showIcon && <span className="text-base">{icon}</span>}
+      {showIcon && icon && <span className="text-base">{icon}</span>}
       <span>{config.label}</span>
     </span>
   );
