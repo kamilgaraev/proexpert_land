@@ -12,21 +12,31 @@ export const ProjectCard = ({
   onViewDetails,
   onGoToWork
 }: ProjectCardProps) => {
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     planned: 'text-gray-600 bg-gray-100',
+    active: 'text-construction-600 bg-construction-100',
     in_progress: 'text-construction-600 bg-construction-100',
     completed: 'text-green-600 bg-green-100',
-    on_hold: 'text-yellow-600 bg-yellow-100'
+    on_hold: 'text-yellow-600 bg-yellow-100',
+    cancelled: 'text-red-600 bg-red-100'
   };
 
-  const statusLabels = {
+  const statusLabels: Record<string, string> = {
     planned: 'Запланирован',
+    active: 'Активен',
     in_progress: 'В работе',
     completed: 'Завершен',
-    on_hold: 'Приостановлен'
+    on_hold: 'Приостановлен',
+    cancelled: 'Отменен'
   };
 
   const completionPercentage = project.completion_percentage || 0;
+  
+  const totalContracts = project.stats?.contracts.total || project.total_contracts || 0;
+  const totalWorks = project.stats?.works.total || project.total_works || 0;
+  const totalAmountContracts = project.stats?.contracts.total_amount || project.total_amount_contracts || 0;
+  const totalAmountWorks = project.stats?.works.total_amount || project.total_amount_works || 0;
+  const participantsCount = project.participants_count || 0;
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('ru-RU', {
@@ -90,7 +100,7 @@ export const ProjectCard = ({
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs text-gray-500">Контракты</p>
-              <p className="font-semibold text-gray-900">{project.total_contracts}</p>
+              <p className="font-semibold text-gray-900">{totalContracts}</p>
             </div>
           </div>
 
@@ -102,7 +112,7 @@ export const ProjectCard = ({
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs text-gray-500">Работы</p>
-              <p className="font-semibold text-gray-900">{project.total_works}</p>
+              <p className="font-semibold text-gray-900">{totalWorks}</p>
             </div>
           </div>
         </div>
@@ -110,22 +120,24 @@ export const ProjectCard = ({
         <div className="space-y-2 mb-4 p-3 bg-gray-50 rounded-lg">
           <div className="flex justify-between items-center text-xs">
             <span className="text-gray-600">Сумма контрактов:</span>
-            <span className="font-semibold text-gray-900">{formatAmount(project.total_amount_contracts)}</span>
+            <span className="font-semibold text-gray-900">{formatAmount(totalAmountContracts)}</span>
           </div>
           <div className="flex justify-between items-center text-xs">
             <span className="text-gray-600">Выполнено работ:</span>
-            <span className="font-semibold text-green-600">{formatAmount(project.total_amount_works)}</span>
+            <span className="font-semibold text-green-600">{formatAmount(totalAmountWorks)}</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-          <div className="flex items-center text-xs text-gray-500">
-            <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <span>{project.participants_count} участников</span>
+        {participantsCount > 0 && (
+          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+            <div className="flex items-center text-xs text-gray-500">
+              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span>{participantsCount} участников</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 flex space-x-2">

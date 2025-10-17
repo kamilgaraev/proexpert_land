@@ -1,7 +1,7 @@
-import type { ProjectOrganizationRole, RoleBadgeConfig } from '@/types/projects-overview';
+import type { ProjectOrganizationRole, RoleBadgeConfig, RoleInfo } from '@/types/projects-overview';
 
 interface RoleBadgeProps {
-  role: ProjectOrganizationRole;
+  role: RoleInfo;
   size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
   className?: string;
@@ -75,13 +75,23 @@ export const RoleBadge = ({
   showIcon = true,
   className = ''
 }: RoleBadgeProps) => {
-  const config = ROLE_CONFIGS[role] || {
-    label: role || 'Неизвестно',
+  const roleValue: ProjectOrganizationRole = typeof role === 'string' 
+    ? role 
+    : role?.value || 'observer';
+  
+  const roleLabel = typeof role === 'string' 
+    ? undefined 
+    : role?.label;
+
+  const config = ROLE_CONFIGS[roleValue] || {
+    label: roleLabel || roleValue || 'Неизвестно',
     color: 'text-gray-700',
     bgColor: 'bg-gradient-to-r from-gray-100 to-slate-100',
     borderColor: 'border-gray-400'
   };
-  const icon = ROLE_ICONS[role] || '👤';
+  
+  const displayLabel = roleLabel || config.label;
+  const icon = ROLE_ICONS[roleValue] || '👤';
 
   const sizeClasses = {
     sm: 'px-2 py-0.5 text-xs',
@@ -101,7 +111,7 @@ export const RoleBadge = ({
       `}
     >
       {showIcon && icon && <span className="text-base">{icon}</span>}
-      <span>{config.label}</span>
+      <span>{displayLabel}</span>
     </span>
   );
 };
