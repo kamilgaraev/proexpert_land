@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { OrganizationCapability, CapabilityInfo } from '@/types/organization-profile';
 
 interface CapabilitiesSelectorProps {
@@ -27,8 +27,6 @@ export const CapabilitiesSelector = ({
   showRecommendations = false,
   disabled = false
 }: CapabilitiesSelectorProps) => {
-  const [hoveredCapability, setHoveredCapability] = useState<OrganizationCapability | null>(null);
-
   const handleToggle = (capability: OrganizationCapability) => {
     if (disabled) return;
 
@@ -80,8 +78,6 @@ export const CapabilitiesSelector = ({
                 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
               `}
               onClick={() => handleToggle(capability)}
-              onMouseEnter={() => setHoveredCapability(capability)}
-              onMouseLeave={() => setHoveredCapability(null)}
             >
               <div className="flex items-start space-x-3">
                 <div className={`

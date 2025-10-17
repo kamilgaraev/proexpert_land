@@ -4,11 +4,7 @@ import { toast } from 'react-toastify';
 import type {
   OrganizationProfile,
   OrganizationCapability,
-  CapabilityInfo,
-  OrganizationProfileResponse,
-  CapabilitiesListResponse,
-  UpdateProfileResponse,
-  CompleteOnboardingResponse
+  CapabilityInfo
 } from '@/types/organization-profile';
 
 interface UseOrganizationProfileState {

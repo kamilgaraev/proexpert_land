@@ -5,7 +5,6 @@ import { CapabilitiesSelector } from '../organization/CapabilitiesSelector';
 import { BusinessTypeSelector } from '../organization/BusinessTypeSelector';
 import { SpecializationsSelector } from '../organization/SpecializationsSelector';
 import { CertificationsList } from '../organization/CertificationsList';
-import type { OrganizationCapability } from '@/types/organization-profile';
 
 interface OnboardingWizardProps {
   onComplete: () => void;
@@ -20,8 +19,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     updateCertifications,
     completeOnboarding,
     fetchAvailableCapabilities,
-    availableCapabilities,
-    loading
+    availableCapabilities
   } = useOrganizationProfile();
 
   const [isSaving, setIsSaving] = useState(false);
@@ -304,7 +302,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
             </button>
             
             <div className="flex space-x-2">
-              {onboarding.allSteps.map((step, index) => (
+              {onboarding.allSteps.map((step) => (
                 <div
                   key={step.id}
                   className={`w-2 h-2 rounded-full transition-all ${

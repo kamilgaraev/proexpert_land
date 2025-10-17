@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 interface BusinessTypeSelectorProps {
   selectedType: string | null;
   onChange: (type: string) => void;
@@ -50,14 +48,11 @@ export const BusinessTypeSelector = ({
   onChange,
   disabled = false
 }: BusinessTypeSelectorProps) => {
-  const [hoveredType, setHoveredType] = useState<string | null>(null);
-
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {BUSINESS_TYPES.map(type => {
           const isSelected = selectedType === type.value;
-          const isHovered = hoveredType === type.value;
 
           return (
             <div
@@ -71,8 +66,6 @@ export const BusinessTypeSelector = ({
                 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
               `}
               onClick={() => !disabled && onChange(type.value)}
-              onMouseEnter={() => setHoveredType(type.value)}
-              onMouseLeave={() => setHoveredType(null)}
             >
               {isSelected && (
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">

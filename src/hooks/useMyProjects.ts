@@ -4,9 +4,7 @@ import type {
   ProjectOverview,
   ProjectsGrouped,
   ProjectsTotals,
-  ProjectDetails,
-  MyProjectsResponse,
-  ProjectDetailsResponse
+  ProjectDetails
 } from '@/types/projects-overview';
 
 interface UseMyProjectsState {
