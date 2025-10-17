@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useOrganizationProfile } from '@/hooks/useOrganizationProfile';
+import { useOrganizationVerification } from '@/hooks/useOrganizationVerification';
 import { CapabilitiesSelector } from '@/components/dashboard/organization/CapabilitiesSelector';
 import { BusinessTypeSelector } from '@/components/dashboard/organization/BusinessTypeSelector';
 import { SpecializationsSelector } from '@/components/dashboard/organization/SpecializationsSelector';
@@ -20,6 +21,8 @@ export const OrganizationSettingsPage = () => {
     updateCertifications
   } = useOrganizationProfile();
 
+  const { getOrganization, organization: orgVerification } = useOrganizationVerification();
+
   const [activeTab, setActiveTab] = useState<'capabilities' | 'business_type' | 'specializations' | 'certifications'>('capabilities');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -31,6 +34,7 @@ export const OrganizationSettingsPage = () => {
   useEffect(() => {
     fetchProfile();
     fetchAvailableCapabilities();
+    getOrganization().catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -291,7 +295,7 @@ export const OrganizationSettingsPage = () => {
               </div>
             </div>
 
-            {profile && (
+            {(profile || orgVerification) && (
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Информация об организации
@@ -299,11 +303,15 @@ export const OrganizationSettingsPage = () => {
                 <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <dt className="text-sm text-gray-500 mb-1">Название</dt>
-                    <dd className="text-base font-medium text-gray-900">{profile.name}</dd>
+                    <dd className="text-base font-medium text-gray-900">
+                      {profile?.name || orgVerification?.name || 'Не указано'}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-sm text-gray-500 mb-1">ИНН</dt>
-                    <dd className="text-base font-medium text-gray-900">{profile.inn}</dd>
+                    <dd className="text-base font-medium text-gray-900">
+                      {profile?.inn || orgVerification?.tax_number || 'Не указано'}
+                    </dd>
                   </div>
                 </dl>
                 <p className="text-xs text-gray-500 mt-4">
