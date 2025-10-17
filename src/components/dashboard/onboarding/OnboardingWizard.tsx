@@ -261,7 +261,11 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
                       </svg>
                       <div>
                         <p className="text-sm font-medium text-gray-900">Тип деятельности</p>
-                        <p className="text-sm text-gray-600">{onboarding.data.primary_business_type}</p>
+                        <p className="text-sm text-gray-600">
+                          {typeof onboarding.data.primary_business_type === 'string' 
+                            ? onboarding.data.primary_business_type 
+                            : (onboarding.data.primary_business_type as any)?.label || (onboarding.data.primary_business_type as any)?.value || 'Указан'}
+                        </p>
                       </div>
                     </div>
                   )}

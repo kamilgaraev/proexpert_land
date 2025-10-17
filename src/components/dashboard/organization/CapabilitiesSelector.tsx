@@ -56,7 +56,17 @@ export const CapabilitiesSelector = ({
     return info?.recommended_modules || [];
   });
 
-  const uniqueModules = Array.from(new Set(selectedModules));
+  const uniqueModules = selectedModules.reduce((acc: (string | { value: string; label: string })[], current) => {
+    const currentValue = typeof current === 'string' ? current : current.value;
+    const exists = acc.some(item => {
+      const itemValue = typeof item === 'string' ? item : item.value;
+      return itemValue === currentValue;
+    });
+    if (!exists) {
+      acc.push(current);
+    }
+    return acc;
+  }, []);
 
   return (
     <div className="space-y-4">
