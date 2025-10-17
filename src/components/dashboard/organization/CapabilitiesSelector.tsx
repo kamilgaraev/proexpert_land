@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { OrganizationCapability, CapabilityInfo } from '@/types/organization-profile';
 
 interface CapabilitiesSelectorProps {
