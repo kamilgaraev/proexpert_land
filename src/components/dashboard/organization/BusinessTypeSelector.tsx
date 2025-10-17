@@ -60,15 +60,15 @@ export const BusinessTypeSelector = ({
               className={`
                 relative border-2 rounded-lg p-4 cursor-pointer transition-all duration-200
                 ${isSelected 
-                  ? 'border-blue-500 bg-blue-50 shadow-lg scale-105' 
-                  : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md'
+                  ? 'border-construction-500 bg-construction-50 shadow-lg scale-105' 
+                  : 'border-gray-200 bg-white hover:border-construction-300 hover:shadow-md'
                 }
                 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
               `}
               onClick={() => !disabled && onChange(type.value)}
             >
               {isSelected && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-construction-500 rounded-full flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
@@ -77,7 +77,7 @@ export const BusinessTypeSelector = ({
 
               <div className="text-center space-y-2">
                 <div className="text-4xl">{type.icon}</div>
-                <h4 className={`text-base font-semibold ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
+                <h4 className={`text-base font-semibold ${isSelected ? 'text-construction-900' : 'text-gray-900'}`}>
                   {type.label}
                 </h4>
                 <p className="text-xs text-gray-600">

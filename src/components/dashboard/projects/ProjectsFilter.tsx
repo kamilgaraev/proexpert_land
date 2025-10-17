@@ -21,7 +21,7 @@ export const ProjectsFilter = ({
               placeholder="Поиск проектов по названию или адресу..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-construction-500 text-sm"
             />
             <svg
               className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -41,7 +41,7 @@ export const ProjectsFilter = ({
               onClick={() => onStatusChange('all')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 selectedStatus === 'all'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-construction-600 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -51,7 +51,7 @@ export const ProjectsFilter = ({
               onClick={() => onStatusChange('active')}
               className={`px-4 py-2 text-sm font-medium transition-colors border-l border-r border-gray-300 ${
                 selectedStatus === 'active'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-construction-600 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -61,7 +61,7 @@ export const ProjectsFilter = ({
               onClick={() => onStatusChange('archived')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 selectedStatus === 'archived'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-construction-600 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -78,7 +78,7 @@ export const ProjectsFilter = ({
           </p>
           <button
             onClick={() => onSearchChange('')}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm text-construction-600 hover:text-construction-700 font-medium"
           >
             Очистить
           </button>

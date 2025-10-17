@@ -202,10 +202,13 @@ const OrganizationPage = () => {
     );
   }
 
+  const isFullyVerified = recommendations.current_score === recommendations.max_score;
+  const shouldShowUserMessage = userMessage && !(isFullyVerified && userMessage.action === 'verify');
+
   return (
     <div className="space-y-6">
       {/* Сообщение для пользователя */}
-      {userMessage && (
+      {shouldShowUserMessage && (
         <div className={`rounded-lg border p-4 ${getUserMessageColor(userMessage.type)}`}>
           <div className="flex items-start space-x-3">
             {getUserMessageIcon(userMessage.type)}

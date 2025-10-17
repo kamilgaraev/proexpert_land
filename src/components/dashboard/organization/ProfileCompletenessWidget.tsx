@@ -26,14 +26,14 @@ export const ProfileCompletenessWidget = ({
 
   const getCompletenessColor = () => {
     if (completeness >= 90) return 'text-green-600';
-    if (completeness >= 70) return 'text-blue-600';
+    if (completeness >= 70) return 'text-construction-600';
     if (completeness >= 50) return 'text-yellow-600';
     return 'text-red-600';
   };
 
   const getCompletenessStrokeColor = () => {
     if (completeness >= 90) return '#10b981';
-    if (completeness >= 70) return '#3b82f6';
+    if (completeness >= 70) return '#ea580c';
     if (completeness >= 50) return '#eab308';
     return '#ef4444';
   };
@@ -114,7 +114,7 @@ export const ProfileCompletenessWidget = ({
         onComplete && (
           <button
             onClick={onComplete}
-            className="mt-4 w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="mt-4 w-full px-4 py-2 bg-construction-600 text-white text-sm font-medium rounded-lg hover:bg-construction-700 transition-colors focus:outline-none focus:ring-2 focus:ring-construction-500 focus:ring-offset-2"
           >
             Завершить настройку профиля
           </button>

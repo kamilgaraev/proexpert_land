@@ -63,20 +63,20 @@ export const ProjectDetailsModal = ({
 
         <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
           <div className="absolute top-0 right-0 pt-4 pr-4">
-            <button
-              onClick={onClose}
-              className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <span className="sr-only">Закрыть</span>
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-construction-500"
+          >
+            <span className="sr-only">Закрыть</span>
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
-          {loading ? (
-            <div className="p-8 text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        {loading ? (
+          <div className="p-8 text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-construction-600"></div>
               <p className="mt-4 text-gray-600">Загрузка данных проекта...</p>
             </div>
           ) : projectDetails ? (
@@ -128,7 +128,7 @@ export const ProjectDetailsModal = ({
                         </span>
                       )}
                       {projectDetails.my_context.can_manage_contracts && (
-                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 mr-2 mb-1">
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-construction-100 text-construction-800 mr-2 mb-1">
                           📄 Управление контрактами
                         </span>
                       )}
@@ -159,10 +159,10 @@ export const ProjectDetailsModal = ({
                 <div className="border-t border-gray-200 pt-4">
                   <h4 className="text-sm font-semibold text-gray-900 mb-3">Статистика</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-blue-50 rounded-lg p-3">
-                      <p className="text-xs text-blue-600 font-medium mb-1">Контракты</p>
-                      <p className="text-2xl font-bold text-blue-900">{projectDetails.statistics.contracts_count}</p>
-                      <p className="text-xs text-blue-700 mt-1">{formatAmount(projectDetails.statistics.total_contracts_amount)}</p>
+                    <div className="bg-construction-50 rounded-lg p-3">
+                      <p className="text-xs text-construction-600 font-medium mb-1">Контракты</p>
+                      <p className="text-2xl font-bold text-construction-900">{projectDetails.statistics.contracts_count}</p>
+                      <p className="text-xs text-construction-700 mt-1">{formatAmount(projectDetails.statistics.total_contracts_amount)}</p>
                     </div>
                     <div className="bg-green-50 rounded-lg p-3">
                       <p className="text-xs text-green-600 font-medium mb-1">Работы</p>
@@ -201,13 +201,13 @@ export const ProjectDetailsModal = ({
               <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-construction-500 focus:ring-offset-2"
                 >
                   Закрыть
                 </button>
                 <button
                   onClick={() => onGoToWork(projectDetails.project.id)}
-                  className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-construction-600 to-construction-700 rounded-lg hover:from-construction-700 hover:to-construction-800 transition-all shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-construction-500 focus:ring-offset-2"
                 >
                   Перейти к работе →
                 </button>

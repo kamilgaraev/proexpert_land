@@ -98,7 +98,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-construction-50 via-white to-orange-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -115,7 +115,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           
           <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-500 ease-out"
+              className="bg-gradient-to-r from-construction-500 to-construction-600 h-full transition-all duration-500 ease-out"
               style={{ width: `${onboarding.progress}%` }}
             />
           </div>
@@ -127,7 +127,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {onboarding.currentStep === 'welcome' && (
             <div className="text-center space-y-6">
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto">
+              <div className="w-20 h-20 bg-gradient-to-r from-construction-500 to-orange-600 rounded-full flex items-center justify-center mx-auto">
                 <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
@@ -139,7 +139,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
                 Давайте настроим профиль вашей организации. Это займет всего несколько минут и поможет подобрать оптимальные инструменты для работы.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <div className="p-6 bg-blue-50 rounded-lg">
+                <div className="p-6 bg-construction-50 rounded-lg">
                   <div className="text-4xl mb-3">🎯</div>
                   <h3 className="font-semibold text-gray-900 mb-2">Персонализация</h3>
                   <p className="text-sm text-gray-600">Индивидуальные настройки под ваш бизнес</p>
@@ -242,7 +242,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
                 Профиль вашей организации настроен. Теперь вы можете приступить к работе с проектами.
               </p>
               
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mt-8">
+              <div className="bg-gradient-to-r from-construction-50 to-orange-50 border border-construction-200 rounded-lg p-6 mt-8">
                 <h3 className="font-semibold text-gray-900 mb-4">Что вы указали:</h3>
                 <div className="space-y-3 text-left max-w-2xl mx-auto">
                   <div className="flex items-start space-x-3">
@@ -307,7 +307,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
                   key={step.id}
                   className={`w-2 h-2 rounded-full transition-all ${
                     onboarding.completedSteps.includes(step.id) || step.id === onboarding.currentStep
-                      ? 'bg-blue-600 w-8'
+                      ? 'bg-construction-600 w-8'
                       : 'bg-gray-300'
                   }`}
                 />
@@ -317,7 +317,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
             <button
               onClick={handleNext}
               disabled={!canProceed() || isSaving}
-              className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
+              className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-construction-600 to-construction-700 rounded-lg hover:from-construction-700 hover:to-construction-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
             >
               {isSaving ? (
                 <span className="flex items-center space-x-2">

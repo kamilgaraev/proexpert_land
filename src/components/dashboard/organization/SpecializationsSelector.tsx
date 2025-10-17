@@ -50,7 +50,7 @@ export const SpecializationsSelector = ({
           placeholder="Поиск специализации..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-construction-500"
           disabled={disabled}
         />
         <svg
@@ -73,8 +73,8 @@ export const SpecializationsSelector = ({
               className={`
                 border-2 rounded-lg p-3 cursor-pointer transition-all duration-200
                 ${isSelected 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-200 bg-white hover:border-blue-300'
+                  ? 'border-construction-500 bg-construction-50' 
+                  : 'border-gray-200 bg-white hover:border-construction-300'
                 }
                 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
               `}
@@ -84,7 +84,7 @@ export const SpecializationsSelector = ({
                 <div className={`
                   flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center
                   ${isSelected 
-                    ? 'bg-blue-500 border-blue-500' 
+                    ? 'bg-construction-500 border-construction-500' 
                     : 'bg-white border-gray-300'
                   }
                 `}>
@@ -95,7 +95,7 @@ export const SpecializationsSelector = ({
                   )}
                 </div>
                 <span className="text-xl">{spec.icon}</span>
-                <span className={`text-sm font-medium ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
+                <span className={`text-sm font-medium ${isSelected ? 'text-construction-900' : 'text-gray-900'}`}>
                   {spec.label}
                 </span>
               </div>
@@ -115,7 +115,7 @@ export const SpecializationsSelector = ({
               return spec ? (
                 <span
                   key={specValue}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-construction-100 text-construction-800"
                 >
                   <span className="mr-1">{spec.icon}</span>
                   {spec.label}
@@ -125,7 +125,7 @@ export const SpecializationsSelector = ({
                         e.stopPropagation();
                         handleToggle(specValue);
                       }}
-                      className="ml-2 hover:text-blue-600"
+                      className="ml-2 hover:text-construction-600"
                     >
                       ×
                     </button>

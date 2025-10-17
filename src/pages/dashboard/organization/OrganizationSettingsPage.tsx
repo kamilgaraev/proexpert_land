@@ -120,7 +120,7 @@ export const OrganizationSettingsPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-construction-600 mb-4"></div>
           <p className="text-gray-600">Загрузка профиля организации...</p>
         </div>
       </div>
@@ -148,7 +148,7 @@ export const OrganizationSettingsPage = () => {
                     onClick={() => setActiveTab('capabilities')}
                     className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                       activeTab === 'capabilities'
-                        ? 'border-blue-600 text-blue-600'
+                        ? 'border-construction-600 text-construction-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
@@ -158,7 +158,7 @@ export const OrganizationSettingsPage = () => {
                     onClick={() => setActiveTab('business_type')}
                     className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                       activeTab === 'business_type'
-                        ? 'border-blue-600 text-blue-600'
+                        ? 'border-construction-600 text-construction-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
@@ -168,7 +168,7 @@ export const OrganizationSettingsPage = () => {
                     onClick={() => setActiveTab('specializations')}
                     className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                       activeTab === 'specializations'
-                        ? 'border-blue-600 text-blue-600'
+                        ? 'border-construction-600 text-construction-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
@@ -178,7 +178,7 @@ export const OrganizationSettingsPage = () => {
                     onClick={() => setActiveTab('certifications')}
                     className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                       activeTab === 'certifications'
-                        ? 'border-blue-600 text-blue-600'
+                        ? 'border-construction-600 text-construction-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
@@ -282,7 +282,7 @@ export const OrganizationSettingsPage = () => {
                         else if (activeTab === 'certifications') handleSaveCertifications();
                       }}
                       disabled={isSaving}
-                      className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 transition-all shadow-sm hover:shadow-md"
+                      className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-construction-600 to-construction-700 rounded-lg hover:from-construction-700 hover:to-construction-800 disabled:opacity-50 transition-all shadow-sm hover:shadow-md"
                     >
                       {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
                     </button>
@@ -323,7 +323,7 @@ export const OrganizationSettingsPage = () => {
             )}
 
             {profile && profile.recommended_modules.length > 0 && (
-              <div className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+              <div className="mt-6 bg-gradient-to-br from-construction-50 to-orange-50 border border-construction-200 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   Рекомендуемые модули
                 </h3>
@@ -336,7 +336,7 @@ export const OrganizationSettingsPage = () => {
                       key={module}
                       className="flex items-center space-x-2 text-sm text-gray-700 bg-white p-3 rounded-lg"
                     >
-                      <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4 h-4 text-construction-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       <span>{module}</span>

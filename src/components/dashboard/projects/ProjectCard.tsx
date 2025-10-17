@@ -14,7 +14,7 @@ export const ProjectCard = ({
 }: ProjectCardProps) => {
   const statusColors = {
     planned: 'text-gray-600 bg-gray-100',
-    in_progress: 'text-blue-600 bg-blue-100',
+    in_progress: 'text-construction-600 bg-construction-100',
     completed: 'text-green-600 bg-green-100',
     on_hold: 'text-yellow-600 bg-yellow-100'
   };
@@ -75,7 +75,7 @@ export const ProjectCard = ({
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-construction-500 to-construction-600 h-full rounded-full transition-all duration-500"
               style={{ width: `${completionPercentage}%` }}
             />
           </div>
@@ -83,8 +83,8 @@ export const ProjectCard = ({
 
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="flex items-center space-x-2 text-sm">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-8 h-8 bg-construction-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg className="w-4 h-4 text-construction-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
@@ -131,13 +131,13 @@ export const ProjectCard = ({
       <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 flex space-x-2">
         <button
           onClick={() => onViewDetails(project.id)}
-          className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-construction-500 focus:ring-offset-2"
         >
           Подробнее
         </button>
         <button
           onClick={() => onGoToWork(project.id)}
-          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-construction-600 to-construction-700 rounded-lg hover:from-construction-700 hover:to-construction-800 transition-all shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-construction-500 focus:ring-offset-2"
         >
           Перейти к работе →
         </button>

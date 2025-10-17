@@ -68,7 +68,7 @@ export const MyProjectsPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-construction-600 mb-4"></div>
           <p className="text-gray-600">Загрузка проектов...</p>
         </div>
       </div>
@@ -89,7 +89,7 @@ export const MyProjectsPage = () => {
           </div>
           <button
             onClick={() => navigate('/projects/create')}
-            className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm hover:shadow-md flex items-center space-x-2"
+            className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-construction-600 to-construction-700 rounded-lg hover:from-construction-700 hover:to-construction-800 transition-all shadow-sm hover:shadow-md flex items-center space-x-2"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -100,7 +100,7 @@ export const MyProjectsPage = () => {
 
         {totals && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-600">
+            <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-construction-600">
               <p className="text-sm text-gray-600 mb-1">Всего проектов</p>
               <p className="text-3xl font-bold text-gray-900">{totals.all}</p>
             </div>
@@ -133,7 +133,7 @@ export const MyProjectsPage = () => {
                 onClick={() => setActiveTab('all')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'all'
-                    ? 'border-blue-600 text-blue-600'
+                    ? 'border-construction-600 text-construction-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -143,7 +143,7 @@ export const MyProjectsPage = () => {
                 onClick={() => setActiveTab('owned')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'owned'
-                    ? 'border-blue-600 text-blue-600'
+                    ? 'border-construction-600 text-construction-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -153,7 +153,7 @@ export const MyProjectsPage = () => {
                 onClick={() => setActiveTab('participant')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'participant'
-                    ? 'border-blue-600 text-blue-600'
+                    ? 'border-construction-600 text-construction-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -193,7 +193,7 @@ export const MyProjectsPage = () => {
             {!searchQuery && (
               <button
                 onClick={() => navigate('/projects/create')}
-                className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm hover:shadow-md"
+                className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-construction-600 to-construction-700 rounded-lg hover:from-construction-700 hover:to-construction-800 transition-all shadow-sm hover:shadow-md"
               >
                 Создать первый проект
               </button>
