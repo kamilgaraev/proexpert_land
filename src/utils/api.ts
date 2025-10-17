@@ -2958,6 +2958,259 @@ export const holdingLandingService = {
   }
 };
 
+export const organizationProfileService = {
+  getProfile: async () => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`${API_URL}/organization/profile`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  updateCapabilities: async (capabilities: string[]) => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`${API_URL}/organization/profile/capabilities`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ capabilities })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data?.message || 'Ошибка обновления capabilities');
+    }
+    
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  updateBusinessType: async (primary_business_type: string) => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`${API_URL}/organization/profile/business-type`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ primary_business_type })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data?.message || 'Ошибка обновления типа бизнеса');
+    }
+    
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  updateSpecializations: async (specializations: string[]) => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`${API_URL}/organization/profile/specializations`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ specializations })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data?.message || 'Ошибка обновления специализаций');
+    }
+    
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  updateCertifications: async (certifications: string[]) => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`${API_URL}/organization/profile/certifications`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ certifications })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data?.message || 'Ошибка обновления сертификатов');
+    }
+    
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  completeOnboarding: async () => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`${API_URL}/organization/profile/complete-onboarding`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data?.message || 'Ошибка завершения onboarding');
+    }
+    
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  getAvailableCapabilities: async () => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`${API_URL}/organization/capabilities`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  }
+};
+
+export const myProjectsService = {
+  getMyProjects: async () => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`${API_URL}/my-projects`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  getProjectDetails: async (projectId: number) => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`${API_URL}/my-projects/${projectId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  }
+};
+
 export default api; 
 
 // --- Типы дашборда лендинга ---

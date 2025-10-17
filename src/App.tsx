@@ -33,6 +33,10 @@ import HoldingRouter from '@/HoldingRouter';
 import ContractorInvitationsPage from '@pages/dashboard/contractor-invitations/ContractorInvitationsPage';
 import ContractorInvitationTokenPage from '@pages/dashboard/contractor-invitations/ContractorInvitationTokenPage';
 
+// Project-Based RBAC страницы
+import { OrganizationSettingsPage, OnboardingPage } from '@pages/dashboard/organization';
+import { MyProjectsPage } from '@pages/dashboard/projects';
+
 // Новые страницы
 import IntegrationsPage from '@pages/product/IntegrationsPage';
 import FeaturesPage from '@pages/product/FeaturesPage';
@@ -275,6 +279,11 @@ function App() {
               <OrganizationPage />
             </ProtectedComponent>
           } />
+          
+          <Route path="organization/settings" element={<OrganizationSettingsPage />} />
+          <Route path="organization/onboarding" element={<OnboardingPage />} />
+          
+          <Route path="projects" element={<MyProjectsPage />} />
           
           {/* Приглашения подрядчиков */}
           <Route path="contractor-invitations" element={

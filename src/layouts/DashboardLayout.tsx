@@ -18,7 +18,9 @@ import {
   ChartPieIcon,
   PuzzlePieceIcon,
   BuildingOffice2Icon,
-  EnvelopeIcon
+  EnvelopeIcon,
+  BriefcaseIcon,
+  Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
 import { useModules } from '@hooks/useModules';
@@ -97,11 +99,25 @@ const DashboardLayout = () => {
         visible: true
       },
       { 
+        name: 'Мои проекты', 
+        href: '/dashboard/projects', 
+        icon: BriefcaseIcon,
+        description: 'Проекты вашей организации',
+        visible: true
+      },
+      { 
         name: 'Организация', 
         href: '/dashboard/organization', 
         icon: BuildingOfficeIcon,
         description: 'Данные и верификация',
         // Организация доступна всем, кто может просматривать организацию
+        visible: canViewOrganization
+      },
+      { 
+        name: 'Настройки', 
+        href: '/dashboard/organization/settings', 
+        icon: Cog6ToothIcon,
+        description: 'Настройки организации',
         visible: canViewOrganization
       },
       { 
