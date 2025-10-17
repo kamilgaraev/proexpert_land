@@ -35,10 +35,10 @@ export const OrganizationSettingsPage = () => {
 
   useEffect(() => {
     if (profile) {
-      setLocalCapabilities(profile.capabilities);
+      setLocalCapabilities(profile.capabilities || []);
       setLocalBusinessType(profile.primary_business_type);
-      setLocalSpecializations(profile.specializations);
-      setLocalCertifications(profile.certifications);
+      setLocalSpecializations(profile.specializations || []);
+      setLocalCertifications(profile.certifications || []);
     }
   }, [profile]);
 
@@ -90,16 +90,16 @@ export const OrganizationSettingsPage = () => {
     if (!profile) return false;
     
     if (activeTab === 'capabilities') {
-      return JSON.stringify(localCapabilities.sort()) !== JSON.stringify(profile.capabilities.sort());
+      return JSON.stringify([...(localCapabilities || [])].sort()) !== JSON.stringify([...(profile.capabilities || [])].sort());
     }
     if (activeTab === 'business_type') {
       return localBusinessType !== profile.primary_business_type;
     }
     if (activeTab === 'specializations') {
-      return JSON.stringify(localSpecializations.sort()) !== JSON.stringify(profile.specializations.sort());
+      return JSON.stringify([...(localSpecializations || [])].sort()) !== JSON.stringify([...(profile.specializations || [])].sort());
     }
     if (activeTab === 'certifications') {
-      return JSON.stringify(localCertifications.sort()) !== JSON.stringify(profile.certifications.sort());
+      return JSON.stringify([...(localCertifications || [])].sort()) !== JSON.stringify([...(profile.certifications || [])].sort());
     }
     return false;
   };
@@ -108,10 +108,10 @@ export const OrganizationSettingsPage = () => {
     if (!profile) return [];
     const missing: string[] = [];
     
-    if (profile.capabilities.length === 0) missing.push('capabilities');
+    if (!profile.capabilities || profile.capabilities.length === 0) missing.push('capabilities');
     if (!profile.primary_business_type) missing.push('primary_business_type');
-    if (profile.specializations.length === 0) missing.push('specializations');
-    if (profile.certifications.length === 0) missing.push('certifications');
+    if (!profile.specializations || profile.specializations.length === 0) missing.push('specializations');
+    if (!profile.certifications || profile.certifications.length === 0) missing.push('certifications');
     
     return missing;
   };
@@ -132,7 +132,7 @@ export const OrganizationSettingsPage = () => {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Настройки организации
+            Управление организацией
           </h1>
           <p className="text-gray-600">
             Управляйте профилем и параметрами вашей организации
@@ -263,10 +263,10 @@ export const OrganizationSettingsPage = () => {
                     <button
                       onClick={() => {
                         if (profile) {
-                          setLocalCapabilities(profile.capabilities);
+                          setLocalCapabilities(profile.capabilities || []);
                           setLocalBusinessType(profile.primary_business_type);
-                          setLocalSpecializations(profile.specializations);
-                          setLocalCertifications(profile.certifications);
+                          setLocalSpecializations(profile.specializations || []);
+                          setLocalCertifications(profile.certifications || []);
                         }
                       }}
                       disabled={isSaving}

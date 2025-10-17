@@ -114,10 +114,10 @@ const DashboardLayout = () => {
         visible: canViewOrganization
       },
       { 
-        name: 'Настройки', 
+        name: 'Управление', 
         href: '/dashboard/organization/settings', 
         icon: Cog6ToothIcon,
-        description: 'Настройки организации',
+        description: 'Управление организацией',
         visible: canViewOrganization
       },
       { 
