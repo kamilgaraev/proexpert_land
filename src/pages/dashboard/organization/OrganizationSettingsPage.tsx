@@ -331,17 +331,21 @@ export const OrganizationSettingsPage = () => {
                   На основе профиля вашей организации
                 </p>
                 <div className="space-y-2">
-                  {profile.recommended_modules.map(module => (
-                    <div
-                      key={module}
-                      className="flex items-center space-x-2 text-sm text-gray-700 bg-white p-3 rounded-lg"
-                    >
-                      <svg className="w-4 h-4 text-construction-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>{module}</span>
-                    </div>
-                  ))}
+                  {profile.recommended_modules.map((module: string | { value: string; label: string }, index: number) => {
+                    const moduleText = typeof module === 'string' ? module : (module?.label || module?.value || 'Модуль');
+                    const moduleKey = typeof module === 'string' ? module : (module?.value || index);
+                    return (
+                      <div
+                        key={moduleKey}
+                        className="flex items-center space-x-2 text-sm text-gray-700 bg-white p-3 rounded-lg"
+                      >
+                        <svg className="w-4 h-4 text-construction-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{moduleText}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

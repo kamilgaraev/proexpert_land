@@ -117,14 +117,18 @@ export const CapabilitiesSelector = ({
             <div className="flex-1">
               <h4 className="text-sm font-semibold text-construction-900 mb-2">Рекомендуемые модули</h4>
               <div className="flex flex-wrap gap-2">
-                {uniqueModules.map(module => (
-                  <span
-                    key={module}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-construction-700 border border-construction-300"
-                  >
-                    {module}
-                  </span>
-                ))}
+                {uniqueModules.map((module: string | { value: string; label: string }, index: number) => {
+                  const moduleText = typeof module === 'string' ? module : (module?.label || module?.value || 'Модуль');
+                  const moduleKey = typeof module === 'string' ? module : (module?.value || index);
+                  return (
+                    <span
+                      key={moduleKey}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-construction-700 border border-construction-300"
+                    >
+                      {moduleText}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           </div>

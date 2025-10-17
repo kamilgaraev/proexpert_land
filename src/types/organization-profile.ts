@@ -8,6 +8,8 @@ export type OrganizationCapability =
   | 'consulting'
   | 'facility_management';
 
+export type ModuleInfo = string | { value: string; label: string };
+
 export interface OrganizationProfile {
   organization_id: number;
   name: string;
@@ -19,14 +21,14 @@ export interface OrganizationProfile {
   profile_completeness: number;
   onboarding_completed: boolean;
   onboarding_completed_at: string | null;
-  recommended_modules: string[];
+  recommended_modules: ModuleInfo[];
 }
 
 export interface CapabilityInfo {
   value: OrganizationCapability;
   label: string;
   description: string;
-  recommended_modules: string[];
+  recommended_modules: ModuleInfo[];
 }
 
 export interface UpdateCapabilitiesRequest {
@@ -64,7 +66,7 @@ export interface UpdateProfileResponse {
     specializations?: string[];
     certifications?: string[];
     profile_completeness: number;
-    recommended_modules: string[];
+    recommended_modules: ModuleInfo[];
   };
 }
 
