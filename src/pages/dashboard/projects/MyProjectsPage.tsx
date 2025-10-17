@@ -84,18 +84,9 @@ export const MyProjectsPage = () => {
               Мои проекты
             </h1>
             <p className="text-gray-600">
-              Управление проектами вашей организации
+              Обзор всех проектов вашей организации
             </p>
           </div>
-          <button
-            onClick={() => navigate('/projects/create')}
-            className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-construction-600 to-construction-700 rounded-lg hover:from-construction-700 hover:to-construction-800 transition-all shadow-sm hover:shadow-md flex items-center space-x-2"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Создать проект</span>
-          </button>
         </div>
 
         {totals && (
@@ -184,20 +175,12 @@ export const MyProjectsPage = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {searchQuery ? 'Проекты не найдены' : 'Нет проектов'}
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600">
               {searchQuery 
                 ? 'Попробуйте изменить параметры поиска'
-                : 'Создайте свой первый проект или присоединитесь к существующему'
+                : 'У вас пока нет доступных проектов. Проекты создаются в админке, после чего появятся здесь.'
               }
             </p>
-            {!searchQuery && (
-              <button
-                onClick={() => navigate('/projects/create')}
-                className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-construction-600 to-construction-700 rounded-lg hover:from-construction-700 hover:to-construction-800 transition-all shadow-sm hover:shadow-md"
-              >
-                Создать первый проект
-              </button>
-            )}
           </div>
         )}
 
