@@ -95,7 +95,7 @@ Authorization: Bearer {token}
       "general_contracting",
       "subcontracting"
     ],
-    "primary_business_type": "general_contractor",
+    "primary_business_type": "general_contracting",
     "specializations": [
       "building_construction",
       "road_construction"
@@ -171,9 +171,19 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "primary_business_type": "general_contractor"
+  "primary_business_type": "general_contracting"
 }
 ```
+
+**Доступные значения для primary_business_type:**
+- `general_contracting` - Генеральный подряд
+- `subcontracting` - Субподрядные работы
+- `design` - Проектирование
+- `construction_supervision` - Строительный контроль
+- `equipment_rental` - Аренда техники
+- `materials_supply` - Поставка материалов
+- `consulting` - Консалтинг
+- `facility_management` - Эксплуатация объектов
 
 ---
 

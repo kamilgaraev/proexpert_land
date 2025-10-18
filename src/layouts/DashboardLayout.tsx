@@ -182,15 +182,19 @@ const DashboardLayout = () => {
     // Фильтруем видимые пункты меню
     const baseNavigation = allNavigationItems.filter(item => item.visible);
 
-    // Добавляем панель холдинга только если модуль активирован, есть права И организация является холдингом
-    const userOrg = user && 'organization' in user ? (user.organization as any) : null;
-    const isHoldingOrg = userOrg?.organization_type === 'holding';
-    if (hasMultiOrgAccess && canManageMultiOrg && isHoldingOrg) {
+    // Добавляем мультиорганизацию если модуль активирован И есть права
+    // Панель холдинга будет сама проверять тип организации внутри
+    if (hasMultiOrgAccess && canManageMultiOrg) {
+      const userOrg = user && 'organization' in user ? (user.organization as any) : null;
+      const isHoldingOrg = userOrg?.organization_type === 'holding';
+      
       baseNavigation.push({
-        name: 'Панель холдинга', 
+        name: isHoldingOrg ? 'Панель холдинга' : 'Мультиорганизация', 
         href: '/landing/multi-organization/dashboard', 
         icon: BuildingOffice2Icon,
-        description: 'Управление холдингом и дочерними организациями',
+        description: isHoldingOrg 
+          ? 'Управление холдингом и дочерними организациями'
+          : 'Управление мультиорганизацией',
         visible: true
       });
     }

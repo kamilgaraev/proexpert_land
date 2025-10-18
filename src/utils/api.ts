@@ -3028,7 +3028,7 @@ export const organizationProfileService = {
         'Accept': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ business_type: primary_business_type })
+      body: JSON.stringify({ primary_business_type })
     });
     
     const data = await response.json();
