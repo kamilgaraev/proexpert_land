@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Tab } from '@headlessui/react';
 import { 
   ChartBarIcon,
@@ -21,7 +21,6 @@ import KpiReport from '@/components/holding/KpiReport';
 import { usePermissionsContext } from '@/contexts/PermissionsContext';
 
 const HoldingReportsPage: React.FC = () => {
-  const { holdingId } = useParams<{ holdingId: string }>();
   const navigate = useNavigate();
   const { can } = usePermissionsContext();
   const { color, setColor, getThemeClasses } = useTheme();
@@ -36,7 +35,7 @@ const HoldingReportsPage: React.FC = () => {
     { name: 'Организации', href: '/organizations', icon: BuildingOfficeIcon, current: false },
     { 
       name: 'Отчеты', 
-      href: `/reports/${holdingId}`, 
+      href: '/holding/reports', 
       icon: ChartBarIcon, 
       current: true,
       permission: 'multi-organization.reports.view'
@@ -56,42 +55,35 @@ const HoldingReportsPage: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (!holdingId || isNaN(Number(holdingId))) {
-      navigate('/');
-      return;
-    }
-
     if (!can('multi-organization.reports.view')) {
       navigate('/');
       return;
     }
-  }, [holdingId, navigate, can]);
-
-  const holdingIdNumber = Number(holdingId);
+  }, [navigate, can]);
 
   const tabs = [
     {
       name: 'Дашборд',
       icon: ChartBarIcon,
-      component: <HoldingReportsDashboard holdingId={holdingIdNumber} />,
+      component: <HoldingReportsDashboard />,
       permission: 'multi-organization.reports.dashboard'
     },
     {
       name: 'Сравнение организаций',
       icon: BuildingOfficeIcon,
-      component: <OrganizationsComparison holdingId={holdingIdNumber} />,
+      component: <OrganizationsComparison />,
       permission: 'multi-organization.reports.comparison'
     },
     {
       name: 'Финансовый отчет',
       icon: CurrencyDollarIcon,
-      component: <FinancialReport holdingId={holdingIdNumber} />,
+      component: <FinancialReport />,
       permission: 'multi-organization.reports.financial'
     },
     {
       name: 'KPI метрики',
       icon: ClipboardDocumentListIcon,
-      component: <KpiReport holdingId={holdingIdNumber} />,
+      component: <KpiReport />,
       permission: 'multi-organization.reports.kpi'
     }
   ];
