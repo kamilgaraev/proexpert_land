@@ -29,6 +29,15 @@ import CustomRolesPage from '@pages/dashboard/CustomRolesPage';
 import HoldingRouter from '@/HoldingRouter';
 import MultiOrganizationPage from '@pages/dashboard/MultiOrganizationPage';
 
+// Multi-Organization v2.0 - Holding Panel
+import { HoldingPanelLayout } from '@layouts/HoldingPanelLayout';
+import {
+  HoldingDashboard,
+  HoldingProjectsList,
+  HoldingProjectDetail,
+  HoldingContractsList,
+} from '@components/multi-org';
+
 // Contractor Invitations
 import ContractorInvitationsPage from '@pages/dashboard/contractor-invitations/ContractorInvitationsPage';
 import ContractorInvitationTokenPage from '@pages/dashboard/contractor-invitations/ContractorInvitationTokenPage';
@@ -297,6 +306,19 @@ function App() {
               <MultiOrganizationPage />
             </ProtectedComponent>
           } />
+        </Route>
+
+        {/* Holding Panel v2.0 - Панель управления холдингом */}
+        <Route path="/landing/multi-organization" element={
+          <DashboardProtectedRoute>
+            <HoldingPanelLayout />
+          </DashboardProtectedRoute>
+        }>
+          <Route index element={<Navigate to="/landing/multi-organization/dashboard" replace />} />
+          <Route path="dashboard" element={<HoldingDashboard />} />
+          <Route path="projects" element={<HoldingProjectsList />} />
+          <Route path="projects/:id" element={<HoldingProjectDetail />} />
+          <Route path="contracts" element={<HoldingContractsList />} />
         </Route>
         
         {/* Административные маршруты */}

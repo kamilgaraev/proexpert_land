@@ -189,7 +189,8 @@ const DashboardLayout = () => {
       
       baseNavigation.push({
         name: isHoldingOrg ? 'Панель холдинга' : 'Мультиорганизация', 
-        href: '/dashboard/multi-organization', 
+        // Holding организации идут на новую панель v2.0, остальные на старую страницу создания
+        href: isHoldingOrg ? '/landing/multi-organization/dashboard' : '/dashboard/multi-organization', 
         icon: BuildingOffice2Icon,
         description: isHoldingOrg 
           ? 'Управление холдингом и дочерними организациями'
