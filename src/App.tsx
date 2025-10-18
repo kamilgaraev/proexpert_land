@@ -27,7 +27,7 @@ import SubscriptionLimitsPage from '@pages/dashboard/SubscriptionLimitsPage';
 import ModulesPage from '@pages/dashboard/ModulesPage';
 import CustomRolesPage from '@pages/dashboard/CustomRolesPage';
 import HoldingRouter from '@/HoldingRouter';
-import { MultiOrganizationPage } from '@pages/dashboard/multi-organization';
+import MultiOrganizationPage from '@pages/dashboard/MultiOrganizationPage';
 
 // Contractor Invitations
 import ContractorInvitationsPage from '@pages/dashboard/contractor-invitations/ContractorInvitationsPage';

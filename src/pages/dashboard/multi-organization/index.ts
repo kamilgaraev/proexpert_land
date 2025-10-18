@@ -1,2 +1,0 @@
-export { MultiOrganizationPage } from './MultiOrganizationPage';
-
