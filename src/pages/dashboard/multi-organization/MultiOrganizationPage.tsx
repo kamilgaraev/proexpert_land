@@ -4,10 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   multiOrganizationService, 
   CreateHoldingRequest,
-  AddChildOrganizationRequest,
-  HoldingOrganization,
 } from '@/utils/api';
-import { getTokenFromStorages } from '@/utils/api';
 import { 
   BuildingOfficeIcon, 
   RocketLaunchIcon,
@@ -15,9 +12,6 @@ import {
   UsersIcon,
   CheckCircleIcon,
   XCircleIcon,
-  PlusIcon,
-  TrashIcon,
-  PencilIcon,
 } from '@heroicons/react/24/outline';
 
 export const MultiOrganizationPage = () => {
@@ -42,10 +36,6 @@ export const MultiOrganizationPage = () => {
       unified_billing: true,
     },
   });
-
-  // Дочерние организации (если уже холдинг)
-  const [childOrganizations, setChildOrganizations] = useState<HoldingOrganization[]>([]);
-  const [showAddChildModal, setShowAddChildModal] = useState(false);
 
   useEffect(() => {
     setLoading(false);

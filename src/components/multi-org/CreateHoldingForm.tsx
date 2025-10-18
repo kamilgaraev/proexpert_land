@@ -16,7 +16,6 @@ interface CreateHoldingFormProps {
 }
 
 export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingFormProps) => {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState<CreateHoldingRequest>({
     name: `${organizationName} Холдинг`,
     description: '',
