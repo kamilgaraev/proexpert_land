@@ -1770,14 +1770,7 @@ export const multiOrganizationService = {
   },
 
   getHoldingPublicInfo: async (slug: string): Promise<HoldingPublicData> => {
-    const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
-    let url: string;
-    
-    if (isLocalDev) {
-      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}`;
-    } else {
-      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}`;
-    }
+    const url = `https://${slug}.prohelper.pro/api/site-data`;
     
     const response = await fetch(url, {
       method: 'GET',
@@ -1801,14 +1794,7 @@ export const multiOrganizationService = {
   },
 
   getHoldingDashboardInfo: async (slug: string, token: string): Promise<HoldingDashboardData> => {
-    const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
-    let url: string;
-    
-    if (isLocalDev) {
-      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/dashboard`;
-    } else {
-      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/dashboard`;
-    }
+    const url = `https://${slug}.prohelper.pro/dashboard`;
     
     const response = await fetch(url, {
       method: 'GET',
@@ -1836,14 +1822,7 @@ export const multiOrganizationService = {
   },
 
   getHoldingOrganizations: async (slug: string, token: string): Promise<any[]> => {
-    const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
-    let url: string;
-    
-    if (isLocalDev) {
-      url = `/api/v1/multi-organization/accessible`;
-    } else {
-      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/organizations`;
-    }
+    const url = `https://${slug}.prohelper.pro/organizations`;
     
     const response = await fetch(url, {
       method: 'GET',
