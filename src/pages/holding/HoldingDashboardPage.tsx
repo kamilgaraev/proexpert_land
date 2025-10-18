@@ -8,7 +8,6 @@ import {
   ChartBarIcon,
   ArrowTrendingUpIcon,
   ClockIcon,
-  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 import { multiOrganizationService, getTokenFromStorages } from '@utils/api';
 import type { HoldingDashboardData } from '@utils/api';

@@ -8,7 +8,7 @@ import {
   ClipboardDocumentListIcon,
 } from '@heroicons/react/24/outline';
 import { SEOHead } from '@components/shared/SEOHead';
-import { PageHeader, LoadingSpinner } from '@components/holding/shared';
+import { PageHeader } from '@components/holding/shared';
 import HoldingReportsDashboard from '@/components/holding/HoldingReportsDashboard';
 import OrganizationsComparison from '@/components/holding/OrganizationsComparison';
 import FinancialReport from '@/components/holding/FinancialReport';

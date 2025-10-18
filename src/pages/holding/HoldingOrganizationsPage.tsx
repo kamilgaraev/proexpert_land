@@ -7,15 +7,12 @@ import {
   FolderOpenIcon,
   PlusIcon,
   EyeIcon,
-  MapPinIcon,
   PhoneIcon,
   EnvelopeIcon,
   BanknotesIcon,
   MagnifyingGlassIcon,
   FunnelIcon,
   ChartBarIcon,
-  PencilIcon,
-  TrashIcon,
   ArrowDownTrayIcon,
   Squares2X2Icon,
   ListBulletIcon,
@@ -31,7 +28,6 @@ const HoldingOrganizationsPage = () => {
   const [holdingName, setHoldingName] = useState<string>('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedOrganization, setSelectedOrganization] = useState<HoldingOrganization | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const navigate = useNavigate();
@@ -389,7 +385,7 @@ const HoldingOrganizationsPage = () => {
                     </div>
                   </div>
                   <button 
-                    onClick={() => setSelectedOrganization(org)}
+                    onClick={() => {}}
                     className="text-gray-400 hover:text-orange-600 transition-colors"
                   >
                     <EyeIcon className="h-5 w-5" />
@@ -531,7 +527,7 @@ const HoldingOrganizationsPage = () => {
               key: 'actions',
               label: 'Действия',
               width: '120px',
-              render: (org) => (
+              render: () => (
                 <div className="flex gap-2">
                   <button className="text-orange-600 hover:text-orange-700 transition-colors">
                     <EyeIcon className="h-5 w-5" />

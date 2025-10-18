@@ -33,7 +33,6 @@ const HoldingReportsDashboard: React.FC = () => {
     formatCurrency,
     formatPercent,
     formatDate,
-    getTrendIcon
   } = useHoldingDashboard();
 
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -243,7 +242,7 @@ const HoldingReportsDashboard: React.FC = () => {
         </div>
       )}
 
-      {dashboardData?.organization_breakdown?.length > 0 && (
+      {dashboardData?.organization_breakdown && dashboardData.organization_breakdown.length > 0 && (
         <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-orange-50 to-blue-50 px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-bold text-gray-900">Показатели по организациям</h3>
@@ -262,7 +261,7 @@ const HoldingReportsDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {dashboardData.organization_breakdown.map((org) => (
+                {(dashboardData?.organization_breakdown || []).map((org) => (
                   <tr key={org.organization_id} className="hover:bg-orange-50/50 transition-colors">
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
