@@ -1,4 +1,4 @@
-import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useOrganizationContext } from '@/hooks/useOrganizationContext';
 import { OrganizationContextBadge } from '@/components/multi-org/OrganizationContextBadge';
 import { MultiOrgErrorBoundary } from '@/components/multi-org/MultiOrgErrorBoundary';

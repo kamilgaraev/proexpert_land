@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios from 'axios';
 import type {
   HoldingDashboardData,
   ProjectWithOrganization,
@@ -14,7 +14,7 @@ import { getTokenFromStorages } from './api';
 const API_BASE_DOMAIN = 'https://api.prohelper.pro';
 const MULTI_ORG_API_URL = `${API_BASE_DOMAIN}/api/v1/landing/multi-organization`;
 
-const createApiClient = (): AxiosInstance => {
+const createApiClient = () => {
   const client = axios.create({
     baseURL: MULTI_ORG_API_URL,
     headers: {

@@ -41,7 +41,6 @@ export const HoldingProjectsList = () => {
   const {
     options,
     selectedOrgIds,
-    selectOrganization,
     setSelectedOrgIds,
   } = useHoldingFilters();
 

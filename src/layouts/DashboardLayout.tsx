@@ -183,7 +183,8 @@ const DashboardLayout = () => {
     const baseNavigation = allNavigationItems.filter(item => item.visible);
 
     // Добавляем панель холдинга только если модуль активирован, есть права И организация является холдингом
-    const isHoldingOrg = user?.organization?.organization_type === 'holding';
+    const userOrg = user && 'organization' in user ? (user.organization as any) : null;
+    const isHoldingOrg = userOrg?.organization_type === 'holding';
     if (hasMultiOrgAccess && canManageMultiOrg && isHoldingOrg) {
       baseNavigation.push({
         name: 'Панель холдинга', 

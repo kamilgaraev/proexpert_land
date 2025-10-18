@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { multiOrgApiV2 } from '@/utils/multiOrganizationApiV2';
 import type { HoldingDashboardData } from '@/types/multi-organization-v2';
-import { getErrorMessage, handleMultiOrgApiError } from '@/utils/multiOrgErrorHandler';
+import { getErrorMessage } from '@/utils/multiOrgErrorHandler';
 
 export const useHoldingDashboard = () => {
   const [data, setData] = useState<HoldingDashboardData | null>(null);

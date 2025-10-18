@@ -16,14 +16,15 @@ export const useOrganizationContext = () => {
   const [context, setContext] = useState<OrganizationContextInfo | null>(null);
 
   useEffect(() => {
-    if (user?.organization) {
-      const isHolding = user.organization.organization_type === 'holding' || false;
+    if (user && 'organization' in user && user.organization) {
+      const org = user.organization as any;
+      const isHolding = org.organization_type === 'holding' || false;
       
       setContext({
-        id: user.organization.id,
-        name: user.organization.name,
+        id: org.id,
+        name: org.name,
         is_holding: isHolding,
-        parent_organization_id: user.organization.parent_organization_id,
+        parent_organization_id: org.parent_organization_id,
         mode: 'admin',
       });
     }
