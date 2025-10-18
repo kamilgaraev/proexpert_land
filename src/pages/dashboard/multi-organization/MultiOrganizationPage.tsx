@@ -20,10 +20,10 @@ export const MultiOrganizationPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [isHoldingOrg, setIsHoldingOrg] = useState(false);
   
   // Проверяем тип организации
   const userOrg = user && 'organization' in user ? (user.organization as any) : null;
-  const isHoldingOrg = userOrg?.organization_type === 'holding';
 
   // Форма создания холдинга
   const [formData, setFormData] = useState<CreateHoldingRequest>({
@@ -38,7 +38,21 @@ export const MultiOrganizationPage = () => {
   });
 
   useEffect(() => {
-    setLoading(false);
+    const checkHoldingStatus = async () => {
+      try {
+        // Проверяем статус через API
+        const response = await multiOrganizationService.checkAvailability();
+        if (response.data?.data) {
+          setIsHoldingOrg(response.data.data.is_holding || false);
+        }
+      } catch (err) {
+        console.error('Ошибка проверки статуса холдинга:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkHoldingStatus();
   }, []);
 
   const handleCreateHolding = async (e: React.FormEvent) => {
@@ -67,10 +81,20 @@ export const MultiOrganizationPage = () => {
           window.location.reload();
         }
       } else {
-        setError(response.data?.message || 'Ошибка создания холдинга');
+        const errorMessage = response.data?.message || 'Ошибка создания холдинга';
+        // Если ошибка что холдинг уже существует - обновляем статус
+        if (errorMessage.includes('уже является холдингом')) {
+          setIsHoldingOrg(true);
+        }
+        setError(errorMessage);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Произошла ошибка при создании холдинга');
+      const errorMessage = err.response?.data?.message || err.message || 'Произошла ошибка при создании холдинга';
+      // Если ошибка что холдинг уже существует - обновляем статус
+      if (errorMessage.includes('уже является холдингом')) {
+        setIsHoldingOrg(true);
+      }
+      setError(errorMessage);
     } finally {
       setCreating(false);
     }
@@ -80,7 +104,7 @@ export const MultiOrganizationPage = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Загрузка...</p>
         </div>
       </div>
@@ -98,7 +122,7 @@ export const MultiOrganizationPage = () => {
       return (
         <div className="max-w-4xl mx-auto py-8">
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-12 text-white">
+            <div className="bg-gradient-to-r from-orange-600 to-orange-500 px-8 py-12 text-white">
               <div className="flex items-center justify-center mb-6">
                 <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
                   <CheckCircleIcon className="w-12 h-12" />
@@ -107,14 +131,14 @@ export const MultiOrganizationPage = () => {
               <h1 className="text-3xl font-bold text-center mb-3">
                 Холдинг уже создан!
               </h1>
-              <p className="text-center text-blue-100 max-w-2xl mx-auto">
+              <p className="text-center text-orange-100 max-w-2xl mx-auto">
                 Ваша организация преобразована в холдинг. Для управления дочерними организациями 
                 перейдите на специальный поддомен холдинга.
               </p>
             </div>
 
             <div className="p-8">
-              <div className="bg-blue-50 rounded-lg p-6 mb-6">
+              <div className="bg-orange-50 rounded-lg p-6 mb-6">
                 <h3 className="font-semibold text-gray-900 mb-3">
                   Перейдите на панель управления холдингом:
                 </h3>
@@ -127,7 +151,7 @@ export const MultiOrganizationPage = () => {
                     // Попробуем получить slug из userOrg или использовать название
                     window.location.href = 'https://proverocka.prohelper.pro/dashboard';
                   }}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-semibold"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-lg hover:from-orange-700 hover:to-orange-600 transition-all shadow-md hover:shadow-lg font-semibold"
                 >
                   <BuildingOfficeIcon className="w-5 h-5" />
                   Перейти на панель холдинга
@@ -151,7 +175,7 @@ export const MultiOrganizationPage = () => {
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-12 text-white">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-500 px-8 py-12 text-white">
           <div className="flex items-center justify-center mb-6">
             <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
               <RocketLaunchIcon className="w-12 h-12" />
@@ -160,7 +184,7 @@ export const MultiOrganizationPage = () => {
           <h2 className="text-3xl font-bold text-center mb-3">
             Создание холдинга
           </h2>
-          <p className="text-center text-blue-100 max-w-2xl mx-auto">
+          <p className="text-center text-orange-100 max-w-2xl mx-auto">
             Преобразуйте вашу организацию в холдинг для управления дочерними компаниями, 
             консолидации отчетности и централизованного контроля проектов
           </p>
@@ -188,7 +212,7 @@ export const MultiOrganizationPage = () => {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="Например: НеоСтрой Холдинг"
               />
             </div>
@@ -202,7 +226,7 @@ export const MultiOrganizationPage = () => {
                 rows={3}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
                 placeholder="Краткое описание деятельности холдинга..."
               />
             </div>
@@ -218,7 +242,7 @@ export const MultiOrganizationPage = () => {
                 max="100"
                 value={formData.max_child_organizations}
                 onChange={(e) => setFormData({ ...formData, max_child_organizations: parseInt(e.target.value) })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -234,7 +258,7 @@ export const MultiOrganizationPage = () => {
                     ...formData,
                     settings: { ...formData.settings, consolidated_reports: e.target.checked }
                   })}
-                  className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                  className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                 />
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-900">Консолидированная отчетность</div>
@@ -250,7 +274,7 @@ export const MultiOrganizationPage = () => {
                     ...formData,
                     settings: { ...formData.settings, shared_materials: e.target.checked }
                   })}
-                  className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                  className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                 />
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-900">Общие материалы</div>
@@ -266,7 +290,7 @@ export const MultiOrganizationPage = () => {
                     ...formData,
                     settings: { ...formData.settings, unified_billing: e.target.checked }
                   })}
-                  className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                  className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                 />
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-900">Единый биллинг</div>
@@ -277,9 +301,9 @@ export const MultiOrganizationPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <BuildingOfficeIcon className="w-6 h-6 text-blue-600" />
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <BuildingOfficeIcon className="w-6 h-6 text-orange-600" />
               </div>
               <h3 className="font-semibold text-gray-900 text-sm mb-1">Управление организациями</h3>
               <p className="text-xs text-gray-600">
@@ -297,9 +321,9 @@ export const MultiOrganizationPage = () => {
               </p>
             </div>
 
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <UsersIcon className="w-6 h-6 text-purple-600" />
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <UsersIcon className="w-6 h-6 text-orange-600" />
               </div>
               <h3 className="font-semibold text-gray-900 text-sm mb-1">Централизованный контроль</h3>
               <p className="text-xs text-gray-600">
@@ -308,9 +332,9 @@ export const MultiOrganizationPage = () => {
             </div>
           </div>
 
-          <div className="bg-blue-50 rounded-lg p-4 mb-6">
+          <div className="bg-orange-50 rounded-lg p-4 mb-6">
             <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-3">
-              <CheckCircleIcon className="w-5 h-5 text-blue-600" />
+              <CheckCircleIcon className="w-5 h-5 text-orange-600" />
               Что произойдет при создании:
             </h3>
             <ul className="space-y-2 text-sm text-gray-600">
@@ -339,7 +363,7 @@ export const MultiOrganizationPage = () => {
             <button
               type="submit"
               disabled={creating}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-semibold"
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-lg hover:from-orange-700 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-semibold"
             >
               {creating ? (
                 <>

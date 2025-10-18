@@ -64,8 +64,8 @@ export const HoldingPanelLayout = () => {
               {userOrg && (
                 <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
                   isHoldingOrg 
-                    ? 'bg-indigo-50 text-indigo-800 border-indigo-200' 
-                    : 'bg-blue-50 text-blue-800 border-blue-200'
+                    ? 'bg-orange-50 text-orange-800 border-orange-200' 
+                    : 'bg-orange-50 text-orange-800 border-orange-200'
                 }`}>
                   <BuildingOfficeIcon className="w-5 h-5" />
                   <div className="flex flex-col">
@@ -92,7 +92,7 @@ export const HoldingPanelLayout = () => {
                     to={item.href}
                     className={`flex items-center gap-2 px-3 py-4 border-b-2 text-sm font-medium transition-colors ${
                       isActive
-                        ? 'border-indigo-600 text-indigo-600'
+                        ? 'border-orange-600 text-orange-600'
                         : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
                     }`}
                   >

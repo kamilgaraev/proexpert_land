@@ -66,7 +66,7 @@ export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingF
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-12 text-white">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-500 px-8 py-12 text-white">
           <div className="flex items-center justify-center mb-6">
             <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
               <RocketLaunchIcon className="w-12 h-12" />
@@ -75,7 +75,7 @@ export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingF
           <h1 className="text-3xl font-bold text-center mb-3">
             Создание холдинга
           </h1>
-          <p className="text-center text-blue-100 max-w-2xl mx-auto">
+          <p className="text-center text-orange-100 max-w-2xl mx-auto">
             Преобразуйте вашу организацию в холдинг для управления дочерними компаниями, 
             консолидации отчетности и централизованного контроля проектов
           </p>
@@ -103,7 +103,7 @@ export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingF
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 placeholder="Например: НеоСтрой Холдинг"
               />
               <p className="mt-1 text-sm text-gray-500">
@@ -120,7 +120,7 @@ export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingF
                 rows={3}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
                 placeholder="Краткое описание деятельности холдинга..."
               />
             </div>
@@ -136,7 +136,7 @@ export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingF
                 max="100"
                 value={formData.max_child_organizations}
                 onChange={(e) => setFormData({ ...formData, max_child_organizations: parseInt(e.target.value) })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -152,7 +152,7 @@ export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingF
                     ...formData,
                     settings: { ...formData.settings, consolidated_reports: e.target.checked }
                   })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                 />
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-900">Консолидированная отчетность</div>
@@ -168,7 +168,7 @@ export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingF
                     ...formData,
                     settings: { ...formData.settings, shared_materials: e.target.checked }
                   })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                 />
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-900">Общие материалы</div>
@@ -184,7 +184,7 @@ export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingF
                     ...formData,
                     settings: { ...formData.settings, unified_billing: e.target.checked }
                   })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                 />
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-900">Единый биллинг</div>
@@ -195,9 +195,9 @@ export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingF
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <BuildingOfficeIcon className="w-6 h-6 text-blue-600" />
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <BuildingOfficeIcon className="w-6 h-6 text-orange-600" />
               </div>
               <h3 className="font-semibold text-gray-900 text-sm mb-1">Управление организациями</h3>
               <p className="text-xs text-gray-600">
@@ -226,9 +226,9 @@ export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingF
             </div>
           </div>
 
-          <div className="bg-blue-50 rounded-lg p-4 mb-6">
+          <div className="bg-orange-50 rounded-lg p-4 mb-6">
             <h3 className="flex items-center gap-2 font-semibold text-gray-900 mb-3">
-              <CheckCircleIcon className="w-5 h-5 text-blue-600" />
+              <CheckCircleIcon className="w-5 h-5 text-orange-600" />
               Что произойдет при создании:
             </h3>
             <ul className="space-y-2 text-sm text-gray-600">
@@ -263,7 +263,7 @@ export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingF
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-semibold"
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-lg hover:from-orange-700 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-semibold"
             >
               {loading ? (
                 <>
