@@ -1,6 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { useOrganizationContext } from '@/hooks/useOrganizationContext';
-import { OrganizationContextBadge } from '@/components/multi-org/OrganizationContextBadge';
+import { useAuth } from '@/hooks/useAuth';
 import { MultiOrgErrorBoundary } from '@/components/multi-org/MultiOrgErrorBoundary';
 import { 
   ChartBarIcon, 
@@ -28,20 +27,23 @@ const navigation = [
 ];
 
 export const HoldingPanelLayout = () => {
-  const { context, canAccessHoldingPanel } = useOrganizationContext();
+  const { user, isLoading } = useAuth();
   const location = useLocation();
 
-  if (!context) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">Загрузка контекста организации...</p>
+          <p className="text-gray-500 mb-4">Загрузка...</p>
         </div>
       </div>
     );
   }
 
-  if (!canAccessHoldingPanel()) {
+  const userOrg = user && 'organization' in user ? (user.organization as any) : null;
+  const isHoldingOrg = userOrg?.organization_type === 'holding';
+
+  if (!isHoldingOrg) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
@@ -77,14 +79,15 @@ export const HoldingPanelLayout = () => {
                 </Link>
                 <h1 className="text-xl font-bold text-gray-900">Панель холдинга</h1>
               </div>
-              <OrganizationContextBadge
-                currentOrg={{
-                  id: context.id,
-                  name: context.name,
-                  is_holding: context.is_holding,
-                }}
-                mode="holding"
-              />
+              {userOrg && (
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-purple-100 text-purple-800 border-purple-200">
+                  <BuildingOfficeIcon className="w-5 h-5" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold">{userOrg.name}</span>
+                    <span className="text-xs opacity-75">Режим холдинга</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </header>
