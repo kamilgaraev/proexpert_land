@@ -3,11 +3,7 @@ import { useHoldingReports } from '@/hooks/useHoldingReports';
 import { usePermissionsContext } from '@/contexts/PermissionsContext';
 import { useTheme } from '@components/shared/ThemeProvider';
 
-interface KpiReportProps {
-  holdingId: number;
-}
-
-const KpiReport: React.FC<KpiReportProps> = ({ holdingId }) => {
+const KpiReport: React.FC = () => {
   const { can } = usePermissionsContext();
   const { getThemeClasses } = useTheme();
   const theme = getThemeClasses();
@@ -31,7 +27,7 @@ const KpiReport: React.FC<KpiReportProps> = ({ holdingId }) => {
 
   const loadKpiReport = async (selectedPeriod?: string) => {
     const targetPeriod = selectedPeriod || period;
-    await fetchKpiReport(holdingId, targetPeriod);
+    await fetchKpiReport(targetPeriod);
   };
 
   const handlePeriodChange = async (newPeriod: string) => {

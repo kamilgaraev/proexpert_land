@@ -24,7 +24,6 @@ import type {
 } from '@/types/holding-landing';
 
 const LandingEditorPage: React.FC = () => {
-  const { holdingId } = useParams<{ holdingId: string }>();
   const navigate = useNavigate();
   const { can } = usePermissionsContext();
   const { getThemeClasses } = useTheme();
@@ -68,18 +67,10 @@ const LandingEditorPage: React.FC = () => {
   const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!holdingId) return;
-    
-    const numericHoldingId = parseInt(holdingId);
-    if (isNaN(numericHoldingId)) {
-      navigate('/dashboard');
-      return;
-    }
-
-    fetchLanding(numericHoldingId);
-    fetchBlocks(numericHoldingId);
-    fetchAssets(numericHoldingId);
-  }, [holdingId, fetchLanding, fetchBlocks, fetchAssets, navigate]);
+    fetchLanding();
+    fetchBlocks();
+    fetchAssets();
+  }, [fetchLanding, fetchBlocks, fetchAssets]);
 
   if (!can('multi-organization.website.view')) {
     return (
@@ -115,14 +106,12 @@ const LandingEditorPage: React.FC = () => {
   }
 
   const handlePublish = async () => {
-    if (!holdingId) return;
-    
     if (hasUnsavedChanges) {
       const shouldSave = confirm('У вас есть несохраненные изменения. Продолжить публикацию?');
       if (!shouldSave) return;
     }
     
-    const result = await publishLanding(parseInt(holdingId));
+    const result = await publishLanding();
     if (result) {
       alert('Лендинг успешно опубликован!');
     }
@@ -213,10 +202,8 @@ const LandingEditorPage: React.FC = () => {
   };
 
   const handleAddBlock = async (blockType: BlockType) => {
-    if (!holdingId) return;
-    
     const blockConfig = blockTypes.find(b => b.type === blockType);
-    const newBlock = await createBlock(parseInt(holdingId), {
+    const newBlock = await createBlock({
       block_type: blockType,
       title: blockConfig?.name || 'Новый блок',
       content: getDefaultContent(blockType),
@@ -244,11 +231,11 @@ const LandingEditorPage: React.FC = () => {
           blocks={blocks}
           selectedBlockId={selectedBlockId}
           onSelectBlock={setSelectedBlockId}
-          onUpdateBlock={(blockId: number, data: UpdateBlockRequest) => updateBlock(parseInt(holdingId!), blockId, data)}
-          onPublishBlock={(blockId: number) => publishBlock(parseInt(holdingId!), blockId)}
-          onDuplicateBlock={(blockId: number) => duplicateBlock(parseInt(holdingId!), blockId)}
-          onDeleteBlock={(blockId: number) => deleteBlock(parseInt(holdingId!), blockId)}
-          onReorderBlocks={(order: number[]) => reorderBlocks(parseInt(holdingId!), order)}
+          onUpdateBlock={(blockId: number, data: UpdateBlockRequest) => updateBlock(blockId, data)}
+          onPublishBlock={(blockId: number) => publishBlock(blockId)}
+          onDuplicateBlock={(blockId: number) => duplicateBlock(blockId)}
+          onDeleteBlock={(blockId: number) => deleteBlock(blockId)}
+          onReorderBlocks={(order: { id: number; sort_order: number }[]) => reorderBlocks(order)}
           loading={blocksLoading}
           error={blocksError}
         />
@@ -260,9 +247,9 @@ const LandingEditorPage: React.FC = () => {
       component: (
         <MediaManager 
           assets={assets}
-          onUpload={(file: File, context?: AssetUsageContext, metadata?: any) => uploadAsset(parseInt(holdingId!), file, context, metadata)}
-          onUpdate={(assetId: number, metadata: UpdateAssetRequest['metadata']) => updateAsset(parseInt(holdingId!), assetId, metadata)}
-          onDelete={(assetId: number) => deleteAsset(parseInt(holdingId!), assetId)}
+          onUpload={(file: File, context?: AssetUsageContext, metadata?: any) => uploadAsset(file, context, metadata)}
+          onUpdate={(assetId: number, metadata: UpdateAssetRequest['metadata']) => updateAsset(assetId, metadata)}
+          onDelete={(assetId: number) => deleteAsset(assetId)}
           loading={assetsLoading}
           error={assetsError}
         />
@@ -274,7 +261,7 @@ const LandingEditorPage: React.FC = () => {
       component: (
         <LandingSettings 
           landing={landing}
-          onUpdate={(data: UpdateLandingRequest) => updateLanding(parseInt(holdingId!), data)}
+          onUpdate={(data: UpdateLandingRequest) => updateLanding(data)}
           loading={landingLoading}
           error={landingError}
         />

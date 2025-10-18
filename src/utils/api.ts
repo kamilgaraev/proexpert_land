@@ -2479,12 +2479,14 @@ export const landingService = {
 
 export const holdingReportsService = {
   // Основной дашборд холдинга
-  getDashboard: async (holdingId: number, period?: string): Promise<{ data: any, status: number, statusText: string }> => {
+  getDashboard: async (period?: string, fromDate?: string, toDate?: string): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = new URL(`${API_URL}/holdings/${holdingId}/reports/dashboard`);
+    const url = new URL(`${API_URL}/holding/analytics/dashboard`);
     if (period) url.searchParams.append('period', period);
+    if (fromDate) url.searchParams.append('from_date', fromDate);
+    if (toDate) url.searchParams.append('to_date', toDate);
 
     const options: RequestInit = {
       method: 'GET',
@@ -2500,11 +2502,13 @@ export const holdingReportsService = {
   },
 
   // Сравнение организаций
-  getOrganizationsComparison: async (holdingId: number, period?: string): Promise<{ data: any, status: number, statusText: string }> => {
+  getOrganizationsComparison: async (metrics?: string, organizationIds?: number[], period?: string): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = new URL(`${API_URL}/holdings/${holdingId}/reports/organizations-comparison`);
+    const url = new URL(`${API_URL}/holding/analytics/comparison`);
+    if (metrics) url.searchParams.append('metrics', metrics);
+    if (organizationIds?.length) url.searchParams.append('organization_ids', organizationIds.join(','));
     if (period) url.searchParams.append('period', period);
 
     const options: RequestInit = {
@@ -2521,13 +2525,15 @@ export const holdingReportsService = {
   },
 
   // Финансовый отчет
-  getFinancialReport: async (holdingId: number, startDate: string, endDate: string): Promise<{ data: any, status: number, statusText: string }> => {
+  getFinancialReport: async (period: string, fromDate: string, toDate: string, breakdownBy?: string): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = new URL(`${API_URL}/holdings/${holdingId}/reports/financial`);
-    url.searchParams.append('start_date', startDate);
-    url.searchParams.append('end_date', endDate);
+    const url = new URL(`${API_URL}/holding/analytics/financial`);
+    url.searchParams.append('period', period);
+    url.searchParams.append('from_date', fromDate);
+    url.searchParams.append('to_date', toDate);
+    if (breakdownBy) url.searchParams.append('breakdown_by', breakdownBy);
 
     const options: RequestInit = {
       method: 'GET',
@@ -2543,11 +2549,11 @@ export const holdingReportsService = {
   },
 
   // KPI метрики
-  getKpiReport: async (holdingId: number, period?: string): Promise<{ data: any, status: number, statusText: string }> => {
+  getKpiReport: async (period?: string): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = new URL(`${API_URL}/holdings/${holdingId}/reports/kpi`);
+    const url = new URL(`${API_URL}/holding/analytics/kpi`);
     if (period) url.searchParams.append('period', period);
 
     const options: RequestInit = {
@@ -2564,11 +2570,11 @@ export const holdingReportsService = {
   },
 
   // Быстрые метрики для виджетов
-  getQuickMetrics: async (holdingId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  getQuickMetrics: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = `${API_URL}/holdings/${holdingId}/reports/quick-metrics`;
+    const url = `${API_URL}/holding/analytics/quick-metrics`;
     const options: RequestInit = {
       method: 'GET',
       headers: {
@@ -2583,11 +2589,11 @@ export const holdingReportsService = {
   },
 
   // Очистка кэша
-  clearCache: async (holdingId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  clearCache: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = `${API_URL}/holdings/${holdingId}/reports/cache`;
+    const url = `${API_URL}/holding/analytics/cache`;
     const options: RequestInit = {
       method: 'DELETE',
       headers: {
@@ -2639,10 +2645,10 @@ if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(win
 // API сервис для управления лендингами холдингов
 export const holdingLandingService = {
   // Управление лендингом холдинга
-  getLanding: async (holdingId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  getLanding: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing`, {
+    const response = await fetch(`${API_URL}/holding/site`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2659,10 +2665,10 @@ export const holdingLandingService = {
     };
   },
 
-  updateLanding: async (holdingId: number, landingData: any): Promise<{ data: any, status: number, statusText: string }> => {
+  updateLanding: async (landingData: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing`, {
+    const response = await fetch(`${API_URL}/holding/site`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2680,10 +2686,10 @@ export const holdingLandingService = {
     };
   },
 
-  publishLanding: async (holdingId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  publishLanding: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/publish`, {
+    const response = await fetch(`${API_URL}/holding/site/publish`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2701,7 +2707,7 @@ export const holdingLandingService = {
   },
 
   // Управление блоками контента
-  getBlocks: async (holdingId: number, filters?: any): Promise<{ data: any, status: number, statusText: string }> => {
+  getBlocks: async (filters?: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     const params = new URLSearchParams();
     
@@ -2715,7 +2721,7 @@ export const holdingLandingService = {
     
     const queryString = params.toString() ? `?${params.toString()}` : '';
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks${queryString}`, {
+    const response = await fetch(`${API_URL}/holding/site/blocks${queryString}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2732,10 +2738,10 @@ export const holdingLandingService = {
     };
   },
 
-  createBlock: async (holdingId: number, blockData: any): Promise<{ data: any, status: number, statusText: string }> => {
+  createBlock: async (blockData: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks`, {
+    const response = await fetch(`${API_URL}/holding/site/blocks`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2753,10 +2759,10 @@ export const holdingLandingService = {
     };
   },
 
-  updateBlock: async (holdingId: number, blockId: number, blockData: any): Promise<{ data: any, status: number, statusText: string }> => {
+  updateBlock: async (blockId: number, blockData: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks/${blockId}`, {
+    const response = await fetch(`${API_URL}/holding/site/blocks/${blockId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2774,10 +2780,10 @@ export const holdingLandingService = {
     };
   },
 
-  publishBlock: async (holdingId: number, blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  publishBlock: async (blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks/${blockId}/publish`, {
+    const response = await fetch(`${API_URL}/holding/site/blocks/${blockId}/publish`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2794,10 +2800,10 @@ export const holdingLandingService = {
     };
   },
 
-  duplicateBlock: async (holdingId: number, blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  duplicateBlock: async (blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks/${blockId}/duplicate`, {
+    const response = await fetch(`${API_URL}/holding/site/blocks/${blockId}/duplicate`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2814,10 +2820,10 @@ export const holdingLandingService = {
     };
   },
 
-  deleteBlock: async (holdingId: number, blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  deleteBlock: async (blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks/${blockId}`, {
+    const response = await fetch(`${API_URL}/holding/site/blocks/${blockId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2834,17 +2840,17 @@ export const holdingLandingService = {
     };
   },
 
-  reorderBlocks: async (holdingId: number, blockOrder: number[]): Promise<{ data: any, status: number, statusText: string }> => {
+  reorderBlocks: async (blockOrder: { id: number; sort_order: number }[]): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/blocks/reorder`, {
+    const response = await fetch(`${API_URL}/holding/site/blocks/reorder`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify({ block_order: blockOrder })
+      body: JSON.stringify({ blocks: blockOrder })
     });
 
     const data = await response.json();
@@ -2856,7 +2862,7 @@ export const holdingLandingService = {
   },
 
   // Управление медиафайлами
-  getAssets: async (holdingId: number, filters?: any): Promise<{ data: any, status: number, statusText: string }> => {
+  getAssets: async (filters?: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     const params = new URLSearchParams();
     
@@ -2870,7 +2876,7 @@ export const holdingLandingService = {
     
     const queryString = params.toString() ? `?${params.toString()}` : '';
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/assets${queryString}`, {
+    const response = await fetch(`${API_URL}/holding/site/assets${queryString}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2887,7 +2893,7 @@ export const holdingLandingService = {
     };
   },
 
-  uploadAsset: async (holdingId: number, file: File, usageContext?: string, metadata?: any): Promise<{ data: any, status: number, statusText: string }> => {
+  uploadAsset: async (file: File, usageContext?: string, metadata?: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
     const formData = new FormData();
@@ -2899,7 +2905,7 @@ export const holdingLandingService = {
       formData.append('metadata', JSON.stringify(metadata));
     }
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/assets`, {
+    const response = await fetch(`${API_URL}/holding/site/assets`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2916,10 +2922,10 @@ export const holdingLandingService = {
     };
   },
 
-  updateAsset: async (holdingId: number, assetId: number, metadata: any): Promise<{ data: any, status: number, statusText: string }> => {
+  updateAsset: async (assetId: number, metadata: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/assets/${assetId}`, {
+    const response = await fetch(`${API_URL}/holding/site/assets/${assetId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -2937,10 +2943,10 @@ export const holdingLandingService = {
     };
   },
 
-  deleteAsset: async (holdingId: number, assetId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  deleteAsset: async (assetId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     
-    const response = await fetch(`${API_URL}/holdings/${holdingId}/landing/assets/${assetId}`, {
+    const response = await fetch(`${API_URL}/holding/site/assets/${assetId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -3,11 +3,7 @@ import { useHoldingDashboard } from '@/hooks/useHoldingReports';
 import { usePermissionsContext } from '@/contexts/PermissionsContext';
 import { useTheme } from '@components/shared/ThemeProvider';
 
-interface HoldingReportsDashboardProps {
-  holdingId: number;
-}
-
-const HoldingReportsDashboard: React.FC<HoldingReportsDashboardProps> = ({ holdingId }) => {
+const HoldingReportsDashboard: React.FC = () => {
   const { can } = usePermissionsContext();
   const { getThemeClasses } = useTheme();
   const theme = getThemeClasses();
@@ -27,7 +23,7 @@ const HoldingReportsDashboard: React.FC<HoldingReportsDashboardProps> = ({ holdi
     formatPercent,
     formatDate,
     getTrendIcon
-  } = useHoldingDashboard(holdingId);
+  } = useHoldingDashboard();
 
   const [autoRefresh, setAutoRefresh] = useState(false);
 

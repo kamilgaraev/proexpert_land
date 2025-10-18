@@ -3,11 +3,7 @@ import { useHoldingReports } from '@/hooks/useHoldingReports';
 import { usePermissionsContext } from '@/contexts/PermissionsContext';
 import { useTheme } from '@components/shared/ThemeProvider';
 
-interface FinancialReportProps {
-  holdingId: number;
-}
-
-const FinancialReport: React.FC<FinancialReportProps> = ({ holdingId }) => {
+const FinancialReport: React.FC = () => {
   const { can } = usePermissionsContext();
   const { getThemeClasses } = useTheme();
   const theme = getThemeClasses();
@@ -42,7 +38,7 @@ const FinancialReport: React.FC<FinancialReportProps> = ({ holdingId }) => {
 
   const loadFinancialReport = async () => {
     if (!startDate || !endDate) return;
-    await fetchFinancialReport(holdingId, startDate, endDate);
+    await fetchFinancialReport('custom', startDate, endDate);
   };
 
   const setQuickPeriod = (months: number) => {

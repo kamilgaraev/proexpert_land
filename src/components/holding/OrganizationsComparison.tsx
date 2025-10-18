@@ -3,11 +3,7 @@ import { useHoldingReports } from '@/hooks/useHoldingReports';
 import { usePermissionsContext } from '@/contexts/PermissionsContext';
 import { useTheme } from '@components/shared/ThemeProvider';
 
-interface OrganizationsComparisonProps {
-  holdingId: number;
-}
-
-const OrganizationsComparison: React.FC<OrganizationsComparisonProps> = ({ holdingId }) => {
+const OrganizationsComparison: React.FC = () => {
   const { can } = usePermissionsContext();
   const { getThemeClasses } = useTheme();
   const theme = getThemeClasses();
@@ -29,7 +25,7 @@ const OrganizationsComparison: React.FC<OrganizationsComparisonProps> = ({ holdi
 
   const loadComparison = async (selectedPeriod?: string) => {
     const targetPeriod = selectedPeriod || period;
-    await fetchOrganizationsComparison(holdingId, targetPeriod);
+    await fetchOrganizationsComparison(undefined, undefined, targetPeriod);
   };
 
   const handlePeriodChange = async (newPeriod: string) => {

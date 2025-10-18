@@ -18,11 +18,11 @@ export const useHoldingLanding = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchLanding = useCallback(async (holdingId: number) => {
+  const fetchLanding = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.getLanding(holdingId);
+      const response = await holdingLandingService.getLanding();
       if (response.status === 200) {
         setLanding(response.data);
       } else {
@@ -36,11 +36,11 @@ export const useHoldingLanding = () => {
     }
   }, []);
 
-  const updateLanding = useCallback(async (holdingId: number, data: UpdateLandingRequest) => {
+  const updateLanding = useCallback(async (data: UpdateLandingRequest) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.updateLanding(holdingId, data);
+      const response = await holdingLandingService.updateLanding(data);
       if (response.status === 200) {
         setLanding(prev => prev ? { ...prev, ...response.data } : response.data);
         return true;
@@ -57,11 +57,11 @@ export const useHoldingLanding = () => {
     }
   }, []);
 
-  const publishLanding = useCallback(async (holdingId: number) => {
+  const publishLanding = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.publishLanding(holdingId);
+      const response = await holdingLandingService.publishLanding();
       if (response.status === 200) {
         setLanding(prev => prev ? { ...prev, status: 'published', is_published: true } : null);
         return response.data;
@@ -94,11 +94,11 @@ export const useLandingBlocks = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBlocks = useCallback(async (holdingId: number, filters?: BlockFilters) => {
+  const fetchBlocks = useCallback(async (filters?: BlockFilters) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.getBlocks(holdingId, filters);
+      const response = await holdingLandingService.getBlocks(filters);
       if (response.status === 200) {
         const blocksData = Array.isArray(response.data) ? response.data : [];
         setBlocks(blocksData);
@@ -115,11 +115,11 @@ export const useLandingBlocks = () => {
     }
   }, []);
 
-  const createBlock = useCallback(async (holdingId: number, blockData: CreateBlockRequest) => {
+  const createBlock = useCallback(async (blockData: CreateBlockRequest) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.createBlock(holdingId, blockData);
+      const response = await holdingLandingService.createBlock(blockData);
       if (response.status === 201 || response.status === 200) {
         setBlocks(prev => [...prev, response.data]);
         return response.data;
@@ -136,11 +136,11 @@ export const useLandingBlocks = () => {
     }
   }, []);
 
-  const updateBlock = useCallback(async (holdingId: number, blockId: number, blockData: UpdateBlockRequest) => {
+  const updateBlock = useCallback(async (blockId: number, blockData: UpdateBlockRequest) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.updateBlock(holdingId, blockId, blockData);
+      const response = await holdingLandingService.updateBlock(blockId, blockData);
       if (response.status === 200) {
         setBlocks(prev => prev.map(block => 
           block.id === blockId ? { ...block, ...response.data } : block
@@ -159,11 +159,11 @@ export const useLandingBlocks = () => {
     }
   }, []);
 
-  const publishBlock = useCallback(async (holdingId: number, blockId: number) => {
+  const publishBlock = useCallback(async (blockId: number) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.publishBlock(holdingId, blockId);
+      const response = await holdingLandingService.publishBlock(blockId);
       if (response.status === 200) {
         setBlocks(prev => prev.map(block => 
           block.id === blockId ? { ...block, status: 'published', published_at: new Date().toISOString() } : block
@@ -182,11 +182,11 @@ export const useLandingBlocks = () => {
     }
   }, []);
 
-  const duplicateBlock = useCallback(async (holdingId: number, blockId: number) => {
+  const duplicateBlock = useCallback(async (blockId: number) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.duplicateBlock(holdingId, blockId);
+      const response = await holdingLandingService.duplicateBlock(blockId);
       if (response.status === 201 || response.status === 200) {
         setBlocks(prev => [...prev, response.data]);
         return response.data;
@@ -203,11 +203,11 @@ export const useLandingBlocks = () => {
     }
   }, []);
 
-  const deleteBlock = useCallback(async (holdingId: number, blockId: number) => {
+  const deleteBlock = useCallback(async (blockId: number) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.deleteBlock(holdingId, blockId);
+      const response = await holdingLandingService.deleteBlock(blockId);
       if (response.status === 200 || response.status === 204) {
         setBlocks(prev => prev.filter(block => block.id !== blockId));
         return true;
@@ -224,17 +224,18 @@ export const useLandingBlocks = () => {
     }
   }, []);
 
-  const reorderBlocks = useCallback(async (holdingId: number, blockOrder: number[]) => {
+  const reorderBlocks = useCallback(async (blockOrder: { id: number; sort_order: number }[]) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.reorderBlocks(holdingId, blockOrder);
+      const response = await holdingLandingService.reorderBlocks(blockOrder);
       if (response.status === 200) {
-        // Переупорядочиваем блоки локально
-        const reorderedBlocks = blockOrder.map(blockId => 
-          blocks.find(block => block.id === blockId)!
-        ).filter(Boolean);
-        setBlocks(reorderedBlocks);
+        const sortedBlocks = [...blocks].sort((a, b) => {
+          const aOrder = blockOrder.find(o => o.id === a.id)?.sort_order || 0;
+          const bOrder = blockOrder.find(o => o.id === b.id)?.sort_order || 0;
+          return aOrder - bOrder;
+        });
+        setBlocks(sortedBlocks);
         return true;
       } else {
         setError(response.data?.message || 'Ошибка изменения порядка блоков');
@@ -270,11 +271,11 @@ export const useLandingAssets = () => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAssets = useCallback(async (holdingId: number, filters?: AssetFilters) => {
+  const fetchAssets = useCallback(async (filters?: AssetFilters) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.getAssets(holdingId, filters);
+      const response = await holdingLandingService.getAssets(filters);
       if (response.status === 200) {
         const assetsData = Array.isArray(response.data) ? response.data : [];
         setAssets(assetsData);
@@ -291,18 +292,17 @@ export const useLandingAssets = () => {
     }
   }, []);
 
-  const uploadAsset = useCallback(async (holdingId: number, file: File, usageContext?: string, metadata?: any) => {
+  const uploadAsset = useCallback(async (file: File, usageContext?: string, metadata?: any) => {
     setLoading(true);
     setError(null);
     setUploadProgress(0);
     
     try {
-      // Симуляция прогресса загрузки
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => Math.min(prev + 10, 90));
       }, 100);
 
-      const response = await holdingLandingService.uploadAsset(holdingId, file, usageContext, metadata);
+      const response = await holdingLandingService.uploadAsset(file, usageContext, metadata);
       
       clearInterval(progressInterval);
       setUploadProgress(100);
@@ -324,11 +324,11 @@ export const useLandingAssets = () => {
     }
   }, []);
 
-  const updateAsset = useCallback(async (holdingId: number, assetId: number, metadata: UpdateAssetRequest['metadata']) => {
+  const updateAsset = useCallback(async (assetId: number, metadata: UpdateAssetRequest['metadata']) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.updateAsset(holdingId, assetId, metadata);
+      const response = await holdingLandingService.updateAsset(assetId, metadata);
       if (response.status === 200) {
         setAssets(prev => prev.map(asset => 
           asset.id === assetId ? { ...asset, metadata: { ...asset.metadata, ...metadata } } : asset
@@ -347,11 +347,11 @@ export const useLandingAssets = () => {
     }
   }, []);
 
-  const deleteAsset = useCallback(async (holdingId: number, assetId: number) => {
+  const deleteAsset = useCallback(async (assetId: number) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await holdingLandingService.deleteAsset(holdingId, assetId);
+      const response = await holdingLandingService.deleteAsset(assetId);
       if (response.status === 200 || response.status === 204) {
         setAssets(prev => prev.filter(asset => asset.id !== assetId));
         return true;

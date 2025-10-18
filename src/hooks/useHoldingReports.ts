@@ -18,11 +18,11 @@ export const useHoldingReports = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDashboard = useCallback(async (holdingId: number, period?: string) => {
+  const fetchDashboard = useCallback(async (period?: string, fromDate?: string, toDate?: string) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await holdingReportsService.getDashboard(holdingId, period);
+      const response = await holdingReportsService.getDashboard(period, fromDate, toDate);
       
       if (response.data && response.data.success) {
         setDashboardData(response.data.data);
@@ -38,11 +38,11 @@ export const useHoldingReports = () => {
     }
   }, []);
 
-  const fetchOrganizationsComparison = useCallback(async (holdingId: number, period?: string) => {
+  const fetchOrganizationsComparison = useCallback(async (metrics?: string, organizationIds?: number[], period?: string) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await holdingReportsService.getOrganizationsComparison(holdingId, period);
+      const response = await holdingReportsService.getOrganizationsComparison(metrics, organizationIds, period);
       
       if (response.data && response.data.success) {
         setComparisonData(response.data.data);
@@ -58,11 +58,11 @@ export const useHoldingReports = () => {
     }
   }, []);
 
-  const fetchFinancialReport = useCallback(async (holdingId: number, startDate: string, endDate: string) => {
+  const fetchFinancialReport = useCallback(async (period: string, startDate: string, endDate: string, breakdownBy?: string) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await holdingReportsService.getFinancialReport(holdingId, startDate, endDate);
+      const response = await holdingReportsService.getFinancialReport(period, startDate, endDate, breakdownBy);
       
       if (response.data && response.data.success) {
         setFinancialData(response.data.data);
@@ -78,11 +78,11 @@ export const useHoldingReports = () => {
     }
   }, []);
 
-  const fetchKpiReport = useCallback(async (holdingId: number, period?: string) => {
+  const fetchKpiReport = useCallback(async (period?: string) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await holdingReportsService.getKpiReport(holdingId, period);
+      const response = await holdingReportsService.getKpiReport(period);
       
       if (response.data && response.data.success) {
         setKpiData(response.data.data);
@@ -98,11 +98,11 @@ export const useHoldingReports = () => {
     }
   }, []);
 
-  const fetchQuickMetrics = useCallback(async (holdingId: number) => {
+  const fetchQuickMetrics = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await holdingReportsService.getQuickMetrics(holdingId);
+      const response = await holdingReportsService.getQuickMetrics();
       
       if (response.data && response.data.success) {
         setQuickMetrics(response.data.data);
@@ -118,9 +118,9 @@ export const useHoldingReports = () => {
     }
   }, []);
 
-  const clearCache = useCallback(async (holdingId: number) => {
+  const clearCache = useCallback(async () => {
     try {
-      const response = await holdingReportsService.clearCache(holdingId);
+      const response = await holdingReportsService.clearCache();
       
       if (response.data && response.data.success) {
         toast.success(response.data.message || 'Кэш отчетов успешно очищен');
@@ -213,7 +213,7 @@ export const useHoldingReports = () => {
   };
 };
 
-export const useHoldingDashboard = (holdingId: number, initialPeriod?: string) => {
+export const useHoldingDashboard = (initialPeriod?: string) => {
   const {
     dashboardData,
     quickMetrics,
@@ -232,12 +232,12 @@ export const useHoldingDashboard = (holdingId: number, initialPeriod?: string) =
 
   const loadDashboard = useCallback(async (selectedPeriod?: string) => {
     const targetPeriod = selectedPeriod || period;
-    await fetchDashboard(holdingId, targetPeriod);
-  }, [fetchDashboard, holdingId, period]);
+    await fetchDashboard(targetPeriod);
+  }, [fetchDashboard, period]);
 
   const loadQuickMetrics = useCallback(async () => {
-    await fetchQuickMetrics(holdingId);
-  }, [fetchQuickMetrics, holdingId]);
+    await fetchQuickMetrics();
+  }, [fetchQuickMetrics]);
 
   const refreshData = useCallback(async () => {
     await Promise.all([
@@ -247,9 +247,9 @@ export const useHoldingDashboard = (holdingId: number, initialPeriod?: string) =
   }, [loadDashboard, loadQuickMetrics]);
 
   const clearAndRefresh = useCallback(async () => {
-    await clearCache(holdingId);
+    await clearCache();
     await refreshData();
-  }, [clearCache, holdingId, refreshData]);
+  }, [clearCache, refreshData]);
 
   return {
     dashboardData,
