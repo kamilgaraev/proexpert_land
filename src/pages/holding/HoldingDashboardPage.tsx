@@ -1,68 +1,26 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   BuildingOfficeIcon,
   UsersIcon,
   FolderOpenIcon,
   DocumentTextIcon,
   ChartBarIcon,
-  CogIcon,
-  PlusIcon,
-  SwatchIcon,
-  HomeIcon,
-  Bars3Icon,
-  XMarkIcon,
+  ArrowTrendingUpIcon,
+  ClockIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 import { multiOrganizationService, getTokenFromStorages } from '@utils/api';
 import type { HoldingDashboardData } from '@utils/api';
 import { SEOHead } from '@components/shared/SEOHead';
-import { useTheme, type ThemeColor } from '@components/shared/ThemeProvider';
-import { usePermissionsContext } from '@/contexts/PermissionsContext';
+import { StatCard, LoadingSpinner, PageHeader } from '@components/holding/shared';
 import HoldingSummaryPanel from '@components/holding/HoldingSummaryPanel';
 
 const HoldingDashboardPage = () => {
   const [dashboardData, setDashboardData] = useState<HoldingDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const { color, setColor, getThemeClasses } = useTheme();
-  const { can } = usePermissionsContext();
-  const theme = getThemeClasses();
-
-  const navigationItems = [
-    { name: 'Дашборд', href: '/dashboard', icon: HomeIcon, current: location.pathname === '/dashboard' },
-    { name: 'Организации', href: '/organizations', icon: BuildingOfficeIcon, current: location.pathname === '/organizations' },
-    { 
-      name: 'Отчеты', 
-      href: `/reports/${dashboardData?.holding?.id || 1}`, 
-      icon: ChartBarIcon, 
-      current: location.pathname.includes('/reports'),
-      permission: 'multi-organization.reports.view'
-    },
-    { 
-      name: 'Лендинг', 
-      href: `/holding/${dashboardData?.holding?.id || 1}/landing/edit`, 
-      icon: DocumentTextIcon, 
-      current: location.pathname.includes('/landing'),
-      permission: 'multi-organization.website.view'
-    },
-    { name: 'Настройки', href: '/settings', icon: CogIcon, current: location.pathname === '/settings' },
-  ];
-
-  const navigation = navigationItems.filter(item => !item.permission || can(item.permission));
-  
-
-  const colorOptions: { value: ThemeColor; name: string; preview: string }[] = [
-    { value: 'blue', name: 'Синий', preview: 'bg-blue-500' },
-    { value: 'green', name: 'Зеленый', preview: 'bg-green-500' },
-    { value: 'purple', name: 'Фиолетовый', preview: 'bg-purple-500' },
-    { value: 'pink', name: 'Розовый', preview: 'bg-pink-500' },
-    { value: 'indigo', name: 'Индиго', preview: 'bg-indigo-500' },
-    { value: 'orange', name: 'Оранжевый', preview: 'bg-orange-500' }
-  ];
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -224,424 +182,206 @@ const HoldingDashboardPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className={`min-h-screen bg-gradient-to-br ${theme.background} flex items-center justify-center`}>
-        <div className="text-center">
-          <div className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${color}-600 mx-auto mb-4`}></div>
-          <p className="text-gray-600">Загрузка панели управления...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner size="lg" text="Загрузка панели управления..." fullScreen />;
   }
 
   if (error || !dashboardData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="bg-red-100 rounded-full p-3 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-            <BuildingOfficeIcon className="h-8 w-8 text-red-600" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center max-w-md">
+          <div className="bg-red-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+            <BuildingOfficeIcon className="h-12 w-12 text-red-600" />
           </div>
-          <h1 className="text-2xl font-bold text-red-800 mb-2">Ошибка загрузки</h1>
-          <p className="text-red-600 mb-4">{error || 'Не удалось загрузить данные панели управления'}</p>
-          <Link 
-            to="/login"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center space-x-2"
+          <h1 className="text-2xl font-bold text-red-800 mb-3">Ошибка загрузки</h1>
+          <p className="text-red-600 mb-6">{error || 'Не удалось загрузить данные панели управления'}</p>
+          <button 
+            onClick={() => navigate('/login')}
+            className="bg-gradient-to-r from-orange-500 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
           >
-            <span>Войти заново</span>
-          </Link>
+            Войти заново
+          </button>
         </div>
       </div>
     );
   }
 
-  const holding = dashboardData.holding;
   const stats = dashboardData.consolidated_stats;
   const hierarchy = dashboardData.hierarchy;
 
-  const renderSidebar = () => (
-    <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-      <div className={`flex flex-col flex-grow bg-white ${theme.border} border-r overflow-y-auto`}>
-        <div className="flex items-center flex-shrink-0 px-6 py-4">
-          <div className={`${theme.primary} p-2 rounded-xl shadow-lg`}>
-            <BuildingOfficeIcon className="h-8 w-8 text-white" />
-          </div>
-          <div className="ml-3">
-            <h1 className="text-lg font-bold text-gray-900">{holding.name}</h1>
-            <p className="text-sm text-gray-600">Холдинг</p>
-          </div>
-        </div>
-        <nav className="mt-2 flex-1 space-y-1 px-3">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                item.current
-                  ? `${theme.primary} text-white`
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <item.icon
-                className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                  item.current ? 'text-white' : 'text-gray-400 group-hover:text-gray-500'
-                }`}
-              />
-              {item.name}
-            </Link>
-          ))}
-        </nav>
-        
-        <div className="p-4 border-t border-gray-200">
-          <div className="relative">
-            <button
-              onClick={() => setShowColorPicker(!showColorPicker)}
-              className={`w-full ${theme.secondary} ${theme.text} hover:bg-opacity-80 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 text-sm`}
-            >
-              <SwatchIcon className="h-4 w-4" />
-              <span>Цветовая тема</span>
-            </button>
-            
-            {showColorPicker && (
-              <div className="absolute bottom-full mb-2 left-0 right-0 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 z-50">
-                <h3 className="font-semibold text-gray-900 mb-3 text-sm">Выберите цвет</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {colorOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setColor(option.value);
-                        setShowColorPicker(false);
-                      }}
-                      className={`p-2 rounded-lg border-2 transition-all hover:scale-105 ${
-                        color === option.value 
-                          ? 'border-gray-900 bg-gray-50' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 ${option.preview} rounded-full mx-auto mb-1`}></div>
-                      <span className="text-xs font-medium text-gray-700">{option.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderMobileMenu = () => (
-    <div className={`lg:hidden ${mobileMenuOpen ? 'fixed inset-0 z-50' : 'hidden'}`}>
-      <div className="fixed inset-0 bg-black bg-opacity-25" onClick={() => setMobileMenuOpen(false)} />
-      
-      <div className="fixed inset-y-0 left-0 flex w-full max-w-xs flex-col bg-white shadow-xl">
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <div className="flex items-center">
-            <div className={`${theme.primary} p-2 rounded-xl shadow-lg`}>
-              <BuildingOfficeIcon className="h-6 w-6 text-white" />
-            </div>
-            <div className="ml-3">
-              <h1 className="text-lg font-bold text-gray-900">{holding.name}</h1>
-              <p className="text-sm text-gray-600">Холдинг</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-gray-400 hover:text-gray-500"
-          >
-            <XMarkIcon className="h-6 w-6" />
-          </button>
-        </div>
-        
-        <nav className="flex-1 space-y-1 px-3 py-4">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                item.current
-                  ? `${theme.primary} text-white`
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <item.icon
-                className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                  item.current ? 'text-white' : 'text-gray-400 group-hover:text-gray-500'
-                }`}
-              />
-              {item.name}
-            </Link>
-          ))}
-        </nav>
-      </div>
-    </div>
-  );
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       <SEOHead 
-        title={`${holding.name} - Панель управления холдингом`}
-        description={`Панель управления холдингом ${holding.name}. Управление ${stats.total_child_organizations} организациями с ${stats.total_users} пользователями.`}
+        title={`${dashboardData.holding.name} - Панель управления холдингом`}
+        description={`Панель управления холдингом ${dashboardData.holding.name}. Управление ${stats.total_child_organizations} организациями с ${stats.total_users} пользователями.`}
         keywords="панель управления, холдинг, дашборд, управление организациями"
       />
 
-      {renderSidebar()}
-      {renderMobileMenu()}
-
-      <div className="lg:pl-64">
-        <div className="sticky top-0 z-40 lg:mx-auto lg:max-w-7xl lg:px-8">
-          <div className="flex h-16 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-0 lg:shadow-none">
-            <button
-              type="button"
-              className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
-              onClick={() => setMobileMenuOpen(true)}
-            >
-              <Bars3Icon className="h-6 w-6" />
+      <PageHeader
+        title="Обзор холдинга"
+        subtitle={`Добро пожаловать в панель управления ${dashboardData.holding.name}`}
+        icon={<ChartBarIcon className="w-8 h-8" />}
+        actions={
+          <div className="flex gap-2">
+            <button className="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+              <ClockIcon className="w-5 h-5 inline mr-2" />
+              Сегодня
             </button>
+          </div>
+        }
+      />
 
-            <div className="h-6 w-px bg-gray-200 lg:hidden" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard
+          title="Организаций"
+          value={stats.total_child_organizations}
+          icon={<BuildingOfficeIcon className="w-8 h-8" />}
+          colorScheme="orange"
+          subtitle="Дочерних компаний"
+          onClick={() => navigate('/organizations')}
+        />
 
-            <div className="flex flex-1 items-center justify-between">
-              <div>
-                <h1 className="text-xl font-semibold leading-6 text-gray-900">Дашборд</h1>
-                <p className="text-sm text-gray-600">Обзор деятельности холдинга</p>
+        <StatCard
+          title="Сотрудников"
+          value={stats.total_users}
+          icon={<UsersIcon className="w-8 h-8" />}
+          colorScheme="blue"
+          trend={{ value: 12, isPositive: true }}
+          subtitle="Всего по холдингу"
+        />
+
+        <StatCard
+          title="Проектов"
+          value={stats.total_projects}
+          icon={<FolderOpenIcon className="w-8 h-8" />}
+          colorScheme="green"
+          trend={{ value: 8, isPositive: true }}
+          subtitle="Активных проектов"
+        />
+
+        <StatCard
+          title="Договоров"
+          value={stats.total_contracts}
+          icon={<DocumentTextIcon className="w-8 h-8" />}
+          colorScheme="purple"
+          subtitle={`На сумму ${formatCurrency(stats.total_contracts_value)}`}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-gray-900">Структура холдинга</h3>
+              <button 
+                onClick={() => navigate('/organizations')}
+                className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+              >
+                Подробнее →
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-orange-50 to-blue-50 rounded-xl p-4 border-l-4 border-orange-500">
+                <div className="flex items-center gap-3">
+                  <div className="bg-gradient-to-r from-orange-500 to-blue-600 p-3 rounded-xl">
+                    <BuildingOfficeIcon className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-900">{hierarchy.parent.name}</h4>
+                    <p className="text-sm text-gray-600">Головная организация</p>
+                    {hierarchy.parent.tax_number && (
+                      <p className="text-xs text-gray-500 mt-1">ИНН: {hierarchy.parent.tax_number}</p>
+                    )}
+                  </div>
+                  <span className="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                    Головная
+                  </span>
+                </div>
               </div>
+
+              {hierarchy.children.slice(0, 3).map((child) => (
+                <div key={child.id} className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-orange-200 hover:shadow-md transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-gray-200 p-3 rounded-xl">
+                      <BuildingOfficeIcon className="h-5 w-5 text-gray-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900">{child.name}</h4>
+                      <p className="text-sm text-gray-600">Дочерняя организация</p>
+                      {child.tax_number && (
+                        <p className="text-xs text-gray-500 mt-1">ИНН: {child.tax_number}</p>
+                      )}
+                    </div>
+                    <span className="bg-gray-200 text-gray-600 text-xs font-medium px-3 py-1 rounded-full">
+                      Дочерняя
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {hierarchy.children.length > 3 && (
+                <button 
+                  onClick={() => navigate('/organizations')}
+                  className="w-full text-center py-3 text-orange-600 hover:text-orange-700 font-medium hover:bg-orange-50 rounded-xl transition-all"
+                >
+                  Показать еще {hierarchy.children.length - 3} организаций
+                </button>
+              )}
             </div>
           </div>
         </div>
 
-        <main className="py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Карточки статистики */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-200">
-                <div className="p-6">
-                  <div className="flex items-center">
-                    <div className={`${theme.secondary} p-3 rounded-lg mr-4`}>
-                      <BuildingOfficeIcon className={`h-8 w-8 ${theme.text}`} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Организаций</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.total_child_organizations}</p>
-                    </div>
-                  </div>
-                </div>
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Ключевые показатели</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                <span className="text-sm text-gray-600">Активных договоров</span>
+                <span className="font-bold text-gray-900 text-lg">{stats.active_contracts_count}</span>
               </div>
-
-              <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-200">
-                <div className="p-6">
-                  <div className="flex items-center">
-                    <div className="bg-emerald-100 p-3 rounded-lg mr-4">
-                      <UsersIcon className="h-8 w-8 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Сотрудников</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.total_users}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-200">
-                <div className="p-6">
-                  <div className="flex items-center">
-                    <div className="bg-violet-100 p-3 rounded-lg mr-4">
-                      <FolderOpenIcon className="h-8 w-8 text-violet-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Проектов</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.total_projects}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-200">
-                <div className="p-6">
-                  <div className="flex items-center">
-                    <div className="bg-amber-100 p-3 rounded-lg mr-4">
-                      <DocumentTextIcon className="h-8 w-8 text-amber-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Договоров</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.total_contracts}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Основной контент */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Структура холдинга */}
-              <div className="lg:col-span-2">
-                <div className="bg-white shadow-sm rounded-xl border border-gray-200">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-semibold text-gray-900">Структура холдинга</h3>
-                      <Link
-                        to="/organizations"
-                        className={`${theme.primary} ${theme.hover} text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors`}
-                      >
-                        Управление
-                      </Link>
-                    </div>
-
-                    <div className="space-y-4">
-                      {/* Головная организация */}
-                      <div className={`${theme.accent} rounded-lg p-4 border ${theme.border}`}>
-                        <div className="flex items-center space-x-3">
-                          <div className={`${theme.primary} p-2.5 rounded-lg`}>
-                            <BuildingOfficeIcon className="h-5 w-5 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900">{hierarchy.parent.name}</h4>
-                            <p className="text-sm text-gray-600">Головная организация</p>
-                            {hierarchy.parent.tax_number && (
-                              <p className="text-xs text-gray-500 mt-1">ИНН: {hierarchy.parent.tax_number}</p>
-                            )}
-                          </div>
-                          <div className={`${theme.secondary} px-3 py-1 rounded-full`}>
-                            <span className={`text-xs font-medium ${theme.text}`}>Головная</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Дочерние организации */}
-                      {hierarchy.children.slice(0, 4).map((child) => (
-                        <div key={child.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                          <div className="flex items-center space-x-3">
-                            <div className="bg-gray-200 p-2.5 rounded-lg">
-                              <BuildingOfficeIcon className="h-5 w-5 text-gray-600" />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-900">{child.name}</h4>
-                              <p className="text-sm text-gray-600">Дочерняя организация</p>
-                              {child.tax_number && (
-                                <p className="text-xs text-gray-500 mt-1">ИНН: {child.tax_number}</p>
-                              )}
-                            </div>
-                            <div className="bg-gray-200 px-3 py-1 rounded-full">
-                              <span className="text-xs font-medium text-gray-600">Дочерняя</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-
-                      {hierarchy.children.length > 4 && (
-                        <div className="text-center py-2">
-                          <Link
-                            to="/organizations"
-                            className={`text-sm ${theme.text} hover:underline font-medium`}
-                          >
-                            Показать еще {hierarchy.children.length - 4} организаций
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Сайдбар с информацией */}
-              <div className="space-y-6">
-                {/* Финансовые показатели */}
-                <div className="bg-white shadow-sm rounded-xl border border-gray-200">
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Ключевые показатели</h3>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-sm text-gray-600">Активных договоров</span>
-                        <span className="font-semibold text-gray-900">{stats.active_contracts_count}</span>
-                      </div>
-                      
-                      {stats.total_contracts_value > 0 && (
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-sm text-gray-600">Объем договоров</span>
-                          <span className="font-semibold text-gray-900 text-sm">
-                            {formatCurrency(stats.total_contracts_value)}
-                          </span>
-                        </div>
-                      )}
-                      
-                      <div className={`${theme.accent} p-4 rounded-lg border ${theme.border} mt-4`}>
-                        <div className="text-center">
-                          <p className="text-sm text-gray-600 mb-2">Средняя нагрузка</p>
-                          <p className={`text-xl font-bold ${theme.text}`}>
-                            {Math.round((stats.total_projects + stats.active_contracts_count) / Math.max(stats.total_child_organizations, 1))}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">проектов на организацию</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Быстрые ссылки */}
-                <div className="bg-white shadow-sm rounded-xl border border-gray-200">
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Управление</h3>
-                    <div className="space-y-3">
-                      <Link
-                        to="/organizations"
-                        className={`w-full ${theme.primary} ${theme.hover} text-white p-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2`}
-                      >
-                        <PlusIcon className="h-4 w-4" />
-                        <span>Добавить организацию</span>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Сводка по холдингу */}
-            <div className="mt-8">
-              <HoldingSummaryPanel />
               
-              {/* Дополнительная информация для пользователей с доступом к отчетам */}
-              {can('multi-organization.reports.view') && (
-                <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                        📊 Расширенная аналитика
-                      </h3>
-                      <p className="text-blue-700 mb-3 text-sm lg:text-base">
-                        Получите подробные отчеты по KPI, финансовым показателям и сравнению организаций
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          KPI метрики
-                        </span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Финансовые отчеты
-                        </span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                          Сравнение организаций
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex-shrink-0">
-                      <Link
-                        to={`/reports/${dashboardData?.holding?.id || 1}`}
-                        className={`${theme.primary} ${theme.hover} text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 shadow-md w-full lg:w-auto`}
-                      >
-                        <ChartBarIcon className="h-5 w-5" />
-                        <span>Открыть отчеты</span>
-                      </Link>
-                    </div>
-                  </div>
+              {stats.total_contracts_value > 0 && (
+                <div className="flex items-center justify-between py-3 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">Объем договоров</span>
+                  <span className="font-bold text-green-600 text-sm">
+                    {formatCurrency(stats.total_contracts_value)}
+                  </span>
                 </div>
               )}
+              
+              <div className="bg-gradient-to-r from-orange-50 to-blue-50 p-4 rounded-xl mt-4">
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-2">Средняя нагрузка</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent">
+                    {Math.round((stats.total_projects + stats.active_contracts_count) / Math.max(stats.total_child_organizations, 1))}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">проектов на организацию</p>
+                </div>
+              </div>
             </div>
           </div>
-        </main>
+
+          <div className="bg-gradient-to-r from-orange-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
+            <div className="flex items-center gap-3 mb-4">
+              <ArrowTrendingUpIcon className="w-8 h-8" />
+              <h3 className="text-lg font-bold">Производительность</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm opacity-90">Эффективность</span>
+                <span className="font-bold text-lg">87%</span>
+              </div>
+              <div className="w-full bg-white/30 rounded-full h-2">
+                <div className="bg-white rounded-full h-2 w-[87%]"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <HoldingSummaryPanel />
     </div>
   );
 };
 
-export default HoldingDashboardPage; 
+export default HoldingDashboardPage;
