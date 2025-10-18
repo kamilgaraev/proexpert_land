@@ -6,4 +6,5 @@ export { HoldingFiltersPanel } from './HoldingFiltersPanel';
 export { OrganizationContextBadge } from './OrganizationContextBadge';
 export { OrganizationTreeSelect } from './OrganizationTreeSelect';
 export { MultiOrgErrorBoundary } from './MultiOrgErrorBoundary';
+export { CreateHoldingForm } from './CreateHoldingForm';
 

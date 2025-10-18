@@ -27,13 +27,7 @@ import SubscriptionLimitsPage from '@pages/dashboard/SubscriptionLimitsPage';
 import ModulesPage from '@pages/dashboard/ModulesPage';
 import CustomRolesPage from '@pages/dashboard/CustomRolesPage';
 import HoldingRouter from '@/HoldingRouter';
-import { HoldingPanelLayout } from '@layouts/HoldingPanelLayout';
-import {
-  HoldingDashboard,
-  HoldingProjectsList,
-  HoldingProjectDetail,
-  HoldingContractsList,
-} from '@components/multi-org';
+import { MultiOrganizationPage } from '@pages/dashboard/multi-organization';
 
 // Contractor Invitations
 import ContractorInvitationsPage from '@pages/dashboard/contractor-invitations/ContractorInvitationsPage';
@@ -293,6 +287,16 @@ function App() {
             </ProtectedComponent>
           } />
           <Route path="contractor-invitations/token/:token" element={<ContractorInvitationTokenPage />} />
+
+          {/* Мультиорганизация */}
+          <Route path="multi-organization" element={
+            <ProtectedComponent 
+              permission="multi-organization.manage"
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <MultiOrganizationPage />
+            </ProtectedComponent>
+          } />
         </Route>
         
         {/* Административные маршруты */}
@@ -316,19 +320,6 @@ function App() {
           <Route path="blog/seo" element={<BlogSEOPage />} />
           {/* Плейсхолдеры для будущих страниц */}
           <Route path="vacancies" element={<div>Вакансии админка (скоро)</div>} />
-        </Route>
-        
-        {/* Панель холдинга - Multi-Organization v2 */}
-        <Route path="/landing/multi-organization" element={
-          <DashboardProtectedRoute>
-            <HoldingPanelLayout />
-          </DashboardProtectedRoute>
-        }>
-          <Route path="dashboard" element={<HoldingDashboard />} />
-          <Route path="projects" element={<HoldingProjectsList />} />
-          <Route path="projects/:projectId" element={<HoldingProjectDetail />} />
-          <Route path="contracts" element={<HoldingContractsList />} />
-          <Route index element={<Navigate to="/landing/multi-organization/dashboard" replace />} />
         </Route>
         
         {/* Страница 404 для несуществующих маршрутов */}

@@ -1,5 +1,7 @@
 import { useHoldingDashboard } from '@/hooks/useHoldingDashboard';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { CreateHoldingForm } from './CreateHoldingForm';
 import { 
   BuildingOfficeIcon, 
   BanknotesIcon, 
@@ -8,124 +10,26 @@ import {
   ArrowPathIcon,
   ChartBarIcon,
   ArrowRightIcon,
-  PlusIcon,
-  RocketLaunchIcon,
 } from '@heroicons/react/24/outline';
 import { PageLoading } from '@components/common/PageLoading';
 import { Link } from 'react-router-dom';
 
 export const HoldingDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data, loading, error, refetch } = useHoldingDashboard();
 
   // Проверяем тип организации
   const userOrg = user && 'organization' in user ? (user.organization as any) : null;
   const isHoldingOrg = userOrg?.organization_type === 'holding';
 
-  // Если не холдинг, показываем экран создания холдинга
+  // Если не холдинг, показываем форму создания холдинга
   if (!isHoldingOrg) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-12 text-white">
-            <div className="flex items-center justify-center mb-6">
-              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <RocketLaunchIcon className="w-12 h-12" />
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold text-center mb-3">
-              Создайте свой холдинг
-            </h1>
-            <p className="text-center text-purple-100 max-w-2xl mx-auto">
-              Преобразуйте вашу организацию в холдинг для управления дочерними компаниями, 
-              консолидации отчетности и централизованного контроля проектов
-            </p>
-          </div>
-
-          <div className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <BuildingOfficeIcon className="w-8 h-8 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Управление организациями</h3>
-                <p className="text-sm text-gray-600">
-                  Создавайте и управляйте дочерними организациями в единой системе
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <ChartBarIcon className="w-8 h-8 text-green-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Консолидированная отчетность</h3>
-                <p className="text-sm text-gray-600">
-                  Получайте сводную аналитику по всем проектам и контрактам
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <UsersIcon className="w-8 h-8 text-purple-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Централизованный контроль</h3>
-                <p className="text-sm text-gray-600">
-                  Управляйте доступами и правами пользователей всех организаций
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-6 mb-6">
-              <h3 className="font-semibold text-gray-900 mb-3">Что произойдет при создании холдинга:</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-start">
-                  <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Ваша организация "{userOrg?.name}" станет родительской организацией холдинга</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Вы сможете создавать и управлять дочерними организациями</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Получите доступ к консолидированным отчетам и аналитике</span>
-                </li>
-                <li className="flex items-start">
-                  <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Существующие проекты и данные сохранятся без изменений</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="flex gap-4">
-              <button
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg font-semibold"
-                onClick={() => {
-                  // TODO: Реализовать создание холдинга
-                  alert('Функция создания холдинга будет доступна в следующей версии. Обратитесь к администратору.');
-                }}
-              >
-                <PlusIcon className="w-5 h-5" />
-                Создать холдинг
-              </button>
-              <Link
-                to="/dashboard"
-                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
-              >
-                Отмена
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CreateHoldingForm 
+        organizationName={userOrg?.name || 'Организация'}
+        onCancel={() => navigate('/dashboard')}
+      />
     );
   }
 
