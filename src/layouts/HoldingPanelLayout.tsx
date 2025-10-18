@@ -40,32 +40,12 @@ export const HoldingPanelLayout = () => {
     );
   }
 
+  // Получаем информацию об организации
   const userOrg = user && 'organization' in user ? (user.organization as any) : null;
   const isHoldingOrg = userOrg?.organization_type === 'holding';
-
-  if (!isHoldingOrg) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <BuildingOfficeIcon className="w-10 h-10 text-red-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Доступ запрещен</h2>
-          <p className="text-gray-600 mb-6">
-            Панель холдинга доступна только для холдинговых организаций.
-            Ваша организация не имеет статуса холдинга.
-          </p>
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-            Вернуться в панель управления
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  
+  // Доступ разрешен если модуль активен и есть права
+  // Компоненты внутри сами покажут нужный UI в зависимости от organization_type
 
   return (
     <MultiOrgErrorBoundary fallbackPath="/dashboard">
@@ -77,14 +57,22 @@ export const HoldingPanelLayout = () => {
                 <Link to="/dashboard" className="text-gray-600 hover:text-gray-900">
                   <ArrowLeftIcon className="w-5 h-5" />
                 </Link>
-                <h1 className="text-xl font-bold text-gray-900">Панель холдинга</h1>
+                <h1 className="text-xl font-bold text-gray-900">
+                  {isHoldingOrg ? 'Панель холдинга' : 'Мультиорганизация'}
+                </h1>
               </div>
               {userOrg && (
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-purple-100 text-purple-800 border-purple-200">
+                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
+                  isHoldingOrg 
+                    ? 'bg-purple-100 text-purple-800 border-purple-200' 
+                    : 'bg-blue-100 text-blue-800 border-blue-200'
+                }`}>
                   <BuildingOfficeIcon className="w-5 h-5" />
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold">{userOrg.name}</span>
-                    <span className="text-xs opacity-75">Режим холдинга</span>
+                    <span className="text-xs opacity-75">
+                      {isHoldingOrg ? 'Режим холдинга' : 'Режим организации'}
+                    </span>
                   </div>
                 </div>
               )}
