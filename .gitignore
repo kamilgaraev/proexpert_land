@@ -59,7 +59,7 @@ yarn-error.log*
 # Logs
 logs
 *.log
-
+*.md
 # Runtime data
 pids
 *.pid
