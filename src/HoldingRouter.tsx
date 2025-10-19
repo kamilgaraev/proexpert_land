@@ -22,6 +22,7 @@ const HoldingRouter = () => {
           <Route path="/dashboard" element={<HoldingDashboardPage />} />
           <Route path="/organizations" element={<HoldingOrganizationsPage />} />
           <Route path="/reports" element={<HoldingReportsIndexPage />} />
+          <Route path="/reports/:holdingId" element={<HoldingReportsIndexPage />} />
           <Route path="/reports/projects" element={<HoldingProjectsReportPage />} />
           <Route path="/reports/contracts" element={<HoldingContractsReportPage />} />
           <Route path="/projects" element={<HoldingProjectsList />} />

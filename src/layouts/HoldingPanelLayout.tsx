@@ -44,7 +44,7 @@ const navigation = [
   },
   {
     name: 'Отчеты',
-    href: '/reports/1',
+    href: '/reports',
     icon: ChartBarIcon,
   },
   {
