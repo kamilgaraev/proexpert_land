@@ -1,5 +1,31 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
+import { getTokenFromStorages } from '@/utils/api';
+
+const API_BASE_DOMAIN = 'https://api.prohelper.pro';
+const MULTI_ORG_API_URL = `${API_BASE_DOMAIN}/api/v1/landing/multi-organization`;
+
+const createApiClient = () => {
+  const client = axios.create({
+    baseURL: MULTI_ORG_API_URL,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  });
+
+  client.interceptors.request.use((config) => {
+    const token = getTokenFromStorages();
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
+
+  return client;
+};
+
+const api = createApiClient();
 
 interface ContractDetails {
   contract: any;
@@ -41,10 +67,17 @@ export const useHoldingContractDetails = () => {
       setLoading(true);
       setError(null);
 
-      const response = await axios.get<{
+      console.log('useHoldingContractDetails: Making API request...', {
+        url: `/contracts/${contractId}`,
+        fullUrl: `${MULTI_ORG_API_URL}/contracts/${contractId}`,
+      });
+
+      const response = await api.get<{
         success: boolean;
         data: ContractDetails;
-      }>(`/api/v1/landing/multi-organization/contracts/${contractId}`);
+      }>(`/contracts/${contractId}`);
+
+      console.log('useHoldingContractDetails: API response received', response.data);
 
       if (response.data.success) {
         setData(response.data.data);
