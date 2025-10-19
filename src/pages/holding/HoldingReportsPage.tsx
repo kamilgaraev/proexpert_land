@@ -71,7 +71,7 @@ const HoldingReportsPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={() => navigate('/dashboard')}
-              className="bg-gradient-to-r from-orange-500 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+              className="bg-slate-700 hover:bg-slate-800 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
             >
               Перейти к дашборду
             </button>

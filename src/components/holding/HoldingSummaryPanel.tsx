@@ -51,13 +51,13 @@ const HoldingSummaryPanel: React.FC = () => {
   return (
     <section className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 mb-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="bg-gradient-to-r from-orange-500 to-blue-600 p-3 rounded-xl">
+        <div className="bg-slate-700 p-3 rounded-xl">
           <ChartBarIcon className="w-6 h-6 text-white" />
         </div>
         <h2 className="text-xl font-bold text-gray-900">Сводка по холдингу</h2>
       </div>
 
-      <form onSubmit={submit} className="bg-gradient-to-r from-orange-50 to-blue-50 rounded-xl p-4 mb-6">
+      <form onSubmit={submit} className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-200">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
             <FunnelIcon className="w-5 h-5 text-gray-500" />
@@ -69,7 +69,7 @@ const HoldingSummaryPanel: React.FC = () => {
             name="date_from"
             value={filters.date_from}
             onChange={handleChange}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
           />
           
           <input
@@ -77,7 +77,7 @@ const HoldingSummaryPanel: React.FC = () => {
             name="date_to"
             value={filters.date_to}
             onChange={handleChange}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
           />
           
           <input
@@ -93,7 +93,7 @@ const HoldingSummaryPanel: React.FC = () => {
             name="is_approved"
             value={filters.is_approved}
             onChange={handleChange}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
           >
             <option value="">Утверждённость</option>
             <option value="true">Утверждён</option>
@@ -104,7 +104,7 @@ const HoldingSummaryPanel: React.FC = () => {
             name="section"
             value={filters.section}
             onChange={handleChange}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
           >
             <option value="">Все секции</option>
             <option value="projects">Проекты</option>
@@ -115,7 +115,7 @@ const HoldingSummaryPanel: React.FC = () => {
           
           <button
             type="submit"
-            className="bg-gradient-to-r from-orange-500 to-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition-all"
+            className="bg-slate-700 hover:bg-slate-800 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition-all"
           >
             Применить
           </button>
@@ -124,7 +124,7 @@ const HoldingSummaryPanel: React.FC = () => {
 
       {loading && (
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-4 border-orange-500 border-t-transparent mx-auto mb-2"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-slate-700 border-t-transparent mx-auto mb-2"></div>
           <p className="text-gray-500">Загрузка данных...</p>
         </div>
       )}
@@ -138,7 +138,7 @@ const HoldingSummaryPanel: React.FC = () => {
       {summary && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
+            <div className="bg-slate-700 rounded-xl p-6 text-white shadow-lg">
               <div className="flex items-center justify-between mb-2">
                 <BuildingOfficeIcon className="w-8 h-8 opacity-80" />
                 <span className="text-xs font-semibold bg-white/20 px-2 py-1 rounded-full">Проекты</span>
@@ -147,7 +147,7 @@ const HoldingSummaryPanel: React.FC = () => {
               <div className="text-sm opacity-90">Всего проектов</div>
             </div>
             
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+            <div className="bg-blue-600 rounded-xl p-6 text-white shadow-lg">
               <div className="flex items-center justify-between mb-2">
                 <DocumentTextIcon className="w-8 h-8 opacity-80" />
                 <span className="text-xs font-semibold bg-white/20 px-2 py-1 rounded-full">Договоры</span>
@@ -156,7 +156,7 @@ const HoldingSummaryPanel: React.FC = () => {
               <div className="text-sm opacity-90">Всего договоров</div>
             </div>
             
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
+            <div className="bg-emerald-600 rounded-xl p-6 text-white shadow-lg">
               <div className="flex items-center justify-between mb-2">
                 <ClipboardDocumentCheckIcon className="w-8 h-8 opacity-80" />
                 <span className="text-xs font-semibold bg-white/20 px-2 py-1 rounded-full">Акты</span>
@@ -169,7 +169,7 @@ const HoldingSummaryPanel: React.FC = () => {
           {summary.organizations?.length > 0 && (
             <div>
               <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <BuildingOfficeIcon className="w-5 h-5 text-orange-600" />
+                <BuildingOfficeIcon className="w-5 h-5 text-slate-700" />
                 Организации
               </h3>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -190,18 +190,18 @@ const HoldingSummaryPanel: React.FC = () => {
           {summary.projects?.length > 0 && (
             <div>
               <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <BuildingOfficeIcon className="w-5 h-5 text-orange-600" />
+                <BuildingOfficeIcon className="w-5 h-5 text-slate-700" />
                 Проекты
               </h3>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {summary.projects.map((project: any) => (
-                  <div key={project.id} className="bg-white border border-gray-200 rounded-xl p-4 hover:border-orange-300 hover:shadow-md transition-all">
+                  <div key={project.id} className="bg-white border border-gray-200 rounded-xl p-4 hover:border-slate-300 hover:shadow-md transition-all">
                     <div className="font-semibold text-gray-900 mb-1">{project.name}</div>
                     <div className="text-xs text-gray-500 mb-2">{project.organization?.name || project.organization_name}</div>
                     <div className="space-y-1 text-sm text-gray-600">
                       <div className="flex items-center justify-between">
                         <span>Статус:</span>
-                        <span className="font-medium text-orange-600">{getStatusLabel(project.status)}</span>
+                        <span className="font-medium text-slate-700">{getStatusLabel(project.status)}</span>
                       </div>
                       {project.start_date && (
                         <div className="text-xs">Начало: {project.start_date}</div>
@@ -219,12 +219,12 @@ const HoldingSummaryPanel: React.FC = () => {
           {summary.contracts?.length > 0 && (
             <div>
               <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <DocumentTextIcon className="w-5 h-5 text-blue-600" />
+                <DocumentTextIcon className="w-5 h-5 text-blue-700" />
                 Договоры
               </h3>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {summary.contracts.map((contract: any) => (
-                  <div key={contract.id} className="bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-md transition-all">
+                  <div key={contract.id} className="bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-200 hover:shadow-md transition-all">
                     <div className="font-semibold text-gray-900 mb-1">{contract.number}</div>
                     <div className="text-xs text-gray-500 mb-2">{contract.organization?.name || contract.organization_name}</div>
                     <div className="space-y-1 text-sm text-gray-600">
@@ -234,7 +234,7 @@ const HoldingSummaryPanel: React.FC = () => {
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Статус:</span>
-                        <span className="font-medium text-blue-600">{getStatusLabel(contract.status)}</span>
+                        <span className="font-medium text-blue-700">{getStatusLabel(contract.status)}</span>
                       </div>
                       {contract.date && (
                         <div className="text-xs">Дата: {contract.date}</div>
@@ -249,12 +249,12 @@ const HoldingSummaryPanel: React.FC = () => {
           {summary.acts?.length > 0 && (
             <div>
               <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <ClipboardDocumentCheckIcon className="w-5 h-5 text-green-600" />
+                <ClipboardDocumentCheckIcon className="w-5 h-5 text-emerald-700" />
                 Акты
               </h3>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {summary.acts.map((act: any) => (
-                  <div key={act.id} className="bg-white border border-gray-200 rounded-xl p-4 hover:border-green-300 hover:shadow-md transition-all">
+                  <div key={act.id} className="bg-white border border-gray-200 rounded-xl p-4 hover:border-emerald-200 hover:shadow-md transition-all">
                     <div className="font-semibold text-gray-900 mb-1">Акт #{act.id}</div>
                     <div className="text-xs text-gray-500 mb-2">{act.organization?.name || act.organization_name}</div>
                     <div className="space-y-1 text-sm text-gray-600">
@@ -264,12 +264,12 @@ const HoldingSummaryPanel: React.FC = () => {
                       {act.amount !== undefined && (
                         <div className="flex items-center justify-between">
                           <span>Сумма:</span>
-                          <span className="font-bold text-green-600">{act.amount}</span>
+                          <span className="font-bold text-emerald-700">{act.amount}</span>
                         </div>
                       )}
                       {typeof act.is_approved === 'boolean' && (
                         <div>
-                          Утверждён: <span className={act.is_approved ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                          Утверждён: <span className={act.is_approved ? 'text-emerald-700 font-medium' : 'text-red-600 font-medium'}>
                             {act.is_approved ? 'Да' : 'Нет'}
                           </span>
                         </div>
@@ -284,12 +284,12 @@ const HoldingSummaryPanel: React.FC = () => {
           {summary.completed_works?.length > 0 && (
             <div>
               <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <WrenchScrewdriverIcon className="w-5 h-5 text-purple-600" />
+                <WrenchScrewdriverIcon className="w-5 h-5 text-violet-700" />
                 Выполненные работы
               </h3>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {summary.completed_works.map((work: any) => (
-                  <div key={work.id} className="bg-white border border-gray-200 rounded-xl p-4 hover:border-purple-300 hover:shadow-md transition-all">
+                  <div key={work.id} className="bg-white border border-gray-200 rounded-xl p-4 hover:border-violet-200 hover:shadow-md transition-all">
                     <div className="font-semibold text-gray-900 mb-1">
                       {work.work_type?.name || work.name || work.title || work.project?.name || `Работа #${work.id}`}
                     </div>
@@ -304,7 +304,7 @@ const HoldingSummaryPanel: React.FC = () => {
                       {work.total_amount !== undefined && (
                         <div className="flex items-center justify-between">
                           <span>Сумма:</span>
-                          <span className="font-bold text-purple-600">{work.total_amount}</span>
+                          <span className="font-bold text-violet-700">{work.total_amount}</span>
                         </div>
                       )}
                       {work.status && (

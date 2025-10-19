@@ -271,18 +271,18 @@ const HoldingDashboardPage = () => {
           <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-gray-900">Структура холдинга</h3>
-              <button 
-                onClick={() => navigate('/organizations')}
-                className="text-sm text-orange-600 hover:text-orange-700 font-medium"
-              >
-                Подробнее →
-              </button>
+                <button 
+                  onClick={() => navigate('/organizations')}
+                  className="text-sm text-slate-700 hover:text-slate-900 font-medium"
+                >
+                  Подробнее →
+                </button>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-gradient-to-r from-orange-50 to-blue-50 rounded-xl p-4 border-l-4 border-orange-500">
+              <div className="bg-slate-50 rounded-xl p-4 border-l-4 border-slate-700">
                 <div className="flex items-center gap-3">
-                  <div className="bg-gradient-to-r from-orange-500 to-blue-600 p-3 rounded-xl">
+                  <div className="bg-slate-700 p-3 rounded-xl">
                     <BuildingOfficeIcon className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex-1">
@@ -292,14 +292,14 @@ const HoldingDashboardPage = () => {
                       <p className="text-xs text-gray-500 mt-1">ИНН: {hierarchy.parent.tax_number}</p>
                     )}
                   </div>
-                  <span className="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                  <span className="bg-slate-700 text-white text-xs font-bold px-3 py-1 rounded-full">
                     Головная
                   </span>
                 </div>
               </div>
 
               {hierarchy.children.slice(0, 3).map((child) => (
-                <div key={child.id} className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-orange-200 hover:shadow-md transition-all">
+                <div key={child.id} className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-slate-300 hover:shadow-md transition-all">
                   <div className="flex items-center gap-3">
                     <div className="bg-gray-200 p-3 rounded-xl">
                       <BuildingOfficeIcon className="h-5 w-5 text-gray-600" />
@@ -321,7 +321,7 @@ const HoldingDashboardPage = () => {
               {hierarchy.children.length > 3 && (
                 <button 
                   onClick={() => navigate('/organizations')}
-                  className="w-full text-center py-3 text-orange-600 hover:text-orange-700 font-medium hover:bg-orange-50 rounded-xl transition-all"
+                  className="w-full text-center py-3 text-slate-700 hover:text-slate-900 font-medium hover:bg-slate-50 rounded-xl transition-all"
                 >
                   Показать еще {hierarchy.children.length - 3} организаций
                 </button>
@@ -348,10 +348,10 @@ const HoldingDashboardPage = () => {
                 </div>
               )}
               
-              <div className="bg-gradient-to-r from-orange-50 to-blue-50 p-4 rounded-xl mt-4">
+              <div className="bg-slate-50 p-4 rounded-xl mt-4 border border-slate-200">
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-2">Средняя нагрузка</p>
-                  <p className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent">
+                  <p className="text-3xl font-bold text-slate-800">
                     {Math.round((stats.total_projects + stats.active_contracts_count) / Math.max(stats.total_child_organizations, 1))}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">проектов на организацию</p>
@@ -360,7 +360,7 @@ const HoldingDashboardPage = () => {
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-orange-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-slate-700 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center gap-3 mb-4">
               <ArrowTrendingUpIcon className="w-8 h-8" />
               <h3 className="text-lg font-bold">Производительность</h3>

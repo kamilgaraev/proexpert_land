@@ -13,7 +13,7 @@ export const PageHeader = ({ title, subtitle, icon, actions }: PageHeaderProps) 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           {icon && (
-            <div className="bg-gradient-to-r from-orange-500 to-blue-600 p-3 rounded-xl shadow-lg">
+            <div className="bg-slate-700 p-3 rounded-xl shadow-lg">
               <div className="text-white">{icon}</div>
             </div>
           )}

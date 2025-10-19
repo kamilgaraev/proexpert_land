@@ -45,7 +45,7 @@ export const Modal = ({
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-blue-50">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-slate-50">
               <h3 className="text-xl font-bold text-gray-900">{title}</h3>
               <button
                 onClick={onClose}

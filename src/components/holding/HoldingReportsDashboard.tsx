@@ -87,7 +87,7 @@ const HoldingReportsDashboard: React.FC = () => {
               type="month"
               value={period}
               onChange={(e) => handlePeriodChange(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-500 focus:border-transparent"
             />
           </div>
           
@@ -97,7 +97,7 @@ const HoldingReportsDashboard: React.FC = () => {
               id="autoRefresh"
               checked={autoRefresh}
               onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+              className="rounded border-gray-300 text-slate-700 focus:ring-slate-500"
             />
             <label htmlFor="autoRefresh" className="text-sm text-gray-600 font-medium">
               Автообновление
@@ -107,7 +107,7 @@ const HoldingReportsDashboard: React.FC = () => {
           <button
             onClick={refreshData}
             disabled={loading}
-            className="bg-gradient-to-r from-orange-500 to-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50 flex items-center gap-2"
+            className="bg-slate-700 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:shadow-lg transition-all disabled:opacity-50 flex items-center gap-2"
           >
             <ArrowPathIcon className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             {loading ? 'Загрузка...' : 'Обновить'}
@@ -133,14 +133,14 @@ const HoldingReportsDashboard: React.FC = () => {
 
       {loading && !dashboardData && !quickMetrics && (
         <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-600 font-medium">Загрузка данных...</p>
         </div>
       )}
 
       {quickMetrics && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-slate-700 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-4">
               <BuildingOfficeIcon className="w-10 h-10 opacity-80" />
               <span className="text-3xl font-bold">{quickMetrics.organizations_count}</span>
@@ -148,7 +148,7 @@ const HoldingReportsDashboard: React.FC = () => {
             <div className="text-sm font-medium opacity-90">Организаций</div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-emerald-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-4">
               <FolderOpenIcon className="w-10 h-10 opacity-80" />
               <span className="text-3xl font-bold">{quickMetrics.total_projects}</span>
@@ -156,7 +156,7 @@ const HoldingReportsDashboard: React.FC = () => {
             <div className="text-sm font-medium opacity-90">Проектов</div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-violet-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-4">
               <CurrencyDollarIcon className="w-10 h-10 opacity-80" />
               <div className="text-right">
@@ -170,7 +170,7 @@ const HoldingReportsDashboard: React.FC = () => {
             <div className="text-sm font-medium opacity-90">Текущая выручка</div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-blue-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-4">
               <BoltIcon className="w-10 h-10 opacity-80" />
               <span className="text-3xl font-bold">{formatPercent(quickMetrics.efficiency_metrics.overall_efficiency)}</span>
@@ -185,17 +185,17 @@ const HoldingReportsDashboard: React.FC = () => {
           <h3 className="text-lg font-bold text-gray-900 mb-6">Консолидированные показатели</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
+            <div className="text-center p-4 bg-emerald-50 rounded-xl border border-emerald-200">
               <div className="flex items-center justify-center mb-2">
-                <ArrowTrendingUpIcon className="w-5 h-5 text-green-600" />
+                <ArrowTrendingUpIcon className="w-5 h-5 text-emerald-700" />
               </div>
               <p className="text-sm text-gray-600 mb-2">Общая выручка</p>
-              <p className="text-xl font-bold text-green-600">
+              <p className="text-xl font-bold text-emerald-700">
                 {formatCurrency(dashboardData.consolidated_metrics.total_revenue)}
               </p>
             </div>
             
-            <div className="text-center p-4 bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-red-200">
+            <div className="text-center p-4 bg-red-50 rounded-xl border border-red-200">
               <div className="flex items-center justify-center mb-2">
                 <ArrowTrendingDownIcon className="w-5 h-5 text-red-600" />
               </div>
@@ -205,36 +205,36 @@ const HoldingReportsDashboard: React.FC = () => {
               </p>
             </div>
             
-            <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
+            <div className="text-center p-4 bg-blue-50 rounded-xl border border-blue-200">
               <div className="flex items-center justify-center mb-2">
-                <CurrencyDollarIcon className="w-5 h-5 text-blue-600" />
+                <CurrencyDollarIcon className="w-5 h-5 text-blue-700" />
               </div>
               <p className="text-sm text-gray-600 mb-2">Чистая прибыль</p>
-              <p className="text-xl font-bold text-blue-600">
+              <p className="text-xl font-bold text-blue-700">
                 {formatCurrency(dashboardData.consolidated_metrics.net_profit)}
               </p>
             </div>
             
-            <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-fuchsia-50 rounded-xl border border-purple-200">
+            <div className="text-center p-4 bg-violet-50 rounded-xl border border-violet-200">
               <div className="flex items-center justify-center mb-2">
-                <ChartBarIcon className="w-5 h-5 text-purple-600" />
+                <ChartBarIcon className="w-5 h-5 text-violet-700" />
               </div>
               <p className="text-sm text-gray-600 mb-2">Маржа прибыли</p>
-              <p className="text-xl font-bold text-purple-600">
+              <p className="text-xl font-bold text-violet-700">
                 {formatPercent(dashboardData.consolidated_metrics.profit_margin)}
               </p>
             </div>
             
-            <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border border-orange-200">
+            <div className="text-center p-4 bg-amber-50 rounded-xl border border-amber-200">
               <div className="flex items-center justify-center mb-2">
                 {dashboardData.consolidated_metrics.growth_rate >= 0 ? (
-                  <ArrowTrendingUpIcon className="w-5 h-5 text-orange-600" />
+                  <ArrowTrendingUpIcon className="w-5 h-5 text-amber-700" />
                 ) : (
-                  <ArrowTrendingDownIcon className="w-5 h-5 text-orange-600" />
+                  <ArrowTrendingDownIcon className="w-5 h-5 text-amber-700" />
                 )}
               </div>
               <p className="text-sm text-gray-600 mb-2">Темп роста</p>
-              <p className="text-xl font-bold text-orange-600">
+              <p className="text-xl font-bold text-amber-700">
                 {formatPercent(Math.abs(dashboardData.consolidated_metrics.growth_rate))}
               </p>
             </div>

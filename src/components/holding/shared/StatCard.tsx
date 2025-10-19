@@ -16,34 +16,34 @@ interface StatCardProps {
 
 const colorSchemes = {
   orange: {
-    bg: 'from-orange-500 to-orange-600',
-    icon: 'bg-orange-100 text-orange-600',
-    trend: 'text-orange-600',
+    bg: 'from-slate-700 to-slate-800',
+    icon: 'bg-slate-100 text-slate-700',
+    trend: 'text-slate-700',
   },
   blue: {
-    bg: 'from-blue-500 to-blue-600',
-    icon: 'bg-blue-100 text-blue-600',
-    trend: 'text-blue-600',
+    bg: 'from-blue-600 to-blue-700',
+    icon: 'bg-blue-50 text-blue-700',
+    trend: 'text-blue-700',
   },
   green: {
-    bg: 'from-green-500 to-green-600',
-    icon: 'bg-green-100 text-green-600',
-    trend: 'text-green-600',
+    bg: 'from-emerald-600 to-emerald-700',
+    icon: 'bg-emerald-50 text-emerald-700',
+    trend: 'text-emerald-700',
   },
   purple: {
-    bg: 'from-purple-500 to-purple-600',
-    icon: 'bg-purple-100 text-purple-600',
-    trend: 'text-purple-600',
+    bg: 'from-violet-600 to-violet-700',
+    icon: 'bg-violet-50 text-violet-700',
+    trend: 'text-violet-700',
   },
   yellow: {
-    bg: 'from-yellow-500 to-yellow-600',
-    icon: 'bg-yellow-100 text-yellow-600',
-    trend: 'text-yellow-600',
+    bg: 'from-amber-600 to-amber-700',
+    icon: 'bg-amber-50 text-amber-700',
+    trend: 'text-amber-700',
   },
   red: {
-    bg: 'from-red-500 to-red-600',
-    icon: 'bg-red-100 text-red-600',
-    trend: 'text-red-600',
+    bg: 'from-red-600 to-red-700',
+    icon: 'bg-red-50 text-red-700',
+    trend: 'text-red-700',
   },
 };
 

@@ -19,7 +19,7 @@ export const LoadingSpinner = ({
   const spinner = (
     <div className="flex flex-col items-center justify-center gap-4">
       <div
-        className={`animate-spin rounded-full border-orange-500 border-t-transparent ${sizeClasses[size]}`}
+        className={`animate-spin rounded-full border-slate-700 border-t-transparent ${sizeClasses[size]}`}
       ></div>
       {text && (
         <p className="text-gray-600 font-medium animate-pulse">{text}</p>
@@ -29,7 +29,7 @@ export const LoadingSpinner = ({
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-orange-50 to-blue-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-gray-50 flex items-center justify-center z-50">
         {spinner}
       </div>
     );

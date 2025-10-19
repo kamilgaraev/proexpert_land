@@ -56,7 +56,7 @@ export function DataTable<T>({
     <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gradient-to-r from-orange-50 to-blue-50 border-b border-gray-200">
+          <thead className="bg-slate-50 border-b border-gray-200">
             <tr>
               {columns.map((column) => (
                 <th
@@ -77,7 +77,7 @@ export function DataTable<T>({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
                 onClick={() => onRowClick?.(item)}
-                className={`hover:bg-orange-50/50 transition-colors duration-150 ${
+                className={`hover:bg-slate-50 transition-colors duration-150 ${
                   onRowClick ? 'cursor-pointer' : ''
                 }`}
               >
