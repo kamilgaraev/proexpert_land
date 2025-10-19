@@ -204,7 +204,7 @@ export const OrganizationSettingsPage = () => {
                     </div>
                     <CapabilitiesSelector
                       selectedCapabilities={localCapabilities}
-                      availableCapabilities={availableCapabilities}
+                      availableCapabilities={availableCapabilities || []}
                       onChange={setLocalCapabilities}
                       showRecommendations={true}
                     />
@@ -330,7 +330,7 @@ export const OrganizationSettingsPage = () => {
               />
             )}
 
-            {profile && profile.recommended_modules.length > 0 && (
+            {profile && profile.recommended_modules && profile.recommended_modules.length > 0 && (
               <div className="mt-6 bg-gradient-to-br from-construction-50 to-orange-50 border border-construction-200 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   Рекомендуемые модули
