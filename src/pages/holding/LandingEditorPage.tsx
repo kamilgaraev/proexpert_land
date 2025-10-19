@@ -233,7 +233,6 @@ const LandingEditorPage: React.FC = () => {
         <LandingBlockEditor 
           blocks={blocks}
           selectedBlockId={selectedBlockId}
-          onSelectBlock={setSelectedBlockId}
           onUpdateBlock={(blockId: number, data: UpdateBlockRequest) => updateBlock(blockId, data)}
           onPublishBlock={(blockId: number) => publishBlock(blockId)}
           onDuplicateBlock={(blockId: number) => duplicateBlock(blockId)}

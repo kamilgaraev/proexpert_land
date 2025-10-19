@@ -32,7 +32,6 @@ import type { LandingBlock, UpdateBlockRequest } from '@/types/holding-landing';
 interface Props {
   blocks: LandingBlock[];
   selectedBlockId: number | null;
-  onSelectBlock: (blockId: number) => void;
   onUpdateBlock: (blockId: number, data: UpdateBlockRequest) => Promise<boolean>;
   onPublishBlock: (blockId: number) => Promise<boolean>;
   onDuplicateBlock: (blockId: number) => Promise<any>;
@@ -45,7 +44,6 @@ interface Props {
 export const LandingBlockEditor: React.FC<Props> = ({
   blocks,
   selectedBlockId,
-  onSelectBlock,
   onUpdateBlock,
   onPublishBlock,
   onDuplicateBlock,
