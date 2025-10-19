@@ -198,6 +198,18 @@ const HoldingContractsReportPage: React.FC = () => {
                 />
               </div>
             </div>
+
+            <div className="mt-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.is_holding_member === true}
+                  onChange={(e) => handleFilterChange('is_holding_member', e.target.checked ? true : undefined)}
+                  className="rounded border-steel-300 text-steel-700 focus:ring-steel-500"
+                />
+                <span className="text-sm font-medium text-steel-700">Показать только внутренние контракты (подрядчики из холдинга)</span>
+              </label>
+            </div>
           </div>
         )}
 
@@ -345,9 +357,21 @@ const HoldingContractsReportPage: React.FC = () => {
                               <div className="bg-steel-700 p-2 rounded-lg">
                                 <UserGroupIcon className="w-5 h-5 text-white" />
                               </div>
-                              <div>
-                                <div className="font-medium text-steel-900">{contractor.contractor_name}</div>
-                                <div className="text-xs text-steel-500">{contractor.contractor_type}</div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-medium text-steel-900">{contractor.contractor_name}</span>
+                                  {contractor.is_holding_member && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                      🏢 Внутренний
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-steel-500">
+                                  {contractor.contractor_type}
+                                  {contractor.organization_name && (
+                                    <span className="text-steel-400"> • {contractor.organization_name}</span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </td>

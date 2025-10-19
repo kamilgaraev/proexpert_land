@@ -201,6 +201,18 @@ const HoldingConsolidatedReportPage: React.FC = () => {
                 </select>
               </div>
             </div>
+
+            <div className="mt-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.is_holding_member === true}
+                  onChange={(e) => handleFilterChange('is_holding_member', e.target.checked ? true : undefined)}
+                  className="rounded border-steel-300 text-steel-700 focus:ring-steel-500"
+                />
+                <span className="text-sm font-medium text-steel-700">Показать только внутренние контракты (подрядчики из холдинга)</span>
+              </label>
+            </div>
           </div>
         )}
 
@@ -416,12 +428,20 @@ const HoldingConsolidatedReportPage: React.FC = () => {
                                         >
                                           <div className="flex items-center justify-between">
                                             <div className="flex-1">
-                                              <div className="flex items-center gap-2 mb-1">
+                                              <div className="flex items-center gap-2 mb-1 flex-wrap">
                                                 <span className="font-medium text-steel-900">{contract.contract_number}</span>
                                                 {getStatusBadge(contract.contract_status)}
+                                                {contract.contractor?.is_holding_member && (
+                                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                                    🏢 Внутренний
+                                                  </span>
+                                                )}
                                               </div>
                                               <p className="text-sm text-steel-600">
                                                 {contract.contractor?.name || 'Подрядчик не указан'}
+                                                {contract.contractor?.organization_name && (
+                                                  <span className="text-steel-500"> ({contract.contractor.organization_name})</span>
+                                                )}
                                               </p>
                                               <div className="flex gap-4 mt-1 text-xs text-steel-600">
                                                 <span>Сумма: {formatCurrency(contract.financial.total_amount)}</span>

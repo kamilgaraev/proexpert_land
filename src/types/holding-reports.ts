@@ -91,6 +91,7 @@ export interface ContractsSummaryFilters {
   max_amount?: number;
   work_type_category?: string;
   include_child_contracts?: boolean;
+  is_holding_member?: boolean;
   page?: number;
   per_page?: number;
 }
@@ -132,6 +133,9 @@ export interface ContractOrganizationBreakdown {
 export interface ContractorDetails {
   contractor_id: number;
   contractor_name: string;
+  organization_id: number | null;
+  organization_name: string | null;
+  is_holding_member: boolean;
   contact_person: string;
   phone: string;
   email: string;
@@ -290,17 +294,20 @@ export interface ConsolidatedFilters {
   status?: string;
   date_from?: string;
   date_to?: string;
+  is_holding_member?: boolean;
 }
 
 export interface ConsolidatedContractor {
   id: number;
   name: string;
   inn: string;
+  organization_id: number | null;
+  organization_name: string | null;
+  is_holding_member: boolean;
   contact_person: string;
   phone: string;
   email: string;
   contractor_type: string;
-  organization_id: number | null;
 }
 
 export interface ConsolidatedPayment {
