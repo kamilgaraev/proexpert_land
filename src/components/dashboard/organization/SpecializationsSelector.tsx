@@ -27,14 +27,15 @@ export const SpecializationsSelector = ({
   disabled = false
 }: SpecializationsSelectorProps) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const safeSelectedSpecializations = selectedSpecializations || [];
 
   const handleToggle = (specialization: string) => {
     if (disabled) return;
 
-    if (selectedSpecializations.includes(specialization)) {
-      onChange(selectedSpecializations.filter(s => s !== specialization));
+    if (safeSelectedSpecializations.includes(specialization)) {
+      onChange(safeSelectedSpecializations.filter(s => s !== specialization));
     } else {
-      onChange([...selectedSpecializations, specialization]);
+      onChange([...safeSelectedSpecializations, specialization]);
     }
   };
 
@@ -65,7 +66,7 @@ export const SpecializationsSelector = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
         {filteredSpecializations.map(spec => {
-          const isSelected = selectedSpecializations.includes(spec.value);
+          const isSelected = safeSelectedSpecializations.includes(spec.value);
 
           return (
             <div
@@ -104,13 +105,13 @@ export const SpecializationsSelector = ({
         })}
       </div>
 
-      {selectedSpecializations.length > 0 && (
+      {safeSelectedSpecializations.length > 0 && (
         <div className="pt-2 border-t border-gray-200">
           <p className="text-sm text-gray-600 mb-2">
-            Выбрано специализаций: <span className="font-semibold">{selectedSpecializations.length}</span>
+            Выбрано специализаций: <span className="font-semibold">{safeSelectedSpecializations.length}</span>
           </p>
           <div className="flex flex-wrap gap-2">
-            {selectedSpecializations.map(specValue => {
+            {safeSelectedSpecializations.map(specValue => {
               const spec = SPECIALIZATIONS.find(s => s.value === specValue);
               return spec ? (
                 <span

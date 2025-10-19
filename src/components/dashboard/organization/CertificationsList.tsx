@@ -13,17 +13,18 @@ export const CertificationsList = ({
 }: CertificationsListProps) => {
   const [newCertification, setNewCertification] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const safeCertifications = certifications || [];
 
   const handleAdd = () => {
-    if (newCertification.trim() && !certifications.includes(newCertification.trim())) {
-      onChange([...certifications, newCertification.trim()]);
+    if (newCertification.trim() && !safeCertifications.includes(newCertification.trim())) {
+      onChange([...safeCertifications, newCertification.trim()]);
       setNewCertification('');
       setIsAdding(false);
     }
   };
 
   const handleRemove = (certification: string) => {
-    onChange(certifications.filter(c => c !== certification));
+    onChange(safeCertifications.filter(c => c !== certification));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -39,9 +40,9 @@ export const CertificationsList = ({
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        {certifications.length > 0 ? (
+        {safeCertifications.length > 0 ? (
           <div className="space-y-2">
-            {certifications.map((cert, index) => (
+            {safeCertifications.map((cert, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
@@ -126,9 +127,9 @@ export const CertificationsList = ({
         </div>
       )}
 
-      {certifications.length > 0 && (
+      {safeCertifications.length > 0 && (
         <p className="text-xs text-gray-500">
-          Добавлено сертификатов: <span className="font-semibold">{certifications.length}</span>
+          Добавлено сертификатов: <span className="font-semibold">{safeCertifications.length}</span>
         </p>
       )}
     </div>

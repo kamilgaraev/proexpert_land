@@ -26,18 +26,21 @@ export const CapabilitiesSelector = ({
   showRecommendations = false,
   disabled = false
 }: CapabilitiesSelectorProps) => {
+  const safeSelectedCapabilities = selectedCapabilities || [];
+  const safeAvailableCapabilities = availableCapabilities || [];
+
   const handleToggle = (capability: OrganizationCapability) => {
     if (disabled) return;
 
-    if (selectedCapabilities.includes(capability)) {
-      onChange(selectedCapabilities.filter(c => c !== capability));
+    if (safeSelectedCapabilities.includes(capability)) {
+      onChange(safeSelectedCapabilities.filter(c => c !== capability));
     } else {
-      onChange([...selectedCapabilities, capability]);
+      onChange([...safeSelectedCapabilities, capability]);
     }
   };
 
   const getCapabilityInfo = (capability: OrganizationCapability): CapabilityInfo | undefined => {
-    return availableCapabilities.find(c => c.value === capability);
+    return safeAvailableCapabilities.find(c => c.value === capability);
   };
 
   const capabilities: OrganizationCapability[] = [
@@ -51,7 +54,7 @@ export const CapabilitiesSelector = ({
     'facility_management'
   ];
 
-  const selectedModules = selectedCapabilities.flatMap(cap => {
+  const selectedModules = safeSelectedCapabilities.flatMap(cap => {
     const info = getCapabilityInfo(cap);
     return info?.recommended_modules || [];
   });
@@ -72,7 +75,7 @@ export const CapabilitiesSelector = ({
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {capabilities.map(capability => {
-          const isSelected = selectedCapabilities.includes(capability);
+          const isSelected = safeSelectedCapabilities.includes(capability);
           const capInfo = getCapabilityInfo(capability);
 
           return (
@@ -118,7 +121,7 @@ export const CapabilitiesSelector = ({
         })}
       </div>
 
-      {showRecommendations && selectedCapabilities.length > 0 && uniqueModules.length > 0 && (
+      {showRecommendations && safeSelectedCapabilities.length > 0 && uniqueModules.length > 0 && (
         <div className="mt-6 p-4 bg-gradient-to-r from-construction-50 to-orange-50 border border-construction-200 rounded-lg">
           <div className="flex items-start space-x-2">
             <svg className="w-5 h-5 text-construction-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,7 +148,7 @@ export const CapabilitiesSelector = ({
         </div>
       )}
 
-      {selectedCapabilities.length === 0 && (
+      {safeSelectedCapabilities.length === 0 && (
         <p className="text-sm text-gray-500 text-center py-4">
           Выберите хотя бы одну возможность вашей организации
         </p>
