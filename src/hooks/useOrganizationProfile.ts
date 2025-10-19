@@ -38,13 +38,23 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
       const response = await organizationProfileService.getProfile();
       
       if (response.data && response.data.success) {
-        const profileData = response.data.data;
+        const responseData = response.data.data;
+        const profileData = responseData.profile || responseData;
+        
+        let recommendedModules = responseData.recommended_modules || profileData.recommended_modules || [];
+        if (typeof recommendedModules === 'object' && !Array.isArray(recommendedModules)) {
+          recommendedModules = Object.values(recommendedModules);
+        }
+        
         setProfile({
           ...profileData,
+          name: responseData.organization?.name || profileData.name,
+          inn: responseData.organization?.inn || profileData.inn,
+          address: responseData.organization?.address || profileData.address,
           capabilities: profileData.capabilities || [],
           specializations: profileData.specializations || [],
           certifications: profileData.certifications || [],
-          recommended_modules: profileData.recommended_modules || []
+          recommended_modules: recommendedModules
         });
       } else {
         setError(response.data?.message || 'Ошибка загрузки профиля организации');
@@ -66,11 +76,18 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
       
       if (response.data && response.data.success) {
         const updateData = response.data.data;
+        const profileData = updateData.profile || updateData;
+        
+        let recommendedModules = updateData.recommended_modules || [];
+        if (typeof recommendedModules === 'object' && !Array.isArray(recommendedModules)) {
+          recommendedModules = Object.values(recommendedModules);
+        }
+        
         setProfile(prev => prev ? {
           ...prev,
           capabilities,
-          profile_completeness: updateData.profile_completeness,
-          recommended_modules: updateData.recommended_modules || []
+          profile_completeness: profileData.profile_completeness || prev.profile_completeness,
+          recommended_modules: recommendedModules
         } : null);
         toast.success(response.data.message || 'Capabilities успешно обновлены!');
       } else {
@@ -94,11 +111,18 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
       
       if (response.data && response.data.success) {
         const updateData = response.data.data;
+        const profileData = updateData.profile || updateData;
+        
+        let recommendedModules = updateData.recommended_modules || [];
+        if (typeof recommendedModules === 'object' && !Array.isArray(recommendedModules)) {
+          recommendedModules = Object.values(recommendedModules);
+        }
+        
         setProfile(prev => prev ? {
           ...prev,
           primary_business_type: businessType,
-          profile_completeness: updateData.profile_completeness,
-          recommended_modules: updateData.recommended_modules || []
+          profile_completeness: profileData.profile_completeness || prev.profile_completeness,
+          recommended_modules: recommendedModules
         } : null);
         toast.success(response.data.message || 'Тип бизнеса успешно обновлен!');
       } else {
@@ -122,10 +146,12 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
       
       if (response.data && response.data.success) {
         const updateData = response.data.data;
+        const profileData = updateData.profile || updateData;
+        
         setProfile(prev => prev ? {
           ...prev,
           specializations,
-          profile_completeness: updateData.profile_completeness
+          profile_completeness: profileData.profile_completeness || prev.profile_completeness
         } : null);
         toast.success(response.data.message || 'Специализации успешно обновлены!');
       } else {
@@ -149,10 +175,12 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
       
       if (response.data && response.data.success) {
         const updateData = response.data.data;
+        const profileData = updateData.profile || updateData;
+        
         setProfile(prev => prev ? {
           ...prev,
           certifications,
-          profile_completeness: updateData.profile_completeness
+          profile_completeness: profileData.profile_completeness || prev.profile_completeness
         } : null);
         toast.success(response.data.message || 'Сертификаты успешно обновлены!');
       } else {
