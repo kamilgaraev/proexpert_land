@@ -2482,7 +2482,7 @@ export const holdingReportsService = {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = new URL(`${API_URL}/landing/multi-organization/reports/projects-summary`);
+    const url = new URL(`${API_URL}/multi-organization/reports/projects-summary`);
     
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
@@ -2516,7 +2516,7 @@ export const holdingReportsService = {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = new URL(`${API_URL}/landing/multi-organization/reports/contracts-summary`);
+    const url = new URL(`${API_URL}/multi-organization/reports/contracts-summary`);
     
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
@@ -2550,7 +2550,7 @@ export const holdingReportsService = {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = new URL(`${API_URL}/landing/multi-organization/reports/projects-summary`);
+    const url = new URL(`${API_URL}/multi-organization/reports/projects-summary`);
     
     const allFilters = { ...filters, export_format: format };
     
@@ -2586,7 +2586,7 @@ export const holdingReportsService = {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = new URL(`${API_URL}/landing/multi-organization/reports/contracts-summary`);
+    const url = new URL(`${API_URL}/multi-organization/reports/contracts-summary`);
     
     const allFilters = { ...filters, export_format: format };
     
