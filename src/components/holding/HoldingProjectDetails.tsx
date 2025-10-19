@@ -39,7 +39,7 @@ export const HoldingProjectDetails = () => {
   }, [actualProjectId, fetchProject]);
 
   const handleBack = () => {
-    navigate('/landing/multi-organization/projects');
+    navigate('/projects');
   };
 
   const handleEdit = () => {

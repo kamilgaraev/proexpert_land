@@ -5,6 +5,7 @@ import HoldingReportsPage from '@pages/holding/HoldingReportsPage';
 import LandingEditorPage from '@pages/holding/LandingEditorPage';
 import { ThemeProvider } from '@components/shared/ThemeProvider';
 import { HoldingPanelLayout } from '@layouts/HoldingPanelLayout';
+import { HoldingProjectsList, HoldingProjectDetails } from '@/components/holding';
 
 const HoldingRouter = () => {
   return (
@@ -17,7 +18,8 @@ const HoldingRouter = () => {
           <Route path="/dashboard" element={<HoldingDashboardPage />} />
           <Route path="/organizations" element={<HoldingOrganizationsPage />} />
           <Route path="/reports/:holdingId" element={<HoldingReportsPage />} />
-          <Route path="/projects" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/projects" element={<HoldingProjectsList />} />
+          <Route path="/projects/:projectId" element={<HoldingProjectDetails />} />
           <Route path="/contracts" element={<Navigate to="/dashboard" replace />} />
           <Route path="/settings" element={<Navigate to="/dashboard" replace />} />
         </Route>
