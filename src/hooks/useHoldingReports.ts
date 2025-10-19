@@ -4,13 +4,16 @@ import { toast } from 'react-toastify';
 import type {
   ProjectsReportData,
   ContractsReportData,
+  IntraGroupReportData,
   ProjectsSummaryFilters,
-  ContractsSummaryFilters
+  ContractsSummaryFilters,
+  IntraGroupFilters
 } from '@/types/holding-reports';
 
 export const useHoldingReports = () => {
   const [projectsReport, setProjectsReport] = useState<ProjectsReportData | null>(null);
   const [contractsReport, setContractsReport] = useState<ContractsReportData | null>(null);
+  const [intraGroupReport, setIntraGroupReport] = useState<IntraGroupReportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -96,6 +99,47 @@ export const useHoldingReports = () => {
     }
   }, []);
 
+  const fetchIntraGroupReport = useCallback(async (filters?: IntraGroupFilters) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await holdingReportsService.getIntraGroupReport(filters);
+      
+      if (response.data && response.data.success) {
+        setIntraGroupReport(response.data.data);
+      } else {
+        setError(response.data?.message || 'Ошибка загрузки отчета по внутригрупповым проектам');
+      }
+    } catch (err: any) {
+      const errorMessage = err.message || 'Ошибка загрузки отчета по внутригрупповым проектам';
+      setError(errorMessage);
+      console.error('Ошибка при загрузке отчета по внутригрупповым проектам:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const exportIntraGroupReport = useCallback(async (filters?: IntraGroupFilters, format: 'csv' | 'excel' | 'xlsx' = 'excel') => {
+    try {
+      const blob = await holdingReportsService.exportIntraGroupReport(filters, format);
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `intragroup_report_${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xlsx'}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Отчет успешно экспортирован');
+    } catch (err: any) {
+      const errorMessage = err.message || 'Ошибка экспорта отчета';
+      toast.error(errorMessage);
+      console.error('Ошибка при экспорте отчета по внутригрупповым проектам:', err);
+    }
+  }, []);
+
   const formatCurrency = useCallback((amount: number) => {
     if (typeof amount !== 'number' || isNaN(amount)) {
       return '0 ₽';
@@ -139,12 +183,15 @@ export const useHoldingReports = () => {
   return {
     projectsReport,
     contractsReport,
+    intraGroupReport,
     loading,
     error,
     fetchProjectsSummary,
     fetchContractsSummary,
+    fetchIntraGroupReport,
     exportProjectsReport,
     exportContractsReport,
+    exportIntraGroupReport,
     formatCurrency,
     formatPercent,
     formatDate
@@ -233,6 +280,47 @@ export const useContractsReport = () => {
     filters,
     updateFilters,
     changePage,
+    loadReport,
+    exportReport,
+    formatCurrency,
+    formatPercent,
+    formatDate
+  };
+};
+
+export const useIntraGroupReport = () => {
+  const {
+    intraGroupReport,
+    loading,
+    error,
+    fetchIntraGroupReport,
+    exportIntraGroupReport,
+    formatCurrency,
+    formatPercent,
+    formatDate
+  } = useHoldingReports();
+
+  const [filters, setFilters] = useState<IntraGroupFilters>({});
+
+  const loadReport = useCallback(async (newFilters?: IntraGroupFilters) => {
+    const targetFilters = newFilters || filters;
+    await fetchIntraGroupReport(targetFilters);
+  }, [fetchIntraGroupReport, filters]);
+
+  const updateFilters = useCallback((newFilters: Partial<IntraGroupFilters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  }, []);
+
+  const exportReport = useCallback(async (format: 'csv' | 'excel' | 'xlsx' = 'excel') => {
+    await exportIntraGroupReport(filters, format);
+  }, [exportIntraGroupReport, filters]);
+
+  return {
+    intraGroupReport,
+    loading,
+    error,
+    filters,
+    updateFilters,
     loadReport,
     exportReport,
     formatCurrency,

@@ -186,3 +186,101 @@ export interface HoldingReportsError {
   message: string;
   errors?: Record<string, string[]>;
 }
+
+export interface IntraGroupFilters {
+  status?: string;
+  date_from?: string;
+  date_to?: string;
+}
+
+export interface SubcontractDetails {
+  id: number;
+  number: string;
+  contractor_name: string;
+  amount: number;
+  paid: number;
+  status: string;
+}
+
+export interface ChildOrganizationIntraGroup {
+  organization_id: number;
+  organization_name: string;
+  role: string;
+  parent_contract_id: number;
+  parent_contract_number: string;
+  parent_contract_amount: number;
+  subcontracts_count: number;
+  subcontracts_amount: number;
+  subcontracts_paid: number;
+  subcontracts_remaining: number;
+  margin: number;
+  margin_percentage: number;
+  subcontracts: SubcontractDetails[];
+}
+
+export interface HeadOrganizationData {
+  id: number;
+  name: string;
+  contracts_count: number;
+  contracts_amount: number;
+  contracts_paid: number;
+  contracts_remaining: number;
+}
+
+export interface FinancialFlow {
+  total_inflow: number;
+  total_outflow: number;
+  net_margin: number;
+}
+
+export interface IntraGroupProject {
+  project_id: number;
+  project_name: string;
+  project_address: string;
+  project_status: string;
+  project_budget: number;
+  head_organization: HeadOrganizationData;
+  child_organizations: ChildOrganizationIntraGroup[];
+  financial_flow: FinancialFlow;
+}
+
+export interface IntraGroupSummary {
+  total_projects: number;
+  head_organization: {
+    contracts_count: number;
+    contracts_amount: number;
+    contracts_paid: number;
+    contracts_remaining: number;
+  };
+  child_organizations: {
+    unique_count: number;
+    total_contracts_received: number;
+    subcontracts_count: number;
+    subcontracts_amount: number;
+    subcontracts_paid: number;
+    subcontracts_remaining: number;
+  };
+  financial_analysis: {
+    total_margin: number;
+    average_margin_percentage: number;
+    internal_efficiency: number;
+  };
+}
+
+export interface IntraGroupReportData {
+  title: string;
+  holding: HoldingInfo;
+  period: {
+    from: string | null;
+    to: string | null;
+  };
+  filters: IntraGroupFilters;
+  summary: IntraGroupSummary;
+  projects: IntraGroupProject[];
+  generated_at: string;
+}
+
+export interface IntraGroupReportResponse {
+  success: boolean;
+  data: IntraGroupReportData;
+}

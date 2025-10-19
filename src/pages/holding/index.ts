@@ -5,4 +5,5 @@ export { default as HoldingLoginPage } from './HoldingLoginPage';
 export { default as HoldingReportsIndexPage } from './HoldingReportsIndexPage';
 export { default as HoldingProjectsReportPage } from './HoldingProjectsReportPage';
 export { default as HoldingContractsReportPage } from './HoldingContractsReportPage';
+export { default as HoldingIntraGroupReportPage } from './HoldingIntraGroupReportPage';
 export { default as LandingEditorPage } from './LandingEditorPage'; 

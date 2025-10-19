@@ -54,6 +54,19 @@ const HoldingReportsIndexPage: React.FC = () => {
         { label: 'Оплаты', value: 'Контроль' },
       ]
     },
+    {
+      id: 'intragroup',
+      title: 'Внутригрупповые проекты',
+      description: 'Иерархический отчет по проектам где дочерние организации выступают подрядчиками с анализом маржи',
+      icon: ChartBarIcon,
+      route: '/reports/intragroup',
+      permission: 'multi-organization.reports.view',
+      stats: [
+        { label: 'Маржинальность', value: 'Анализ' },
+        { label: 'Иерархия', value: 'Структура' },
+        { label: 'Эффективность', value: 'Оценка' },
+      ]
+    },
   ];
 
   const availableReports = reports.filter(report => can(report.permission));

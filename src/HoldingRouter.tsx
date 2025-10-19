@@ -4,6 +4,7 @@ import HoldingLoginPage from '@pages/holding/HoldingLoginPage';
 import HoldingReportsIndexPage from '@pages/holding/HoldingReportsIndexPage';
 import HoldingProjectsReportPage from '@pages/holding/HoldingProjectsReportPage';
 import HoldingContractsReportPage from '@pages/holding/HoldingContractsReportPage';
+import HoldingIntraGroupReportPage from '@pages/holding/HoldingIntraGroupReportPage';
 import HoldingContractsPage from '@pages/holding/HoldingContractsPage';
 import HoldingContractDetailsPage from '@pages/holding/HoldingContractDetailsPage';
 import LandingEditorPage from '@pages/holding/LandingEditorPage';
@@ -21,10 +22,11 @@ const HoldingRouter = () => {
         <Route element={<HoldingPanelLayout />}>
           <Route path="/dashboard" element={<HoldingDashboardPage />} />
           <Route path="/organizations" element={<HoldingOrganizationsPage />} />
-          <Route path="/reports" element={<HoldingReportsIndexPage />} />
-          <Route path="/reports/:holdingId" element={<HoldingReportsIndexPage />} />
-          <Route path="/reports/projects" element={<HoldingProjectsReportPage />} />
-          <Route path="/reports/contracts" element={<HoldingContractsReportPage />} />
+            <Route path="/reports" element={<HoldingReportsIndexPage />} />
+            <Route path="/reports/:holdingId" element={<HoldingReportsIndexPage />} />
+            <Route path="/reports/projects" element={<HoldingProjectsReportPage />} />
+            <Route path="/reports/contracts" element={<HoldingContractsReportPage />} />
+            <Route path="/reports/intragroup" element={<HoldingIntraGroupReportPage />} />
           <Route path="/projects" element={<HoldingProjectsList />} />
           <Route path="/projects/:projectId" element={<HoldingProjectDetails />} />
           <Route path="/projects/contracts" element={<HoldingContractsPage />} />
