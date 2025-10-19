@@ -48,7 +48,10 @@ const HoldingReportsPage: React.FC = () => {
           title="Отчеты холдинга - ProHelper"
           description="Отчеты холдинга ProHelper"
         />
-        <PageHeader />
+        <PageHeader 
+          title="Отчеты холдинга"
+          subtitle="Аналитика и отчетность по холдингу"
+        />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <div className="bg-amber-100 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
@@ -68,7 +71,10 @@ const HoldingReportsPage: React.FC = () => {
         title="Отчеты холдинга - ProHelper"
         description="Отчеты холдинга ProHelper"
       />
-      <PageHeader />
+      <PageHeader 
+        title="Отчеты холдинга"
+        subtitle="Аналитика и отчетность по холдингу"
+      />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
