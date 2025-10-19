@@ -1,6 +1,7 @@
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   text?: string;
+  message?: string;
   fullScreen?: boolean;
 }
 
@@ -14,15 +15,17 @@ const sizeClasses = {
 export const LoadingSpinner = ({
   size = 'md',
   text,
+  message,
   fullScreen = false,
 }: LoadingSpinnerProps) => {
+  const displayText = message || text;
   const spinner = (
     <div className="flex flex-col items-center justify-center gap-4">
       <div
         className={`animate-spin rounded-full border-slate-700 border-t-transparent ${sizeClasses[size]}`}
       ></div>
-      {text && (
-        <p className="text-gray-600 font-medium animate-pulse">{text}</p>
+      {displayText && (
+        <p className="text-gray-600 font-medium animate-pulse">{displayText}</p>
       )}
     </div>
   );

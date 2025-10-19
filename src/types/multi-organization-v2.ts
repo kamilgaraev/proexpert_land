@@ -95,6 +95,7 @@ export type ProjectOrganizationRoleType =
 
 export interface ProjectOrganizationRole {
   organization_id: number;
+  organization_name: string;
   role: ProjectOrganizationRoleType;
   role_label: string;
   is_active: boolean;
@@ -143,14 +144,28 @@ export interface MultiOrgError {
 }
 
 export interface ProjectDetailV2 extends ProjectWithOrganization {
+  address?: string;
+  latitude?: string;
+  longitude?: string;
+  description?: string;
+  customer?: string;
+  designer?: string;
+  site_area_m2?: string;
+  start_date?: string;
+  end_date?: string;
+  is_head?: boolean;
+  external_code?: string;
+  customer_organization?: string;
+  customer_representative?: string;
+  contract_number?: string;
+  contract_date?: string;
+  additional_info?: Record<string, any>;
   contracts: Array<{
     id: number;
-    number: string;
+    contract_number: string;
     total_amount: number;
-    contractor: {
-      id: number;
-      name: string;
-    };
+    status: string;
+    contractor_name: string;
   }>;
   organizations: ProjectOrganizationRole[];
 }
