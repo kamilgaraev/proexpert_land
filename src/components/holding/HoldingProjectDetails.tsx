@@ -12,7 +12,6 @@ import {
   ArchiveBoxIcon,
   InformationCircleIcon,
   ChartBarIcon,
-  BanknotesIcon,
   GlobeAltIcon,
   BuildingLibraryIcon,
   ClipboardDocumentCheckIcon,
@@ -294,7 +293,8 @@ export const HoldingProjectDetails = () => {
               </label>
               <p className="text-gray-900 font-medium">{project.organization.name}</p>
               <p className="text-xs text-gray-500 mt-1">
-                ИНН: {project.organization.tax_number} | ID: {project.organization.id}
+                ID: {project.organization.id}
+                {(project.organization as any).tax_number && ` | ИНН: ${(project.organization as any).tax_number}`}
               </p>
             </div>
 
@@ -378,12 +378,14 @@ export const HoldingProjectDetails = () => {
               <p className="text-gray-900">{formatDateTime(project.created_at)}</p>
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-gray-600 block mb-1">
-                Последнее обновление
-              </label>
-              <p className="text-gray-900">{formatDateTime(project.updated_at)}</p>
-            </div>
+            {(project as any).updated_at && (
+              <div>
+                <label className="text-sm font-medium text-gray-600 block mb-1">
+                  Последнее обновление
+                </label>
+                <p className="text-gray-900">{formatDateTime((project as any).updated_at)}</p>
+              </div>
+            )}
 
             {(project as any).geocoded_at && (
               <div>
@@ -617,7 +619,7 @@ export const HoldingProjectDetails = () => {
           </div>
 
           <div className="space-y-3">
-            {project.contracts.map((contract: any, index: number) => {
+            {project.contracts.map((contract: any) => {
               const isExpanded = expandedContracts.has(contract.id);
               const contractStatus = STATUS_CONFIG[contract.status as keyof typeof STATUS_CONFIG];
 
