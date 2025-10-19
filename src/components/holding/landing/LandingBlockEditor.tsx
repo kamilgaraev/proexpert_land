@@ -81,7 +81,7 @@ export const LandingBlockEditor: React.FC<Props> = ({
 
   const handleStartEdit = (block: LandingBlock) => {
     setEditingBlockId(block.id);
-    setEditedContent(block.content);
+    setEditedContent(block.content || {});
   };
 
   const handleSaveEdit = async (blockId: number) => {
@@ -320,7 +320,7 @@ const SortableBlockItem: React.FC<SortableBlockItemProps> = ({
             ) : (
               <div className="mt-2">
                 <p className="text-sm text-gray-600 line-clamp-2">
-                  {JSON.stringify(block.content).substring(0, 150)}...
+                  {block.content ? JSON.stringify(block.content).substring(0, 150) + '...' : 'Нет контента'}
                 </p>
               </div>
             )}
