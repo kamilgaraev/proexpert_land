@@ -96,6 +96,11 @@ export const useHoldingContracts = () => {
           params.filters.date_to = filters.date_to;
         }
 
+        console.log('useHoldingContracts: Making API request...', {
+          url: '/api/v1/landing/multi-organization/contracts-v2',
+          params,
+        });
+
         const response = await axios.get<{
           success: boolean;
           data: {
@@ -111,6 +116,8 @@ export const useHoldingContracts = () => {
           params,
         });
 
+        console.log('useHoldingContracts: API response received', response.data);
+
         if (response.data.success) {
           setContracts(response.data.data.data);
           setPagination({
@@ -123,8 +130,14 @@ export const useHoldingContracts = () => {
           });
         }
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Ошибка загрузки контрактов');
+        const errorMessage = err.response?.data?.message || 'Ошибка загрузки контрактов';
+        setError(errorMessage);
         console.error('Error fetching holding contracts:', err);
+        console.error('Error details:', {
+          status: err.response?.status,
+          data: err.response?.data,
+          message: errorMessage,
+        });
       } finally {
         setLoading(false);
       }

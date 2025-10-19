@@ -18,8 +18,13 @@ export const HoldingContractsList = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    fetchContracts(filters, currentPage, 25);
-  }, [currentPage, filters, fetchContracts]);
+    console.log('HoldingContractsList: Fetching contracts...', { currentPage, status: filters.status });
+    const apiFilters: any = {};
+    if (filters.status) {
+      apiFilters.status = filters.status;
+    }
+    fetchContracts(apiFilters, currentPage, 25);
+  }, [currentPage, filters.status, fetchContracts]);
 
   const handleContractClick = (contract: any) => {
     navigate(`/projects/contracts/${contract.id}`);
