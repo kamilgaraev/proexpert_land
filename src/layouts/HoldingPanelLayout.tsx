@@ -23,7 +23,7 @@ import {
 const navigation = [
   {
     name: 'Дашборд',
-    href: '/dashboard',
+    href: '/landing/multi-organization/dashboard',
     icon: HomeIcon,
   },
   {
@@ -33,12 +33,12 @@ const navigation = [
   },
   {
     name: 'Проекты',
-    href: '/projects',
+    href: '/landing/multi-organization/projects',
     icon: FolderOpenIcon,
   },
   {
     name: 'Контракты',
-    href: '/contracts',
+    href: '/landing/multi-organization/contracts',
     icon: ClipboardDocumentListIcon,
   },
   {

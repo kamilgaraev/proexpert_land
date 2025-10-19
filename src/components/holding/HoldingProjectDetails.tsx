@@ -26,22 +26,24 @@ const STATUS_CONFIG = {
 };
 
 export const HoldingProjectDetails = () => {
-  const { projectId } = useParams<{ projectId: string }>();
+  const { id, projectId } = useParams<{ id?: string; projectId?: string }>();
   const navigate = useNavigate();
   const { data: project, loading, error, fetchProject } = useHoldingProjectDetails();
+  
+  const actualProjectId = id || projectId;
 
   useEffect(() => {
-    if (projectId) {
-      fetchProject(Number(projectId));
+    if (actualProjectId) {
+      fetchProject(Number(actualProjectId));
     }
-  }, [projectId, fetchProject]);
+  }, [actualProjectId, fetchProject]);
 
   const handleBack = () => {
-    navigate('/holding/projects');
+    navigate('/landing/multi-organization/projects');
   };
 
   const handleEdit = () => {
-    navigate(`/dashboard/projects/${projectId}/edit`);
+    navigate(`/dashboard/projects/${actualProjectId}/edit`);
   };
 
   const formatCurrency = (amount: number | string) => {

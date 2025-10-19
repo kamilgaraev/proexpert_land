@@ -44,7 +44,7 @@ export const HoldingProjectsList = () => {
   }, [perPage, changePerPage]);
 
   const handleProjectClick = (project: ProjectWithOrganization) => {
-    navigate(`/holding/projects/${project.id}`);
+    navigate(`/landing/multi-organization/projects/${project.id}`);
   };
 
   const handlePerPageChange = (value: number) => {
