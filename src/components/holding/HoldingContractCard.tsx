@@ -96,20 +96,26 @@ export const HoldingContractCard = ({ contract, onClick, index = 0 }: HoldingCon
         </div>
 
         <div className="space-y-3 mb-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <BuildingOfficeIcon className="w-4 h-4 text-slate-600 flex-shrink-0" />
-            <span className="truncate">{contract.organization.name}</span>
-          </div>
+          {contract.organization?.name && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <BuildingOfficeIcon className="w-4 h-4 text-slate-600 flex-shrink-0" />
+              <span className="truncate">{contract.organization.name}</span>
+            </div>
+          )}
 
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <UserGroupIcon className="w-4 h-4 text-purple-600 flex-shrink-0" />
-            <span className="truncate">{contract.contractor.name}</span>
-          </div>
+          {contract.contractor?.name && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <UserGroupIcon className="w-4 h-4 text-purple-600 flex-shrink-0" />
+              <span className="truncate">{contract.contractor.name}</span>
+            </div>
+          )}
 
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <BuildingOfficeIcon className="w-4 h-4 text-green-600 flex-shrink-0" />
-            <span className="truncate">{contract.project.name}</span>
-          </div>
+          {contract.project?.name && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <BuildingOfficeIcon className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <span className="truncate">{contract.project.name}</span>
+            </div>
+          )}
         </div>
 
         <div className="space-y-3">

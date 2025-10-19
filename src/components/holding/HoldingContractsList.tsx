@@ -44,9 +44,9 @@ export const HoldingContractsList = () => {
     if (filters.search) {
       const search = filters.search.toLowerCase();
       return (
-        contract.number.toLowerCase().includes(search) ||
-        contract.subject.toLowerCase().includes(search) ||
-        contract.contractor.name.toLowerCase().includes(search)
+        contract.number?.toLowerCase().includes(search) ||
+        contract.subject?.toLowerCase().includes(search) ||
+        contract.contractor?.name?.toLowerCase().includes(search)
       );
     }
     return true;

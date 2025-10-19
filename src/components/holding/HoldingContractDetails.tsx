@@ -232,38 +232,44 @@ export const HoldingContractDetails = () => {
           </div>
 
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-gray-600 block mb-1">
-                Организация
-              </label>
-              <p className="text-gray-900 font-medium">{contract.organization.name}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {contract.organization.inn && `ИНН: ${contract.organization.inn}`}
-              </p>
-            </div>
+            {contract.organization && (
+              <div>
+                <label className="text-sm font-medium text-gray-600 block mb-1">
+                  Организация
+                </label>
+                <p className="text-gray-900 font-medium">{contract.organization.name}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {contract.organization.inn && `ИНН: ${contract.organization.inn}`}
+                </p>
+              </div>
+            )}
 
-            <div>
-              <label className="text-sm font-medium text-gray-600 block mb-1">
-                Подрядчик
-              </label>
-              <p className="text-gray-900 font-medium">{contract.contractor.name}</p>
-              {contract.contractor.contact_person && (
-                <p className="text-sm text-gray-600 mt-1">{contract.contractor.contact_person}</p>
-              )}
-              {contract.contractor.phone && (
-                <p className="text-xs text-gray-500 mt-1">{contract.contractor.phone}</p>
-              )}
-              {contract.contractor.inn && (
-                <p className="text-xs text-gray-500">ИНН: {contract.contractor.inn}</p>
-              )}
-            </div>
+            {contract.contractor && (
+              <div>
+                <label className="text-sm font-medium text-gray-600 block mb-1">
+                  Подрядчик
+                </label>
+                <p className="text-gray-900 font-medium">{contract.contractor.name}</p>
+                {contract.contractor.contact_person && (
+                  <p className="text-sm text-gray-600 mt-1">{contract.contractor.contact_person}</p>
+                )}
+                {contract.contractor.phone && (
+                  <p className="text-xs text-gray-500 mt-1">{contract.contractor.phone}</p>
+                )}
+                {contract.contractor.inn && (
+                  <p className="text-xs text-gray-500">ИНН: {contract.contractor.inn}</p>
+                )}
+              </div>
+            )}
 
-            <div>
-              <label className="text-sm font-medium text-gray-600 block mb-1">
-                Проект
-              </label>
-              <p className="text-gray-900 font-medium">{contract.project.name}</p>
-            </div>
+            {contract.project && (
+              <div>
+                <label className="text-sm font-medium text-gray-600 block mb-1">
+                  Проект
+                </label>
+                <p className="text-gray-900 font-medium">{contract.project.name}</p>
+              </div>
+            )}
           </div>
         </motion.div>
 
