@@ -2,5 +2,7 @@ export { default as HoldingLandingPage } from './HoldingLandingPage';
 export { default as HoldingDashboardPage } from './HoldingDashboardPage';
 export { default as HoldingOrganizationsPage } from './HoldingOrganizationsPage';
 export { default as HoldingLoginPage } from './HoldingLoginPage';
-export { default as HoldingReportsPage } from './HoldingReportsPage';
+export { default as HoldingReportsIndexPage } from './HoldingReportsIndexPage';
+export { default as HoldingProjectsReportPage } from './HoldingProjectsReportPage';
+export { default as HoldingContractsReportPage } from './HoldingContractsReportPage';
 export { default as LandingEditorPage } from './LandingEditorPage'; 
