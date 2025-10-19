@@ -5,15 +5,18 @@ import type {
   ProjectsReportData,
   ContractsReportData,
   IntraGroupReportData,
+  ConsolidatedReportData,
   ProjectsSummaryFilters,
   ContractsSummaryFilters,
-  IntraGroupFilters
+  IntraGroupFilters,
+  ConsolidatedFilters
 } from '@/types/holding-reports';
 
 export const useHoldingReports = () => {
   const [projectsReport, setProjectsReport] = useState<ProjectsReportData | null>(null);
   const [contractsReport, setContractsReport] = useState<ContractsReportData | null>(null);
   const [intraGroupReport, setIntraGroupReport] = useState<IntraGroupReportData | null>(null);
+  const [consolidatedReport, setConsolidatedReport] = useState<ConsolidatedReportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -140,6 +143,47 @@ export const useHoldingReports = () => {
     }
   }, []);
 
+  const fetchConsolidatedReport = useCallback(async (filters?: ConsolidatedFilters) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await holdingReportsService.getConsolidatedReport(filters);
+      
+      if (response.data && response.data.success) {
+        setConsolidatedReport(response.data.data);
+      } else {
+        setError(response.data?.message || 'Ошибка загрузки консолидированного отчета');
+      }
+    } catch (err: any) {
+      const errorMessage = err.message || 'Ошибка загрузки консолидированного отчета';
+      setError(errorMessage);
+      console.error('Ошибка при загрузке консолидированного отчета:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const exportConsolidatedReport = useCallback(async (filters?: ConsolidatedFilters, format: 'csv' | 'excel' | 'xlsx' = 'excel') => {
+    try {
+      const blob = await holdingReportsService.exportConsolidatedReport(filters, format);
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `consolidated_report_${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xlsx'}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Отчет успешно экспортирован');
+    } catch (err: any) {
+      const errorMessage = err.message || 'Ошибка экспорта отчета';
+      toast.error(errorMessage);
+      console.error('Ошибка при экспорте консолидированного отчета:', err);
+    }
+  }, []);
+
   const formatCurrency = useCallback((amount: number) => {
     if (typeof amount !== 'number' || isNaN(amount)) {
       return '0 ₽';
@@ -184,14 +228,17 @@ export const useHoldingReports = () => {
     projectsReport,
     contractsReport,
     intraGroupReport,
+    consolidatedReport,
     loading,
     error,
     fetchProjectsSummary,
     fetchContractsSummary,
     fetchIntraGroupReport,
+    fetchConsolidatedReport,
     exportProjectsReport,
     exportContractsReport,
     exportIntraGroupReport,
+    exportConsolidatedReport,
     formatCurrency,
     formatPercent,
     formatDate
@@ -317,6 +364,47 @@ export const useIntraGroupReport = () => {
 
   return {
     intraGroupReport,
+    loading,
+    error,
+    filters,
+    updateFilters,
+    loadReport,
+    exportReport,
+    formatCurrency,
+    formatPercent,
+    formatDate
+  };
+};
+
+export const useConsolidatedReport = () => {
+  const {
+    consolidatedReport,
+    loading,
+    error,
+    fetchConsolidatedReport,
+    exportConsolidatedReport,
+    formatCurrency,
+    formatPercent,
+    formatDate
+  } = useHoldingReports();
+
+  const [filters, setFilters] = useState<ConsolidatedFilters>({});
+
+  const loadReport = useCallback(async (newFilters?: ConsolidatedFilters) => {
+    const targetFilters = newFilters || filters;
+    await fetchConsolidatedReport(targetFilters);
+  }, [fetchConsolidatedReport, filters]);
+
+  const updateFilters = useCallback((newFilters: Partial<ConsolidatedFilters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  }, []);
+
+  const exportReport = useCallback(async (format: 'csv' | 'excel' | 'xlsx' = 'excel') => {
+    await exportConsolidatedReport(filters, format);
+  }, [exportConsolidatedReport, filters]);
+
+  return {
+    consolidatedReport,
     loading,
     error,
     filters,

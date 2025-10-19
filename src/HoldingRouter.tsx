@@ -5,6 +5,7 @@ import HoldingReportsIndexPage from '@pages/holding/HoldingReportsIndexPage';
 import HoldingProjectsReportPage from '@pages/holding/HoldingProjectsReportPage';
 import HoldingContractsReportPage from '@pages/holding/HoldingContractsReportPage';
 import HoldingIntraGroupReportPage from '@pages/holding/HoldingIntraGroupReportPage';
+import HoldingConsolidatedReportPage from '@pages/holding/HoldingConsolidatedReportPage';
 import HoldingContractsPage from '@pages/holding/HoldingContractsPage';
 import HoldingContractDetailsPage from '@pages/holding/HoldingContractDetailsPage';
 import LandingEditorPage from '@pages/holding/LandingEditorPage';
@@ -27,6 +28,7 @@ const HoldingRouter = () => {
             <Route path="/reports/projects" element={<HoldingProjectsReportPage />} />
             <Route path="/reports/contracts" element={<HoldingContractsReportPage />} />
             <Route path="/reports/intragroup" element={<HoldingIntraGroupReportPage />} />
+            <Route path="/reports/consolidated" element={<HoldingConsolidatedReportPage />} />
           <Route path="/projects" element={<HoldingProjectsList />} />
           <Route path="/projects/:projectId" element={<HoldingProjectDetails />} />
           <Route path="/projects/contracts" element={<HoldingContractsPage />} />

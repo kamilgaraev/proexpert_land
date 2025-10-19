@@ -67,6 +67,19 @@ const HoldingReportsIndexPage: React.FC = () => {
         { label: 'Эффективность', value: 'Оценка' },
       ]
     },
+    {
+      id: 'consolidated',
+      title: 'Консолидированный отчет',
+      description: 'МАКСИМАЛЬНО детальный отчет со ВСЕМИ данными: проекты, контракты, платежи, акты, работы, материалы и многое другое',
+      icon: DocumentTextIcon,
+      route: '/reports/consolidated',
+      permission: 'multi-organization.reports.view',
+      stats: [
+        { label: 'Все данные', value: 'Полнота' },
+        { label: 'Финансы', value: 'Детально' },
+        { label: 'Материалы', value: 'Учет' },
+      ]
+    },
   ];
 
   const availableReports = reports.filter(report => can(report.permission));

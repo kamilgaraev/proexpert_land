@@ -284,3 +284,211 @@ export interface IntraGroupReportResponse {
   success: boolean;
   data: IntraGroupReportData;
 }
+
+export interface ConsolidatedFilters {
+  organization_ids?: number[];
+  status?: string;
+  date_from?: string;
+  date_to?: string;
+}
+
+export interface ConsolidatedContractor {
+  id: number;
+  name: string;
+  inn: string;
+  contact_person: string;
+  phone: string;
+  email: string;
+  contractor_type: string;
+  organization_id: number | null;
+}
+
+export interface ConsolidatedPayment {
+  id: number;
+  amount: number;
+  payment_date: string;
+  payment_type: string;
+  notes: string | null;
+}
+
+export interface ConsolidatedAct {
+  id: number;
+  number: string;
+  amount: number;
+  act_date: string;
+  is_approved: boolean;
+}
+
+export interface ConsolidatedCompletedWork {
+  id: number;
+  work_type: string;
+  quantity: number;
+  price: number;
+  total_amount: number;
+  completion_date: string;
+  status: string;
+}
+
+export interface ConsolidatedAgreement {
+  id: number;
+  number: string;
+  date: string;
+  amount_change: number;
+  description: string | null;
+}
+
+export interface ConsolidatedSpecification {
+  id: number;
+  name: string;
+  total_amount: number;
+}
+
+export interface ConsolidatedChildContract {
+  id: number;
+  number: string;
+  contractor_name: string;
+  amount: number;
+  paid: number;
+  status: string;
+}
+
+export interface ConsolidatedContractFinancial {
+  total_amount: number;
+  gp_amount: number;
+  gp_percentage: number;
+  subcontract_amount: number;
+  planned_advance: number;
+  actual_advance: number;
+  total_paid: number;
+  total_acts: number;
+  total_works: number;
+  remaining: number;
+  completion_percentage: number;
+  payment_percentage: number;
+}
+
+export interface ConsolidatedContract {
+  contract_id: number;
+  contract_number: string;
+  contract_date: string;
+  contract_status: string;
+  work_type_category: string;
+  start_date: string;
+  end_date: string;
+  contractor: ConsolidatedContractor | null;
+  financial: ConsolidatedContractFinancial;
+  payments: ConsolidatedPayment[];
+  acts: ConsolidatedAct[];
+  completed_works: ConsolidatedCompletedWork[];
+  agreements: ConsolidatedAgreement[];
+  specifications: ConsolidatedSpecification[];
+  child_contracts: ConsolidatedChildContract[];
+  parent_contract: any;
+  payments_count: number;
+  acts_count: number;
+  works_count: number;
+  agreements_count: number;
+  specifications_count: number;
+  child_contracts_count: number;
+}
+
+export interface ConsolidatedMaterialReceipt {
+  id: number;
+  material_name: string;
+  material_code: string;
+  supplier_name: string;
+  quantity: number;
+  price: number;
+  total_amount: number;
+  receipt_date: string;
+  document_number: string;
+  status: string;
+}
+
+export interface ConsolidatedMaterialWriteOff {
+  id: number;
+  material_name: string;
+  material_code: string;
+  quantity: number;
+  write_off_date: string;
+  notes: string | null;
+}
+
+export interface ConsolidatedMaterialsSummary {
+  receipts_count: number;
+  receipts_total: number;
+  write_offs_count: number;
+}
+
+export interface ConsolidatedProject {
+  project_id: number;
+  project_name: string;
+  project_address: string;
+  project_status: string;
+  project_budget: number;
+  customer: string | null;
+  designer: string | null;
+  site_area_m2: number | null;
+  start_date: string | null;
+  end_date: string | null;
+  is_archived: boolean;
+  contracts_count: number;
+  contracts: ConsolidatedContract[];
+  material_receipts: ConsolidatedMaterialReceipt[];
+  material_write_offs: ConsolidatedMaterialWriteOff[];
+  materials_summary: ConsolidatedMaterialsSummary;
+}
+
+export interface ConsolidatedOrganization {
+  organization_id: number;
+  organization_name: string;
+  organization_type: string;
+  projects_count: number;
+  projects: ConsolidatedProject[];
+}
+
+export interface ConsolidatedSummary {
+  total_organizations: number;
+  total_projects: number;
+  total_contracts: number;
+  total_contractors: number;
+  financial: {
+    total_amount: number;
+    total_paid: number;
+    total_acts: number;
+    remaining: number;
+    completion_percentage: number;
+    payment_percentage: number;
+  };
+  details: {
+    total_payments: number;
+    total_acts: number;
+    total_completed_works: number;
+    total_agreements: number;
+    total_specifications: number;
+    total_child_contracts: number;
+  };
+  materials: {
+    total_receipts: number;
+    receipts_amount: number;
+    total_write_offs: number;
+  };
+}
+
+export interface ConsolidatedReportData {
+  title: string;
+  holding: HoldingInfo;
+  period: {
+    from: string | null;
+    to: string | null;
+  };
+  filters: ConsolidatedFilters;
+  summary: ConsolidatedSummary;
+  data: ConsolidatedOrganization[];
+  generated_at: string;
+}
+
+export interface ConsolidatedReportResponse {
+  success: boolean;
+  data: ConsolidatedReportData;
+}
