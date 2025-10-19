@@ -15,6 +15,9 @@ import {
 import { useHoldingLanding, useLandingBlocks, useLandingAssets } from '@/hooks/useHoldingLanding';
 import { usePermissionsContext } from '@/contexts/PermissionsContext';
 import { useTheme } from '@components/shared/ThemeProvider';
+import { LandingBlockEditor } from '@/components/holding/landing/LandingBlockEditor';
+import { LandingMediaManager } from '@/components/holding/landing/LandingMediaManager';
+import { LandingSettings } from '@/components/holding/landing/LandingSettings';
 import type { 
   BlockType, 
   UpdateBlockRequest, 
@@ -227,7 +230,7 @@ const LandingEditorPage: React.FC = () => {
       name: 'Блоки', 
       icon: Bars3Icon,
       component: (
-        <BlocksEditor 
+        <LandingBlockEditor 
           blocks={blocks}
           selectedBlockId={selectedBlockId}
           onSelectBlock={setSelectedBlockId}
@@ -245,7 +248,7 @@ const LandingEditorPage: React.FC = () => {
       name: 'Медиафайлы', 
       icon: PhotoIcon,
       component: (
-        <MediaManager 
+        <LandingMediaManager 
           assets={assets}
           onUpload={(file: File, context?: AssetUsageContext, metadata?: any) => uploadAsset(file, context, metadata)}
           onUpdate={(assetId: number, metadata: UpdateAssetRequest['metadata']) => updateAsset(assetId, metadata)}
@@ -408,93 +411,6 @@ const LandingEditorPage: React.FC = () => {
                 ))}
               </Tab.Panels>
             </Tab.Group>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Заглушки для компонентов (будут созданы отдельно)
-const BlocksEditor: React.FC<any> = ({ blocks, loading, error }) => {
-  if (loading) return <div className="text-center py-8">Загрузка блоков...</div>;
-  if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
-  
-  const blocksArray = Array.isArray(blocks) ? blocks : [];
-  
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Редактор блоков</h3>
-      <p className="text-gray-600">Перетаскивайте блоки для изменения порядка</p>
-      {blocksArray.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
-          <p className="text-gray-600">Нет блоков. Добавьте первый блок из библиотеки слева.</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {blocksArray.map((block: any) => (
-            <div key={block.id} className="p-4 border border-gray-200 rounded-lg">
-              <h4 className="font-medium">{block.title}</h4>
-              <p className="text-sm text-gray-600">Тип: {block.type}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-const MediaManager: React.FC<any> = ({ assets, loading, error }) => {
-  if (loading) return <div className="text-center py-8">Загрузка медиафайлов...</div>;
-  if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
-  
-  const assetsArray = Array.isArray(assets) ? assets : [];
-  
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Медиафайлы</h3>
-      <p className="text-gray-600">Загружайте и управляйте изображениями и документами</p>
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {assetsArray.map((asset: any) => (
-          <div key={asset.id} className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-            <PhotoIcon className="h-8 w-8 text-gray-400" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const LandingSettings: React.FC<any> = ({ landing, loading, error }) => {
-  if (loading) return <div className="text-center py-8">Загрузка настроек...</div>;
-  if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
-  
-  return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold">Настройки лендинга</h3>
-      
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
-        <h4 className="text-md font-medium mb-4">Основные настройки</h4>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Название лендинга
-            </label>
-            <input
-              type="text"
-              defaultValue={landing.title}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Описание
-            </label>
-            <textarea
-              defaultValue={landing.description}
-              rows={3}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
-            />
           </div>
         </div>
       </div>

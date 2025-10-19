@@ -24,6 +24,7 @@ const HoldingRouter = () => {
           <Route path="/projects/:projectId" element={<HoldingProjectDetails />} />
           <Route path="/projects/contracts" element={<HoldingContractsPage />} />
           <Route path="/projects/contracts/:contractId" element={<HoldingContractDetailsPage />} />
+          <Route path="/landing/editor" element={<LandingEditorPage />} />
           <Route path="/settings" element={<Navigate to="/dashboard" replace />} />
         </Route>
         

@@ -18,6 +18,7 @@ import {
   ClipboardDocumentListIcon,
   ChevronLeftIcon,
   ArrowRightOnRectangleIcon,
+  GlobeAltIcon,
 } from '@heroicons/react/24/outline';
 
 const navigation = [
@@ -45,6 +46,11 @@ const navigation = [
     name: 'Отчеты',
     href: '/reports/1',
     icon: ChartBarIcon,
+  },
+  {
+    name: 'Лендинг сайта',
+    href: '/landing/editor',
+    icon: GlobeAltIcon,
   },
   {
     name: 'Настройки',
