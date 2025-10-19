@@ -115,7 +115,6 @@ export const OrganizationSettingsPage = () => {
     if (!profile.capabilities || profile.capabilities.length === 0) missing.push('capabilities');
     if (!profile.primary_business_type) missing.push('primary_business_type');
     if (!profile.specializations || profile.specializations.length === 0) missing.push('specializations');
-    if (!profile.certifications || profile.certifications.length === 0) missing.push('certifications');
     
     return missing;
   };
