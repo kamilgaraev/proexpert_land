@@ -175,10 +175,10 @@ export const HoldingProjectDetail = () => {
                 >
                   <div>
                     <div className="font-semibold text-gray-900">
-                      Контракт № {contract.number}
+                      Контракт № {contract.contract_number}
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
-                      Подрядчик: {contract.contractor.name}
+                      Подрядчик: {contract.contractor_name}
                     </div>
                   </div>
                   <div className="text-right">

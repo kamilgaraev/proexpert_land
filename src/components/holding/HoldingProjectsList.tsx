@@ -34,7 +34,6 @@ export const HoldingProjectsList = () => {
 
   const {
     options: filterOptions,
-    loading: filtersLoading,
     error: filtersError,
   } = useHoldingFilters();
 
