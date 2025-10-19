@@ -169,7 +169,6 @@ export const LandingBlockEditor: React.FC<Props> = ({
                 selectedBlockId={selectedBlockId}
                 editingBlockId={editingBlockId}
                 editedContent={editedContent}
-                onSelectBlock={onSelectBlock}
                 onStartEdit={handleStartEdit}
                 onSaveEdit={handleSaveEdit}
                 onCancelEdit={handleCancelEdit}
@@ -193,7 +192,6 @@ interface SortableBlockItemProps {
   selectedBlockId: number | null;
   editingBlockId: number | null;
   editedContent: any;
-  onSelectBlock: (blockId: number) => void;
   onStartEdit: (block: LandingBlock) => void;
   onSaveEdit: (blockId: number) => void;
   onCancelEdit: () => void;
@@ -210,7 +208,6 @@ const SortableBlockItem: React.FC<SortableBlockItemProps> = ({
   selectedBlockId,
   editingBlockId,
   editedContent,
-  onSelectBlock,
   onStartEdit,
   onSaveEdit,
   onCancelEdit,
