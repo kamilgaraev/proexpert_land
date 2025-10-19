@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { HoldingLandingPage, HoldingDashboardPage, HoldingOrganizationsPage } from '@pages/holding';
 import HoldingLoginPage from '@pages/holding/HoldingLoginPage';
 import HoldingReportsPage from '@pages/holding/HoldingReportsPage';
+import HoldingContractsPage from '@pages/holding/HoldingContractsPage';
+import HoldingContractDetailsPage from '@pages/holding/HoldingContractDetailsPage';
 import LandingEditorPage from '@pages/holding/LandingEditorPage';
 import { ThemeProvider } from '@components/shared/ThemeProvider';
 import { HoldingPanelLayout } from '@layouts/HoldingPanelLayout';
@@ -20,7 +22,8 @@ const HoldingRouter = () => {
           <Route path="/reports/:holdingId" element={<HoldingReportsPage />} />
           <Route path="/projects" element={<HoldingProjectsList />} />
           <Route path="/projects/:projectId" element={<HoldingProjectDetails />} />
-          <Route path="/contracts" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/projects/contracts" element={<HoldingContractsPage />} />
+          <Route path="/projects/contracts/:contractId" element={<HoldingContractDetailsPage />} />
           <Route path="/settings" element={<Navigate to="/dashboard" replace />} />
         </Route>
         

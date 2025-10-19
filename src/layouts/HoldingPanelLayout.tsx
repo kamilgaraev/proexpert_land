@@ -38,7 +38,7 @@ const navigation = [
   },
   {
     name: 'Контракты',
-    href: '/contracts',
+    href: '/projects/contracts',
     icon: ClipboardDocumentListIcon,
   },
   {
