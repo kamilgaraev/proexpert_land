@@ -96,7 +96,18 @@ export const useHoldingContracts = () => {
           params.filters.date_to = filters.date_to;
         }
 
-        const response = await axios.get('/api/v1/landing/multi-organization/contracts-v2', {
+        const response = await axios.get<{
+          success: boolean;
+          data: {
+            data: Contract[];
+            current_page: number;
+            last_page: number;
+            per_page: number;
+            total: number;
+            from: number;
+            to: number;
+          };
+        }>('/api/v1/landing/multi-organization/contracts-v2', {
           params,
         });
 

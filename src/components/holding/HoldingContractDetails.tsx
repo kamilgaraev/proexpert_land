@@ -27,14 +27,6 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   terminated: { label: 'Расторгнут', color: 'bg-red-100 text-red-700 border-red-300' },
 };
 
-const WORK_TYPE_CATEGORY_CONFIG: Record<string, string> = {
-  construction: 'Строительство',
-  design: 'Проектирование',
-  supervision: 'Технический надзор',
-  supply: 'Поставка',
-  other: 'Прочее',
-};
-
 export const HoldingContractDetails = () => {
   const { id, contractId } = useParams<{ id?: string; contractId?: string }>();
   const navigate = useNavigate();
@@ -127,7 +119,7 @@ export const HoldingContractDetails = () => {
     );
   }
 
-  const { contract, financial_summary, child_contracts_summary, payments_by_type, timeline } = data;
+  const { contract, financial_summary, child_contracts_summary, timeline } = data;
   const statusConfig = STATUS_CONFIG[contract.status] || STATUS_CONFIG.draft;
 
   return (

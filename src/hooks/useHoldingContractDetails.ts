@@ -41,9 +41,10 @@ export const useHoldingContractDetails = () => {
       setLoading(true);
       setError(null);
 
-      const response = await axios.get(
-        `/api/v1/landing/multi-organization/contracts/${contractId}`
-      );
+      const response = await axios.get<{
+        success: boolean;
+        data: ContractDetails;
+      }>(`/api/v1/landing/multi-organization/contracts/${contractId}`);
 
       if (response.data.success) {
         setData(response.data.data);
