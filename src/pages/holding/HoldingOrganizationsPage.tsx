@@ -124,7 +124,8 @@ const HoldingOrganizationsPage = () => {
     };
 
     loadOrganizations();
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // navigate - стабильная функция, не нужна в зависимостях
 
   const handleCreateOrganization = async (e: React.FormEvent) => {
     e.preventDefault();

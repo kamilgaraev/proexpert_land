@@ -1,7 +1,9 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { MultiOrgErrorBoundary } from '@/components/multi-org/MultiOrgErrorBoundary';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChartBarIcon, 
   BuildingOfficeIcon, 
@@ -57,8 +59,23 @@ export const HoldingPanelLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
 
-  if (isLoading) {
+  // Убираем initialLoad только после первой загрузки
+  React.useEffect(() => {
+    if (!isLoading && initialLoad) {
+      setInitialLoad(false);
+    }
+  }, [isLoading, initialLoad]);
+
+  // Закрываем меню при изменении маршрута
+  React.useEffect(() => {
+    setProfileMenuOpen(false);
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Показываем загрузку только при первоначальной загрузке, не при навигации
+  if (isLoading && initialLoad) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
@@ -308,7 +325,17 @@ export const HoldingPanelLayout = () => {
           {/* Main Content Area */}
           <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
-              <Outlet />
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={location.pathname}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
+                >
+                  <Outlet />
+                </motion.div>
+              </AnimatePresence>
             </div>
           </main>
 

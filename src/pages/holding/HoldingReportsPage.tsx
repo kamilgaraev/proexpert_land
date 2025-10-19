@@ -26,7 +26,8 @@ const HoldingReportsPage: React.FC = () => {
       navigate('/');
       return;
     }
-  }, [navigate, can]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [can]); // navigate - стабильная функция, проверяем только изменение прав
 
   const tabs = [
     {

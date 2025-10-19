@@ -169,7 +169,8 @@ const HoldingDashboardPage = () => {
     };
 
     loadDashboardData();
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // navigate - стабильная функция, не нужна в зависимостях
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('ru-RU', {
