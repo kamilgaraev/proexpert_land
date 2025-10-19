@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { useHoldingReports } from '@/hooks/useHoldingReports';
+import { useContractsReport } from '@/hooks/useHoldingReports';
 import { usePermissionsContext } from '@/contexts/PermissionsContext';
 import { useTheme } from '@components/shared/ThemeProvider';
+import { 
+  ArrowDownTrayIcon,
+  BuildingOfficeIcon,
+  UserGroupIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from '@heroicons/react/24/outline';
 
 const FinancialReport: React.FC = () => {
   const { can } = usePermissionsContext();
@@ -9,273 +16,63 @@ const FinancialReport: React.FC = () => {
   const theme = getThemeClasses();
   
   const {
-    financialData,
+    contractsReport,
     loading,
     error,
-    fetchFinancialReport,
+    filters,
+    updateFilters,
+    changePage,
+    loadReport,
+    exportReport,
     formatCurrency,
     formatPercent,
     formatDate
-  } = useHoldingReports();
+  } = useContractsReport();
 
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    
-    setStartDate(firstDay.toISOString().split('T')[0]);
-    setEndDate(lastDay.toISOString().split('T')[0]);
+    loadReport();
   }, []);
 
-  useEffect(() => {
-    if (startDate && endDate) {
-      loadFinancialReport();
-    }
-  }, [startDate, endDate]);
-
-  const loadFinancialReport = async () => {
-    if (!startDate || !endDate) return;
-    await fetchFinancialReport('custom', startDate, endDate);
+  const handleFilterChange = (key: string, value: any) => {
+    updateFilters({ [key]: value });
   };
 
-  const setQuickPeriod = (months: number) => {
-    const now = new Date();
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const start = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
-    
-    setStartDate(start.toISOString().split('T')[0]);
-    setEndDate(end.toISOString().split('T')[0]);
+  const handleApplyFilters = () => {
+    loadReport(filters);
   };
 
-  const renderPeriodSelector = () => (
-    <div className="flex flex-wrap items-center gap-4 mb-6">
-      <div className="flex items-center gap-2">
-        <label className="text-sm text-gray-600">От:</label>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500"
-        />
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <label className="text-sm text-gray-600">До:</label>
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-primary-500 focus:border-primary-500"
-        />
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-600">Быстрый выбор:</span>
-        <button
-          onClick={() => setQuickPeriod(1)}
-          className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg"
-        >
-          Текущий месяц
-        </button>
-        <button
-          onClick={() => setQuickPeriod(3)}
-          className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg"
-        >
-          Квартал
-        </button>
-        <button
-          onClick={() => setQuickPeriod(12)}
-          className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg"
-        >
-          Год
-        </button>
-      </div>
-    </div>
-  );
+  const handleExport = async (format: 'excel' | 'csv') => {
+    await exportReport(format);
+  };
 
-  const renderConsolidatedFinancials = () => {
-    if (!financialData?.consolidated_financials) return null;
+  const handlePageChange = (newPage: number) => {
+    changePage(newPage);
+    loadReport({ ...filters, page: newPage });
+  };
 
-    const financials = financialData.consolidated_financials;
+  const getStatusBadge = (status: string) => {
+    const statusColors: Record<string, string> = {
+      draft: 'bg-gray-100 text-gray-800',
+      active: 'bg-blue-100 text-blue-800',
+      completed: 'bg-green-100 text-green-800',
+      terminated: 'bg-red-100 text-red-800',
+      suspended: 'bg-yellow-100 text-yellow-800',
+    };
+
+    const statusNames: Record<string, string> = {
+      draft: 'Черновик',
+      active: 'Активный',
+      completed: 'Завершен',
+      terminated: 'Расторгнут',
+      suspended: 'Приостановлен',
+    };
 
     return (
-      <div className={`bg-white rounded-xl p-6 border ${theme.border} shadow-sm mb-8`}>
-        <h3 className="text-lg font-semibold mb-6">Консолидированные финансовые показатели</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <p className="text-sm text-green-600 mb-2">Общая выручка</p>
-            <p className="text-2xl font-bold text-green-700">{formatCurrency(financials.total_revenue)}</p>
-          </div>
-          
-          <div className="text-center p-4 bg-red-50 rounded-lg">
-            <p className="text-sm text-red-600 mb-2">Общие расходы</p>
-            <p className="text-2xl font-bold text-red-700">{formatCurrency(financials.total_expenses)}</p>
-          </div>
-          
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-600 mb-2">Валовая прибыль</p>
-            <p className="text-2xl font-bold text-blue-700">{formatCurrency(financials.gross_profit)}</p>
-          </div>
-          
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <p className="text-sm text-purple-600 mb-2">Чистая прибыль</p>
-            <p className="text-2xl font-bold text-purple-700">{formatCurrency(financials.net_profit)}</p>
-          </div>
-          
-          <div className="text-center p-4 bg-indigo-50 rounded-lg">
-            <p className="text-sm text-indigo-600 mb-2">Маржа прибыли</p>
-            <p className="text-2xl font-bold text-indigo-700">{formatPercent(financials.profit_margin)}</p>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderOrganizationBreakdown = () => {
-    if (!financialData?.breakdown_by_organization?.length) return null;
-
-    return (
-      <div className={`bg-white rounded-xl p-6 border ${theme.border} shadow-sm mb-8`}>
-        <h3 className="text-lg font-semibold mb-6">Разбивка по организациям</h3>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Организация</th>
-                <th className="text-right py-3 px-4 font-medium text-gray-700">Выручка</th>
-                <th className="text-right py-3 px-4 font-medium text-gray-700">Расходы</th>
-                <th className="text-right py-3 px-4 font-medium text-gray-700">Прибыль</th>
-                <th className="text-right py-3 px-4 font-medium text-gray-700">Маржа</th>
-                <th className="text-right py-3 px-4 font-medium text-gray-700">Доля в общей выручке</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(financialData.breakdown_by_organization || []).map((org) => {
-                const revenueShare = ((org.revenue || 0) / (financialData.consolidated_financials?.total_revenue || 1)) * 100;
-                
-                return (
-                  <tr key={org.organization_id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4">
-                      <div className="font-medium text-gray-900">{org.organization_name}</div>
-                      <div className="text-sm text-gray-500">ID: {org.organization_id}</div>
-                    </td>
-                    <td className="py-3 px-4 text-right font-medium text-green-600">
-                      {formatCurrency(org.revenue || 0)}
-                    </td>
-                    <td className="py-3 px-4 text-right font-medium text-red-600">
-                      {formatCurrency(org.expenses || 0)}
-                    </td>
-                    <td className="py-3 px-4 text-right font-medium text-blue-600">
-                      {formatCurrency(org.profit || 0)}
-                    </td>
-                    <td className="py-3 px-4 text-right font-medium text-purple-600">
-                      {formatPercent(org.profit_margin || 0)}
-                    </td>
-                    <td className="py-3 px-4 text-right font-medium text-gray-900">
-                      {revenueShare.toFixed(1)}%
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  };
-
-  const renderMonthlyDynamics = () => {
-    if (!financialData?.monthly_dynamics?.length) return null;
-
-    return (
-      <div className={`bg-white rounded-xl p-6 border ${theme.border} shadow-sm mb-8`}>
-        <h3 className="text-lg font-semibold mb-6">Помесячная динамика</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(financialData.monthly_dynamics || []).map((month) => (
-            <div key={month.month} className="border border-gray-200 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-3">
-                {month.month ? (() => {
-                  try {
-                    const date = new Date(month.month + '-01');
-                    if (isNaN(date.getTime())) {
-                      return month.month;
-                    }
-                    return date.toLocaleDateString('ru-RU', { 
-                      year: 'numeric', 
-                      month: 'long' 
-                    });
-                  } catch {
-                    return month.month;
-                  }
-                })() : 'Период не указан'}
-              </h4>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Выручка:</span>
-                  <span className="text-sm font-medium text-green-600">
-                    {formatCurrency(month.revenue || 0)}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Расходы:</span>
-                  <span className="text-sm font-medium text-red-600">
-                    {formatCurrency(month.expenses || 0)}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Прибыль:</span>
-                  <span className="text-sm font-medium text-blue-600">
-                    {formatCurrency(month.profit || 0)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  const renderExpenseCategories = () => {
-    if (!financialData?.expense_categories?.length) return null;
-
-    return (
-      <div className={`bg-white rounded-xl p-6 border ${theme.border} shadow-sm mb-8`}>
-        <h3 className="text-lg font-semibold mb-6">Структура расходов</h3>
-        
-        <div className="space-y-4">
-          {(financialData.expense_categories || []).map((category, index) => (
-            <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-gray-900">{category.category}</span>
-                  <span className="text-sm text-gray-600">{(category.percentage || 0).toFixed(1)}%</span>
-                </div>
-                
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-primary-500 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${category.percentage || 0}%` }}
-                  ></div>
-                </div>
-              </div>
-              
-              <div className="ml-4 text-right">
-                <span className="font-medium text-gray-900">{formatCurrency(category.amount || 0)}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[status] || 'bg-gray-100 text-gray-800'}`}>
+        {statusNames[status] || status}
+      </span>
     );
   };
 
@@ -288,50 +85,327 @@ const FinancialReport: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-8">
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Финансовый отчет</h1>
-          <p className="text-gray-600 mt-1">Детальная финансовая отчетность по холдингу</p>
-          {financialData?.period && (
+          <h1 className="text-2xl font-bold text-gray-900">Отчет по контрактам холдинга</h1>
+          {contractsReport?.holding && (
+            <p className="text-gray-600 mt-1">{contractsReport.holding.name}</p>
+          )}
+          {contractsReport?.period && (
             <p className="text-sm text-gray-500 mt-1">
-              Период: {formatDate(financialData.period.start_date)} - {formatDate(financialData.period.end_date)} 
-              ({financialData.period.days_count} дней)
+              Период: {contractsReport.period.from ? formatDate(contractsReport.period.from) : 'Не указан'} 
+              {contractsReport.period.to && ` - ${formatDate(contractsReport.period.to)}`}
             </p>
           )}
         </div>
         
-        <button
-          onClick={loadFinancialReport}
-          disabled={loading || !startDate || !endDate}
-          className={`px-4 py-2 rounded-lg text-sm font-medium ${theme.primary} text-white hover:opacity-90 disabled:opacity-50`}
-        >
-          {loading ? 'Загрузка...' : 'Создать отчет'}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50"
+          >
+            {showFilters ? 'Скрыть фильтры' : 'Показать фильтры'}
+          </button>
+
+          <button
+            onClick={handleApplyFilters}
+            disabled={loading}
+            className={`px-4 py-2 rounded-lg text-sm font-medium ${theme.primary} text-white hover:opacity-90 disabled:opacity-50`}
+          >
+            {loading ? 'Загрузка...' : 'Обновить'}
+          </button>
+
+          <button
+            onClick={() => handleExport('excel')}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"
+          >
+            <ArrowDownTrayIcon className="w-4 h-4" />
+            Экспорт
+          </button>
+        </div>
       </div>
 
-      {renderPeriodSelector()}
+      {showFilters && (
+        <div className={`bg-white rounded-xl p-6 border ${theme.border} shadow-sm`}>
+          <h3 className="text-lg font-semibold mb-4">Фильтры</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Дата от</label>
+              <input
+                type="date"
+                value={filters.date_from || ''}
+                onChange={(e) => handleFilterChange('date_from', e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Дата до</label>
+              <input
+                type="date"
+                value={filters.date_to || ''}
+                onChange={(e) => handleFilterChange('date_to', e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Статус</label>
+              <select
+                value={filters.status || ''}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="">Все статусы</option>
+                <option value="draft">Черновик</option>
+                <option value="active">Активный</option>
+                <option value="completed">Завершен</option>
+                <option value="terminated">Расторгнут</option>
+                <option value="suspended">Приостановлен</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Минимальная сумма</label>
+              <input
+                type="number"
+                value={filters.min_amount || ''}
+                onChange={(e) => handleFilterChange('min_amount', e.target.value ? Number(e.target.value) : undefined)}
+                placeholder="0"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800">{error}</p>
         </div>
       )}
 
-      {loading && (
+      {loading && !contractsReport && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-          <p className="text-gray-600 mt-2">Генерация финансового отчета...</p>
+          <p className="text-gray-600 mt-2">Генерация отчета по контрактам...</p>
         </div>
       )}
 
-      {financialData && (
+      {contractsReport?.summary && (
         <>
-          {renderConsolidatedFinancials()}
-          {renderOrganizationBreakdown()}
-          {renderMonthlyDynamics()}
-          {renderExpenseCategories()}
+          <div className={`bg-white rounded-xl p-6 border ${theme.border} shadow-sm`}>
+            <h3 className="text-lg font-semibold mb-6">Общая сводка</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+              <div className="text-center p-4 bg-slate-50 rounded-lg">
+                <p className="text-sm text-slate-600 mb-2">Всего контрактов</p>
+                <p className="text-2xl font-bold text-slate-700">{contractsReport.summary.total_contracts}</p>
+              </div>
+              
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <p className="text-sm text-green-600 mb-2">Общая сумма</p>
+                <p className="text-2xl font-bold text-green-700">{formatCurrency(contractsReport.summary.total_amount)}</p>
+              </div>
+              
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-600 mb-2">Оплачено</p>
+                <p className="text-2xl font-bold text-blue-700">{formatCurrency(contractsReport.summary.total_paid)}</p>
+              </div>
+              
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <p className="text-sm text-purple-600 mb-2">Остаток</p>
+                <p className="text-2xl font-bold text-purple-700">{formatCurrency(contractsReport.summary.remaining_amount)}</p>
+              </div>
+              
+              <div className="text-center p-4 bg-indigo-50 rounded-lg">
+                <p className="text-sm text-indigo-600 mb-2">% Выполнения</p>
+                <p className="text-2xl font-bold text-indigo-700">{formatPercent(contractsReport.summary.completion_percentage)}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+              <div className="text-center p-4 bg-amber-50 rounded-lg">
+                <p className="text-sm text-amber-600 mb-2">ГП сумма</p>
+                <p className="text-xl font-bold text-amber-700">{formatCurrency(contractsReport.summary.total_gp_amount)}</p>
+              </div>
+
+              <div className="text-center p-4 bg-cyan-50 rounded-lg">
+                <p className="text-sm text-cyan-600 mb-2">Акты утверждены</p>
+                <p className="text-xl font-bold text-cyan-700">{formatCurrency(contractsReport.summary.total_acts_approved)}</p>
+              </div>
+
+              <div className="text-center p-4 bg-rose-50 rounded-lg">
+                <p className="text-sm text-rose-600 mb-2">% Оплаты</p>
+                <p className="text-xl font-bold text-rose-700">{formatPercent(contractsReport.summary.payment_percentage)}</p>
+              </div>
+            </div>
+          </div>
+
+          {contractsReport.summary.by_status && contractsReport.summary.by_status.length > 0 && (
+            <div className={`bg-white rounded-xl p-6 border ${theme.border} shadow-sm`}>
+              <h3 className="text-lg font-semibold mb-6">Контракты по статусам</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {contractsReport.summary.by_status.map((statusItem) => (
+                  <div key={statusItem.status} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      {getStatusBadge(statusItem.status)}
+                      <span className="text-2xl font-bold text-gray-900">{statusItem.count}</span>
+                    </div>
+                    <p className="text-sm text-gray-600">Сумма: {formatCurrency(statusItem.total_amount)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {contractsReport.by_organization && contractsReport.by_organization.length > 0 && (
+            <div className={`bg-white rounded-xl p-6 border ${theme.border} shadow-sm`}>
+              <h3 className="text-lg font-semibold mb-6">Разбивка по организациям</h3>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">Организация</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">Контрактов</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">Сумма</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">Оплачено</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">Остаток</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">% Выполнения</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contractsReport.by_organization.map((org) => (
+                      <tr key={org.organization_id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <BuildingOfficeIcon className="w-5 h-5 text-gray-400" />
+                            <div>
+                              <div className="font-medium text-gray-900">{org.organization_name}</div>
+                              <div className="text-sm text-gray-500">ID: {org.organization_id}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-right font-medium text-gray-900">{org.contracts_count}</td>
+                        <td className="py-3 px-4 text-right font-medium text-green-600">
+                          {formatCurrency(org.total_amount)}
+                        </td>
+                        <td className="py-3 px-4 text-right font-medium text-blue-600">
+                          {formatCurrency(org.total_paid)}
+                        </td>
+                        <td className="py-3 px-4 text-right font-medium text-purple-600">
+                          {formatCurrency(org.remaining_amount)}
+                        </td>
+                        <td className="py-3 px-4 text-right font-medium text-indigo-600">
+                          {formatPercent(org.completion_percentage)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {contractsReport.by_contractor && contractsReport.by_contractor.data && contractsReport.by_contractor.data.length > 0 && (
+            <div className={`bg-white rounded-xl p-6 border ${theme.border} shadow-sm`}>
+              <h3 className="text-lg font-semibold mb-6">Подрядчики</h3>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">Подрядчик</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">Контакты</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">Контрактов</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">Сумма</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">Оплачено</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-700">% Выполнения</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">Организации</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contractsReport.by_contractor.data.map((contractor) => (
+                      <tr key={contractor.contractor_id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <UserGroupIcon className="w-5 h-5 text-gray-400" />
+                            <div>
+                              <div className="font-medium text-gray-900">{contractor.contractor_name}</div>
+                              <div className="text-xs text-gray-500">{contractor.contractor_type}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="text-sm">
+                            <div className="text-gray-900">{contractor.contact_person}</div>
+                            <div className="text-gray-500">{contractor.phone}</div>
+                            <div className="text-gray-500">{contractor.email}</div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-right font-medium text-gray-900">{contractor.contracts_count}</td>
+                        <td className="py-3 px-4 text-right font-medium text-green-600">
+                          {formatCurrency(contractor.total_amount)}
+                        </td>
+                        <td className="py-3 px-4 text-right font-medium text-blue-600">
+                          {formatCurrency(contractor.total_paid)}
+                        </td>
+                        <td className="py-3 px-4 text-right font-medium text-indigo-600">
+                          {formatPercent(contractor.completion_percentage)}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="text-sm text-gray-600 max-w-xs truncate" title={contractor.organizations}>
+                            {contractor.organizations}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {contractsReport.by_contractor.pagination && contractsReport.by_contractor.pagination.last_page > 1 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+                  <div className="text-sm text-gray-600">
+                    Показано {contractsReport.by_contractor.data.length} из {contractsReport.by_contractor.pagination.total} подрядчиков
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handlePageChange(contractsReport.by_contractor.pagination.current_page - 1)}
+                      disabled={contractsReport.by_contractor.pagination.current_page === 1}
+                      className="px-3 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    >
+                      <ChevronLeftIcon className="w-4 h-4" />
+                    </button>
+                    
+                    <span className="text-sm text-gray-700">
+                      Страница {contractsReport.by_contractor.pagination.current_page} из {contractsReport.by_contractor.pagination.last_page}
+                    </span>
+                    
+                    <button
+                      onClick={() => handlePageChange(contractsReport.by_contractor.pagination.current_page + 1)}
+                      disabled={contractsReport.by_contractor.pagination.current_page === contractsReport.by_contractor.pagination.last_page}
+                      className="px-3 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    >
+                      <ChevronRightIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </>
+      )}
+
+      {contractsReport && (
+        <div className="text-center text-sm text-gray-500">
+          Последнее обновление: {formatDate(contractsReport.generated_at)}
+        </div>
       )}
     </div>
   );

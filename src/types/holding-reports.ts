@@ -1,232 +1,188 @@
 export interface HoldingInfo {
   id: number;
   name: string;
-  slug: string;
-  organizations_count: number;
 }
 
-export interface ConsolidatedMetrics {
-  total_revenue: number;
-  total_expenses: number;
-  net_profit: number;
-  profit_margin: number;
-  growth_rate: number;
+export interface ProjectsSummaryFilters {
+  organization_ids?: number[];
+  status?: string;
+  date_from?: string;
+  date_to?: string;
+  include_archived?: boolean;
+  min_budget?: number;
+  max_budget?: number;
+  customer?: string;
+  sort_by?: string;
+  sort_direction?: string;
 }
 
-export interface OrganizationBreakdown {
+export interface ProjectStatusSummary {
+  status: string;
+  count: number;
+  total_budget: number;
+}
+
+export interface ProjectsSummary {
+  total_projects: number;
+  total_budget: number;
+  total_contracts_amount: number;
+  total_completed_works: number;
+  total_materials_cost: number;
+  by_status: ProjectStatusSummary[];
+}
+
+export interface ProjectOrganizationBreakdown {
   organization_id: number;
   organization_name: string;
-  revenue: number;
-  expenses: number;
-  profit: number;
-  employees_count: number;
   projects_count: number;
+  total_budget: number;
+  contracts_amount: number;
+  completed_works: number;
+  completion_percentage: number;
+  by_status: Record<string, number>;
 }
 
-export interface FinancialDynamics {
-  period: string;
-  month_name: string;
-  revenue: number;
-  expenses: number;
-  profit: number;
+export interface TopProject {
+  id: number;
+  name: string;
+  budget_amount: number;
+  status: string;
 }
 
-export interface KpiSummary {
-  revenue_per_employee: number;
-  project_completion_rate: number;
-  customer_satisfaction: number;
-  efficiency_score: number;
-}
-
-export interface HoldingDashboardData {
-  holding_info: HoldingInfo;
-  consolidated_metrics: ConsolidatedMetrics;
-  organization_breakdown: OrganizationBreakdown[];
-  financial_dynamics: FinancialDynamics[];
-  kpi_summary: KpiSummary;
-}
-
-export interface HoldingDashboardResponse {
-  success: boolean;
-  data: HoldingDashboardData;
-}
-
-export interface OrganizationMetrics {
-  revenue: number;
-  profit_margin: number;
-  employees_count: number;
-  projects_count: number;
-  efficiency_score: number;
-  completion_rate: number;
-}
-
-export interface OrganizationRanking {
-  revenue_rank: number;
-  efficiency_rank: number;
-  growth_rank: number;
-}
-
-export interface OrganizationComparison {
-  organization_id: number;
-  organization_name: string;
-  metrics: OrganizationMetrics;
-  ranking: OrganizationRanking;
-}
-
-export interface ComparativeCharts {
-  revenue_comparison: any[];
-  efficiency_comparison: any[];
-  growth_trends: any[];
-}
-
-export interface OrganizationsComparisonData {
-  organizations: OrganizationComparison[];
-  comparative_charts: ComparativeCharts;
-}
-
-export interface OrganizationsComparisonResponse {
-  success: boolean;
-  data: OrganizationsComparisonData;
-}
-
-export interface FinancialPeriod {
-  start_date: string;
+export interface OverdueProject {
+  id: number;
+  name: string;
   end_date: string;
-  days_count: number;
+  days_overdue: number;
 }
 
-export interface ConsolidatedFinancials {
-  total_revenue: number;
-  total_expenses: number;
-  gross_profit: number;
-  net_profit: number;
-  profit_margin: number;
+export interface TopProjects {
+  by_budget: TopProject[];
+  overdue: OverdueProject[];
 }
 
-export interface FinancialBreakdownByOrganization {
-  organization_id: number;
-  organization_name: string;
-  revenue: number;
-  expenses: number;
-  profit: number;
-  profit_margin: number;
-}
-
-export interface MonthlyDynamics {
-  month: string;
-  revenue: number;
-  expenses: number;
-  profit: number;
-}
-
-export interface ExpenseCategory {
-  category: string;
-  amount: number;
-  percentage: number;
-}
-
-export interface FinancialReportData {
-  period: FinancialPeriod;
-  consolidated_financials: ConsolidatedFinancials;
-  breakdown_by_organization: FinancialBreakdownByOrganization[];
-  monthly_dynamics: MonthlyDynamics[];
-  expense_categories: ExpenseCategory[];
-}
-
-export interface FinancialReportResponse {
-  success: boolean;
-  data: FinancialReportData;
-}
-
-export interface FinancialKpis {
-  revenue_growth: number;
-  profit_margin: number;
-  roi: number;
-  revenue_per_employee: number;
-}
-
-export interface OperationalKpis {
-  project_completion_rate: number;
-  employee_productivity: number;
-  resource_utilization: number;
-  quality_index: number;
-}
-
-export interface EfficiencyKpis {
-  cost_efficiency: number;
-  time_efficiency: number;
-  automation_level: number;
-}
-
-export interface KpiMetrics {
-  financial_kpis: FinancialKpis;
-  operational_kpis: OperationalKpis;
-  efficiency_kpis: EfficiencyKpis;
-}
-
-export interface KpiTrends {
-  revenue_trend: string;
-  efficiency_trend: string;
-  profitability_trend: string;
-}
-
-export interface KpiReportData {
-  holding_id: number;
-  holding_name: string;
-  period: string;
-  kpis: KpiMetrics;
-  trends: KpiTrends;
-  organizations_count: number;
+export interface ProjectsReportData {
+  title: string;
+  holding: HoldingInfo;
+  period: {
+    from: string | null;
+    to: string | null;
+  };
+  filters: ProjectsSummaryFilters;
+  summary: ProjectsSummary;
+  by_organization: ProjectOrganizationBreakdown[];
+  top_projects: TopProjects;
   generated_at: string;
 }
 
-export interface KpiReportResponse {
+export interface ProjectsReportResponse {
   success: boolean;
-  data: KpiReportData;
+  data: ProjectsReportData;
 }
 
-export interface EfficiencyMetrics {
-  overall_efficiency: number;
-  resource_utilization: number;
+export interface ContractsSummaryFilters {
+  organization_ids?: number[];
+  contractor_ids?: number[];
+  project_id?: number;
+  status?: string;
+  date_from?: string;
+  date_to?: string;
+  min_amount?: number;
+  max_amount?: number;
+  work_type_category?: string;
+  include_child_contracts?: boolean;
+  page?: number;
+  per_page?: number;
 }
 
-export interface QuickMetricsData {
-  organizations_count: number;
-  total_users: number;
-  total_projects: number;
-  active_contracts: number;
-  total_contracts_value: number;
-  current_revenue: number;
-  revenue_growth: number;
-  efficiency_metrics: EfficiencyMetrics;
-  updated_at: string;
+export interface ContractStatusSummary {
+  status: string;
+  count: number;
+  total_amount: number;
 }
 
-export interface QuickMetricsResponse {
+export interface ContractsSummary {
+  total_contracts: number;
+  total_amount: number;
+  total_gp_amount: number;
+  total_paid: number;
+  total_acts_approved: number;
+  remaining_amount: number;
+  completion_percentage: number;
+  payment_percentage: number;
+  total_planned_advance: number;
+  total_actual_advance: number;
+  by_status: ContractStatusSummary[];
+}
+
+export interface ContractOrganizationBreakdown {
+  organization_id: number;
+  organization_name: string;
+  contracts_count: number;
+  total_amount: number;
+  total_gp_amount: number;
+  total_paid: number;
+  total_acts_approved: number;
+  remaining_amount: number;
+  completion_percentage: number;
+  payment_percentage: number;
+  by_status: Record<string, number>;
+}
+
+export interface ContractorDetails {
+  contractor_id: number;
+  contractor_name: string;
+  contact_person: string;
+  phone: string;
+  email: string;
+  contractor_type: string;
+  contracts_count: number;
+  total_amount: number;
+  total_paid: number;
+  total_acts_approved: number;
+  remaining_amount: number;
+  completion_percentage: number;
+  payment_percentage: number;
+  organizations: string;
+}
+
+export interface ContractorPagination {
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+}
+
+export interface ContractsByContractor {
+  data: ContractorDetails[];
+  pagination: ContractorPagination;
+}
+
+export interface ContractsReportData {
+  title: string;
+  holding: HoldingInfo;
+  period: {
+    from: string | null;
+    to: string | null;
+  };
+  filters: ContractsSummaryFilters;
+  summary: ContractsSummary;
+  by_organization: ContractOrganizationBreakdown[];
+  by_contractor: ContractsByContractor;
+  generated_at: string;
+}
+
+export interface ContractsReportResponse {
   success: boolean;
-  data: QuickMetricsData;
+  data: ContractsReportData;
 }
 
-export interface CacheClearResponse {
-  success: boolean;
-  message: string;
+export interface ExportParams {
+  export_format?: 'csv' | 'excel' | 'xlsx';
 }
 
 export interface HoldingReportsError {
   success: false;
   message: string;
   errors?: Record<string, string[]>;
-}
-
-export interface HoldingReportsPeriodParams {
-  period?: string;
-}
-
-export interface FinancialReportParams {
-  start_date: string;
-  end_date: string;
-}
-
-export interface KpiReportParams {
-  period?: string;
 }

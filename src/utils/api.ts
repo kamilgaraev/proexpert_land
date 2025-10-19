@@ -2478,15 +2478,25 @@ export const landingService = {
 };
 
 export const holdingReportsService = {
-  // Основной дашборд холдинга
-  getDashboard: async (period?: string, fromDate?: string, toDate?: string): Promise<{ data: any, status: number, statusText: string }> => {
+  getProjectsSummary: async (filters?: Record<string, any>): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = new URL(`${API_URL}/holding/analytics/dashboard`);
-    if (period) url.searchParams.append('period', period);
-    if (fromDate) url.searchParams.append('from_date', fromDate);
-    if (toDate) url.searchParams.append('to_date', toDate);
+    const url = new URL(`${API_URL}/landing/multi-organization/reports/projects-summary`);
+    
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          if (Array.isArray(value)) {
+            value.forEach((item) => {
+              url.searchParams.append(`${key}[]`, String(item));
+            });
+          } else {
+            url.searchParams.append(key, String(value));
+          }
+        }
+      });
+    }
 
     const options: RequestInit = {
       method: 'GET',
@@ -2496,20 +2506,31 @@ export const holdingReportsService = {
         'Authorization': `Bearer ${token}`
       }
     };
+    
     const response = await fetchWithBillingLogging(url.toString(), options);
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  // Сравнение организаций
-  getOrganizationsComparison: async (metrics?: string, organizationIds?: number[], period?: string): Promise<{ data: any, status: number, statusText: string }> => {
+  getContractsSummary: async (filters?: Record<string, any>): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = new URL(`${API_URL}/holding/analytics/comparison`);
-    if (metrics) url.searchParams.append('metrics', metrics);
-    if (organizationIds?.length) url.searchParams.append('organization_ids', organizationIds.join(','));
-    if (period) url.searchParams.append('period', period);
+    const url = new URL(`${API_URL}/landing/multi-organization/reports/contracts-summary`);
+    
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          if (Array.isArray(value)) {
+            value.forEach((item) => {
+              url.searchParams.append(`${key}[]`, String(item));
+            });
+          } else {
+            url.searchParams.append(key, String(value));
+          }
+        }
+      });
+    }
 
     const options: RequestInit = {
       method: 'GET',
@@ -2519,92 +2540,82 @@ export const holdingReportsService = {
         'Authorization': `Bearer ${token}`
       }
     };
+    
     const response = await fetchWithBillingLogging(url.toString(), options);
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  // Финансовый отчет
-  getFinancialReport: async (period: string, fromDate: string, toDate: string, breakdownBy?: string): Promise<{ data: any, status: number, statusText: string }> => {
+  exportProjectsReport: async (filters?: Record<string, any>, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = new URL(`${API_URL}/holding/analytics/financial`);
-    url.searchParams.append('period', period);
-    url.searchParams.append('from_date', fromDate);
-    url.searchParams.append('to_date', toDate);
-    if (breakdownBy) url.searchParams.append('breakdown_by', breakdownBy);
+    const url = new URL(`${API_URL}/landing/multi-organization/reports/projects-summary`);
+    
+    const allFilters = { ...filters, export_format: format };
+    
+    Object.entries(allFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        const stringValue = String(value);
+        if (stringValue === '') {
+          return;
+        }
+        if (Array.isArray(value)) {
+          value.forEach((item) => {
+            url.searchParams.append(`${key}[]`, String(item));
+          });
+        } else {
+          url.searchParams.append(key, stringValue);
+        }
+      }
+    });
 
     const options: RequestInit = {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Authorization': `Bearer ${token}`
       }
     };
+    
     const response = await fetchWithBillingLogging(url.toString(), options);
-    const responseData = await response.json();
-    return { data: responseData, status: response.status, statusText: response.statusText };
+    return await response.blob();
   },
 
-  // KPI метрики
-  getKpiReport: async (period?: string): Promise<{ data: any, status: number, statusText: string }> => {
+  exportContractsReport: async (filters?: Record<string, any>, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
-    const url = new URL(`${API_URL}/holding/analytics/kpi`);
-    if (period) url.searchParams.append('period', period);
+    const url = new URL(`${API_URL}/landing/multi-organization/reports/contracts-summary`);
+    
+    const allFilters = { ...filters, export_format: format };
+    
+    Object.entries(allFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        const stringValue = String(value);
+        if (stringValue === '') {
+          return;
+        }
+        if (Array.isArray(value)) {
+          value.forEach((item) => {
+            url.searchParams.append(`${key}[]`, String(item));
+          });
+        } else {
+          url.searchParams.append(key, stringValue);
+        }
+      }
+    });
 
     const options: RequestInit = {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Authorization': `Bearer ${token}`
       }
     };
+    
     const response = await fetchWithBillingLogging(url.toString(), options);
-    const responseData = await response.json();
-    return { data: responseData, status: response.status, statusText: response.statusText };
-  },
-
-  // Быстрые метрики для виджетов
-  getQuickMetrics: async (): Promise<{ data: any, status: number, statusText: string }> => {
-    const token = getTokenFromStorages();
-    if (!token) throw new Error('Токен авторизации отсутствует');
-
-    const url = `${API_URL}/holding/analytics/quick-metrics`;
-    const options: RequestInit = {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    };
-    const response = await fetchWithBillingLogging(url, options);
-    const responseData = await response.json();
-    return { data: responseData, status: response.status, statusText: response.statusText };
-  },
-
-  // Очистка кэша
-  clearCache: async (): Promise<{ data: any, status: number, statusText: string }> => {
-    const token = getTokenFromStorages();
-    if (!token) throw new Error('Токен авторизации отсутствует');
-
-    const url = `${API_URL}/holding/analytics/cache`;
-    const options: RequestInit = {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    };
-    const response = await fetchWithBillingLogging(url, options);
-    const responseData = await response.json();
-    return { data: responseData, status: response.status, statusText: response.statusText };
+    return await response.blob();
   }
 };
 

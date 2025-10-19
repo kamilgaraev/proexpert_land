@@ -2,140 +2,97 @@ import { useState, useCallback } from 'react';
 import { holdingReportsService } from '@utils/api';
 import { toast } from 'react-toastify';
 import type {
-  HoldingDashboardData,
-  OrganizationsComparisonData,
-  FinancialReportData,
-  KpiReportData,
-  QuickMetricsData
+  ProjectsReportData,
+  ContractsReportData,
+  ProjectsSummaryFilters,
+  ContractsSummaryFilters
 } from '@/types/holding-reports';
 
 export const useHoldingReports = () => {
-  const [dashboardData, setDashboardData] = useState<HoldingDashboardData | null>(null);
-  const [comparisonData, setComparisonData] = useState<OrganizationsComparisonData | null>(null);
-  const [financialData, setFinancialData] = useState<FinancialReportData | null>(null);
-  const [kpiData, setKpiData] = useState<KpiReportData | null>(null);
-  const [quickMetrics, setQuickMetrics] = useState<QuickMetricsData | null>(null);
+  const [projectsReport, setProjectsReport] = useState<ProjectsReportData | null>(null);
+  const [contractsReport, setContractsReport] = useState<ContractsReportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDashboard = useCallback(async (period?: string, fromDate?: string, toDate?: string) => {
+  const fetchProjectsSummary = useCallback(async (filters?: ProjectsSummaryFilters) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await holdingReportsService.getDashboard(period, fromDate, toDate);
+      const response = await holdingReportsService.getProjectsSummary(filters);
       
       if (response.data && response.data.success) {
-        setDashboardData(response.data.data);
+        setProjectsReport(response.data.data);
       } else {
-        setError(response.data?.message || 'Ошибка загрузки дашборда');
+        setError(response.data?.message || 'Ошибка загрузки отчета по проектам');
       }
     } catch (err: any) {
-      const errorMessage = err.message || 'Ошибка загрузки дашборда';
+      const errorMessage = err.message || 'Ошибка загрузки отчета по проектам';
       setError(errorMessage);
-      console.error('Ошибка при загрузке дашборда холдинга:', err);
+      console.error('Ошибка при загрузке отчета по проектам:', err);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const fetchOrganizationsComparison = useCallback(async (metrics?: string, organizationIds?: number[], period?: string) => {
+  const fetchContractsSummary = useCallback(async (filters?: ContractsSummaryFilters) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await holdingReportsService.getOrganizationsComparison(metrics, organizationIds, period);
+      const response = await holdingReportsService.getContractsSummary(filters);
       
       if (response.data && response.data.success) {
-        setComparisonData(response.data.data);
+        setContractsReport(response.data.data);
       } else {
-        setError(response.data?.message || 'Ошибка загрузки сравнения организаций');
+        setError(response.data?.message || 'Ошибка загрузки отчета по контрактам');
       }
     } catch (err: any) {
-      const errorMessage = err.message || 'Ошибка загрузки сравнения организаций';
+      const errorMessage = err.message || 'Ошибка загрузки отчета по контрактам';
       setError(errorMessage);
-      console.error('Ошибка при загрузке сравнения организаций:', err);
+      console.error('Ошибка при загрузке отчета по контрактам:', err);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const fetchFinancialReport = useCallback(async (period: string, startDate: string, endDate: string, breakdownBy?: string) => {
+  const exportProjectsReport = useCallback(async (filters?: ProjectsSummaryFilters, format: 'csv' | 'excel' | 'xlsx' = 'excel') => {
     try {
-      setLoading(true);
-      setError(null);
-      const response = await holdingReportsService.getFinancialReport(period, startDate, endDate, breakdownBy);
+      const blob = await holdingReportsService.exportProjectsReport(filters, format);
       
-      if (response.data && response.data.success) {
-        setFinancialData(response.data.data);
-      } else {
-        setError(response.data?.message || 'Ошибка загрузки финансового отчета');
-      }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Ошибка загрузки финансового отчета';
-      setError(errorMessage);
-      console.error('Ошибка при загрузке финансового отчета:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchKpiReport = useCallback(async (period?: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await holdingReportsService.getKpiReport(period);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `projects_report_${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xlsx'}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
       
-      if (response.data && response.data.success) {
-        setKpiData(response.data.data);
-      } else {
-        setError(response.data?.message || 'Ошибка загрузки KPI отчета');
-      }
+      toast.success('Отчет успешно экспортирован');
     } catch (err: any) {
-      const errorMessage = err.message || 'Ошибка загрузки KPI отчета';
-      setError(errorMessage);
-      console.error('Ошибка при загрузке KPI отчета:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchQuickMetrics = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await holdingReportsService.getQuickMetrics();
-      
-      if (response.data && response.data.success) {
-        setQuickMetrics(response.data.data);
-      } else {
-        setError(response.data?.message || 'Ошибка загрузки быстрых метрик');
-      }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Ошибка загрузки быстрых метрик';
-      setError(errorMessage);
-      console.error('Ошибка при загрузке быстрых метрик:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const clearCache = useCallback(async () => {
-    try {
-      const response = await holdingReportsService.clearCache();
-      
-      if (response.data && response.data.success) {
-        toast.success(response.data.message || 'Кэш отчетов успешно очищен');
-        setDashboardData(null);
-        setComparisonData(null);
-        setFinancialData(null);
-        setKpiData(null);
-        setQuickMetrics(null);
-      } else {
-        toast.error(response.data?.message || 'Ошибка очистки кэша');
-      }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Ошибка очистки кэша';
+      const errorMessage = err.message || 'Ошибка экспорта отчета';
       toast.error(errorMessage);
-      console.error('Ошибка при очистке кэша:', err);
+      console.error('Ошибка при экспорте отчета по проектам:', err);
+    }
+  }, []);
+
+  const exportContractsReport = useCallback(async (filters?: ContractsSummaryFilters, format: 'csv' | 'excel' | 'xlsx' = 'excel') => {
+    try {
+      const blob = await holdingReportsService.exportContractsReport(filters, format);
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `contracts_report_${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xlsx'}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Отчет успешно экспортирован');
+    } catch (err: any) {
+      const errorMessage = err.message || 'Ошибка экспорта отчета';
+      toast.error(errorMessage);
+      console.error('Ошибка при экспорте отчета по контрактам:', err);
     }
   }, []);
 
@@ -179,92 +136,107 @@ export const useHoldingReports = () => {
     }).format(date);
   }, []);
 
-  const getTrendIcon = useCallback((trend: string) => {
-    switch (trend) {
-      case 'growing':
-        return '📈';
-      case 'declining':
-        return '📉';
-      case 'stable':
-        return '➡️';
-      default:
-        return '📊';
-    }
-  }, []);
-
   return {
-    dashboardData,
-    comparisonData,
-    financialData,
-    kpiData,
-    quickMetrics,
+    projectsReport,
+    contractsReport,
     loading,
     error,
-    fetchDashboard,
-    fetchOrganizationsComparison,
-    fetchFinancialReport,
-    fetchKpiReport,
-    fetchQuickMetrics,
-    clearCache,
+    fetchProjectsSummary,
+    fetchContractsSummary,
+    exportProjectsReport,
+    exportContractsReport,
     formatCurrency,
     formatPercent,
-    formatDate,
-    getTrendIcon
+    formatDate
   };
 };
 
-export const useHoldingDashboard = (initialPeriod?: string) => {
+export const useProjectsReport = () => {
   const {
-    dashboardData,
-    quickMetrics,
+    projectsReport,
     loading,
     error,
-    fetchDashboard,
-    fetchQuickMetrics,
-    clearCache,
+    fetchProjectsSummary,
+    exportProjectsReport,
     formatCurrency,
     formatPercent,
-    formatDate,
-    getTrendIcon
+    formatDate
   } = useHoldingReports();
 
-  const [period, setPeriod] = useState(initialPeriod || '');
+  const [filters, setFilters] = useState<ProjectsSummaryFilters>({});
 
-  const loadDashboard = useCallback(async (selectedPeriod?: string) => {
-    const targetPeriod = selectedPeriod || period;
-    await fetchDashboard(targetPeriod);
-  }, [fetchDashboard, period]);
+  const loadReport = useCallback(async (newFilters?: ProjectsSummaryFilters) => {
+    const targetFilters = newFilters || filters;
+    await fetchProjectsSummary(targetFilters);
+  }, [fetchProjectsSummary, filters]);
 
-  const loadQuickMetrics = useCallback(async () => {
-    await fetchQuickMetrics();
-  }, [fetchQuickMetrics]);
+  const updateFilters = useCallback((newFilters: Partial<ProjectsSummaryFilters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  }, []);
 
-  const refreshData = useCallback(async () => {
-    await Promise.all([
-      loadDashboard(),
-      loadQuickMetrics()
-    ]);
-  }, [loadDashboard, loadQuickMetrics]);
-
-  const clearAndRefresh = useCallback(async () => {
-    await clearCache();
-    await refreshData();
-  }, [clearCache, refreshData]);
+  const exportReport = useCallback(async (format: 'csv' | 'excel' | 'xlsx' = 'excel') => {
+    await exportProjectsReport(filters, format);
+  }, [exportProjectsReport, filters]);
 
   return {
-    dashboardData,
-    quickMetrics,
+    projectsReport,
     loading,
     error,
-    period,
-    setPeriod,
-    loadDashboard,
-    loadQuickMetrics,
-    refreshData,
-    clearAndRefresh,
+    filters,
+    updateFilters,
+    loadReport,
+    exportReport,
     formatCurrency,
     formatPercent,
-    formatDate,
-    getTrendIcon
+    formatDate
+  };
+};
+
+export const useContractsReport = () => {
+  const {
+    contractsReport,
+    loading,
+    error,
+    fetchContractsSummary,
+    exportContractsReport,
+    formatCurrency,
+    formatPercent,
+    formatDate
+  } = useHoldingReports();
+
+  const [filters, setFilters] = useState<ContractsSummaryFilters>({
+    page: 1,
+    per_page: 50
+  });
+
+  const loadReport = useCallback(async (newFilters?: ContractsSummaryFilters) => {
+    const targetFilters = newFilters || filters;
+    await fetchContractsSummary(targetFilters);
+  }, [fetchContractsSummary, filters]);
+
+  const updateFilters = useCallback((newFilters: Partial<ContractsSummaryFilters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  }, []);
+
+  const changePage = useCallback((page: number) => {
+    setFilters(prev => ({ ...prev, page }));
+  }, []);
+
+  const exportReport = useCallback(async (format: 'csv' | 'excel' | 'xlsx' = 'excel') => {
+    await exportContractsReport(filters, format);
+  }, [exportContractsReport, filters]);
+
+  return {
+    contractsReport,
+    loading,
+    error,
+    filters,
+    updateFilters,
+    changePage,
+    loadReport,
+    exportReport,
+    formatCurrency,
+    formatPercent,
+    formatDate
   };
 };
