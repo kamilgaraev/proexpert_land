@@ -13,6 +13,8 @@ import {
   FunnelIcon,
   ArrowPathIcon,
   ArrowLeftIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
 } from '@heroicons/react/24/outline';
 
 const HoldingContractsReportPage: React.FC = () => {
@@ -34,6 +36,7 @@ const HoldingContractsReportPage: React.FC = () => {
   } = useContractsReport();
 
   const [showFilters, setShowFilters] = useState(false);
+  const [expandedOrgs, setExpandedOrgs] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     if (!can('multi-organization.reports.financial')) {
@@ -53,6 +56,10 @@ const HoldingContractsReportPage: React.FC = () => {
 
   const handleExport = async (format: 'excel' | 'csv') => {
     await exportReport(format);
+  };
+
+  const toggleOrg = (orgId: number) => {
+    setExpandedOrgs(prev => ({ ...prev, [orgId]: !prev[orgId] }));
   };
 
   const handlePageChange = (newPage: number) => {
@@ -297,32 +304,130 @@ const HoldingContractsReportPage: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-steel-100">
                       {contractsReport.by_organization.map((org) => (
-                        <tr key={org.organization_id} className="hover:bg-steel-50 transition-colors">
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2">
-                              <div className="bg-steel-700 p-2 rounded-lg">
-                                <BuildingOfficeIcon className="w-5 h-5 text-white" />
+                        <React.Fragment key={org.organization_id}>
+                          <tr className="hover:bg-steel-50 transition-colors">
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => toggleOrg(org.organization_id)}
+                                  className="p-1 hover:bg-steel-100 rounded transition-colors"
+                                >
+                                  {expandedOrgs[org.organization_id] ? (
+                                    <ChevronUpIcon className="w-4 h-4 text-steel-600" />
+                                  ) : (
+                                    <ChevronDownIcon className="w-4 h-4 text-steel-600" />
+                                  )}
+                                </button>
+                                <div className="bg-steel-700 p-2 rounded-lg">
+                                  <BuildingOfficeIcon className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <div className="font-medium text-steel-900">{org.organization_name}</div>
+                                  <div className="text-sm text-steel-500">ID: {org.organization_id}</div>
+                                </div>
                               </div>
-                              <div>
-                                <div className="font-medium text-steel-900">{org.organization_name}</div>
-                                <div className="text-sm text-steel-500">ID: {org.organization_id}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4 text-right font-medium text-steel-900">{org.contracts_count}</td>
-                          <td className="py-3 px-4 text-right font-medium text-steel-900">
-                            {formatCurrency(org.total_amount)}
-                          </td>
-                          <td className="py-3 px-4 text-right font-medium text-steel-900">
-                            {formatCurrency(org.total_paid)}
-                          </td>
-                          <td className="py-3 px-4 text-right font-medium text-steel-900">
-                            {formatCurrency(org.remaining_amount)}
-                          </td>
-                          <td className="py-3 px-4 text-right font-medium text-steel-900">
-                            {formatPercent(org.completion_percentage)}
-                          </td>
-                        </tr>
+                            </td>
+                            <td className="py-3 px-4 text-right font-medium text-steel-900">{org.total_contracts || org.contracts_count}</td>
+                            <td className="py-3 px-4 text-right font-medium text-steel-900">
+                              {formatCurrency(org.total_amount)}
+                            </td>
+                            <td className="py-3 px-4 text-right font-medium text-steel-900">
+                              {formatCurrency(org.total_paid)}
+                            </td>
+                            <td className="py-3 px-4 text-right font-medium text-steel-900">
+                              {formatCurrency(org.remaining_amount)}
+                            </td>
+                            <td className="py-3 px-4 text-right font-medium text-steel-900">
+                              {formatPercent(org.completion_percentage)}
+                            </td>
+                          </tr>
+                          
+                          {expandedOrgs[org.organization_id] && (
+                            <tr>
+                              <td colSpan={6} className="p-0 bg-steel-50">
+                                <div className="px-6 py-4 space-y-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Как владелец */}
+                                    <div className="bg-white rounded-lg border border-steel-200 p-4">
+                                      <h4 className="font-semibold text-steel-900 mb-3 flex items-center gap-2">
+                                        <BuildingOfficeIcon className="w-4 h-4 text-blue-600" />
+                                        Как владелец проектов
+                                      </h4>
+                                      <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                          <span className="text-steel-600">Контрактов:</span>
+                                          <span className="font-medium text-steel-900">{org.as_owner.contracts_count}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-steel-600">Сумма:</span>
+                                          <span className="font-medium text-steel-900">{formatCurrency(org.as_owner.total_amount)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-steel-600">Оплачено:</span>
+                                          <span className="font-medium text-steel-900">{formatCurrency(org.as_owner.total_paid)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-steel-600">По актам:</span>
+                                          <span className="font-medium text-steel-900">{formatCurrency(org.as_owner.total_acts_approved)}</span>
+                                        </div>
+                                        {org.as_owner.by_status && Object.keys(org.as_owner.by_status).length > 0 && (
+                                          <div className="pt-2 border-t border-steel-200">
+                                            <span className="text-steel-600 text-xs">По статусам:</span>
+                                            <div className="flex flex-wrap gap-2 mt-1">
+                                              {Object.entries(org.as_owner.by_status).map(([status, count]) => (
+                                                <span key={status} className="text-xs px-2 py-0.5 bg-steel-100 rounded">
+                                                  {status}: {count}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Как подрядчик */}
+                                    <div className="bg-white rounded-lg border border-steel-200 p-4">
+                                      <h4 className="font-semibold text-steel-900 mb-3 flex items-center gap-2">
+                                        <UserGroupIcon className="w-4 h-4 text-green-600" />
+                                        Как подрядчик
+                                      </h4>
+                                      <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                          <span className="text-steel-600">Контрактов:</span>
+                                          <span className="font-medium text-steel-900">{org.as_contractor.contracts_count}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-steel-600">Сумма:</span>
+                                          <span className="font-medium text-steel-900">{formatCurrency(org.as_contractor.total_amount)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-steel-600">Оплачено:</span>
+                                          <span className="font-medium text-steel-900">{formatCurrency(org.as_contractor.total_paid)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-steel-600">По актам:</span>
+                                          <span className="font-medium text-steel-900">{formatCurrency(org.as_contractor.total_acts_approved)}</span>
+                                        </div>
+                                        {org.as_contractor.by_status && Object.keys(org.as_contractor.by_status).length > 0 && (
+                                          <div className="pt-2 border-t border-steel-200">
+                                            <span className="text-steel-600 text-xs">По статусам:</span>
+                                            <div className="flex flex-wrap gap-2 mt-1">
+                                              {Object.entries(org.as_contractor.by_status).map(([status, count]) => (
+                                                <span key={status} className="text-xs px-2 py-0.5 bg-steel-100 rounded">
+                                                  {status}: {count}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
                       ))}
                     </tbody>
                   </table>

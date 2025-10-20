@@ -119,6 +119,7 @@ export interface ContractsSummary {
 export interface ContractOrganizationBreakdown {
   organization_id: number;
   organization_name: string;
+  total_contracts: number;
   contracts_count: number;
   total_amount: number;
   total_gp_amount: number;
@@ -127,6 +128,20 @@ export interface ContractOrganizationBreakdown {
   remaining_amount: number;
   completion_percentage: number;
   payment_percentage: number;
+  as_owner: {
+    contracts_count: number;
+    total_amount: number;
+    total_paid: number;
+    total_acts_approved: number;
+    by_status: Record<string, number>;
+  };
+  as_contractor: {
+    contracts_count: number;
+    total_amount: number;
+    total_paid: number;
+    total_acts_approved: number;
+    by_status: Record<string, number>;
+  };
   by_status: Record<string, number>;
 }
 
