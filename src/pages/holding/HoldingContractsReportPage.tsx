@@ -347,11 +347,11 @@ const HoldingContractsReportPage: React.FC = () => {
                               <td colSpan={6} className="p-0 bg-steel-50">
                                 <div className="px-6 py-4 space-y-4">
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Как владелец */}
+                                    {/* Свои контракты */}
                                     <div className="bg-white rounded-lg border border-steel-200 p-4">
                                       <h4 className="font-semibold text-steel-900 mb-3 flex items-center gap-2">
                                         <BuildingOfficeIcon className="w-4 h-4 text-blue-600" />
-                                        Как владелец проектов
+                                        Свои контракты
                                       </h4>
                                       <div className="space-y-2 text-sm">
                                         <div className="flex justify-between">
