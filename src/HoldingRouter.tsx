@@ -9,6 +9,7 @@ import HoldingConsolidatedReportPage from '@pages/holding/HoldingConsolidatedRep
 import HoldingContractsPage from '@pages/holding/HoldingContractsPage';
 import HoldingContractDetailsPage from '@pages/holding/HoldingContractDetailsPage';
 import LandingEditorPage from '@pages/holding/LandingEditorPage';
+import NotFoundPage from '@pages/NotFoundPage';
 import { ThemeProvider } from '@components/shared/ThemeProvider';
 import { HoldingPanelLayout } from '@layouts/HoldingPanelLayout';
 import { HoldingProjectsList, HoldingProjectDetails } from '@/components/holding';
@@ -38,7 +39,7 @@ const HoldingRouter = () => {
         </Route>
         
         <Route path="/holding/:holdingId/landing/edit" element={<LandingEditorPage />} />
-        <Route path="*" element={<HoldingLandingPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </ThemeProvider>
   );
