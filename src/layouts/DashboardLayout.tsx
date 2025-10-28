@@ -12,7 +12,6 @@ import {
   WalletIcon,
   BuildingOfficeIcon,
   CogIcon,
-  BellIcon,
   UsersIcon,
   ShieldCheckIcon,
   ChartPieIcon,
@@ -28,6 +27,7 @@ import { useCanAccess } from '@/hooks/usePermissions';
 import { useBalance } from '@hooks/useBalance';
 import { Menu, Transition } from '@headlessui/react';
 import { classNames } from '@utils/classNames';
+import { NotificationBell } from '@/components/dashboard/notifications';
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -519,13 +519,7 @@ const DashboardLayout = () => {
                 </div>
               </Link>
               
-              {/* Уведомления */}
-              <button className="relative p-2 text-steel-500 hover:text-construction-600 hover:bg-construction-50 rounded-xl transition-colors">
-                <BellIcon className="h-6 w-6" />
-                {hasExpiring && (
-                  <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500"></span>
-                )}
-              </button>
+              <NotificationBell />
               
               {/* Админ панель */}
               <a

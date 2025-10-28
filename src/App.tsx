@@ -28,6 +28,7 @@ import ModulesPage from '@pages/dashboard/ModulesPage';
 import CustomRolesPage from '@pages/dashboard/CustomRolesPage';
 import HoldingRouter from '@/HoldingRouter';
 import MultiOrganizationPage from '@pages/dashboard/MultiOrganizationPage';
+import { Page as NotificationsPage } from '@pages/dashboard/notifications.page';
 
 // Multi-Organization v2.0 - Holding Panel
 import { HoldingPanelLayout } from '@layouts/HoldingPanelLayout';
@@ -203,6 +204,7 @@ function App() {
           <Route path="support" element={<SupportPage />} />
           <Route path="faq" element={<FAQPage />} />
           <Route path="limits" element={<SubscriptionLimitsPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
           
           {/* Маршруты управления организацией с проверкой прав */}
           <Route path="billing" element={
