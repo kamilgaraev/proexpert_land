@@ -15,7 +15,7 @@ export const notificationService = {
       params.filter = filter;
     }
 
-    const response = await axios.get(`${API_BASE_URL}/api/v1/landing/notifications`, {
+    const response = await axios.get<NotificationResponse>(`${API_BASE_URL}/api/v1/landing/notifications`, {
       params,
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('lk_token')}`,
