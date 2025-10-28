@@ -82,6 +82,11 @@ jobs:
     env:
       TARGET_PATH: /var/www/prohelper_lk
       NODE_VERSION: '22'
+      VITE_API_URL: https://api.prohelper.pro
+      VITE_REVERB_APP_KEY: 1234567890abcdef1234567890abcdef
+      VITE_REVERB_HOST: api.prohelper.pro
+      VITE_REVERB_PORT: 443
+      VITE_REVERB_SCHEME: https
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
