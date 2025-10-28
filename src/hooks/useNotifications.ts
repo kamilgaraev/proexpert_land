@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import echo from '../services/echo';
+import getEcho from '../services/echo';
 import { notificationService } from '../services/notificationService';
 import type { Notification } from '../types/notification';
 import { toast } from 'react-toastify';
@@ -125,6 +125,13 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
 
     console.log('🔌 Подключение к WebSocket для userId:', userId);
 
+    const echo = getEcho();
+    
+    if (!echo) {
+      console.warn('⚠️ Echo не инициализирован (нет токена)');
+      return;
+    }
+
     try {
       channelRef.current = echo.private(`App.Models.User.${userId}`)
         .error((error: any) => {
@@ -149,7 +156,7 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
     }
 
     return () => {
-      if (channelRef.current && userId) {
+      if (channelRef.current && userId && echo) {
         console.log('🔌 Отключение от WebSocket для userId:', userId);
         try {
           echo.leave(`App.Models.User.${userId}`);
