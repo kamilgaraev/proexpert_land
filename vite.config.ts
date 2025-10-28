@@ -49,42 +49,46 @@ export default defineConfig({
     chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
-        // Консервативная стратегия разделения chunks
-        // Группируем связанные библиотеки вместе, чтобы избежать circular dependencies
+        // Минимальная стратегия chunking - выносим только тяжелые библиотеки
+        // React и зависимые библиотеки оставляем Vite на автоматическую обработку
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // React Core + Router + базовые React-библиотеки (избегаем циркулярных зависимостей)
+            // Используем более точные проверки с полными путями
+            const nodeModulesPath = id.split('node_modules/')[1];
+            if (!nodeModulesPath) return;
+            
+            const packageName = nodeModulesPath.split('/')[0];
+            
+            // React экосистема - ДОЛЖНА быть в одном chunk
             if (
-              id.includes('react') || 
-              id.includes('react-dom') || 
-              id.includes('react-router') ||
-              id.includes('scheduler') ||
-              id.includes('@remix-run/router')
+              packageName === 'react' || 
+              packageName === 'react-dom' || 
+              packageName === 'scheduler' ||
+              packageName === 'react-router' ||
+              packageName === 'react-router-dom' ||
+              packageName.startsWith('@remix-run')
             ) {
               return 'react-vendor';
             }
             
-            // Chart.js - тяжелая библиотека для графиков (можно выносить отдельно)
-            if (id.includes('chart.js') || id.includes('react-chartjs-2')) {
+            // Тяжелые библиотеки выносим отдельно
+            if (packageName === 'chart.js' || packageName === 'react-chartjs-2') {
               return 'charts';
             }
             
-            // Framer Motion - анимации (можно выносить отдельно)
-            if (id.includes('framer-motion')) {
+            if (packageName === 'framer-motion') {
               return 'animations';
             }
             
-            // UI компоненты и иконки
-            if (id.includes('@heroicons') || id.includes('@headlessui')) {
+            if (packageName === '@heroicons' || packageName === '@headlessui') {
               return 'ui-libs';
             }
             
-            // WebSocket библиотеки
-            if (id.includes('pusher-js') || id.includes('laravel-echo')) {
+            if (packageName === 'pusher-js' || packageName === 'laravel-echo') {
               return 'realtime';
             }
             
-            // Остальные библиотеки в общий vendor
+            // Все остальное в vendor
             return 'vendor';
           }
         },
