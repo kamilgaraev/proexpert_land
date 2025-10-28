@@ -137,9 +137,21 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
         .error((error: any) => {
           console.warn('⚠️ WebSocket авторизация не удалась (работаем без realtime):', error);
         })
-        .listen('notification.new', (e: any) => {
-          console.log('🔔 Получено событие notification.new:', e);
-          console.log('🔍 Структура данных:', JSON.stringify(e, null, 2));
+        .listen('notification.new', (eventData: any) => {
+          console.log('🔔 Получено событие notification.new RAW:', eventData);
+          
+          let e = eventData;
+          if (typeof eventData === 'string') {
+            try {
+              e = JSON.parse(eventData);
+              console.log('📦 Распарсили JSON:', e);
+            } catch (error) {
+              console.error('❌ Ошибка парсинга JSON:', error);
+              return;
+            }
+          }
+          
+          console.log('🔍 Финальная структура данных:', e);
           
           if (e?.data?.interface === 'lk') {
             const notification: Notification = {
@@ -150,7 +162,7 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
               created_at: e.created_at || new Date().toISOString()
             };
             
-            console.log('✅ Добавляем уведомление в список');
+            console.log('✅ Добавляем уведомление в список:', notification);
             
             setUnreadCount(prev => prev + 1);
             setNotifications(prev => [notification, ...prev.slice(0, 4)]);
