@@ -133,7 +133,7 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
     }
 
     try {
-      const channel = echo.private(`App.Models.User.${userId}`)
+      const channel = echo.private(`App.Models.User.${userId}.lk`)
         .error((error: any) => {
           console.warn('⚠️ WebSocket авторизация не удалась (работаем без realtime):', error);
         })
@@ -170,7 +170,7 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
       if (channelRef.current && userId && echo) {
         console.log('🔌 Отключение от WebSocket для userId:', userId);
         try {
-          echo.leave(`App.Models.User.${userId}`);
+          echo.leave(`App.Models.User.${userId}.lk`);
         } catch (e) {
           console.warn('Ошибка при отключении WebSocket:', e);
         }
