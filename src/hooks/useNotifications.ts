@@ -122,13 +122,10 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
           setUnreadCount(prev => prev + 1);
           setNotifications(prev => [notification, ...prev.slice(0, 4)]);
           
-          toast.info(
-            <div>
-              <strong>{notification.data.title}</strong>
-              <p className="text-sm mt-1">{notification.data.message}</p>
-            </div>,
-            { position: 'top-right', autoClose: 5000 }
-          );
+          toast.info(`${notification.data.title}: ${notification.data.message}`, {
+            position: 'top-right',
+            autoClose: 5000
+          });
         }
       });
     } catch (error) {
