@@ -19,7 +19,7 @@ interface UseNotificationsReturn {
 export const useNotifications = (userId: string | null): UseNotificationsReturn => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const channelRef = useRef<any>(null);
 
   const refreshUnreadCount = useCallback(async () => {
@@ -29,10 +29,11 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
       console.log('✅ Счетчик загружен:', count);
       setUnreadCount(count);
     } catch (error) {
-      console.error('❌ Ошибка при загрузке счетчика:', error);
-      setUnreadCount(0);
+      console.error('❌ Ошибка при загрузке счетчика (игнорируем):', error);
+      const unreadFromList = notifications.filter(n => !n.read_at).length;
+      setUnreadCount(unreadFromList);
     }
-  }, []);
+  }, [notifications]);
 
   const refreshNotifications = useCallback(async () => {
     try {
@@ -126,7 +127,10 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
     console.log('🔌 Подключение к WebSocket для userId:', userId);
 
     try {
-      channelRef.current = echo.private(`App.Models.User.${userId}`);
+      channelRef.current = echo.private(`App.Models.User.${userId}`)
+        .error((error: any) => {
+          console.warn('⚠️ WebSocket авторизация не удалась (работаем без realtime):', error);
+        });
       
       channelRef.current.notification((notification: Notification) => {
         console.log('🔔 Новое уведомление:', notification);
@@ -142,13 +146,17 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
         }
       });
     } catch (error) {
-      console.error('❌ Ошибка при подключении к WebSocket:', error);
+      console.warn('⚠️ WebSocket недоступен (работаем без realtime):', error);
     }
 
     return () => {
       if (channelRef.current && userId) {
         console.log('🔌 Отключение от WebSocket для userId:', userId);
-        echo.leave(`App.Models.User.${userId}`);
+        try {
+          echo.leave(`App.Models.User.${userId}`);
+        } catch (e) {
+          console.warn('Ошибка при отключении WebSocket:', e);
+        }
         channelRef.current = null;
       }
     };

@@ -37,17 +37,19 @@ export const NotificationDropdown = ({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 px-4">
-            <div className="text-6xl mb-3">🔔</div>
-            <p className="text-gray-500 text-center">
-              У вас пока нет уведомлений
-            </p>
-          </div>
+        {notifications.length === 0 ? (
+          loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <div className="text-6xl mb-3">🔔</div>
+              <p className="text-gray-500 text-center">
+                У вас пока нет уведомлений
+              </p>
+            </div>
+          )
         ) : (
           <div>
             {notifications.map((notification) => (
