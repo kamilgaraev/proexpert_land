@@ -24,20 +24,26 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
 
   const refreshUnreadCount = useCallback(async () => {
     try {
+      console.log('📊 Загружаем счетчик непрочитанных...');
       const count = await notificationService.getUnreadCount();
+      console.log('✅ Счетчик загружен:', count);
       setUnreadCount(count);
     } catch (error) {
-      console.error('Ошибка при загрузке счетчика непрочитанных:', error);
+      console.error('❌ Ошибка при загрузке счетчика:', error);
+      setUnreadCount(0);
     }
   }, []);
 
   const refreshNotifications = useCallback(async () => {
     try {
+      console.log('📋 Загружаем уведомления...');
       setLoading(true);
       const response = await notificationService.getNotifications(1, 5);
+      console.log('✅ Уведомления загружены:', response);
       setNotifications(response.data);
     } catch (error) {
-      console.error('Ошибка при загрузке уведомлений:', error);
+      console.error('❌ Ошибка при загрузке уведомлений:', error);
+      setNotifications([]);
     } finally {
       setLoading(false);
     }
