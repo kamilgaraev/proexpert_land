@@ -139,25 +139,28 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
         })
         .listen('notification.new', (e: any) => {
           console.log('🔔 Получено событие notification.new:', e);
+          console.log('🔍 Структура данных:', JSON.stringify(e, null, 2));
           
-          if (e?.interface === 'lk' || e?.data?.interface === 'lk') {
-            const notificationData = e.data || e;
-            
+          if (e?.data?.interface === 'lk') {
             const notification: Notification = {
               id: e.id || Math.random().toString(),
               type: e.type || 'notification',
-              data: notificationData,
-              read_at: null,
-              created_at: new Date().toISOString()
+              data: e.data,
+              read_at: e.read_at || null,
+              created_at: e.created_at || new Date().toISOString()
             };
+            
+            console.log('✅ Добавляем уведомление в список');
             
             setUnreadCount(prev => prev + 1);
             setNotifications(prev => [notification, ...prev.slice(0, 4)]);
             
-            toast.info(`${notificationData.title}: ${notificationData.message}`, {
+            toast.info(`${e.data.title}: ${e.data.message}`, {
               position: 'top-right',
               autoClose: 5000
             });
+          } else {
+            console.log('⏭️ Пропускаем уведомление, interface:', e?.data?.interface);
           }
         });
       
