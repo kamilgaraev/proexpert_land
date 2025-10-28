@@ -60,5 +60,5 @@ const getEcho = () => {
   return echoInstance;
 };
 
-export default getEcho();
+export default getEcho;
 
