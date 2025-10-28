@@ -46,6 +46,12 @@ export const NotificationItem = ({
     }
   };
 
+  const handleMouseEnter = () => {
+    if (!notification.read_at) {
+      onMarkAsRead(notification.id);
+    }
+  };
+
   const getActionButtonClasses = (style: string) => {
     const baseClasses = "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors";
     
@@ -109,6 +115,7 @@ export const NotificationItem = ({
   return (
     <div
       onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
       className={`
         flex gap-3 p-4 border-b border-gray-100 cursor-pointer transition-colors
         hover:bg-gray-50
