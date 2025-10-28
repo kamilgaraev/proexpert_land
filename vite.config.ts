@@ -50,38 +50,60 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Улучшенное разделение chunks для оптимальной загрузки
-        manualChunks: (id) => {
-          // Выносим vendor библиотеки в отдельные chunks
+        manualChunks(id) {
           if (id.includes('node_modules')) {
-            // React и связанные библиотеки
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
+            // КРИТИЧЕСКИ ВАЖНО: React Core - должен быть единым модулем
+            // Включаем React, ReactDOM, scheduler, jsx-runtime в один chunk
+            if (
+              id.includes('react/') || 
+              id.includes('react-dom/') || 
+              id.includes('scheduler/') ||
+              id.includes('react/jsx-runtime')
+            ) {
+              return 'react-core';
             }
-            // Chart.js в отдельный chunk (тяжелая библиотека)
+            
+            // React Router - зависит от React Core, но может быть отдельно
+            if (id.includes('react-router') || id.includes('@remix-run/router')) {
+              return 'react-router';
+            }
+            
+            // React-based UI библиотеки (зависят от React Core)
+            if (id.includes('@heroicons') || id.includes('@headlessui')) {
+              return 'ui-components';
+            }
+            
+            // Chart.js - тяжелая библиотека для графиков
             if (id.includes('chart.js') || id.includes('react-chartjs-2')) {
               return 'charts';
             }
-            // Framer Motion в отдельный chunk (анимации)
+            
+            // Framer Motion - анимации
             if (id.includes('framer-motion')) {
               return 'animations';
             }
-            // Router в отдельный chunk
-            if (id.includes('react-router')) {
-              return 'router';
-            }
-            // Icons в отдельный chunk
-            if (id.includes('@heroicons') || id.includes('@headlessui')) {
-              return 'ui-libs';
-            }
-            // Pusher/Echo для WebSocket
+            
+            // Pusher/Echo - WebSocket реалтайм
             if (id.includes('pusher-js') || id.includes('laravel-echo')) {
               return 'realtime';
             }
-            // DnD библиотеки
+            
+            // DnD Kit - drag and drop
             if (id.includes('@dnd-kit')) {
-              return 'dnd';
+              return 'dnd-kit';
             }
-            // Остальные vendor библиотеки
+            
+            // React Toast библиотека
+            if (id.includes('react-toastify')) {
+              return 'toast';
+            }
+            
+            // Axios - HTTP клиент
+            if (id.includes('axios')) {
+              return 'axios';
+            }
+            
+            // Остальные node_modules
             return 'vendor';
           }
         },
