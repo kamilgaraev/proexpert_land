@@ -49,7 +49,7 @@ jobs:
           source: "marketing.tgz"
           target: "/tmp/"
 
-      - name: Deploy on server & restart PM2
+      - name: Deploy on server & restart PM2_
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.HOST }}
