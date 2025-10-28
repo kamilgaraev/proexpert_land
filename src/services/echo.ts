@@ -10,7 +10,11 @@ declare global {
 
 window.Pusher = Pusher;
 
-const getToken = () => localStorage.getItem('lk_token');
+const getToken = () => {
+  return localStorage.getItem('token') || 
+         sessionStorage.getItem('authToken') || 
+         null;
+};
 
 const echo = new Echo({
   broadcaster: 'reverb',

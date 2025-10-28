@@ -2,11 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useNotifications } from '../../../hooks/useNotifications';
 import { NotificationDropdown } from './NotificationDropdown';
 import { BellIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '@hooks/useAuth';
 
 export const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+
+  const userId = user?.id ? String(user.id) : null;
 
   const {
     notifications,
@@ -17,11 +20,6 @@ export const NotificationBell = () => {
     deleteNotification,
     executeAction
   } = useNotifications(userId);
-
-  useEffect(() => {
-    const storedUserId = localStorage.getItem('user_id');
-    setUserId(storedUserId);
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

@@ -107,16 +107,23 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
   }, [refreshNotifications]);
 
   useEffect(() => {
-    if (!userId) return;
-
     refreshUnreadCount();
     refreshNotifications();
+  }, [refreshUnreadCount, refreshNotifications]);
+
+  useEffect(() => {
+    if (!userId) {
+      console.log('⏳ Ожидание загрузки userId для WebSocket...');
+      return;
+    }
+
+    console.log('🔌 Подключение к WebSocket для userId:', userId);
 
     try {
       channelRef.current = echo.private(`App.Models.User.${userId}`);
       
       channelRef.current.notification((notification: Notification) => {
-        console.log('Новое уведомление:', notification);
+        console.log('🔔 Новое уведомление:', notification);
         
         if (notification.data?.interface === 'lk') {
           setUnreadCount(prev => prev + 1);
@@ -129,16 +136,17 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
         }
       });
     } catch (error) {
-      console.error('Ошибка при подключении к WebSocket:', error);
+      console.error('❌ Ошибка при подключении к WebSocket:', error);
     }
 
     return () => {
-      if (channelRef.current) {
+      if (channelRef.current && userId) {
+        console.log('🔌 Отключение от WebSocket для userId:', userId);
         echo.leave(`App.Models.User.${userId}`);
         channelRef.current = null;
       }
     };
-  }, [userId, refreshNotifications, refreshUnreadCount]);
+  }, [userId]);
 
   return {
     notifications,

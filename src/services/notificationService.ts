@@ -3,6 +3,12 @@ import type { NotificationResponse, UnreadCountResponse, NotificationFilter } fr
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.prohelper.pro';
 
+const getAuthToken = () => {
+  return localStorage.getItem('token') || 
+         sessionStorage.getItem('authToken') || 
+         '';
+};
+
 export const notificationService = {
   getNotifications: async (
     page: number = 1,
@@ -18,7 +24,7 @@ export const notificationService = {
     const response = await axios.get<NotificationResponse>(`${API_BASE_URL}/api/v1/landing/notifications`, {
       params,
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('lk_token')}`,
+        'Authorization': `Bearer ${getAuthToken()}`,
         'Accept': 'application/json',
       }
     });
@@ -31,7 +37,7 @@ export const notificationService = {
       `${API_BASE_URL}/api/v1/landing/notifications/unread-count`,
       {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('lk_token')}`,
+          'Authorization': `Bearer ${getAuthToken()}`,
           'Accept': 'application/json',
         }
       }
@@ -46,7 +52,7 @@ export const notificationService = {
       {},
       {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('lk_token')}`,
+          'Authorization': `Bearer ${getAuthToken()}`,
           'Accept': 'application/json',
         }
       }
@@ -59,7 +65,7 @@ export const notificationService = {
       {},
       {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('lk_token')}`,
+          'Authorization': `Bearer ${getAuthToken()}`,
           'Accept': 'application/json',
         }
       }
@@ -71,7 +77,7 @@ export const notificationService = {
       `${API_BASE_URL}/api/v1/landing/notifications/${notificationId}`,
       {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('lk_token')}`,
+          'Authorization': `Bearer ${getAuthToken()}`,
           'Accept': 'application/json',
         }
       }
@@ -85,7 +91,7 @@ export const notificationService = {
       method: method.toLowerCase(),
       url: fullUrl,
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('lk_token')}`,
+        'Authorization': `Bearer ${getAuthToken()}`,
         'Accept': 'application/json',
       }
     });
