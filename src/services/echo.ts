@@ -24,7 +24,7 @@ const echo = new Echo({
   wssPort: import.meta.env.VITE_REVERB_PORT || 443,
   forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'https') === 'https',
   enabledTransports: ['ws', 'wss'],
-  authEndpoint: `${import.meta.env.VITE_API_URL || 'https://api.prohelper.pro'}/broadcasting/auth`,
+  authEndpoint: `${import.meta.env.VITE_API_URL || 'https://api.prohelper.pro'}/api/v1/landing/broadcasting/auth`,
   auth: {
     headers: {
       'Authorization': `Bearer ${getToken()}`,
