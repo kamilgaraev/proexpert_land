@@ -137,14 +137,16 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
         .error((error: any) => {
           console.warn('⚠️ WebSocket авторизация не удалась (работаем без realtime):', error);
         })
-        .listen('.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated', (e: any) => {
-          console.log('🔔 Получено событие BroadcastNotificationCreated:', e);
+        .listen('notification.new', (e: any) => {
+          console.log('🔔 Получено событие notification.new:', e);
           
-          if (e?.interface === 'lk') {
+          if (e?.interface === 'lk' || e?.data?.interface === 'lk') {
+            const notificationData = e.data || e;
+            
             const notification: Notification = {
               id: e.id || Math.random().toString(),
               type: e.type || 'notification',
-              data: e,
+              data: notificationData,
               read_at: null,
               created_at: new Date().toISOString()
             };
@@ -152,26 +154,12 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
             setUnreadCount(prev => prev + 1);
             setNotifications(prev => [notification, ...prev.slice(0, 4)]);
             
-            toast.info(`${e.title}: ${e.message}`, {
+            toast.info(`${notificationData.title}: ${notificationData.message}`, {
               position: 'top-right',
               autoClose: 5000
             });
           }
         });
-      
-      channel.notification((notification: Notification) => {
-        console.log('🔔 Получено через .notification():', notification);
-        
-        if (notification.data?.interface === 'lk') {
-          setUnreadCount(prev => prev + 1);
-          setNotifications(prev => [notification, ...prev.slice(0, 4)]);
-          
-          toast.info(`${notification.data.title}: ${notification.data.message}`, {
-            position: 'top-right',
-            autoClose: 5000
-          });
-        }
-      });
       
       channelRef.current = channel;
     } catch (error) {
