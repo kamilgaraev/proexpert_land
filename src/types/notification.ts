@@ -12,6 +12,7 @@ export interface NotificationData {
   icon?: string;
   color?: string;
   interface: 'lk' | 'admin';
+  priority?: 'low' | 'normal' | 'high' | 'critical';
   contractor?: any;
   verification?: any;
   actions?: NotificationAction[];
@@ -23,6 +24,7 @@ export interface Notification {
   data: NotificationData;
   read_at: string | null;
   created_at: string;
+  priority?: 'low' | 'normal' | 'high' | 'critical';
 }
 
 export interface NotificationResponse {
