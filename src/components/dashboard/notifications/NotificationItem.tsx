@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import type { Notification, NotificationAction } from '../../../types/notification';
 import { formatDistanceToNow } from '../../../utils/dateFormatter';
+import { 
+  BellIcon, 
+  ShieldCheckIcon, 
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  BoltIcon,
+  UserIcon
+} from '@heroicons/react/24/outline';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -69,6 +78,34 @@ export const NotificationItem = ({
     }
   };
 
+  const getIconComponent = (iconName?: string) => {
+    const iconClass = "w-6 h-6";
+    
+    switch (iconName) {
+      case 'bell':
+        return <BellIcon className={iconClass} />;
+      case 'shield-alert':
+      case 'shield-check':
+        return <ShieldCheckIcon className={iconClass} />;
+      case 'check-circle':
+      case 'check':
+        return <CheckCircleIcon className={iconClass} />;
+      case 'exclamation-triangle':
+      case 'alert':
+        return <ExclamationTriangleIcon className={iconClass} />;
+      case 'info':
+      case 'information-circle':
+        return <InformationCircleIcon className={iconClass} />;
+      case 'zap':
+      case 'bolt':
+        return <BoltIcon className={iconClass} />;
+      case 'user':
+        return <UserIcon className={iconClass} />;
+      default:
+        return <BellIcon className={iconClass} />;
+    }
+  };
+
   return (
     <div
       onClick={handleClick}
@@ -79,8 +116,8 @@ export const NotificationItem = ({
         ${isDeleting ? 'opacity-50' : ''}
       `}
     >
-      <div className={`text-2xl ${getIconColor(notification.data.color)}`}>
-        {notification.data.icon || '🔔'}
+      <div className={`flex-shrink-0 ${getIconColor(notification.data.color)}`}>
+        {getIconComponent(notification.data.icon)}
       </div>
 
       <div className="flex-1 min-w-0">
