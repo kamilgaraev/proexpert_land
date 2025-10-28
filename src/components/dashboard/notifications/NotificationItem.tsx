@@ -69,7 +69,11 @@ export const NotificationItem = ({
     }
   };
 
-  const getIconColor = (color?: string) => {
+  const getIconColor = (color?: string, priority?: string) => {
+    if (priority === 'critical') return 'text-red-600';
+    if (priority === 'high') return 'text-orange-500';
+    if (priority === 'low') return 'text-gray-400';
+    
     switch (color) {
       case 'orange':
         return 'text-orange-500';
@@ -81,6 +85,21 @@ export const NotificationItem = ({
         return 'text-blue-500';
       default:
         return 'text-gray-500';
+    }
+  };
+
+  const getBackgroundColor = (priority?: string, isRead?: boolean) => {
+    if (isRead) return 'bg-white';
+    
+    switch (priority) {
+      case 'critical':
+        return 'bg-red-50 border-l-4 border-red-500';
+      case 'high':
+        return 'bg-orange-50 border-l-4 border-orange-500';
+      case 'low':
+        return 'bg-gray-50';
+      default:
+        return 'bg-blue-50';
     }
   };
 
@@ -112,6 +131,8 @@ export const NotificationItem = ({
     }
   };
 
+  const priority = (notification as any).priority || notification.data?.priority;
+
   return (
     <div
       onClick={handleClick}
@@ -119,19 +140,31 @@ export const NotificationItem = ({
       className={`
         flex gap-3 p-4 border-b border-gray-100 cursor-pointer transition-colors
         hover:bg-gray-50
-        ${!notification.read_at ? 'bg-blue-50' : 'bg-white'}
+        ${getBackgroundColor(priority, !!notification.read_at)}
         ${isDeleting ? 'opacity-50' : ''}
       `}
     >
-      <div className={`flex-shrink-0 ${getIconColor(notification.data.color)}`}>
+      <div className={`flex-shrink-0 ${getIconColor(notification.data.color, priority)}`}>
         {getIconComponent(notification.data.icon)}
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between">
-          <h4 className="font-semibold text-gray-900 text-sm">
-            {notification.data.title}
-          </h4>
+          <div className="flex items-center gap-2">
+            <h4 className="font-semibold text-gray-900 text-sm">
+              {notification.data.title}
+            </h4>
+            {priority === 'critical' && (
+              <span className="px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded">
+                СРОЧНО
+              </span>
+            )}
+            {priority === 'high' && (
+              <span className="px-2 py-0.5 text-xs font-bold bg-orange-100 text-orange-700 rounded">
+                ВАЖНО
+              </span>
+            )}
+          </div>
           
           <button
             onClick={handleDelete}
