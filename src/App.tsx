@@ -1,81 +1,93 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+
+// Критические компоненты загружаем сразу (Landing + Auth)
 import LandingPage from '@pages/landing/LandingPage';
-import DashboardLayout from '@layouts/DashboardLayout';
 import LoginPage from '@pages/dashboard/LoginPage';
 import RegisterPage from '@pages/dashboard/RegisterPage';
 import ForgotPasswordPage from '@pages/dashboard/ForgotPasswordPage';
-import DashboardPage from '@pages/dashboard/DashboardPage';
-import ProfilePage from '@pages/dashboard/ProfilePage';
-import OrganizationPage from '@pages/dashboard/OrganizationPage';
-import HelpPage from '@pages/dashboard/HelpPage';
-import SupportPage from '@pages/dashboard/SupportPage';
 import NotFoundPage from '@pages/NotFoundPage';
 import DashboardProtectedRoute from '@components/DashboardProtectedRoute';
 import AdminProtectedRoute from '@components/AdminProtectedRoute';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
+
+// Layouts - загружаем статически (нужны для структуры)
+import DashboardLayout from '@layouts/DashboardLayout';
 import AdminLayout from '@layouts/AdminLayout';
-import AdminsPage from '@pages/dashboard/AdminsPage';
-import BillingPage from '@pages/dashboard/BillingPage';
-import AddFundsPage from '@pages/dashboard/billing/AddFundsPage';
-import UsersList from '@pages/admin/users/UsersList';
-import ProjectsList from '@pages/admin/projects/ProjectsList';
-import AdminLoginPage from '@pages/admin/AdminLoginPage';
-import FAQPage from '@pages/dashboard/FAQPage';
-import PaidServicesPage from '@pages/dashboard/paid-services/PaidServicesPage';
-import SubscriptionLimitsPage from '@pages/dashboard/SubscriptionLimitsPage';
-import ModulesPage from '@pages/dashboard/ModulesPage';
-import CustomRolesPage from '@pages/dashboard/CustomRolesPage';
-import HoldingRouter from '@/HoldingRouter';
-import MultiOrganizationPage from '@pages/dashboard/MultiOrganizationPage';
-import { Page as NotificationsPage } from '@pages/dashboard/notifications.page';
 
-// Multi-Organization v2.0 - Holding Panel
-import { HoldingPanelLayout } from '@layouts/HoldingPanelLayout';
-import {
-  HoldingDashboard,
-  HoldingProjectsList,
-  HoldingProjectDetail,
-  HoldingContractsList,
-} from '@components/multi-org';
+// Lazy loading для dashboard страниц (тяжелые компоненты)
+const DashboardPage = lazy(() => import('@pages/dashboard/DashboardPage'));
+const ProfilePage = lazy(() => import('@pages/dashboard/ProfilePage'));
+const OrganizationPage = lazy(() => import('@pages/dashboard/OrganizationPage'));
+const HelpPage = lazy(() => import('@pages/dashboard/HelpPage'));
+const SupportPage = lazy(() => import('@pages/dashboard/SupportPage'));
+const AdminsPage = lazy(() => import('@pages/dashboard/AdminsPage'));
+const BillingPage = lazy(() => import('@pages/dashboard/BillingPage'));
+const AddFundsPage = lazy(() => import('@pages/dashboard/billing/AddFundsPage'));
+const FAQPage = lazy(() => import('@pages/dashboard/FAQPage'));
+const PaidServicesPage = lazy(() => import('@pages/dashboard/paid-services/PaidServicesPage'));
+const SubscriptionLimitsPage = lazy(() => import('@pages/dashboard/SubscriptionLimitsPage'));
+const ModulesPage = lazy(() => import('@pages/dashboard/ModulesPage'));
+const CustomRolesPage = lazy(() => import('@pages/dashboard/CustomRolesPage'));
+const MultiOrganizationPage = lazy(() => import('@pages/dashboard/MultiOrganizationPage'));
+const NotificationsPage = lazy(() => import('@pages/dashboard/notifications.page').then(m => ({ default: m.Page })));
 
-// Contractor Invitations
-import ContractorInvitationsPage from '@pages/dashboard/contractor-invitations/ContractorInvitationsPage';
-import ContractorInvitationTokenPage from '@pages/dashboard/contractor-invitations/ContractorInvitationTokenPage';
+// Lazy loading для admin панели
+const UsersList = lazy(() => import('@pages/admin/users/UsersList'));
+const ProjectsList = lazy(() => import('@pages/admin/projects/ProjectsList'));
+const AdminLoginPage = lazy(() => import('@pages/admin/AdminLoginPage'));
+const AdminDashboardPage = lazy(() => import('@pages/admin/AdminDashboardPage'));
 
-// Project-Based RBAC страницы
-import { OrganizationSettingsPage, OnboardingPage } from '@pages/dashboard/organization';
-import { MyProjectsPage } from '@pages/dashboard/projects';
+// Lazy loading для blog модуля (очень тяжелый)
+const BlogDashboardPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogDashboardPage })));
+const BlogArticlesPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogArticlesPage })));
+const BlogArticleEditorPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogArticleEditorPage })));
+const BlogCategoriesPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogCategoriesPage })));
+const BlogCommentsPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogCommentsPage })));
+const BlogSEOPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogSEOPage })));
+const BlogPublicPage = lazy(() => import('@components/blog/public/BlogPublicPage'));
+const BlogArticlePage = lazy(() => import('@components/blog/public/BlogArticlePage'));
+const BlogCategoryPage = lazy(() => import('@components/blog/public/BlogCategoryPage'));
+const BlogTagPage = lazy(() => import('@components/blog/public/BlogTagPage'));
 
-// Новые страницы
-import IntegrationsPage from '@pages/product/IntegrationsPage';
-import FeaturesPage from '@pages/product/FeaturesPage';
-import PricingPage from '@pages/product/PricingPage';
-import SmallBusinessPage from '@pages/solutions/SmallBusinessPage';
-import EnterprisePage from '@pages/solutions/EnterprisePage';
-import ContractorsPage from '@pages/solutions/ContractorsPage';
-import DevelopersPage from '@pages/solutions/DevelopersPage';
+// Lazy loading для Multi-Organization / Holding
+const HoldingRouter = lazy(() => import('@/HoldingRouter'));
+const HoldingPanelLayout = lazy(() => import('@layouts/HoldingPanelLayout').then(m => ({ default: m.HoldingPanelLayout })));
+const HoldingDashboard = lazy(() => import('@components/multi-org').then(m => ({ default: m.HoldingDashboard })));
+const HoldingProjectsList = lazy(() => import('@components/multi-org').then(m => ({ default: m.HoldingProjectsList })));
+const HoldingProjectDetail = lazy(() => import('@components/multi-org').then(m => ({ default: m.HoldingProjectDetail })));
+const HoldingContractsList = lazy(() => import('@components/multi-org').then(m => ({ default: m.HoldingContractsList })));
 
-import DocsPage from '@pages/resources/DocsPage';
-import WebinarsPage from '@pages/resources/WebinarsPage';
-import AboutPage from '@pages/company/AboutPage';
-import CareersPage from '@pages/company/CareersPage';
-import PressPage from '@pages/company/PressPage';
-import PartnersPage from '@pages/company/PartnersPage';
-import ContactPage from '@pages/company/ContactPage';
-import AdminDashboardPage from '@pages/admin/AdminDashboardPage';
-import {
-  BlogDashboardPage,
-  BlogArticlesPage,
-  BlogArticleEditorPage,
-  BlogCategoriesPage,
-  BlogCommentsPage,
-  BlogSEOPage
-} from '@pages/admin/blog';
-import BlogPublicPage from '@components/blog/public/BlogPublicPage';
-import BlogArticlePage from '@components/blog/public/BlogArticlePage';
-import BlogCategoryPage from '@components/blog/public/BlogCategoryPage';
-import BlogTagPage from '@components/blog/public/BlogTagPage';
+// Lazy loading для Contractor Invitations
+const ContractorInvitationsPage = lazy(() => import('@pages/dashboard/contractor-invitations/ContractorInvitationsPage'));
+const ContractorInvitationTokenPage = lazy(() => import('@pages/dashboard/contractor-invitations/ContractorInvitationTokenPage'));
+
+// Lazy loading для Project-Based RBAC
+const OrganizationSettingsPage = lazy(() => import('@pages/dashboard/organization').then(m => ({ default: m.OrganizationSettingsPage })));
+const OnboardingPage = lazy(() => import('@pages/dashboard/organization').then(m => ({ default: m.OnboardingPage })));
+const MyProjectsPage = lazy(() => import('@pages/dashboard/projects').then(m => ({ default: m.MyProjectsPage })));
+
+// Lazy loading для Product страниц
+const IntegrationsPage = lazy(() => import('@pages/product/IntegrationsPage'));
+const FeaturesPage = lazy(() => import('@pages/product/FeaturesPage'));
+const PricingPage = lazy(() => import('@pages/product/PricingPage'));
+
+// Lazy loading для Solutions
+const SmallBusinessPage = lazy(() => import('@pages/solutions/SmallBusinessPage'));
+const EnterprisePage = lazy(() => import('@pages/solutions/EnterprisePage'));
+const ContractorsPage = lazy(() => import('@pages/solutions/ContractorsPage'));
+const DevelopersPage = lazy(() => import('@pages/solutions/DevelopersPage'));
+
+// Lazy loading для Resources
+const DocsPage = lazy(() => import('@pages/resources/DocsPage'));
+const WebinarsPage = lazy(() => import('@pages/resources/WebinarsPage'));
+
+// Lazy loading для Company
+const AboutPage = lazy(() => import('@pages/company/AboutPage'));
+const CareersPage = lazy(() => import('@pages/company/CareersPage'));
+const PressPage = lazy(() => import('@pages/company/PressPage'));
+const PartnersPage = lazy(() => import('@pages/company/PartnersPage'));
+const ContactPage = lazy(() => import('@pages/company/ContactPage'));
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -119,6 +131,16 @@ function App() {
     return hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`);
   };
 
+  // Компонент загрузки для Suspense
+  const LoadingFallback = () => (
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-600 font-medium">Загрузка...</p>
+      </div>
+    </div>
+  );
+
   if (isHoldingSubdomain()) {
     return (
       <>
@@ -129,7 +151,9 @@ function App() {
           enableTrackLinks={true}
           enableAccurateTrackBounce={true}
         />
-        <HoldingRouter />
+        <Suspense fallback={<LoadingFallback />}>
+          <HoldingRouter />
+        </Suspense>
         <ToastContainer 
           position="bottom-right"
           autoClose={3000} 
@@ -155,7 +179,8 @@ function App() {
         enableTrackLinks={true}
         enableAccurateTrackBounce={true}
       />
-      <Routes>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
         {/* Публичные маршруты */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -349,6 +374,7 @@ function App() {
         {/* Страница 404 для несуществующих маршрутов */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </Suspense>
       <ToastContainer 
         position="bottom-right"
         autoClose={3000} 

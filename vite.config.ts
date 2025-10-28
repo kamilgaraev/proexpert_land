@@ -37,14 +37,60 @@ export default defineConfig({
   base: '/',
   build: {
     manifest: 'manifest.json',
+    // Включаем минификацию
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Удаляем console.log в продакшене
+        drop_debugger: true,
+      },
+    },
+    // Увеличиваем лимит для chunk warning
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
+        // Улучшенное разделение chunks для оптимальной загрузки
+        manualChunks: (id) => {
+          // Выносим vendor библиотеки в отдельные chunks
+          if (id.includes('node_modules')) {
+            // React и связанные библиотеки
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            // Chart.js в отдельный chunk (тяжелая библиотека)
+            if (id.includes('chart.js') || id.includes('react-chartjs-2')) {
+              return 'charts';
+            }
+            // Framer Motion в отдельный chunk (анимации)
+            if (id.includes('framer-motion')) {
+              return 'animations';
+            }
+            // Router в отдельный chunk
+            if (id.includes('react-router')) {
+              return 'router';
+            }
+            // Icons в отдельный chunk
+            if (id.includes('@heroicons') || id.includes('@headlessui')) {
+              return 'ui-libs';
+            }
+            // Pusher/Echo для WebSocket
+            if (id.includes('pusher-js') || id.includes('laravel-echo')) {
+              return 'realtime';
+            }
+            // DnD библиотеки
+            if (id.includes('@dnd-kit')) {
+              return 'dnd';
+            }
+            // Остальные vendor библиотеки
+            return 'vendor';
+          }
+        },
         chunkFileNames: (chunkInfo) => {
           const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop().replace('.tsx', '').replace('.ts', '') : 'chunk';
-          return `${facadeModuleId}-[hash].js`;
+          return `assets/${facadeModuleId}-[hash].js`;
         },
-        entryFileNames: '[name]-[hash].js',
-        assetFileNames: '[name]-[hash][extname]'
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash][extname]'
       }
     },
     // Не даём commonjs-плагину повторно обрабатывать чистые ESM-модули
