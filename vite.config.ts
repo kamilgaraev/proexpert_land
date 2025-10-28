@@ -49,47 +49,27 @@ export default defineConfig({
     chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
-        // Минимальная стратегия chunking - выносим только тяжелые библиотеки
-        // React и зависимые библиотеки оставляем Vite на автоматическую обработку
+        // Ультра-консервативная стратегия: выносим ТОЛЬКО самые тяжелые библиотеки
+        // React оставляем Vite полностью на автоматику
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // Используем более точные проверки с полными путями
-            const nodeModulesPath = id.split('node_modules/')[1];
-            if (!nodeModulesPath) return;
-            
-            const packageName = nodeModulesPath.split('/')[0];
-            
-            // React экосистема - ДОЛЖНА быть в одном chunk
-            if (
-              packageName === 'react' || 
-              packageName === 'react-dom' || 
-              packageName === 'scheduler' ||
-              packageName === 'react-router' ||
-              packageName === 'react-router-dom' ||
-              packageName.startsWith('@remix-run')
-            ) {
-              return 'react-vendor';
-            }
-            
-            // Тяжелые библиотеки выносим отдельно
-            if (packageName === 'chart.js' || packageName === 'react-chartjs-2') {
+            // Chart.js - очень тяжелая библиотека (~200 KB)
+            if (id.includes('/chart.js/') || id.includes('/react-chartjs-2/')) {
               return 'charts';
             }
             
-            if (packageName === 'framer-motion') {
+            // Framer Motion - тяжелая библиотека анимаций (~150 KB)
+            if (id.includes('/framer-motion/')) {
               return 'animations';
             }
             
-            if (packageName === '@heroicons' || packageName === '@headlessui') {
-              return 'ui-libs';
-            }
-            
-            if (packageName === 'pusher-js' || packageName === 'laravel-echo') {
+            // Pusher.js - WebSocket библиотека (~100 KB)
+            if (id.includes('/pusher-js/') || id.includes('/laravel-echo/')) {
               return 'realtime';
             }
             
-            // Все остальное в vendor
-            return 'vendor';
+            // НЕ разделяем React, Router и UI компоненты - пусть Vite сам управляет
+            // Это предотвратит circular dependencies
           }
         },
         chunkFileNames: (chunkInfo) => {
