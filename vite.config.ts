@@ -49,61 +49,42 @@ export default defineConfig({
     chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
-        // Улучшенное разделение chunks для оптимальной загрузки
+        // Консервативная стратегия разделения chunks
+        // Группируем связанные библиотеки вместе, чтобы избежать circular dependencies
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // КРИТИЧЕСКИ ВАЖНО: React Core - должен быть единым модулем
-            // Включаем React, ReactDOM, scheduler, jsx-runtime в один chunk
+            // React Core + Router + базовые React-библиотеки (избегаем циркулярных зависимостей)
             if (
-              id.includes('react/') || 
-              id.includes('react-dom/') || 
-              id.includes('scheduler/') ||
-              id.includes('react/jsx-runtime')
+              id.includes('react') || 
+              id.includes('react-dom') || 
+              id.includes('react-router') ||
+              id.includes('scheduler') ||
+              id.includes('@remix-run/router')
             ) {
-              return 'react-core';
+              return 'react-vendor';
             }
             
-            // React Router - зависит от React Core, но может быть отдельно
-            if (id.includes('react-router') || id.includes('@remix-run/router')) {
-              return 'react-router';
-            }
-            
-            // React-based UI библиотеки (зависят от React Core)
-            if (id.includes('@heroicons') || id.includes('@headlessui')) {
-              return 'ui-components';
-            }
-            
-            // Chart.js - тяжелая библиотека для графиков
+            // Chart.js - тяжелая библиотека для графиков (можно выносить отдельно)
             if (id.includes('chart.js') || id.includes('react-chartjs-2')) {
               return 'charts';
             }
             
-            // Framer Motion - анимации
+            // Framer Motion - анимации (можно выносить отдельно)
             if (id.includes('framer-motion')) {
               return 'animations';
             }
             
-            // Pusher/Echo - WebSocket реалтайм
+            // UI компоненты и иконки
+            if (id.includes('@heroicons') || id.includes('@headlessui')) {
+              return 'ui-libs';
+            }
+            
+            // WebSocket библиотеки
             if (id.includes('pusher-js') || id.includes('laravel-echo')) {
               return 'realtime';
             }
             
-            // DnD Kit - drag and drop
-            if (id.includes('@dnd-kit')) {
-              return 'dnd-kit';
-            }
-            
-            // React Toast библиотека
-            if (id.includes('react-toastify')) {
-              return 'toast';
-            }
-            
-            // Axios - HTTP клиент
-            if (id.includes('axios')) {
-              return 'axios';
-            }
-            
-            // Остальные node_modules
+            // Остальные библиотеки в общий vendor
             return 'vendor';
           }
         },
