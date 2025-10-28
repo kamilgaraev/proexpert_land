@@ -133,13 +133,34 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
     }
 
     try {
-      channelRef.current = echo.private(`App.Models.User.${userId}`)
+      const channel = echo.private(`App.Models.User.${userId}`)
         .error((error: any) => {
           console.warn('⚠️ WebSocket авторизация не удалась (работаем без realtime):', error);
+        })
+        .listen('.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated', (e: any) => {
+          console.log('🔔 Получено событие BroadcastNotificationCreated:', e);
+          
+          if (e?.interface === 'lk') {
+            const notification: Notification = {
+              id: e.id || Math.random().toString(),
+              type: e.type || 'notification',
+              data: e,
+              read_at: null,
+              created_at: new Date().toISOString()
+            };
+            
+            setUnreadCount(prev => prev + 1);
+            setNotifications(prev => [notification, ...prev.slice(0, 4)]);
+            
+            toast.info(`${e.title}: ${e.message}`, {
+              position: 'top-right',
+              autoClose: 5000
+            });
+          }
         });
       
-      channelRef.current.notification((notification: Notification) => {
-        console.log('🔔 Новое уведомление:', notification);
+      channel.notification((notification: Notification) => {
+        console.log('🔔 Получено через .notification():', notification);
         
         if (notification.data?.interface === 'lk') {
           setUnreadCount(prev => prev + 1);
@@ -151,6 +172,8 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
           });
         }
       });
+      
+      channelRef.current = channel;
     } catch (error) {
       console.warn('⚠️ WebSocket недоступен (работаем без realtime):', error);
     }
