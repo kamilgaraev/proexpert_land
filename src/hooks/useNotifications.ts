@@ -30,10 +30,9 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
       setUnreadCount(count);
     } catch (error) {
       console.error('❌ Ошибка при загрузке счетчика (игнорируем):', error);
-      const unreadFromList = notifications.filter(n => !n.read_at).length;
-      setUnreadCount(unreadFromList);
+      setUnreadCount(0);
     }
-  }, [notifications]);
+  }, []);
 
   const refreshNotifications = useCallback(async () => {
     try {
@@ -116,7 +115,7 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
   useEffect(() => {
     refreshUnreadCount();
     refreshNotifications();
-  }, [refreshUnreadCount, refreshNotifications]);
+  }, []);
 
   useEffect(() => {
     if (!userId) {
