@@ -1,8 +1,15 @@
 User-agent: *
 Allow: /
 
-# Основные страницы сайта
+# Яндекс специфичные директивы
+User-agent: Yandex
 Allow: /
+Crawl-delay: 1
+Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&fbclid&gclid
+
+Host: https://prohelper.pro
+
+# Основные страницы сайта (разрешены для индексации)
 Allow: /features
 Allow: /pricing
 Allow: /integrations
@@ -19,17 +26,19 @@ Allow: /careers
 Allow: /press
 Allow: /partners
 
-# Дашборд - закрыт для индексации
-Disallow: /dashboard
-Disallow: /admin
+# Дашборд и админка - закрыты для индексации
+Disallow: /dashboard/
+Disallow: /admin/
 Disallow: /login
 Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
 
-# Служебные файлы
+# API и служебные файлы
+Disallow: /api/
 Disallow: /src/
 Disallow: /node_modules/
+Disallow: /*.json$
 
 # Карта сайта
 Sitemap: https://prohelper.pro/sitemap.xml
-
- 

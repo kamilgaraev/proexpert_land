@@ -47,7 +47,11 @@ export async function render(pageContext: PageContextServer) {
     `<meta name="description" content="${description}" />`,
     `<meta name="keywords" content="${keywords}" />`,
     `<meta name="yandex-verification" content="94e8b4142ec2a8e3" />`,
+    `<meta name="document-state" content="dynamic" />`,
+    `<meta name="revisit-after" content="7 days" />`,
+    `<meta name="referrer" content="strict-origin-when-cross-origin" />`,
     `<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />`,
+    `<meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large" />`,
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
     `<meta property="og:image" content="${ogImage}" />`,
@@ -87,7 +91,9 @@ export async function render(pageContext: PageContextServer) {
     `<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />`,
     `<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />`,
     `<link rel="manifest" href="/site.webmanifest" />`,
-    `<meta name="theme-color" content="#EA580C" />`
+    `<meta name="theme-color" content="#EA580C" />`,
+    `<link rel="preconnect" href="https://fonts.googleapis.com" />`,
+    `<link rel="dns-prefetch" href="https://api.prohelper.pro" />`
   ].join("\n");
 
   return escapeInject`<!DOCTYPE html>
