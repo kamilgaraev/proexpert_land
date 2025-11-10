@@ -890,12 +890,6 @@ export interface CancelSubscriptionRequest {
   at_period_end?: boolean;
 }
 
-export interface TopUpBalanceRequest {
-  amount: number; // Сумма в основной валюте
-  currency: string; // e.g., RUB
-  payment_method_token: string;
-}
-
 // Общий интерфейс для ошибок API (на основе ErrorResponse из OpenAPI)
 export interface ErrorResponse {
   message: string;
@@ -1140,20 +1134,6 @@ export const billingService = {
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
     return { data: responseData as PaginatedBalanceTransactions | ErrorResponse, status: response.status, statusText: response.statusText };
-  },
-
-  topUpBalance: async (payload: TopUpBalanceRequest): Promise<{ data: PaymentGatewayChargeResponse | ErrorResponse, status: number, statusText: string }> => {
-    const token = getTokenFromStorages();
-    if (!token) throw new Error('Токен авторизации отсутствует');
-    const url = `${BILLING_API_URL}/balance/top-up`;
-    const options: RequestInit = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(payload),
-    };
-    const response = await fetchWithBillingLogging(url, options);
-    const responseData = await response.json();
-    return { data: responseData as PaymentGatewayChargeResponse | ErrorResponse, status: response.status, statusText: response.statusText };
   },
 
   // Получить список add-on'ов и подключённых

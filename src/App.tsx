@@ -23,7 +23,6 @@ const HelpPage = lazy(() => import('@pages/dashboard/HelpPage'));
 const SupportPage = lazy(() => import('@pages/dashboard/SupportPage'));
 const AdminsPage = lazy(() => import('@pages/dashboard/AdminsPage'));
 const BillingPage = lazy(() => import('@pages/dashboard/BillingPage'));
-const AddFundsPage = lazy(() => import('@pages/dashboard/billing/AddFundsPage'));
 const FAQPage = lazy(() => import('@pages/dashboard/FAQPage'));
 const PaidServicesPage = lazy(() => import('@pages/dashboard/paid-services/PaidServicesPage'));
 const SubscriptionLimitsPage = lazy(() => import('@pages/dashboard/SubscriptionLimitsPage'));
@@ -240,16 +239,6 @@ function App() {
               fallback={<Navigate to="/dashboard" replace />}
             >
               <BillingPage />
-            </ProtectedComponent>
-          } />
-          <Route path="billing/add-funds" element={
-            <ProtectedComponent 
-              permission="billing.manage"
-              role="organization_owner"
-              requireAll={false}
-              fallback={<Navigate to="/dashboard" replace />}
-            >
-              <AddFundsPage />
             </ProtectedComponent>
           } />
           <Route path="admins" element={

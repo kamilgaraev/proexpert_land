@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { billingService, newModulesService, OrganizationBalance, BalanceTransaction, PaginatedBalanceTransactions, TopUpBalanceRequest, ErrorResponse, PaymentGatewayChargeResponse, ModuleBillingResponse, SubscriptionResponse, Subscription } from '@utils/api';
+import { billingService, newModulesService, OrganizationBalance, BalanceTransaction, PaginatedBalanceTransactions, ErrorResponse, ModuleBillingResponse, SubscriptionResponse, Subscription } from '@utils/api';
 import { dispatchBalanceUpdate } from '@hooks/useBalance';
 import { 
   CreditCardIcon, 
@@ -16,7 +16,6 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
-  PlusIcon,
   StarIcon,
   SparklesIcon,
   UserGroupIcon,
@@ -24,7 +23,6 @@ import {
   DocumentTextIcon,
   AcademicCapIcon
 } from '@heroicons/react/24/outline';
-import { toast } from 'react-toastify';
 
 const BillingPage = () => {
   const [balance, setBalance] = useState<OrganizationBalance | null>(null);
@@ -35,7 +33,6 @@ const BillingPage = () => {
   const [loadingTransactions, setLoadingTransactions] = useState<boolean>(true);
   const [errorBalance, setErrorBalance] = useState<string | null>(null);
   const [errorTransactions, setErrorTransactions] = useState<string | null>(null);
-  const [errorTopUp, setErrorTopUp] = useState<string | null>(null);
   
   const [billingStats, setBillingStats] = useState<ModuleBillingResponse | null>(null);
   const [errorStats, setErrorStats] = useState<string | null>(null);
@@ -43,10 +40,6 @@ const BillingPage = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loadingSubscription, setLoadingSubscription] = useState<boolean>(true);
   const [errorSubscription, setErrorSubscription] = useState<string | null>(null);
-  
-  const [topUpAmount, setTopUpAmount] = useState<string>('');
-  const [paymentMethodToken, setPaymentMethodToken] = useState<string>('tok_mock_visa_chargeable_russian_STANDARD');
-  const [isToppingUp, setIsToppingUp] = useState<boolean>(false);
 
   const fetchBalance = useCallback(async () => {
     setLoadingBalance(true);
@@ -141,42 +134,6 @@ const BillingPage = () => {
     fetchSubscription();
   }, [fetchBalance, fetchTransactions, fetchBillingStats, fetchSubscription, currentPage]);
 
-  const handleTopUp = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsToppingUp(true);
-    setErrorTopUp(null);
-    try {
-      const amountNumber = parseFloat(topUpAmount);
-      if (isNaN(amountNumber) || amountNumber <= 0) {
-        throw new Error('Сумма пополнения должна быть положительным числом.');
-      }
-      const payload: TopUpBalanceRequest = {
-        amount: amountNumber,
-        currency: 'RUB',
-        payment_method_token: paymentMethodToken,
-      };
-      const response = await billingService.topUpBalance(payload);
-      const responseData = response.data as PaymentGatewayChargeResponse;
-
-      if (response.status === 200 && responseData.success) {
-        toast.success(responseData.message || 'Баланс успешно пополнен!');
-        setTopUpAmount(''); 
-        fetchBalance(); 
-        fetchTransactions(1);
-        setCurrentPage(1);
-        dispatchBalanceUpdate();
-      } else {
-        const errorData = response.data as unknown as ErrorResponse;
-        throw new Error(errorData?.message || responseData.message || `Ошибка ${response.status}`);
-      }
-    } catch (err: any) {
-      setErrorTopUp(err.message || 'Не удалось выполнить пополнение баланса.');
-      toast.error(err.message || 'Ошибка пополнения баланса');
-    } finally {
-      setIsToppingUp(false);
-    }
-  };
-
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
@@ -267,8 +224,6 @@ const BillingPage = () => {
     if (feature.includes('менеджер') || feature.includes('SLA')) return StarIcon;
     return CheckCircleIcon;
   };
-
-  const quickAmounts = [1000, 5000, 10000, 25000];
 
   if (loadingBalance) {
     return (
@@ -585,114 +540,9 @@ const BillingPage = () => {
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Пополнение баланса */}
-        <motion.div
-          className="lg:col-span-1"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center mr-3">
-                <PlusIcon className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-steel-900">Пополнить баланс</h3>
-                <p className="text-steel-600 text-sm">Добавьте средства на счет</p>
-              </div>
-            </div>
-
-            {errorTopUp && (
-              <motion.div 
-                className="mb-4 p-3 bg-construction-50 border border-construction-200 text-construction-700 rounded-xl text-sm flex items-start"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <ExclamationTriangleIcon className="h-5 w-5 mr-2 flex-shrink-0 text-construction-500" />
-                <span>{errorTopUp}</span>
-              </motion.div>
-            )}
-
-            <form onSubmit={handleTopUp} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-steel-700 mb-2">
-                  Сумма пополнения
-                </label>
-                <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <CurrencyDollarIcon className="h-5 w-5 text-steel-400" />
-                </div>
-                <input 
-                  type="number" 
-                    className="w-full pl-10 pr-4 py-3 border border-steel-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-                    placeholder="Введите сумму"
-                  value={topUpAmount}
-                  onChange={(e) => setTopUpAmount(e.target.value)}
-                  required
-                  min="1"
-                />
-              </div>
-            </div>
-
-              {/* Быстрые суммы */}
-            <div>
-                <p className="text-sm font-medium text-steel-700 mb-2">Быстрый выбор</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {quickAmounts.map((amount) => (
-                    <button
-                      key={amount}
-                      type="button"
-                      onClick={() => setTopUpAmount(amount.toString())}
-                      className="px-3 py-2 text-sm font-medium text-steel-700 bg-steel-50 rounded-lg hover:bg-construction-50 hover:text-construction-700 transition-colors"
-                    >
-                      ₽{amount.toLocaleString()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-steel-700 mb-2">
-                  Токен метода оплаты
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <CreditCardIcon className="h-5 w-5 text-steel-400" />
-                </div>
-                <input 
-                  type="text" 
-                    className="w-full pl-10 pr-4 py-3 border border-steel-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-                  value={paymentMethodToken}
-                  onChange={(e) => setPaymentMethodToken(e.target.value)}
-                  placeholder="tok_mock_visa_..."
-                  required
-                />
-              </div>
-            </div>
-
-              <motion.button 
-              type="submit"
-              disabled={isToppingUp}
-                className="w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-construction-500 to-construction-600 text-white rounded-xl hover:shadow-construction focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-construction-500 disabled:opacity-50 transition-all duration-200"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {isToppingUp ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
-                ) : (
-                  <PlusIcon className="h-5 w-5 mr-2" />
-                )}
-                {isToppingUp ? 'Обработка...' : 'Пополнить баланс'}
-              </motion.button>
-          </form>
-        </div>
-        </motion.div>
-
-        {/* История транзакций */}
-        <motion.div
-          className="lg:col-span-2"
+      {/* История транзакций */}
+      <motion.div
+        className="w-full"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
