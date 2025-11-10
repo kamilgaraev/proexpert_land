@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { billingService, newModulesService, OrganizationBalance, BalanceTransaction, PaginatedBalanceTransactions, ErrorResponse, ModuleBillingResponse, SubscriptionResponse, Subscription } from '@utils/api';
-import { dispatchBalanceUpdate } from '@hooks/useBalance';
 import { 
   CreditCardIcon, 
   CurrencyDollarIcon, 
