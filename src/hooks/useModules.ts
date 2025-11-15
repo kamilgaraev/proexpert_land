@@ -28,6 +28,8 @@ interface UseModulesReturn extends UseModulesState {
   getDeactivationPreview: (moduleSlug: string) => Promise<any>;
   checkTrialAvailability: (moduleSlug: string) => Promise<any>;
   activateTrial: (moduleSlug: string) => Promise<boolean>;
+  toggleAutoRenew: (moduleSlug: string, enabled: boolean) => Promise<boolean>;
+  bulkToggleAutoRenew: (enabled: boolean) => Promise<boolean>;
   isModuleActive: (moduleSlug: string) => boolean;
   getModule: (moduleSlug: string) => Module | null;
   hasExpiring: boolean;
@@ -366,6 +368,44 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
     }
   }, [fetchAllData, handleError, reloadPermissions]);
 
+  const toggleAutoRenew = useCallback(async (moduleSlug: string, enabled: boolean): Promise<boolean> => {
+    try {
+      const response = await newModulesService.toggleAutoRenew(moduleSlug, enabled);
+      
+      if (response.success) {
+        await fetchAllData();
+        return true;
+      } else {
+        const errorMessage = response.message || 'Ошибка изменения автопродления';
+        handleError(errorMessage);
+        return false;
+      }
+    } catch (error: any) {
+      const errorMessage = error.message || 'Ошибка изменения автопродления';
+      handleError(errorMessage);
+      return false;
+    }
+  }, [fetchAllData, handleError]);
+
+  const bulkToggleAutoRenew = useCallback(async (enabled: boolean): Promise<boolean> => {
+    try {
+      const response = await newModulesService.bulkToggleAutoRenew(enabled);
+      
+      if (response.success) {
+        await fetchAllData();
+        return true;
+      } else {
+        const errorMessage = response.message || 'Ошибка массового изменения автопродления';
+        handleError(errorMessage);
+        return false;
+      }
+    } catch (error: any) {
+      const errorMessage = error.message || 'Ошибка массового изменения автопродления';
+      handleError(errorMessage);
+      return false;
+    }
+  }, [fetchAllData, handleError]);
+
   // Вспомогательные методы
   const computeMonthlyCost = useCallback((modules: Module[]): number => {
     try {
@@ -442,6 +482,8 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
     getDeactivationPreview,
     checkTrialAvailability,
     activateTrial,
+    toggleAutoRenew,
+    bulkToggleAutoRenew,
     isModuleActive,
     getModule,
     hasExpiring,

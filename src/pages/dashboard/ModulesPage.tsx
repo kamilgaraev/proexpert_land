@@ -829,6 +829,8 @@ const ModulesPage = () => {
     getDeactivationPreview,
     checkTrialAvailability,
     activateTrial,
+    toggleAutoRenew,
+    bulkToggleAutoRenew,
     hasExpiring
   } = useModules({ 
     autoRefresh: true, 
@@ -1010,6 +1012,94 @@ const ModulesPage = () => {
     }
   };
 
+  const handleAutoRenewToggle = async (module: Module, enabled: boolean) => {
+    // Проверка на бесплатный модуль
+    if (module.billing_model === 'free') {
+      NotificationService.show({
+        type: 'info',
+        title: 'Автопродление недоступно',
+        message: 'Бесплатные модули не требуют продления'
+      });
+      return;
+    }
+
+    // Проверка на модуль в подписке
+    if (module.activation?.is_bundled_with_plan) {
+      NotificationService.show({
+        type: 'info',
+        title: 'Управление через подписку',
+        message: 'Этот модуль входит в подписку. Управляйте автопродлением подписки.'
+      });
+      return;
+    }
+
+    // Подтверждение при отключении
+    if (!enabled) {
+      const expiresDate = module.activation?.expires_at 
+        ? new Date(module.activation.expires_at).toLocaleDateString('ru-RU')
+        : 'истечения срока';
+      
+      const confirmed = window.confirm(
+        `Отключить автопродление?\n\nМодуль будет деактивирован после ${expiresDate}`
+      );
+      
+      if (!confirmed) return;
+    }
+
+    setActionLoading(`auto-renew-${module.slug}`);
+    
+    try {
+      const success = await toggleAutoRenew(module.slug, enabled);
+      if (success) {
+        NotificationService.show({
+          type: 'success',
+          title: enabled ? 'Автопродление включено' : 'Автопродление выключено',
+          message: enabled 
+            ? 'Модуль будет автоматически продлен' 
+            : 'Модуль не будет продлен автоматически'
+        });
+      }
+    } catch (error: any) {
+      NotificationService.show({
+        type: 'error',
+        title: 'Ошибка',
+        message: error.message || 'Не удалось изменить автопродление'
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleBulkAutoRenew = async (enabled: boolean) => {
+    const action = enabled ? 'включить' : 'выключить';
+    const confirmed = window.confirm(
+      `${enabled ? 'Включить' : 'Выключить'} автопродление для всех модулей?\n\nЭто действие затронет только активные платные модули.`
+    );
+    
+    if (!confirmed) return;
+
+    setActionLoading(`bulk-auto-renew-${enabled}`);
+    
+    try {
+      const success = await bulkToggleAutoRenew(enabled);
+      if (success) {
+        NotificationService.show({
+          type: 'success',
+          title: 'Выполнено',
+          message: `Автопродление ${enabled ? 'включено' : 'выключено'} для всех модулей`
+        });
+      }
+    } catch (error: any) {
+      NotificationService.show({
+        type: 'error',
+        title: 'Ошибка',
+        message: error.message || `Не удалось ${action} автопродление`
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleActivateConfirm = async (durationDays: number) => {
     if (!selectedModule) return;
     
@@ -1122,14 +1212,38 @@ const ModulesPage = () => {
     <div className="container mx-auto max-w-7xl px-4 py-8 space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-steel-900">Модули организации</h1>
-        <button
-          onClick={refresh}
-          disabled={loading}
-          className="inline-flex items-center px-4 py-2 border border-steel-300 rounded-lg text-sm font-medium text-steel-700 bg-white hover:bg-steel-50 disabled:opacity-50"
-        >
-          <ArrowPathIcon className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Обновить
-        </button>
+        <div className="flex items-center space-x-2">
+          {/* Кнопки массового управления автопродлением */}
+          <div className="flex items-center space-x-2 mr-2">
+            <button
+              onClick={() => handleBulkAutoRenew(true)}
+              disabled={loading || actionLoading?.startsWith('bulk-auto-renew')}
+              className="inline-flex items-center px-3 py-2 border border-orange-300 rounded-lg text-sm font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 disabled:opacity-50 transition-colors"
+              title="Включить автопродление для всех активных модулей"
+            >
+              <ArrowPathIcon className="h-4 w-4 mr-1" />
+              Вкл. автопродление
+            </button>
+            <button
+              onClick={() => handleBulkAutoRenew(false)}
+              disabled={loading || actionLoading?.startsWith('bulk-auto-renew')}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              title="Выключить автопродление для всех активных модулей"
+            >
+              <XMarkIcon className="h-4 w-4 mr-1" />
+              Выкл. автопродление
+            </button>
+          </div>
+          
+          <button
+            onClick={refresh}
+            disabled={loading}
+            className="inline-flex items-center px-4 py-2 border border-steel-300 rounded-lg text-sm font-medium text-steel-700 bg-white hover:bg-steel-50 disabled:opacity-50 transition-colors"
+          >
+            <ArrowPathIcon className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Обновить
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -1489,15 +1603,33 @@ const ModulesPage = () => {
                               <span className="text-sm font-medium text-orange-900">Автопродление</span>
                             </div>
                             <p className="text-xs text-orange-700">
-                              Автоматическое списание за день до истечения срока
+                              {module.activation?.is_bundled_with_plan 
+                                ? 'Модуль входит в подписку — управление через подписку'
+                                : 'Автоматическое списание за день до истечения срока'}
                             </p>
                           </div>
                           <button
-                            className="relative inline-flex h-6 w-11 items-center rounded-full bg-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 hover:bg-orange-700"
-                            title="Включено (работает автоматически)"
-                            disabled
+                            onClick={() => handleAutoRenewToggle(module, !module.activation?.is_auto_renew_enabled)}
+                            disabled={
+                              module.activation?.is_bundled_with_plan || 
+                              actionLoading === `auto-renew-${module.slug}`
+                            }
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
+                              module.activation?.is_auto_renew_enabled !== false
+                                ? 'bg-orange-600 hover:bg-orange-700'
+                                : 'bg-gray-300 hover:bg-gray-400'
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            title={
+                              module.activation?.is_bundled_with_plan
+                                ? 'Управление через подписку'
+                                : module.activation?.is_auto_renew_enabled !== false
+                                  ? 'Автопродление включено (нажмите чтобы отключить)'
+                                  : 'Автопродление выключено (нажмите чтобы включить)'
+                            }
                           >
-                            <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6 shadow-sm" />
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
+                              module.activation?.is_auto_renew_enabled !== false ? 'translate-x-6' : 'translate-x-1'
+                            }`} />
                           </button>
                         </div>
                       )}

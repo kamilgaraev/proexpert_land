@@ -2066,6 +2066,22 @@ export interface ModuleActivation {
   expires_at: string | null;
   trial_ends_at?: string | null;
   days_until_expiration: number | null;
+  is_auto_renew_enabled?: boolean;
+  is_bundled_with_plan?: boolean;
+}
+
+export interface AutoRenewResponse {
+  success: boolean;
+  message?: string;
+  is_auto_renew_enabled?: boolean;
+  code?: string;
+}
+
+export interface BulkAutoRenewResponse {
+  success: boolean;
+  message?: string;
+  updated_count?: number;
+  code?: string;
 }
 
 export interface TrialAvailability {
@@ -2434,6 +2450,56 @@ export const newModulesService = {
     
     if (!responseData.success) {
       throw new Error(responseData.message || 'Не удалось активировать trial период');
+    }
+    
+    return responseData;
+  },
+
+  // Управление автопродлением одного модуля
+  toggleAutoRenew: async (module_slug: string, enabled: boolean): Promise<AutoRenewResponse> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/landing/modules/${module_slug}/auto-renew`;
+    const options: RequestInit = {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ enabled })
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    
+    if (!responseData.success) {
+      throw new Error(responseData.message || 'Не удалось изменить автопродление');
+    }
+    
+    return responseData;
+  },
+
+  // Массовое управление автопродлением
+  bulkToggleAutoRenew: async (enabled: boolean): Promise<BulkAutoRenewResponse> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/landing/modules/auto-renew/bulk`;
+    const options: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ enabled })
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    
+    if (!responseData.success) {
+      throw new Error(responseData.message || 'Не удалось изменить автопродление');
     }
     
     return responseData;
