@@ -1190,26 +1190,45 @@ const ModulesPage = () => {
                 const iconColor = getModuleIconColor(module, isModuleActive, isExpiringSoon);
             const actionInProgress = actionLoading?.includes(module.slug);
 
+                // Определяем, можно ли активировать модуль
+                const canActivate = module.development_status?.can_be_activated !== false;
+                const isDisabled = !active && !canActivate;
+                
                 return (
               <div
                 key={module.slug}
-                className={`relative border rounded-xl p-6 transition-all duration-200 hover:shadow-md ${
+                className={`relative border rounded-xl p-6 transition-all duration-200 ${
                   active 
                     ? 'border-orange-200 bg-orange-50 ring-1 ring-orange-500' 
-                    : 'border-steel-200 bg-white hover:border-construction-300'
+                    : canActivate 
+                      ? 'border-steel-200 bg-white hover:border-construction-300 hover:shadow-md'
+                      : 'border-gray-200 bg-gray-50 opacity-75'
                 }`}
                   >
+                    {/* Overlay для недоступных модулей */}
+                    {isDisabled && (
+                      <div className="absolute top-4 right-4 z-10">
+                        <div className="bg-gray-800 text-white text-xs px-3 py-1 rounded-full font-medium">
+                          Недоступен
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                      active ? 'bg-orange-100' : 'bg-steel-100'
+                      active ? 'bg-orange-100' : 
+                      canActivate ? 'bg-steel-100' : 'bg-gray-200'
                     }`}>
                       <ModuleIconComponent className={`h-6 w-6 ${
-                        active ? 'text-orange-600' : 'text-steel-600'
+                        active ? 'text-orange-600' : 
+                        canActivate ? 'text-steel-600' : 'text-gray-400'
                       }`} />
                         </div>
                         <div>
-                      <h3 className="font-semibold text-steel-900">{module.name}</h3>
+                      <h3 className={`font-semibold ${isDisabled ? 'text-gray-500' : 'text-steel-900'}`}>
+                        {module.name}
+                      </h3>
                       <div className="flex items-center space-x-2 mt-1">
                         <ModuleIconComponent className={`h-5 w-5 ${iconColor}`} />
                         <span className={`text-sm font-medium ${status.className}`}>
@@ -1226,28 +1245,51 @@ const ModulesPage = () => {
 
                   <div className="text-right">
                     {module.billing_model === 'free' ? (
-                      <div className="text-lg font-bold text-green-600">
+                      <div className={`text-lg font-bold ${isDisabled ? 'text-gray-400' : 'text-green-600'}`}>
                         Бесплатно
                       </div>
                     ) : (
                       <>
-                        <div className="text-lg font-bold text-construction-600">
+                        <div className={`text-lg font-bold ${isDisabled ? 'text-gray-400' : 'text-construction-600'}`}>
                           {(module.pricing_config?.base_price || module.price || 0).toLocaleString('ru-RU', { 
                             style: 'currency', 
                             currency: module.pricing_config?.currency || module.currency || 'RUB'
                           })}
                         </div>
-                        <div className="text-xs text-steel-500">за {module.pricing_config?.duration_days || module.duration_days} дней</div>
+                        <div className={`text-xs ${isDisabled ? 'text-gray-400' : 'text-steel-500'}`}>
+                          за {module.pricing_config?.duration_days || module.duration_days} дней
+                        </div>
                       </>
                     )}
                   </div>
                     </div>
 
-                <p className="text-steel-600 text-sm mb-4">{module.description}</p>
+                <p className={`text-sm mb-4 ${isDisabled ? 'text-gray-400' : 'text-steel-600'}`}>
+                  {module.description}
+                </p>
+
+                {/* Блок информации для недоступных модулей */}
+                {isDisabled && module.development_status && (
+                  <div className="mb-4 p-3 bg-gray-100 border border-gray-300 rounded-lg">
+                    <div className="flex items-start space-x-2">
+                      <InformationCircleIcon className="h-5 w-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <div className="text-sm font-medium text-gray-700 mb-1">
+                          Модуль недоступен для активации
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {module.development_status.description}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {module.features.length > 0 && (
                       <div className="mb-4">
-                    <div className="text-xs font-medium text-steel-700 mb-2">Возможности:</div>
+                    <div className={`text-xs font-medium mb-2 ${isDisabled ? 'text-gray-500' : 'text-steel-700'}`}>
+                      Возможности:
+                    </div>
                     <div className="space-y-1">
                       {(() => {
                         const isExpanded = expandedModules.has(module.slug);
@@ -1256,12 +1298,12 @@ const ModulesPage = () => {
                         return (
                           <>
                             {featuresToShow.map((feature, index) => (
-                              <div key={index} className="flex items-start text-xs text-steel-600">
-                                <CheckCircleIcon className="h-3 w-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                              <div key={index} className={`flex items-start text-xs ${isDisabled ? 'text-gray-400' : 'text-steel-600'}`}>
+                                <CheckCircleIcon className={`h-3 w-3 mr-2 mt-0.5 flex-shrink-0 ${isDisabled ? 'text-gray-400' : 'text-green-500'}`} />
                               {feature}
                               </div>
                             ))}
-                            {module.features.length > 3 && (
+                            {module.features.length > 3 && !isDisabled && (
                               <button
                                 onClick={() => toggleModuleExpanded(module.slug)}
                                 className="text-xs text-orange-600 hover:text-orange-700 font-medium flex items-center mt-1 transition-colors"
@@ -1353,6 +1395,18 @@ const ModulesPage = () => {
                         </ProtectedComponent>
                           )}
                         </>
+                      ) : isDisabled ? (
+                        // Кнопка для недоступных модулей
+                        <button
+                          disabled
+                          className="w-full inline-flex items-center justify-center px-4 py-2 bg-gray-300 text-gray-500 text-sm font-medium rounded-lg cursor-not-allowed"
+                          title={module.development_status?.description}
+                        >
+                          <XCircleIcon className="h-4 w-4 mr-2" />
+                          {module.development_status?.status === 'coming_soon' ? 'Скоро доступен' : 
+                           module.development_status?.status === 'development' ? 'В разработке' :
+                           module.development_status?.status === 'deprecated' ? 'Устарел' : 'Недоступен'}
+                        </button>
                       ) : (
                         <ProtectedComponent
                           permission="modules.activate"
