@@ -3,6 +3,7 @@ import { useModules } from '@hooks/useModules';
 import { Module } from '@utils/api';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 import ModuleStatusBadge from '@components/dashboard/ModuleStatusBadge';
+import TrialBadge from '@components/dashboard/TrialBadge';
 import {
   PuzzlePieceIcon,
   CheckCircleIcon,
@@ -38,7 +39,8 @@ import {
   WrenchScrewdriverIcon,
   FunnelIcon,
   Squares2X2Icon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { PageLoading } from '@components/common/PageLoading';
 import NotificationService from '@components/shared/NotificationService';
@@ -825,6 +827,8 @@ const ModulesPage = () => {
     isModuleActive,
     getActivationPreview,
     getDeactivationPreview,
+    checkTrialAvailability,
+    activateTrial,
     hasExpiring
   } = useModules({ 
     autoRefresh: true, 
@@ -916,6 +920,94 @@ const ModulesPage = () => {
   const handleDevelopmentWarningConfirm = () => {
     setShowDevelopmentWarning(false);
     setShowActivationModal(true);
+  };
+
+  const handleTrialClick = async (module: Module) => {
+    // Проверяем статус разработки
+    if (module.development_status && !module.development_status.can_be_activated) {
+      NotificationService.show({
+        type: 'warning',
+        title: 'Модуль недоступен',
+        message: `Модуль "${module.name}" недоступен для активации trial: ${module.development_status.description}`
+      });
+      return;
+    }
+
+    setSelectedModule(module);
+    setActionLoading(`trial-check-${module.slug}`);
+    
+    try {
+      const availability = await checkTrialAvailability(module.slug);
+      
+      if (!availability.can_activate_trial) {
+        let message = 'Trial период недоступен';
+        
+        switch (availability.reason) {
+          case 'TRIAL_ALREADY_USED':
+            message = 'Вы уже использовали trial период для этого модуля. Активируйте полную версию.';
+            break;
+          case 'MODULE_ALREADY_ACTIVE':
+            message = 'Модуль уже активирован';
+            break;
+          case 'TRIAL_NOT_AVAILABLE_FOR_FREE':
+            message = 'Trial период недоступен для бесплатных модулей';
+            break;
+          case 'MODULE_STATUS_NOT_READY':
+            message = availability.development_status?.description || 'Модуль находится в разработке';
+            break;
+        }
+        
+        NotificationService.show({
+          type: 'info',
+          title: 'Trial недоступен',
+          message
+        });
+        
+        setSelectedModule(null);
+        return;
+      }
+      
+      // Показываем предупреждение если нужно
+      if (module.development_status?.should_show_warning) {
+        setShowDevelopmentWarning(true);
+      } else {
+        // Сразу активируем trial
+        await handleTrialActivate(module.slug);
+      }
+    } catch (error: any) {
+      NotificationService.show({
+        type: 'error',
+        title: 'Ошибка',
+        message: error.message || 'Не удалось проверить доступность trial'
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleTrialActivate = async (moduleSlug: string) => {
+    setActionLoading(`trial-activate-${moduleSlug}`);
+    
+    try {
+      const success = await activateTrial(moduleSlug);
+      if (success) {
+        NotificationService.show({
+          type: 'success',
+          title: 'Trial активирован',
+          message: `Trial период успешно активирован!`
+        });
+        setShowDevelopmentWarning(false);
+        setSelectedModule(null);
+      }
+    } catch (error: any) {
+      NotificationService.show({
+        type: 'error',
+        title: 'Ошибка активации trial',
+        message: error.message || 'Не удалось активировать trial период'
+      });
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const handleActivateConfirm = async (durationDays: number) => {
@@ -1235,11 +1327,14 @@ const ModulesPage = () => {
                           {status.text}
                           </span>
                       </div>
+                      <div className="flex flex-wrap gap-2 mt-2">
                       {module.development_status && (
-                        <div className="mt-2">
                           <ModuleStatusBadge developmentStatus={module.development_status} />
-                        </div>
                       )}
+                      {module.activation && (
+                          <TrialBadge activation={module.activation} />
+                      )}
+                      </div>
                       </div>
                     </div>
 
@@ -1328,7 +1423,52 @@ const ModulesPage = () => {
                       </div>
                     )}
 
-                {active && getModuleExpiresAt(module) && module.billing_model !== 'free' && (
+                {/* Предупреждение об истечении trial */}
+                {active && module.activation?.status === 'trial' && module.activation.days_until_expiration !== null && (
+                  <div className={`mb-4 p-3 rounded-lg border ${
+                    module.activation.days_until_expiration <= 3 
+                      ? 'bg-red-50 border-red-200' 
+                      : module.activation.days_until_expiration <= 7
+                        ? 'bg-yellow-50 border-yellow-200'
+                        : 'bg-blue-50 border-blue-200'
+                  }`}>
+                    <div className="flex items-start space-x-2">
+                      <ClockIcon className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
+                        module.activation.days_until_expiration <= 3 
+                          ? 'text-red-500' 
+                          : module.activation.days_until_expiration <= 7
+                            ? 'text-yellow-500'
+                            : 'text-blue-500'
+                      }`} />
+                      <div>
+                        <div className={`text-sm font-medium ${
+                          module.activation.days_until_expiration <= 3 
+                            ? 'text-red-800' 
+                            : module.activation.days_until_expiration <= 7
+                              ? 'text-yellow-800'
+                              : 'text-blue-800'
+                        }`}>
+                          Trial период истекает через {module.activation.days_until_expiration} {
+                            module.activation.days_until_expiration === 1 ? 'день' : 
+                            module.activation.days_until_expiration < 5 ? 'дня' : 'дней'
+                          }
+                        </div>
+                        <div className={`text-xs mt-1 ${
+                          module.activation.days_until_expiration <= 3 
+                            ? 'text-red-600' 
+                            : module.activation.days_until_expiration <= 7
+                              ? 'text-yellow-600'
+                              : 'text-blue-600'
+                        }`}>
+                          Активируйте полную версию, чтобы продолжить использование
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Информация о сроке активации */}
+                {active && getModuleExpiresAt(module) && module.billing_model !== 'free' && module.activation?.status !== 'trial' && (
                   <div className="mb-4 p-3 bg-white rounded-lg border border-orange-200">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-steel-600">Активен до:</span>
@@ -1418,20 +1558,42 @@ const ModulesPage = () => {
                         </div>
                           }
                         >
-                        <button
-                        onClick={() => handleActivateClick(module)}
-                        disabled={actionInProgress}
-                        className="w-full inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50"
-                      >
-                        {actionLoading === `activate-${module.slug}` || actionLoading === `preview-${module.slug}` ? (
-                          <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <>
-                            <PlayIcon className="h-4 w-4 mr-2" />
-                            Активировать
-                          </>
+                        <div className="w-full flex items-center space-x-2">
+                          {/* Кнопка Trial (только для платных модулей) */}
+                          {module.billing_model !== 'free' && canActivate && (
+                            <button
+                              onClick={() => handleTrialClick(module)}
+                              disabled={actionInProgress}
+                              className="flex-1 inline-flex items-center justify-center px-4 py-2 border-2 border-blue-600 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Активировать trial период"
+                            >
+                              {actionLoading === `trial-check-${module.slug}` || actionLoading === `trial-activate-${module.slug}` ? (
+                                <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <SparklesIcon className="h-4 w-4 mr-2" />
+                                  Trial
+                                </>
+                              )}
+                            </button>
                           )}
-                        </button>
+                          
+                          {/* Кнопка полной активации */}
+                          <button
+                            onClick={() => handleActivateClick(module)}
+                            disabled={actionInProgress}
+                            className={`${module.billing_model !== 'free' && canActivate ? 'flex-1' : 'w-full'} inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50`}
+                          >
+                            {actionLoading === `activate-${module.slug}` || actionLoading === `preview-${module.slug}` ? (
+                              <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <PlayIcon className="h-4 w-4 mr-2" />
+                                Активировать
+                              </>
+                            )}
+                          </button>
+                        </div>
                         </ProtectedComponent>
                       )}
                     </div>

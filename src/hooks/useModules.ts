@@ -26,6 +26,8 @@ interface UseModulesReturn extends UseModulesState {
   checkAccess: (moduleSlug: string, permission?: string) => Promise<{ hasAccess: boolean; hasPermission: boolean; expiresAt: string | null }>;
   getActivationPreview: (moduleSlug: string) => Promise<any>;
   getDeactivationPreview: (moduleSlug: string) => Promise<any>;
+  checkTrialAvailability: (moduleSlug: string) => Promise<any>;
+  activateTrial: (moduleSlug: string) => Promise<boolean>;
   isModuleActive: (moduleSlug: string) => boolean;
   getModule: (moduleSlug: string) => Module | null;
   hasExpiring: boolean;
@@ -331,6 +333,37 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
     }
   }, []);
 
+  const checkTrialAvailability = useCallback(async (moduleSlug: string) => {
+    try {
+      const response = await newModulesService.checkTrialAvailability(moduleSlug);
+      return response;
+    } catch (error: any) {
+      console.error('Error checking trial availability:', error);
+      throw new Error(error.message || 'Ошибка проверки доступности trial периода');
+    }
+  }, []);
+
+  const activateTrial = useCallback(async (moduleSlug: string): Promise<boolean> => {
+    try {
+      const response = await newModulesService.activateTrial(moduleSlug);
+      
+      if (response.success) {
+        await fetchAllData();
+        // Обновляем права после активации trial
+        await reloadPermissions();
+        return true;
+      } else {
+        const errorMessage = response.message || 'Ошибка активации trial периода';
+        handleError(errorMessage);
+        return false;
+      }
+    } catch (error: any) {
+      const errorMessage = error.message || 'Ошибка активации trial периода';
+      handleError(errorMessage);
+      return false;
+    }
+  }, [fetchAllData, handleError, reloadPermissions]);
+
   // Вспомогательные методы
   const computeMonthlyCost = useCallback((modules: Module[]): number => {
     try {
@@ -405,6 +438,8 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
     checkAccess,
     getActivationPreview,
     getDeactivationPreview,
+    checkTrialAvailability,
+    activateTrial,
     isModuleActive,
     getModule,
     hasExpiring,

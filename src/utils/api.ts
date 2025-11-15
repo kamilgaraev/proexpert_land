@@ -2060,6 +2060,31 @@ export interface DevelopmentStatusInfo {
   warning_message: string | null;
 }
 
+export interface ModuleActivation {
+  status: 'active' | 'trial' | 'expired';
+  activated_at: string;
+  expires_at: string | null;
+  trial_ends_at?: string | null;
+  days_until_expiration: number | null;
+}
+
+export interface TrialAvailability {
+  success: boolean;
+  can_activate_trial: boolean;
+  reason: 'TRIAL_AVAILABLE' | 'TRIAL_ALREADY_USED' | 'MODULE_ALREADY_ACTIVE' | 'TRIAL_NOT_AVAILABLE_FOR_FREE' | 'MODULE_STATUS_NOT_READY';
+  trial_days?: number;
+  development_status?: DevelopmentStatusInfo;
+}
+
+export interface TrialActivationResponse {
+  success: boolean;
+  message?: string;
+  trial_days?: number;
+  trial_ends_at?: string;
+  code?: string;
+  development_status?: DevelopmentStatusInfo;
+}
+
 export interface Module {
   id?: number;
   slug: string;
@@ -2095,7 +2120,7 @@ export interface Module {
   created_at?: string;
   updated_at?: string;
   version?: string;
-  activation?: any | null;
+  activation?: ModuleActivation | null;
   development_status?: DevelopmentStatusInfo;
 }
 
@@ -2369,6 +2394,49 @@ export const newModulesService = {
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  // Проверка доступности trial периода
+  checkTrialAvailability: async (module_slug: string): Promise<TrialAvailability> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/landing/modules/${module_slug}/trial-availability`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return responseData;
+  },
+
+  // Активация trial периода
+  activateTrial: async (module_slug: string): Promise<TrialActivationResponse> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    
+    const url = `${API_URL}/landing/modules/${module_slug}/trial/activate`;
+    const options: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    
+    if (!responseData.success) {
+      throw new Error(responseData.message || 'Не удалось активировать trial период');
+    }
+    
+    return responseData;
   },
 
   // Массовая активация модулей
