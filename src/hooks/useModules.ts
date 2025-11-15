@@ -94,9 +94,11 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       icon: item.icon || 'puzzle-piece',
       is_active: item.is_active !== undefined ? item.is_active : true,
       activation: item.expires_at ? {
+        status: item.status || 'active',
+        activated_at: item.activated_at || new Date().toISOString(),
         expires_at: item.expires_at,
-        days_until_expiration: item.days_until_expiration,
-        can_renew: item.can_renew
+        trial_ends_at: item.trial_ends_at || null,
+        days_until_expiration: item.days_until_expiration
       } : null
     }));
   }, []);

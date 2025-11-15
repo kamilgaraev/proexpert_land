@@ -1,9 +1,7 @@
 import React from 'react';
 import { ModuleActivation } from '@utils/api';
 import {
-  ClockIcon,
-  SparklesIcon,
-  CheckCircleIcon
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 
 interface TrialBadgeProps {
