@@ -1477,9 +1477,32 @@ const ModulesPage = () => {
                       </div>
                     )}
 
-                <div className="flex items-center space-x-2">
+                <div className="space-y-3">
                   {active ? (
                     <>
+                      {/* Автопродление для subscription модулей */}
+                      {module.billing_model === 'subscription' && module.activation?.status !== 'trial' && (
+                        <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <ArrowPathIcon className="h-4 w-4 text-orange-600" />
+                              <span className="text-sm font-medium text-orange-900">Автопродление</span>
+                            </div>
+                            <p className="text-xs text-orange-700">
+                              Автоматическое списание за день до истечения срока
+                            </p>
+                          </div>
+                          <button
+                            className="relative inline-flex h-6 w-11 items-center rounded-full bg-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 hover:bg-orange-700"
+                            title="Включено (работает автоматически)"
+                            disabled
+                          >
+                            <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6 shadow-sm" />
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="flex items-center space-x-2">
                       {module.billing_model === 'free' ? (
                         // Для бесплатных модулей показываем информационный блок вместо кнопки продления
                         <div className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-50 border border-green-200 text-green-700 text-sm font-medium rounded-lg">
@@ -1500,7 +1523,7 @@ const ModulesPage = () => {
                             <button
                             onClick={() => handleRenewModule(module)}
                             disabled={actionInProgress}
-                            className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50"
+                            className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
                           >
                             {actionLoading === `renew-${module.slug}` ? (
                               <ArrowPathIcon className="h-4 w-4 animate-spin" />
@@ -1523,7 +1546,7 @@ const ModulesPage = () => {
                           <button
                             onClick={() => handleDeactivateClick(module)}
                             disabled={actionInProgress}
-                            className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 disabled:opacity-50 flex items-center"
+                            className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 disabled:opacity-50 flex items-center transition-colors"
                             title="Отменить модуль"
                           >
                             {actionLoading === `deactivation-preview-${module.slug}` || actionLoading === `deactivate-${module.slug}` ? (
@@ -1534,6 +1557,7 @@ const ModulesPage = () => {
                           </button>
                         </ProtectedComponent>
                           )}
+                        </div>
                         </>
                       ) : isDisabled ? (
                         // Кнопка для недоступных модулей
@@ -1558,45 +1582,47 @@ const ModulesPage = () => {
                         </div>
                           }
                         >
-                        <div className="w-full flex items-center space-x-2">
-                          {/* Кнопка Trial (только для платных модулей) */}
-                          {module.billing_model !== 'free' && canActivate && (
+                        <div className="w-full space-y-2">
+                          <div className="flex items-center space-x-2">
+                            {/* Кнопка Пробного периода (только для платных модулей) */}
+                            {module.billing_model !== 'free' && canActivate && (
+                              <button
+                                onClick={() => handleTrialClick(module)}
+                                disabled={actionInProgress}
+                                className="flex-1 inline-flex items-center justify-center px-4 py-2 border-2 border-orange-600 text-orange-600 text-sm font-medium rounded-lg hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                title="Попробовать бесплатно"
+                              >
+                                {actionLoading === `trial-check-${module.slug}` || actionLoading === `trial-activate-${module.slug}` ? (
+                                  <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <SparklesIcon className="h-4 w-4 mr-2" />
+                                    Попробовать
+                                  </>
+                                )}
+                              </button>
+                            )}
+                            
+                            {/* Кнопка полной активации */}
                             <button
-                              onClick={() => handleTrialClick(module)}
+                              onClick={() => handleActivateClick(module)}
                               disabled={actionInProgress}
-                              className="flex-1 inline-flex items-center justify-center px-4 py-2 border-2 border-blue-600 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Активировать trial период"
+                              className={`${module.billing_model !== 'free' && canActivate ? 'flex-1' : 'w-full'} inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors`}
                             >
-                              {actionLoading === `trial-check-${module.slug}` || actionLoading === `trial-activate-${module.slug}` ? (
+                              {actionLoading === `activate-${module.slug}` || actionLoading === `preview-${module.slug}` ? (
                                 <ArrowPathIcon className="h-4 w-4 animate-spin" />
                               ) : (
                                 <>
-                                  <SparklesIcon className="h-4 w-4 mr-2" />
-                                  Trial
+                                  <PlayIcon className="h-4 w-4 mr-2" />
+                                  Активировать
                                 </>
                               )}
                             </button>
-                          )}
-                          
-                          {/* Кнопка полной активации */}
-                          <button
-                            onClick={() => handleActivateClick(module)}
-                            disabled={actionInProgress}
-                            className={`${module.billing_model !== 'free' && canActivate ? 'flex-1' : 'w-full'} inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50`}
-                          >
-                            {actionLoading === `activate-${module.slug}` || actionLoading === `preview-${module.slug}` ? (
-                              <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <PlayIcon className="h-4 w-4 mr-2" />
-                                Активировать
-                              </>
-                            )}
-                          </button>
+                          </div>
                         </div>
                         </ProtectedComponent>
                       )}
-                    </div>
+                </div>
               </div>
                 );
             })}
