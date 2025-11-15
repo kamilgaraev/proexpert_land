@@ -2417,7 +2417,7 @@ export const newModulesService = {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     
-    const url = `${API_URL}/landing/modules/${module_slug}/trial-availability`;
+    const url = `${API_URL}/modules/${module_slug}/trial-availability`;
     const options: RequestInit = {
       method: 'GET',
       headers: {
@@ -2436,7 +2436,7 @@ export const newModulesService = {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     
-    const url = `${API_URL}/landing/modules/${module_slug}/trial/activate`;
+    const url = `${API_URL}/modules/${module_slug}/trial/activate`;
     const options: RequestInit = {
       method: 'POST',
       headers: {
@@ -2460,7 +2460,7 @@ export const newModulesService = {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     
-    const url = `${API_URL}/landing/modules/${module_slug}/auto-renew`;
+    const url = `${API_URL}/modules/${module_slug}/auto-renew`;
     const options: RequestInit = {
       method: 'PATCH',
       headers: {
@@ -2485,7 +2485,7 @@ export const newModulesService = {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     
-    const url = `${API_URL}/landing/modules/auto-renew/bulk`;
+    const url = `${API_URL}/modules/auto-renew/bulk`;
     const options: RequestInit = {
       method: 'POST',
       headers: {
