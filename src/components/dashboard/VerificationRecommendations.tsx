@@ -258,7 +258,7 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
             >
               {isVerifying ? (
                 <div className="flex items-center justify-center space-x-2">
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-orange-600"></div>
                   <span>Выполняется верификация...</span>
                 </div>
               ) : (
