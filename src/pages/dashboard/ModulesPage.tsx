@@ -1484,7 +1484,7 @@ const ModulesPage = () => {
                       <InformationCircleIcon className="h-5 w-5 text-gray-500 flex-shrink-0 mt-0.5" />
                       <div>
                         <div className="text-sm font-medium text-gray-700 mb-1">
-                          Модуль недоступен для активации
+                          Модуль недоступен для активации 
                         </div>
                         <div className="text-xs text-gray-600">
                           {module.development_status.description}
