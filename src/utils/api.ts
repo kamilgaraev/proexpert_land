@@ -2041,6 +2041,25 @@ export const multiOrganizationService = {
 };
 
 // Новые типы для модульной системы
+export type ModuleDevelopmentStatus = 
+  | 'stable' 
+  | 'beta' 
+  | 'alpha' 
+  | 'development' 
+  | 'coming_soon' 
+  | 'deprecated';
+
+export interface DevelopmentStatusInfo {
+  status: ModuleDevelopmentStatus;
+  label: string;
+  description: string;
+  color: 'green' | 'blue' | 'orange' | 'yellow' | 'purple' | 'red';
+  icon: string;
+  can_be_activated: boolean;
+  should_show_warning: boolean;
+  warning_message: string | null;
+}
+
 export interface Module {
   id?: number;
   slug: string;
@@ -2077,6 +2096,7 @@ export interface Module {
   updated_at?: string;
   version?: string;
   activation?: any | null;
+  development_status?: DevelopmentStatusInfo;
 }
 
 export interface NewModuleActivation {

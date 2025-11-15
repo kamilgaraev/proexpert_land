@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useModules } from '@hooks/useModules';
 import { Module } from '@utils/api';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
+import ModuleStatusBadge from '@components/dashboard/ModuleStatusBadge';
 import {
   PuzzlePieceIcon,
   CheckCircleIcon,
@@ -79,6 +80,13 @@ interface ModuleDeactivationPreviewModalProps {
   onConfirm: () => void;
   isLoading: boolean;
   previewData?: any;
+}
+
+interface DevelopmentWarningModalProps {
+  module: Module | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
 }
 
 const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, previewData }: ModuleActivationModalProps) => {
@@ -321,6 +329,46 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                (previewData && !previewData.can_activate) ? 'Невозможно активировать' : 'Активировать'}
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DevelopmentWarningModal = ({ module, isOpen, onClose, onConfirm }: DevelopmentWarningModalProps) => {
+  if (!module || !isOpen || !module.development_status) return null;
+
+  const { development_status } = module;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
+        <div className="flex items-center mb-4">
+          <ExclamationTriangleIcon className={`h-8 w-8 mr-3 text-${development_status.color}-500`} />
+          <h2 className="text-xl font-bold">Активировать {module.name}?</h2>
+        </div>
+        
+        <div className="mb-4">
+          <ModuleStatusBadge developmentStatus={development_status} />
+        </div>
+        
+        <p className="text-gray-700 mb-6">
+          {development_status.warning_message}
+        </p>
+        
+        <div className="flex justify-end space-x-3">
+          <button 
+            onClick={onClose} 
+            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
+          >
+            Отмена
+          </button>
+          <button 
+            onClick={onConfirm} 
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium"
+          >
+            Продолжить
+          </button>
         </div>
       </div>
     </div>
@@ -794,6 +842,7 @@ const ModulesPage = () => {
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [showDeactivationPreviewModal, setShowDeactivationPreviewModal] = useState(false);
+  const [showDevelopmentWarning, setShowDevelopmentWarning] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<any>(null);
   const [deactivationPreviewData, setDeactivationPreviewData] = useState<any>(null);
@@ -834,6 +883,16 @@ const ModulesPage = () => {
   };
 
   const handleActivateClick = async (module: Module) => {
+    // Проверяем статус разработки
+    if (module.development_status && !module.development_status.can_be_activated) {
+      NotificationService.show({
+        type: 'warning',
+        title: 'Модуль недоступен',
+        message: `Модуль "${module.name}" недоступен для активации: ${module.development_status.description}`
+      });
+      return;
+    }
+
     setSelectedModule(module);
     setActionLoading(`preview-${module.slug}`);
     
@@ -844,8 +903,19 @@ const ModulesPage = () => {
       console.error('Ошибка получения предпросмотра:', error);
     } finally {
       setActionLoading(null);
-      setShowActivationModal(true);
+      
+      // Показываем предупреждение если нужно
+      if (module.development_status?.should_show_warning) {
+        setShowDevelopmentWarning(true);
+      } else {
+        setShowActivationModal(true);
+      }
     }
+  };
+
+  const handleDevelopmentWarningConfirm = () => {
+    setShowDevelopmentWarning(false);
+    setShowActivationModal(true);
   };
 
   const handleActivateConfirm = async (durationDays: number) => {
@@ -1145,7 +1215,12 @@ const ModulesPage = () => {
                         <span className={`text-sm font-medium ${status.className}`}>
                           {status.text}
                           </span>
+                      </div>
+                      {module.development_status && (
+                        <div className="mt-2">
+                          <ModuleStatusBadge developmentStatus={module.development_status} />
                         </div>
+                      )}
                       </div>
                     </div>
 
@@ -1329,6 +1404,17 @@ const ModulesPage = () => {
       </div>
 
       {/* Модальные окна */}
+      <DevelopmentWarningModal
+        module={selectedModule}
+        isOpen={showDevelopmentWarning}
+        onClose={() => {
+          setShowDevelopmentWarning(false);
+          setSelectedModule(null);
+          setPreviewData(null);
+        }}
+        onConfirm={handleDevelopmentWarningConfirm}
+      />
+
       <ModuleActivationModal
         module={selectedModule}
         isOpen={showActivationModal}
