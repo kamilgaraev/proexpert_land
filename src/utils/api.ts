@@ -951,6 +951,7 @@ export interface StorageLimitItem {
 export interface SubscriptionLimits {
   foremen: SubscriptionLimitItem;
   projects: SubscriptionLimitItem;
+  users: SubscriptionLimitItem;
   storage: StorageLimitItem;
 }
 

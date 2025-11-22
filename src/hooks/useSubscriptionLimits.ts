@@ -70,6 +70,7 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
           limits: data.limits || {
             foremen: { limit: 0, used: 0, remaining: 0, percentage_used: 0, is_unlimited: false, status: 'normal' },
             projects: { limit: 0, used: 0, remaining: 0, percentage_used: 0, is_unlimited: false, status: 'normal' },
+            users: { limit: 0, used: 0, remaining: 0, percentage_used: 0, is_unlimited: false, status: 'normal' },
             storage: { limit_gb: 0, used_gb: 0, remaining_gb: 0, percentage_used: 0, is_unlimited: false, status: 'normal' }
           },
           warnings: data.warnings || []

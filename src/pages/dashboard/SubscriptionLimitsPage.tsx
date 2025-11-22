@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   UsersIcon,
+  UserGroupIcon,
   BuildingOfficeIcon,
   CircleStackIcon,
   ArrowPathIcon,
@@ -243,13 +244,19 @@ const SubscriptionLimitsPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             <LimitWidget
               title="Прорабы"
               limit={data.limits.foremen}
               unit="чел."
               icon={UsersIcon}
+            />
+            <LimitWidget
+              title="Пользователи"
+              limit={data.limits.users}
+              unit="чел."
+              icon={UserGroupIcon}
             />
             <LimitWidget
               title="Проекты"
