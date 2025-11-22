@@ -371,11 +371,15 @@ const MultiOrganizationPage = () => {
               )}
 
               {activeTab === 'hierarchy' && hierarchy && (
-                 <div className="overflow-x-auto pb-12">
+                 <div className="overflow-x-auto pb-12 pt-4">
                     <div className="min-w-[800px] flex flex-col items-center">
                        {/* Root Node */}
-                       <div className="relative z-10 mb-8">
-                          <div className="bg-white p-6 rounded-2xl border-2 border-orange-500 shadow-xl w-80 text-center relative">
+                       <div className="relative z-10 mb-12">
+                          <motion.div 
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-white p-6 rounded-2xl border-2 border-orange-500 shadow-xl w-80 text-center relative z-20"
+                          >
                              <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center mx-auto mb-3 text-white shadow-lg shadow-orange-200">
                                 <BuildingOffice2Icon className="h-6 w-6" />
                              </div>
@@ -386,35 +390,65 @@ const MultiOrganizationPage = () => {
                                 <span>•</span>
                                 <span>ИНН {hierarchy.parent.tax_number || '—'}</span>
                              </div>
-                          </div>
-                          {/* Vertical Connector from Parent */}
+                          </motion.div>
+                          
+                          {/* Animated Vertical Connector from Parent */}
                           {hierarchy.children.length > 0 && (
-                             <div className="absolute left-1/2 bottom-0 translate-y-full w-px h-8 bg-slate-300"></div>
+                             <svg className="absolute left-1/2 bottom-0 translate-y-full -translate-x-1/2 w-px h-12 overflow-visible z-0">
+                                <motion.line 
+                                  x1="0" y1="0" x2="0" y2="100%" 
+                                  stroke="#f97316" 
+                                  strokeWidth="2" 
+                                  initial={{ pathLength: 0 }}
+                                  animate={{ pathLength: 1 }}
+                                  transition={{ duration: 0.5, delay: 0.2 }}
+                                />
+                             </svg>
                           )}
                        </div>
 
                        {/* Children */}
                        {hierarchy.children.length > 0 && (
                           <div className="relative w-full flex justify-center">
-                             {/* Horizontal Connector Line - only if multiple children */}
+                             {/* Horizontal Connector Line */}
                              {hierarchy.children.length > 1 && (
-                                <div className="absolute top-0 left-10 right-10 h-px bg-slate-300"></div>
+                                <svg className="absolute top-0 left-0 w-full h-8 overflow-visible -mt-12 z-0">
+                                   {/* We need to draw lines from center top to each child's center top */}
+                                   {/* This is tricky with pure CSS/SVG without precise coords. 
+                                       Let's stick to a cleaner visual structure using pseudo-elements or a simplified SVG approach.
+                                   */}
+                                </svg>
                              )}
                              
-                             <div className="flex justify-center gap-6 w-full pt-8 px-4 flex-wrap">
-                                {hierarchy.children.map((child) => (
-                                   <div key={child.id} className="flex flex-col items-center relative group">
+                             <div className="flex justify-center gap-8 w-full flex-wrap relative">
+                                {/* Connecting line across children */}
+                                {hierarchy.children.length > 1 && (
+                                   <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px bg-orange-300 -mt-12" 
+                                        style={{ width: `calc(100% - ${Math.max(300, 100 / hierarchy.children.length)}px)` }} // Approx width
+                                   ></div>
+                                )}
+
+                                {hierarchy.children.map((child, index) => (
+                                   <motion.div 
+                                      key={child.id} 
+                                      className="flex flex-col items-center relative group"
+                                      initial={{ opacity: 0, y: 20 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                                   >
                                       {/* Vertical Connector to Child */}
-                                      <div className="absolute top-0 -mt-8 w-px h-8 bg-slate-300"></div>
+                                      <div className="absolute top-0 -mt-12 w-px h-12 bg-orange-300"></div>
+                                      {/* Dot at junction */}
+                                      <div className="absolute top-0 -mt-12 w-2 h-2 rounded-full bg-orange-500 -translate-y-1/2"></div>
                                       
-                                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-orange-300 transition-all w-64 relative">
+                                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-orange-300 transition-all w-72 relative z-10 group-hover:-translate-y-1">
                                          <div className="flex justify-between items-start mb-3">
-                                            <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-600 group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors">
+                                            <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors">
                                                <BuildingOfficeIcon className="h-5 w-5" />
                                             </div>
                                             <button 
                                                onClick={() => handleSwitchContext(child.id)}
-                                               className="text-xs bg-slate-100 hover:bg-orange-100 hover:text-orange-700 text-slate-600 px-2 py-1 rounded-md transition-colors"
+                                               className="text-xs bg-slate-100 hover:bg-orange-600 hover:text-white text-slate-600 px-3 py-1.5 rounded-lg transition-all font-medium"
                                             >
                                                Войти
                                             </button>
@@ -425,13 +459,13 @@ const MultiOrganizationPage = () => {
                                          <div className="pt-3 border-t border-slate-50 flex justify-between items-center">
                                             <button 
                                                onClick={() => handleViewOrganizationDetails(child.id)}
-                                               className="text-xs font-medium text-orange-600 hover:text-orange-700 flex items-center"
+                                               className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center"
                                             >
                                                Подробнее <ChevronRightIcon className="w-3 h-3 ml-1" />
                                             </button>
                                          </div>
                                       </div>
-                                   </div>
+                                   </motion.div>
                                 ))}
                              </div>
                           </div>

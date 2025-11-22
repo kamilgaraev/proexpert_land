@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useModules } from '@hooks/useModules';
 import { Module } from '@utils/api';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
@@ -1209,570 +1210,423 @@ const ModulesPage = () => {
   if (loading) return <PageLoading message="Загрузка модулей..." />;
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-steel-900">Модули организации</h1>
-        <div className="flex items-center space-x-2">
-          {/* Кнопки массового управления автопродлением */}
-          <div className="flex items-center space-x-2 mr-2">
-            <button
-              onClick={() => handleBulkAutoRenew(true)}
-              disabled={loading || actionLoading?.startsWith('bulk-auto-renew')}
-              className="inline-flex items-center px-3 py-2 border border-orange-300 rounded-lg text-sm font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 disabled:opacity-50 transition-colors"
-              title="Включить автопродление для всех активных модулей"
-            >
-              <ArrowPathIcon className="h-4 w-4 mr-1" />
-              Вкл. автопродление
-            </button>
-            <button
-              onClick={() => handleBulkAutoRenew(false)}
-              disabled={loading || actionLoading?.startsWith('bulk-auto-renew')}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
-              title="Выключить автопродление для всех активных модулей"
-            >
-              <XMarkIcon className="h-4 w-4 mr-1" />
-              Выкл. автопродление
-            </button>
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8 pb-20">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+             <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Модули</h1>
+                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold border border-orange-200">
+                   {allModules.length} доступно
+                </span>
+             </div>
+             <p className="text-slate-500 text-lg">
+               Расширяйте возможности вашей организации с помощью дополнительных модулей
+             </p>
           </div>
           
-          <button
-            onClick={refresh}
-            disabled={loading}
-            className="inline-flex items-center px-4 py-2 border border-steel-300 rounded-lg text-sm font-medium text-steel-700 bg-white hover:bg-steel-50 disabled:opacity-50 transition-colors"
+          <div className="flex flex-wrap gap-3">
+             {/* Кнопки массового управления автопродлением */}
+             <div className="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+               <button
+                 onClick={() => handleBulkAutoRenew(true)}
+                 disabled={loading || actionLoading?.startsWith('bulk-auto-renew')}
+                 className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 disabled:opacity-50 transition-colors"
+                 title="Включить автопродление для всех активных модулей"
+               >
+                 <ArrowPathIcon className="h-4 w-4 mr-1" />
+                 Вкл. автопродление
+               </button>
+               <div className="w-px h-6 bg-slate-200 mx-1"></div>
+               <button
+                 onClick={() => handleBulkAutoRenew(false)}
+                 disabled={loading || actionLoading?.startsWith('bulk-auto-renew')}
+                 className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                 title="Выключить автопродление для всех активных модулей"
+               >
+                 <XMarkIcon className="h-4 w-4 mr-1" />
+                 Выкл.
+               </button>
+             </div>
+             
+             <button
+               onClick={refresh}
+               disabled={loading}
+               className="inline-flex items-center px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-orange-600 disabled:opacity-50 transition-colors shadow-sm"
+             >
+               <ArrowPathIcon className={`h-5 w-5 mr-2 ${loading ? 'animate-spin' : ''}`} />
+               Обновить
+             </button>
+          </div>
+        </div>
+
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3"
           >
-            <ArrowPathIcon className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Обновить
-          </button>
-        </div>
-      </div>
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <XCircleIcon className="h-5 w-5 text-red-500 mr-2" />
-            <div className="text-red-800">{error}</div>
-          </div>
-        </div>
-      )}
-
-      {/* Фильтр по категориям */}
-      <div className="bg-white shadow-lg rounded-2xl p-6 border border-steel-200">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <FunnelIcon className="h-5 w-5 text-steel-600" />
-            <h2 className="text-lg font-semibold text-steel-900">Категории модулей</h2>
-          </div>
-          <div className="text-sm text-steel-600">
-            Показано: {filteredModules.length} из {allModules.length}
-          </div>
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-          {availableCategories.map((category) => {
-            const categoryInfo = MODULE_CATEGORIES[category];
-            const stats = category === 'all' 
-              ? { total: allModules.length, active: filteredModules.filter(m => isModuleActive(m.slug)).length }
-              : categoryStats[category] || { total: 0, active: 0 };
-            const IconComponent = categoryInfo?.icon || Squares2X2Icon;
-            const isSelected = selectedCategory === category;
-            
-            return (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
-                  isSelected
-                    ? 'bg-orange-50 border-orange-200 text-orange-700 ring-1 ring-orange-500'
-                    : 'bg-white border-steel-200 text-steel-700 hover:bg-steel-50 hover:border-steel-300'
-                }`}
-              >
-                <IconComponent className={`h-4 w-4 mr-2 ${isSelected ? 'text-orange-600' : categoryInfo?.color || 'text-gray-600'}`} />
-                <span>{categoryInfo?.name || 'Неизвестная категория'}</span>
-                <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${
-                  isSelected 
-                    ? 'bg-orange-100 text-orange-700'
-                    : 'bg-steel-100 text-steel-600'
-                }`}>
-                  {stats.active}/{stats.total}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Сводка */}
-      <div className="bg-white shadow-lg rounded-2xl p-6 border border-steel-200">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">
-            Сводка модулей
-            {selectedCategory !== 'all' && (
-              <span className="ml-2 text-base font-normal text-steel-600">
-                ({MODULE_CATEGORIES[selectedCategory]?.name || 'Неизвестная категория'})
-              </span>
-            )}
-          </h2>
-          {selectedCategory !== 'all' && (
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className="text-sm text-orange-600 hover:text-orange-700 font-medium"
-            >
-              Показать все
-            </button>
-          )}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-construction-600">
-              {filteredModules.filter(m => isModuleActive(m.slug)).length}
-            </div>
-            <div className="text-sm text-steel-600">Активных модулей</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">
-              {filteredModules
-                .filter(m => isModuleActive(m.slug))
-                .reduce((sum, m) => sum + (m.billing_model !== 'free' ? (m.pricing_config?.base_price || m.price || 0) : 0), 0)
-                .toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' })}
-            </div>
-            <div className="text-sm text-steel-600">Месячная стоимость</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">
-              {filteredModules.filter(m => expiringModules.some(exp => exp.slug === m.slug)).length}
-            </div>
-            <div className="text-sm text-steel-600">Истекает в 7 днях</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-steel-600">{filteredModules.length}</div>
-            <div className="text-sm text-steel-600">
-              {selectedCategory === 'all' ? 'Всего доступно' : 'В категории'}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Уведомления об истекающих модулях */}
-      {hasExpiring && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex items-start">
-            <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500 mr-2 mt-0.5" />
+            <XCircleIcon className="h-6 w-6 text-red-500 mt-0.5 flex-shrink-0" />
             <div>
-              <div className="font-medium text-yellow-800">Модули с истекающим сроком</div>
-              <div className="text-yellow-700 text-sm mt-1">
-                У вас есть модули, срок действия которых истекает в ближайшие 7 дней:
-              </div>
-              <div className="mt-2 space-y-1">
-                {expiringModules.map((module) => (
-                  <div key={module.slug} className="text-sm text-yellow-700">
-                    <span className="font-medium">{module.name}</span> — истекает {formatDate(getModuleExpiresAt(module))}
-                  </div>
-                ))}
-              </div>
+               <h3 className="font-bold text-red-900">Ошибка загрузки</h3>
+               <p className="text-red-800 mt-1">{error}</p>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
 
-      {/* Список модулей */}
-      <div className="bg-white shadow-lg rounded-2xl p-6 border border-steel-200">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">
-            {selectedCategory === 'all' ? 'Все модули' : MODULE_CATEGORIES[selectedCategory]?.name || 'Неизвестная категория'}
-          </h2>
-          {filteredModules.length === 0 && selectedCategory !== 'all' && (
-            <div className="text-sm text-steel-500">
-              В этой категории модули отсутствуют
-            </div>
-          )}
+        {/* Сводка */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-green-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
+              <div className="relative z-10">
+                 <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-green-50 rounded-2xl text-green-600">
+                       <CheckCircleIcon className="w-6 h-6" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Активные</span>
+                 </div>
+                 <p className="text-3xl font-bold text-slate-900">
+                    {filteredModules.filter(m => isModuleActive(m.slug)).length}
+                 </p>
+                 <p className="text-sm text-slate-500 mt-1">модулей используется</p>
+              </div>
+           </div>
+
+           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-orange-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
+              <div className="relative z-10">
+                 <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-orange-50 rounded-2xl text-orange-600">
+                       <BanknotesIcon className="w-6 h-6" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Стоимость</span>
+                 </div>
+                 <p className="text-3xl font-bold text-slate-900">
+                    {filteredModules
+                      .filter(m => isModuleActive(m.slug))
+                      .reduce((sum, m) => sum + (m.billing_model !== 'free' ? (m.pricing_config?.base_price || m.price || 0) : 0), 0)
+                      .toLocaleString('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 })}
+                 </p>
+                 <p className="text-sm text-slate-500 mt-1">в месяц</p>
+              </div>
+           </div>
+
+           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-yellow-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
+              <div className="relative z-10">
+                 <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-yellow-50 rounded-2xl text-yellow-600">
+                       <ClockIcon className="w-6 h-6" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Внимание</span>
+                 </div>
+                 <p className="text-3xl font-bold text-slate-900">
+                    {filteredModules.filter(m => expiringModules.some(exp => exp.slug === m.slug)).length}
+                 </p>
+                 <p className="text-sm text-slate-500 mt-1">истекают скоро</p>
+              </div>
+           </div>
+
+           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
+              <div className="relative z-10">
+                 <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
+                       <Squares2X2Icon className="w-6 h-6" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Всего</span>
+                 </div>
+                 <p className="text-3xl font-bold text-slate-900">
+                    {filteredModules.length}
+                 </p>
+                 <p className="text-sm text-slate-500 mt-1">доступных модулей</p>
+              </div>
+           </div>
         </div>
-        
+
+        {/* Фильтр по категориям */}
+        <div className="bg-white shadow-sm rounded-3xl p-2 border border-slate-200 inline-flex flex-wrap gap-1">
+           {availableCategories.map((category) => {
+             const categoryInfo = MODULE_CATEGORIES[category];
+             const stats = category === 'all' 
+               ? { total: allModules.length, active: filteredModules.filter(m => isModuleActive(m.slug)).length }
+               : categoryStats[category] || { total: 0, active: 0 };
+             const IconComponent = categoryInfo?.icon || Squares2X2Icon;
+             const isSelected = selectedCategory === category;
+             
+             return (
+               <button
+                 key={category}
+                 onClick={() => setSelectedCategory(category)}
+                 className={`flex items-center px-4 py-2.5 rounded-2xl text-sm font-bold transition-all border ${
+                   isSelected
+                     ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-200'
+                     : 'bg-transparent border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                 }`}
+               >
+                 <IconComponent className={`h-4 w-4 mr-2 ${isSelected ? 'text-white' : ''}`} />
+                 <span>{categoryInfo?.name || 'Категория'}</span>
+                 {isSelected && (
+                   <span className="ml-2 bg-white/20 px-1.5 py-0.5 rounded-md text-xs text-white">
+                     {stats.total}
+                   </span>
+                 )}
+               </button>
+             );
+           })}
+        </div>
+
+        {/* Уведомления об истекающих модулях */}
+        {hasExpiring && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4"
+          >
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-yellow-100 rounded-xl text-yellow-600 mt-1">
+                 <ExclamationTriangleIcon className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="font-bold text-yellow-900 text-lg">Требуется внимание</div>
+                <div className="text-yellow-800 mt-1 mb-3">
+                  У следующих модулей истекает срок действия в ближайшие 7 дней:
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {expiringModules.map((module) => (
+                    <div key={module.slug} className="inline-flex items-center bg-white border border-yellow-200 rounded-xl px-3 py-1.5 shadow-sm">
+                      <span className="font-bold text-yellow-900 mr-2">{module.name}</span>
+                      <span className="text-yellow-600 text-sm">до {formatDate(getModuleExpiresAt(module))}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Список модулей */}
         {filteredModules.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredModules.map((module) => {
                 const active = isModuleActive(module.slug);
                 const status = getModuleStatusText(module);
                 const ModuleIconComponent = getModuleIcon(module.icon || 'puzzle-piece', module);
-                const iconColor = getModuleIconColor(module, isModuleActive, isExpiringSoon);
-            const actionInProgress = actionLoading?.includes(module.slug);
-
-                // Определяем, можно ли активировать модуль
+                const actionInProgress = actionLoading?.includes(module.slug);
                 const canActivate = module.development_status?.can_be_activated !== false;
                 const isDisabled = !active && !canActivate;
                 
                 return (
               <div
                 key={module.slug}
-                className={`relative border rounded-xl p-6 transition-all duration-200 ${
+                className={`relative bg-white rounded-3xl p-6 border transition-all duration-300 flex flex-col h-full ${
                   active 
-                    ? 'border-orange-200 bg-orange-50 ring-1 ring-orange-500' 
+                    ? 'border-orange-200 shadow-lg shadow-orange-100 ring-1 ring-orange-500/20' 
                     : canActivate 
-                      ? 'border-steel-200 bg-white hover:border-construction-300 hover:shadow-md'
-                      : 'border-gray-200 bg-gray-50 opacity-75'
+                      ? 'border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-orange-200'
+                      : 'border-slate-100 bg-slate-50/50 opacity-75'
                 }`}
-                  >
-                    {/* Overlay для недоступных модулей */}
-                    {isDisabled && (
-                      <div className="absolute top-4 right-4 z-10">
-                        <div className="bg-gray-800 text-white text-xs px-3 py-1 rounded-full font-medium">
-                          Недоступен
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                      active ? 'bg-orange-100' : 
-                      canActivate ? 'bg-steel-100' : 'bg-gray-200'
-                    }`}>
-                      <ModuleIconComponent className={`h-6 w-6 ${
-                        active ? 'text-orange-600' : 
-                        canActivate ? 'text-steel-600' : 'text-gray-400'
-                      }`} />
-                        </div>
-                        <div>
-                      <h3 className={`font-semibold ${isDisabled ? 'text-gray-500' : 'text-steel-900'}`}>
-                        {module.name}
-                      </h3>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <ModuleIconComponent className={`h-5 w-5 ${iconColor}`} />
-                        <span className={`text-sm font-medium ${status.className}`}>
-                          {status.text}
-                          </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                      {module.development_status && (
-                          <ModuleStatusBadge developmentStatus={module.development_status} />
-                      )}
-                      {module.activation && (
-                          <TrialBadge activation={module.activation} />
-                      )}
-                      </div>
-                      </div>
-                    </div>
-
-                  <div className="text-right">
+              >
+                  {/* Status Badge */}
+                  <div className="absolute top-6 right-6">
                     {module.billing_model === 'free' ? (
-                      <div className={`text-lg font-bold ${isDisabled ? 'text-gray-400' : 'text-green-600'}`}>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">
                         Бесплатно
-                      </div>
+                      </span>
                     ) : (
-                      <>
-                        <div className={`text-lg font-bold ${isDisabled ? 'text-gray-400' : 'text-construction-600'}`}>
-                          {(module.pricing_config?.base_price || module.price || 0).toLocaleString('ru-RU', { 
-                            style: 'currency', 
-                            currency: module.pricing_config?.currency || module.currency || 'RUB'
-                          })}
-                        </div>
-                        <div className={`text-xs ${isDisabled ? 'text-gray-400' : 'text-steel-500'}`}>
-                          за {module.pricing_config?.duration_days || module.duration_days} дней
-                        </div>
-                      </>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                        isDisabled ? 'bg-slate-100 text-slate-500' : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        {(module.pricing_config?.base_price || module.price || 0).toLocaleString('ru-RU', { 
+                          style: 'currency', 
+                          currency: module.pricing_config?.currency || module.currency || 'RUB',
+                          maximumFractionDigits: 0
+                        })}
+                      </span>
                     )}
                   </div>
-                    </div>
 
-                <p className={`text-sm mb-4 ${isDisabled ? 'text-gray-400' : 'text-steel-600'}`}>
+                  <div className="flex items-center space-x-4 mb-6">
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm transition-colors ${
+                      active ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white' : 
+                      canActivate ? 'bg-white border border-slate-100 text-slate-500 group-hover:text-orange-500 group-hover:border-orange-100' : 'bg-slate-100 text-slate-400'
+                    }`}>
+                      <ModuleIconComponent className="h-8 w-8" />
+                    </div>
+                    <div className="flex-1 pr-20">
+                      <h3 className={`font-bold text-lg leading-tight mb-1 ${isDisabled ? 'text-slate-500' : 'text-slate-900'}`}>
+                        {module.name}
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                         <div className="flex items-center space-x-1">
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-md flex items-center w-fit ${
+                               active ? 'text-green-600 bg-green-50' : 
+                               status.text === 'Истекает скоро' ? 'text-yellow-600 bg-yellow-50' : 'text-slate-500 bg-slate-100'
+                            }`}>
+                               {active && <CheckCircleIcon className="w-3 h-3 mr-1" />}
+                               {status.text}
+                            </span>
+                         </div>
+                         
+                         {!active && (
+                            <span className="text-xs font-medium text-slate-500 px-2 py-0.5 bg-slate-50 rounded-md border border-slate-100">
+                               {module.category ? MODULE_CATEGORIES[module.category as ModuleCategory]?.name : 'Модуль'}
+                            </span>
+                         )}
+                         
+                         {module.activation?.status === 'trial' && (
+                            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md flex items-center w-fit">
+                               Trial
+                            </span>
+                         )}
+                      </div>
+                    </div>
+                  </div>
+
+                <p className={`text-sm mb-6 line-clamp-2 flex-grow ${isDisabled ? 'text-slate-400' : 'text-slate-600'}`}>
                   {module.description}
                 </p>
 
-                {/* Блок информации для недоступных модулей */}
-                {isDisabled && module.development_status && (
-                  <div className="mb-4 p-3 bg-gray-100 border border-gray-300 rounded-lg">
-                    <div className="flex items-start space-x-2">
-                      <InformationCircleIcon className="h-5 w-5 text-gray-500 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-700 mb-1">
-                          Модуль недоступен для активации 
-                        </div>
-                        <div className="text-xs text-gray-600">
-                          {module.development_status.description}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {module.features.length > 0 && (
-                      <div className="mb-4">
-                    <div className={`text-xs font-medium mb-2 ${isDisabled ? 'text-gray-500' : 'text-steel-700'}`}>
-                      Возможности: 
-                    </div>
-                    <div className="space-y-1">
-                      {(() => {
-                        const isExpanded = expandedModules.has(module.slug);
-                        const featuresToShow = isExpanded ? module.features : module.features.slice(0, 3);
-                        
-                        return (
-                          <>
-                            {featuresToShow.map((feature, index) => (
-                              <div key={index} className={`flex items-start text-xs ${isDisabled ? 'text-gray-400' : 'text-steel-600'}`}>
-                                <CheckCircleIcon className={`h-3 w-3 mr-2 mt-0.5 flex-shrink-0 ${isDisabled ? 'text-gray-400' : 'text-green-500'}`} />
-                              {feature}
-                              </div>
-                            ))}
-                            {module.features.length > 3 && !isDisabled && (
-                              <button
-                                onClick={() => toggleModuleExpanded(module.slug)}
-                                className="text-xs text-orange-600 hover:text-orange-700 font-medium flex items-center mt-1 transition-colors"
-                              >
-                                {isExpanded ? (
-                                  <>
-                                    <ChevronUpIcon className="h-3 w-3 mr-1" />
-                                    <span>Скрыть</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <ChevronDownIcon className="h-3 w-3 mr-1" />
-                                    <span>+{module.features.length - 3} возможностей — показать все</span>
-                                  </>
-                                )}
-                              </button>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </div>
-                      </div>
-                    )}
-
-                {/* Предупреждение об истечении trial */}
-                {active && module.activation?.status === 'trial' && module.activation.days_until_expiration !== null && (
-                  <div className={`mb-4 p-3 rounded-lg border ${
-                    module.activation.days_until_expiration <= 3 
-                      ? 'bg-red-50 border-red-200' 
-                      : module.activation.days_until_expiration <= 7
-                        ? 'bg-yellow-50 border-yellow-200'
-                        : 'bg-blue-50 border-blue-200'
-                  }`}>
-                    <div className="flex items-start space-x-2">
-                      <ClockIcon className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
-                        module.activation.days_until_expiration <= 3 
-                          ? 'text-red-500' 
-                          : module.activation.days_until_expiration <= 7
-                            ? 'text-yellow-500'
-                            : 'text-blue-500'
-                      }`} />
-                      <div>
-                        <div className={`text-sm font-medium ${
-                          module.activation.days_until_expiration <= 3 
-                            ? 'text-red-800' 
-                            : module.activation.days_until_expiration <= 7
-                              ? 'text-yellow-800'
-                              : 'text-blue-800'
-                        }`}>
-                          Trial период истекает через {module.activation.days_until_expiration} {
-                            module.activation.days_until_expiration === 1 ? 'день' : 
-                            module.activation.days_until_expiration < 5 ? 'дня' : 'дней'
-                          }
-                        </div>
-                        <div className={`text-xs mt-1 ${
-                          module.activation.days_until_expiration <= 3 
-                            ? 'text-red-600' 
-                            : module.activation.days_until_expiration <= 7
-                              ? 'text-yellow-600'
-                              : 'text-blue-600'
-                        }`}>
-                          Активируйте полную версию, чтобы продолжить использование
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Информация о сроке активации */}
-                {active && getModuleExpiresAt(module) && module.billing_model !== 'free' && module.activation?.status !== 'trial' && (
-                  <div className="mb-4 p-3 bg-white rounded-lg border border-orange-200">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-steel-600">Активен до:</span>
-                      <span className="font-medium text-steel-900">{formatDate(getModuleExpiresAt(module))}</span>
-                        </div>
-                      </div>
-                    )}
-
-                <div className="space-y-3">
-                  {active ? (
-                    <>
-                      {/* Автопродление для subscription модулей */}
-                      {module.billing_model === 'subscription' && module.activation?.status !== 'trial' && (
-                        <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <ArrowPathIcon className="h-4 w-4 text-orange-600" />
-                              <span className="text-sm font-medium text-orange-900">Автопродление</span>
-                            </div>
-                            <p className="text-xs text-orange-700">
-                              {module.activation?.is_bundled_with_plan 
-                                ? 'Модуль входит в подписку — управление через подписку'
-                                : 'Автоматическое списание за день до истечения срока'}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => handleAutoRenewToggle(module, !module.activation?.is_auto_renew_enabled)}
-                            disabled={
-                              module.activation?.is_bundled_with_plan || 
-                              actionLoading === `auto-renew-${module.slug}`
-                            }
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
-                              module.activation?.is_auto_renew_enabled !== false
-                                ? 'bg-orange-600 hover:bg-orange-700'
-                                : 'bg-gray-300 hover:bg-gray-400'
-                            } disabled:opacity-50 disabled:cursor-not-allowed`}
-                            title={
-                              module.activation?.is_bundled_with_plan
-                                ? 'Управление через подписку'
-                                : module.activation?.is_auto_renew_enabled !== false
-                                  ? 'Автопродление включено (нажмите чтобы отключить)'
-                                  : 'Автопродление выключено (нажмите чтобы включить)'
-                            }
-                          >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
-                              module.activation?.is_auto_renew_enabled !== false ? 'translate-x-6' : 'translate-x-1'
-                            }`} />
-                          </button>
-                        </div>
+                {/* Features Preview */}
+                {module.features.length > 0 && !isDisabled && (
+                   <div className="mb-6 space-y-2 bg-slate-50/50 rounded-xl p-3">
+                      {module.features.slice(0, 2).map((feature, idx) => (
+                         <div key={idx} className="flex items-start text-xs text-slate-600">
+                            <CheckCircleIcon className="w-3.5 h-3.5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                            <span className="line-clamp-1">{feature}</span>
+                         </div>
+                      ))}
+                      {module.features.length > 2 && (
+                         <button 
+                           onClick={() => toggleModuleExpanded(module.slug)}
+                           className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center pl-5"
+                         >
+                            {expandedModules.has(module.slug) ? 'Скрыть' : `Еще ${module.features.length - 2} функций`}
+                         </button>
                       )}
+                      
+                      {expandedModules.has(module.slug) && (
+                         <motion.div 
+                           initial={{ opacity: 0, height: 0 }}
+                           animate={{ opacity: 1, height: 'auto' }}
+                           className="space-y-2 pt-1"
+                         >
+                            {module.features.slice(2).map((feature, idx) => (
+                               <div key={idx} className="flex items-start text-xs text-slate-600">
+                                  <CheckCircleIcon className="w-3.5 h-3.5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                                  <span>{feature}</span>
+                               </div>
+                            ))}
+                         </motion.div>
+                      )}
+                   </div>
+                )}
 
-                      <div className="flex items-center space-x-2">
-                      {module.billing_model === 'free' ? (
-                        // Для бесплатных модулей показываем информационный блок вместо кнопки продления
-                        <div className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-50 border border-green-200 text-green-700 text-sm font-medium rounded-lg">
-                          <CheckCircleIcon className="h-4 w-4 mr-2" />
-                          Постоянно активен
-                        </div>
-                      ) : (
-                            <ProtectedComponent
-                              permission="modules.renew"
-                              role="organization_owner"
-                              requireAll={false}
-                              fallback={
-                                <div className="flex-1 px-4 py-2 bg-gray-200 text-gray-500 text-sm font-medium rounded-lg text-center">
-                                  Нет прав на продление
-                                </div>
-                              }
-                            >
-                            <button
-                            onClick={() => handleRenewModule(module)}
-                            disabled={actionInProgress}
-                            className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-                          >
-                            {actionLoading === `renew-${module.slug}` ? (
-                              <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <BoltIcon className="h-4 w-4 mr-2" />
-                              Продлить
-                              </>
-                            )}
-                            </button>
-                            </ProtectedComponent>
-                          )}
-                      {module.can_deactivate !== false && (
-                        <ProtectedComponent
-                          permission="modules.deactivate"
-                          role="organization_owner"
-                          requireAll={false}
-                          showFallback={false}
-                        >
-                          <button
-                            onClick={() => handleDeactivateClick(module)}
-                            disabled={actionInProgress}
-                            className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 disabled:opacity-50 flex items-center transition-colors"
-                            title="Отменить модуль"
-                          >
-                            {actionLoading === `deactivation-preview-${module.slug}` || actionLoading === `deactivate-${module.slug}` ? (
-                              <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <XMarkIcon className="h-4 w-4" />
-                            )}
-                          </button>
-                        </ProtectedComponent>
-                          )}
-                        </div>
-                        </>
-                      ) : isDisabled ? (
-                        // Кнопка для недоступных модулей
-                        <button
-                          disabled
-                          className="w-full inline-flex items-center justify-center px-4 py-2 bg-gray-300 text-gray-500 text-sm font-medium rounded-lg cursor-not-allowed"
-                          title={module.development_status?.description}
-                        >
-                          <XCircleIcon className="h-4 w-4 mr-2" />
-                          {module.development_status?.status === 'coming_soon' ? 'Скоро доступен' : 
-                           module.development_status?.status === 'development' ? 'В разработке' :
-                           module.development_status?.status === 'deprecated' ? 'Устарел' : 'Недоступен'}
-                        </button>
-                      ) : (
-                        <ProtectedComponent
-                          permission="modules.activate"
-                          role="organization_owner"
-                          requireAll={false}
-                          fallback={
-                            <div className="w-full px-4 py-2 bg-gray-200 text-gray-500 text-sm font-medium rounded-lg text-center">
-                              Нет прав на активацию
-                        </div>
-                          }
-                        >
-                        <div className="w-full space-y-2">
-                          <div className="flex items-center space-x-2">
-                            {/* Кнопка Пробного периода (только для платных модулей) */}
-                            {module.billing_model !== 'free' && canActivate && (
-                              <button
-                                onClick={() => handleTrialClick(module)}
-                                disabled={actionInProgress}
-                                className="flex-1 inline-flex items-center justify-center px-4 py-2 border-2 border-orange-600 text-orange-600 text-sm font-medium rounded-lg hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                title="Попробовать бесплатно"
+                {/* Actions */}
+                <div className="pt-4 mt-auto border-t border-slate-100">
+                  <div className="flex gap-2">
+                     {active ? (
+                        <>
+                           {module.billing_model !== 'free' && (
+                              <button 
+                                 onClick={() => handleRenewModule(module)}
+                                 disabled={actionInProgress}
+                                 className="flex-1 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center"
                               >
-                                {actionLoading === `trial-check-${module.slug}` || actionLoading === `trial-activate-${module.slug}` ? (
-                                  <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <>
-                                    <SparklesIcon className="h-4 w-4 mr-2" />
-                                    Попробовать
-                                  </>
-                                )}
+                                 {actionLoading === `renew-${module.slug}` ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : 'Продлить'}
                               </button>
-                            )}
-                            
-                            {/* Кнопка полной активации */}
-                            <button
+                           )}
+                           
+                           <div className="relative group/settings">
+                              <button className="p-2.5 border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                                 <CogIcon className="w-5 h-5" />
+                              </button>
+                              {/* Settings dropdown could go here */}
+                           </div>
+                           
+                           {module.can_deactivate !== false && (
+                             <button
+                                onClick={() => handleDeactivateClick(module)}
+                                disabled={actionInProgress}
+                                className="p-2.5 border border-red-100 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                                title="Отключить"
+                             >
+                                <XMarkIcon className="w-5 h-5" />
+                             </button>
+                           )}
+                        </>
+                     ) : isDisabled ? (
+                        <button disabled className="w-full py-2.5 bg-slate-100 text-slate-400 rounded-xl text-sm font-bold cursor-not-allowed">
+                           Недоступен
+                        </button>
+                     ) : (
+                        <>
+                           {module.billing_model !== 'free' && canActivate && (
+                              <button 
+                                 onClick={() => handleTrialClick(module)}
+                                 disabled={actionInProgress}
+                                 className="px-4 py-2.5 border-2 border-orange-100 text-orange-600 hover:bg-orange-50 hover:border-orange-200 rounded-xl text-sm font-bold transition-colors"
+                              >
+                                 Trial
+                              </button>
+                           )}
+                           <button 
                               onClick={() => handleActivateClick(module)}
                               disabled={actionInProgress}
-                              className={`${module.billing_model !== 'free' && canActivate ? 'flex-1' : 'w-full'} inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors`}
-                            >
-                              {actionLoading === `activate-${module.slug}` || actionLoading === `preview-${module.slug}` ? (
-                                <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                              className="flex-1 py-2.5 bg-slate-900 text-white hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-200 rounded-xl text-sm font-bold transition-all flex items-center justify-center"
+                           >
+                              {actionLoading?.includes(module.slug) ? (
+                                 <ArrowPathIcon className="w-4 h-4 animate-spin" />
                               ) : (
-                                <>
-                                  <PlayIcon className="h-4 w-4 mr-2" />
-                                  Активировать
-                                </>
+                                 <>
+                                    <PlayIcon className="w-4 h-4 mr-2" />
+                                    Активировать
+                                 </>
                               )}
-                            </button>
-                          </div>
-                        </div>
-                        </ProtectedComponent>
-                      )}
+                           </button>
+                        </>
+                     )}
+                  </div>
+                  
+                  {/* Auto-renew info */}
+                  {active && module.billing_model === 'subscription' && (
+                     <div className="mt-3 flex items-center justify-between text-xs">
+                        <span className="text-slate-400">Автопродление</span>
+                        <button 
+                           onClick={() => handleAutoRenewToggle(module, !module.activation?.is_auto_renew_enabled)}
+                           disabled={module.activation?.is_bundled_with_plan}
+                           className={`font-bold ${module.activation?.is_auto_renew_enabled ? 'text-green-600' : 'text-slate-400'}`}
+                        >
+                           {module.activation?.is_auto_renew_enabled ? 'ВКЛЮЧЕНО' : 'ВЫКЛЮЧЕНО'}
+                        </button>
+                     </div>
+                  )}
                 </div>
               </div>
                 );
             })}
           </div>
         ) : (
-          <div className="text-center py-8">
-            <div className="mx-auto h-12 w-12 text-steel-400 mb-4">
-              <PuzzlePieceIcon className="h-12 w-12" />
+          <div className="text-center py-20">
+            <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+               <PuzzlePieceIcon className="h-10 w-10 text-slate-300" />
             </div>
-            <h3 className="text-lg font-medium text-steel-900 mb-2">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">
               Модули не найдены
             </h3>
-            <p className="text-steel-600">
+            <p className="text-slate-500 max-w-md mx-auto">
               {selectedCategory === 'all' 
-                ? 'Нет доступных модулей для организации!'
-                : `В категории "${MODULE_CATEGORIES[selectedCategory]?.name || 'Неизвестная категория'}" модули отсутствуют`
+                ? 'Нет доступных модулей для организации. Попробуйте обновить страницу.'
+                : `В категории "${MODULE_CATEGORIES[selectedCategory]?.name || 'Неизвестная категория'}" модули пока отсутствуют.`
               }
             </p>
+            <button 
+               onClick={() => setSelectedCategory('all')}
+               className="mt-6 px-6 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors"
+            >
+               Показать все модули
+            </button>
           </div>
         )}
       </div>
