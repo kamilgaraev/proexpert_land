@@ -13,12 +13,10 @@ import {
   ArrowTopRightOnSquareIcon,
   BuildingOffice2Icon,
   BriefcaseIcon,
-  CheckBadgeIcon,
   XMarkIcon,
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import { useMultiOrganization } from '@hooks/useMultiOrganization';
-import { PageLoading } from '@components/common/PageLoading';
 import type { CreateHoldingRequest, AddChildOrganizationRequest } from '@utils/api';
 
 const MultiOrganizationPage = () => {

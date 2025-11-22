@@ -372,7 +372,17 @@ const PaidServicesPage = () => {
                           <div className="text-sm text-purple-700 font-medium">ГБ хранилища</div>
                         </div>
                       )}
-                      {!currentPlanData.max_foremen && !currentPlanData.max_projects && !currentPlanData.max_storage_gb && (
+                      {/* Карточка для пользователей, если есть данные в лимитах (для совместимости с API) */}
+                      {subscription.limits?.users && (
+                        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-4 text-center border border-indigo-200">
+                          <UserGroupIcon className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
+                          <div className="text-2xl font-bold text-indigo-900">
+                            {subscription.limits.users.limit || '∞'}
+                          </div>
+                          <div className="text-sm text-indigo-700 font-medium">пользователей</div>
+                        </div>
+                      )}
+                      {!currentPlanData.max_foremen && !currentPlanData.max_projects && !currentPlanData.max_storage_gb && !subscription.limits?.users && (
                         <div className="col-span-2 md:col-span-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-6 text-center border border-orange-200">
                           <div className="text-4xl font-bold text-orange-900 mb-2">∞</div>
                           <div className="text-lg text-orange-700 font-medium">Безлимитный тариф</div>
