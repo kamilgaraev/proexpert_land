@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useModules } from '@hooks/useModules';
 import { Module } from '@utils/api';
-import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 import ModuleStatusBadge from '@components/dashboard/ModuleStatusBadge';
-import TrialBadge from '@components/dashboard/TrialBadge';
 import {
   PuzzlePieceIcon,
   CheckCircleIcon,
@@ -13,9 +11,6 @@ import {
   ArrowPathIcon,
   PlayIcon,
   XMarkIcon,
-  BoltIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
   BuildingOfficeIcon,
   UsersIcon,
   ShareIcon,
@@ -38,10 +33,8 @@ import {
   MagnifyingGlassIcon,
   PaperAirplaneIcon,
   WrenchScrewdriverIcon,
-  FunnelIcon,
   Squares2X2Icon,
-  InformationCircleIcon,
-  SparklesIcon
+  InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import { PageLoading } from '@components/common/PageLoading';
 import NotificationService from '@components/shared/NotificationService';
@@ -799,20 +792,6 @@ const getModuleIcon = (iconName: string | null | undefined, module?: Module) => 
   }
   
   return IconComponent;
-};
-
-// Определение цвета иконки на основе статуса модуля
-const getModuleIconColor = (module: Module, isModuleActive: (slug: string) => boolean, isExpiringSoon: (module: Module) => boolean) => {
-  const active = isModuleActive(module.slug);
-  const expiring = isExpiringSoon(module);
-  
-  if (!active) {
-    return 'text-gray-400';
-  } else if (expiring) {
-    return 'text-yellow-500';
-  } else {
-    return 'text-green-500';
-  }
 };
 
 const ModulesPage = () => {

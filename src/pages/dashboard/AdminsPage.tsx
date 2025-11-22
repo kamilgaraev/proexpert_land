@@ -10,9 +10,9 @@ import {
   ShieldCheckIcon,
   CalendarIcon,
   EnvelopeIcon,
-  BriefcaseIcon,
   UserPlusIcon,
-  PaperAirplaneIcon
+  PaperAirplaneIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { adminPanelUserService } from '@utils/api';
 import { AdminPanelUser } from '@/types/admin';
