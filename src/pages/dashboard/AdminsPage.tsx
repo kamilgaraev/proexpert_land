@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   PlusIcon, 
   PencilIcon, 
@@ -9,7 +9,10 @@ import {
   UsersIcon,
   ShieldCheckIcon,
   CalendarIcon,
-  EnvelopeIcon
+  EnvelopeIcon,
+  BriefcaseIcon,
+  UserPlusIcon,
+  PaperAirplaneIcon
 } from '@heroicons/react/24/outline';
 import { adminPanelUserService } from '@utils/api';
 import { AdminPanelUser } from '@/types/admin';
@@ -126,42 +129,38 @@ const AdminsPage = () => {
   const getRoleDisplayName = (role_slug: string | null): string => {
     switch (role_slug) {
       case 'organization_owner':
-        return 'Владелец организации';
+        return 'Владелец';
       case 'organization_admin':
-        return 'Администратор организации';
+        return 'Администратор';
       case 'web_admin':
-        return 'Веб-администратор';
+        return 'Веб-админ';
       case 'accountant':
         return 'Бухгалтер';
       case 'super_admin':
-        return 'Главный администратор';
+        return 'Главный';
       case 'admin':
-        return 'Администратор';
+        return 'Админ';
       case 'content_admin':
-        return 'Администратор контента';
+        return 'Контент';
       case 'support_admin':
-        return 'Администратор поддержки';
+        return 'Поддержка';
       default:
-        return role_slug || 'N/A';
+        return role_slug || 'Пользователь';
     }
   };
 
   const getRoleColor = (role_slug: string | null): string => {
     switch (role_slug) {
       case 'organization_owner':
-        return 'bg-construction-100 text-construction-800';
+        return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'organization_admin':
-        return 'bg-safety-100 text-safety-800';
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'web_admin':
-        return 'bg-earth-100 text-earth-800';
+        return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'accountant':
-        return 'bg-steel-100 text-steel-800';
-      case 'super_admin':
-        return 'bg-construction-100 text-construction-800';
-      case 'admin':
-        return 'bg-safety-100 text-safety-800';
+        return 'bg-green-100 text-green-800 border-green-200';
       default:
-        return 'bg-steel-100 text-steel-800';
+        return 'bg-slate-100 text-slate-800 border-slate-200';
     }
   };
   
@@ -170,7 +169,7 @@ const AdminsPage = () => {
     try {
       return new Date(dateString).toLocaleDateString('ru-RU', {
         day: '2-digit',
-        month: '2-digit',
+        month: 'short',
         year: 'numeric',
       });
     } catch (e) {
@@ -234,26 +233,28 @@ const AdminsPage = () => {
   };
 
   const tabs = [
-    { id: 'admins' as TabType, name: 'Администраторы', count: admins.length },
-    { id: 'users' as TabType, name: 'Пользователи', count: users.length },
-    { id: 'invitations' as TabType, name: 'Приглашения', count: invitations.length }
+    { id: 'admins' as TabType, name: 'Администраторы', icon: UsersIcon, count: admins.length },
+    { id: 'users' as TabType, name: 'Пользователи', icon: UserPlusIcon, count: users.length },
+    { id: 'invitations' as TabType, name: 'Приглашения', icon: PaperAirplaneIcon, count: invitations.filter(i => i.status === 'pending').length }
   ];
 
   const renderContent = () => {
-    // Показываем ошибки управления пользователями для соответствующих табов
     if (userManagementError && ['users', 'invitations'].includes(activeTab)) {
       return (
-        <div className="p-6">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h3 className="text-lg font-medium text-red-900">Ошибка загрузки данных</h3>
-            <p className="text-sm text-red-700 mt-1">{userManagementError}</p>
+        <div className="p-8">
+          <div className="bg-red-50 border border-red-100 rounded-2xl p-6 text-center">
+            <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+               <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+            </div>
+            <h3 className="text-lg font-bold text-red-900 mb-2">Ошибка загрузки данных</h3>
+            <p className="text-sm text-red-700 mb-4">{userManagementError}</p>
             <button 
               onClick={() => {
                 clearError();
                 if (activeTab === 'users') fetchUsers();
                 else if (activeTab === 'invitations') fetchInvitations();
               }}
-              className="mt-3 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium"
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl font-bold transition-colors shadow-lg shadow-red-200"
             >
               Попробовать снова
             </button>
@@ -294,30 +295,32 @@ const AdminsPage = () => {
     if (isLoading) {
       return (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-construction-200 border-t-construction-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-200 border-t-orange-600"></div>
           </div>
       );
     }
 
     if (filteredAdmins.length === 0 && !error) {
       return (
-          <div className="text-center py-12">
-            <UsersIcon className="h-16 w-16 text-steel-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-steel-900 mb-2">
+          <div className="text-center py-16">
+            <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+               <UsersIcon className="h-10 w-10 text-slate-300" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">
               {searchTerm ? 'Администраторы не найдены' : 'Нет администраторов'}
             </h3>
-            <p className="text-steel-600 mb-6">
+            <p className="text-slate-500 mb-8 max-w-sm mx-auto">
               {searchTerm 
                 ? 'Попробуйте изменить критерии поиска' 
-                : 'Добавьте первого администратора для начала работы'
+                : 'Добавьте первого администратора для начала работы с командой'
               }
             </p>
             {!searchTerm && (
               <motion.button
                 onClick={handleOpenCreateModal}
-                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-construction-500 to-construction-600 text-white rounded-xl hover:shadow-construction transition-all duration-200"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:shadow-lg hover:shadow-orange-200 transition-all duration-200 font-bold"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <PlusIcon className="w-5 h-5 mr-2" />
                 Добавить администратора
@@ -332,77 +335,70 @@ const AdminsPage = () => {
             {filteredAdmins.map((admin, index) => (
               <motion.div
                 key={admin.id}
-                className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300"
+                className="bg-white rounded-3xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:border-orange-200 transition-all duration-300 group relative overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
-                whileHover={{ y: -2 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
               >
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="relative">
-                                         <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-construction-500 to-construction-600 p-0.5">
-                       <div className="w-full h-full rounded-full overflow-hidden bg-white flex items-center justify-center">
-                         <UserCircleIcon className="w-10 h-10 text-steel-400" />
-                       </div>
-                     </div>
-                     {admin.is_active && (
-                       <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-earth-500 rounded-full flex items-center justify-center">
-                         <ShieldCheckIcon className="w-3 h-3 text-white" />
-                       </div>
-                     )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold text-steel-900 truncate">{admin.name}</h3>
-                    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(admin.role_slug)}`}>
-                      {getRoleDisplayName(admin.role_slug)}
-                    </span>
-                  </div>
-                </div>
+                <div className="absolute top-0 right-0 -mt-8 -mr-8 w-24 h-24 bg-orange-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
 
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-steel-600">
-                    <EnvelopeIcon className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">{admin.email}</span>
-              </div>
-                  
-                  <div className="flex items-center text-sm text-steel-600">
-                    <CalendarIcon className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span>Создан: {formatDate(admin.created_at)}</span>
+                <div className="relative z-10">
+                   <div className="flex items-center space-x-4 mb-6">
+                     <div className="relative">
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 p-1 ring-2 ring-white shadow-md">
+                          <div className="w-full h-full rounded-xl overflow-hidden bg-white flex items-center justify-center">
+                            <UserCircleIcon className="w-12 h-12 text-slate-400" />
                           </div>
                         </div>
-
-                 <div className="mb-4">
                         {admin.is_active ? (
-                     <div className="flex items-center text-sm text-earth-600">
-                       <ShieldCheckIcon className="w-4 h-4 mr-2" />
-                       <span>Активный пользователь</span>
+                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-lg border-2 border-white flex items-center justify-center shadow-sm" title="Активен">
+                            <ShieldCheckIcon className="w-3.5 h-3.5 text-white" />
+                          </div>
+                        ) : (
+                           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-slate-400 rounded-lg border-2 border-white flex items-center justify-center shadow-sm" title="Неактивен">
+                            <CalendarIcon className="w-3.5 h-3.5 text-white" />
+                          </div>
+                        )}
                      </div>
-                   ) : (
-                     <div className="flex items-center text-sm text-safety-600">
-                       <CalendarIcon className="w-4 h-4 mr-2" />
-                       <span>Неактивный пользователь</span>
+                     <div className="flex-1 min-w-0">
+                       <h3 className="text-lg font-bold text-slate-900 truncate mb-1">{admin.name}</h3>
+                       <span className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-bold border ${getRoleColor(admin.role_slug)}`}>
+                         {getRoleDisplayName(admin.role_slug)}
+                       </span>
                      </div>
-                   )}
-                 </div>
+                   </div>
 
-                <div className="flex space-x-2">
-                  <motion.button
-                    onClick={() => handleOpenEditModal(admin)}
-                    className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-steel-300 text-steel-700 rounded-lg hover:bg-steel-50 transition-colors"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <PencilIcon className="w-4 h-4 mr-2" />
-                    Редактировать
-                  </motion.button>
-                  <motion.button
-                    onClick={() => handleOpenDeleteConfirmModal(admin)}
-                    className="px-3 py-2 border border-construction-300 text-construction-700 rounded-lg hover:bg-construction-50 transition-colors"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                  </motion.button>
+                   <div className="space-y-3 mb-6">
+                     <div className="flex items-center text-sm text-slate-600 bg-slate-50 p-2.5 rounded-xl">
+                       <EnvelopeIcon className="w-4 h-4 mr-3 text-slate-400 flex-shrink-0" />
+                       <span className="truncate font-medium">{admin.email}</span>
+                     </div>
+                     
+                     <div className="flex items-center text-sm text-slate-600 bg-slate-50 p-2.5 rounded-xl">
+                       <CalendarIcon className="w-4 h-4 mr-3 text-slate-400 flex-shrink-0" />
+                       <span className="font-medium">Добавлен: {formatDate(admin.created_at)}</span>
+                     </div>
+                   </div>
+
+                   <div className="flex gap-3 pt-2 border-t border-slate-100">
+                     <motion.button
+                       onClick={() => handleOpenEditModal(admin)}
+                       className="flex-1 inline-flex items-center justify-center px-3 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-bold text-sm shadow-sm"
+                       whileHover={{ scale: 1.02 }}
+                       whileTap={{ scale: 0.98 }}
+                     >
+                       <PencilIcon className="w-4 h-4 mr-2" />
+                       Изменить
+                     </motion.button>
+                     <motion.button
+                       onClick={() => handleOpenDeleteConfirmModal(admin)}
+                       className="px-3 py-2.5 bg-white border border-slate-200 text-red-500 rounded-xl hover:bg-red-50 hover:border-red-200 transition-all shadow-sm"
+                       whileHover={{ scale: 1.02 }}
+                       whileTap={{ scale: 0.98 }}
+                     >
+                       <TrashIcon className="w-4 h-4" />
+                     </motion.button>
+                   </div>
                 </div>
               </motion.div>
             ))}
@@ -410,239 +406,260 @@ const AdminsPage = () => {
     );
   };
 
-
-
   return (
-    <div className="space-y-6">
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex justify-between items-center mb-6">
+    <div className="space-y-8 min-h-screen bg-slate-50 p-4 md:p-8 pb-20">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Команда</h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Управление администраторами, пользователями, ролями и приглашениями
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Команда</h1>
+            <p className="text-slate-500 text-lg mt-2">
+              Управление доступом и ролями сотрудников
             </p>
           </div>
           {activeTab === 'admins' && (
             <motion.button
               onClick={handleOpenCreateModal}
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-construction-500 to-construction-600 text-white rounded-xl hover:shadow-construction transition-all duration-200"
+              className="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-2xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 font-bold"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <PlusIcon className="w-5 h-5 mr-2" />
-              Добавить администратора
+              Добавить админа
             </motion.button>
           )}
-          {/* Кнопка к управлению ролями теперь в блоке ниже */}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Tabs */}
+        <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 inline-flex overflow-x-auto max-w-full">
+           {tabs.map((tab) => {
+             const Icon = tab.icon;
+             const isActive = activeTab === tab.id;
+             return (
+               <button
+                 key={tab.id}
+                 onClick={() => setActiveTab(tab.id)}
+                 className={`relative flex items-center px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+                   isActive 
+                     ? 'text-orange-700' 
+                     : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                 }`}
+               >
+                 {isActive && (
+                   <motion.div
+                     layoutId="activeTab"
+                     className="absolute inset-0 bg-orange-50 rounded-xl border border-orange-100"
+                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                   />
+                 )}
+                 <span className="relative z-10 flex items-center">
+                   <Icon className={`w-5 h-5 mr-2 ${isActive ? 'text-orange-500' : 'text-slate-400'}`} />
+                   {tab.name}
+                   <span className={`ml-2 px-2 py-0.5 rounded-lg text-xs ${
+                     isActive ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-500'
+                   }`}>
+                     {tab.count}
+                   </span>
+                 </span>
+               </button>
+             );
+           })}
+        </div>
+
+        {/* Summary Cards */}
+        <motion.div 
+           className="grid grid-cols-1 md:grid-cols-3 gap-6"
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ duration: 0.6 }}
+        >
+           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 relative overflow-hidden">
+              <div className="absolute right-0 top-0 -mt-4 -mr-4 w-24 h-24 bg-orange-50 rounded-full opacity-50"></div>
+              <div className="relative z-10">
+                 <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mb-4">
+                    <UsersIcon className="w-6 h-6 text-orange-600" />
+                 </div>
+                 <p className="text-slate-500 font-medium text-sm mb-1">Администраторы</p>
+                 <p className="text-3xl font-bold text-slate-900">{admins.length}</p>
+              </div>
+           </div>
+           
+           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 relative overflow-hidden">
+              <div className="absolute right-0 top-0 -mt-4 -mr-4 w-24 h-24 bg-blue-50 rounded-full opacity-50"></div>
+              <div className="relative z-10">
+                 <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
+                    <UserPlusIcon className="w-6 h-6 text-blue-600" />
+                 </div>
+                 <p className="text-slate-500 font-medium text-sm mb-1">Пользователи</p>
+                 <p className="text-3xl font-bold text-slate-900">{users.length}</p>
+              </div>
+           </div>
+
+           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 relative overflow-hidden">
+              <div className="absolute right-0 top-0 -mt-4 -mr-4 w-24 h-24 bg-green-50 rounded-full opacity-50"></div>
+              <div className="relative z-10">
+                 <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mb-4">
+                    <PaperAirplaneIcon className="w-6 h-6 text-green-600" />
+                 </div>
+                 <p className="text-slate-500 font-medium text-sm mb-1">Приглашения</p>
+                 <div className="flex items-baseline gap-2">
+                    <p className="text-3xl font-bold text-slate-900">{invitations.filter(i => i.status === 'pending').length}</p>
+                    <p className="text-sm text-slate-400">ожидают</p>
+                 </div>
+              </div>
+           </div>
+        </motion.div>
+
+        {/* Roles Banner */}
+        <ProtectedComponent 
+          permission="roles.view_custom"
+          role="organization_owner"
+          requireAll={false}
+          showFallback={false}
+        >
           <motion.div
-            className="bg-white rounded-lg border border-gray-200 p-6"
+            className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-8 shadow-xl relative overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-lg bg-construction-100 text-construction-600 flex items-center justify-center">
-                  <UsersIcon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900">Администраторы</h3>
-                  <p className="text-2xl font-bold text-gray-900">{admins.length}</p>
-                </div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+            
+            <div className="relative z-10 flex items-center justify-between flex-wrap gap-6">
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">Настройка ролей доступа</h3>
+                <p className="text-slate-400 max-w-lg">
+                  Создавайте кастомные роли и гибко настраивайте права доступа для сотрудников вашей организации
+                </p>
               </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="bg-white rounded-lg border border-gray-200 p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
-                  <span className="text-lg">👥</span>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900">Пользователи</h3>
-                  <p className="text-2xl font-bold text-gray-900">{users.length}</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="bg-white rounded-lg border border-gray-200 p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
-                  <EnvelopeIcon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900">Приглашения</h3>
-                  <p className="text-2xl font-bold text-gray-900">{invitations.filter(inv => inv.status === 'pending').length}</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Кнопка перехода к управлению ролями */}
-          <motion.div
-            className="bg-white rounded-lg border border-gray-200 p-6 flex items-center justify-between"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <div className="text-sm text-gray-700">Управление ролями и правами</div>
-            <ProtectedComponent 
-              permission="roles.view_custom"
-              role="organization_owner"
-              requireAll={false}
-              showFallback={false}
-            >
               <button
                 onClick={() => (window.location.href = '/dashboard/custom-roles')}
-                className="inline-flex items-center px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-orange-900/20"
               >
-                <ShieldCheckIcon className="w-4 h-4 mr-2" />
-                Открыть
+                Управление ролями
               </button>
-            </ProtectedComponent>
+            </div>
           </motion.div>
-        </div>
+        </ProtectedComponent>
 
+        {/* Limits Info */}
         {limits && (
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-900 mb-3">Лимиты подписки</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {limits.limits.users && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-gray-700">Пользователи:</span>
-                      <span className="text-sm text-gray-600">
-                        {limits.limits.users.is_unlimited ? 'Безлимитно' : `${limits.limits.users.used} / ${limits.limits.users.limit}`}
-                      </span>
-                    </div>
-                    {!limits.limits.users.is_unlimited && (
-                      <div className="w-20 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-500 h-2 rounded-full" 
-                          style={{ width: `${Math.min(limits.limits.users.percentage_used, 100)}%` }}
-                        />
-                      </div>
-                    )}
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="font-bold text-slate-900">Лимит пользователей</h4>
+                    <span className={`px-3 py-1 rounded-lg text-xs font-bold ${
+                      limits.limits.users.is_unlimited 
+                        ? 'bg-emerald-100 text-emerald-700' 
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {limits.limits.users.is_unlimited ? 'БЕЗЛИМИТ' : `${limits.limits.users.used} / ${limits.limits.users.limit}`}
+                    </span>
                   </div>
+                  {!limits.limits.users.is_unlimited && (
+                    <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                      <div 
+                        className="bg-blue-500 h-full rounded-full transition-all duration-500" 
+                        style={{ width: `${Math.min(limits.limits.users.percentage_used, 100)}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
+              
               {limits.limits.foremen && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-gray-700">Прорабы:</span>
-                      <span className="text-sm text-gray-600">
-                        {limits.limits.foremen.is_unlimited ? 'Безлимитно' : `${limits.limits.foremen.used} / ${limits.limits.foremen.limit}`}
-                      </span>
-                    </div>
-                    {!limits.limits.foremen.is_unlimited && (
-                      <div className="w-20 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-orange-500 h-2 rounded-full" 
-                          style={{ width: `${Math.min(limits.limits.foremen.percentage_used, 100)}%` }}
-                        />
-                      </div>
-                    )}
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="font-bold text-slate-900">Лимит прорабов</h4>
+                    <span className={`px-3 py-1 rounded-lg text-xs font-bold ${
+                      limits.limits.foremen.is_unlimited 
+                        ? 'bg-emerald-100 text-emerald-700' 
+                        : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {limits.limits.foremen.is_unlimited ? 'БЕЗЛИМИТ' : `${limits.limits.foremen.used} / ${limits.limits.foremen.limit}`}
+                    </span>
                   </div>
+                  {!limits.limits.foremen.is_unlimited && (
+                    <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                      <div 
+                        className="bg-orange-500 h-full rounded-full transition-all duration-500" 
+                        style={{ width: `${Math.min(limits.limits.foremen.percentage_used, 100)}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
           </div>
         )}
 
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
-              >
-                <span>{tab.name}</span>
-                <span className={`${
-                  activeTab === tab.id ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
-                } inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium`}>
-                  {tab.count}
-                </span>
-              </button>
-            ))}
-          </nav>
+        {/* Search Bar */}
+        {activeTab === 'admins' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="relative max-w-md">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <MagnifyingGlassIcon className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Поиск администратора..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all outline-none shadow-sm font-medium"
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {/* Main Content Area */}
+        <div className="min-h-[400px]">
+          {error && !isProcessingDelete && (
+            <motion.div 
+              className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-3"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <ExclamationTriangleIcon className="w-5 h-5" />
+              <p className="font-medium">{error}</p>
+            </motion.div>
+          )}
+          
+          <AnimatePresence mode='wait'>
+             <motion.div
+               key={activeTab}
+               initial={{ opacity: 0, x: -20 }}
+               animate={{ opacity: 1, x: 0 }}
+               exit={{ opacity: 0, x: 20 }}
+               transition={{ duration: 0.3 }}
+             >
+               {renderContent()}
+             </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
-      {activeTab === 'admins' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-steel-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Поиск по имени или email..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="w-full pl-10 pr-4 py-3 border border-steel-300 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-            />
-          </div>
-        </motion.div>
-      )}
-
-      <div className="bg-white shadow rounded-lg">
-        {error && !isProcessingDelete && (
-          <motion.div 
-            className="mb-6 p-4 bg-construction-50 border border-construction-200 text-construction-700 rounded-xl"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <p className="font-medium">{error}</p>
-      </motion.div>
-        )}
-        {renderContent()}
-      </div>
-
-             {/* Модальные окна */}
+      {/* Modals */}
       <AdminFormModal 
         isOpen={isFormModalOpen} 
         onClose={handleCloseFormModal} 
         onFormSubmit={handleFormSubmitted} 
-         adminToEdit={editingAdmin}
+        adminToEdit={editingAdmin}
       />
 
-        <ConfirmDeleteModal
-         isOpen={isConfirmDeleteModalOpen}
-          onClose={handleCloseDeleteConfirmModal}
-          onConfirm={handleDeleteConfirmed}
-          title="Удалить администратора"
-         message={`Вы уверены, что хотите удалить администратора "${deletingAdmin?.name}"? Это действие нельзя отменить.`}
-          isLoading={isProcessingDelete}
-        />
+      <ConfirmDeleteModal
+        isOpen={isConfirmDeleteModalOpen}
+        onClose={handleCloseDeleteConfirmModal}
+        onConfirm={handleDeleteConfirmed}
+        title="Удалить администратора"
+        message={`Вы уверены, что хотите удалить администратора "${deletingAdmin?.name}"? Это действие нельзя отменить.`}
+        isLoading={isProcessingDelete}
+      />
     </div>
   );
 };
 
-export default AdminsPage; 
+export default AdminsPage;
