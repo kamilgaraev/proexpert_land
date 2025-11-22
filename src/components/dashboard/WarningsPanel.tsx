@@ -27,7 +27,7 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({
   const getWarningConfig = (level: 'warning' | 'critical') => {
     if (level === 'critical') {
       return {
-        bgColor: 'bg-red-50 border-red-200',
+        bgColor: 'bg-red-50 border-red-100',
         textColor: 'text-red-800',
         iconColor: 'text-red-600',
         icon: ExclamationTriangleIcon,
@@ -36,12 +36,12 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({
       };
     } else {
       return {
-        bgColor: 'bg-construction-50 border-construction-200',
-        textColor: 'text-construction-800',
-        iconColor: 'text-construction-600',
+        bgColor: 'bg-orange-50 border-orange-100',
+        textColor: 'text-orange-900',
+        iconColor: 'text-orange-600',
         icon: InformationCircleIcon,
-        buttonColor: 'bg-construction-600 hover:bg-construction-700',
-        pulseColor: 'bg-construction-500'
+        buttonColor: 'bg-orange-600 hover:bg-orange-700',
+        pulseColor: 'bg-orange-500'
       };
     }
   };
@@ -53,11 +53,11 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({
       className="space-y-4"
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-steel-900 flex items-center">
-          <ExclamationTriangleIcon className="w-5 h-5 mr-2 text-construction-600" />
+        <h3 className="text-lg font-semibold text-slate-900 flex items-center">
+          <ExclamationTriangleIcon className="w-5 h-5 mr-2 text-orange-500" />
           Уведомления о лимитах
         </h3>
-        <div className="text-sm text-steel-600">
+        <div className="text-sm text-slate-500">
           {warnings.length} {warnings.length === 1 ? 'уведомление' : 'уведомлений'}
         </div>
       </div>
@@ -74,7 +74,7 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ delay: index * 0.1 }}
-              className={`relative rounded-2xl border-2 p-4 ${config.bgColor} transition-all duration-300 hover:shadow-lg`}
+              className={`relative rounded-2xl border p-5 ${config.bgColor} transition-all duration-300 hover:shadow-md`}
             >
               {/* Индикатор пульсации для критических предупреждений */}
               {warning.level === 'critical' && (
@@ -85,21 +85,21 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({
               )}
 
               <div className="flex items-start space-x-4">
-                <div className={`flex-shrink-0 w-10 h-10 rounded-xl bg-white/50 flex items-center justify-center`}>
+                <div className={`flex-shrink-0 w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center shadow-sm`}>
                   <Icon className={`w-5 h-5 ${config.iconColor}`} />
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
-                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
                         warning.level === 'critical' 
-                          ? 'bg-red-200 text-red-800' 
-                          : 'bg-construction-200 text-construction-800'
+                          ? 'bg-red-100 text-red-700' 
+                          : 'bg-orange-100 text-orange-700'
                       }`}>
-                        {warning.level === 'critical' ? 'Критично' : 'Предупреждение'}
+                        {warning.level === 'critical' ? 'Критично' : 'Внимание'}
                       </span>
-                      <span className="text-xs text-steel-500 capitalize">
+                      <span className="text-xs text-slate-500 capitalize font-medium">
                         {warning.type === 'foremen' ? 'Прорабы' :
                          warning.type === 'projects' ? 'Проекты' :
                          warning.type === 'storage' ? 'Хранилище' : warning.type}
@@ -109,30 +109,30 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({
                     {onDismiss && (
                       <button
                         onClick={() => onDismiss(warning.type)}
-                        className="text-steel-400 hover:text-steel-600 transition-colors"
+                        className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-black/5 rounded-lg"
                       >
                         <XMarkIcon className="w-4 h-4" />
                       </button>
                     )}
                   </div>
 
-                  <p className={`text-sm leading-relaxed ${config.textColor} mb-3`}>
+                  <p className={`text-sm leading-relaxed ${config.textColor} mb-4 font-medium`}>
                     {warning.message}
                   </p>
 
                   {warning.level === 'critical' && (
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-col sm:flex-row gap-3">
                       <Link
                         to="/dashboard/billing"
                         onClick={onUpgradeClick}
-                        className={`inline-flex items-center px-4 py-2 text-sm font-medium text-white rounded-xl ${config.buttonColor} transition-all duration-200 hover:scale-105 shadow-lg`}
+                        className={`inline-flex items-center px-4 py-2 text-sm font-bold text-white rounded-xl ${config.buttonColor} transition-all duration-200 hover:scale-105 shadow-md`}
                       >
                         <ArrowUpIcon className="w-4 h-4 mr-2" />
                         Обновить тариф
                       </Link>
                       <Link
                         to="/dashboard/help"
-                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-steel-700 bg-white border border-steel-300 rounded-xl hover:bg-steel-50 transition-colors"
+                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm"
                       >
                         Подробнее
                       </Link>
@@ -140,9 +140,9 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({
                   )}
 
                   {warning.level === 'warning' && (
-                    <div className="flex items-center text-xs text-steel-600">
-                      <div className={`w-2 h-2 ${config.pulseColor} rounded-full mr-2`}></div>
-                      Рекомендуем обратить внимание на использование ресурсов
+                    <div className="flex items-center text-xs text-slate-600 font-medium bg-white/50 p-2 rounded-lg inline-block">
+                      <div className={`w-2 h-2 ${config.pulseColor} rounded-full mr-2 inline-block`}></div>
+                      Рекомендуем проверить использование ресурсов
                     </div>
                   )}
                 </div>
@@ -157,21 +157,21 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-gradient-to-r from-construction-500 to-construction-600 rounded-2xl p-4 text-white"
+          className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-5 text-white shadow-lg shadow-orange-200"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h4 className="font-semibold mb-1">Требуется обновление тарифа</h4>
-              <p className="text-sm text-construction-100">
+              <h4 className="font-bold text-lg mb-1">Требуется обновление тарифа</h4>
+              <p className="text-sm text-orange-50 opacity-90">
                 Некоторые функции могут быть ограничены из-за превышения лимитов
               </p>
             </div>
             <Link
               to="/dashboard/billing"
               onClick={onUpgradeClick}
-              className="bg-white text-construction-600 px-4 py-2 rounded-xl font-medium hover:bg-construction-50 transition-colors flex items-center"
+              className="bg-white text-orange-600 px-6 py-2.5 rounded-xl font-bold hover:bg-orange-50 transition-colors flex items-center shadow-sm"
             >
-              <ArrowUpIcon className="w-4 h-4 mr-1" />
+              <ArrowUpIcon className="w-4 h-4 mr-2" />
               Обновить
             </Link>
           </div>
