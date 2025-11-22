@@ -170,36 +170,6 @@ const BillingPage = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-      case 'success':
-        return <CheckCircleIcon className="w-4 h-4 text-emerald-600" />;
-      case 'failed':
-      case 'error':
-        return <XCircleIcon className="w-4 h-4 text-orange-600" />;
-      case 'pending':
-        return <ClockIcon className="w-4 h-4 text-amber-600" />;
-      default:
-        return <ClockIcon className="w-4 h-4 text-slate-600" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-      case 'success':
-        return 'bg-emerald-100 text-emerald-800';
-      case 'failed':
-      case 'error':
-        return 'bg-orange-100 text-orange-800';
-      case 'pending':
-        return 'bg-amber-100 text-amber-800';
-      default:
-        return 'bg-slate-100 text-slate-800';
-    }
-  };
-
   const getSubscriptionStatus = (subscription: Subscription): { status: string; color: string; icon: any } => {
     if (subscription.is_canceled) {
       return { status: 'Отменена', color: 'bg-orange-100 text-orange-800', icon: XCircleIcon };
@@ -600,14 +570,6 @@ const BillingPage = () => {
                         {transaction.type === 'credit' ? '+' : '-'}
                         {transaction.amount_formatted} {balance?.currency || 'RUB'}
                       </p>
-                      <div className="flex items-center justify-end mt-1">
-                        <span className={`flex items-center text-xs font-bold ${
-                           transaction.status === 'completed' ? 'text-emerald-600' : 'text-slate-400'
-                        }`}>
-                           {transaction.status === 'completed' && <CheckCircleIcon className="w-3 h-3 mr-1" />}
-                           {transaction.status === 'completed' ? 'Проведено' : transaction.status}
-                        </span>
-                      </div>
                     </div>
                   </motion.div>
                 ))}
