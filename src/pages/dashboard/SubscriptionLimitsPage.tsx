@@ -27,7 +27,6 @@ const SubscriptionLimitsPage: React.FC = () => {
     loading, 
     error, 
     refresh, 
-    hasSubscription, 
     needsUpgrade,
     lastUpdated
   } = useSubscriptionLimits({
