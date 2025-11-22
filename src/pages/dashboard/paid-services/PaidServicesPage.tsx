@@ -269,7 +269,7 @@ const PaidServicesPage = () => {
         <div>
            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Управление тарифом</h1>
            <p className="text-slate-500">
-              Выберите подходящий план и управляйте подпиской
+              Выберите подходящий план и управляйте подпиской 
            </p>
         </div>
 
