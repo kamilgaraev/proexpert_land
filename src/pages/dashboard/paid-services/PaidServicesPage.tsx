@@ -5,12 +5,15 @@ import {
   CheckCircleIcon, 
   UserGroupIcon, 
   BuildingOfficeIcon, 
-  CircleStackIcon
+  CircleStackIcon,
+  StarIcon,
+  ArrowRightIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import { Switch } from '@headlessui/react';
 import ConfirmActionModal from '@components/shared/ConfirmActionModal';
-import { PageLoading } from '@components/common/PageLoading'; // Предполагаем наличие компонента-заглушки
 import NotificationService from '@components/shared/NotificationService';
+import LimitWidget from '@components/dashboard/LimitWidget';
 
 const PaidServicesPage = () => {
   const [subscription, setSubscription] = useState<any>(null);
@@ -34,7 +37,6 @@ const PaidServicesPage = () => {
     } 
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // Функция для разовых покупок и связанные состояния удалены как неиспользуемые
   const [planAction, setPlanAction] = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
@@ -52,15 +54,19 @@ const PaidServicesPage = () => {
           : actualData.status ? actualData : null)
         : null;
       
+      // Важно: сохраняем лимиты из ответа, если они есть
+      if (actualData && 'limits' in actualData) {
+         subscriptionData.limits = actualData.limits;
+      }
+
       setSubscription(subscriptionData);
       if (subscriptionData && typeof subscriptionData.is_auto_payment_enabled === 'boolean') {
         setAutoPayEnabled(subscriptionData.is_auto_payment_enabled);
       }
       const fetchedPlans = Array.isArray(plansRes.data) ? plansRes.data : [];
       setPlans(fetchedPlans);
-      // определяем текущий план по subscription_plan_id, plan_name или slug
+      
       const cp = subscriptionData ? fetchedPlans.find((p: any) => {
-        // Проверяем по ID
         if (p.id === subscriptionData.subscription_plan_id || 
             p.id === subscriptionData.plan?.id ||
             String(p.id) === String(subscriptionData.subscription_plan_id) ||
@@ -68,7 +74,6 @@ const PaidServicesPage = () => {
           return true;
         }
         
-        // Проверяем по названию плана
         if (p.name === subscriptionData.plan_name ||
             p.slug === subscriptionData.plan_name ||
             p.name?.toLowerCase() === subscriptionData.plan_name?.toLowerCase() ||
@@ -76,7 +81,6 @@ const PaidServicesPage = () => {
           return true;
         }
         
-        // Проверяем по slug из subscription.plan
         if (subscriptionData.plan && (
             p.slug === subscriptionData.plan.slug ||
             p.name === subscriptionData.plan.name ||
@@ -86,16 +90,6 @@ const PaidServicesPage = () => {
         
         return false;
       }) : null;
-      
-      // Отладочная информация
-      console.log('Отладка определения плана:', {
-        subscriptionData,
-        fetchedPlans,
-        currentPlan: cp,
-        subscription_plan_id: subscriptionData?.subscription_plan_id,
-        plan_name: subscriptionData?.plan_name,
-        plan_id: subscriptionData?.plan?.id
-      });
       
       setCurrentPlan(cp || null);
     } catch (e: any) {
@@ -111,7 +105,6 @@ const PaidServicesPage = () => {
     setError(null);
     
     if (!subscription) {
-      // Новая подписка
       setPlanAction(plan.slug);
       try {
         const response = await billingService.subscribeToPlan({ 
@@ -119,9 +112,7 @@ const PaidServicesPage = () => {
           is_auto_payment_enabled: true 
         });
 
-        // Проверяем статус ответа
         if (response.status === 402) {
-          // Ошибка недостаточности средств
           const message = response.data?.message || 'Недостаточно средств на балансе';
           setError(message);
           NotificationService.show({
@@ -131,7 +122,6 @@ const PaidServicesPage = () => {
           });
           return;
         } else if (response.status !== 200 && response.status !== 201) {
-          // Другие ошибки сервера
           const message = response.data?.message || `Ошибка сервера: ${response.status}`;
           setError(message);
           NotificationService.show({
@@ -141,7 +131,6 @@ const PaidServicesPage = () => {
           });
           return;
         } else if (!response.data?.success) {
-          // Ошибка в логике приложения
           const message = response.data?.message || 'Не удалось оформить подписку';
           setError(message);
           NotificationService.show({
@@ -152,7 +141,6 @@ const PaidServicesPage = () => {
           return;
         }
 
-        // Успешно - обновляем данные
         await fetchAll();
         dispatchBalanceUpdate();
         NotificationService.show({
@@ -172,13 +160,11 @@ const PaidServicesPage = () => {
         setPlanAction(null);
       }
     } else {
-      // Получаем preview смены тарифа (без реального изменения)
       setChangePlanLoading(plan.slug);
       try {
         const response = await billingService.changePlanPreview({ plan_slug: plan.slug });
         
         if (response.data.success || response.status === 200) {
-          // Извлекаем данные из новой структуры ответа с безопасной обработкой
           const apiData = response.data.data || {};
           const previewData = {
             current_subscription: apiData.current_subscription || {},
@@ -189,16 +175,12 @@ const PaidServicesPage = () => {
             message: response.data.message || 'Предпросмотр смены тарифа'
           };
           
-          
-          // Показываем модальное окно с детальным предпросмотром
           setChangePlanModal({ plan, previewData });
         }
       } catch (e: any) {
-        // Обработка ошибок предпросмотра
         const errorData = e.response?.data;
         
         if (errorData?.success && errorData?.data) {
-          // Недостаточно средств - API возвращает данные в ошибке
           const apiData = errorData.data || {};
           const previewData = {
             current_subscription: apiData.current_subscription || {},
@@ -211,7 +193,6 @@ const PaidServicesPage = () => {
           
           setChangePlanModal({ plan, previewData });
         } else {
-          // Реальная ошибка API
           setError(e.message || errorData?.message || 'Ошибка получения информации о смене тарифа');
         }
       } finally {
@@ -225,19 +206,11 @@ const PaidServicesPage = () => {
     
     setChangePlanLoading(changePlanModal.plan.slug);
     try {
-      // Теперь делаем реальную смену тарифа
       const response = await billingService.changePlan({ plan_slug: changePlanModal.plan.slug });
       
       if (response.data.success || response.status === 200) {
         setChangePlanModal(null);
-        
-        // Показываем сообщение об успешной смене
-        const successMessage = response.data.message || `Тариф успешно изменён на "${changePlanModal.plan.name}"`;
-        console.log('✅ Тариф успешно изменён:', successMessage);
-        
-        // Очищаем предыдущие ошибки
         setError(null);
-        
         await fetchAll();
         dispatchBalanceUpdate();
       } else {
@@ -249,9 +222,6 @@ const PaidServicesPage = () => {
       setChangePlanLoading(null);
     }
   };
-
-
-  // Функция для разовых покупок и связанные состояния удалены как неиспользуемые
 
   const handleToggleAutoPay = async () => {
     if (autoPayEnabled === null) return;
@@ -283,487 +253,379 @@ const PaidServicesPage = () => {
 
   const formatDate = (date?: string) => date ? new Date(date).toLocaleDateString('ru-RU') : '—';
 
-  if (loading) return <PageLoading message="Загрузка платных услуг..." />;
+  if (loading) return (
+     <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+           <ArrowPathIcon className="w-8 h-8 text-orange-500 animate-spin mx-auto mb-3" />
+           <p className="text-slate-500">Загрузка информации о тарифах...</p>
+        </div>
+     </div>
+  );
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-10 space-y-12">
-      <h1 className="text-3xl font-bold mb-6">Платные услуги</h1>
-      {error && (
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg">
-          <div className="font-medium">Ошибка</div>
-          <div className="text-sm mt-1">{error}</div>
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8 pb-20">
+      <div className="max-w-6xl mx-auto space-y-10">
+        
+        <div>
+           <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Управление тарифом</h1>
+           <p className="text-slate-500">
+              Выберите подходящий план и управляйте подпиской
+           </p>
         </div>
-      )}
 
-      {/* Текущая подписка */}
-      <section className="bg-white shadow-lg rounded-2xl p-8 mb-10 ring-1 ring-gray-100">
-        <h2 className="text-2xl font-bold mb-6 text-steel-900">Текущая подписка</h2>
-        {subscription && (subscription.status === 'active' || subscription.status === 'canceled_active') ? (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2">
-                  <span className="text-2xl font-bold text-orange-600">{subscription.plan?.name || 'Неизвестный план'}</span>
-                  {subscription.status === 'canceled_active' ? (
-                    <span className="px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-800">Отменён</span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">Активен</span>
-                  )}
-                </div>
-                <div className="text-gray-600">{subscription.plan?.description}</div>
-                <div className="text-lg font-semibold text-orange-600">
-                  {subscription.plan?.price ? Number(subscription.plan.price).toLocaleString('ru-RU', { style: 'currency', currency: subscription.plan.currency || 'RUB' }) : ''} / мес.
-                </div>
-                <div className="text-sm text-gray-500">Действует до: {formatDate(subscription.ends_at)}</div>
-                {subscription.status === 'canceled_active' && (
-                  <div className="text-sm text-yellow-600 font-medium">
-                    ⚠️ Подписка отменена. Доступ сохранится до {formatDate(subscription.ends_at)}
-                  </div>
-                )}
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm">Автоплатёж</span>
-                  <Switch
-                    checked={autoPayEnabled || false}
-                    onChange={handleToggleAutoPay}
-                    disabled={autoPayEnabled===null || autoPayUpdating}
-                    className={`${autoPayEnabled ? 'bg-orange-500' : 'bg-gray-300'} relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500`}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`${autoPayEnabled ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform`}
-                    />
-                  </Switch>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button onClick={() => setShowCancelModal(true)} className="btn btn-outline text-red-600">Отменить подписку</button>
-              </div>
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3">
+            <div className="p-1 bg-red-100 rounded-full text-red-600">!</div>
+            <div>
+              <p className="font-bold text-red-800">Ошибка</p>
+              <p className="text-red-600 text-sm mt-1">{error}</p>
             </div>
+          </div>
+        )}
+
+        {/* Current Subscription */}
+        <section className="bg-white shadow-sm border border-slate-200 rounded-3xl overflow-hidden">
+          <div className="p-1 bg-gradient-to-r from-orange-400 to-orange-600"></div>
+          <div className="p-8">
+            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+               <StarIcon className="w-5 h-5 text-orange-500" />
+               Ваша подписка
+            </h2>
             
-            {/* Лимиты текущей подписки */}
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-steel-900 mb-4">Ваши лимиты</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                {/* Найдем текущий план в списке планов для получения лимитов */}
-                {(() => {
-                  const currentPlanData = plans.find(p => p.slug === subscription.plan?.slug);
-                  if (!currentPlanData) return null;
+            {subscription && (subscription.status === 'active' || subscription.status === 'canceled_active') ? (
+              <div className="space-y-8">
+                {/* Plan Header */}
+                <div className="flex flex-col md:flex-row justify-between gap-6 pb-8 border-b border-slate-100">
+                  <div className="flex gap-5">
+                     <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <StarIcon className="w-8 h-8 text-orange-600" />
+                     </div>
+                     <div>
+                        <div className="flex items-center gap-3 mb-1">
+                           <h3 className="text-2xl font-bold text-slate-900">{subscription.plan?.name || 'Тариф'}</h3>
+                           <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                              subscription.status === 'canceled_active' 
+                                 ? 'bg-yellow-100 text-yellow-700' 
+                                 : 'bg-emerald-100 text-emerald-700'
+                           }`}>
+                              {subscription.status === 'canceled_active' ? 'Отменён (активен)' : 'Активен'}
+                           </span>
+                        </div>
+                        <p className="text-slate-500 mb-3">{subscription.plan?.description}</p>
+                        <div className="flex items-center gap-2 text-2xl font-bold text-orange-600">
+                           {subscription.plan?.price ? Number(subscription.plan.price).toLocaleString('ru-RU', { style: 'currency', currency: subscription.plan.currency || 'RUB' }) : ''}
+                           <span className="text-sm font-medium text-slate-400">/ месяц</span>
+                        </div>
+                     </div>
+                  </div>
                   
-                  return (
-                    <>
-                      {currentPlanData.max_foremen && (
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center border border-blue-200">
-                          <UserGroupIcon className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                          <div className="text-2xl font-bold text-blue-900">{currentPlanData.max_foremen}</div>
-                          <div className="text-sm text-blue-700 font-medium">прорабов</div>
-                        </div>
-                      )}
-                      {currentPlanData.max_projects && (
-                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center border border-green-200">
-                          <BuildingOfficeIcon className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                          <div className="text-2xl font-bold text-green-900">{currentPlanData.max_projects}</div>
-                          <div className="text-sm text-green-700 font-medium">проектов</div>
-                        </div>
-                      )}
-                      {currentPlanData.max_storage_gb && (
-                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 text-center border border-purple-200">
-                          <CircleStackIcon className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                          <div className="text-2xl font-bold text-purple-900">{currentPlanData.max_storage_gb}</div>
-                          <div className="text-sm text-purple-700 font-medium">ГБ хранилища</div>
-                        </div>
-                      )}
-                      {/* Карточка для пользователей, если есть данные в лимитах (для совместимости с API) */}
-                      {subscription.limits?.users && (
-                        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-4 text-center border border-indigo-200">
-                          <UserGroupIcon className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-                          <div className="text-2xl font-bold text-indigo-900">
-                            {subscription.limits.users.limit || '∞'}
-                          </div>
-                          <div className="text-sm text-indigo-700 font-medium">пользователей</div>
-                        </div>
-                      )}
-                      {!currentPlanData.max_foremen && !currentPlanData.max_projects && !currentPlanData.max_storage_gb && !subscription.limits?.users && (
-                        <div className="col-span-2 md:col-span-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-6 text-center border border-orange-200">
-                          <div className="text-4xl font-bold text-orange-900 mb-2">∞</div>
-                          <div className="text-lg text-orange-700 font-medium">Безлимитный тариф</div>
-                          <div className="text-sm text-orange-600">Все ресурсы без ограничений</div>
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-
-            {/* Features текущей подписки */}
-            {subscription.plan?.features && (
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-steel-900 mb-4">Включенные возможности</h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Object.entries(subscription.plan.features as Record<string, string[]>).map(([category, items]) => (
-                    <div key={category} className="bg-gray-50 rounded-lg p-4">
-                      <div className="text-sm font-semibold text-orange-600 uppercase tracking-wide mb-2">{category}</div>
-                      <ul className="space-y-1">
-                        {Array.isArray(items) && items.map((item, i) => (
-                          <li key={`${category}-${i}`} className="flex items-start gap-2">
-                            <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0 mt-0.5" /> 
-                            <span className="text-sm text-gray-700">{String(item)}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+                  <div className="flex flex-col items-end gap-4">
+                     <div className="text-right">
+                        <p className="text-sm text-slate-400 font-medium mb-1">Действует до</p>
+                        <p className="text-lg font-bold text-slate-900">{formatDate(subscription.ends_at)}</p>
+                     </div>
+                     
+                     <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                        <span className="text-sm font-medium text-slate-600">Автопродление</span>
+                        <Switch
+                          checked={autoPayEnabled || false}
+                          onChange={handleToggleAutoPay}
+                          disabled={autoPayEnabled===null || autoPayUpdating}
+                          className={`${autoPayEnabled ? 'bg-orange-500' : 'bg-slate-300'} relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2`}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={`${autoPayEnabled ? 'translate-x-5' : 'translate-x-1'} pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition-transform mt-1`}
+                          />
+                        </Switch>
+                     </div>
+                     
+                     <button 
+                        onClick={() => setShowCancelModal(true)} 
+                        className="text-sm font-medium text-red-500 hover:text-red-600 hover:underline decoration-red-200 underline-offset-4 transition-all"
+                     >
+                        Отменить подписку
+                     </button>
+                  </div>
                 </div>
+                
+                {/* Limits Grid */}
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 opacity-80">Ваши лимиты</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {subscription.limits && (
+                      <>
+                        <LimitWidget 
+                           title="Прорабы" 
+                           limit={subscription.limits.foremen} 
+                           unit="чел." 
+                           icon={UserGroupIcon} 
+                        />
+                        <LimitWidget 
+                           title="Пользователи" 
+                           limit={subscription.limits.users} 
+                           unit="чел." 
+                           icon={UserGroupIcon} 
+                        />
+                        <LimitWidget 
+                           title="Проекты" 
+                           limit={subscription.limits.projects} 
+                           unit="шт." 
+                           icon={BuildingOfficeIcon} 
+                        />
+                        <LimitWidget 
+                           title="Хранилище" 
+                           limit={subscription.limits.storage} 
+                           unit="ГБ" 
+                           icon={CircleStackIcon} 
+                           isStorage={true}
+                        />
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Features List */}
+                {subscription.plan?.features && (
+                   <div className="bg-slate-50 rounded-2xl p-6">
+                      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 opacity-80">Включенные опции</h3>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8">
+                         {Object.entries(subscription.plan.features as Record<string, string[]>).map(([category, items]) => (
+                            <div key={category}>
+                               <div className="text-xs font-bold text-orange-600 mb-2 uppercase">{category}</div>
+                               <ul className="space-y-2">
+                                  {Array.isArray(items) && items.map((item, i) => (
+                                     <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
+                                        <CheckCircleIcon className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                                        <span>{String(item)}</span>
+                                     </li>
+                                  ))}
+                               </ul>
+                            </div>
+                         ))}
+                      </div>
+                   </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <StarIcon className="w-8 h-8 text-slate-400" />
+                 </div>
+                 <h3 className="text-xl font-bold text-slate-900 mb-2">Нет активной подписки</h3>
+                 <p className="text-slate-500 max-w-md mx-auto">Выберите подходящий тариф ниже, чтобы получить доступ ко всем возможностям платформы.</p>
               </div>
             )}
           </div>
-        ) : (
-          <div className="text-gray-500">Нет активной подписки</div>
-        )}
-      </section>
+        </section>
 
-      {/* Тарифные планы */}
-      <section className="bg-white shadow-lg rounded-2xl p-8 mb-10 ring-1 ring-gray-100">
-        <h2 className="text-2xl font-bold mb-6 text-steel-900">Тарифные планы</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {Array.isArray(plans) && plans.map(plan => {
-            // Более надежная проверка активности плана
-            const isActive = currentPlan && (
-              String(currentPlan.id) === String(plan.id) ||
-              currentPlan.slug === plan.slug ||
-              currentPlan.name === plan.name ||
-              currentPlan.name?.toLowerCase() === plan.name?.toLowerCase()
-            );
-            
-            // Отладочная информация для каждого плана
-            console.log(`План ${plan.name}:`, {
-              planId: plan.id,
-              planSlug: plan.slug,
-              currentPlanId: currentPlan?.id,
-              currentPlanSlug: currentPlan?.slug,
-              currentPlanName: currentPlan?.name,
-              isActive,
-              stringComparison: String(currentPlan?.id) === String(plan.id),
-              slugComparison: currentPlan?.slug === plan.slug,
-              nameComparison: currentPlan?.name === plan.name
-            });
-            
-            return (
-              <div
-                key={plan.id}
-                className={`group relative rounded-2xl p-6 flex flex-col shadow-sm transition-transform hover:-translate-y-1 hover:shadow-lg cursor-pointer ${isActive ? 'border-2 border-orange-500 bg-orange-50 ring-1 ring-orange-500' : 'border border-gray-200 bg-white'}`}
-              >
-                {/* Индикатор активного плана */}
-                {isActive && (
-                  <div className="absolute -top-3 -right-3">
-                    <div className="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                      Активный
-                    </div>
-                  </div>
-                )}
-                <div className="mb-3">
-                  <h3 className={`font-extrabold text-lg ${isActive ? 'text-orange-600' : 'text-steel-900 group-hover:text-orange-600'}`}>{plan.name}</h3>
-                  <p className="text-2xl font-bold text-orange-600 mt-1">{plan.price.toLocaleString('ru-RU', { style: 'currency', currency: plan.currency })}<span className="text-base font-medium text-steel-600"> / {plan.duration_in_days === 30 ? 'мес.' : `${plan.duration_in_days} дн.`}</span></p>
-                  {plan.description && <p className="text-sm text-steel-600 mt-2 leading-snug">{plan.description}</p>}
-                </div>
-                {/* Features */}
-                <div className="text-sm text-steel-700 space-y-2 mb-4 flex-1">
-                  {(() => {
-                    // Обрабатываем features как массив строк или объект с массивами
-                    if (Array.isArray(plan.features)) {
-                      return plan.features.map((f: string, i: number) => (
-                        <div key={i} className="flex items-start gap-2"><CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0 mt-0.5" /> <span className="text-xs">{f}</span></div>
-                      ));
-                    } else if (plan.features && typeof plan.features === 'object') {
-                      // Если features - объект, показываем по категориям
-                      return Object.entries(plan.features as Record<string, string[]>).map(([category, items]) => (
-                        <div key={category} className="mb-3">
-                          <div className="text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">{category}</div>
-                          {Array.isArray(items) && items.map((item, i) => (
-                            <div key={`${category}-${i}`} className="flex items-start gap-2 ml-2 mb-1">
-                              <CheckCircleIcon className="h-3 w-3 text-green-500 shrink-0 mt-1" /> 
-                              <span className="text-xs leading-tight">{String(item)}</span>
+        {/* Plans Grid */}
+        <section>
+           <h2 className="text-2xl font-bold text-slate-900 mb-6">Доступные тарифы</h2>
+           <div className="grid md:grid-cols-3 gap-6">
+             {Array.isArray(plans) && plans.map(plan => {
+                const isActive = currentPlan && (
+                   String(currentPlan.id) === String(plan.id) ||
+                   currentPlan.slug === plan.slug
+                );
+
+                return (
+                   <div 
+                      key={plan.id}
+                      className={`relative flex flex-col p-6 rounded-3xl border-2 transition-all duration-300 group ${
+                         isActive 
+                            ? 'bg-white border-orange-500 shadow-xl shadow-orange-100 ring-4 ring-orange-50' 
+                            : 'bg-white border-slate-200 hover:border-orange-300 hover:shadow-lg'
+                      }`}
+                   >
+                      {isActive && (
+                         <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-orange-500 text-white px-4 py-1 rounded-full text-xs font-bold shadow-lg uppercase tracking-wider">
+                            Текущий план
+                         </div>
+                      )}
+
+                      <div className="mb-6">
+                         <h3 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h3>
+                         <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-bold text-slate-900">
+                               {Number(plan.price).toLocaleString('ru-RU')} ₽
+                            </span>
+                            <span className="text-slate-500 font-medium">/ месяц</span>
+                         </div>
+                         <p className="text-slate-500 text-sm mt-3 leading-relaxed">
+                            {plan.description}
+                         </p>
+                      </div>
+
+                      <div className="flex-1 mb-8">
+                         <div className="space-y-3">
+                            {/* Simplified limits display for card */}
+                            <div className="flex items-center gap-3 text-sm text-slate-700">
+                               <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center flex-shrink-0 text-slate-500">
+                                  <UserGroupIcon className="w-4 h-4" />
+                               </div>
+                               <span className="font-bold">{plan.max_foremen || '∞'}</span> прорабов
                             </div>
-                          ))}
-                        </div>
-                      ));
-                    }
-                    return null;
-                  })()}
-                </div>
-                
-                {/* Лимиты в виде красивых карточек */}
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  {plan.max_foremen && (
-                    <div className="bg-blue-50 rounded-lg p-3 text-center">
-                      <UserGroupIcon className="h-5 w-5 text-blue-600 mx-auto mb-1" />
-                      <div className="text-lg font-bold text-blue-900">{plan.max_foremen}</div>
-                      <div className="text-xs text-blue-700">прорабов</div>
-                    </div>
-                  )}
-                  {plan.max_projects && (
-                    <div className="bg-green-50 rounded-lg p-3 text-center">
-                      <BuildingOfficeIcon className="h-5 w-5 text-green-600 mx-auto mb-1" />
-                      <div className="text-lg font-bold text-green-900">{plan.max_projects}</div>
-                      <div className="text-xs text-green-700">проектов</div>
-                    </div>
-                  )}
-                  {plan.max_storage_gb && (
-                    <div className="bg-purple-50 rounded-lg p-3 text-center">
-                      <CircleStackIcon className="h-5 w-5 text-purple-600 mx-auto mb-1" />
-                      <div className="text-lg font-bold text-purple-900">{plan.max_storage_gb}</div>
-                      <div className="text-xs text-purple-700">ГБ</div>
-                    </div>
-                  )}
-                  {!plan.max_foremen && !plan.max_projects && !plan.max_storage_gb && (
-                    <div className="col-span-2 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-3 text-center">
-                      <div className="text-lg font-bold text-orange-900">∞</div>
-                      <div className="text-xs text-orange-700">Безлимитно</div>
-                    </div>
-                  )}
-                </div>
-                {isActive ? (
-                  <span className="inline-block w-full text-center py-2 text-sm font-semibold text-white rounded-md bg-gradient-to-r from-orange-500 to-orange-600">Ваш тариф</span>
-                ) : (
-                  <button
-                    onClick={() => handlePlanChange(plan)}
-                    disabled={planAction === plan.slug || changePlanLoading === plan.slug}
-                    className="inline-block w-full py-2 text-sm font-semibold text-white rounded-md bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-60"
-                  >
-                    {planAction === plan.slug || changePlanLoading === plan.slug 
-                      ? (subscription ? 'Смена...' : 'Подписка…') 
-                      : (subscription ? 'Сменить' : 'Выбрать')
-                    }
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
+                            <div className="flex items-center gap-3 text-sm text-slate-700">
+                               <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center flex-shrink-0 text-slate-500">
+                                  <BuildingOfficeIcon className="w-4 h-4" />
+                               </div>
+                               <span className="font-bold">{plan.max_projects || '∞'}</span> проектов
+                            </div>
+                            <div className="flex items-center gap-3 text-sm text-slate-700">
+                               <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center flex-shrink-0 text-slate-500">
+                                  <CircleStackIcon className="w-4 h-4" />
+                               </div>
+                               <span className="font-bold">{plan.max_storage_gb || '∞'} ГБ</span> хранилище
+                            </div>
+                         </div>
+                      </div>
 
+                      <button
+                         onClick={() => handlePlanChange(plan)}
+                         disabled={isActive || planAction === plan.slug || changePlanLoading === plan.slug}
+                         className={`w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                            isActive
+                               ? 'bg-slate-100 text-slate-400 cursor-default'
+                               : 'bg-slate-900 text-white hover:bg-orange-600 shadow-lg hover:shadow-orange-200'
+                         }`}
+                      >
+                         {isActive ? (
+                            <>
+                               <CheckCircleIcon className="w-5 h-5" />
+                               Подключено
+                            </>
+                         ) : (
+                            <>
+                               {planAction === plan.slug || changePlanLoading === plan.slug ? 'Обработка...' : 'Выбрать тариф'}
+                               {!isActive && <ArrowRightIcon className="w-4 h-4" />}
+                            </>
+                         )}
+                      </button>
+                   </div>
+                );
+             })}
+           </div>
+        </section>
+      </div>
 
-      {/* Разовые покупки удалены по требованию */}
+      {/* Cancel Modal */}
       <ConfirmActionModal
         isOpen={showCancelModal}
         onClose={() => setShowCancelModal(false)}
         onConfirm={handleCancelSubscription}
         title="Отменить подписку?"
         message="После отмены услуги будут действовать до конца оплаченного периода."
-        confirmLabel="Отменить"
+        confirmLabel="Отменить подписку"
         confirmColorClass="red"
         isLoading={cancelLoading}
       />
 
-      {/* Модальное окно смены тарифа */}
+      {/* Change Plan Modal */}
       {changePlanModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-6">Предпросмотр смены тарифа</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+               <h3 className="text-xl font-bold text-slate-900">Смена тарифа</h3>
+               <button onClick={() => setChangePlanModal(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+                  <span className="sr-only">Close</span>
+                  <svg className="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+               </button>
+            </div>
             
-            {changePlanModal.previewData ? (
-              <div className="space-y-6">
-                {/* Сообщение */}
-                <div className={`p-4 rounded-lg ${changePlanModal.previewData.can_proceed ? 'bg-blue-50 border border-blue-200' : 'bg-red-50 border border-red-200'}`}>
-                  {changePlanModal.previewData.can_proceed ? (
-                    <div className="text-sm text-blue-800">
-                      <div className="font-medium mb-1">Готово к смене тарифа</div>
-                      <div>Смена с "{changePlanModal.previewData.current_subscription.plan_name}" на "{changePlanModal.previewData.new_subscription.plan_name}". {
-                        Number(changePlanModal.previewData.billing_calculation.difference) >= 0 
-                          ? `Будет списано: ${Math.abs(Number(changePlanModal.previewData.billing_calculation.difference || 0)).toFixed(2)} ₽`
-                          : `Будет возвращено: ${Math.abs(Number(changePlanModal.previewData.billing_calculation.difference || 0)).toFixed(2)} ₽`
-                      }</div>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-red-800">
-                      {changePlanModal.previewData.message}
-                    </p>
-                  )}
-                </div>
+            <div className="overflow-y-auto p-6">
+               {changePlanModal.previewData ? (
+                 <div className="space-y-6">
+                   {/* Status Message */}
+                   <div className={`p-4 rounded-xl border ${
+                      changePlanModal.previewData.can_proceed 
+                         ? 'bg-blue-50 border-blue-100 text-blue-900' 
+                         : 'bg-red-50 border-red-100 text-red-900'
+                   }`}>
+                     <div className="font-bold mb-1">
+                        {changePlanModal.previewData.can_proceed ? 'Подтверждение перехода' : 'Невозможно выполнить переход'}
+                     </div>
+                     <div className="text-sm opacity-90">
+                        {changePlanModal.previewData.can_proceed 
+                           ? `Вы переходите на тариф "${changePlanModal.previewData.new_subscription.plan_name}". Разница в стоимости будет учтена.`
+                           : changePlanModal.previewData.message
+                        }
+                     </div>
+                   </div>
 
-                {/* Сравнение планов */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-900 mb-3">Текущий тариф</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="font-medium text-gray-800">
-                        {changePlanModal.previewData.current_subscription.plan_name}
+                   {/* Comparison */}
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
+                         <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Сейчас</div>
+                         <div className="font-bold text-slate-900">{changePlanModal.previewData.current_subscription.plan_name}</div>
+                         <div className="text-sm text-slate-500">{Number(changePlanModal.previewData.current_subscription.price).toFixed(0)} ₽/мес</div>
                       </div>
-                      <div className="text-gray-600">
-                        {Number(changePlanModal.previewData.current_subscription.price).toFixed(2)} ₽/мес
+                      <div className="p-4 rounded-xl border border-orange-200 bg-orange-50 relative">
+                         <div className="absolute -top-3 -right-2 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Новый</div>
+                         <div className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-2">Будет</div>
+                         <div className="font-bold text-slate-900">{changePlanModal.previewData.new_subscription.plan_name}</div>
+                         <div className="text-sm text-slate-500">{Number(changePlanModal.previewData.new_subscription.price).toFixed(0)} ₽/мес</div>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        Действует до: {new Date(changePlanModal.previewData.current_subscription.ends_at).toLocaleDateString('ru-RU')}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="border border-orange-200 bg-orange-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-orange-900 mb-3">Новый тариф</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="font-medium text-orange-800">
-                        {changePlanModal.previewData.new_subscription.plan_name}
-                      </div>
-                      <div className="text-orange-700">
-                        {Number(changePlanModal.previewData.new_subscription.price).toFixed(2)} ₽/мес
-                      </div>
-                      {changePlanModal.previewData.new_subscription.plan_description && (
-                        <div className="text-xs text-orange-600">
-                          {changePlanModal.previewData.new_subscription.plan_description}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                   </div>
 
-                {/* Сравнение лимитов */}
-                {changePlanModal.previewData.new_subscription.limits && (
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-3">Сравнение лимитов</h4>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <div className="font-medium text-gray-700 mb-2">Прорабы</div>
-                          <div className="text-gray-600">
-                            <span className="inline-block w-8 text-right">{currentPlan?.max_foremen || 0}</span>
-                            <span className="mx-2 text-gray-400">→</span>
-                            <span className={`font-medium ${
-                              (changePlanModal.previewData.new_subscription.limits.max_foremen || 0) > (currentPlan?.max_foremen || 0) 
-                                ? 'text-green-600' : 'text-red-600'
+                   {/* Billing Calculation */}
+                   <div className="bg-slate-50 rounded-xl p-5 border border-slate-100">
+                      <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Расчет стоимости</h4>
+                      <div className="space-y-3 text-sm">
+                         <div className="flex justify-between">
+                            <span className="text-slate-500">Остаток текущего периода</span>
+                            <span className="font-medium">{Number(changePlanModal.previewData.billing_calculation.remaining_value || 0).toFixed(2)} ₽</span>
+                         </div>
+                         <div className="flex justify-between">
+                            <span className="text-slate-500">Стоимость нового тарифа</span>
+                            <span className="font-medium">{Number(changePlanModal.previewData.billing_calculation.new_plan_cost || 0).toFixed(2)} ₽</span>
+                         </div>
+                         <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
+                            <span className="font-bold text-slate-900">Итого к списанию</span>
+                            <span className={`text-lg font-bold ${
+                               Number(changePlanModal.previewData.billing_calculation.difference) >= 0 ? 'text-slate-900' : 'text-emerald-600'
                             }`}>
-                              {changePlanModal.previewData.new_subscription.limits.max_foremen}
+                               {Math.abs(Number(changePlanModal.previewData.billing_calculation.difference || 0)).toFixed(2)} ₽
                             </span>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-700 mb-2">Проекты</div>
-                          <div className="text-gray-600">
-                            <span className="inline-block w-8 text-right">{currentPlan?.max_projects || 0}</span>
-                            <span className="mx-2 text-gray-400">→</span>
-                            <span className={`font-medium ${
-                              (changePlanModal.previewData.new_subscription.limits.max_projects || 0) > (currentPlan?.max_projects || 0) 
-                                ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {changePlanModal.previewData.new_subscription.limits.max_projects}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-700 mb-2">Хранилище</div>
-                          <div className="text-gray-600">
-                            <span className="inline-block w-8 text-right">{currentPlan?.max_storage_gb || 0}</span>
-                            <span className="mx-2 text-gray-400">→</span>
-                            <span className={`font-medium ${
-                              (changePlanModal.previewData.new_subscription.limits.max_storage_gb || 0) > (currentPlan?.max_storage_gb || 0) 
-                                ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {changePlanModal.previewData.new_subscription.limits.max_storage_gb} ГБ
-                            </span>
-                          </div>
-                        </div>
+                         </div>
                       </div>
-                    </div>
-                  </div>
-                )}
+                   </div>
 
-                {/* Расчёт платежа */}
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Детализация расчёта</h4>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Оставшиеся дни:</span>
-                      <span>{Math.round(Number(changePlanModal.previewData.billing_calculation.remaining_days || 0))}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Остаток по текущему тарифу:</span>
-                      <span>{Number(changePlanModal.previewData.billing_calculation.remaining_value || 0).toFixed(2)} ₽</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Стоимость нового тарифа:</span>
-                      <span>{Number(changePlanModal.previewData.billing_calculation.new_plan_cost || 0).toFixed(2)} ₽</span>
-                    </div>
-                    <hr className="my-2" />
-                    <div className="flex justify-between font-semibold">
-                      <span>
-                        {Number(changePlanModal.previewData.billing_calculation.difference) >= 0 ? 'К доплате:' : 'К возврату:'}
-                      </span>
-                      <span className={Number(changePlanModal.previewData.billing_calculation.difference) >= 0 ? 'text-red-600' : 'text-green-600'}>
-                        {Math.abs(Number(changePlanModal.previewData.billing_calculation.difference || 0)).toFixed(2)} ₽
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Информация о балансе */}
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Баланс</h4>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Текущий баланс:</span>
-                      <span>{Number(changePlanModal.previewData.balance_check.current_balance || 0).toFixed(2)} ₽</span>
-                    </div>
-                    {changePlanModal.previewData.balance_check.required_amount > 0 && (
-                      <div className="flex justify-between">
-                        <span>Требуется:</span>
-                        <span className="text-red-600">{Number(changePlanModal.previewData.balance_check.required_amount || 0).toFixed(2)} ₽</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between font-semibold">
-                      <span>Баланс после изменения:</span>
-                      <span className={Number(changePlanModal.previewData.balance_check.balance_after_change) >= 0 ? 'text-green-600' : 'text-red-600'}>
-                        {Number(changePlanModal.previewData.balance_check.balance_after_change || 0).toFixed(2)} ₽
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Кнопки действий */}
-                <div className="flex gap-3 pt-4">
+                   {/* Balance Info */}
+                   <div className="flex items-center justify-between text-sm px-2">
+                      <span className="text-slate-500">Ваш баланс: <span className="font-bold text-slate-900">{Number(changePlanModal.previewData.balance_check.current_balance || 0).toFixed(2)} ₽</span></span>
+                      <span className="text-slate-500">После списания: <span className={`font-bold ${
+                         Number(changePlanModal.previewData.balance_check.balance_after_change) >= 0 ? 'text-emerald-600' : 'text-red-600'
+                      }`}>{Number(changePlanModal.previewData.balance_check.balance_after_change || 0).toFixed(2)} ₽</span></span>
+                   </div>
+                 </div>
+               ) : (
+                 <div className="text-center py-8">
+                   <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                   <p className="text-slate-500">Подготавливаем расчет...</p>
+                 </div>
+               )}
+            </div>
+            
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex gap-3">
+               <button
+                  onClick={() => setChangePlanModal(null)}
+                  className="flex-1 py-3 rounded-xl font-bold text-slate-600 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-200 transition-all"
+               >
+                  Отмена
+               </button>
+               {changePlanModal.previewData?.can_proceed && (
                   <button
-                    onClick={() => setChangePlanModal(null)}
-                    className="flex-1 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
+                     onClick={confirmPlanChange}
+                     disabled={changePlanLoading !== null}
+                     className="flex-1 py-3 rounded-xl font-bold text-white bg-orange-600 hover:bg-orange-700 shadow-lg shadow-orange-200 transition-all disabled:opacity-50"
                   >
-                    Отменить
+                     {changePlanLoading ? 'Обработка...' : 'Подтвердить и оплатить'}
                   </button>
-                  
-                  {changePlanModal.previewData.can_proceed && (
-                    <button
-                      onClick={confirmPlanChange}
-                      disabled={changePlanLoading !== null}
-                      className="flex-1 py-3 px-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-60 font-medium"
-                    >
-                      {changePlanLoading ? 'Смена тарифа...' : 'Подтвердить смену'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">
-                    Вы действительно хотите сменить тариф на <strong>{changePlanModal.plan.name}</strong>?
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Изменение будет применено только после подтверждения
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setChangePlanModal(null)}
-                    className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                  >
-                    Отменить
-                  </button>
-                  <button
-                    onClick={confirmPlanChange}
-                    disabled={changePlanLoading !== null}
-                    className="flex-1 py-2 px-4 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-60"
-                  >
-                    {changePlanLoading ? 'Смена...' : 'Подтвердить'}
-                  </button>
-                </div>
-              </div>
-            )}
+               )}
+            </div>
           </div>
         </div>
       )}
@@ -771,4 +633,4 @@ const PaidServicesPage = () => {
   );
 };
 
-export default PaidServicesPage; 
+export default PaidServicesPage;
