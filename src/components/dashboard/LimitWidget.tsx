@@ -1,7 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { SubscriptionLimitItem, StorageLimitItem } from '@utils/api';
+import { ExclamationTriangleIcon } from '@heroicons/react/20/solid';
 
+// Remove WidgetTheme type and interface to simplify
 interface LimitWidgetProps {
   title: string;
   limit: SubscriptionLimitItem | StorageLimitItem;
@@ -15,39 +17,15 @@ const LimitWidget: React.FC<LimitWidgetProps> = ({
   limit, 
   unit, 
   icon: Icon, 
-  isStorage = false 
+  isStorage = false,
 }) => {
-  const getStatusColor = (status: string) => {
-    const colors = {
-      normal: 'from-earth-500 to-earth-600',
-      approaching: 'from-safety-500 to-safety-600', 
-      warning: 'from-construction-500 to-construction-600',
-      exceeded: 'from-red-500 to-red-600',
-      unlimited: 'from-blue-500 to-blue-600'
-    };
-    return colors[status as keyof typeof colors] || 'from-steel-400 to-steel-500';
-  };
-
-  const getStatusBgColor = (status: string) => {
-    const colors = {
-      normal: 'bg-earth-50 border-earth-200',
-      approaching: 'bg-safety-50 border-safety-200',
-      warning: 'bg-construction-50 border-construction-200', 
-      exceeded: 'bg-red-50 border-red-200',
-      unlimited: 'bg-blue-50 border-blue-200'
-    };
-    return colors[status as keyof typeof colors] || 'bg-steel-50 border-steel-200';
-  };
-
-  const getStatusTextColor = (status: string) => {
-    const colors = {
-      normal: 'text-earth-700',
-      approaching: 'text-safety-700',
-      warning: 'text-construction-700',
-      exceeded: 'text-red-700', 
-      unlimited: 'text-blue-700'
-    };
-    return colors[status as keyof typeof colors] || 'text-steel-700';
+  // Brand theme configuration using 'construction' palette (orange)
+  const theme = {
+    iconBg: 'bg-orange-50',
+    iconColor: 'text-orange-600',
+    progress: 'bg-gradient-to-r from-orange-500 to-orange-600',
+    text: 'text-slate-900',
+    subText: 'text-slate-500'
   };
 
   const formatValue = (value: number) => {
@@ -66,111 +44,107 @@ const LimitWidget: React.FC<LimitWidgetProps> = ({
     return isStorage ? (limit as StorageLimitItem).remaining_gb : (limit as SubscriptionLimitItem).remaining;
   };
 
+  const usedValue = getUsedValue();
+  const limitValue = getLimitValue();
+  const remainingValue = getRemainingValue();
+  const percentage = Math.min(limit.percentage_used, 100);
+  
+  const isWarning = limit.status === 'warning' || limit.status === 'approaching';
+  const isExceeded = limit.status === 'exceeded';
+  
+  let progressColor = theme.progress;
+  if (isExceeded) progressColor = 'bg-gradient-to-r from-red-500 to-red-600';
+  else if (isWarning) progressColor = 'bg-gradient-to-r from-orange-500 to-red-500';
+
   if (limit.is_unlimited) {
     return (
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className={`rounded-2xl p-6 border-2 transition-all duration-300 hover:shadow-lg ${getStatusBgColor('unlimited')}`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300"
       >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-blue">
-              <Icon className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-steel-900">{title}</h4>
-              <p className="text-sm text-steel-600">Безлимитно</p>
-            </div>
+        <div className="flex justify-between items-start mb-4">
+          <div className={`p-3 rounded-xl ${theme.iconBg}`}>
+            <Icon className={`w-6 h-6 ${theme.iconColor}`} />
           </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-blue-600">∞</div>
-            <div className="text-xs text-blue-600">Безлимитно</div>
-          </div>
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600`}>
+            ∞
+          </span>
         </div>
         
-        <div className="flex items-center text-blue-600 bg-blue-100 rounded-lg px-3 py-2">
-          <div className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
-          <span className="text-sm font-medium">Безлимитный доступ</span>
+        <div>
+          <h3 className={`${theme.subText} text-sm font-medium mb-1`}>{title}</h3>
+          <div className="flex items-baseline">
+            <span className="text-2xl font-bold text-slate-900">Безлимитно</span>
+          </div>
+        </div>
+
+        <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div className={`h-full ${theme.progress} w-full opacity-20`} />
+        </div>
+        
+        <div className="mt-2 text-xs text-slate-400 font-medium">
+          Нет ограничений
         </div>
       </motion.div>
     );
   }
 
-  const usedValue = getUsedValue();
-  const limitValue = getLimitValue();
-  const remainingValue = getRemainingValue();
-
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className={`rounded-2xl p-6 border-2 transition-all duration-300 hover:shadow-lg ${getStatusBgColor(limit.status)}`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300 relative overflow-hidden group"
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className={`w-12 h-12 bg-gradient-to-r ${getStatusColor(limit.status)} rounded-xl flex items-center justify-center shadow-lg`}>
-            <Icon className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h4 className="font-semibold text-steel-900">{title}</h4>
-            <p className="text-sm text-steel-600">
-              {formatValue(usedValue)} / {limitValue ? formatValue(limitValue) : '∞'} {unit}
-            </p>
-          </div>
+      {/* Background accent pattern */}
+      <div className={`absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 rounded-full ${theme.iconBg} opacity-30 group-hover:opacity-60 transition-opacity`} />
+
+      <div className="flex justify-between items-start mb-4 relative z-10">
+        <div className={`p-3 rounded-xl ${theme.iconBg} transition-colors duration-300`}>
+          <Icon className={`w-6 h-6 ${theme.iconColor}`} />
         </div>
-        <div className="text-right">
-          <div className={`text-2xl font-bold ${getStatusTextColor(limit.status)}`}>
-            {Math.round(limit.percentage_used)}%
-          </div>
-          <div className={`text-xs ${getStatusTextColor(limit.status)}`}>
-            Использовано
-          </div>
+        
+        {isExceeded ? (
+          <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-red-50 text-red-700 border border-red-100">
+            <ExclamationTriangleIcon className="w-3 h-3 mr-1" />
+            Превышен
+          </span>
+        ) : (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+            percentage > 90 ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-600'
+          }`}>
+            {Math.round(percentage)}%
+          </span>
+        )}
+      </div>
+
+      <div className="relative z-10">
+        <h3 className={`${theme.subText} text-sm font-medium mb-1`}>{title}</h3>
+        <div className="flex items-baseline space-x-1">
+          <span className="text-3xl font-bold text-slate-900 tracking-tight">{formatValue(usedValue)}</span>
+          <span className="text-lg text-slate-400 font-medium">/ {limitValue ? formatValue(limitValue) : '∞'}</span>
+          <span className="text-xs text-slate-400 ml-1 font-medium">{unit}</span>
         </div>
       </div>
-      
-      {/* Прогресс-бар */}
-      <div className="mb-4">
-        <div className="w-full bg-steel-200 rounded-full h-3 overflow-hidden">
-          <motion.div
+
+      <div className="mt-5 relative z-10">
+        <div className="flex justify-between text-xs mb-1.5">
+          <span className="text-slate-400 font-medium">Прогресс</span>
+          <span className={`${isWarning || isExceeded ? 'text-red-600' : 'text-slate-400'} font-medium`}>
+             {remainingValue > 0 ? `Осталось ${formatValue(remainingValue)}` : 'Исчерпано'}
+          </span>
+        </div>
+        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+          <motion.div 
             initial={{ width: 0 }}
-            animate={{ width: `${Math.min(limit.percentage_used, 100)}%` }}
+            animate={{ width: `${percentage}%` }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className={`h-3 bg-gradient-to-r ${getStatusColor(limit.status)} transition-all duration-300`}
+            className={`h-full rounded-full ${progressColor} shadow-sm`}
           />
         </div>
-        <div className="flex justify-between mt-2 text-xs text-steel-600">
-          <span>0 {unit}</span>
-          <span>{limitValue ? formatValue(limitValue) : '∞'} {unit}</span>
-        </div>
-      </div>
-
-      {/* Дополнительная информация */}
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-steel-600">
-          <span className="font-medium">Осталось:</span>
-        </div>
-        <div className={`text-sm font-medium ${getStatusTextColor(limit.status)}`}>
-          {remainingValue > 0 ? `${formatValue(remainingValue)} ${unit}` : 'Лимит исчерпан'}
-        </div>
-      </div>
-
-      {/* Индикатор статуса */}
-      <div className="mt-3 flex items-center">
-        <div className={`w-2 h-2 rounded-full mr-2 ${
-          limit.status === 'exceeded' ? 'bg-red-500 animate-pulse' : 
-          limit.status === 'warning' ? 'bg-construction-500 animate-pulse' :
-          limit.status === 'approaching' ? 'bg-safety-500' : 'bg-earth-500'
-        }`}></div>
-        <span className={`text-xs font-medium ${getStatusTextColor(limit.status)}`}>
-          {limit.status === 'exceeded' ? 'Лимит превышен' :
-           limit.status === 'warning' ? 'Приближается к лимиту' :
-           limit.status === 'approaching' ? 'Использование растет' :
-           'Нормальное использование'}
-        </span>
       </div>
     </motion.div>
   );
 };
 
-export default LimitWidget; 
+export default LimitWidget;
