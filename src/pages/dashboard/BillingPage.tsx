@@ -151,22 +151,22 @@ const BillingPage = () => {
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'credit':
-        return <ArrowUpIcon className="w-5 h-5 text-earth-600" />;
+        return <ArrowUpIcon className="w-5 h-5 text-emerald-600" />;
       case 'debit':
-        return <ArrowDownIcon className="w-5 h-5 text-construction-600" />;
+        return <ArrowDownIcon className="w-5 h-5 text-orange-600" />;
       default:
-        return <CurrencyDollarIcon className="w-5 h-5 text-steel-600" />;
+        return <CurrencyDollarIcon className="w-5 h-5 text-slate-600" />;
     }
   };
 
   const getTransactionColor = (type: string) => {
     switch (type) {
       case 'credit':
-        return 'text-earth-600 bg-earth-50';
+        return 'text-emerald-600 bg-emerald-50';
       case 'debit':
-        return 'text-construction-600 bg-construction-50';
+        return 'text-orange-600 bg-orange-50';
       default:
-        return 'text-steel-600 bg-steel-50';
+        return 'text-slate-600 bg-slate-50';
     }
   };
 
@@ -174,14 +174,14 @@ const BillingPage = () => {
     switch (status.toLowerCase()) {
       case 'completed':
       case 'success':
-        return <CheckCircleIcon className="w-4 h-4 text-earth-600" />;
+        return <CheckCircleIcon className="w-4 h-4 text-emerald-600" />;
       case 'failed':
       case 'error':
-        return <XCircleIcon className="w-4 h-4 text-construction-600" />;
+        return <XCircleIcon className="w-4 h-4 text-orange-600" />;
       case 'pending':
-        return <ClockIcon className="w-4 h-4 text-safety-600" />;
+        return <ClockIcon className="w-4 h-4 text-amber-600" />;
       default:
-        return <ClockIcon className="w-4 h-4 text-steel-600" />;
+        return <ClockIcon className="w-4 h-4 text-slate-600" />;
     }
   };
 
@@ -189,28 +189,28 @@ const BillingPage = () => {
     switch (status.toLowerCase()) {
       case 'completed':
       case 'success':
-        return 'bg-earth-100 text-earth-800';
+        return 'bg-emerald-100 text-emerald-800';
       case 'failed':
       case 'error':
-        return 'bg-construction-100 text-construction-800';
+        return 'bg-orange-100 text-orange-800';
       case 'pending':
-        return 'bg-safety-100 text-safety-800';
+        return 'bg-amber-100 text-amber-800';
       default:
-        return 'bg-steel-100 text-steel-800';
+        return 'bg-slate-100 text-slate-800';
     }
   };
 
   const getSubscriptionStatus = (subscription: Subscription): { status: string; color: string; icon: any } => {
     if (subscription.is_canceled) {
-      return { status: 'Отменена', color: 'bg-construction-100 text-construction-800', icon: XCircleIcon };
+      return { status: 'Отменена', color: 'bg-orange-100 text-orange-800', icon: XCircleIcon };
     }
     if (subscription.is_trial) {
-      return { status: 'Пробная', color: 'bg-safety-100 text-safety-800', icon: SparklesIcon };
+      return { status: 'Пробная', color: 'bg-amber-100 text-amber-800', icon: SparklesIcon };
     }
     if (subscription.status === 'active') {
-      return { status: 'Активна', color: 'bg-earth-100 text-earth-800', icon: CheckCircleIcon };
+      return { status: 'Активна', color: 'bg-emerald-100 text-emerald-800', icon: CheckCircleIcon };
     }
-    return { status: 'Неактивна', color: 'bg-steel-100 text-steel-800', icon: ClockIcon };
+    return { status: 'Неактивна', color: 'bg-slate-100 text-slate-800', icon: ClockIcon };
   };
 
   const getFeatureIcon = (feature: string) => {
@@ -227,21 +227,32 @@ const BillingPage = () => {
   if (loadingBalance) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-construction-200 border-t-construction-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-200 border-t-orange-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 min-h-screen bg-slate-50 p-6 rounded-3xl">
       {/* Заголовок */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
       >
-        <h1 className="text-3xl font-bold text-steel-900 mb-2">Финансы</h1>
-        <p className="text-steel-600 text-lg">Управление бюджетом и платежами</p>
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Финансы</h1>
+          <p className="text-slate-500 text-lg">Управление бюджетом и платежами</p>
+        </div>
+        <div className="flex gap-3">
+           <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium hover:bg-slate-50 transition-all shadow-sm">
+              Скачать отчет
+           </button>
+           <button className="px-4 py-2 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-all shadow-lg shadow-orange-200">
+              Пополнить баланс
+           </button>
+        </div>
       </motion.div>
 
       {/* Карточки статистики */}
@@ -252,22 +263,24 @@ const BillingPage = () => {
         transition={{ duration: 0.6, delay: 0.1 }}
       >
         {/* Текущая подписка */}
-        <div className="bg-gradient-to-br from-construction-50 to-construction-100 rounded-2xl p-6 shadow-lg border border-construction-200 col-span-1 md:col-span-2">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100 col-span-1 md:col-span-2 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-orange-50 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+          
+          <div className="relative z-10 flex items-center justify-between mb-6">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center mr-4">
-                <StarIcon className="w-6 h-6 text-white" />
+              <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mr-4 shadow-lg shadow-orange-200">
+                <StarIcon className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-steel-900">Текущая подписка</h3>
-                <p className="text-steel-600 text-sm">Информация о вашем тарифе</p>
+                <h3 className="text-xl font-bold text-slate-900">Текущая подписка</h3>
+                <p className="text-slate-500 text-sm">Информация о вашем тарифе</p>
               </div>
             </div>
             {subscription && (() => {
               const statusInfo = getSubscriptionStatus(subscription);
               return (
-                <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color}`}>
-                  <statusInfo.icon className="w-4 h-4 mr-1" />
+                <div className={`flex items-center px-4 py-1.5 rounded-full text-sm font-bold ${statusInfo.color}`}>
+                  <statusInfo.icon className="w-4 h-4 mr-1.5" />
                   {statusInfo.status}
                 </div>
               );
@@ -276,46 +289,46 @@ const BillingPage = () => {
 
           {loadingSubscription ? (
             <div className="flex justify-center items-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-4 border-construction-200 border-t-construction-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-4 border-orange-200 border-t-orange-600"></div>
             </div>
           ) : errorSubscription ? (
             <div className="text-center py-8">
-              <ExclamationTriangleIcon className="h-12 w-12 text-construction-400 mx-auto mb-3" />
-              <p className="text-construction-600">{errorSubscription}</p>
+              <ExclamationTriangleIcon className="h-12 w-12 text-orange-400 mx-auto mb-3" />
+              <p className="text-orange-600">{errorSubscription}</p>
             </div>
           ) : subscription ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white/60 rounded-xl p-4">
-                  <h4 className="font-bold text-steel-900 text-lg">{subscription.plan.name}</h4>
-                  <p className="text-steel-600 text-sm mb-2">{subscription.plan.description}</p>
+            <div className="space-y-6 relative z-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <h4 className="font-bold text-slate-900 text-lg mb-1">{subscription.plan.name}</h4>
+                  <p className="text-slate-500 text-sm mb-4">{subscription.plan.description}</p>
                   <div className="flex items-baseline">
-                    <span className="text-2xl font-bold text-construction-600">
-                      ₽{Number(subscription.plan.price).toLocaleString('ru-RU')}
+                    <span className="text-3xl font-bold text-orange-600">
+                      {Number(subscription.plan.price).toLocaleString('ru-RU')} ₽
                     </span>
-                    <span className="text-steel-600 ml-1">{subscription.plan.currency}/мес</span>
+                    <span className="text-slate-500 ml-1 font-medium">/{subscription.plan.currency === 'RUB' ? 'мес' : subscription.plan.currency}</span>
                   </div>
                 </div>
 
-                <div className="bg-white/60 rounded-xl p-4 space-y-3">
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 space-y-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-steel-600">Автоплатеж</span>
-                    <span className={`font-medium ${subscription.is_auto_payment_enabled ? 'text-earth-600' : 'text-construction-600'}`}>
+                    <span className="text-slate-500 font-medium">Автоплатеж</span>
+                    <span className={`font-bold px-2 py-0.5 rounded-lg ${subscription.is_auto_payment_enabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
                       {subscription.is_auto_payment_enabled ? 'Включен' : 'Отключен'}
                     </span>
                   </div>
                   {subscription.ends_at && (
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-steel-600">Действует до</span>
-                      <span className="font-medium text-steel-900">
+                      <span className="text-slate-500 font-medium">Действует до</span>
+                      <span className="font-bold text-slate-900">
                         {formatDate(subscription.ends_at)}
                       </span>
                     </div>
                   )}
                   {subscription.next_billing_at && (
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-steel-600">Следующий платеж</span>
-                      <span className="font-medium text-steel-900">
+                      <span className="text-slate-500 font-medium">Следующий платеж</span>
+                      <span className="font-bold text-slate-900">
                         {formatDate(subscription.next_billing_at)}
                       </span>
                     </div>
@@ -323,17 +336,20 @@ const BillingPage = () => {
                 </div>
               </div>
 
-              <div className="bg-white/60 rounded-xl p-4">
-                <h5 className="font-bold text-steel-900 mb-3">Возможности тарифа</h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                <h5 className="font-bold text-slate-900 mb-4 flex items-center">
+                   <SparklesIcon className="w-4 h-4 text-orange-500 mr-2" />
+                   Включенные возможности
+                </h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {Object.entries(subscription.plan.features).map(([category, features]) => (
                     <div key={category} className="space-y-2">
-                      <h6 className="font-semibold text-construction-700 text-sm">{category}</h6>
+                      <h6 className="font-bold text-orange-600 text-xs uppercase tracking-wider">{category}</h6>
                       {Array.isArray(features) && features.map((feature: string, index: number) => {
                         const IconComponent = getFeatureIcon(feature);
                         return (
-                          <div key={index} className="flex items-center text-sm text-steel-700">
-                            <IconComponent className="w-4 h-4 mr-2 text-earth-600 flex-shrink-0" />
+                          <div key={index} className="flex items-center text-sm text-slate-700 font-medium">
+                            <IconComponent className="w-4 h-4 mr-2 text-emerald-500 flex-shrink-0" />
                             <span>{feature}</span>
                           </div>
                         );
@@ -344,34 +360,53 @@ const BillingPage = () => {
               </div>
             </div>
           ) : (
-            <div className="text-center py-8">
-              <SparklesIcon className="h-12 w-12 text-steel-300 mx-auto mb-3" />
-              <p className="text-steel-500">Подписка не оформлена</p>
+            <div className="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+              <SparklesIcon className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 font-medium">Подписка не оформлена</p>
+              <button className="mt-4 px-6 py-2 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-colors">
+                 Выбрать тариф
+              </button>
             </div>
           )}
         </div>
 
         {/* Текущий баланс */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-steel-600 text-sm font-medium">Текущий баланс</p>
-              {errorBalance ? (
-                <p className="text-construction-600 text-lg font-bold">Ошибка загрузки</p>
-              ) : balance ? (
-                <p className="text-3xl font-bold text-steel-900">
-                  {balance.balance_formatted} <span className="text-lg text-steel-600">{balance.currency}</span>
-                </p>
-              ) : (
-                <p className="text-steel-500">Загрузка...</p>
-              )}
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-earth-500 to-earth-600 rounded-xl flex items-center justify-center">
-              <WalletIcon className="w-6 h-6 text-white" />
-            </div>
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 shadow-xl text-white flex flex-col justify-between relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-orange-500 rounded-full blur-3xl opacity-20"></div>
+          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
+          
+          <div className="relative z-10">
+             <div className="flex items-center justify-between mb-6">
+               <div>
+                 <p className="text-slate-400 text-sm font-medium mb-1">Текущий баланс</p>
+                 {errorBalance ? (
+                   <p className="text-orange-400 font-bold">Ошибка</p>
+                 ) : balance ? (
+                   <p className="text-4xl font-bold text-white tracking-tight">
+                     {balance.balance_formatted} <span className="text-2xl text-slate-400 font-normal">{balance.currency}</span>
+                   </p>
+                 ) : (
+                   <p className="text-slate-500">...</p>
+                 )}
+               </div>
+               <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/10">
+                 <WalletIcon className="w-6 h-6 text-orange-400" />
+               </div>
+             </div>
+             
+             <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                   <span className="text-slate-400">Заблокировано</span>
+                   <span className="font-medium">0.00 ₽</span>
+                </div>
+                <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                   <div className="h-full bg-orange-500 w-0"></div>
+                </div>
+             </div>
           </div>
-          <div className="flex items-center text-sm text-steel-500">
-            <CalendarIcon className="w-4 h-4 mr-1" />
+          
+          <div className="mt-6 pt-6 border-t border-white/10 flex items-center text-xs text-slate-400 relative z-10">
+            <CalendarIcon className="w-4 h-4 mr-1.5" />
             <span>Обновлено: {balance ? formatDate(balance.updated_at) : 'Н/Д'}</span>
           </div>
         </div>
@@ -385,157 +420,122 @@ const BillingPage = () => {
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         {/* Всего потрачено */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-steel-600 text-sm font-medium">Всего потрачено</p>
+              <p className="text-slate-500 text-sm font-medium">Всего потрачено</p>
               {errorStats ? (
-                <p className="text-construction-600 text-lg font-bold">Ошибка загрузки</p>
+                <p className="text-red-500 text-sm font-bold">Ошибка</p>
               ) : billingStats?.stats?.stats?.total_spent_all_time ? (
-                <p className="text-3xl font-bold text-steel-900">
+                <p className="text-2xl font-bold text-slate-900">
                   ₽{billingStats.stats.stats.total_spent_all_time.toLocaleString()}
                 </p>
               ) : (
-                <p className="text-steel-500">Загрузка...</p>
+                <p className="text-slate-400">...</p>
               )}
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-safety-500 to-safety-600 rounded-xl flex items-center justify-center">
-              <ChartBarIcon className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center">
+              <ChartBarIcon className="w-6 h-6 text-red-500" />
             </div>
           </div>
-          <div className="flex items-center text-sm text-steel-500">
-            <ArrowDownIcon className="w-4 h-4 mr-1" />
+          <div className="flex items-center text-sm text-slate-500">
+            <ArrowDownIcon className="w-4 h-4 mr-1 text-red-500" />
             <span>За все время</span>
           </div>
         </div>
 
         {/* Ежемесячные платежи */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-steel-600 text-sm font-medium">Ежемесячные платежи</p>
+              <p className="text-slate-500 text-sm font-medium">Ежемесячно</p>
               {errorStats ? (
-                <p className="text-construction-600 text-lg font-bold">Ошибка загрузки</p>
+                <p className="text-red-500 text-sm font-bold">Ошибка</p>
               ) : billingStats?.stats?.stats?.monthly_recurring !== undefined ? (
-                <p className="text-3xl font-bold text-steel-900">
+                <p className="text-2xl font-bold text-slate-900">
                   ₽{billingStats.stats.stats.monthly_recurring.toLocaleString()}
                 </p>
               ) : (
-                <p className="text-steel-500">Загрузка...</p>
+                <p className="text-slate-400">...</p>
               )}
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center">
-              <BanknotesIcon className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center">
+              <BanknotesIcon className="w-6 h-6 text-orange-500" />
             </div>
           </div>
-          <div className="flex items-center text-sm text-steel-500">
-            <ChartBarIcon className="w-4 h-4 mr-1" />
+          <div className="flex items-center text-sm text-slate-500">
+            <ChartBarIcon className="w-4 h-4 mr-1 text-orange-500" />
             <span>Регулярные подписки</span>
           </div>
         </div>
 
         {/* Активные модули */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
+        <div className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-steel-600 text-sm font-medium">Активные модули</p>
+              <p className="text-slate-500 text-sm font-medium">Активные модули</p>
               {errorStats ? (
-                <p className="text-construction-600 text-lg font-bold">Ошибка</p>
+                <p className="text-red-500 text-sm font-bold">Ошибка</p>
               ) : billingStats?.stats?.stats?.active_modules !== undefined ? (
-                <p className="text-3xl font-bold text-steel-900">
+                <p className="text-2xl font-bold text-slate-900">
                   {billingStats.stats.stats.active_modules}
                 </p>
               ) : (
-                <p className="text-steel-500">Загрузка...</p>
+                <p className="text-slate-400">...</p>
               )}
             </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-earth-500 to-earth-600 rounded-xl flex items-center justify-center">
-              <CheckCircleIcon className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center">
+              <CheckCircleIcon className="w-6 h-6 text-emerald-500" />
             </div>
           </div>
-          <div className="flex items-center text-sm text-steel-500">
-            <span>из {billingStats?.stats?.stats?.total_modules_ever || 0} всего</span>
+          <div className="flex items-center text-sm text-slate-500">
+            <span className="text-emerald-600 font-bold mr-1">{Math.round((billingStats?.stats?.stats?.active_modules || 0) / (billingStats?.stats?.stats?.total_modules_ever || 1) * 100)}%</span>
+            <span>от всех доступных</span>
           </div>
         </div>
       </motion.div>
 
-      {/* Дополнительная статистика модулей */}
+      {/* Детализация расходов */}
       <motion.div 
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
       >
-        {/* Подписки */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-steel-600 text-sm font-medium">Подписки</p>
-              {errorStats ? (
-                <p className="text-construction-600 text-lg font-bold">Ошибка</p>
-              ) : billingStats?.stats?.breakdown_by_type?.subscription !== undefined ? (
-                <p className="text-3xl font-bold text-steel-900">
-                  {billingStats.stats.breakdown_by_type.subscription}
-                </p>
-              ) : (
-                <p className="text-steel-500">Загрузка...</p>
-              )}
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-safety-500 to-safety-600 rounded-xl flex items-center justify-center">
-              <CreditCardIcon className="w-6 h-6 text-white" />
-            </div>
-          </div>
-          <div className="flex items-center text-sm text-steel-500">
-            <span>Регулярные платежи</span>
-          </div>
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 flex items-center justify-between group hover:border-orange-300 transition-colors cursor-pointer">
+           <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-50 rounded-xl text-blue-600 group-hover:bg-blue-100 transition-colors">
+                 <CreditCardIcon className="w-6 h-6" />
+              </div>
+              <div>
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Подписки</p>
+                 <p className="text-lg font-bold text-slate-900">{billingStats?.stats?.breakdown_by_type?.subscription || 0}</p>
+              </div>
+           </div>
         </div>
 
-        {/* Разовые покупки */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-steel-600 text-sm font-medium">Разовые покупки</p>
-              {errorStats ? (
-                <p className="text-construction-600 text-lg font-bold">Ошибка</p>
-              ) : billingStats?.stats?.breakdown_by_type?.one_time !== undefined ? (
-                <p className="text-3xl font-bold text-steel-900">
-                  {billingStats.stats.breakdown_by_type.one_time}
-                </p>
-              ) : (
-                <p className="text-steel-500">Загрузка...</p>
-              )}
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center">
-              <CurrencyDollarIcon className="w-6 h-6 text-white" />
-            </div>
-          </div>
-          <div className="flex items-center text-sm text-steel-500">
-            <span>₽{billingStats?.stats?.stats?.one_time_this_month?.toLocaleString() || 0} в этом месяце</span>
-          </div>
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 flex items-center justify-between group hover:border-orange-300 transition-colors cursor-pointer">
+           <div className="flex items-center gap-4">
+              <div className="p-3 bg-purple-50 rounded-xl text-purple-600 group-hover:bg-purple-100 transition-colors">
+                 <CurrencyDollarIcon className="w-6 h-6" />
+              </div>
+              <div>
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Разовые</p>
+                 <p className="text-lg font-bold text-slate-900">{billingStats?.stats?.breakdown_by_type?.one_time || 0}</p>
+              </div>
+           </div>
         </div>
 
-        {/* Бесплатные модули */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-steel-600 text-sm font-medium">Бесплатные модули</p>
-              {errorStats ? (
-                <p className="text-construction-600 text-lg font-bold">Ошибка</p>
-              ) : billingStats?.stats?.breakdown_by_type?.free !== undefined ? (
-                <p className="text-3xl font-bold text-steel-900">
-                  {billingStats.stats.breakdown_by_type.free}
-                </p>
-              ) : (
-                <p className="text-steel-500">Загрузка...</p>
-              )}
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-steel-500 to-steel-600 rounded-xl flex items-center justify-center">
-              <CheckCircleIcon className="w-6 h-6 text-white" />
-            </div>
-          </div>
-          <div className="flex items-center text-sm text-steel-500">
-            <span>Без оплаты</span>
-          </div>
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 flex items-center justify-between group hover:border-orange-300 transition-colors cursor-pointer">
+           <div className="flex items-center gap-4">
+              <div className="p-3 bg-slate-100 rounded-xl text-slate-600 group-hover:bg-slate-200 transition-colors">
+                 <CheckCircleIcon className="w-6 h-6" />
+              </div>
+              <div>
+                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Бесплатные</p>
+                 <p className="text-lg font-bold text-slate-900">{billingStats?.stats?.breakdown_by_type?.free || 0}</p>
+              </div>
+           </div>
         </div>
       </motion.div>
 
@@ -546,66 +546,66 @@ const BillingPage = () => {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
       >
-        <div className="bg-white rounded-2xl shadow-lg border border-steel-100 overflow-hidden">
-          <div className="px-6 py-4 bg-gradient-to-r from-steel-50 to-concrete-50 border-b border-steel-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold text-steel-900">История транзакций</h3>
-                <p className="text-steel-600 text-sm">Последние операции по счету</p>
-              </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-steel-500 to-steel-600 rounded-xl flex items-center justify-center">
-                <ReceiptRefundIcon className="w-5 h-5 text-white" />
-              </div>
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+          <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-slate-900">История транзакций</h3>
+              <p className="text-slate-500 text-sm">Последние операции по счету</p>
             </div>
+            <button className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600">
+               <ReceiptRefundIcon className="w-6 h-6" />
+            </button>
           </div>
 
           <div className="p-6">
             {loadingTransactions ? (
               <div className="flex justify-center items-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-4 border-construction-200 border-t-construction-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-4 border-orange-200 border-t-orange-600"></div>
               </div>
             ) : errorTransactions ? (
               <div className="text-center py-8">
-                <ExclamationTriangleIcon className="h-12 w-12 text-construction-400 mx-auto mb-3" />
-                <p className="text-construction-600">{errorTransactions}</p>
+                <ExclamationTriangleIcon className="h-12 w-12 text-orange-400 mx-auto mb-3" />
+                <p className="text-orange-600">{errorTransactions}</p>
               </div>
             ) : transactions.length === 0 ? (
-              <div className="text-center py-8">
-                <ReceiptRefundIcon className="h-12 w-12 text-steel-300 mx-auto mb-3" />
-                <p className="text-steel-500">Транзакции не найдены</p>
+              <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                <ReceiptRefundIcon className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500 font-medium">Транзакции не найдены</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {transactions.map((transaction) => (
                   <motion.div
                     key={transaction.id}
-                    className="flex items-center justify-between p-4 bg-steel-50 rounded-xl hover:bg-steel-100 transition-colors"
+                    className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl hover:shadow-md hover:border-orange-200 transition-all group"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                   >
                     <div className="flex items-center space-x-4">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getTransactionColor(transaction.type)}`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${getTransactionColor(transaction.type)}`}>
                         {getTransactionIcon(transaction.type)}
                       </div>
                       <div>
-                        <p className="font-medium text-steel-900">{transaction.description || 'Транзакция'}</p>
-                        <p className="text-sm text-steel-600">{formatDate(transaction.created_at)}</p>
+                        <p className="font-bold text-slate-900 group-hover:text-orange-600 transition-colors">{transaction.description || 'Транзакция'}</p>
+                        <p className="text-xs text-slate-500 font-medium">{formatDate(transaction.created_at)}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`font-bold ${
+                      <p className={`font-bold text-lg ${
                         transaction.type === 'credit'
-                          ? 'text-earth-600' 
-                          : 'text-construction-600'
+                          ? 'text-emerald-600' 
+                          : 'text-slate-900'
                       }`}>
                         {transaction.type === 'credit' ? '+' : '-'}
                         {transaction.amount_formatted} {balance?.currency || 'RUB'}
                       </p>
                       <div className="flex items-center justify-end mt-1">
-                        {getStatusIcon('completed')}
-                        <span className={`ml-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor('completed')}`}>
-                          Завершено
+                        <span className={`flex items-center text-xs font-bold ${
+                           transaction.status === 'completed' ? 'text-emerald-600' : 'text-slate-400'
+                        }`}>
+                           {transaction.status === 'completed' && <CheckCircleIcon className="w-3 h-3 mr-1" />}
+                           {transaction.status === 'completed' ? 'Проведено' : transaction.status}
                         </span>
                       </div>
                     </div>
@@ -616,16 +616,16 @@ const BillingPage = () => {
 
             {/* Пагинация */} 
             {pagination && pagination.last_page > 1 && (
-              <div className="flex justify-center mt-6">
-                <div className="flex space-x-2">
+              <div className="flex justify-center mt-8">
+                <div className="flex space-x-2 bg-slate-100 p-1 rounded-xl">
                   {Array.from({ length: pagination.last_page }, (_, i) => i + 1).map((page) => (
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                         page === currentPage
-                          ? 'bg-construction-600 text-white'
-                          : 'bg-steel-100 text-steel-700 hover:bg-steel-200'
+                          ? 'bg-white text-orange-600 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                       }`}
                     >
                       {page}
