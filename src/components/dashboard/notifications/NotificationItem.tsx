@@ -134,7 +134,8 @@ export const NotificationItem = ({
       className={cn(
         "relative flex gap-4 p-4 border-b border-border/50 cursor-pointer transition-all duration-200 group",
         "hover:bg-muted/50",
-        !notification.read_at && "bg-primary/5"
+        !notification.read_at && "bg-primary/5",
+        isDeleting && "opacity-50 pointer-events-none"
       )}
     >
       {/* Status Indicator Dot */}
