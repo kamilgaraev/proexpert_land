@@ -1,53 +1,20 @@
-/**
- * Страница приглашений подрядчиков в личном кабинете
- */
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  EnvelopeIcon,
-  ChartBarIcon,
-  Cog6ToothIcon,
-} from '@heroicons/react/24/outline';
-import { usePageTitle } from '../../../hooks/useSEO';
-import ContractorInvitationsList from '../../../components/dashboard/contractor-invitations/ContractorInvitationsList';
-import ContractorInvitationsStats from '../../../components/dashboard/contractor-invitations/ContractorInvitationsStats';
-import ContractorInvitationDetails from '../../../components/dashboard/contractor-invitations/ContractorInvitationDetails';
-import type { ContractorInvitation } from '../../../types/contractor-invitations';
+  Mail,
+  BarChart2,
+  Info
+} from 'lucide-react';
+import { usePageTitle } from '@/hooks/useSEO';
+import ContractorInvitationsList from '@/components/dashboard/contractor-invitations/ContractorInvitationsList';
+import ContractorInvitationsStats from '@/components/dashboard/contractor-invitations/ContractorInvitationsStats';
+import ContractorInvitationDetails from '@/components/dashboard/contractor-invitations/ContractorInvitationDetails';
+import type { ContractorInvitation } from '@/types/contractor-invitations';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 type TabType = 'invitations' | 'stats';
-
-interface TabButtonProps {
-  id: TabType;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  active: boolean;
-  onClick: (id: TabType) => void;
-  count?: number;
-}
-
-const TabButton: React.FC<TabButtonProps> = ({ id, label, icon: Icon, active, onClick, count }) => (
-  <button
-    onClick={() => onClick(id)}
-    className={`relative flex items-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-      active
-        ? 'bg-construction-600 text-white shadow-construction'
-        : 'bg-white text-steel-700 hover:bg-steel-50 border border-steel-200'
-    }`}
-  >
-    <Icon className="w-5 h-5" />
-    <span>{label}</span>
-    {count !== undefined && count > 0 && (
-      <span className={`ml-2 px-2 py-1 rounded-full text-xs font-bold ${
-        active 
-          ? 'bg-white/20 text-white' 
-          : 'bg-construction-600 text-white'
-      }`}>
-        {count}
-      </span>
-    )}
-  </button>
-);
 
 const ContractorInvitationsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('invitations');
@@ -65,7 +32,6 @@ const ContractorInvitationsPage: React.FC = () => {
 
   const handleInvitationProcessed = (updatedInvitation: ContractorInvitation) => {
     setSelectedInvitation(updatedInvitation);
-    // Здесь можно добавить логику для обновления списка приглашений
   };
 
   if (selectedInvitation) {
@@ -75,7 +41,6 @@ const ContractorInvitationsPage: React.FC = () => {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -20 }}
         transition={{ duration: 0.3 }}
-        className="container-custom py-8"
       >
         <ContractorInvitationDetails
           invitation={selectedInvitation}
@@ -87,131 +52,67 @@ const ContractorInvitationsPage: React.FC = () => {
   }
 
   return (
-    <div className="container-custom py-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Заголовок страницы */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center"
-        >
-          <h1 className="text-3xl md:text-4xl font-bold text-steel-900 font-construction">
-            Приглашения к сотрудничеству
-          </h1>
-          <p className="text-lg text-steel-600 mt-2 max-w-2xl mx-auto">
-            Управляйте входящими приглашениями от потенциальных заказчиков и отслеживайте статистику сотрудничества
-          </p>
-        </motion.div>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Приглашения к сотрудничеству</h1>
+        <p className="text-muted-foreground">
+          Управляйте входящими приглашениями от потенциальных заказчиков и отслеживайте статистику сотрудничества
+        </p>
+      </div>
 
-        {/* Навигационные вкладки */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-        >
-          <TabButton
-            id="invitations"
-            label="Приглашения"
-            icon={EnvelopeIcon}
-            active={activeTab === 'invitations'}
-            onClick={setActiveTab}
-          />
-          <TabButton
-            id="stats"
-            label="Статистика"
-            icon={ChartBarIcon}
-            active={activeTab === 'stats'}
-            onClick={setActiveTab}
-          />
-        </motion.div>
+      <Tabs defaultValue="invitations" onValueChange={(v: string) => setActiveTab(v as TabType)} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="invitations" className="flex items-center gap-2">
+            <Mail className="h-4 w-4" />
+            Приглашения
+          </TabsTrigger>
+          <TabsTrigger value="stats" className="flex items-center gap-2">
+            <BarChart2 className="h-4 w-4" />
+            Статистика
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Контент вкладок */}
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-        >
-          {activeTab === 'invitations' && (
+        <TabsContent value="invitations" className="space-y-4">
             <ContractorInvitationsList
               onInvitationSelect={handleInvitationSelect}
               showFilters={true}
             />
-          )}
-          
-          {activeTab === 'stats' && (
+        </TabsContent>
+
+        <TabsContent value="stats" className="space-y-4">
             <ContractorInvitationsStats
               showTitle={false}
               className="max-w-6xl mx-auto"
             />
-          )}
-        </motion.div>
+        </TabsContent>
+      </Tabs>
 
-        {/* Дополнительная информация */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="bg-gradient-to-r from-concrete-50 to-steel-50 rounded-xl p-6 border border-steel-200"
-        >
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-12 h-12 bg-construction-500 rounded-xl flex items-center justify-center">
-              <Cog6ToothIcon className="w-6 h-6 text-white" />
+      <Card className="bg-muted/50 border-dashed">
+        <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+                <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                    <Info className="h-5 w-5" />
+                </div>
+                <div>
+                    <h3 className="font-semibold mb-2">Как работают приглашения?</h3>
+                    <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                        <li><span className="font-medium text-foreground">Получение приглашения:</span> Потенциальные заказчики находят вашу организацию и отправляют приглашение.</li>
+                        <li><span className="font-medium text-foreground">Рассмотрение:</span> Вы изучаете детали приглашения и условия.</li>
+                        <li><span className="font-medium text-foreground">Принятие решения:</span> Принимаете или отклоняете. При принятии создается связь.</li>
+                        <li><span className="font-medium text-foreground">Сотрудничество:</span> Вы получаете доступ к совместной работе.</li>
+                    </ul>
+                </div>
             </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-steel-900 mb-2">
-                Как работают приглашения?
-              </h3>
-              <div className="space-y-2 text-sm text-steel-700">
-                <p>
-                  <strong>1. Получение приглашения:</strong> Потенциальные заказчики находят вашу организацию 
-                  и отправляют приглашение к сотрудничеству с описанием проекта.
-                </p>
-                <p>
-                  <strong>2. Рассмотрение:</strong> Вы изучаете детали приглашения, информацию о заказчике 
-                  и условия сотрудничества.
-                </p>
-                <p>
-                  <strong>3. Принятие решения:</strong> Принимаете или отклоняете приглашение. 
-                  При принятии автоматически создается подрядная связь между организациями.
-                </p>
-                <p>
-                  <strong>4. Сотрудничество:</strong> После принятия приглашения вы получаете доступ 
-                  к совместной работе и синхронизации данных с заказчиком.
-                </p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+        </CardContent>
+      </Card>
 
-        {/* Полезные ссылки */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="text-center space-y-4"
-        >
-          <h3 className="text-lg font-semibold text-steel-900">
-            Нужна помощь?
-          </h3>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="/help/contractor-invitations"
-              className="inline-flex items-center px-4 py-2 bg-white border border-steel-300 rounded-lg text-steel-700 hover:bg-steel-50 transition-colors"
-            >
-              Справочная информация
-            </a>
-            <a
-              href="/support"
-              className="inline-flex items-center px-4 py-2 bg-construction-600 text-white rounded-lg hover:bg-construction-700 transition-colors"
-            >
-              Связаться с поддержкой
-            </a>
-          </div>
-        </motion.div>
+      <div className="flex justify-center gap-4 pt-4">
+        <Button variant="outline" asChild>
+            <a href="/help/contractor-invitations">Справочная информация</a>
+        </Button>
+        <Button asChild>
+            <a href="/support">Связаться с поддержкой</a>
+        </Button>
       </div>
     </div>
   );

@@ -2,6 +2,25 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { userService } from '@utils/api';
 import { useAuth } from '@hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { ArrowLeft, AlertTriangle, Loader2 } from 'lucide-react';
 
 interface FormData {
   name: string;
@@ -26,14 +45,17 @@ const MemberCreate: React.FC = () => {
   const [errors, setErrors] = useState<ErrorsType>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     
-    // Очищаем ошибку при изменении поля
     if (errors[name as keyof FormData]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
+  };
+
+  const handleRoleChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, role: value }));
   };
 
   const validate = (): boolean => {
@@ -73,7 +95,6 @@ const MemberCreate: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Используем новый метод API для создания нового участника
       const response = await userService.inviteUser({
         name: formData.name,
         email: formData.email,
@@ -87,16 +108,12 @@ const MemberCreate: React.FC = () => {
         throw new Error(response.data.message || 'Ошибка при создании участника');
       }
       
-      // После успешного создания перенаправляем на список участников
       navigate('/dashboard/members');
     } catch (error: any) {
-      
-      // Обработка ошибок валидации с сервера
       if (error.response?.status === 422 && error.response?.data?.data?.errors) {
         const serverErrors: Record<string, string[]> = error.response.data.data.errors;
         const formattedErrors: ErrorsType = {};
         
-        // Преобразуем ошибки с сервера в формат, понятный нашей форме
         Object.entries(serverErrors).forEach(([key, messages]) => {
           if (Array.isArray(messages) && messages.length > 0) {
             formattedErrors[key as keyof FormData] = messages[0];
@@ -116,138 +133,122 @@ const MemberCreate: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Добавление нового участника</h1>
-        <Link to="/dashboard/members" className="text-primary-600 hover:text-primary-800">
-          Вернуться к списку
-        </Link>
+    <div className="max-w-2xl mx-auto">
+      <div className="mb-6">
+        <Button variant="ghost" asChild className="pl-0 hover:bg-transparent hover:text-primary">
+            <Link to="/dashboard/members">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Вернуться к списку
+            </Link>
+        </Button>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg p-6">
-        {errors.general && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-            {errors.general}
-          </div>
-        )}
-        
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Имя
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className={`form-input w-full px-4 py-2 border rounded-md ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="Введите имя участника"
-            />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+      <Card>
+        <CardHeader>
+            <CardTitle>Добавление нового участника</CardTitle>
+            <CardDescription>Заполните форму для создания нового пользователя организации</CardDescription>
+        </CardHeader>
+        <CardContent>
+            {errors.general && (
+                <div className="mb-6 bg-destructive/10 border border-destructive/20 rounded-xl p-4 flex gap-3 items-start text-destructive">
+                    <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                        <p className="font-medium">Ошибка</p>
+                        <p className="opacity-90">{errors.general}</p>
+                    </div>
+                </div>
             )}
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={`form-input w-full px-4 py-2 border rounded-md ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="email@example.com"
-            />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-500">{errors.email}</p>
-            )}
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-              Роль
-            </label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="form-select w-full px-4 py-2 border border-gray-300 rounded-md"
-            >
-              <option value="admin">Администратор</option>
-              <option value="manager">Менеджер</option>
-              <option value="member">Помощник</option>
-            </select>
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Пароль
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={`form-input w-full px-4 py-2 border rounded-md ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="Минимум 8 символов"
-            />
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-500">{errors.password}</p>
-            )}
-          </div>
-          
-          <div className="mb-6">
-            <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700 mb-1">
-              Подтверждение пароля
-            </label>
-            <input
-              type="password"
-              id="password_confirmation"
-              name="password_confirmation"
-              value={formData.password_confirmation}
-              onChange={handleChange}
-              className={`form-input w-full px-4 py-2 border rounded-md ${
-                errors.password_confirmation ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="Повторите пароль"
-            />
-            {errors.password_confirmation && (
-              <p className="mt-1 text-sm text-red-500">{errors.password_confirmation}</p>
-            )}
-          </div>
-          
-          <div className="flex justify-end">
-            <Link
-              to="/dashboard/members"
-              className="btn btn-secondary mr-2"
-            >
-              Отмена
-            </Link>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Сохранение...' : 'Сохранить'}
-            </button>
-          </div>
-        </form>
-      </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="name">Имя</Label>
+                    <Input
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Введите имя участника"
+                        className={errors.name ? 'border-destructive focus-visible:ring-destructive' : ''}
+                    />
+                    {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+                </div>
+                
+                <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="email@example.com"
+                        className={errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
+                    />
+                    {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                </div>
+                
+                <div className="space-y-2">
+                    <Label htmlFor="role">Роль</Label>
+                    <Select value={formData.role} onValueChange={handleRoleChange}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Выберите роль" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="admin">Администратор</SelectItem>
+                            <SelectItem value="manager">Менеджер</SelectItem>
+                            <SelectItem value="member">Помощник</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="password">Пароль</Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            placeholder="Минимум 8 символов"
+                            className={errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}
+                        />
+                        {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Label htmlFor="password_confirmation">Подтверждение пароля</Label>
+                        <Input
+                            id="password_confirmation"
+                            type="password"
+                            name="password_confirmation"
+                            value={formData.password_confirmation}
+                            onChange={handleChange}
+                            placeholder="Повторите пароль"
+                            className={errors.password_confirmation ? 'border-destructive focus-visible:ring-destructive' : ''}
+                        />
+                        {errors.password_confirmation && <p className="text-xs text-destructive">{errors.password_confirmation}</p>}
+                    </div>
+                </div>
+
+                <div className="pt-4 flex justify-end gap-2">
+                    <Button variant="outline" type="button" asChild>
+                        <Link to="/dashboard/members">Отмена</Link>
+                    </Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Сохранение...
+                            </>
+                        ) : 'Сохранить'}
+                    </Button>
+                </div>
+            </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
-export default MemberCreate; 
+export default MemberCreate;

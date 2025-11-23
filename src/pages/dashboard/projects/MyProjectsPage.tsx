@@ -1,10 +1,27 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Search, Filter, Plus, FolderOpen, Briefcase, Users } from 'lucide-react';
+
 import { useMyProjects, useProjectDetails } from '@/hooks/useMyProjects';
 import { ProjectCard } from '@/components/dashboard/projects/ProjectCard';
 import { ProjectDetailsModal } from '@/components/dashboard/projects/ProjectDetailsModal';
-import { ProjectsFilter } from '@/components/dashboard/projects/ProjectsFilter';
 import type { ProjectOverview } from '@/types/projects-overview';
+
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu"
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const MyProjectsPage = () => {
   const navigate = useNavigate();
@@ -13,7 +30,7 @@ export const MyProjectsPage = () => {
 
   const [activeTab, setActiveTab] = useState<'all' | 'owned' | 'participant'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<'all' | 'active' | 'archived'>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
@@ -66,133 +83,126 @@ export const MyProjectsPage = () => {
 
   if (loading && projects.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-construction-600 mb-4"></div>
-          <p className="text-gray-600">Загрузка проектов...</p>
-        </div>
+      <div className="container mx-auto py-8 space-y-8">
+         <div className="flex justify-between items-center">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-10 w-32" />
+         </div>
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+                <Skeleton key={i} className="h-[300px] rounded-xl" />
+            ))}
+         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Мои проекты
-            </h1>
-            <p className="text-gray-600">
-              Обзор всех проектов вашей организации
-            </p>
-          </div>
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Мои проекты</h1>
+          <p className="text-muted-foreground">Управление строительными объектами и задачами</p>
         </div>
-
-        {totals && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-construction-600">
-              <p className="text-sm text-gray-600 mb-1">Всего проектов</p>
-              <p className="text-3xl font-bold text-gray-900">{totals.all}</p>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-600">
-              <p className="text-sm text-gray-600 mb-1">Активных</p>
-              <p className="text-3xl font-bold text-gray-900">{totals.active}</p>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-600">
-              <p className="text-sm text-gray-600 mb-1">Владелец</p>
-              <p className="text-3xl font-bold text-gray-900">{totals.owned}</p>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-600">
-              <p className="text-sm text-gray-600 mb-1">Участник</p>
-              <p className="text-3xl font-bold text-gray-900">{totals.participant}</p>
-            </div>
-          </div>
-        )}
-
-        <ProjectsFilter
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedStatus={selectedStatus}
-          onStatusChange={setSelectedStatus}
-        />
-
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="flex -mb-px">
-              <button
-                onClick={() => setActiveTab('all')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'all'
-                    ? 'border-construction-600 text-construction-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Все проекты {totals && `(${totals.all})`}
-              </button>
-              <button
-                onClick={() => setActiveTab('owned')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'owned'
-                    ? 'border-construction-600 text-construction-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Владелец {totals && `(${totals.owned})`}
-              </button>
-              <button
-                onClick={() => setActiveTab('participant')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'participant'
-                    ? 'border-construction-600 text-construction-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Участник {totals && `(${totals.participant})`}
-              </button>
-            </nav>
-          </div>
-        </div>
-
-        {filteredProjects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map(project => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onViewDetails={handleViewDetails}
-                onGoToWork={handleGoToWork}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {searchQuery ? 'Проекты не найдены' : 'Нет проектов'}
-            </h3>
-            <p className="text-gray-600">
-              {searchQuery 
-                ? 'Попробуйте изменить параметры поиска'
-                : 'У вас пока нет доступных проектов. Проекты создаются в админке, после чего появятся здесь.'
-              }
-            </p>
-          </div>
-        )}
-
-        <ProjectDetailsModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          projectDetails={projectDetails}
-          loading={detailsLoading}
-          onGoToWork={handleGoToWork}
-        />
+        <Button onClick={() => navigate('/dashboard/projects/create')}>
+            <Plus className="mr-2 h-4 w-4" /> Создать проект
+        </Button>
       </div>
+
+      {totals && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-card border rounded-xl p-4 shadow-sm">
+                <div className="text-sm font-medium text-muted-foreground mb-1">Всего проектов</div>
+                <div className="text-2xl font-bold">{totals.all}</div>
+            </div>
+            <div className="bg-card border rounded-xl p-4 shadow-sm">
+                <div className="text-sm font-medium text-muted-foreground mb-1">Активных</div>
+                <div className="text-2xl font-bold text-green-600">{totals.active}</div>
+            </div>
+            <div className="bg-card border rounded-xl p-4 shadow-sm">
+                <div className="text-sm font-medium text-muted-foreground mb-1">Мои (Владелец)</div>
+                <div className="text-2xl font-bold text-primary">{totals.owned}</div>
+            </div>
+            <div className="bg-card border rounded-xl p-4 shadow-sm">
+                <div className="text-sm font-medium text-muted-foreground mb-1">Участник</div>
+                <div className="text-2xl font-bold text-blue-600">{totals.participant}</div>
+            </div>
+        </div>
+      )}
+
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border shadow-sm">
+        <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full md:w-auto">
+            <TabsList>
+                <TabsTrigger value="all">Все</TabsTrigger>
+                <TabsTrigger value="owned">Мои</TabsTrigger>
+                <TabsTrigger value="participant">Участник</TabsTrigger>
+            </TabsList>
+        </Tabs>
+
+        <div className="flex gap-2 w-full md:w-auto">
+            <div className="relative w-full md:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Поиск проектов..."
+                    className="pl-9"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon">
+                        <Filter className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Статус</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup value={selectedStatus} onValueChange={setSelectedStatus}>
+                        <DropdownMenuRadioItem value="all">Все</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="active">Активные</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="archived">Архив</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+      </div>
+
+      {filteredProjects.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProjects.map(project => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onViewDetails={handleViewDetails}
+              onGoToWork={handleGoToWork}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-16 text-center bg-muted/30 rounded-2xl border border-dashed border-muted-foreground/25">
+            <div className="bg-muted rounded-full p-4 mb-4">
+                <FolderOpen className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold">Проекты не найдены</h3>
+            <p className="text-muted-foreground max-w-sm mt-2">
+                {searchQuery ? 'Попробуйте изменить параметры поиска' : 'У вас пока нет активных проектов.'}
+            </p>
+            {!searchQuery && (
+                <Button variant="outline" className="mt-6" onClick={() => navigate('/dashboard/projects/create')}>
+                    Создать первый проект
+                </Button>
+            )}
+        </div>
+      )}
+
+      <ProjectDetailsModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        projectDetails={projectDetails}
+        loading={detailsLoading}
+        onGoToWork={handleGoToWork}
+      />
     </div>
   );
 };
-

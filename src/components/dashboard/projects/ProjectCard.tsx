@@ -1,5 +1,11 @@
+import { Briefcase, MapPin, FileText, CheckCircle, Users } from 'lucide-react';
 import type { ProjectOverview } from '@/types/projects-overview';
 import { RoleBadge } from './RoleBadge';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress'; // I need to create this if not exists, or simulate
+import { cn } from '@/lib/utils';
 
 interface ProjectCardProps {
   project: ProjectOverview;
@@ -13,12 +19,12 @@ export const ProjectCard = ({
   onGoToWork
 }: ProjectCardProps) => {
   const statusColors: Record<string, string> = {
-    planned: 'text-gray-600 bg-gray-100',
-    active: 'text-construction-600 bg-construction-100',
-    in_progress: 'text-construction-600 bg-construction-100',
-    completed: 'text-green-600 bg-green-100',
-    on_hold: 'text-yellow-600 bg-yellow-100',
-    cancelled: 'text-red-600 bg-red-100'
+    planned: 'bg-gray-100 text-gray-700',
+    active: 'bg-orange-100 text-orange-700',
+    in_progress: 'bg-blue-100 text-blue-700',
+    completed: 'bg-green-100 text-green-700',
+    on_hold: 'bg-yellow-100 text-yellow-700',
+    cancelled: 'bg-red-100 text-red-700'
   };
 
   const statusLabels: Record<string, string> = {
@@ -47,114 +53,87 @@ export const ProjectCard = ({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-shadow duration-200 overflow-hidden">
-      <div className="p-5">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-gray-900 mb-1 truncate">
+    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group border-muted-foreground/20">
+      <CardHeader className="p-5 pb-2">
+        <div className="flex justify-between items-start gap-4">
+          <div className="space-y-1">
+            <h3 className="font-bold text-lg leading-tight line-clamp-1 group-hover:text-primary transition-colors">
               {project.name}
             </h3>
             {project.address && (
-              <p className="text-sm text-gray-600 flex items-center">
-                <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span className="truncate">{project.address}</span>
-              </p>
+              <div className="flex items-center text-xs text-muted-foreground">
+                <MapPin className="w-3 h-3 mr-1 shrink-0" />
+                <span className="truncate max-w-[200px]">{project.address}</span>
+              </div>
             )}
           </div>
-          <div className="flex flex-col items-end space-y-2 ml-3">
-            <RoleBadge role={project.role} size="sm" />
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[project.status]}`}>
-              {statusLabels[project.status]}
-            </span>
+          <div className="flex flex-col items-end gap-2">
+             <RoleBadge role={project.role} size="sm" />
+             <Badge variant="secondary" className={cn("text-[10px] px-2 py-0.5 h-auto font-medium border-0", statusColors[project.status])}>
+                {statusLabels[project.status]}
+             </Badge>
           </div>
         </div>
-
+      </CardHeader>
+      
+      <CardContent className="p-5 pt-2 space-y-4">
         {project.description && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+          <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5em]">
             {project.description}
           </p>
         )}
 
-        <div className="mb-4">
-          <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-xs text-muted-foreground">
             <span>Прогресс</span>
-            <span className="font-semibold">{completionPercentage}%</span>
+            <span className="font-medium text-foreground">{completionPercentage}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-construction-500 to-construction-600 h-full rounded-full transition-all duration-500"
-              style={{ width: `${completionPercentage}%` }}
-            />
+          <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+             <div className="h-full bg-primary transition-all duration-500" style={{ width: `${completionPercentage}%` }} />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="flex items-center space-x-2 text-sm">
-            <div className="w-8 h-8 bg-construction-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-construction-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+        <div className="grid grid-cols-2 gap-3">
+            <div className="bg-muted/50 rounded-lg p-2 flex items-center gap-3">
+                <div className="bg-background p-1.5 rounded-md shadow-sm text-primary">
+                    <FileText className="w-4 h-4" />
+                </div>
+                <div>
+                    <div className="text-[10px] text-muted-foreground uppercase">Контракты</div>
+                    <div className="font-bold text-sm">{totalContracts}</div>
+                </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-gray-500">Контракты</p>
-              <p className="font-semibold text-gray-900">{totalContracts}</p>
+            <div className="bg-muted/50 rounded-lg p-2 flex items-center gap-3">
+                <div className="bg-background p-1.5 rounded-md shadow-sm text-green-600">
+                    <CheckCircle className="w-4 h-4" />
+                </div>
+                <div>
+                    <div className="text-[10px] text-muted-foreground uppercase">Работы</div>
+                    <div className="font-bold text-sm">{totalWorks}</div>
+                </div>
             </div>
-          </div>
-
-          <div className="flex items-center space-x-2 text-sm">
-            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-gray-500">Работы</p>
-              <p className="font-semibold text-gray-900">{totalWorks}</p>
-            </div>
-          </div>
         </div>
 
-        <div className="space-y-2 mb-4 p-3 bg-gray-50 rounded-lg">
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600">Сумма контрактов:</span>
-            <span className="font-semibold text-gray-900">{formatAmount(totalAmountContracts)}</span>
-          </div>
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600">Выполнено работ:</span>
-            <span className="font-semibold text-green-600">{formatAmount(totalAmountWorks)}</span>
-          </div>
+        <div className="space-y-1 pt-2 border-t border-dashed">
+             <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Сумма контрактов:</span>
+                <span className="font-semibold">{formatAmount(totalAmountContracts)}</span>
+             </div>
+             <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Выполнено:</span>
+                <span className="font-semibold text-green-600">{formatAmount(totalAmountWorks)}</span>
+             </div>
         </div>
+      </CardContent>
 
-        {participantsCount > 0 && (
-          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-            <div className="flex items-center text-xs text-gray-500">
-              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span>{participantsCount} участников</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 flex space-x-2">
-        <button
-          onClick={() => onViewDetails(project.id)}
-          className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-construction-500 focus:ring-offset-2"
-        >
-          Подробнее
-        </button>
-        <button
-          onClick={() => onGoToWork(project.id)}
-          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-construction-600 to-construction-700 rounded-lg hover:from-construction-700 hover:to-construction-800 transition-all shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-construction-500 focus:ring-offset-2"
-        >
-          Перейти к работе →
-        </button>
-      </div>
-    </div>
+      <CardFooter className="p-3 bg-muted/30 flex gap-2">
+        <Button variant="outline" className="flex-1 h-9 text-xs" onClick={() => onViewDetails(project.id)}>
+            Подробнее
+        </Button>
+        <Button className="flex-1 h-9 text-xs bg-gradient-to-r from-primary to-orange-600 shadow-sm hover:shadow transition-all" onClick={() => onGoToWork(project.id)}>
+            В работу
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
-

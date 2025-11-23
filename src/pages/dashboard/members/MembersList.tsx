@@ -1,6 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { userService } from '@utils/api';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { MoreHorizontal, Plus, Search, UserPlus, Mail } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface Member {
   id: number;
@@ -13,33 +34,33 @@ interface Member {
 
 const MembersList: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
+  const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [error] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        // Используем API для получения пользователей организации
         const response = await userService.getOrganizationUsers();
         
         if (!response || !response.data || !response.data.data) {
           setMembers([]);
+          setFilteredMembers([]);
           setIsLoading(false);
           return;
         }
         
-        // Получаем список пользователей
         const users = response.data.data;
         
         if (!Array.isArray(users) || users.length === 0) {
           setMembers([]);
+          setFilteredMembers([]);
           setIsLoading(false);
           return;
         }
         
         const formattedMembers = users.map((user: any) => {
-          
-          // Простое присвоение роли
           let role = user.role || 'Пользователь';
           if (user.id === 1) role = 'Администратор';
           
@@ -48,13 +69,15 @@ const MembersList: React.FC = () => {
             name: user.name || 'Без имени',
             email: user.email || '',
             role: role,
-            status: 'Активен', // По умолчанию активен
+            status: 'Активен',
             created_at: new Date().toLocaleDateString('ru-RU')
           };
         });
         
         setMembers(formattedMembers);
+        setFilteredMembers(formattedMembers);
       } catch (err) {
+        console.error(err);
       } finally {
         setIsLoading(false);
       }
@@ -63,105 +86,147 @@ const MembersList: React.FC = () => {
     fetchMembers();
   }, []);
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-full">Загрузка...</div>;
-  }
+  useEffect(() => {
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+      const filtered = members.filter(member => 
+        member.name.toLowerCase().includes(lowerQuery) || 
+        member.email.toLowerCase().includes(lowerQuery) ||
+        member.role.toLowerCase().includes(lowerQuery)
+      );
+      setFilteredMembers(filtered);
+    } else {
+      setFilteredMembers(members);
+    }
+  }, [searchQuery, members]);
 
-  if (error) {
-    return <div className="text-red-500">Ошибка: {error}</div>;
-  }
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Участники организации</h1>
-        <Link to="/dashboard/members/create" className="btn btn-primary">
-          Добавить участника
-        </Link>
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 className="text-3xl font-bold tracking-tight">Команда</h1>
+            <p className="text-muted-foreground">Управление сотрудниками и правами доступа</p>
+        </div>
+        <div className="flex gap-2">
+            <Button variant="outline" asChild>
+                <Link to="/dashboard/contractor-invitations">
+                    <Mail className="mr-2 h-4 w-4" />
+                    Приглашения
+                </Link>
+            </Button>
+            <Button asChild>
+                <Link to="/dashboard/members/create">
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Добавить участника
+                </Link>
+            </Button>
+        </div>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Имя
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Email
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Роль
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Статус
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Дата регистрации
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Действия
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {members.length > 0 ? (
-              members.map((member) => (
-                <tr key={member.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{member.name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{member.email || 'Нет данных'}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{member.role}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        member.status === 'Активен'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}
-                    >
-                      {member.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {member.created_at}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link
-                      to={`/dashboard/members/edit/${member.id}`}
-                      className="text-primary-600 hover:text-primary-900 mr-4"
-                    >
-                      Редактировать
-                    </Link>
-                    <button
-                      onClick={() => {
-                        if (window.confirm('Вы уверены, что хотите удалить этого участника?')) {
-                        }
-                      }}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Удалить
-                    </button>
-                  </td>
-                </tr>
+      <div className="flex items-center py-4 bg-card p-4 rounded-xl border shadow-sm">
+        <div className="relative w-full sm:max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Поиск по имени или email..."
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className="pl-9"
+            />
+        </div>
+      </div>
+
+      <div className="rounded-xl border bg-card text-card-foreground shadow">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[300px]">Сотрудник</TableHead>
+              <TableHead>Роль</TableHead>
+              <TableHead>Статус</TableHead>
+              <TableHead>Дата добавления</TableHead>
+              <TableHead className="text-right">Действия</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+               <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                      Загрузка...
+                  </TableCell>
+               </TableRow>
+            ) : filteredMembers.length > 0 ? (
+              filteredMembers.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                            <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                            <span className="font-medium">{member.name}</span>
+                            <span className="text-xs text-muted-foreground">{member.email}</span>
+                        </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="font-normal">
+                        {member.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={member.status === 'Активен' ? 'default' : 'secondary'} className="font-normal">
+                        {member.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{member.created_at}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Меню</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Действия</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                            <Link to={`/dashboard/members/edit/${member.id}`}>Редактировать</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>Изменить роль</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => {
+                             if (window.confirm('Вы уверены?')) {
+                                 // delete logic
+                             }
+                        }}>
+                          Удалить
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
               ))
             ) : (
-              <tr>
-                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
-                  Участники не найдены
-                </td>
-              </tr>
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                  {searchQuery ? 'Ничего не найдено' : 'Список пуст'}
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
 };
 
-export default MembersList; 
+export default MembersList;

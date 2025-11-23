@@ -2,15 +2,23 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
-  EyeIcon, 
-  EyeSlashIcon, 
-  ArrowRightIcon,
-  ShieldCheckIcon,
-  UserIcon,
-  LockClosedIcon,
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline';
-import { useAuth } from '@hooks/useAuth';
+  Eye, 
+  EyeOff, 
+  ArrowRight, 
+  ShieldCheck, 
+  User, 
+  Lock,
+  AlertTriangle
+} from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox'; // Need to create Checkbox or use native for now if not created
+import { cn } from '@/lib/utils';
+
+// We didn't create Checkbox yet, so I'll use a simple native one styled or quickly create it.
+// For now I will use a native input with tailwind classes or assume I can make a simple one.
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -45,10 +53,10 @@ const LoginPage = () => {
     } catch (err: any) {
       console.error('Ошибка входа:', err);
       
-      if (err.message.includes('Не удалось подключиться к серверу')) {
+      if (err.message?.includes('Не удалось подключиться к серверу')) {
         setShowNetworkError(true);
         setError('Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.');
-      } else if (err.message.includes('Неверные учетные данные')) {
+      } else if (err.message?.includes('Неверные учетные данные')) {
         setError('Неверный email или пароль');
       } else {
         setError(err.message || 'Ошибка при входе. Проверьте учетные данные.');
@@ -59,242 +67,166 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-concrete-50 via-steel-50 to-construction-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl flex bg-white rounded-3xl shadow-2xl overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 lg:p-8">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none bg-[url('https://img.freepik.com/free-vector/construction-set-icons_1284-13233.jpg?w=740&t=st=1688212739~exp=1688213339~hmac=5c40049880458034950549147135503451414741490107508071527005575610')] bg-repeat bg-[length:400px]"></div>
+
+      <motion.div 
+        className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-card border rounded-3xl shadow-2xl overflow-hidden relative z-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         
-        {/* Левая панель - Форма входа */}
-        <motion.div 
-          className="w-full lg:w-1/2 p-8 lg:p-12"
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          {/* Логотип и заголовок */}
+        {/* Left Panel - Form */}
+        <div className="p-8 lg:p-16 flex flex-col justify-center">
           <div className="mb-8">
-            <Link to="/" className="inline-flex items-center mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-construction-500 to-construction-600 rounded-xl flex items-center justify-center shadow-construction mr-3">
-                <span className="text-white font-bold text-lg">P</span>
+            <Link to="/" className="inline-flex items-center mb-8 gap-3 transition-opacity hover:opacity-80">
+              <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl shadow-lg shadow-primary/30">
+                P
               </div>
-              <span className="text-2xl font-bold text-steel-900">ProHelper</span>
+              <span className="text-2xl font-bold tracking-tight">ProHelper</span>
             </Link>
             
-            <h1 className="text-3xl lg:text-4xl font-bold text-steel-900 mb-3">
-              Добро пожаловать!
+            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight mb-3">
+              С возвращением
             </h1>
-            <p className="text-steel-600 text-lg">
-              Войдите в свой аккаунт для управления строительными проектами
+            <p className="text-muted-foreground text-lg">
+              Введите свои данные для входа в систему
             </p>
           </div>
 
-          {/* Сообщение об ошибке */}
           {error && (
             <motion.div 
-              className="mb-6 bg-red-50 border-l-4 border-red-400 rounded-xl p-4"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
+              className="mb-6 bg-destructive/10 border border-destructive/20 rounded-xl p-4 flex gap-3 items-start text-destructive"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
             >
-              <div className="flex items-start">
-                <ExclamationTriangleIcon className="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-red-700 font-medium mb-1">Ошибка входа</p>
-                  <p className="text-red-600 text-sm">{error}</p>
-                  {showNetworkError && (
-                    <div className="mt-3 text-red-600 text-sm">
-                      <p className="font-medium mb-1">Возможные причины:</p>
-                      <ul className="list-disc list-inside space-y-1">
-                        <li>Сервер временно недоступен</li>
-                        <li>Проблемы с интернет-соединением</li>
-                        <li>Блокировка запросов браузером</li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
+              <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium">Ошибка авторизации</p>
+                <p className="opacity-90">{error}</p>
               </div>
             </motion.div>
           )}
 
-          {/* Форма */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-steel-700 mb-2">
-                Email адрес
-              </label>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <UserIcon className="h-5 w-5 text-steel-400" />
-                </div>
-                <input
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
                   id="email"
-                  name="email"
                   type="email"
-                  autoComplete="email"
-                  required
-                  className="block w-full pl-12 pr-4 py-3 border border-steel-300 rounded-xl text-steel-900 placeholder-steel-400 focus:outline-none focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-all duration-200"
-                  placeholder="Введите ваш email"
+                  placeholder="name@company.com"
+                  className="pl-10 h-12 text-base"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
               </div>
             </div>
 
-            {/* Пароль */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-steel-700 mb-2">
-                Пароль
-              </label>
+            <div className="space-y-2">
+              <Label htmlFor="password">Пароль</Label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <LockClosedIcon className="h-5 w-5 text-steel-400" />
-                </div>
-                <input
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
                   id="password"
-                  name="password"
                   type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  className="block w-full pl-12 pr-12 py-3 border border-steel-300 rounded-xl text-steel-900 placeholder-steel-400 focus:outline-none focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-all duration-200"
-                  placeholder="Введите ваш пароль"
+                  placeholder="Введите пароль"
+                  className="pl-10 pr-10 h-12 text-base"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showPassword ? (
-                    <EyeSlashIcon className="h-5 w-5 text-steel-400 hover:text-steel-600 transition-colors" />
-                  ) : (
-                    <EyeIcon className="h-5 w-5 text-steel-400 hover:text-steel-600 transition-colors" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Запомнить меня и Забыли пароль */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center">
+              <label className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 text-construction-600 bg-white border-steel-300 rounded focus:ring-construction-500 focus:ring-2"
+                  className="rounded border-input text-primary focus:ring-primary w-4 h-4 transition-colors"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
-                <span className="ml-2 text-sm text-steel-700">Запомнить меня</span>
+                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">Запомнить меня</span>
               </label>
               <Link 
                 to="/forgot-password" 
-                className="text-sm font-medium text-construction-600 hover:text-construction-700 transition-colors"
+                className="text-sm font-medium text-primary hover:underline underline-offset-4"
               >
                 Забыли пароль?
               </Link>
             </div>
 
-            {/* Кнопка входа */}
-            <motion.button
-              type="submit"
+            <Button 
+              type="submit" 
+              className="w-full h-12 text-base shadow-lg shadow-primary/20" 
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-construction-500 to-construction-600 text-white py-3 px-6 rounded-xl font-semibold text-lg shadow-construction hover:shadow-construction-lg disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
-              whileHover={{ scale: isLoading ? 1 : 1.02 }}
-              whileTap={{ scale: isLoading ? 1 : 0.98 }}
             >
               {isLoading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Вход в систему...
-                </>
+                 <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Вход...
+                 </span>
               ) : (
-                <>
+                <span className="flex items-center gap-2">
                   Войти в систему
-                  <ArrowRightIcon className="ml-2 h-5 w-5" />
-                </>
+                  <ArrowRight className="h-4 w-4" />
+                </span>
               )}
-            </motion.button>
+            </Button>
           </form>
 
-          {/* Ссылка на регистрацию */}
-          <div className="mt-8 pt-6 border-t border-steel-200">
-            <p className="text-center text-steel-600">
-              Нет аккаунта?{' '}
-              <Link 
-                to="/register" 
-                className="font-semibold text-construction-600 hover:text-construction-700 transition-colors"
-              >
-                Зарегистрироваться бесплатно
-              </Link>
-            </p>
+          <div className="mt-8 text-center text-sm text-muted-foreground">
+            Нет аккаунта?{' '}
+            <Link to="/register" className="font-semibold text-primary hover:underline underline-offset-4">
+              Зарегистрироваться
+            </Link>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Правая панель - Информационная секция */}
-        <motion.div 
-          className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-construction-500 via-construction-600 to-construction-700 p-12 flex-col justify-center relative overflow-hidden"
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          {/* Декоративные элементы */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-24 -translate-x-24"></div>
-          
-          <div className="relative z-10">
-            <div className="mb-8">
-              <ShieldCheckIcon className="w-16 h-16 text-white mb-6" />
-              <h2 className="text-3xl font-bold text-white mb-4">
-                Управляйте строительством профессионально
-              </h2>
-              <p className="text-construction-100 text-lg leading-relaxed">
-                ProHelper — это современная платформа для управления строительными проектами, 
-                командой и финансами в одном месте.
-              </p>
+        {/* Right Panel - Visuals */}
+        <div className="hidden lg:flex bg-muted relative overflow-hidden p-12 flex-col justify-between">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-orange-600 mix-blend-multiply z-10" />
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2531&auto=format&fit=crop')] bg-cover bg-center grayscale opacity-50 z-0" />
+            
+            <div className="relative z-20 text-white mt-12">
+                <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-8">
+                    <ShieldCheck className="h-8 w-8 text-white" />
+                </div>
+                <h2 className="text-4xl font-bold mb-6 leading-tight">
+                    Строим будущее<br/>вместе с вами
+                </h2>
+                <p className="text-white/80 text-lg max-w-md leading-relaxed">
+                    Полный контроль над строительными проектами, финансами и командой в единой экосистеме ProHelper.
+                </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
+            <div className="relative z-20 grid grid-cols-2 gap-4 mt-auto">
+                <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20">
+                    <div className="text-3xl font-bold text-white mb-1">15+</div>
+                    <div className="text-white/70 text-sm">Инструментов управления</div>
                 </div>
-                <div>
-                  <h3 className="text-white font-semibold">Контроль проектов</h3>
-                  <p className="text-construction-100 text-sm">Отслеживайте прогресс и управляйте задачами</p>
+                <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20">
+                    <div className="text-3xl font-bold text-white mb-1">24/7</div>
+                    <div className="text-white/70 text-sm">Поддержка и доступность</div>
                 </div>
-              </div>
-              
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold">Управление командой</h3>
-                  <p className="text-construction-100 text-sm">Координируйте работу прорабов и рабочих</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold">Финансовая отчетность</h3>
-                  <p className="text-construction-100 text-sm">Контролируйте бюджеты и расходы</p>
-                </div>
-              </div>
             </div>
+        </div>
 
-            <div className="mt-8 p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-              <p className="text-white text-sm">
-                <span className="font-semibold">Безопасность:</span> Ваши данные защищены современными методами шифрования
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
-export default LoginPage; 
+export default LoginPage;

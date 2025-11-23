@@ -8,11 +8,21 @@ import { CertificationsList } from '@/components/dashboard/organization/Certific
 import { ProfileCompletenessWidget } from '@/components/dashboard/organization/ProfileCompletenessWidget';
 import type { OrganizationCapability } from '@/types/organization-profile';
 import { 
-  BuildingOfficeIcon, 
-  CheckCircleIcon, 
-  ExclamationCircleIcon,
-  PencilSquareIcon
-} from '@heroicons/react/24/outline';
+  Building2, 
+  CheckCircle, 
+  AlertTriangle,
+  Pencil,
+  Loader2,
+  Briefcase,
+  Award,
+  ListChecks
+} from 'lucide-react';
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 
 const CAPABILITY_LABELS: Record<OrganizationCapability, string> = {
   'general_contracting': 'Генеральный подряд',
@@ -136,11 +146,12 @@ export const OrganizationSettingsPage = () => {
 
   if (loading && !profile) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-construction-600 mb-4"></div>
-          <p className="text-gray-600">Загрузка профиля организации...</p>
-        </div>
+      <div className="container mx-auto py-8 space-y-6">
+         <Skeleton className="h-12 w-64" />
+         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Skeleton className="lg:col-span-2 h-[600px] rounded-xl" />
+            <Skeleton className="h-[300px] rounded-xl" />
+         </div>
       </div>
     );
   }
@@ -155,254 +166,246 @@ export const OrganizationSettingsPage = () => {
     const isEditing = editingSection === section;
 
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-gray-50 border-b border-gray-200 flex items-center justify-between">
+      <Card className="overflow-hidden">
+        <div className="px-6 py-4 border-b bg-muted/20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white rounded-lg shadow-sm">
+            <div className="p-2 bg-background rounded-lg shadow-sm border">
               {icon}
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+              <h3 className="font-bold text-lg leading-none">{title}</h3>
               {isEmpty && !isEditing && (
-                <p className="text-xs text-amber-600 flex items-center gap-1 mt-0.5">
-                  <ExclamationCircleIcon className="w-3 h-3" />
+                <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+                  <AlertTriangle className="w-3 h-3" />
                   Не заполнено
                 </p>
               )}
             </div>
           </div>
           {!isEditing && (
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setEditingSection(section)}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-all"
+              className="gap-2"
             >
-              <PencilSquareIcon className="w-4 h-4" />
+              <Pencil className="w-3 h-3" />
               {isEmpty ? 'Заполнить' : 'Изменить'}
-            </button>
+            </Button>
           )}
         </div>
 
-        <div className="p-6">
+        <CardContent className="p-6">
           {isEditing ? (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {content}
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                <button
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button
+                  variant="ghost"
                   onClick={handleCancel}
                   disabled={isSaving}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
                   Отменить
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => handleSave(section)}
                   disabled={isSaving}
-                  className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-construction-600 to-construction-700 rounded-lg hover:from-construction-700 hover:to-construction-800 disabled:opacity-50 transition-all shadow-sm hover:shadow-md"
                 >
-                  {isSaving ? 'Сохранение...' : 'Сохранить'}
-                </button>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Сохранить
+                </Button>
               </div>
             </div>
           ) : isEmpty ? (
-            <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
-                <ExclamationCircleIcon className="w-8 h-8 text-amber-600" />
+            <div className="text-center py-8 text-muted-foreground">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-muted rounded-full mb-3">
+                <AlertTriangle className="w-6 h-6 opacity-50" />
               </div>
-              <p className="text-gray-600 font-medium">Информация не заполнена</p>
-              <p className="text-sm text-gray-500 mt-1">Нажмите "Заполнить" для добавления данных</p>
+              <p className="font-medium">Информация не заполнена</p>
+              <p className="text-xs mt-1">Нажмите "Заполнить" для добавления данных</p>
             </div>
           ) : (
             content
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Профиль организации
-          </h1>
-          <p className="text-gray-600">
-            Управляйте информацией о возможностях и специализациях вашей организации
-          </p>
-        </div>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Профиль организации</h1>
+        <p className="text-muted-foreground">
+          Управляйте информацией о возможностях и специализациях вашей организации
+        </p>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-slate-700 rounded-lg">
-                  <BuildingOfficeIcon className="w-6 h-6 text-white" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Building2 className="w-8 h-8 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">
+                  <h2 className="text-xl font-bold">
                     {profile?.name || orgVerification?.name || 'Организация'}
                   </h2>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     ИНН: {profile?.inn || orgVerification?.tax_number || 'Не указан'}
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-xl border">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Полнота профиля</p>
-                  <p className="text-2xl font-bold text-construction-600">
+                  <p className="text-xs text-muted-foreground mb-1">Полнота профиля</p>
+                  <p className="text-2xl font-bold text-primary">
                     {profile?.profile_completeness || 0}%
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Рекомендуемые модули</p>
-                  <p className="text-2xl font-bold text-slate-700">
+                  <p className="text-xs text-muted-foreground mb-1">Рекомендуемые модули</p>
+                  <p className="text-2xl font-bold">
                     {profile?.recommended_modules?.length || 0}
                   </p>
                 </div>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {renderInfoSection(
-              'Возможности организации',
-              <CheckCircleIcon className="w-5 h-5 text-construction-600" />,
-              !profile?.capabilities || profile.capabilities.length === 0,
-              editingSection === 'capabilities' ? (
-                <CapabilitiesSelector
-                  selectedCapabilities={localCapabilities}
-                  availableCapabilities={availableCapabilities || []}
-                  onChange={setLocalCapabilities}
-                  showRecommendations={true}
-                />
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {profile?.capabilities?.map((cap) => (
-                    <span
-                      key={cap}
-                      className="inline-flex items-center px-4 py-2 bg-construction-50 text-construction-700 border border-construction-200 rounded-lg font-medium"
-                    >
-                      <CheckCircleIcon className="w-4 h-4 mr-2" />
-                      {CAPABILITY_LABELS[cap] || cap}
-                    </span>
-                  ))}
-                </div>
-              ),
-              'capabilities'
-            )}
-
-            {renderInfoSection(
-              'Основной тип деятельности',
-              <BuildingOfficeIcon className="w-5 h-5 text-blue-600" />,
-              !profile?.primary_business_type,
-              editingSection === 'business_type' ? (
-                <BusinessTypeSelector
-                  selectedType={localBusinessType}
-                  onChange={setLocalBusinessType}
-                />
-              ) : (
-                <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="text-4xl">🏗️</div>
-                  <div>
-                    <p className="text-lg font-bold text-gray-900">
-                      {BUSINESS_TYPE_LABELS[profile?.primary_business_type || ''] || profile?.primary_business_type}
-                    </p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Основное направление работы организации
-                    </p>
-                  </div>
-                </div>
-              ),
-              'business_type'
-            )}
-
-            {renderInfoSection(
-              'Специализации',
-              <CheckCircleIcon className="w-5 h-5 text-emerald-600" />,
-              !profile?.specializations || profile.specializations.length === 0,
-              editingSection === 'specializations' ? (
-                <SpecializationsSelector
-                  selectedSpecializations={localSpecializations}
-                  onChange={setLocalSpecializations}
-                />
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {profile?.specializations?.map((spec) => (
-                    <span
-                      key={spec}
-                      className="inline-flex items-center px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-sm font-medium"
-                    >
-                      {SPECIALIZATION_LABELS[spec] || spec}
-                    </span>
-                  ))}
-                </div>
-              ),
-              'specializations'
-            )}
-
-            {renderInfoSection(
-              'Сертификаты и допуски',
-              <CheckCircleIcon className="w-5 h-5 text-violet-600" />,
-              !profile?.certifications || profile.certifications.length === 0,
-              editingSection === 'certifications' ? (
-                <CertificationsList
-                  certifications={localCertifications}
-                  onChange={setLocalCertifications}
-                />
-              ) : (
-                <div className="space-y-2">
-                  {profile?.certifications?.map((cert, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 p-3 bg-violet-50 border border-violet-200 rounded-lg"
-                    >
-                      <div className="flex-shrink-0 w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
-                        <CheckCircleIcon className="w-6 h-6 text-violet-600" />
-                      </div>
-                      <span className="text-sm font-medium text-gray-900">{cert}</span>
-                    </div>
-                  ))}
-                </div>
-              ),
-              'certifications'
-            )}
-          </div>
-
-          <div className="lg:col-span-1 space-y-6">
-            {profile && (
-              <ProfileCompletenessWidget
-                completeness={profile.profile_completeness}
-                missingFields={getMissingFields()}
-                onComplete={() => setEditingSection('capabilities')}
+          {renderInfoSection(
+            'Возможности организации',
+            <CheckCircle className="w-5 h-5 text-primary" />,
+            !profile?.capabilities || profile.capabilities.length === 0,
+            editingSection === 'capabilities' ? (
+              <CapabilitiesSelector
+                selectedCapabilities={localCapabilities}
+                availableCapabilities={availableCapabilities || []}
+                onChange={setLocalCapabilities}
+                showRecommendations={true}
               />
-            )}
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {profile?.capabilities?.map((cap) => (
+                  <Badge key={cap} variant="secondary" className="px-3 py-1">
+                    <CheckCircle className="w-3 h-3 mr-2 opacity-50" />
+                    {CAPABILITY_LABELS[cap] || cap}
+                  </Badge>
+                ))}
+              </div>
+            ),
+            'capabilities'
+          )}
 
-            {profile && profile.recommended_modules && profile.recommended_modules.length > 0 && (
-              <div className="bg-gradient-to-br from-construction-50 to-orange-50 border border-construction-200 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Рекомендуемые модули
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  На основе профиля вашей организации
-                </p>
-                <div className="space-y-2">
-                  {profile.recommended_modules.map((module: string | { value: string; label: string }, index: number) => {
-                    const moduleText = typeof module === 'string' ? module : (module?.label || module?.value || 'Модуль');
-                    const moduleKey = typeof module === 'string' ? module : (module?.value || index);
-                    return (
-                      <div
-                        key={moduleKey}
-                        className="flex items-center space-x-2 text-sm text-gray-700 bg-white p-3 rounded-lg shadow-sm"
-                      >
-                        <CheckCircleIcon className="w-4 h-4 text-construction-600 flex-shrink-0" />
-                        <span>{moduleText}</span>
-                      </div>
-                    );
-                  })}
+          {renderInfoSection(
+            'Основной тип деятельности',
+            <Briefcase className="w-5 h-5 text-blue-600" />,
+            !profile?.primary_business_type,
+            editingSection === 'business_type' ? (
+              <BusinessTypeSelector
+                selectedType={localBusinessType}
+                onChange={setLocalBusinessType}
+              />
+            ) : (
+              <div className="flex items-center gap-4 p-4 bg-blue-50/50 border border-blue-100 rounded-lg">
+                <div className="text-3xl">🏗️</div>
+                <div>
+                  <p className="font-bold text-foreground">
+                    {BUSINESS_TYPE_LABELS[profile?.primary_business_type || ''] || profile?.primary_business_type}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Основное направление работы организации
+                  </p>
                 </div>
               </div>
-            )}
-          </div>
+            ),
+            'business_type'
+          )}
+
+          {renderInfoSection(
+            'Специализации',
+            <ListChecks className="w-5 h-5 text-emerald-600" />,
+            !profile?.specializations || profile.specializations.length === 0,
+            editingSection === 'specializations' ? (
+              <SpecializationsSelector
+                selectedSpecializations={localSpecializations}
+                onChange={setLocalSpecializations}
+              />
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {profile?.specializations?.map((spec) => (
+                  <Badge key={spec} variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 px-3 py-1">
+                    {SPECIALIZATION_LABELS[spec] || spec}
+                  </Badge>
+                ))}
+              </div>
+            ),
+            'specializations'
+          )}
+
+          {renderInfoSection(
+            'Сертификаты и допуски',
+            <Award className="w-5 h-5 text-violet-600" />,
+            !profile?.certifications || profile.certifications.length === 0,
+            editingSection === 'certifications' ? (
+              <CertificationsList
+                certifications={localCertifications}
+                onChange={setLocalCertifications}
+              />
+            ) : (
+              <div className="space-y-2">
+                {profile?.certifications?.map((cert, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 p-3 bg-violet-50/50 border border-violet-100 rounded-lg"
+                  >
+                    <div className="p-1 bg-violet-100 rounded-md">
+                        <CheckCircle className="w-4 h-4 text-violet-600" />
+                    </div>
+                    <span className="text-sm font-medium">{cert}</span>
+                  </div>
+                ))}
+              </div>
+            ),
+            'certifications'
+          )}
+        </div>
+
+        <div className="lg:col-span-1 space-y-6">
+          {profile && (
+            <ProfileCompletenessWidget
+              completeness={profile.profile_completeness}
+              missingFields={getMissingFields()}
+              onComplete={() => setEditingSection('capabilities')}
+            />
+          )}
+
+          {profile && profile.recommended_modules && profile.recommended_modules.length > 0 && (
+            <Card className="bg-gradient-to-br from-background to-muted border-primary/20">
+              <CardHeader>
+                <CardTitle className="text-lg">Рекомендуемые модули</CardTitle>
+                <CardDescription>На основе профиля вашей организации</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {profile.recommended_modules.map((module: string | { value: string; label: string }, index: number) => {
+                  const moduleText = typeof module === 'string' ? module : (module?.label || module?.value || 'Модуль');
+                  const moduleKey = typeof module === 'string' ? module : (module?.value || index);
+                  return (
+                    <div
+                      key={moduleKey}
+                      className="flex items-center gap-2 text-sm p-3 bg-background rounded-lg border shadow-sm"
+                    >
+                      <CheckCircle className="w-4 h-4 text-primary shrink-0" />
+                      <span>{moduleText}</span>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

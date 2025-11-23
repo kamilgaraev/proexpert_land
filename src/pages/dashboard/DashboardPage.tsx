@@ -2,28 +2,37 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  BuildingOfficeIcon,
-  UsersIcon,
-  ChartBarIcon,
-  DocumentTextIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  BanknotesIcon,
-  ShieldCheckIcon,
-  TicketIcon,
-  QuestionMarkCircleIcon,
-  LifebuoyIcon,
-  WrenchScrewdriverIcon,
-  TruckIcon
-} from '@heroicons/react/24/outline';
+  Building2,
+  Users,
+  FileText,
+  CheckCircle,
+  Wallet,
+  ShieldCheck,
+  Ticket,
+  HelpCircle,
+  LifeBuoy,
+  Wrench,
+  Plus,
+  Clock,
+  AlertTriangle,
+  ArrowUpRight,
+  ArrowDownRight,
+  CreditCard,
+  BarChart,
+  File
+} from 'lucide-react';
+
 import { landingService, billingService } from '@utils/api';
 import type { LandingDashboardResponse } from '@utils/api';
-import StatCard from '@components/dashboard/StatCard';
-import FinancialCard from '@components/dashboard/FinancialCard';
 import LineChart from '@components/dashboard/LineChart';
 import DonutStatusChart from '@components/dashboard/DonutStatusChart';
 import { useSubscriptionLimits } from '@hooks/useSubscriptionLimits';
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 const DashboardPage = () => {
   const [landingData, setLandingData] = useState<LandingDashboardResponse | null>(null);
@@ -31,18 +40,15 @@ const DashboardPage = () => {
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
 
-  // Хук для лимитов подписки
   const { 
     hasWarnings, 
     criticalWarnings, 
     needsUpgrade 
   } = useSubscriptionLimits({
     autoRefresh: true,
-    refreshInterval: 300000, // 5 минут
-    onCritical: (_warnings) => {
-    },
-    onWarning: (_warnings) => {
-    }
+    refreshInterval: 300000,
+    onCritical: () => {},
+    onWarning: () => {}
   });
 
   useEffect(() => {
@@ -63,480 +69,393 @@ const DashboardPage = () => {
     })();
   }, []);
 
-  // Удаляем объявление const projectStats = [...] и recentProjects
-  // Вместо них формируем динамический массив
+  const formatCurrency = (val: number) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(val);
+
   const statCards = landingData ? [
     {
       name: 'Проекты',
       value: landingData.projects?.total || 0,
-      icon: <BuildingOfficeIcon className="h-6 w-6 text-white" />,
-      color: 'construction',
+      icon: Building2,
+      trend: '+12%', // Mock trend
+      trendUp: true,
+      description: 'Активных объектов'
     },
     {
       name: 'Контракты',
       value: landingData.contracts?.total || 0,
-      icon: <DocumentTextIcon className="h-6 w-6 text-white" />,
-      color: 'safety',
+      icon: FileText,
+      trend: '+5%',
+      trendUp: true,
+      description: 'Подписанных договоров'
     },
     {
       name: 'Команда',
       value: landingData.team?.total || 0,
-      icon: <UsersIcon className="h-6 w-6 text-white" />,
-      color: 'earth',
+      icon: Users,
+      trend: '0%',
+      trendUp: true,
+      description: 'Сотрудников в штате'
     },
     {
       name: 'Акты',
       value: landingData.acts?.total || 0,
-      icon: <CheckCircleIcon className="h-6 w-6 text-white" />,
-      color: 'steel',
+      icon: CheckCircle,
+      trend: '+8%',
+      trendUp: true,
+      description: 'Закрытых работ'
     },
   ] : [];
 
   const quickActions = [
     {
       name: 'Создать проект',
-      description: 'Добавить новый строительный объект',
+      description: 'Новый объект строительства',
       href: '/dashboard/projects/create',
-      icon: BuildingOfficeIcon,
-      color: 'construction'
+      icon: Building2,
+      variant: 'default' as const
     },
     {
       name: 'Пригласить прораба',
-      description: 'Добавить нового члена команды',
+      description: 'Добавить сотрудника',
       href: '/dashboard/admins',
-      icon: UsersIcon,
-      color: 'safety'
+      icon: Users,
+      variant: 'outline' as const
     },
     {
       name: 'Загрузить документы',
-      description: 'Добавить планы и чертежи',
+      description: 'Планы и чертежи',
       href: '/dashboard/documents',
-      icon: DocumentTextIcon,
-      color: 'earth'
+      icon: File,
+      variant: 'outline' as const
     },
     {
       name: 'Посмотреть отчеты',
-      description: 'Аналитика по проектам',
+      description: 'Сводная аналитика',
       href: '/dashboard/reports',
-      icon: ChartBarIcon,
-      color: 'steel'
+      icon: BarChart,
+      variant: 'outline' as const
     }
   ];
-
-  const managementCards = [
-    {
-      name: 'Финансы',
-      description: 'Управление бюджетом и платежами',
-      href: '/dashboard/billing',
-      icon: BanknotesIcon,
-      color: 'construction'
-    },
-    {
-      name: 'Команда',
-      description: 'Администраторы и прорабы',
-      href: '/dashboard/admins',
-      icon: ShieldCheckIcon,
-      color: 'safety'
-    },
-    {
-      name: 'Услуги',
-      description: 'Тарифы и дополнительные возможности',
-      href: '/dashboard/paid-services',
-      icon: TicketIcon,
-      color: 'earth'
-    }
-  ];
-
-  const supportCards = [
-    {
-      name: 'База знаний',
-      description: 'Ответы на частые вопросы',
-      href: '/dashboard/help',
-      icon: QuestionMarkCircleIcon,
-      color: 'steel'
-    },
-    {
-      name: 'Техподдержка',
-      description: 'Связаться с нашей командой',
-      href: '/dashboard/support',
-      icon: LifebuoyIcon,
-      color: 'construction'
-    }
-  ];
-
-  const getColorClasses = (color: string) => {
-    const colors = {
-      construction: {
-        bg: 'bg-gradient-to-br from-construction-500 to-construction-600',
-        text: 'text-construction-600',
-        lightBg: 'bg-construction-50',
-        border: 'border-construction-200'
-      },
-      safety: {
-        bg: 'bg-gradient-to-br from-safety-500 to-safety-600', 
-        text: 'text-safety-600',
-        lightBg: 'bg-safety-50',
-        border: 'border-safety-200'
-      },
-      earth: {
-        bg: 'bg-gradient-to-br from-earth-500 to-earth-600',
-        text: 'text-earth-600', 
-        lightBg: 'bg-earth-50',
-        border: 'border-earth-200'
-      },
-      steel: {
-        bg: 'bg-gradient-to-br from-steel-500 to-steel-600',
-        text: 'text-steel-600',
-        lightBg: 'bg-steel-50', 
-        border: 'border-steel-200'
-      }
-    };
-    return colors[color as keyof typeof colors] || colors.construction;
-  };
-
-  const LimitBar = ({ label, used, max }: { label: string; used: number; max: number }) => {
-    const percent = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 0;
-    let barColor = 'bg-earth-500';
-    if (percent >= 90) barColor = 'bg-construction-500';
-    else if (percent >= 70) barColor = 'bg-safety-500';
-
-    return (
-      <div>
-        <div className="flex justify-between text-sm mb-2">
-          <span className="font-medium text-steel-700">{label}</span>
-          <span className="text-steel-600">{used} / {max}</span>
-        </div>
-        <div className="w-full h-3 bg-steel-100 rounded-full overflow-hidden">
-          <div
-            className={`h-3 rounded-full ${barColor} transition-all duration-500`}
-            style={{ width: `${percent}%` }}
-          />
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="space-y-8">
-      {/* Заголовок */}
-      <motion.div 
-        className="flex items-center justify-between"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-steel-900 mb-2">
-            Добро пожаловать в ProExpert
-          </h1>
-          <p className="text-steel-600 text-lg">
-            Управляйте строительными проектами эффективно
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Обзор</h1>
+          <p className="text-muted-foreground">Сводная информация по вашим проектам и финансам.</p>
         </div>
-        <div className="hidden md:flex items-center space-x-2 text-sm text-steel-500">
-          <ClockIcon className="h-4 w-4" />
-          <span>Последнее обновление: {new Date().toLocaleTimeString('ru-RU')}</span>
+        <div className="flex items-center gap-2">
+           <span className="text-sm text-muted-foreground flex items-center bg-muted px-3 py-1 rounded-full">
+             <Clock className="h-3 w-3 mr-2" />
+             Обновлено: {new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+           </span>
+           <Button asChild>
+             <Link to="/dashboard/projects/create">
+               <Plus className="h-4 w-4 mr-2" />
+               Новый проект
+             </Link>
+           </Button>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Предупреждения о лимитах */}
+      {/* Alerts */}
       {hasWarnings && criticalWarnings.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.05 }}
-          className="bg-gradient-to-r from-red-500 to-red-600 rounded-2xl p-4 text-white"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 flex items-center justify-between text-destructive"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <ExclamationTriangleIcon className="w-6 h-6 text-white" />
-              <div>
-                <h3 className="font-semibold">Внимание к лимитам</h3>
-                <p className="text-sm text-red-100">
-                  {criticalWarnings.length === 1 
-                    ? `1 критическое предупреждение` 
-                    : `${criticalWarnings.length} критических предупреждений`}
-                </p>
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <Link
-                to="/dashboard/limits"
-                className="bg-white text-red-600 px-4 py-2 rounded-xl font-medium hover:bg-red-50 transition-colors text-sm"
-              >
-                Подробнее
-              </Link>
-              {needsUpgrade && (
-                <Link
-                  to="/dashboard/billing"
-                  className="bg-red-700 text-white px-4 py-2 rounded-xl font-medium hover:bg-red-800 transition-colors text-sm"
-                >
-                  Обновить тариф
-                </Link>
-              )}
-            </div>
-          </div>
+             <div className="flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5" />
+                <div>
+                    <p className="font-semibold">Внимание: Лимиты подписки исчерпаны</p>
+                    <p className="text-sm opacity-90">У вас {criticalWarnings.length} критических предупреждений. Функционал может быть ограничен.</p>
+                </div>
+             </div>
+             <Button variant="destructive" size="sm" asChild>
+                 <Link to="/dashboard/billing">Обновить тариф</Link>
+             </Button>
         </motion.div>
       )}
 
-      {/* Статистика */}
+      {/* Stats Grid */}
       {landingData && (
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          <FinancialCard
-            balance={landingData.financial?.balance || 0}
-            credits={landingData.financial?.credits_this_month || 0}
-            debits={landingData.financial?.debits_this_month || 0}
-          />
-          {statCards.map((card) => (
-            <StatCard
-              key={card.name}
-              title={card.name}
-              value={card.value.toString()}
-              icon={card.icon}
-              colorClasses={getColorClasses(card.color)}
-            />
-          ))}
-        </motion.div>
-      )}
-
-      {/* Графики */}
-      {landingData && (
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <LineChart
-            title="Проекты по месяцам"
-            labels={landingData.charts?.projects_monthly?.labels || []}
-            values={landingData.charts?.projects_monthly?.values || []}
-          />
-          <LineChart
-            title="Контракты по месяцам"
-            labels={landingData.charts?.contracts_monthly?.labels || []}
-            values={landingData.charts?.contracts_monthly?.values || []}
-          />
-          <LineChart
-            title="Завершённые работы"
-            labels={landingData.charts?.completed_works_monthly?.labels || []}
-            values={landingData.charts?.completed_works_monthly?.values || []}
-          />
-          <LineChart
-            title="Баланс"
-            labels={landingData.charts?.balance_monthly?.labels || []}
-            values={landingData.charts?.balance_monthly?.values || []}
-          />
-        </motion.div>
-      )}
-
-      {/* Кольцевые диаграммы */}
-      {landingData && (
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <DonutStatusChart title="Статусы проектов" data={landingData.charts?.projects_status || []} />
-          <DonutStatusChart title="Статусы контрактов" data={landingData.charts?.contracts_status || []} />
-        </motion.div>
-      )}
-
-      {/* Тариф и лимиты */}
-      {dashboardLoading ? (
-        <motion.div
-          className="flex justify-center items-center h-32"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-construction-200 border-t-construction-600"></div>
-        </motion.div>
-      ) : dashboardError ? (
-        <motion.div
-          className="bg-red-50 border border-red-200 rounded-xl p-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="flex items-center">
-            <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" />
-            <span className="text-red-700">{dashboardError}</span>
-          </div>
-        </motion.div>
-      ) : dashboard && dashboard.plan ? (
-        <motion.div
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-xl font-bold text-steel-900">Тариф: {dashboard.plan.name}</h3>
-                <p className="text-steel-600 text-sm">
-                  Действует до: {dashboard.plan.ends_at ? new Date(dashboard.plan.ends_at).toLocaleDateString('ru-RU') : '—'}
-                  <span className="ml-2 text-construction-600 font-medium">({dashboard.plan.days_left} дн.)</span>
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center">
-                <TicketIcon className="h-6 w-6 text-white" />
-              </div>
-            </div>
-            <div className="space-y-4">
-              <LimitBar label="Прорабы" used={dashboard.plan.used_foremen} max={dashboard.plan.max_foremen} />
-              <LimitBar label="Объекты" used={dashboard.plan.used_projects} max={dashboard.plan.max_projects} />
-              <LimitBar label="Хранилище (ГБ)" used={dashboard.plan.used_storage_gb} max={dashboard.plan.max_storage_gb} />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-xl font-bold text-steel-900">Дополнительные услуги</h3>
-                <p className="text-steel-600 text-sm">Активные add-ons и расширения</p>
-              </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-safety-500 to-safety-600 rounded-xl flex items-center justify-center">
-                <WrenchScrewdriverIcon className="h-6 w-6 text-white" />
-              </div>
-            </div>
-            {dashboard.addons && dashboard.addons.length > 0 ? (
-              <div className="space-y-3">
-                {dashboard.addons.map((addon: any, idx: number) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-steel-50 rounded-lg">
-                    <div>
-                      <span className="font-medium text-steel-900">{addon.name}</span>
-                      {addon.expires_at && (
-                        <p className="text-xs text-steel-500 mt-1">до {new Date(addon.expires_at).toLocaleDateString('ru-RU')}</p>
-                      )}
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      addon.status === 'active' ? 'bg-earth-100 text-earth-700' : 'bg-steel-100 text-steel-600'
-                    }`}>{addon.status === 'active' ? 'Активен' : addon.status}</span>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+             {/* Financial Card - Featured */}
+             <Card className="bg-gradient-to-br from-primary to-orange-600 text-primary-foreground border-none shadow-lg md:col-span-2 relative overflow-hidden">
+                <div className="absolute right-0 top-0 h-full w-1/2 bg-white/5 skew-x-12 -translate-x-10 pointer-events-none"></div>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-primary-foreground/90">
+                    Финансовый баланс
+                  </CardTitle>
+                  <Wallet className="h-4 w-4 text-primary-foreground/70" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{formatCurrency(landingData.financial?.balance || 0)}</div>
+                  <p className="text-xs text-primary-foreground/70 mt-1">
+                    Доступные средства
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-4 mt-6">
+                      <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
+                          <div className="flex items-center text-green-100 text-xs mb-1">
+                             <ArrowUpRight className="h-3 w-3 mr-1" />
+                             Поступления
+                          </div>
+                          <div className="font-semibold text-lg">{formatCurrency(landingData.financial?.credits_this_month || 0)}</div>
+                      </div>
+                      <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
+                          <div className="flex items-center text-red-100 text-xs mb-1">
+                             <ArrowDownRight className="h-3 w-3 mr-1" />
+                             Расходы
+                          </div>
+                          <div className="font-semibold text-lg">{formatCurrency(landingData.financial?.debits_this_month || 0)}</div>
+                      </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <TruckIcon className="h-12 w-12 text-steel-300 mx-auto mb-3" />
-                <p className="text-steel-500">Нет активных дополнительных услуг</p>
-                <Link to="/dashboard/paid-services" className="text-construction-600 hover:text-construction-700 text-sm font-medium mt-2 inline-block">Посмотреть доступные услуги →</Link>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      ) : null}
+                </CardContent>
+              </Card>
 
-      {/* Быстрые действия */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
-      >
-        <h2 className="text-2xl font-bold text-steel-900 mb-6">Быстрые действия</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {quickActions.map((action, index) => {
-            const colors = getColorClasses(action.color);
-            return (
-              <motion.div
-                key={action.name}
-                whileHover={{ y: -2 }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
-              >
-                <Link
-                  to={action.href}
-                  className="block bg-white rounded-2xl p-6 shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300"
-                >
-                  <div className={`w-12 h-12 ${colors.bg} rounded-xl flex items-center justify-center mb-4`}>
-                    <action.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="font-bold text-steel-900 mb-2">{action.name}</h3>
-                  <p className="text-steel-600 text-sm">{action.description}</p>
-                </Link>
-              </motion.div>
-            );
-          })}
+             {statCards.slice(0, 2).map((stat) => (
+                <Card key={stat.name} className="shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {stat.name}
+                    </CardTitle>
+                    <stat.icon className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        {stat.description}
+                    </p>
+                    </CardContent>
+                </Card>
+             ))}
         </div>
-      </motion.div>
+      )}
 
-      {/* Управление и поддержка */}
-      <motion.div 
-        className="grid grid-cols-1 lg:grid-cols-2 gap-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.6 }}
-      >
-        <div>
-          <h2 className="text-2xl font-bold text-steel-900 mb-6">Управление</h2>
-          <div className="space-y-4">
-            {managementCards.map((card, index) => {
-              const colors = getColorClasses(card.color);
-              return (
-                <motion.div
-                  key={card.name}
-                  whileHover={{ x: 4 }}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
-                >
-                  <Link
-                    to={card.href}
-                    className="flex items-center p-4 bg-white rounded-xl shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300"
-                  >
-                    <div className={`w-12 h-12 ${colors.bg} rounded-xl flex items-center justify-center mr-4`}>
-                      <card.icon className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-steel-900">{card.name}</h3>
-                      <p className="text-steel-600 text-sm">{card.description}</p>
-                    </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
+      {landingData && (
+         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {statCards.slice(2).map((stat) => (
+                <Card key={stat.name} className="shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {stat.name}
+                    </CardTitle>
+                    <stat.icon className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        {stat.description}
+                    </p>
+                    </CardContent>
+                </Card>
+             ))}
+              <Card className="md:col-span-2 bg-muted/50 border-dashed">
+                 <CardHeader className="pb-2">
+                     <CardTitle className="text-base">Быстрые действия</CardTitle>
+                 </CardHeader>
+                 <CardContent className="grid grid-cols-2 gap-2">
+                     {quickActions.map((action) => (
+                         <Button key={action.name} variant="outline" className="h-auto py-3 justify-start text-left bg-background" asChild>
+                             <Link to={action.href}>
+                                 <div className="bg-primary/10 p-2 rounded-md mr-3">
+                                     <action.icon className="h-4 w-4 text-primary" />
+                                 </div>
+                                 <div className="flex flex-col">
+                                     <span className="font-medium">{action.name}</span>
+                                     <span className="text-[10px] text-muted-foreground font-normal">{action.description}</span>
+                                 </div>
+                             </Link>
+                         </Button>
+                     ))}
+                 </CardContent>
+              </Card>
+         </div>
+      )}
 
-        <div>
-          <h2 className="text-2xl font-bold text-steel-900 mb-6">Поддержка</h2>
-          <div className="space-y-4">
-            {supportCards.map((card, index) => {
-              const colors = getColorClasses(card.color);
-              return (
-                <motion.div
-                  key={card.name}
-                  whileHover={{ x: 4 }}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, delay: 0.7 + index * 0.1 }}
-                >
-                  <Link
-                    to={card.href}
-                    className="flex items-center p-4 bg-white rounded-xl shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300"
-                  >
-                    <div className={`w-12 h-12 ${colors.bg} rounded-xl flex items-center justify-center mr-4`}>
-                      <card.icon className="h-6 w-6 text-white" />
+      {/* Charts */}
+      {landingData && (
+         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+             <Card className="lg:col-span-4">
+                 <CardHeader>
+                     <CardTitle>Проекты по месяцам</CardTitle>
+                     <CardDescription>Динамика создания новых объектов</CardDescription>
+                 </CardHeader>
+                 <CardContent className="pl-2">
+                     <div className="h-[300px]">
+                        <LineChart
+                            title=""
+                            labels={landingData.charts?.projects_monthly?.labels || []}
+                            values={landingData.charts?.projects_monthly?.values || []}
+                        />
+                     </div>
+                 </CardContent>
+             </Card>
+             <Card className="lg:col-span-3">
+                 <CardHeader>
+                     <CardTitle>Статус проектов</CardTitle>
+                     <CardDescription>Распределение по этапам</CardDescription>
+                 </CardHeader>
+                 <CardContent>
+                     <div className="h-[300px] flex items-center justify-center">
+                        <DonutStatusChart title="" data={landingData.charts?.projects_status || []} />
+                     </div>
+                 </CardContent>
+             </Card>
+         </div>
+      )}
+      
+      {/* Additional Charts */}
+      {landingData && (
+         <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+                 <CardHeader>
+                     <CardTitle className="text-sm">Контракты</CardTitle>
+                 </CardHeader>
+                 <CardContent className="pl-0 pr-2">
+                    <div className="h-[200px]">
+                         <LineChart
+                            title=""
+                            labels={landingData.charts?.contracts_monthly?.labels || []}
+                            values={landingData.charts?.contracts_monthly?.values || []}
+                        />
                     </div>
-                    <div>
-                      <h3 className="font-bold text-steel-900">{card.name}</h3>
-                      <p className="text-steel-600 text-sm">{card.description}</p>
+                 </CardContent>
+            </Card>
+            <Card>
+                 <CardHeader>
+                     <CardTitle className="text-sm">Завершённые работы</CardTitle>
+                 </CardHeader>
+                 <CardContent className="pl-0 pr-2">
+                    <div className="h-[200px]">
+                        <LineChart
+                            title=""
+                            labels={landingData.charts?.completed_works_monthly?.labels || []}
+                            values={landingData.charts?.completed_works_monthly?.values || []}
+                        />
                     </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
+                 </CardContent>
+            </Card>
+            <Card>
+                 <CardHeader>
+                     <CardTitle className="text-sm">Баланс (Динамика)</CardTitle>
+                 </CardHeader>
+                 <CardContent className="pl-0 pr-2">
+                    <div className="h-[200px]">
+                        <LineChart
+                            title=""
+                            labels={landingData.charts?.balance_monthly?.labels || []}
+                            values={landingData.charts?.balance_monthly?.values || []}
+                        />
+                    </div>
+                 </CardContent>
+            </Card>
+         </div>
+      )}
+
+      {/* Limits & Subscription */}
+      {dashboard && dashboard.plan && (
+        <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="space-y-1">
+                        <CardTitle>Ваш Тариф</CardTitle>
+                        <CardDescription>Информация о подписке</CardDescription>
+                    </div>
+                    <Badge variant="secondary" className="text-lg px-3 py-1">{dashboard.plan.name}</Badge>
+                </CardHeader>
+                <CardContent className="grid gap-4 pt-6">
+                     <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                             <Clock className="h-4 w-4 text-muted-foreground" />
+                             <span className="text-sm">Истекает</span>
+                        </div>
+                        <span className="font-medium">
+                            {dashboard.plan.ends_at ? new Date(dashboard.plan.ends_at).toLocaleDateString('ru-RU') : 'Бессрочно'}
+                        </span>
+                     </div>
+                     <Separator />
+                     
+                     <div className="space-y-3">
+                         <LimitItem label="Прорабы" used={dashboard.plan.used_foremen} max={dashboard.plan.max_foremen} />
+                         <LimitItem label="Объекты" used={dashboard.plan.used_projects} max={dashboard.plan.max_projects} />
+                         <LimitItem label="Хранилище" used={dashboard.plan.used_storage_gb} max={dashboard.plan.max_storage_gb} unit="ГБ" />
+                     </div>
+                </CardContent>
+                <CardFooter>
+                    <Button variant="outline" className="w-full" asChild>
+                        <Link to="/dashboard/billing">Управление тарифом</Link>
+                    </Button>
+                </CardFooter>
+            </Card>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle>Дополнительные услуги</CardTitle>
+                    <CardDescription>Активные модули и расширения</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {dashboard.addons && dashboard.addons.length > 0 ? (
+                         <div className="space-y-4">
+                            {dashboard.addons.map((addon: any, idx: number) => (
+                                <div key={idx} className="flex items-center justify-between p-3 border rounded-lg">
+                                    <div>
+                                        <div className="font-medium">{addon.name}</div>
+                                        {addon.expires_at && (
+                                            <div className="text-xs text-muted-foreground">до {new Date(addon.expires_at).toLocaleDateString('ru-RU')}</div>
+                                        )}
+                                    </div>
+                                    <Badge variant={addon.status === 'active' ? 'default' : 'secondary'}>
+                                        {addon.status === 'active' ? 'Активен' : addon.status}
+                                    </Badge>
+                                </div>
+                            ))}
+                         </div>
+                    ) : (
+                        <div className="text-center py-12 text-muted-foreground">
+                            <Ticket className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                            <p>Нет активных услуг</p>
+                        </div>
+                    )}
+                </CardContent>
+                <CardFooter>
+                    <Button className="w-full" asChild>
+                        <Link to="/dashboard/paid-services">Каталог услуг</Link>
+                    </Button>
+                </CardFooter>
+            </Card>
         </div>
-      </motion.div>
+      )}
     </div>
   );
 };
 
-export default DashboardPage; 
+const LimitItem = ({ label, used, max, unit = '' }: { label: string, used: number, max: number, unit?: string }) => {
+    const percentage = max > 0 ? Math.min((used / max) * 100, 100) : 0;
+    const isWarning = percentage > 80;
+    const isCritical = percentage >= 100;
+
+    return (
+        <div className="space-y-1">
+            <div className="flex justify-between text-sm">
+                <span>{label}</span>
+                <span className="text-muted-foreground">
+                    {used} / {max} {unit}
+                </span>
+            </div>
+            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                <div 
+                    className={cn("h-full transition-all duration-500", 
+                        isCritical ? "bg-destructive" : isWarning ? "bg-yellow-500" : "bg-primary"
+                    )} 
+                    style={{ width: `${percentage}%` }}
+                />
+            </div>
+        </div>
+    )
+}
+
+export default DashboardPage;

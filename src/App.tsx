@@ -29,7 +29,7 @@ const SubscriptionLimitsPage = lazy(() => import('@pages/dashboard/SubscriptionL
 const ModulesPage = lazy(() => import('@pages/dashboard/ModulesPage'));
 const CustomRolesPage = lazy(() => import('@pages/dashboard/CustomRolesPage'));
 const MultiOrganizationPage = lazy(() => import('@pages/dashboard/MultiOrganizationPage'));
-const NotificationsPage = lazy(() => import('@pages/dashboard/notifications.page').then(m => ({ default: m.Page })));
+const NotificationsPage = lazy(() => import('@pages/dashboard/NotificationsPage').then(m => ({ default: m.Page })));
 
 // Lazy loading для admin панели
 const UsersList = lazy(() => import('@pages/admin/users/UsersList'));
