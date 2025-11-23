@@ -41,7 +41,7 @@ export function Header({
   onLogout,
   sidebarProps 
 }: HeaderProps) {
-  const location = useLocation();
+  // const location = useLocation();
 
   // Extract initials for avatar fallback
   const getInitials = (name: string) => {
