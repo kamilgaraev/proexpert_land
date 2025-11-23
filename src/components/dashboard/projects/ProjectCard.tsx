@@ -2,7 +2,6 @@ import { MapPin, ArrowUpRight, Building2, User } from 'lucide-react';
 import type { ProjectOverview } from '@/types/projects-overview';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface ProjectCardProps {
