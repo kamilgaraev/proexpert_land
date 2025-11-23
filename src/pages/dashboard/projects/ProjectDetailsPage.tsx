@@ -11,14 +11,12 @@ import {
   CheckCircle2,
   Briefcase,
   FileText,
-  Clock,
   Users,
   ChevronRight,
   Building2,
   AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -91,7 +89,8 @@ const ProjectDetailsPage = () => {
         setLoading(true);
         // Using the standard axios instance from utils/api
         const response = await api.get(`/landing/my-projects/${id}`);
-        setProject(response.data.data); // Assuming response structure matches ProjectDetailsResponse
+        const responseData = response.data as any;
+        setProject(responseData.data); // Assuming response structure matches ProjectDetailsResponse
       } catch (err) {
         console.error('Failed to fetch project details:', err);
         setError('Не удалось загрузить данные проекта');

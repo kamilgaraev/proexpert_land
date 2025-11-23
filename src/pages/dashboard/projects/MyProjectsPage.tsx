@@ -5,7 +5,7 @@ import api from '@/utils/api';
 import { PlusIcon, FolderIcon, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ProjectOverview } from '@/types/projects-overview';
 
 export const MyProjectsPage = () => {
@@ -23,7 +23,8 @@ export const MyProjectsPage = () => {
         // Adjusting to match likely response based on typical patterns or previous types
         const response = await api.get('/landing/my-projects'); 
         // Handling potential structure variations
-        const projectsData = response.data.data?.projects || response.data.data || [];
+        const responseData = response.data as any;
+        const projectsData = responseData.data?.projects || responseData.data || [];
         setProjects(projectsData);
       } catch (error) {
         console.error('Ошибка загрузки проектов:', error);

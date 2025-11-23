@@ -1,16 +1,12 @@
 import { useState, useCallback } from 'react';
-import { myProjectsService } from '@/utils/api';
+import api from '@/utils/api';
 import type {
   ProjectOverview,
-  ProjectsGrouped,
-  ProjectsTotals,
   ProjectDetails
 } from '@/types/projects-overview';
 
 interface UseMyProjectsState {
   projects: ProjectOverview[];
-  grouped: ProjectsGrouped | null;
-  totals: ProjectsTotals | null;
   loading: boolean;
   error: string | null;
 }
@@ -22,8 +18,6 @@ interface UseMyProjectsReturn extends UseMyProjectsState {
 
 export const useMyProjects = (): UseMyProjectsReturn => {
   const [projects, setProjects] = useState<ProjectOverview[]>([]);
-  const [grouped, setGrouped] = useState<ProjectsGrouped | null>(null);
-  const [totals, setTotals] = useState<ProjectsTotals | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,13 +25,12 @@ export const useMyProjects = (): UseMyProjectsReturn => {
     try {
       setLoading(true);
       setError(null);
-      const response = await myProjectsService.getMyProjects();
+      const response = await api.get('/landing/my-projects');
       
-      if (response.data && response.data.success) {
-        const data = response.data.data;
-        setProjects(data.projects);
-        setGrouped(data.grouped);
-        setTotals(data.totals);
+      if (response.data && response.data.success !== false) {
+         // Support both { data: [...] } and { data: { projects: [...] } }
+         const data = response.data.data?.projects || response.data.data || [];
+         setProjects(Array.isArray(data) ? data : []);
       } else {
         setError(response.data?.message || 'Ошибка загрузки проектов');
       }
@@ -56,8 +49,6 @@ export const useMyProjects = (): UseMyProjectsReturn => {
 
   return {
     projects,
-    grouped,
-    totals,
     loading,
     error,
     fetchProjects,
@@ -85,9 +76,9 @@ export const useProjectDetails = (): UseProjectDetailsReturn => {
     try {
       setLoading(true);
       setError(null);
-      const response = await myProjectsService.getProjectDetails(projectId);
+      const response = await api.get(`/landing/my-projects/${projectId}`);
       
-      if (response.data && response.data.success) {
+      if (response.data && response.data.success !== false) {
         setProjectDetails(response.data.data);
       } else {
         setError(response.data?.message || 'Ошибка загрузки деталей проекта');
@@ -114,4 +105,3 @@ export const useProjectDetails = (): UseProjectDetailsReturn => {
     clearDetails
   };
 };
-

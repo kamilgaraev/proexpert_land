@@ -1,10 +1,17 @@
-import type { ProjectOrganizationRole, RoleBadgeConfig, RoleInfo } from '@/types/projects-overview';
+import type { ProjectOrganizationRole, ProjectRole } from '@/types/projects-overview';
 
 interface RoleBadgeProps {
-  role: RoleInfo;
+  role: ProjectRole | ProjectOrganizationRole;
   size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
   className?: string;
+}
+
+interface RoleBadgeConfig {
+  label: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
 }
 
 const ROLE_CONFIGS: Record<ProjectOrganizationRole, RoleBadgeConfig> = {
@@ -115,4 +122,3 @@ export const RoleBadge = ({
     </span>
   );
 };
-
