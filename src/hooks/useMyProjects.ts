@@ -26,13 +26,14 @@ export const useMyProjects = (): UseMyProjectsReturn => {
       setLoading(true);
       setError(null);
       const response = await api.get('/landing/my-projects');
+      const responseData = response.data as any;
       
-      if (response.data && response.data.success !== false) {
+      if (responseData && responseData.success !== false) {
          // Support both { data: [...] } and { data: { projects: [...] } }
-         const data = response.data.data?.projects || response.data.data || [];
+         const data = responseData.data?.projects || responseData.data || [];
          setProjects(Array.isArray(data) ? data : []);
       } else {
-        setError(response.data?.message || 'Ошибка загрузки проектов');
+        setError(responseData?.message || 'Ошибка загрузки проектов');
       }
     } catch (err: any) {
       const errorMessage = err.message || 'Ошибка загрузки проектов';
@@ -77,11 +78,12 @@ export const useProjectDetails = (): UseProjectDetailsReturn => {
       setLoading(true);
       setError(null);
       const response = await api.get(`/landing/my-projects/${projectId}`);
+      const responseData = response.data as any;
       
-      if (response.data && response.data.success !== false) {
-        setProjectDetails(response.data.data);
+      if (responseData && responseData.success !== false) {
+        setProjectDetails(responseData.data);
       } else {
-        setError(response.data?.message || 'Ошибка загрузки деталей проекта');
+        setError(responseData?.message || 'Ошибка загрузки деталей проекта');
       }
     } catch (err: any) {
       const errorMessage = err.message || 'Ошибка загрузки деталей проекта';
