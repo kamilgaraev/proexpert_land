@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Search, 
   Wallet, 
@@ -86,7 +86,7 @@ export function Header({
            <Link 
                 to="/dashboard/billing" 
                 className="hidden sm:flex items-center px-3 py-1.5 bg-gradient-to-r from-safety-500/10 to-safety-600/10 hover:from-safety-500/20 hover:to-safety-600/20 border border-safety-200 rounded-lg transition-all group"
-                onClick={(e) => {
+                onClick={(e: any) => {
                   if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
                     refreshBalance();

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, Plus, FolderOpen } from 'lucide-react';
+import { Filter, Plus, FolderOpen, Search } from 'lucide-react';
 
 import { useMyProjects, useProjectDetails } from '@/hooks/useMyProjects';
 import { ProjectCard } from '@/components/dashboard/projects/ProjectCard';
@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuContent,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '@/components/ui/skeleton';
 

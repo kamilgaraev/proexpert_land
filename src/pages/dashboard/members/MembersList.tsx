@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, UserPlus, Mail } from "lucide-react"
+import { MoreHorizontal, UserPlus, Mail, Search } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 interface Member {

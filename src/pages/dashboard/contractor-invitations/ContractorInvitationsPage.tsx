@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-type TabType = 'invitations' | 'stats';
+// type TabType = 'invitations' | 'stats';
 
 const ContractorInvitationsPage: React.FC = () => {
   // const [activeTab, setActiveTab] = useState<TabType>('invitations');

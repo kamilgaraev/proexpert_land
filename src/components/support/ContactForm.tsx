@@ -29,11 +29,11 @@ export function ContactForm() {
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (value: string) => {
-    setFormData(prev => ({ ...prev, type: value }));
+    setFormData((prev: any) => ({ ...prev, type: value }));
   };
   
   const handleSubmit = async (e: React.FormEvent) => {

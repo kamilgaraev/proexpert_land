@@ -11,7 +11,8 @@ import {
   Puzzle,
   Mail,
   Building,
-  UserCog
+  UserCog,
+  HelpCircle
 } from 'lucide-react';
 
 import { useAuth } from '@hooks/useAuth';

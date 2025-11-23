@@ -2,22 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
-  LayoutDashboard,
-  Briefcase,
-  Building2,
-  Settings,
-  Users,
-  ShieldCheck,
-  CreditCard,
-  PieChart,
-  Ticket,
-  Puzzle,
-  Mail,
-  HelpCircle,
   LogOut,
-  Building,
-  X,
-  ChevronLeft,
   Menu as MenuIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

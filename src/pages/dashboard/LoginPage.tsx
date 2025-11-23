@@ -14,7 +14,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
 
 // We didn't create Checkbox yet, so I'll use a simple native one styled or quickly create it.
 // For now I will use a native input with tailwind classes or assume I can make a simple one.

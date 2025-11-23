@@ -232,7 +232,7 @@ const RegisterPage = () => {
       console.error('Ошибка при регистрации:', err);
       
       if (err.message?.includes('Не удалось подключиться к серверу')) {
-        setShowNetworkError(true);
+        // setShowNetworkError(true);
         setError('Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.');
       } else if (err.message?.includes('уже занят')) {
         setValidationErrors(prev => ({
