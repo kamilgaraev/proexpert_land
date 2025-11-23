@@ -3,307 +3,85 @@ import {
   EnvelopeIcon, 
   PhoneIcon, 
   MapPinIcon,
-  BuildingOfficeIcon,
-  WrenchScrewdriverIcon,
-  TruckIcon,
-  UserGroupIcon,
-  DocumentTextIcon,
-  ShieldCheckIcon
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
-import ContactForm from './ContactForm';
+import { NAV_LINKS, SOLUTIONS } from '../../constants/landing-content';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
-  const footerSections = [
-    {
-      title: 'Продукт',
-      links: [
-        { name: 'Возможности', href: '/features', keywords: 'возможности функции' },
-        { name: 'Тарифы', href: '/pricing', keywords: 'цены тарифы стоимость' },
-        { name: 'Интеграции', href: '/integrations', keywords: 'интеграция 1С API' },
-      ]
-    },
-    {
-      title: 'Решения',
-      links: [
-        { name: 'Для малого бизнеса', href: '/small-business', keywords: 'малый бизнес стартап' },
-        { name: 'Для крупных компаний', href: '/enterprise', keywords: 'enterprise корпоративный' },
-        { name: 'Для подрядчиков', href: '/contractors', keywords: 'подрядчики субподряд' },
-        { name: 'Для девелоперов', href: '/developers', keywords: 'девелоперы застройщики' },
-      ]
-    },
-    {
-      title: 'Ресурсы',
-      links: [
-        { name: 'Документация', href: '/docs', keywords: 'документация помощь' },
-        { name: 'База знаний', href: '/help', keywords: 'помощь поддержка' },
-        { name: 'Блог', href: '/blog', keywords: 'блог статьи новости' },
-        { name: 'Вебинары', href: '/webinars', keywords: 'вебинары обучение' },
-      ]
-    },
-    {
-      title: 'Компания',
-      links: [
-        { name: 'О нас', href: '/about', keywords: 'о компании история' },
-        { name: 'Контакты', href: '/contact', keywords: 'контакты связаться телефон' },
-        { name: 'Карьера', href: '/careers', keywords: 'работа вакансии карьера' },
-        { name: 'Пресс-центр', href: '/press', keywords: 'пресса новости СМИ' },
-        { name: 'Партнеры', href: '/partners', keywords: 'партнеры сотрудничество' },
-      ]
-    }
-  ];
-
-  const socialLinks = [
-    { name: 'Telegram', href: 'https://t.me/prohelper', icon: '📱', keywords: 'telegram чат поддержка' },
-    { name: 'WhatsApp', href: 'https://wa.me/79991234567', icon: '💬', keywords: 'whatsapp консультация' },
-    { name: 'YouTube', href: 'https://youtube.com/prohelper', icon: '📺', keywords: 'youtube видео обучение' },
-    { name: 'VK', href: 'https://vk.com/prohelper', icon: '👥', keywords: 'вконтакте сообщество' },
-  ];
-
-  const solutions = [
-    { icon: TruckIcon, name: 'Учет материалов', keywords: 'учет материалов склад' },
-    { icon: UserGroupIcon, name: 'Управление командой', keywords: 'управление командой персонал' },
-    { icon: DocumentTextIcon, name: 'Документооборот', keywords: 'документооборот отчеты' },
-    { icon: ShieldCheckIcon, name: 'Безопасность', keywords: 'безопасность данных защита' }
-  ];
-
-  const certificates = [
-    { name: 'ISO 27001 - Безопасность информации', keywords: 'ISO сертификат безопасность' },
-    { name: 'ГОСТ Р ИСО 9001 - Менеджмент качества', keywords: 'ГОСТ качество стандарт' },
-    { name: 'ФЗ-152 - Защита персональных данных', keywords: 'ФЗ-152 персональные данные' },
-    { name: 'Реестр отечественного ПО', keywords: 'отечественное ПО реестр' }
-  ];
-
   return (
-    <footer 
-      className="bg-gradient-to-b from-steel-800 to-steel-900 text-white relative overflow-hidden"
-      data-seo-track="footer_view"
-    >
-      <div className="absolute inset-0 bg-construction-grid opacity-5"></div>
-      
-      <div className="container-custom relative z-10">
-        <div className="pt-12 sm:pt-16 pb-6 sm:pb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 mb-8 sm:mb-12 px-4 sm:px-0">
-            <div className="lg:col-span-4">
-              <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-construction-500 to-construction-600 rounded-lg flex items-center justify-center">
-                  <BuildingOfficeIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <span 
-                  className="text-xl sm:text-2xl font-bold text-white"
-                  data-seo-keyword="ProHelper строительство"
-                >
-                  ProHelper
-                </span>
+    <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800">
+      <div className="container-custom px-4 sm:px-6 lg:px-8">
+        <div className="grid md:grid-cols-4 gap-8 mb-12">
+          
+          {/* Brand Column */}
+          <div className="col-span-1 md:col-span-2">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-8 h-8 bg-construction-600 rounded-lg flex items-center justify-center">
+                <BuildingOfficeIcon className="w-5 h-5 text-white" />
               </div>
-              
-              <p 
-                className="text-steel-200 text-base sm:text-lg leading-relaxed mb-4 sm:mb-6"
-                data-seo-keyword="цифровая экосистема строительство"
-              >
-                Цифровая экосистема для управления строительными проектами. 
-                Объединяем прорабов, администраторов и владельцев в единой платформе.
-              </p>
-
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-center gap-2 sm:gap-3 text-steel-200">
-                  <EnvelopeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-construction-400" />
-                  <a 
-                    href="mailto:info@prohelper.ru" 
-                    className="hover:text-construction-400 transition-colors text-sm sm:text-base"
-                    data-seo-track="email_contact_click"
-                    data-seo-keyword="email контакт"
-                  >
-                    info@prohelper.ru
-                  </a>
-                </div>
-                <div className="flex items-center gap-2 sm:gap-3 text-steel-200">
-                  <PhoneIcon className="w-4 h-4 sm:w-5 sm:h-5 text-construction-400" />
-                  <a 
-                    href="tel:+79991234567" 
-                    className="hover:text-construction-400 transition-colors text-sm sm:text-base"
-                    data-seo-track="phone_contact_click"
-                    data-seo-keyword="телефон консультация"
-                  >
-                    +7 (999) 123-45-67
-                  </a>
-                </div>
-                <div className="flex items-center gap-2 sm:gap-3 text-steel-200">
-                  <MapPinIcon className="w-4 h-4 sm:w-5 sm:h-5 text-construction-400" />
-                  <span data-seo-keyword="адрес офис Москва" className="text-sm sm:text-base">Москва, ул. Строителей, 25</span>
-                </div>
-              </div>
+              <span className="text-xl font-bold text-white">ProHelper</span>
             </div>
-
-            <div className="lg:col-span-8">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-                {footerSections.map((section, index) => (
-                  <div key={index}>
-                    <h3 
-                      className="text-base sm:text-lg font-semibold text-white mb-4 sm:mb-6"
-                      data-seo-keyword={`${section.title.toLowerCase()} меню`}
-                    >
-                      {section.title}
-                    </h3>
-                    <ul className="space-y-2 sm:space-y-3">
-                      {section.links.map((link, linkIndex) => (
-                        <li key={linkIndex}>
-                          <Link 
-                            to={link.href}
-                            className="text-steel-200 hover:text-construction-400 transition-colors duration-200 text-sm sm:text-base"
-                            data-seo-track="footer_link_click"
-                            data-seo-keyword={link.keywords}
-                          >
-                            {link.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+            <p className="text-slate-400 mb-6 max-w-sm">
+              ERP-конструктор для строительного бизнеса. 
+              Стройте системно, управляйте гибко.
+            </p>
+            <div className="space-y-3">
+              <a href="tel:+79991234567" className="flex items-center gap-3 hover:text-construction-500 transition-colors">
+                <PhoneIcon className="w-5 h-5" />
+                +7 (999) 123-45-67
+              </a>
+              <a href="mailto:info@prohelper.ru" className="flex items-center gap-3 hover:text-construction-500 transition-colors">
+                <EnvelopeIcon className="w-5 h-5" />
+                info@prohelper.ru
+              </a>
+              <div className="flex items-center gap-3 text-slate-500">
+                <MapPinIcon className="w-5 h-5" />
+                Москва, ул. Строителей, 25
               </div>
             </div>
           </div>
 
-          <div className="border-t border-steel-600 pt-6 sm:pt-8 px-4 sm:px-0">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-              <div>
-                <h4 
-                  className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2"
-                  data-seo-keyword="решения функции"
-                >
-                  <WrenchScrewdriverIcon className="w-4 h-4 sm:w-5 sm:h-5 text-construction-400" />
-                  Наши решения
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
-                  {solutions.map((solution, index) => (
-                    <div 
-                      key={index}
-                      className="flex items-center gap-2 text-steel-200"
-                      data-seo-keyword={solution.keywords}
-                    >
-                      <solution.icon className="w-3 h-3 sm:w-4 sm:h-4 text-safety-400" />
-                      <span>{solution.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 
-                  className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4"
-                  data-seo-keyword="сертификаты стандарты"
-                >
-                  Сертификаты
-                </h4>
-                <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-steel-200">
-                  {certificates.map((cert, index) => (
-                    <div 
-                      key={index}
-                      data-seo-keyword={cert.keywords}
-                    >
-                      ✓ {cert.name}
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="mt-6">
-                  <h4 
-                    className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4"
-                    data-seo-keyword="социальные сети"
-                  >
-                    Мы в соцсетях
-                  </h4>
-                  <div className="flex gap-3 sm:gap-4">
-                    {socialLinks.map((social, index) => (
-                      <a
-                        key={index}
-                        href={social.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-8 h-8 sm:w-10 sm:h-10 bg-steel-700 hover:bg-construction-600 rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110"
-                        title={social.name}
-                        data-seo-track="social_link_click"
-                        data-seo-keyword={social.keywords}
-                      >
-                        <span className="text-sm sm:text-lg">{social.icon}</span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <ContactForm variant="compact" />
-              </div>
-            </div>
+          {/* Navigation */}
+          <div>
+            <h3 className="text-white font-bold mb-4">Навигация</h3>
+            <ul className="space-y-2">
+              {NAV_LINKS.map((link) => (
+                <li key={link.name}>
+                  <Link to={link.path} className="hover:text-construction-500 transition-colors">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <div className="border-t border-steel-600 pt-6 sm:pt-8 mt-6 sm:mt-8 px-4 sm:px-0">
-            <div 
-              className="bg-gradient-to-r from-construction-600 to-safety-600 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8"
-              data-seo-track="footer_cta_view"
-            >
-              <div className="text-center">
-                <h4 
-                  className="text-lg sm:text-xl font-bold text-white mb-2"
-                  data-seo-keyword="оптимизация строительные проекты"
-                >
-                  Готовы оптимизировать свои строительные проекты?
-                </h4>
-                <p className="text-white/90 mb-3 sm:mb-4 text-sm sm:text-base">
-                  Начните использовать ProHelper уже сегодня и увидите результат завтра
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-                  <Link
-                    to="/register"
-                    className="px-4 sm:px-6 py-2 sm:py-3 bg-white text-construction-600 font-semibold rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 text-sm sm:text-base"
-                    data-seo-track="footer_register_click"
-                    data-seo-keyword="попробовать бесплатно регистрация"
-                  >
-                    Попробовать бесплатно
+          {/* Solutions */}
+          <div>
+            <h3 className="text-white font-bold mb-4">Решения</h3>
+            <ul className="space-y-2">
+              {SOLUTIONS.map((sol) => (
+                <li key={sol.id}>
+                  <Link to="/solutions" className="hover:text-construction-500 transition-colors">
+                    {sol.title}
                   </Link>
-                  <Link
-                    to="/demo"
-                    className="px-4 sm:px-6 py-2 sm:py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-all duration-300 hover:scale-105 text-sm sm:text-base"
-                    data-seo-track="footer_demo_click"
-                    data-seo-keyword="демо заказать презентация"
-                  >
-                    Заказать демо
-                  </Link>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex flex-col md:flex-row justify-between items-center text-steel-400 text-xs sm:text-sm">
-              <div>
-                <p>&copy; {currentYear} ProHelper. Все права защищены.</p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-3 sm:mt-4 md:mt-0">
-                <Link 
-                  to="/privacy" 
-                  className="hover:text-construction-400 transition-colors text-center sm:text-left"
-                  data-seo-track="privacy_link_click"
-                  data-seo-keyword="политика конфиденциальности"
-                >
-                  Политика конфиденциальности
-                </Link>
-                <Link 
-                  to="/terms" 
-                  className="hover:text-construction-400 transition-colors text-center sm:text-left"
-                  data-seo-track="terms_link_click"
-                  data-seo-keyword="пользовательское соглашение"
-                >
-                  Условия использования
-                </Link>
-              </div>
-            </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
+          <div>
+            &copy; {currentYear} ProHelper. Все права защищены.
+          </div>
+          <div className="flex gap-6">
+            <Link to="/privacy" className="hover:text-white transition-colors">Конфиденциальность</Link>
+            <Link to="/terms" className="hover:text-white transition-colors">Оферта</Link>
           </div>
         </div>
       </div>
-
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-construction-500 via-safety-500 to-steel-500"></div>
     </footer>
   );
 };

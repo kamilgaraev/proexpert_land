@@ -2,7 +2,12 @@ import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 // Критические компоненты загружаем сразу (Landing + Auth)
-import LandingPage from '@pages/landing/LandingPage';
+import LandingLayout from '@layouts/LandingLayout';
+import HomePage from '@pages/landing/HomePage';
+import SolutionsPage from '@pages/landing/SolutionsPage';
+import FeaturesPage from '@pages/landing/FeaturesPage';
+import PricingPage from '@pages/landing/PricingPage';
+
 import LoginPage from '@pages/dashboard/LoginPage';
 import RegisterPage from '@pages/dashboard/RegisterPage';
 import ForgotPasswordPage from '@pages/dashboard/ForgotPasswordPage';
@@ -67,24 +72,11 @@ const OnboardingPage = lazy(() => import('@pages/dashboard/organization').then(m
 const MyProjectsPage = lazy(() => import('@pages/dashboard/projects').then(m => ({ default: m.MyProjectsPage })));
 const ProjectDetailsPage = lazy(() => import('@pages/dashboard/projects/ProjectDetailsPage'));
 
-// Lazy loading для Product страниц
-const IntegrationsPage = lazy(() => import('@pages/product/IntegrationsPage'));
-const FeaturesPage = lazy(() => import('@pages/product/FeaturesPage'));
-const PricingPage = lazy(() => import('@pages/product/PricingPage'));
-
-// Lazy loading для Solutions
-const SmallBusinessPage = lazy(() => import('@pages/solutions/SmallBusinessPage'));
-const EnterprisePage = lazy(() => import('@pages/solutions/EnterprisePage'));
-const ContractorsPage = lazy(() => import('@pages/solutions/ContractorsPage'));
-const DevelopersPage = lazy(() => import('@pages/solutions/DevelopersPage'));
-
 // Lazy loading для Resources
 const DocsPage = lazy(() => import('@pages/resources/DocsPage'));
-const WebinarsPage = lazy(() => import('@pages/resources/WebinarsPage'));
 
 // Lazy loading для Company
 const AboutPage = lazy(() => import('@pages/company/AboutPage'));
-const CareersPage = lazy(() => import('@pages/company/CareersPage'));
 const PressPage = lazy(() => import('@pages/company/PressPage'));
 const PartnersPage = lazy(() => import('@pages/company/PartnersPage'));
 const ContactPage = lazy(() => import('@pages/company/ContactPage'));
@@ -182,23 +174,21 @@ function App() {
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
         {/* Публичные маршруты */}
-        <Route path="/" element={<LandingPage />} />
+        <Route element={<LandingLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/solutions" element={<SolutionsPage />} />
+          <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+        </Route>
+        
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         {/* Админка: страница логина */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         
-        {/* Продуктовые страницы */}
-        <Route path="/features" element={<FeaturesPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/integrations" element={<IntegrationsPage />} />
-        
-        {/* Страницы решений */}
-        <Route path="/small-business" element={<SmallBusinessPage />} />
-        <Route path="/enterprise" element={<EnterprisePage />} />
-        <Route path="/contractors" element={<ContractorsPage />} />
-        <Route path="/developers" element={<DevelopersPage />} />
+        {/* Продуктовые страницы - Moved to LandingLayout */}
+        {/* Страницы решений - Moved to LandingLayout /solutions */}
         
         {/* Ресурсы */}
         <Route path="/docs" element={<DocsPage />} />
@@ -207,11 +197,11 @@ function App() {
         <Route path="/blog/category/:slug" element={<BlogCategoryPage />} />
         <Route path="/blog/tag/:slug" element={<BlogTagPage />} />
         <Route path="/blog/:slug" element={<BlogArticlePage />} />
-        <Route path="/webinars" element={<WebinarsPage />} />
+        {/* <Route path="/webinars" element={<WebinarsPage />} /> */}
         
         {/* Компания */}
         <Route path="/about" element={<AboutPage />} />
-        <Route path="/careers" element={<CareersPage />} />
+        {/* <Route path="/careers" element={<CareersPage />} /> */}
         <Route path="/press" element={<PressPage />} />
         <Route path="/partners" element={<PartnersPage />} />
         <Route path="/contact" element={<ContactPage />} />
