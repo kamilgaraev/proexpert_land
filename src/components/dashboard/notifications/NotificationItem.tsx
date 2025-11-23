@@ -8,8 +8,13 @@ import {
   ExclamationTriangleIcon,
   InformationCircleIcon,
   BoltIcon,
-  UserIcon
+  UserIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -47,64 +52,49 @@ export const NotificationItem = ({
   };
 
   const handleMouseEnter = () => {
+    // Optional: Mark as read on hover logic can remain if desired, 
+    // or removed for manual click only. keeping it for now as per previous logic.
     if (!notification.read_at) {
       onMarkAsRead(notification.id);
     }
   };
 
-  const getActionButtonClasses = (style: string) => {
-    const baseClasses = "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors";
-    
+  const getActionButtonVariant = (style: string): "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" => {
     switch (style) {
       case 'success':
-        return `${baseClasses} bg-green-600 hover:bg-green-700 text-white`;
+        return 'default'; // or a custom green variant if added, usually default (primary) is fine
       case 'danger':
-        return `${baseClasses} bg-red-600 hover:bg-red-700 text-white`;
+        return 'destructive';
       case 'warning':
-        return `${baseClasses} bg-orange-600 hover:bg-orange-700 text-white`;
+        return 'secondary'; // orange-ish usually
       case 'info':
-        return `${baseClasses} bg-blue-600 hover:bg-blue-700 text-white`;
+        return 'outline';
       default:
-        return `${baseClasses} bg-gray-600 hover:bg-gray-700 text-white`;
+        return 'secondary';
     }
   };
 
   const getIconColor = (color?: string, priority?: string) => {
-    if (priority === 'critical') return 'text-red-600';
-    if (priority === 'high') return 'text-orange-500';
-    if (priority === 'low') return 'text-gray-400';
+    if (priority === 'critical') return 'text-red-500 bg-red-50';
+    if (priority === 'high') return 'text-orange-500 bg-orange-50';
+    if (priority === 'low') return 'text-slate-500 bg-slate-50';
     
     switch (color) {
       case 'orange':
-        return 'text-orange-500';
+        return 'text-orange-500 bg-orange-50';
       case 'red':
-        return 'text-red-500';
+        return 'text-red-500 bg-red-50';
       case 'green':
-        return 'text-green-500';
+        return 'text-emerald-500 bg-emerald-50';
       case 'blue':
-        return 'text-blue-500';
+        return 'text-blue-500 bg-blue-50';
       default:
-        return 'text-gray-500';
-    }
-  };
-
-  const getBackgroundColor = (priority?: string, isRead?: boolean) => {
-    if (isRead) return 'bg-white';
-    
-    switch (priority) {
-      case 'critical':
-        return 'bg-red-50 border-l-4 border-red-500';
-      case 'high':
-        return 'bg-orange-50 border-l-4 border-orange-500';
-      case 'low':
-        return 'bg-gray-50';
-      default:
-        return 'bg-blue-50';
+        return 'text-primary bg-primary/10';
     }
   };
 
   const getIconComponent = (iconName?: string) => {
-    const iconClass = "w-6 h-6";
+    const iconClass = "w-5 h-5";
     
     switch (iconName) {
       case 'bell':
@@ -134,79 +124,99 @@ export const NotificationItem = ({
   const priority = (notification as any).priority || notification.data?.priority;
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
-      className={`
-        flex gap-3 p-4 border-b border-gray-100 cursor-pointer transition-colors
-        hover:bg-gray-50
-        ${getBackgroundColor(priority, !!notification.read_at)}
-        ${isDeleting ? 'opacity-50' : ''}
-      `}
+      className={cn(
+        "relative flex gap-4 p-4 border-b border-border/50 cursor-pointer transition-all duration-200 group",
+        "hover:bg-muted/50",
+        !notification.read_at && "bg-primary/5"
+      )}
     >
-      <div className={`flex-shrink-0 ${getIconColor(notification.data.color, priority)}`}>
+      {/* Status Indicator Dot */}
+      {!notification.read_at && (
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-primary rounded-full" />
+      )}
+
+      {/* Icon */}
+      <div className={cn(
+        "flex-shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300",
+        getIconColor(notification.data.color, priority)
+      )}>
         {getIconComponent(notification.data.icon)}
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <h4 className="font-semibold text-gray-900 text-sm">
+      {/* Content */}
+      <div className="flex-1 min-w-0 space-y-1.5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h4 className={cn(
+              "text-sm leading-none",
+              !notification.read_at ? "font-bold text-foreground" : "font-medium text-foreground/80"
+            )}>
               {notification.data.title}
             </h4>
             {priority === 'critical' && (
-              <span className="px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded">
-                СРОЧНО
-              </span>
+              <Badge variant="destructive" className="h-5 px-1.5 text-[10px] tracking-wide uppercase">
+                Срочно
+              </Badge>
             )}
             {priority === 'high' && (
-              <span className="px-2 py-0.5 text-xs font-bold bg-orange-100 text-orange-700 rounded">
-                ВАЖНО
-              </span>
+              <Badge variant="outline" className="h-5 px-1.5 text-[10px] tracking-wide uppercase border-orange-200 text-orange-600 bg-orange-50">
+                Важно
+              </Badge>
             )}
           </div>
           
-          <button
-            onClick={handleDelete}
-            className="text-gray-400 hover:text-red-600 ml-2 flex-shrink-0"
-            title="Удалить"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <span className="text-[10px] text-muted-foreground whitespace-nowrap font-medium flex-shrink-0">
+            {formatDistanceToNow(notification.created_at)}
+          </span>
         </div>
 
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
           {notification.data.message}
         </p>
 
+        {/* Actions */}
         {notification.data.actions && notification.data.actions.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
+          <div className="flex flex-wrap gap-2 pt-2">
             {notification.data.actions.map((action, index) => (
-              <button
+              <Button
                 key={index}
+                variant={getActionButtonVariant(action.style)}
+                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleAction(action);
                 }}
-                className={getActionButtonClasses(action.style)}
+                className={cn(
+                  "h-8 px-3 text-xs font-bold rounded-lg shadow-sm",
+                  action.style === 'success' && "bg-emerald-600 hover:bg-emerald-700 text-white",
+                  action.style === 'warning' && "bg-orange-500 hover:bg-orange-600 text-white",
+                )}
               >
                 {action.label}
-              </button>
+              </Button>
             ))}
           </div>
         )}
-
-        <div className="text-xs text-gray-500 mt-2">
-          {formatDistanceToNow(notification.created_at)}
-        </div>
       </div>
 
-      {!notification.read_at && (
-        <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2"></div>
-      )}
-    </div>
+      {/* Delete Button (appears on hover) */}
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={handleDelete}
+          className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+          title="Удалить"
+        >
+          <XMarkIcon className="w-4 h-4" />
+        </button>
+      </div>
+    </motion.div>
   );
 };
 

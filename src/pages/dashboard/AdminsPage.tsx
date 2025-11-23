@@ -518,23 +518,28 @@ const AdminsPage = () => {
           showFallback={false}
         >
           <motion.div
-            className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-8 shadow-xl relative overflow-hidden"
+            className="bg-gradient-to-r from-slate-50 to-white rounded-3xl p-8 shadow-sm border border-border relative overflow-hidden group"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-orange-100/50 rounded-full blur-3xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             
             <div className="relative z-10 flex items-center justify-between flex-wrap gap-6">
               <div>
-                <h3 className="text-xl font-bold text-white mb-2">Настройка ролей доступа</h3>
-                <p className="text-slate-400 max-w-lg">
+                <div className="flex items-center gap-3 mb-2">
+                   <div className="p-2 bg-orange-100 rounded-xl">
+                      <ShieldCheckIcon className="w-6 h-6 text-orange-600" />
+                   </div>
+                   <h3 className="text-xl font-bold text-foreground">Настройка ролей доступа</h3>
+                </div>
+                <p className="text-muted-foreground max-w-lg">
                   Создавайте кастомные роли и гибко настраивайте права доступа для сотрудников вашей организации
                 </p>
               </div>
               <button
                 onClick={() => (window.location.href = '/dashboard/custom-roles')}
-                className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-orange-900/20"
+                className="px-6 py-3 bg-background border border-border text-foreground hover:bg-secondary hover:border-orange-200 hover:text-orange-700 rounded-xl font-bold transition-all shadow-sm hover:shadow-md"
               >
                 Управление ролями
               </button>

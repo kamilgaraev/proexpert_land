@@ -371,60 +371,49 @@ const MultiOrganizationPage = () => {
               )}
 
               {activeTab === 'hierarchy' && hierarchy && (
-                 <div className="overflow-x-auto pb-12 pt-4">
-                    <div className="min-w-[800px] flex flex-col items-center">
+                 <div className="pb-12 pt-4 relative min-h-[500px]">
+                    <div className="flex flex-col items-center w-full">
                        {/* Root Node */}
-                       <div className="relative z-10 mb-12">
+                       <div className="relative z-20 mb-16">
                           <motion.div 
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-white p-6 rounded-2xl border-2 border-orange-500 shadow-xl w-80 text-center relative z-20"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="bg-white p-6 rounded-3xl border-2 border-orange-500/30 shadow-[0_20px_50px_-12px_rgba(249,115,22,0.3)] w-96 text-center relative z-20 hover:border-orange-500 transition-colors duration-300"
                           >
-                             <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center mx-auto mb-3 text-white shadow-lg shadow-orange-200">
-                                <BuildingOffice2Icon className="h-6 w-6" />
+                             <div className="absolute inset-0 bg-gradient-to-b from-orange-50/50 to-transparent rounded-3xl -z-10"></div>
+                             <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-white shadow-lg shadow-orange-500/30">
+                                <BuildingOffice2Icon className="h-8 w-8" />
                              </div>
-                             <h3 className="font-bold text-lg text-slate-900 mb-1">{hierarchy.parent.name}</h3>
-                             <p className="text-sm text-slate-500 mb-3">Головная организация</p>
-                             <div className="flex justify-center gap-2 text-xs font-medium text-slate-400 bg-slate-50 py-2 rounded-lg">
-                                <span>Уровень {hierarchy.parent.hierarchy_level}</span>
-                                <span>•</span>
-                                <span>ИНН {hierarchy.parent.tax_number || '—'}</span>
+                             <h3 className="font-bold text-xl text-slate-900 mb-2">{hierarchy.parent.name}</h3>
+                             <p className="text-sm text-slate-500 mb-4 uppercase tracking-widest font-bold text-[10px]">Головная организация</p>
+                             
+                             <div className="flex justify-center gap-3">
+                                <div className="px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-100 text-xs font-bold text-slate-500">
+                                   ИНН {hierarchy.parent.tax_number || '—'}
+                                </div>
+                                <div className="px-3 py-1.5 bg-emerald-50 rounded-lg border border-emerald-100 text-xs font-bold text-emerald-600 flex items-center gap-1">
+                                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                   Активна
+                                </div>
                              </div>
                           </motion.div>
                           
                           {/* Animated Vertical Connector from Parent */}
                           {hierarchy.children.length > 0 && (
-                             <svg className="absolute left-1/2 bottom-0 translate-y-full -translate-x-1/2 w-px h-12 overflow-visible z-0">
-                                <motion.line 
-                                  x1="0" y1="0" x2="0" y2="100%" 
-                                  stroke="#f97316" 
-                                  strokeWidth="2" 
-                                  initial={{ pathLength: 0 }}
-                                  animate={{ pathLength: 1 }}
-                                  transition={{ duration: 0.5, delay: 0.2 }}
-                                />
-                             </svg>
+                             <div className="absolute left-1/2 bottom-0 translate-y-full -translate-x-1/2 w-px h-16 overflow-visible z-0">
+                                <div className="h-full w-full bg-gradient-to-b from-orange-500/30 to-orange-300/30"></div>
+                             </div>
                           )}
                        </div>
 
                        {/* Children */}
                        {hierarchy.children.length > 0 && (
-                          <div className="relative w-full flex justify-center">
-                             {/* Horizontal Connector Line */}
-                             {hierarchy.children.length > 1 && (
-                                <svg className="absolute top-0 left-0 w-full h-8 overflow-visible -mt-12 z-0">
-                                   {/* We need to draw lines from center top to each child's center top */}
-                                   {/* This is tricky with pure CSS/SVG without precise coords. 
-                                       Let's stick to a cleaner visual structure using pseudo-elements or a simplified SVG approach.
-                                   */}
-                                </svg>
-                             )}
-                             
+                          <div className="relative w-full flex justify-center px-8">
                              <div className="flex justify-center gap-8 w-full flex-wrap relative">
                                 {/* Connecting line across children */}
                                 {hierarchy.children.length > 1 && (
-                                   <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px bg-orange-300 -mt-12" 
-                                        style={{ width: `calc(100% - ${Math.max(300, 100 / hierarchy.children.length)}px)` }} // Approx width
+                                   <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px bg-gradient-to-r from-transparent via-orange-300/50 to-transparent -mt-16" 
+                                        style={{ width: '80%' }} 
                                    ></div>
                                 )}
 
@@ -432,34 +421,41 @@ const MultiOrganizationPage = () => {
                                    <motion.div 
                                       key={child.id} 
                                       className="flex flex-col items-center relative group"
-                                      initial={{ opacity: 0, y: 20 }}
+                                      initial={{ opacity: 0, y: 30 }}
                                       animate={{ opacity: 1, y: 0 }}
-                                      transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                                      transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
                                    >
                                       {/* Vertical Connector to Child */}
-                                      <div className="absolute top-0 -mt-12 w-px h-12 bg-orange-300"></div>
-                                      {/* Dot at junction */}
-                                      <div className="absolute top-0 -mt-12 w-2 h-2 rounded-full bg-orange-500 -translate-y-1/2"></div>
+                                      <div className="absolute top-0 -mt-16 w-px h-16 bg-gradient-to-b from-orange-300/30 to-slate-200"></div>
                                       
-                                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-orange-300 transition-all w-72 relative z-10 group-hover:-translate-y-1">
-                                         <div className="flex justify-between items-start mb-3">
-                                            <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors">
-                                               <BuildingOfficeIcon className="h-5 w-5" />
+                                      {/* Dot at junction */}
+                                      <div className="absolute top-0 -mt-16 w-3 h-3 rounded-full bg-white border-2 border-orange-300 -translate-y-1/2 z-10 shadow-sm"></div>
+                                      
+                                      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-lg hover:shadow-2xl hover:border-orange-200 hover:-translate-y-2 transition-all duration-300 w-80 relative z-10 group group-hover:shadow-orange-100">
+                                         <div className="flex justify-between items-start mb-4">
+                                            <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-orange-50 group-hover:text-orange-500 transition-colors duration-300">
+                                               <BuildingOfficeIcon className="h-6 w-6" />
                                             </div>
                                             <button 
                                                onClick={() => handleSwitchContext(child.id)}
-                                               className="text-xs bg-slate-100 hover:bg-orange-600 hover:text-white text-slate-600 px-3 py-1.5 rounded-lg transition-all font-medium"
+                                               className="opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 shadow-lg hover:bg-slate-800"
                                             >
                                                Войти
                                             </button>
                                          </div>
-                                         <h4 className="font-bold text-slate-900 text-sm mb-1 truncate" title={child.name}>{child.name}</h4>
-                                         <p className="text-xs text-slate-500 mb-3">Дочерняя структура</p>
                                          
-                                         <div className="pt-3 border-t border-slate-50 flex justify-between items-center">
+                                         <h4 className="font-bold text-slate-900 text-lg mb-1 truncate" title={child.name}>{child.name}</h4>
+                                         <p className="text-xs text-slate-400 mb-4 uppercase font-bold tracking-wider">Филиал / Дочерняя</p>
+                                         
+                                         <div className="pt-4 border-t border-slate-50 flex justify-between items-center">
+                                            <div className="flex -space-x-2">
+                                               {[1,2,3].map(i => (
+                                                  <div key={i} className="w-6 h-6 rounded-full bg-slate-200 border-2 border-white"></div>
+                                               ))}
+                                            </div>
                                             <button 
                                                onClick={() => handleViewOrganizationDetails(child.id)}
-                                               className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center"
+                                               className="text-xs font-bold text-slate-400 hover:text-orange-600 flex items-center transition-colors"
                                             >
                                                Подробнее <ChevronRightIcon className="w-3 h-3 ml-1" />
                                             </button>

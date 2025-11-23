@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
 import type { Notification } from '../../../types/notification';
 import { NotificationItem } from './NotificationItem';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { BellIcon, CheckCheckIcon } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 interface NotificationDropdownProps {
   notifications: Notification[];
@@ -21,58 +25,83 @@ export const NotificationDropdown = ({
   onExecuteAction,
   onClose
 }: NotificationDropdownProps) => {
+  const unreadCount = notifications.filter(n => !n.read_at).length;
+
   return (
-    <div className="absolute right-0 top-full mt-2 w-[420px] bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[600px] flex flex-col">
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Уведомления</h3>
+    <div className="absolute right-0 top-full mt-2 w-[420px] bg-background rounded-2xl shadow-2xl border border-border z-50 max-h-[650px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-border bg-card/50 backdrop-blur-sm">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-bold text-foreground">Уведомления</h3>
+          {unreadCount > 0 && (
+            <span className="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">
+              {unreadCount}
+            </span>
+          )}
+        </div>
         
         {notifications.some(n => !n.read_at) && (
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onMarkAllAsRead}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            className="text-xs h-8 text-muted-foreground hover:text-primary"
           >
-            Отметить все
-          </button>
+            <CheckCheckIcon className="w-3.5 h-3.5 mr-1.5" />
+            Все прочитаны
+          </Button>
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      {/* Content */}
+      <ScrollArea className="flex-1 h-[400px]">
         {notifications.length === 0 ? (
           loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+            <div className="flex items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 px-4">
-              <div className="text-6xl mb-3">🔔</div>
-              <p className="text-gray-500 text-center">
-                У вас пока нет уведомлений
+            <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+              <div className="w-16 h-16 bg-secondary rounded-3xl flex items-center justify-center mb-4 text-muted-foreground">
+                <BellIcon className="w-8 h-8" />
+              </div>
+              <h4 className="text-foreground font-bold mb-1">Нет новых уведомлений</h4>
+              <p className="text-muted-foreground text-sm">
+                Здесь будут появляться важные сообщения о ваших проектах и задачах
               </p>
             </div>
           )
         ) : (
-          <div>
-            {notifications.map((notification) => (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-                onMarkAsRead={onMarkAsRead}
-                onDelete={onDelete}
-                onExecuteAction={onExecuteAction}
-              />
-            ))}
+          <div className="flex flex-col">
+            <AnimatePresence initial={false}>
+              {notifications.map((notification) => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                  onMarkAsRead={onMarkAsRead}
+                  onDelete={onDelete}
+                  onExecuteAction={onExecuteAction}
+                />
+              ))}
+            </AnimatePresence>
           </div>
         )}
-      </div>
+      </ScrollArea>
 
-      <div className="border-t border-gray-200 p-3 bg-gray-50">
-        <Link
-          to="/dashboard/notifications"
-          onClick={onClose}
-          className="block text-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+      {/* Footer */}
+      <div className="p-3 border-t border-border bg-secondary/30 backdrop-blur-sm">
+        <Button 
+          variant="outline" 
+          className="w-full justify-center rounded-xl border-border hover:bg-background font-bold text-muted-foreground hover:text-foreground transition-all"
+          asChild
         >
-          Все уведомления →
-        </Link>
+          <Link
+            to="/dashboard/notifications"
+            onClick={onClose}
+          >
+            Посмотреть все уведомления
+          </Link>
+        </Button>
       </div>
     </div>
   );
