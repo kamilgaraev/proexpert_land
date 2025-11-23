@@ -88,7 +88,7 @@ const ProjectDetailsPage = () => {
       try {
         setLoading(true);
         // Using the standard axios instance from utils/api
-        const response = await api.get(`/landing/my-projects/${id}`);
+        const response = await api.get(`/my-projects/${id}`);
         const responseData = response.data as any;
         setProject(responseData.data); // Assuming response structure matches ProjectDetailsResponse
       } catch (err) {

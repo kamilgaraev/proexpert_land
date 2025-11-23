@@ -25,7 +25,7 @@ export const useMyProjects = (): UseMyProjectsReturn => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/landing/my-projects');
+      const response = await api.get('/my-projects');
       const responseData = response.data as any;
       
       if (responseData && responseData.success !== false) {
@@ -77,7 +77,7 @@ export const useProjectDetails = (): UseProjectDetailsReturn => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get(`/landing/my-projects/${projectId}`);
+      const response = await api.get(`/my-projects/${projectId}`);
       const responseData = response.data as any;
       
       if (responseData && responseData.success !== false) {

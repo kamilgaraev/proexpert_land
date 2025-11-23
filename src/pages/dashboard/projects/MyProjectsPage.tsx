@@ -21,7 +21,7 @@ export const MyProjectsPage = () => {
         setIsLoading(true);
         // Assuming the new API returns { data: { projects: [...] } } or { data: [...] }
         // Adjusting to match likely response based on typical patterns or previous types
-        const response = await api.get('/landing/my-projects'); 
+        const response = await api.get('/my-projects'); 
         // Handling potential structure variations
         const responseData = response.data as any;
         const projectsData = responseData.data?.projects || responseData.data || [];
