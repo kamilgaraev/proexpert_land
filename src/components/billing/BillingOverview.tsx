@@ -18,11 +18,7 @@ import {
   CheckCircleIcon,
   ClockIcon,
   SparklesIcon,
-  StarIcon,
-  UserGroupIcon,
-  ShieldCheckIcon,
-  DocumentTextIcon,
-  AcademicCapIcon
+  StarIcon
 } from '@heroicons/react/24/outline';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -100,16 +96,6 @@ const BillingOverview = ({
     </svg>
   );
 
-  const getFeatureIcon = (feature: string) => {
-    if (feature.includes('прораб') || feature.includes('Прораб')) return UserGroupIcon;
-    if (feature.includes('проект') || feature.includes('Проект')) return DocumentTextIcon;
-    if (feature.includes('пользователь') || feature.includes('Пользователь')) return UserGroupIcon;
-    if (feature.includes('ГБ') || feature.includes('хранилищ')) return ShieldCheckIcon;
-    if (feature.includes('админ') || feature.includes('Админ')) return AcademicCapIcon;
-    if (feature.includes('API')) return ShieldCheckIcon;
-    if (feature.includes('менеджер') || feature.includes('SLA')) return StarIcon;
-    return CheckCircleIcon;
-  };
 
   if (loading) {
      return (

@@ -52,7 +52,7 @@ const RegisterPage = () => {
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showNetworkError, setShowNetworkError] = useState(false);
+  // const [showNetworkError, setShowNetworkError] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [currentStep, setCurrentStep] = useState(1);
   

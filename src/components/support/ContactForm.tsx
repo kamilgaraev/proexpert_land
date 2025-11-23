@@ -20,8 +20,8 @@ export function ContactForm() {
     email: '',
     subject: '',
     message: '',
-    type: 'Общий вопрос',
-  });
+      type: 'Общий вопрос',
+    } as any);
   
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);

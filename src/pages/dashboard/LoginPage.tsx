@@ -14,7 +14,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox'; // Need to create Checkbox or use native for now if not created
 import { cn } from '@/lib/utils';
 
 // We didn't create Checkbox yet, so I'll use a simple native one styled or quickly create it.
@@ -27,7 +26,7 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showNetworkError, setShowNetworkError] = useState(false);
+  // const [showNetworkError, setShowNetworkError] = useState(false);
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -45,7 +44,7 @@ const LoginPage = () => {
     
     setError('');
     setIsLoading(true);
-    setShowNetworkError(false);
+    // setShowNetworkError(false);
     
     try {
       await login(email, password);
@@ -54,7 +53,7 @@ const LoginPage = () => {
       console.error('Ошибка входа:', err);
       
       if (err.message?.includes('Не удалось подключиться к серверу')) {
-        setShowNetworkError(true);
+        // setShowNetworkError(true);
         setError('Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.');
       } else if (err.message?.includes('Неверные учетные данные')) {
         setError('Неверный email или пароль');

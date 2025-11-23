@@ -7,7 +7,6 @@ import {
   OrganizationBalance, 
   BalanceTransaction, 
   PaginatedBalanceTransactions, 
-  ErrorResponse, 
   ModuleBillingResponse, 
   SubscriptionResponse, 
   Subscription 
@@ -31,11 +30,11 @@ const BillingPage = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  // const [error, setError] = useState<string | null>(null);
 
   const fetchCommonData = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    // setError(null);
     try {
       const [balanceRes, transactionsRes, statsRes, subRes] = await Promise.all([
         billingService.getBalance(),
@@ -80,7 +79,7 @@ const BillingPage = () => {
 
     } catch (err: any) {
       console.error('Error fetching billing data:', err);
-      setError('Не удалось загрузить данные биллинга');
+      // setError('Не удалось загрузить данные биллинга');
     } finally {
       setLoading(false);
     }

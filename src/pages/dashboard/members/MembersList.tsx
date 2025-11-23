@@ -20,8 +20,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Plus, Search, UserPlus, Mail } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { MoreHorizontal, UserPlus, Mail } from "lucide-react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 interface Member {
   id: number;
@@ -37,7 +37,7 @@ const MembersList: React.FC = () => {
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [error] = useState<string | null>(null);
+  // const [error] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMembers = async () => {

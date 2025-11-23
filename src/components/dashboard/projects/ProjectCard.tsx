@@ -1,10 +1,9 @@
-import { Briefcase, MapPin, FileText, CheckCircle, Users } from 'lucide-react';
+import { MapPin, FileText, CheckCircle } from 'lucide-react';
 import type { ProjectOverview } from '@/types/projects-overview';
 import { RoleBadge } from './RoleBadge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress'; // I need to create this if not exists, or simulate
 import { cn } from '@/lib/utils';
 
 interface ProjectCardProps {
@@ -42,7 +41,6 @@ export const ProjectCard = ({
   const totalWorks = project.stats?.works.total || project.total_works || 0;
   const totalAmountContracts = project.stats?.contracts.total_amount || project.total_amount_contracts || 0;
   const totalAmountWorks = project.stats?.works.total_amount || project.total_amount_works || 0;
-  const participantsCount = project.participants_count || 0;
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('ru-RU', {

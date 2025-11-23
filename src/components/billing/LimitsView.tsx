@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   UsersIcon,
   UserGroupIcon,
@@ -15,7 +14,7 @@ import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
 import LimitWidget from '@/components/dashboard/LimitWidget';
 import WarningsPanel from '@/components/dashboard/WarningsPanel';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 const LimitsView: React.FC = () => {
   const [dismissedWarnings, setDismissedWarnings] = useState<string[]>([]);

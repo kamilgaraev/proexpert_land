@@ -11,13 +11,13 @@ import ContractorInvitationsStats from '@/components/dashboard/contractor-invita
 import ContractorInvitationDetails from '@/components/dashboard/contractor-invitations/ContractorInvitationDetails';
 import type { ContractorInvitation } from '@/types/contractor-invitations';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 type TabType = 'invitations' | 'stats';
 
 const ContractorInvitationsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('invitations');
+  // const [activeTab, setActiveTab] = useState<TabType>('invitations');
   const [selectedInvitation, setSelectedInvitation] = useState<ContractorInvitation | null>(null);
   
   usePageTitle('Приглашения подрядчиков');
@@ -60,7 +60,7 @@ const ContractorInvitationsPage: React.FC = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="invitations" onValueChange={(v: string) => setActiveTab(v as TabType)} className="space-y-4">
+      <Tabs defaultValue="invitations" onValueChange={() => {}} className="space-y-4">
         <TabsList>
           <TabsTrigger value="invitations" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useMemo } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Briefcase, 
@@ -8,11 +8,8 @@ import {
   Users,
   ShieldCheck,
   CreditCard,
-  PieChart,
-  Ticket,
   Puzzle,
   Mail,
-  HelpCircle,
   Building,
   UserCog
 } from 'lucide-react';

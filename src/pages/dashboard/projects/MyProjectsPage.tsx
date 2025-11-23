@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Plus, FolderOpen, Briefcase, Users } from 'lucide-react';
+import { Filter, Plus, FolderOpen } from 'lucide-react';
 
 import { useMyProjects, useProjectDetails } from '@/hooks/useMyProjects';
 import { ProjectCard } from '@/components/dashboard/projects/ProjectCard';
@@ -12,15 +12,12 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export const MyProjectsPage = () => {

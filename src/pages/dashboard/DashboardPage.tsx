@@ -7,19 +7,14 @@ import {
   FileText,
   CheckCircle,
   Wallet,
-  ShieldCheck,
-  Ticket,
-  HelpCircle,
-  LifeBuoy,
-  Wrench,
-  Plus,
   Clock,
   AlertTriangle,
   ArrowUpRight,
   ArrowDownRight,
-  CreditCard,
   BarChart,
-  File
+  File,
+  Plus,
+  Ticket
 } from 'lucide-react';
 
 import { landingService, billingService } from '@utils/api';
@@ -37,13 +32,13 @@ import { cn } from '@/lib/utils';
 const DashboardPage = () => {
   const [landingData, setLandingData] = useState<LandingDashboardResponse | null>(null);
   const [dashboard, setDashboard] = useState<any>(null);
-  const [dashboardLoading, setDashboardLoading] = useState(true);
-  const [dashboardError, setDashboardError] = useState<string | null>(null);
+  // const [dashboardLoading, setDashboardLoading] = useState(true);
+  // const [dashboardError, setDashboardError] = useState<string | null>(null);
 
   const { 
     hasWarnings, 
     criticalWarnings, 
-    needsUpgrade 
+    // needsUpgrade 
   } = useSubscriptionLimits({
     autoRefresh: true,
     refreshInterval: 300000,
@@ -60,11 +55,11 @@ const DashboardPage = () => {
         ]);
         setLandingData(landing);
         setDashboard(planData);
-        setDashboardError(null);
-        setDashboardLoading(false);
+        // setDashboardError(null);
+        // setDashboardLoading(false);
       } catch (e: any) {
-        setDashboardError(e.message || 'Ошибка загрузки данных');
-        setDashboardLoading(false);
+        // setDashboardError(e.message || 'Ошибка загрузки данных');
+        // setDashboardLoading(false);
       }
     })();
   }, []);
