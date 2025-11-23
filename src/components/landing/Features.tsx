@@ -37,15 +37,15 @@ const Features = () => {
                         </li>
                       ))}
                     </ul>
-                  </div>
+                </div>
                 </div>
               </motion.div>
             );
           })}
-        </div>
+          </div>
       </div>
     </section>
   );
 };
 
-export default Features;
+export default Features; 
