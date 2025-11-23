@@ -1,7 +1,6 @@
-import { MapPin, FileText, CheckCircle } from 'lucide-react';
+import { MapPin, ArrowUpRight } from 'lucide-react';
 import type { ProjectOverview } from '@/types/projects-overview';
-import { RoleBadge } from './RoleBadge';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -17,22 +16,13 @@ export const ProjectCard = ({
   onViewDetails,
   onGoToWork
 }: ProjectCardProps) => {
-  const statusColors: Record<string, string> = {
-    planned: 'bg-gray-100 text-gray-700',
-    active: 'bg-orange-100 text-orange-700',
-    in_progress: 'bg-blue-100 text-blue-700',
-    completed: 'bg-green-100 text-green-700',
-    on_hold: 'bg-yellow-100 text-yellow-700',
-    cancelled: 'bg-red-100 text-red-700'
-  };
-
-  const statusLabels: Record<string, string> = {
-    planned: 'Запланирован',
-    active: 'Активен',
-    in_progress: 'В работе',
-    completed: 'Завершен',
-    on_hold: 'Приостановлен',
-    cancelled: 'Отменен'
+  const statusConfig: Record<string, { color: string; label: string }> = {
+    planned: { color: 'bg-slate-100 text-slate-600', label: 'Запланирован' },
+    active: { color: 'bg-emerald-100 text-emerald-600', label: 'Активен' },
+    in_progress: { color: 'bg-blue-100 text-blue-600', label: 'В работе' },
+    completed: { color: 'bg-slate-100 text-slate-500', label: 'Завершен' },
+    on_hold: { color: 'bg-amber-100 text-amber-600', label: 'На паузе' },
+    cancelled: { color: 'bg-red-100 text-red-600', label: 'Отменен' }
   };
 
   const completionPercentage = project.completion_percentage || 0;
@@ -50,86 +40,107 @@ export const ProjectCard = ({
     }).format(amount);
   };
 
+  const status = statusConfig[project.status] || { color: 'bg-slate-100 text-slate-600', label: project.status };
+
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group border-muted-foreground/20">
-      <CardHeader className="p-5 pb-2">
-        <div className="flex justify-between items-start gap-4">
-          <div className="space-y-1">
-            <h3 className="font-bold text-lg leading-tight line-clamp-1 group-hover:text-primary transition-colors">
-              {project.name}
-            </h3>
-            {project.address && (
+    <Card className="group relative overflow-hidden border border-border/60 bg-background shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/30 flex flex-col h-full">
+      {/* Top Accent Line */}
+      <div className={cn("absolute top-0 left-0 right-0 h-1", 
+         project.status === 'active' ? "bg-emerald-500" : 
+         project.status === 'in_progress' ? "bg-blue-500" : "bg-slate-200"
+      )} />
+
+      <CardContent className="p-5 flex-1 flex flex-col gap-4">
+        {/* Header: Title & Status */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1.5 flex-1">
+             <div className="flex items-center gap-2">
+                <h3 className="font-bold text-lg leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-1" title={project.name}>
+                  {project.name}
+                </h3>
+                {/* Role Indicator (Minimal) */}
+                {project.role === 'owner' ? (
+                   <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-bold border-orange-200 text-orange-600 bg-orange-50">
+                      Владелец
+                   </Badge>
+                ) : (
+                   <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-bold border-blue-200 text-blue-600 bg-blue-50">
+                      Подрядчик
+                   </Badge>
+                )}
+             </div>
+            
+            {project.address ? (
               <div className="flex items-center text-xs text-muted-foreground">
-                <MapPin className="w-3 h-3 mr-1 shrink-0" />
-                <span className="truncate max-w-[200px]">{project.address}</span>
+                <MapPin className="w-3.5 h-3.5 mr-1.5 shrink-0 opacity-70" />
+                <span className="truncate max-w-[240px]">{project.address}</span>
+              </div>
+            ) : (
+              <div className="flex items-center text-xs text-muted-foreground">
+                <MapPin className="w-3.5 h-3.5 mr-1.5 shrink-0 opacity-70" />
+                <span className="italic opacity-50">Адрес не указан</span>
               </div>
             )}
           </div>
-          <div className="flex flex-col items-end gap-2">
-             <RoleBadge role={project.role} size="sm" />
-             <Badge variant="secondary" className={cn("text-[10px] px-2 py-0.5 h-auto font-medium border-0", statusColors[project.status])}>
-                {statusLabels[project.status]}
-             </Badge>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="p-5 pt-2 space-y-4">
-        {project.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5em]">
-            {project.description}
-          </p>
-        )}
 
-        <div className="space-y-1.5">
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Прогресс</span>
-            <span className="font-medium text-foreground">{completionPercentage}%</span>
-          </div>
-          <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-             <div className="h-full bg-primary transition-all duration-500" style={{ width: `${completionPercentage}%` }} />
+          {/* Minimal Status Badge */}
+          <div className={cn("flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap", status.color)}>
+             <div className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
+             {status.label}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-            <div className="bg-muted/50 rounded-lg p-2 flex items-center gap-3">
-                <div className="bg-background p-1.5 rounded-md shadow-sm text-primary">
-                    <FileText className="w-4 h-4" />
-                </div>
-                <div>
-                    <div className="text-[10px] text-muted-foreground uppercase">Контракты</div>
-                    <div className="font-bold text-sm">{totalContracts}</div>
-                </div>
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-2 gap-4 py-2">
+            <div className="space-y-1">
+               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Контракты</span>
+               <div className="flex items-baseline gap-1.5">
+                  <span className="text-xl font-bold text-foreground">{totalContracts}</span>
+                  <span className="text-xs text-muted-foreground">шт</span>
+               </div>
+               <div className="text-xs font-medium text-foreground">{formatAmount(totalAmountContracts)}</div>
             </div>
-            <div className="bg-muted/50 rounded-lg p-2 flex items-center gap-3">
-                <div className="bg-background p-1.5 rounded-md shadow-sm text-green-600">
-                    <CheckCircle className="w-4 h-4" />
-                </div>
-                <div>
-                    <div className="text-[10px] text-muted-foreground uppercase">Работы</div>
-                    <div className="font-bold text-sm">{totalWorks}</div>
-                </div>
+            <div className="space-y-1">
+               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Работы</span>
+               <div className="flex items-baseline gap-1.5">
+                  <span className="text-xl font-bold text-foreground">{totalWorks}</span>
+                  <span className="text-xs text-muted-foreground">акт</span>
+               </div>
+               <div className="text-xs font-medium text-emerald-600">{formatAmount(totalAmountWorks)}</div>
             </div>
         </div>
 
-        <div className="space-y-1 pt-2 border-t border-dashed">
-             <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Сумма контрактов:</span>
-                <span className="font-semibold">{formatAmount(totalAmountContracts)}</span>
-             </div>
-             <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Выполнено:</span>
-                <span className="font-semibold text-green-600">{formatAmount(totalAmountWorks)}</span>
-             </div>
+        {/* Progress Bar */}
+        <div className="mt-auto space-y-2">
+           <div className="flex justify-between text-xs font-medium">
+              <span className="text-muted-foreground">Выполнение</span>
+              <span>{completionPercentage}%</span>
+           </div>
+           <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+              <div 
+                className={cn("h-full transition-all duration-500 rounded-full", 
+                   completionPercentage >= 100 ? "bg-emerald-500" : "bg-primary"
+                )} 
+                style={{ width: `${completionPercentage}%` }} 
+              />
+           </div>
         </div>
       </CardContent>
 
-      <CardFooter className="p-3 bg-muted/30 flex gap-2">
-        <Button variant="outline" className="flex-1 h-9 text-xs" onClick={() => onViewDetails(project.id)}>
+      <CardFooter className="p-4 pt-0 grid grid-cols-2 gap-3">
+        <Button 
+            variant="outline" 
+            className="w-full h-10 text-xs font-bold border-border hover:bg-secondary hover:text-foreground" 
+            onClick={() => onViewDetails(project.id)}
+        >
             Подробнее
         </Button>
-        <Button className="flex-1 h-9 text-xs bg-gradient-to-r from-primary to-orange-600 shadow-sm hover:shadow transition-all" onClick={() => onGoToWork(project.id)}>
-            В работу
+        <Button 
+            className="w-full h-10 text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm group-hover:shadow-md transition-all" 
+            onClick={() => onGoToWork(project.id)}
+        >
+            В проект
+            <ArrowUpRight className="w-3.5 h-3.5 ml-1.5 opacity-70" />
         </Button>
       </CardFooter>
     </Card>
