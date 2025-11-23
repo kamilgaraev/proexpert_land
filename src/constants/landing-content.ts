@@ -10,7 +10,12 @@ import {
   CpuChipIcon,
   ShieldCheckIcon,
   ClockIcon,
-  CloudArrowUpIcon
+  CloudArrowUpIcon,
+  StarIcon,
+  RocketLaunchIcon,
+  BriefcaseIcon,
+  BuildingOfficeIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 
 export const NAV_LINKS = [
@@ -151,6 +156,85 @@ export const PRICING_MODULES: PricingModule[] = [
   { id: 'DataExport', name: 'Экспорт данных безлимит', price: 500, type: 'service', period: 'one_time' },
 ];
 
+export const PRICING_PLANS = [
+  {
+    name: 'Free',
+    price: 0,
+    description: 'Бесплатный тариф для знакомства с системой',
+    features: [
+      '1 прораб',
+      '1 объект',
+      '3 пользователя',
+      '1 ГБ хранилища',
+      '10 операций/мес',
+      'Только базовые функции'
+    ],
+    icon: WrenchScrewdriverIcon,
+    isPopular: false,
+    buttonText: 'Выбрать'
+  },
+  {
+    name: 'Start',
+    price: 4900,
+    description: '2 прораба, 3 объекта, 5 пользователей',
+    features: [
+      '2 прораба',
+      '3 проекта',
+      '5 пользователей',
+      '1 ГБ хранилища',
+      'Базовые отчеты'
+    ],
+    icon: RocketLaunchIcon,
+    isPopular: true,
+    buttonText: 'Выбрать'
+  },
+  {
+    name: 'Business',
+    price: 9900,
+    description: '10 прорабов, 15 объектов, интеграции',
+    features: [
+      '10 прорабов',
+      '15 проектов',
+      '15 пользователей',
+      '5 ГБ хранилища',
+      'Интеграции'
+    ],
+    icon: BriefcaseIcon,
+    isPopular: false,
+    buttonText: 'Выбрать'
+  },
+  {
+    name: 'Profi',
+    price: 19900,
+    description: '30 прорабов, 50 объектов, API, BI, White Label',
+    features: [
+      '30 прорабов',
+      '50 проектов',
+      '50 пользователей',
+      '20 ГБ хранилища',
+      'API, BI, White Label'
+    ],
+    icon: StarIcon,
+    isPopular: false,
+    buttonText: 'Выбрать'
+  },
+  {
+    name: 'Enterprise',
+    price: 49900,
+    description: 'Индивидуальные условия для крупных компаний',
+    features: [
+      'Индивидуальные условия',
+      'От 49,900 руб./мес',
+      'Персональный менеджер',
+      'Кастомизация',
+      'Приоритетная поддержка 24/7'
+    ],
+    icon: BuildingOfficeIcon,
+    isPopular: false,
+    buttonText: 'Выбрать'
+  }
+];
+
 export const FEATURES_CONTENT = {
   title: "Модульная система",
   subtitle: "Все необходимые инструменты в одной платформе",
@@ -197,4 +281,3 @@ export const FEATURES_CONTENT = {
     }
   ]
 };
-
