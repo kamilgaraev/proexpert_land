@@ -31,7 +31,7 @@ module.exports = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
-          // Existing prmary palette mapped to match or extend if needed, keeping existing hardcoded values for compatibility
+          // Existing prаmary palette mapped to match or extend if needed, keeping existing hardcoded values for compatibility
           50: '#fff7ed',
           100: '#ffedd5',
           200: '#fed7aa',
