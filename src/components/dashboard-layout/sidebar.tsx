@@ -34,43 +34,44 @@ const SidebarContent = ({ navigation, supportNavigation, onLogout, pathname }: {
   onLogout: () => void,
   pathname: string 
 }) => (
-  <div className="flex h-full flex-col gap-4">
-    <div className="flex h-16 items-center border-b px-6 bg-gradient-to-r from-primary to-primary/90">
+  <div className="flex h-full flex-col gap-4 py-4">
+    <div className="flex h-12 items-center px-6 mb-4">
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">
-          <span className="text-xl font-bold text-white">P</span>
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-orange-600 shadow-lg shadow-primary/20 text-white">
+          <span className="text-xl font-bold">P</span>
         </div>
         <div className="flex flex-col">
-          <span className="font-bold text-white leading-none">ProHelper</span>
-          <span className="text-[10px] text-white/80 font-medium mt-1">Личный кабинет</span>
+          <span className="font-bold text-lg leading-none tracking-tight">ProHelper</span>
+          <span className="text-[10px] text-muted-foreground font-medium mt-1 uppercase tracking-wider">Личный кабинет</span>
         </div>
       </div>
     </div>
     
-    <ScrollArea className="flex-1 px-3">
-      <div className="flex flex-col gap-1 py-2">
+    <ScrollArea className="flex-1 px-4">
+      <div className="flex flex-col gap-1.5 py-2">
         {navigation.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(`${item.href}/`));
             return (
             <Link
                 key={item.name}
                 to={item.href}
                 className={cn(
-                "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:scale-[1.02]",
+                "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 relative overflow-hidden",
                 isActive
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-primary/10 text-primary shadow-sm"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 )}
             >
-                <item.icon className={cn("h-4 w-4", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />}
+                <item.icon className={cn("h-5 w-5 transition-transform group-hover:scale-110", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
                 <div className="flex flex-1 flex-col">
-                    <span className="leading-none">{item.name}</span>
+                    <span className={cn("leading-none", isActive ? "font-bold" : "font-medium")}>{item.name}</span>
                     {item.description && !isActive && (
-                         <span className="mt-0.5 text-[10px] font-normal opacity-70 line-clamp-1">{item.description}</span>
+                         <span className="mt-1 text-[10px] font-normal opacity-0 group-hover:opacity-70 transition-opacity line-clamp-1">{item.description}</span>
                     )}
                 </div>
                 {item.badge ? (
-                <Badge variant="destructive" className="ml-auto h-5 w-5 rounded-full px-0 flex items-center justify-center text-[10px]">
+                <Badge variant="destructive" className="ml-auto h-5 min-w-5 rounded-full px-1.5 flex items-center justify-center text-[10px] shadow-sm">
                     {item.badge}
                 </Badge>
                 ) : null}
@@ -79,9 +80,10 @@ const SidebarContent = ({ navigation, supportNavigation, onLogout, pathname }: {
         })}
       </div>
       
-      <div className="my-4 mx-3 h-[1px] bg-border" />
+      <div className="my-6 mx-2 h-[1px] bg-gradient-to-r from-transparent via-border to-transparent" />
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
+            <div className="px-4 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 opacity-70">Поддержка</div>
             {supportNavigation.map((item) => {
                  const isActive = pathname === item.href;
                  return (
@@ -89,13 +91,13 @@ const SidebarContent = ({ navigation, supportNavigation, onLogout, pathname }: {
                     key={item.name}
                     to={item.href}
                     className={cn(
-                        "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:scale-[1.02]",
+                        "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                         isActive
-                        ? "bg-safety-500 text-white shadow-md shadow-safety-500/20"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        ? "bg-secondary text-foreground font-bold"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
                     )}
                 >
-                    <item.icon className={cn("h-4 w-4", isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground")} />
+                    <item.icon className={cn("h-5 w-5", isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} />
                     <span>{item.name}</span>
                 </Link>
                  )
@@ -103,14 +105,14 @@ const SidebarContent = ({ navigation, supportNavigation, onLogout, pathname }: {
         </div>
     </ScrollArea>
 
-    <div className="mt-auto border-t p-4">
+    <div className="mt-auto px-4 pb-4">
       <Button 
         variant="ghost" 
-        className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+        className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-12 rounded-xl"
         onClick={onLogout}
       >
-        <LogOut className="h-4 w-4" />
-        <span>Выйти</span>
+        <LogOut className="h-5 w-5" />
+        <span>Выйти из системы</span>
       </Button>
     </div>
   </div>
@@ -122,7 +124,7 @@ export function Sidebar({ navigation, supportNavigation, onLogout }: SidebarProp
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden border-r bg-card/50 backdrop-blur-xl md:fixed md:inset-y-0 md:flex md:w-72 md:flex-col z-50">
+      <aside className="hidden border-r bg-background/95 backdrop-blur-xl md:fixed md:inset-y-0 md:flex md:w-72 md:flex-col z-50 shadow-sm">
         <SidebarContent 
             navigation={navigation} 
             supportNavigation={supportNavigation} 

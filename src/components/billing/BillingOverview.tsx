@@ -202,39 +202,39 @@ const BillingOverview = ({
         </Card>
 
         {/* Текущий баланс */}
-        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-none text-white shadow-xl flex flex-col relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-orange-500 rounded-full blur-3xl opacity-20"></div>
-          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
+        <Card className="bg-gradient-to-br from-primary to-orange-600 border-none text-white shadow-xl flex flex-col relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
           
           <CardContent className="p-6 flex flex-col h-full justify-between relative z-10">
              <div className="flex items-center justify-between mb-6">
                <div>
-                 <p className="text-slate-400 text-sm font-medium mb-1">Текущий баланс</p>
+                 <p className="text-white/80 text-sm font-medium mb-1">Текущий баланс</p>
                  {balance ? (
                    <p className="text-4xl font-bold text-white tracking-tight">
-                     {balance.balance_formatted} <span className="text-2xl text-slate-400 font-normal">{balance.currency}</span>
+                     {balance.balance_formatted} <span className="text-2xl text-white/80 font-normal">{balance.currency}</span>
                    </p>
                  ) : (
-                   <p className="text-slate-500">...</p>
+                   <p className="text-white/60">...</p>
                  )}
                </div>
-               <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/10">
-                 <WalletIcon className="w-6 h-6 text-orange-400" />
+               <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
+                 <WalletIcon className="w-6 h-6 text-white" />
                </div>
              </div>
              
              <div className="space-y-6">
                 <div className="space-y-2">
                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Заблокировано</span>
-                      <span className="font-medium">0.00 ₽</span>
+                      <span className="text-white/80">Заблокировано</span>
+                      <span className="font-medium text-white">0.00 ₽</span>
                    </div>
-                   <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-orange-500 w-0"></div>
+                   <div className="w-full h-1 bg-black/20 rounded-full overflow-hidden">
+                      <div className="h-full bg-white w-0"></div>
                    </div>
                 </div>
                 
-                <Button className="w-full bg-white text-slate-900 hover:bg-slate-100 font-bold border-none">
+                <Button className="w-full bg-white text-primary hover:bg-white/90 font-bold border-none shadow-lg shadow-black/10">
                    Пополнить баланс
                 </Button>
              </div>
