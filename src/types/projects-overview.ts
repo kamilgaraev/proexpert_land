@@ -10,121 +10,108 @@ export type ProjectOrganizationRole =
   | 'designer'
   | 'observer';
 
-export type RoleInfo = 
-  | ProjectOrganizationRole 
-  | { value: ProjectOrganizationRole; label: string };
-
-export interface ProjectOverview {
-  id: number;
-  name: string;
-  status: ProjectStatus;
-  is_archived: boolean;
-  role: RoleInfo;
-  role_label?: string;
-  is_owner?: boolean;
-  budget_amount?: string | number | null;
-  total_contracts?: number;
-  total_works?: number;
-  total_amount_contracts?: number;
-  total_amount_works?: number;
-  participants_count?: number;
-  description?: string;
-  address?: string;
-  start_date?: string;
-  end_date?: string;
-  completion_percentage?: number;
-  stats?: {
-    contracts: {
-      total: number;
-      my: number;
-      total_amount: number;
-      my_amount: number;
-    };
-    works: {
-      total: number;
-      my: number;
-      total_amount: number;
-      my_amount: number;
-    };
-  };
+export interface ProjectRole {
+    value: ProjectOrganizationRole;
+    label: string;
 }
 
-export interface ProjectsGrouped {
-  owned: ProjectOverview[];
-  participant: ProjectOverview[];
+// Base interface for shared fields
+export interface ProjectBase {
+    id: number;
+    name: string;
+    address?: string;
+    status: ProjectStatus;
+    role: ProjectRole | ProjectOrganizationRole; // Handle both formats just in case
+    is_owner: boolean;
 }
 
-export interface ProjectsTotals {
-  all: number;
-  owned: number;
-  participant: number;
-  active: number;
-  archived: number;
+// List View Interface
+export interface ProjectOverview extends ProjectBase {
+    description?: string;
+    progress_percent?: number;
+    completion_percentage?: number; // Fallback
+    
+    // Stats for the list card
+    stats?: {
+        contracts: {
+            total: number;
+            my?: number;
+            total_amount?: number;
+            my_amount?: number;
+        };
+        works: {
+            total: number;
+            my?: number;
+            total_amount?: number;
+            my_amount?: number;
+        };
+    };
+    
+    // Legacy/Fallback fields support
+    total_contracts?: number;
+    total_works?: number;
+    total_amount_contracts?: number;
+    total_amount_works?: number;
+}
+
+// Detailed View Interface
+export interface ProjectDetails extends ProjectBase {
+    description?: string;
+    dates?: {
+        start?: string;
+        end?: string;
+    };
+    // Fallback dates
+    start_date?: string;
+    end_date?: string;
+
+    progress: {
+        percent: number;
+        health: 'healthy' | 'warning' | 'critical';
+        next_milestone?: {
+            title: string;
+            date: string;
+        } | null;
+    };
+
+    stats: {
+        contracts: {
+            total_amount: number;
+            my_amount: number;
+            count?: number; // Optional count
+        };
+        works: {
+            total_amount: number;
+            my_amount: number;
+            count?: number; // Optional count
+        };
+    };
+
+    tasks_summary: {
+        total: number;
+        open: number;
+        completed: number;
+        overdue: number;
+    };
+
+    participants: {
+        total: number;
+        list: Array<{
+            id: number;
+            name: string;
+            role_label: string;
+            logo?: string;
+            organization_name?: string;
+        }>;
+    };
 }
 
 export interface MyProjectsResponse {
-  success: boolean;
-  data: {
-    projects: ProjectOverview[];
-    grouped: ProjectsGrouped;
-    totals: ProjectsTotals;
-  };
-}
-
-export interface ProjectParticipant {
-  id: number;
-  name: string;
-  role: RoleInfo;
-  role_label?: string;
-}
-
-export interface MyProjectContext {
-  role: RoleInfo;
-  role_label?: string;
-  is_owner: boolean;
-  can_manage_contracts: boolean;
-  can_view_finances: boolean;
-  can_manage_works: boolean;
-  can_manage_warehouse: boolean;
-  can_invite_participants: boolean;
-}
-
-export interface ProjectStatistics {
-  contracts_count: number;
-  works_count: number;
-  total_contracts_amount: number;
-  total_works_amount: number;
-  completion_percentage: number;
-}
-
-export interface ProjectDetails {
-  project: {
-    id: number;
-    name: string;
-    description: string;
-    address: string;
-    start_date: string;
-    end_date: string;
-    status: ProjectStatus;
-    owner_organization: {
-      id: number;
-      name: string;
-    };
-  };
-  my_context: MyProjectContext;
-  statistics: ProjectStatistics;
-  participants: ProjectParticipant[];
+    success: boolean;
+    data: ProjectOverview[];
 }
 
 export interface ProjectDetailsResponse {
-  success: boolean;
-  data: ProjectDetails;
+    success: boolean;
+    data: ProjectDetails;
 }
-
-export interface RoleBadgeConfig {
-  label: string;
-  color: string;
-  bgColor: string;
-  borderColor: string;
-}
-

@@ -1,206 +1,148 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, Plus, FolderOpen, Search } from 'lucide-react';
-
-import { useMyProjects, useProjectDetails } from '@/hooks/useMyProjects';
 import { ProjectCard } from '@/components/dashboard/projects/ProjectCard';
-import { ProjectDetailsModal } from '@/components/dashboard/projects/ProjectDetailsModal';
-import type { ProjectOverview } from '@/types/projects-overview';
-
-import { Input } from '@/components/ui/input';
+import api from '@/utils/api';
+import { PlusIcon, FolderIcon, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  DropdownMenu,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuContent,
-} from "@/components/ui/dropdown-menu"
-import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import type { ProjectOverview } from '@/types/projects-overview';
 
 export const MyProjectsPage = () => {
   const navigate = useNavigate();
-  const { projects, grouped, totals, loading, fetchProjects } = useMyProjects();
-  const { projectDetails, loading: detailsLoading, fetchProjectDetails, clearDetails } = useProjectDetails();
-
-  const [activeTab, setActiveTab] = useState<'all' | 'owned' | 'participant'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [projects, setProjects] = useState<ProjectOverview[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('my_projects');
 
   useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setIsLoading(true);
+        // Assuming the new API returns { data: { projects: [...] } } or { data: [...] }
+        // Adjusting to match likely response based on typical patterns or previous types
+        const response = await api.get('/landing/my-projects'); 
+        // Handling potential structure variations
+        const projectsData = response.data.data?.projects || response.data.data || [];
+        setProjects(projectsData);
+      } catch (error) {
+        console.error('Ошибка загрузки проектов:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchProjects();
   }, []);
 
-  const handleViewDetails = (projectId: number) => {
-    fetchProjectDetails(projectId);
-    setIsModalOpen(true);
-  };
+  const filteredProjects = projects.filter(project => {
+    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (project.address && project.address.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    if (!matchesSearch) return false;
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    clearDetails();
+    if (activeTab === 'my_projects') {
+      return project.is_owner;
+    } else {
+      return !project.is_owner;
+    }
+  });
+
+  const handleViewDetails = (projectId: number) => {
+    navigate(`/dashboard/projects/${projectId}`);
   };
 
   const handleGoToWork = (projectId: number) => {
-    localStorage.setItem('selected_project_id', projectId.toString());
-    navigate(`/admin/projects/${projectId}`);
+    window.location.href = `/work/${projectId}`; // Assuming this is the work interface
   };
-
-  const getFilteredProjects = (): ProjectOverview[] => {
-    let filtered = projects;
-
-    if (activeTab === 'owned') {
-      filtered = grouped?.owned || [];
-    } else if (activeTab === 'participant') {
-      filtered = grouped?.participant || [];
-    }
-
-    if (selectedStatus !== 'all') {
-      filtered = filtered.filter(p => 
-        selectedStatus === 'active' ? !p.is_archived : p.is_archived
-      );
-    }
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(p => 
-        p.name.toLowerCase().includes(query) ||
-        (p.address && p.address.toLowerCase().includes(query)) ||
-        (p.description && p.description.toLowerCase().includes(query))
-      );
-    }
-
-    return filtered;
-  };
-
-  const filteredProjects = getFilteredProjects();
-
-  if (loading && projects.length === 0) {
-    return (
-      <div className="container mx-auto py-8 space-y-8">
-         <div className="flex justify-between items-center">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-10 w-32" />
-         </div>
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-                <Skeleton key={i} className="h-[300px] rounded-xl" />
-            ))}
-         </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Мои проекты</h1>
-          <p className="text-muted-foreground">Управление строительными объектами и задачами</p>
+    <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 pb-20">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Проекты</h1>
+            <p className="text-muted-foreground text-lg mt-2">
+              Управляйте своими строительными объектами
+            </p>
+          </div>
+          <Button 
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 rounded-xl h-12 px-6 font-bold transition-all hover:scale-[1.02]"
+            onClick={() => navigate('/dashboard/projects/create')}
+          >
+            <PlusIcon className="w-5 h-5 mr-2" />
+            Создать проект
+          </Button>
         </div>
-        <Button onClick={() => navigate('/dashboard/projects/create')}>
-            <Plus className="mr-2 h-4 w-4" /> Создать проект
-        </Button>
-      </div>
 
-      {totals && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-card border rounded-xl p-4 shadow-sm">
-                <div className="text-sm font-medium text-muted-foreground mb-1">Всего проектов</div>
-                <div className="text-2xl font-bold">{totals.all}</div>
-            </div>
-            <div className="bg-card border rounded-xl p-4 shadow-sm">
-                <div className="text-sm font-medium text-muted-foreground mb-1">Активных</div>
-                <div className="text-2xl font-bold text-green-600">{totals.active}</div>
-            </div>
-            <div className="bg-card border rounded-xl p-4 shadow-sm">
-                <div className="text-sm font-medium text-muted-foreground mb-1">Мои (Владелец)</div>
-                <div className="text-2xl font-bold text-primary">{totals.owned}</div>
-            </div>
-            <div className="bg-card border rounded-xl p-4 shadow-sm">
-                <div className="text-sm font-medium text-muted-foreground mb-1">Участник</div>
-                <div className="text-2xl font-bold text-blue-600">{totals.participant}</div>
-            </div>
-        </div>
-      )}
+        {/* Filters & Tabs */}
+        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+                <TabsList className="bg-white border border-border p-1 h-12 rounded-xl w-full md:w-auto grid grid-cols-2 md:flex">
+                    <TabsTrigger 
+                        value="my_projects" 
+                        className="rounded-lg font-bold data-[state=active]:bg-primary/10 data-[state=active]:text-primary h-full px-6"
+                    >
+                        Мои проекты
+                    </TabsTrigger>
+                    <TabsTrigger 
+                        value="participating" 
+                        className="rounded-lg font-bold data-[state=active]:bg-primary/10 data-[state=active]:text-primary h-full px-6"
+                    >
+                        Я участвую
+                    </TabsTrigger>
+                </TabsList>
+            </Tabs>
 
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border shadow-sm">
-        <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full md:w-auto">
-            <TabsList>
-                <TabsTrigger value="all">Все</TabsTrigger>
-                <TabsTrigger value="owned">Мои</TabsTrigger>
-                <TabsTrigger value="participant">Участник</TabsTrigger>
-            </TabsList>
-        </Tabs>
-
-        <div className="flex gap-2 w-full md:w-auto">
-            <div className="relative w-full md:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <div className="relative w-full md:w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                     placeholder="Поиск проектов..."
-                    className="pl-9"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 h-12 rounded-xl border-border bg-white focus-visible:ring-primary"
                 />
             </div>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon">
-                        <Filter className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Статус</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup value={selectedStatus} onValueChange={setSelectedStatus}>
-                        <DropdownMenuRadioItem value="all">Все</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="active">Активные</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="archived">Архив</DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-            </DropdownMenu>
         </div>
-      </div>
 
-      {filteredProjects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map(project => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onViewDetails={handleViewDetails}
-              onGoToWork={handleGoToWork}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-16 text-center bg-muted/30 rounded-2xl border border-dashed border-muted-foreground/25">
-            <div className="bg-muted rounded-full p-4 mb-4">
-                <FolderOpen className="h-8 w-8 text-muted-foreground" />
+        {/* Projects Grid */}
+        {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-[300px] rounded-3xl bg-white/50 animate-pulse border border-border/50" />
+                ))}
             </div>
-            <h3 className="text-lg font-semibold">Проекты не найдены</h3>
-            <p className="text-muted-foreground max-w-sm mt-2">
-                {searchQuery ? 'Попробуйте изменить параметры поиска' : 'У вас пока нет активных проектов.'}
-            </p>
-            {!searchQuery && (
-                <Button variant="outline" className="mt-6" onClick={() => navigate('/dashboard/projects/create')}>
-                    Создать первый проект
-                </Button>
-            )}
-        </div>
-      )}
-
-      <ProjectDetailsModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        projectDetails={projectDetails}
-        loading={detailsLoading}
-        onGoToWork={handleGoToWork}
-      />
+        ) : filteredProjects.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredProjects.map((project) => (
+                    <ProjectCard
+                        key={project.id}
+                        project={project}
+                        onViewDetails={handleViewDetails}
+                        onGoToWork={handleGoToWork}
+                    />
+                ))}
+            </div>
+        ) : (
+            <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-border border-dashed">
+                <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 text-slate-300">
+                    <FolderIcon className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-2">Проекты не найдены</h3>
+                <p className="text-muted-foreground max-w-sm mx-auto">
+                    {searchTerm 
+                        ? "Попробуйте изменить параметры поиска" 
+                        : activeTab === 'my_projects' 
+                            ? "У вас пока нет созданных проектов" 
+                            : "Вы пока не участвуете ни в одном проекте"
+                    }
+                </p>
+            </div>
+        )}
+      </div>
     </div>
   );
 };
+
+export default MyProjectsPage;
