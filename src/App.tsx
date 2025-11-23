@@ -65,6 +65,7 @@ const ContractorInvitationTokenPage = lazy(() => import('@pages/dashboard/contra
 const OrganizationSettingsPage = lazy(() => import('@pages/dashboard/organization').then(m => ({ default: m.OrganizationSettingsPage })));
 const OnboardingPage = lazy(() => import('@pages/dashboard/organization').then(m => ({ default: m.OnboardingPage })));
 const MyProjectsPage = lazy(() => import('@pages/dashboard/projects').then(m => ({ default: m.MyProjectsPage })));
+const ProjectDetailsPage = lazy(() => import('@pages/dashboard/projects/ProjectDetailsPage'));
 
 // Lazy loading для Product страниц
 const IntegrationsPage = lazy(() => import('@pages/product/IntegrationsPage'));
@@ -299,6 +300,7 @@ function App() {
           <Route path="organization/onboarding" element={<OnboardingPage />} />
           
           <Route path="projects" element={<MyProjectsPage />} />
+          <Route path="projects/:id" element={<ProjectDetailsPage />} />
           
           {/* Приглашения подрядчиков */}
           <Route path="contractor-invitations" element={
