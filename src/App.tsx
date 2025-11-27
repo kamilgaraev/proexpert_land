@@ -123,7 +123,7 @@ function App() {
     return hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`);
   };
 
-  // Компонент загрузки для Suspense
+  // Компонент загрузки для Suspense 
   const LoadingFallback = () => (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="flex flex-col items-center space-y-4">
