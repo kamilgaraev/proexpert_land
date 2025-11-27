@@ -2891,6 +2891,76 @@ export const holdingReportsService = {
     
     const response = await fetchWithBillingLogging(url.toString(), options);
     return await response.blob();
+  },
+
+  getDetailedContractsReport: async (filters?: Record<string, any>): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+
+    const url = new URL(`${API_URL}/multi-organization/reports/detailed-contracts`);
+    
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          if (Array.isArray(value)) {
+            value.forEach((item) => {
+              url.searchParams.append(`${key}[]`, String(item));
+            });
+          } else {
+            url.searchParams.append(key, String(value));
+          }
+        }
+      });
+    }
+
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await fetchWithBillingLogging(url.toString(), options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  exportDetailedContractsReport: async (filters?: Record<string, any>, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+
+    const url = new URL(`${API_URL}/multi-organization/reports/detailed-contracts`);
+    
+    const allFilters = { ...filters, export_format: format };
+    
+    Object.entries(allFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        const stringValue = String(value);
+        if (stringValue === '') {
+          return;
+        }
+        if (Array.isArray(value)) {
+          value.forEach((item) => {
+            url.searchParams.append(`${key}[]`, String(item));
+          });
+        } else {
+          url.searchParams.append(key, stringValue);
+        }
+      }
+    });
+
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await fetchWithBillingLogging(url.toString(), options);
+    return await response.blob();
   }
 };
 

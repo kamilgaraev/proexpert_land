@@ -55,6 +55,19 @@ const HoldingReportsIndexPage: React.FC = () => {
       ]
     },
     {
+      id: 'detailed-contracts',
+      title: 'Детальный отчет по контрактам',
+      description: 'Полная детализация по каждому контракту: суммы, ГП, оплаты, выполнение, остатки и примечания',
+      icon: DocumentTextIcon,
+      route: '/reports/detailed-contracts',
+      permission: 'multi-organization.reports.view',
+      stats: [
+        { label: 'Детализация', value: 'Полная' },
+        { label: 'Финансы', value: 'Подробно' },
+        { label: 'Экспорт', value: 'Excel/CSV' },
+      ]
+    },
+    {
       id: 'intragroup',
       title: 'Внутригрупповые проекты',
       description: 'Иерархический отчет по проектам где дочерние организации выступают подрядчиками с анализом маржи',

@@ -514,3 +514,66 @@ export interface ConsolidatedReportResponse {
   success: boolean;
   data: ConsolidatedReportData;
 }
+
+export interface DetailedContractsFilters {
+  organization_ids?: number[];
+  date_from?: string;
+  date_to?: string;
+  status?: 'draft' | 'active' | 'completed' | 'terminated' | 'suspended';
+  contractor_ids?: number[];
+  project_id?: number;
+  min_amount?: number;
+  max_amount?: number;
+  work_type_category?: string;
+  include_child_contracts?: boolean;
+  export_format?: 'csv' | 'excel' | 'xlsx';
+  sort_by?: string;
+  sort_direction?: 'asc' | 'desc';
+  per_page?: number;
+  page?: number;
+}
+
+export interface DetailedContractRow {
+  date_registry: string; // DD.MM.YYYY
+  date_payment_performance: string; // DD.MM.YYYY, может быть пустой
+  month: string; // "01"-"12", может быть пустой
+  year: string; // "YYYY", может быть пустой
+  organization_name: string;
+  contractor_name: string;
+  contract_number_date: string; // "НОМЕР, ДД.ММ.ГГГГ"
+  agreement_specification_number: string; // Номер ДС/СП или "-"
+  subject: string;
+  work_type_category: string; // smr, поставка, прочие
+  payment_terms: string; // строка или JSON
+  contract_amount: number; // с 2 знаками после запятой
+  gp_percentage: number; // с 3 знаками после запятой
+  gp_amount: number; // с 2 знаками после запятой
+  warranty_retention_reference: number; // с 2 знаками
+  amount_to_pay: number; // с 2 знаками
+  advance_paid: number; // с 2 знаками
+  fact_payment_paid: number; // с 2 знаками
+  deferred_payment_paid: number; // с 2 знаками
+  total_paid: number; // с 2 знаками
+  remaining_to_pay: number; // с 2 знаками
+  performed_amount: number; // с 2 знаками
+  remaining_to_perform: number; // с 2 знаками
+  notes: string; // может быть пустой
+}
+
+export interface DetailedContractsReportData {
+  title: string;
+  holding: HoldingInfo;
+  period: {
+    from: string | null;
+    to: string | null;
+  };
+  filters: DetailedContractsFilters;
+  total_rows: number;
+  data: DetailedContractRow[];
+  generated_at: string;
+}
+
+export interface DetailedContractsReportResponse {
+  success: boolean;
+  data: DetailedContractsReportData;
+}

@@ -6,10 +6,12 @@ import type {
   ContractsReportData,
   IntraGroupReportData,
   ConsolidatedReportData,
+  DetailedContractsReportData,
   ProjectsSummaryFilters,
   ContractsSummaryFilters,
   IntraGroupFilters,
-  ConsolidatedFilters
+  ConsolidatedFilters,
+  DetailedContractsFilters
 } from '@/types/holding-reports';
 
 export const useHoldingReports = () => {
@@ -17,6 +19,7 @@ export const useHoldingReports = () => {
   const [contractsReport, setContractsReport] = useState<ContractsReportData | null>(null);
   const [intraGroupReport, setIntraGroupReport] = useState<IntraGroupReportData | null>(null);
   const [consolidatedReport, setConsolidatedReport] = useState<ConsolidatedReportData | null>(null);
+  const [detailedContractsReport, setDetailedContractsReport] = useState<DetailedContractsReportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -224,21 +227,65 @@ export const useHoldingReports = () => {
     }).format(date);
   }, []);
 
+  const fetchDetailedContractsReport = useCallback(async (filters?: DetailedContractsFilters) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await holdingReportsService.getDetailedContractsReport(filters);
+      
+      if (response.data && response.data.success) {
+        setDetailedContractsReport(response.data.data);
+      } else {
+        setError(response.data?.error || 'Ошибка загрузки детального отчета по контрактам');
+      }
+    } catch (err: any) {
+      const errorMessage = err.message || 'Ошибка загрузки детального отчета по контрактам';
+      setError(errorMessage);
+      console.error('Ошибка при загрузке детального отчета по контрактам:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const exportDetailedContractsReport = useCallback(async (filters?: DetailedContractsFilters, format: 'csv' | 'excel' | 'xlsx' = 'excel') => {
+    try {
+      const blob = await holdingReportsService.exportDetailedContractsReport(filters, format);
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `detailed_contracts_report_${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xlsx'}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Отчет успешно экспортирован');
+    } catch (err: any) {
+      const errorMessage = err.message || 'Ошибка экспорта отчета';
+      toast.error(errorMessage);
+      console.error('Ошибка при экспорте детального отчета по контрактам:', err);
+    }
+  }, []);
+
   return {
     projectsReport,
     contractsReport,
     intraGroupReport,
     consolidatedReport,
+    detailedContractsReport,
     loading,
     error,
     fetchProjectsSummary,
     fetchContractsSummary,
     fetchIntraGroupReport,
     fetchConsolidatedReport,
+    fetchDetailedContractsReport,
     exportProjectsReport,
     exportContractsReport,
     exportIntraGroupReport,
     exportConsolidatedReport,
+    exportDetailedContractsReport,
     formatCurrency,
     formatPercent,
     formatDate
@@ -409,6 +456,55 @@ export const useConsolidatedReport = () => {
     error,
     filters,
     updateFilters,
+    loadReport,
+    exportReport,
+    formatCurrency,
+    formatPercent,
+    formatDate
+  };
+};
+
+export const useDetailedContractsReport = () => {
+  const {
+    detailedContractsReport,
+    loading,
+    error,
+    fetchDetailedContractsReport,
+    exportDetailedContractsReport,
+    formatCurrency,
+    formatPercent,
+    formatDate
+  } = useHoldingReports();
+
+  const [filters, setFilters] = useState<DetailedContractsFilters>({
+    page: 1,
+    per_page: 50
+  });
+
+  const loadReport = useCallback(async (newFilters?: DetailedContractsFilters) => {
+    const targetFilters = newFilters || filters;
+    await fetchDetailedContractsReport(targetFilters);
+  }, [fetchDetailedContractsReport, filters]);
+
+  const updateFilters = useCallback((newFilters: Partial<DetailedContractsFilters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  }, []);
+
+  const changePage = useCallback((page: number) => {
+    setFilters(prev => ({ ...prev, page }));
+  }, []);
+
+  const exportReport = useCallback(async (format: 'csv' | 'excel' | 'xlsx' = 'excel') => {
+    await exportDetailedContractsReport(filters, format);
+  }, [exportDetailedContractsReport, filters]);
+
+  return {
+    detailedContractsReport,
+    loading,
+    error,
+    filters,
+    updateFilters,
+    changePage,
     loadReport,
     exportReport,
     formatCurrency,
