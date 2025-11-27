@@ -9,8 +9,6 @@ import {
   FunnelIcon,
   ArrowPathIcon,
   ArrowLeftIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
@@ -28,8 +26,6 @@ const HoldingDetailedContractsReportPage: React.FC = () => {
     changePage,
     loadReport,
     exportReport,
-    formatCurrency,
-    formatPercent,
     formatDate
   } = useDetailedContractsReport();
 
