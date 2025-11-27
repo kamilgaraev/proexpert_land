@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { PRICING_MODULES, PricingModule } from '../../../constants/landing-content';
-import { CheckCircleIcon, PlusCircleIcon, MinusCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { PRICING_MODULES } from '../../../constants/landing-content';
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
 
 const Calculator = () => {
   const [selectedModules, setSelectedModules] = useState<Set<string>>(new Set(

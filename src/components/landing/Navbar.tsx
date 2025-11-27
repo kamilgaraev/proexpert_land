@@ -10,8 +10,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { NAV_LINKS } from '../../constants/landing-content';
 
-const LK_URL = (import.meta.env.VITE_LK_URL as string | undefined) ?? 'https://lk.prohelper.pro';
-
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);

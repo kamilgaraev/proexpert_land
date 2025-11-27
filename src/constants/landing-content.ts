@@ -1,6 +1,5 @@
 import { 
   BuildingOffice2Icon, 
-  UserGroupIcon, 
   ClipboardDocumentCheckIcon, 
   TruckIcon, 
   WrenchScrewdriverIcon,
@@ -14,8 +13,7 @@ import {
   StarIcon,
   RocketLaunchIcon,
   BriefcaseIcon,
-  BuildingOfficeIcon,
-  SparklesIcon
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
 
 export const NAV_LINKS = [
