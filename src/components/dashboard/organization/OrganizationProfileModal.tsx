@@ -197,7 +197,7 @@ export const OrganizationProfileModal = ({
 
                 {currentStep === 'business_type' && (
                   <BusinessTypeSelector
-                    selectedBusinessType={localBusinessType}
+                    selectedType={localBusinessType}
                     onChange={setLocalBusinessType}
                   />
                 )}
@@ -212,7 +212,7 @@ export const OrganizationProfileModal = ({
                 {currentStep === 'modules' && profile && (
                   <RecommendedModulesCard
                     modules={profile.recommended_modules || []}
-                    onModuleClick={(moduleId) => {
+                    onModuleClick={() => {
                       navigate('/dashboard/modules');
                       onClose();
                     }}

@@ -35,8 +35,7 @@ const DashboardLayout = () => {
   
   const {
     shouldShowOnboarding,
-    hideOnboarding,
-    skipOnboarding
+    hideOnboarding
   } = useProfileOnboarding();
   
   // Modules

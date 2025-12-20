@@ -1,6 +1,4 @@
-import type { PageContextServer } from 'vite-plugin-ssr';
-
-export function onBeforeRender(pageContext: PageContextServer) {
+export function onBeforeRender(pageContext: any) {
   const url = pageContext.urlPathname || '/';
   
   const validRoutes = [
