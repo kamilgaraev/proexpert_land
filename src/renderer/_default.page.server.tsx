@@ -25,9 +25,11 @@ export async function render(pageContext: PageContextServer) {
     </StaticRouter>,
   );
 
-  // Derive base SEO data from URL slug ("/integrations" => "integrations")
   const slug = (pageContext.urlPathname || '/').replace(/^\/+|\/+$/g, '') || 'home';
   const baseSeo: PageSEOData = getPageSEOData(slug);
+  
+  const httpResponse = (pageContext as any).httpResponse;
+  const statusCode = httpResponse?.statusCode || 200;
 
   const {
     title = baseSeo.title,
@@ -52,6 +54,10 @@ export async function render(pageContext: PageContextServer) {
     `<meta name="referrer" content="strict-origin-when-cross-origin" />`,
     `<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />`,
     `<meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large" />`,
+    `<meta name="geo.region" content="RU" />`,
+    `<meta name="geo.placename" content="Россия" />`,
+    `<meta name="geo.position" content="55.751244;37.618423" />`,
+    `<meta name="ICBM" content="55.751244, 37.618423" />`,
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
     `<meta property="og:image" content="${ogImage}" />`,
@@ -96,7 +102,7 @@ export async function render(pageContext: PageContextServer) {
     `<link rel="dns-prefetch" href="https://api.prohelper.pro" />`
   ].join("\n");
 
-  return escapeInject`<!DOCTYPE html>
+  const documentHtml = escapeInject`<!DOCTYPE html>
     <html lang="ru">
       <head>
         <meta charset="UTF-8" />
@@ -111,6 +117,16 @@ export async function render(pageContext: PageContextServer) {
         <div id="root">${dangerouslySkipEscape(html)}</div>
       </body>
     </html>`;
+
+  return {
+    documentHtml,
+    pageContext: {
+      httpResponse: {
+        statusCode,
+        contentType: 'text/html'
+      }
+    }
+  };
 }
 
 export const passToClient = ['pageProps', 'documentProps']; 

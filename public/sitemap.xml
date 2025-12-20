@@ -8,12 +8,23 @@
   <!-- Главная страница -->
   <url>
     <loc>https://prohelper.pro/</loc>
-    <lastmod>2025-11-06</lastmod>
+    <lastmod>2025-12-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
       <image:loc>https://prohelper.pro/og-images/home.jpg</image:loc>
       <image:title>ProHelper - Система управления строительными проектами</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://prohelper.pro/solutions</loc>
+    <lastmod>2025-12-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+    <image:image>
+      <image:loc>https://prohelper.pro/og-images/solutions.jpg</image:loc>
+      <image:title>Решения ProHelper для строительного бизнеса</image:title>
     </image:image>
   </url>
 

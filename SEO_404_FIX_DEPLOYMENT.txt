@@ -1,0 +1,131 @@
+ИСПРАВЛЕНИЕ ПРОБЛЕМ С ИНДЕКСАЦИЕЙ САЙТА И ЯНДЕКС.МЕТРИКОЙ
+===========================================================
+
+Дата: 20.12.2025
+Проблемы: 
+1. Некорректная настройка HTTP-кода 404
+2. Отсутствие региональных мета-тегов
+3. Яндекс.Метрика отправляет данные с lk.prohelper.pro (нужно только с prohelper.pro)
+
+ВНЕСЕННЫЕ ИЗМЕНЕНИЯ:
+====================
+
+1. SERVER-SIDE RENDERING (SSR):
+   - server/index.cjs: Исправлен HTTP-код 404 (было 200, стало 404)
+   - src/renderer/_default.page.server.tsx: Добавлена поддержка HTTP статус кодов
+   - src/pages/catch-all.page.server.ts: Новый файл для определения 404 страниц
+
+2. РЕГИОНАЛЬНЫЕ МЕТА-ТЕГИ:
+   Добавлены во все файлы:
+   - index.html (основной HTML)
+   - src/renderer/_default.page.server.tsx (SSR)
+   - src/hooks/useSEO.ts (динамическое обновление)
+   - src/hooks/useAdvancedSEO.ts (расширенное SEO)
+   - src/components/shared/SEOHead.tsx (компонент SEO)
+
+   Добавленные теги:
+   <meta name="geo.region" content="RU" />
+   <meta name="geo.placename" content="Россия" />
+   <meta name="geo.position" content="55.751244;37.618423" />
+   <meta name="ICBM" content="55.751244, 37.618423" />
+
+3. NGINX КОНФИГУРАЦИЯ:
+   - deploy/nginx/prohelper.pro.conf: Добавлен proxy_intercept_errors on
+
+4. SEO ФАЙЛЫ:
+   - public/sitemap.xml: Обновлены даты, добавлен /solutions
+   - public/robots.txt: Добавлены /solutions и /help
+
+5. ЯНДЕКС.МЕТРИКА:
+   - src/components/analytics/YandexMetrika.tsx: 
+     * Добавлена функция shouldEnableMetrika()
+     * Метрика отключена для lk.prohelper.pro
+     * Метрика отключена для localhost
+     * Метрика работает только на основном домене prohelper.pro
+
+ИНСТРУКЦИЯ ПО РАЗВЕРТЫВАНИЮ:
+============================
+
+ШАГ 1: СБОРКА ПРОЕКТА
+----------------------
+npm run build
+
+ШАГ 2: ЗАГРУЗКА НА СЕРВЕР
+--------------------------
+scp -r dist/* user@server:/var/www/prohelper_marketing/
+
+ШАГ 3: ОБНОВЛЕНИЕ NGINX
+------------------------
+sudo cp deploy/nginx/prohelper.pro.conf /etc/nginx/sites-available/prohelper.pro
+sudo nginx -t
+sudo systemctl reload nginx
+
+ШАГ 4: ПЕРЕЗАПУСК SSR СЕРВЕРА
+------------------------------
+pm2 restart prohelper-ssr
+или
+pm2 restart ecosystem.config.js --only prohelper-ssr
+
+ШАГ 5: ПРОВЕРКА
+---------------
+1. Проверить HTTP-код 404:
+   curl -I https://prohelper.pro/nesushhestvuyushhaya-stranica
+   Ожидается: HTTP/2 404
+
+2. Проверить региональные мета-теги:
+   curl https://prohelper.pro/ | grep "geo.region"
+   Ожидается: <meta name="geo.region" content="RU" />
+
+3. Проверить в браузере:
+   - Открыть https://prohelper.pro/test-404
+   - Открыть DevTools → Network
+   - Проверить статус код: должен быть 404
+
+4. Проверить Яндекс.Метрику:
+   - Открыть https://prohelper.pro/
+   - Открыть DevTools → Network
+   - Должен загружаться скрипт mc.yandex.ru/metrika/tag.js
+   
+   - Открыть https://lk.prohelper.pro/dashboard
+   - Открыть DevTools → Network
+   - НЕ должен загружаться скрипт метрики
+   
+   - В консоли проверить: window.ym
+   - На prohelper.pro должна быть функция
+   - На lk.prohelper.pro должен быть undefined
+
+ШАГ 6: ОТПРАВКА В ЯНДЕКС.ВЕБМАСТЕР
+-----------------------------------
+1. Зайти в Яндекс.Вебмастер
+2. Нажать "Переобход страниц"
+3. Добавить несколько несуществующих URL для проверки
+4. Подождать переиндексации (1-3 дня)
+
+ПРОВЕРКА КОРРЕКТНОСТИ:
+======================
+
+1. HTTP 404:
+   curl -I https://prohelper.pro/random-404-page
+   Должен вернуть: HTTP/2 404
+
+2. Региональность:
+   curl -s https://prohelper.pro/ | grep -E "geo\.(region|placename|position)|ICBM"
+   Должны быть все 4 тега
+
+3. SSR работает:
+   curl -s https://prohelper.pro/ | grep "ProHelper"
+   Должен вернуть HTML с контентом
+
+ВАЖНО:
+======
+- После развертывания подождите 24-48 часов для переиндексации
+- Проверьте логи Nginx: tail -f /var/log/nginx/prohelper_error.log
+- Проверьте логи PM2: pm2 logs prohelper-ssr
+
+КОНТАКТЫ ДЛЯ ВОПРОСОВ:
+======================
+Если возникнут проблемы при развертывании, проверьте:
+1. Права доступа к файлам: chown -R www-data:www-data /var/www/prohelper_marketing
+2. PM2 процессы: pm2 status
+3. Nginx конфигурация: sudo nginx -t
+

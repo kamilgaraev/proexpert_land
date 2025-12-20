@@ -59,6 +59,10 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag('keywords', keywords);
     setMetaTag('author', author);
     setMetaTag('robots', 'index, follow');
+    setMetaTag('geo.region', 'RU');
+    setMetaTag('geo.placename', 'Россия');
+    setMetaTag('geo.position', '55.751244;37.618423');
+    setMetaTag('ICBM', '55.751244, 37.618423');
     
     setMetaTag('og:title', title, true);
     setMetaTag('og:description', description, true);

@@ -14,6 +14,24 @@ interface YandexMetrikaProps {
   enableAccurateTrackBounce?: boolean;
 }
 
+const shouldEnableMetrika = (): boolean => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  
+  const hostname = window.location.hostname;
+  
+  if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+    return false;
+  }
+  
+  if (hostname.startsWith('lk.')) {
+    return false;
+  }
+  
+  return true;
+};
+
 const YandexMetrika = ({
   counterId,
   enableWebvisor = true,
@@ -22,6 +40,10 @@ const YandexMetrika = ({
   enableAccurateTrackBounce = true
 }: YandexMetrikaProps) => {
   useEffect(() => {
+    if (!shouldEnableMetrika()) {
+      return;
+    }
+
     const script = document.createElement('script');
     script.type = 'text/javascript';
     script.async = true;
@@ -47,8 +69,12 @@ const YandexMetrika = ({
     document.body.appendChild(noscript);
 
     return () => {
-      document.head.removeChild(script);
-      document.body.removeChild(noscript);
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+      if (document.body.contains(noscript)) {
+        document.body.removeChild(noscript);
+      }
     };
   }, [counterId, enableWebvisor, enableClickmap, enableTrackLinks, enableAccurateTrackBounce]);
 
@@ -56,6 +82,10 @@ const YandexMetrika = ({
 };
 
 export const trackYandexGoal = (goalName: string, params?: Record<string, any>) => {
+  if (!shouldEnableMetrika()) {
+    return;
+  }
+  
   if (typeof window !== 'undefined' && window.ym) {
     const counterId = 102888970;
     window.ym(counterId, 'reachGoal', goalName, params);
@@ -63,6 +93,10 @@ export const trackYandexGoal = (goalName: string, params?: Record<string, any>) 
 };
 
 export const trackYandexEvent = (eventName: string, params?: Record<string, any>) => {
+  if (!shouldEnableMetrika()) {
+    return;
+  }
+  
   if (typeof window !== 'undefined' && window.ym) {
     const counterId = 102888970;
     window.ym(counterId, 'hit', window.location.href, {

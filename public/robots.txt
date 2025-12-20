@@ -12,6 +12,7 @@ Host: https://prohelper.pro
 # Основные страницы сайта (разрешены для индексации)
 Allow: /features
 Allow: /pricing
+Allow: /solutions
 Allow: /integrations
 Allow: /contact
 Allow: /small-business
@@ -21,6 +22,7 @@ Allow: /developers
 Allow: /blog
 Allow: /webinars
 Allow: /docs
+Allow: /help
 Allow: /about
 Allow: /careers
 Allow: /press

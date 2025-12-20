@@ -97,6 +97,10 @@ export const useSEO = (props: UseSEOProps = {}) => {
     setMetaTag('keywords', finalData.keywords);
     setMetaTag('author', finalData.author);
     setMetaTag('robots', finalData.noIndex ? 'noindex, nofollow' : 'index, follow');
+    setMetaTag('geo.region', 'RU');
+    setMetaTag('geo.placename', 'Россия');
+    setMetaTag('geo.position', '55.751244;37.618423');
+    setMetaTag('ICBM', '55.751244, 37.618423');
     
     setMetaTag('og:title', finalData.title, true);
     setMetaTag('og:description', finalData.description, true);

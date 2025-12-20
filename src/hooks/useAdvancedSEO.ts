@@ -149,6 +149,10 @@ const updateMetaTags = (data: {
   setMetaTag('description', data.description);
   setMetaTag('keywords', data.keywords);
   setMetaTag('robots', 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1');
+  setMetaTag('geo.region', 'RU');
+  setMetaTag('geo.placename', 'Россия');
+  setMetaTag('geo.position', '55.751244;37.618423');
+  setMetaTag('ICBM', '55.751244, 37.618423');
   
   // Open Graph
   setMetaTag('og:title', data.title, true);
