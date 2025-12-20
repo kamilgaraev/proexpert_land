@@ -19,16 +19,24 @@ import { useAuth } from '@hooks/useAuth';
 import { useModules } from '@hooks/useModules';
 import { useCanAccess } from '@/hooks/usePermissions';
 import { useBalance } from '@hooks/useBalance';
+import { useProfileOnboarding } from '@/hooks/useProfileOnboarding';
 
 import { Sidebar } from '@/components/dashboard-layout/sidebar';
 import { Header } from '@/components/dashboard-layout/header';
 import { PageWrapper } from '@/components/dashboard-layout/page-wrapper';
+import { OrganizationProfileModal } from '@/components/dashboard/organization/OrganizationProfileModal';
 
 const DashboardLayout = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   
   const { balance: actualBalance, error: balanceError, refresh: refreshBalance } = useBalance();
+  
+  const {
+    shouldShowOnboarding,
+    hideOnboarding,
+    skipOnboarding
+  } = useProfileOnboarding();
   
   // Modules
   const { 
@@ -218,6 +226,15 @@ const DashboardLayout = () => {
            </PageWrapper>
         </main>
       </div>
+
+      <OrganizationProfileModal
+        isOpen={shouldShowOnboarding}
+        onClose={hideOnboarding}
+        onComplete={() => {
+          hideOnboarding();
+          navigate('/dashboard');
+        }}
+      />
     </div>
   );
 };

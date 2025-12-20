@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useOrganizationProfile } from '@/hooks/useOrganizationProfile';
 import { useOrganizationVerification } from '@/hooks/useOrganizationVerification';
 import { CapabilitiesSelector } from '@/components/dashboard/organization/CapabilitiesSelector';
@@ -6,6 +7,7 @@ import { BusinessTypeSelector } from '@/components/dashboard/organization/Busine
 import { SpecializationsSelector } from '@/components/dashboard/organization/SpecializationsSelector';
 import { CertificationsList } from '@/components/dashboard/organization/CertificationsList';
 import { ProfileCompletenessWidget } from '@/components/dashboard/organization/ProfileCompletenessWidget';
+import { RecommendedModulesCard } from '@/components/dashboard/organization/RecommendedModulesCard';
 import type { OrganizationCapability } from '@/types/organization-profile';
 import { 
   Building2, 
@@ -62,6 +64,7 @@ const SPECIALIZATION_LABELS: Record<string, string> = {
 };
 
 export const OrganizationSettingsPage = () => {
+  const navigate = useNavigate();
   const {
     profile,
     availableCapabilities,
@@ -384,27 +387,13 @@ export const OrganizationSettingsPage = () => {
           )}
 
           {profile && profile.recommended_modules && profile.recommended_modules.length > 0 && (
-            <Card className="bg-gradient-to-br from-background to-muted border-primary/20">
-              <CardHeader>
-                <CardTitle className="text-lg">Рекомендуемые модули</CardTitle>
-                <CardDescription>На основе профиля вашей организации</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {profile.recommended_modules.map((module: string | { value: string; label: string }, index: number) => {
-                  const moduleText = typeof module === 'string' ? module : (module?.label || module?.value || 'Модуль');
-                  const moduleKey = typeof module === 'string' ? module : (module?.value || index);
-                  return (
-                    <div
-                      key={moduleKey}
-                      className="flex items-center gap-2 text-sm p-3 bg-background rounded-lg border shadow-sm"
-                    >
-                      <CheckCircle className="w-4 h-4 text-primary shrink-0" />
-                      <span>{moduleText}</span>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
+            <RecommendedModulesCard
+              modules={profile.recommended_modules}
+              onModuleClick={(moduleId) => {
+                navigate('/dashboard/modules');
+              }}
+              showTitle={true}
+            />
           )}
         </div>
       </div>
