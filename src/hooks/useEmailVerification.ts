@@ -14,7 +14,7 @@ interface EmailVerificationState {
 interface UseEmailVerificationReturn extends EmailVerificationState {
   checkVerificationStatus: () => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
-  verifyEmail: (id: string, hash: string, expires: string, signature: string) => Promise<{ success: boolean; message: string }>;
+  verifyEmail: (id: string, hash: string, expires: string) => Promise<{ success: boolean; message: string }>;
 }
 
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -127,13 +127,12 @@ export const useEmailVerification = (): UseEmailVerificationReturn => {
   const verifyEmail = useCallback(async (
     id: string, 
     hash: string, 
-    expires: string, 
-    signature: string
+    expires: string
   ): Promise<{ success: boolean; message: string }> => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
       
-      const response = await authService.verifyEmail(id, hash, expires, signature);
+      const response = await authService.verifyEmail(id, hash, expires);
       
       setState(prev => ({ ...prev, loading: false }));
       

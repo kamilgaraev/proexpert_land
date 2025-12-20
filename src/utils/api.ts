@@ -306,8 +306,8 @@ export const authService = {
   },
 
   // Верификация email по ссылке
-  verifyEmail: async (id: string, hash: string, expires: string, signature: string) => {
-    const apiUrl = `${API_URL}/email/verify/${id}/${hash}?expires=${encodeURIComponent(expires)}&signature=${encodeURIComponent(signature)}`;
+  verifyEmail: async (id: string, hash: string, expires: string) => {
+    const apiUrl = `${API_URL}/email/verify/${id}/${hash}?expires=${encodeURIComponent(expires)}`;
     
     const response = await fetch(apiUrl, {
       method: 'GET',

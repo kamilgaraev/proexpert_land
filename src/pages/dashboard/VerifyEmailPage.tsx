@@ -23,9 +23,8 @@ export const VerifyEmailPage = () => {
       const id = searchParams.get('id');
       const hash = searchParams.get('hash');
       const expires = searchParams.get('expires');
-      const signature = searchParams.get('signature');
 
-      if (!id || !hash || !expires || !signature) {
+      if (!id || !hash || !expires) {
         setVerificationState({
           status: 'error',
           message: 'Неверная ссылка для подтверждения. Убедитесь, что вы перешли по ссылке из письма полностью.'
@@ -33,7 +32,7 @@ export const VerifyEmailPage = () => {
         return;
       }
 
-      const result = await verifyEmail(id, hash, expires, signature);
+      const result = await verifyEmail(id, hash, expires);
       
       setVerificationState({
         status: result.success ? 'success' : 'error',
