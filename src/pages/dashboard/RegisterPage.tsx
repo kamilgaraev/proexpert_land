@@ -25,7 +25,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { toast } from 'react-toastify';
 
 const RegisterPage = () => {
   // User Data
@@ -56,7 +55,6 @@ const RegisterPage = () => {
   // const [showNetworkError, setShowNetworkError] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [currentStep, setCurrentStep] = useState(1);
-  const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
   
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -230,11 +228,7 @@ const RegisterPage = () => {
       
       await register(formData);
       
-      setShowEmailVerificationModal(true);
-      
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 5000);
+      navigate('/email-sent', { state: { email } });
     } catch (err: any) {
       console.error('Ошибка при регистрации:', err);
       
@@ -588,43 +582,6 @@ const RegisterPage = () => {
              </div>
         </form>
       </motion.div>
-
-      {showEmailVerificationModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center"
-          >
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-              <Check className="w-10 h-10 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">
-              Регистрация успешна!
-            </h2>
-            <p className="text-gray-600 mb-2">
-              Мы отправили письмо на адрес <span className="font-semibold text-gray-900">{email}</span>
-            </p>
-            <p className="text-gray-600 mb-6">
-              Пожалуйста, проверьте свою почту и подтвердите email, чтобы получить полный доступ ко всем функциям платформы.
-            </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mb-6">
-              <Mail className="w-4 h-4" />
-              <span>Письмо может попасть в папку "Спам"</span>
-            </div>
-            <Button
-              onClick={() => {
-                setShowEmailVerificationModal(false);
-                navigate('/dashboard');
-              }}
-              className="w-full"
-            >
-              Перейти в личный кабинет
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </motion.div>
-        </div>
-      )}
     </div>
   );
 };
