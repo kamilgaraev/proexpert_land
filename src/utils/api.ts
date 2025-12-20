@@ -276,7 +276,81 @@ export const authService = {
     api.post<ApiResponse<null>>('/auth/password/reset', resetData),
   
   // Повторная отправка письма с подтверждением
-  resendVerificationEmail: () => api.post<ApiResponse<null>>('/auth/email/resend')
+  resendVerificationEmail: async () => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`${API_URL}/landing/auth/email/resend`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data?.message || 'Ошибка отправки письма');
+    }
+    
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  // Верификация email по ссылке
+  verifyEmail: async (id: string, hash: string, expires: string, signature: string) => {
+    const response = await fetch(
+      `${API_URL}/landing/auth/email/verify/${id}/${hash}?expires=${encodeURIComponent(expires)}&signature=${encodeURIComponent(signature)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      }
+    );
+    
+    const data = await response.json();
+    
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  },
+
+  // Проверка статуса верификации email
+  checkEmailVerification: async () => {
+    const token = getTokenFromStorages();
+    
+    if (!token) {
+      throw new Error('Токен авторизации отсутствует');
+    }
+    
+    const response = await fetch(`${API_URL}/landing/auth/email/check`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = await response.json();
+    
+    return {
+      data,
+      status: response.status,
+      statusText: response.statusText
+    };
+  }
 };
 
 export const userService = {

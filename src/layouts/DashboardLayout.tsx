@@ -25,6 +25,7 @@ import { Sidebar } from '@/components/dashboard-layout/sidebar';
 import { Header } from '@/components/dashboard-layout/header';
 import { PageWrapper } from '@/components/dashboard-layout/page-wrapper';
 import { OrganizationProfileModal } from '@/components/dashboard/organization/OrganizationProfileModal';
+import { EmailVerificationBanner } from '@/components/dashboard/EmailVerificationBanner';
 
 const DashboardLayout = () => {
   const { logout, user } = useAuth();
@@ -220,6 +221,7 @@ const DashboardLayout = () => {
             sidebarProps={sidebarProps}
             navigation={mainNavigation}
         />
+        <EmailVerificationBanner />
         <main className="flex-1">
            <PageWrapper>
               <Outlet />

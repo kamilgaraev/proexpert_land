@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@hooks/useAuth';
 import { userService } from '@utils/api';
+import { useEmailVerification } from '@/hooks/useEmailVerification';
 import { 
   UserCircleIcon, 
   PencilIcon, 
@@ -14,10 +15,21 @@ import {
   IdentificationIcon,
   CameraIcon
 } from '@heroicons/react/24/outline';
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { Button } from '@/components/ui/button';
 
 const ProfilePage = () => {
   const { user, fetchUser, isLoading: authLoading } = useAuth();
+  const {
+    isVerified,
+    loading: verificationLoading,
+    canResend,
+    resendCooldown,
+    checkVerificationStatus,
+    resendVerificationEmail
+  } = useEmailVerification();
+  
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -28,6 +40,12 @@ const ProfilePage = () => {
   const [removeAvatarFlag, setRemoveAvatarFlag] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (user) {
+      checkVerificationStatus();
+    }
+  }, [user, checkVerificationStatus]);
 
   useEffect(() => {
     if (user) {
@@ -217,7 +235,44 @@ const ProfilePage = () => {
               <div className="mt-6">
                 <h2 className="text-2xl font-bold text-steel-900">{user.name}</h2>
                 <p className="text-steel-600 mt-1">{user.position || 'Не указана должность'}</p>
-                <p className="text-steel-500 text-sm mt-2">{user.email}</p>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <p className="text-steel-500 text-sm">{user.email}</p>
+                  {verificationLoading ? (
+                    <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+                  ) : isVerified === true ? (
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                      <CheckCircle className="w-3 h-3" />
+                      Подтвержден
+                    </div>
+                  ) : isVerified === false ? (
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
+                      <XCircle className="w-3 h-3" />
+                      Не подтвержден
+                    </div>
+                  ) : null}
+                </div>
+                {isVerified === false && (
+                  <div className="mt-3">
+                    <Button
+                      onClick={resendVerificationEmail}
+                      disabled={!canResend || verificationLoading}
+                      size="sm"
+                      variant="outline"
+                      className="text-xs"
+                    >
+                      {verificationLoading ? (
+                        <>
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          Отправка...
+                        </>
+                      ) : !canResend ? (
+                        `Повторить через ${resendCooldown}с`
+                      ) : (
+                        'Отправить письмо повторно'
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {isEditing && avatarPreview && (
