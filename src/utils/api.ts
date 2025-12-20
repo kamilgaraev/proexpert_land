@@ -283,7 +283,7 @@ export const authService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`${API_URL}/landing/auth/email/resend`, {
+    const response = await fetch(`${API_URL}/email/resend`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -307,15 +307,14 @@ export const authService = {
 
   // Верификация email по ссылке
   verifyEmail: async (id: string, hash: string, expires: string, signature: string) => {
-    const response = await fetch(
-      `${API_URL}/landing/auth/email/verify/${id}/${hash}?expires=${encodeURIComponent(expires)}&signature=${encodeURIComponent(signature)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        }
+    const apiUrl = `${API_URL}/email/verify/${id}/${hash}?expires=${encodeURIComponent(expires)}&signature=${encodeURIComponent(signature)}`;
+    
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
       }
-    );
+    });
     
     const data = await response.json();
     
@@ -334,7 +333,7 @@ export const authService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`${API_URL}/landing/auth/email/check`, {
+    const response = await fetch(`${API_URL}/email/check`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
