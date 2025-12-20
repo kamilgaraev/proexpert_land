@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
 import { Mail, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,19 +9,15 @@ interface EmailVerificationBannerProps {
 }
 
 export const EmailVerificationBanner = ({ onDismiss }: EmailVerificationBannerProps) => {
+  const { user } = useAuth();
   const {
     isVerified,
     email,
     loading,
     canResend,
     resendCooldown,
-    checkVerificationStatus,
     resendVerificationEmail
-  } = useEmailVerification();
-
-  useEffect(() => {
-    checkVerificationStatus();
-  }, [checkVerificationStatus]);
+  } = useEmailVerification(user);
 
   if (loading && isVerified === null) {
     return null;

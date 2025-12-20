@@ -216,6 +216,13 @@ export const authService = {
     
     const data = await response.json();
     
+    if (!response.ok) {
+      const error: any = new Error(data?.message || 'Ошибка входа');
+      error.status = response.status;
+      error.data = data;
+      throw error;
+    }
+    
     // Сразу сохраняем токен в хранилище
     if (data && data.success && data.data && data.data.token) {
       saveTokenToMultipleStorages(data.data.token);
@@ -283,7 +290,7 @@ export const authService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`${API_URL}/email/resend`, {
+    const response = await fetch(`${API_URL}/auth/email/resend`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -325,7 +332,7 @@ export const authService = {
     };
   },
 
-  // Проверка статуса верификации email
+  // Проверка статуса верификации email (используем данные из /me, но оставляем для совместимости)
   checkEmailVerification: async () => {
     const token = getTokenFromStorages();
     
@@ -333,7 +340,7 @@ export const authService = {
       throw new Error('Токен авторизации отсутствует');
     }
     
-    const response = await fetch(`${API_URL}/email/check`, {
+    const response = await fetch(`${API_URL}/auth/email/check`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

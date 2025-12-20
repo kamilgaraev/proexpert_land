@@ -204,7 +204,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       // Уведомляем другие части приложения о входе
       window.dispatchEvent(new CustomEvent('user-login'));
-    } catch (error) {
+    } catch (error: any) {
       if (window.clearTokenFromStorages) {
         window.clearTokenFromStorages();
       } else {
@@ -214,6 +214,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       setToken(null);
       setUser(null);
+      
+      if (error.status) {
+        const errorWithStatus = error as any;
+        errorWithStatus.status = error.status;
+        throw errorWithStatus;
+      }
+      
       throw error;
     } finally {
       setIsLoading(false);

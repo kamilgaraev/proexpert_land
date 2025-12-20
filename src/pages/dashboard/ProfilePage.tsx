@@ -28,7 +28,7 @@ const ProfilePage = () => {
     resendCooldown,
     checkVerificationStatus,
     resendVerificationEmail
-  } = useEmailVerification();
+  } = useEmailVerification(user);
   
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
@@ -41,15 +41,6 @@ const ProfilePage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    if (user) {
-      checkVerificationStatus();
-    }
-  }, [user, checkVerificationStatus]);
-
-  useEffect(() => {
-    checkVerificationStatus();
-  }, [checkVerificationStatus]);
 
   useEffect(() => {
     if (user) {

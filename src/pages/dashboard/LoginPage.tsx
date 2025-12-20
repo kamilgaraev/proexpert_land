@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { EmailVerificationModal } from '@/components/dashboard/EmailVerificationModal';
 
 // We didn't create Checkbox yet, so I'll use a simple native one styled or quickly create it.
 // For now I will use a native input with tailwind classes or assume I can make a simple one.
@@ -25,6 +26,7 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
   // const [showNetworkError, setShowNetworkError] = useState(false);
   
   const { login } = useAuth();
@@ -51,7 +53,10 @@ const LoginPage = () => {
     } catch (err: any) {
       console.error('Ошибка входа:', err);
       
-      if (err.message?.includes('Не удалось подключиться к серверу')) {
+      if (err.status === 403 && (err.message?.includes('подтвердите ваш email') || err.message?.includes('подтвердите email'))) {
+        setShowEmailVerificationModal(true);
+        setError('');
+      } else if (err.message?.includes('Не удалось подключиться к серверу')) {
         // setShowNetworkError(true);
         setError('Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.');
       } else if (err.message?.includes('Неверные учетные данные')) {
@@ -223,6 +228,12 @@ const LoginPage = () => {
         </div>
 
       </motion.div>
+
+      <EmailVerificationModal
+        isOpen={showEmailVerificationModal}
+        email={email}
+        onClose={() => setShowEmailVerificationModal(false)}
+      />
     </div>
   );
 };

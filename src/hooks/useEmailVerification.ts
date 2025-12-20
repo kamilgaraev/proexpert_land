@@ -2,6 +2,11 @@ import { useState, useCallback, useEffect } from 'react';
 import { authService } from '@/utils/api';
 import { toast } from 'react-toastify';
 
+interface User {
+  email?: string;
+  email_verified_at?: string | null;
+}
+
 interface EmailVerificationState {
   isVerified: boolean | null;
   email: string | null;
@@ -20,7 +25,7 @@ interface UseEmailVerificationReturn extends EmailVerificationState {
 const RESEND_COOLDOWN_SECONDS = 60;
 const COOLDOWN_STORAGE_KEY = 'email_verification_cooldown';
 
-export const useEmailVerification = (): UseEmailVerificationReturn => {
+export const useEmailVerification = (user?: User | null): UseEmailVerificationReturn => {
   const [state, setState] = useState<EmailVerificationState>({
     isVerified: null,
     email: null,
@@ -67,7 +72,37 @@ export const useEmailVerification = (): UseEmailVerificationReturn => {
     }
   }, [checkCooldown]);
 
+  useEffect(() => {
+    if (user) {
+      const isVerified = user.email_verified_at !== null && user.email_verified_at !== undefined;
+      setState(prev => ({
+        ...prev,
+        isVerified,
+        email: user.email || null,
+        loading: false
+      }));
+    } else {
+      setState(prev => ({
+        ...prev,
+        isVerified: null,
+        email: null,
+        loading: false
+      }));
+    }
+  }, [user]);
+
   const checkVerificationStatus = useCallback(async () => {
+    if (user) {
+      const isVerified = user.email_verified_at !== null && user.email_verified_at !== undefined;
+      setState(prev => ({
+        ...prev,
+        isVerified,
+        email: user.email || null,
+        loading: false
+      }));
+      return;
+    }
+
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
       
@@ -88,7 +123,7 @@ export const useEmailVerification = (): UseEmailVerificationReturn => {
       setState(prev => ({ ...prev, loading: false, error: errorMessage }));
       console.error('Ошибка проверки статуса верификации:', error);
     }
-  }, []);
+  }, [user]);
 
   const resendVerificationEmail = useCallback(async () => {
     if (!state.canResend) {
