@@ -26,7 +26,6 @@ const ProfilePage = () => {
     loading: verificationLoading,
     canResend,
     resendCooldown,
-    checkVerificationStatus,
     resendVerificationEmail
   } = useEmailVerification(user);
   

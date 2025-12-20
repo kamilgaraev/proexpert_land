@@ -1,4 +1,4 @@
-import { Mail, X, Loader2, RefreshCw } from 'lucide-react';
+import { Mail, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useEmailVerification } from '@/hooks/useEmailVerification';

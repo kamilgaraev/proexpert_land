@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
 import { Mail, X, Loader2 } from 'lucide-react';
