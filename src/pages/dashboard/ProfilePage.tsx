@@ -48,6 +48,10 @@ const ProfilePage = () => {
   }, [user, checkVerificationStatus]);
 
   useEffect(() => {
+    checkVerificationStatus();
+  }, [checkVerificationStatus]);
+
+  useEffect(() => {
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
@@ -395,8 +399,43 @@ const ProfilePage = () => {
                       placeholder="Введите ваш email"
                     />
                   ) : (
-                    <div className="px-4 py-3 bg-steel-50 rounded-xl text-steel-900 font-medium">
-                      {user.email || 'Не указан'}
+                    <div className="space-y-2">
+                      <div className="px-4 py-3 bg-steel-50 rounded-xl text-steel-900 font-medium flex items-center justify-between">
+                        <span>{user.email || 'Не указан'}</span>
+                        {verificationLoading ? (
+                          <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+                        ) : isVerified === true ? (
+                          <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                            <CheckCircle className="w-3 h-3" />
+                            Подтвержден
+                          </div>
+                        ) : isVerified === false ? (
+                          <div className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
+                            <XCircle className="w-3 h-3" />
+                            Не подтвержден
+                          </div>
+                        ) : null}
+                      </div>
+                      {isVerified === false && !isEditing && (
+                        <Button
+                          onClick={resendVerificationEmail}
+                          disabled={!canResend || verificationLoading}
+                          size="sm"
+                          variant="outline"
+                          className="text-xs w-full sm:w-auto"
+                        >
+                          {verificationLoading ? (
+                            <>
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              Отправка...
+                            </>
+                          ) : !canResend ? (
+                            `Повторить через ${resendCooldown}с`
+                          ) : (
+                            'Отправить письмо повторно'
+                          )}
+                        </Button>
+                      )}
                     </div>
                   )}
                   {validationErrors.email && (
