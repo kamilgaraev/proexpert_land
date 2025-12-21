@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useUserManagement } from '../../../hooks/useUserManagement';
 import { useCustomRoles } from '../../../hooks/useCustomRoles';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify';
 
 interface InviteUserModalProps {
   isOpen: boolean;
@@ -24,6 +26,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSa
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [inviteType, setInviteType] = useState<'invitation' | 'direct'>('invitation');
+  const [showEmailVerificationNotice, setShowEmailVerificationNotice] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -73,10 +76,11 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSa
     }
 
     setLoading(true);
+    setShowEmailVerificationNotice(false);
     try {
       if (inviteType === 'direct') {
         // Создаем пользователя с кастомными ролями напрямую
-        await createUserWithCustomRoles({
+        const response = await createUserWithCustomRoles({
           email: formData.email,
           name: formData.name,
           password: formData.password,
@@ -84,6 +88,13 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSa
           custom_role_ids: formData.custom_role_ids,
           send_credentials: formData.send_credentials
         });
+        
+        // Проверяем статус верификации email
+        if (response?.data?.user?.email_verified_at === null || response?.data?.user?.email_verified_at === undefined) {
+          setShowEmailVerificationNotice(true);
+        } else {
+          onSave();
+        }
       } else {
         // Отправляем приглашение
         await sendInvitation({
@@ -94,10 +105,10 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSa
             welcome_message: formData.welcome_message
           }
         });
+        onSave();
       }
-      onSave();
-    } catch (error) {
-      console.error('Ошибка создания пользователя:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Ошибка создания пользователя');
     } finally {
       setLoading(false);
     }
@@ -177,6 +188,27 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSa
             </button>
           </div>
         </div>
+
+        {showEmailVerificationNotice && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3 mb-4">
+            <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-yellow-900 mb-1">Пользователь создан успешно</h4>
+              <p className="text-sm text-yellow-800">
+                На его email отправлено письмо для подтверждения адреса. Пользователь сможет войти в систему только после подтверждения email.
+              </p>
+              <button
+                onClick={() => {
+                  setShowEmailVerificationNotice(false);
+                  onSave();
+                }}
+                className="mt-3 text-sm font-medium text-yellow-900 hover:text-yellow-700 underline"
+              >
+                Понятно
+              </button>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Basic Fields */}

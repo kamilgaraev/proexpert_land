@@ -11,6 +11,7 @@ export interface AdminPanelUser {
   is_active: boolean;
   roles?: AdminPanelUserRole[];
   role_slug: string | null;
+  email_verified_at: string | null;
   created_at: string; 
 }
 

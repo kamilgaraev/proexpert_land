@@ -12,7 +12,8 @@ import {
   EnvelopeIcon,
   UserPlusIcon,
   PaperAirplaneIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline';
 import { adminPanelUserService } from '@utils/api';
 import { AdminPanelUser } from '@/types/admin';
@@ -39,6 +40,7 @@ const AdminsPage = () => {
   const [deletingAdmin, setDeletingAdmin] = useState<AdminPanelUser | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState<number | null>(null);
 
   const {
     users,
@@ -174,6 +176,42 @@ const AdminsPage = () => {
       });
     } catch (e) {
       return 'Invalid date';
+    }
+  };
+
+  const formatDateTime = (dateString: string | null): string | null => {
+    if (!dateString) return null;
+    try {
+      return new Date(dateString).toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const isEmailVerified = (admin: AdminPanelUser) => {
+    return admin.email_verified_at !== null && admin.email_verified_at !== undefined;
+  };
+
+  const handleResendVerificationEmail = async (adminId: number) => {
+    setSendingEmail(adminId);
+    try {
+      const result = await adminPanelUserService.resendVerificationEmailForAdmin(adminId);
+      if (result.success) {
+        toast.success('Письмо для подтверждения email отправлено');
+        fetchAdmins();
+      } else {
+        throw new Error(result.message || 'Ошибка отправки письма');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Не удалось отправить письмо');
+    } finally {
+      setSendingEmail(null);
     }
   };
 
@@ -374,12 +412,54 @@ const AdminsPage = () => {
                        <span className="truncate font-medium">{admin.email}</span>
                      </div>
                      
+                     <div className="flex items-center justify-between text-sm bg-secondary p-2.5 rounded-xl">
+                       <div className="flex items-center">
+                         {isEmailVerified(admin) ? (
+                           <>
+                             <CheckCircleIcon className="w-4 h-4 mr-2 text-green-600 flex-shrink-0" />
+                             <span className="text-green-700 font-medium">Email подтвержден</span>
+                             {admin.email_verified_at && (
+                               <span className="text-muted-foreground ml-2 text-xs">
+                                 {formatDateTime(admin.email_verified_at)}
+                               </span>
+                             )}
+                           </>
+                         ) : (
+                           <>
+                             <ExclamationTriangleIcon className="w-4 h-4 mr-2 text-red-600 flex-shrink-0" />
+                             <span className="text-red-700 font-medium">Email не подтвержден</span>
+                           </>
+                         )}
+                       </div>
+                     </div>
+                     
                      <div className="flex items-center text-sm text-muted-foreground bg-secondary p-2.5 rounded-xl">
                        <CalendarIcon className="w-4 h-4 mr-3 text-muted-foreground flex-shrink-0" />
                        <span className="font-medium">Добавлен: {formatDate(admin.created_at)}</span>
                      </div>
                    </div>
 
+                   {!isEmailVerified(admin) && (
+                     <div className="mb-3">
+                       <button
+                         onClick={() => handleResendVerificationEmail(admin.id)}
+                         disabled={sendingEmail === admin.id}
+                         className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-primary hover:text-orange-700 disabled:opacity-50 disabled:cursor-not-allowed bg-background border border-border rounded-xl hover:bg-secondary transition-all"
+                       >
+                         {sendingEmail === admin.id ? (
+                           <>
+                             <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                             Отправка...
+                           </>
+                         ) : (
+                           <>
+                             <EnvelopeIcon className="w-4 h-4" />
+                             Отправить письмо повторно
+                           </>
+                         )}
+                       </button>
+                     </div>
+                   )}
                    <div className="flex gap-3 pt-2 border-t border-border">
                      <motion.button
                        onClick={() => handleOpenEditModal(admin)}

@@ -47,6 +47,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [showEmailVerificationNotice, setShowEmailVerificationNotice] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -248,9 +249,14 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
       }
 
       if (response.success && response.data) {
-        toast.success(response.message || `Администратор успешно ${isEditing ? 'обновлен' : 'создан'}.`);
-        onFormSubmit();
-        onClose();
+        // Проверяем статус верификации email при создании нового администратора
+        if (!isEditing && response.data.email_verified_at === null) {
+          setShowEmailVerificationNotice(true);
+        } else {
+          toast.success(response.message || `Администратор успешно ${isEditing ? 'обновлен' : 'создан'}.`);
+          onFormSubmit();
+          onClose();
+        }
       } else {
         let errorMessage = response.message || `Не удалось ${isEditing ? 'обновить' : 'создать'} администратора.`;
         if (response.errors) {
@@ -319,6 +325,27 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                     <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-red-800">{error}</p>
+                    </div>
+                  </div>
+                )}
+                {showEmailVerificationNotice && (
+                  <div className="rounded-xl bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 p-4 mb-6 flex items-start shadow-sm">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-yellow-900 mb-1">Администратор создан успешно</h4>
+                      <p className="text-sm text-yellow-800 mb-3">
+                        На его email отправлено письмо для подтверждения адреса. Пользователь сможет войти в систему только после подтверждения email.
+                      </p>
+                      <button
+                        onClick={() => {
+                          setShowEmailVerificationNotice(false);
+                          onFormSubmit();
+                          onClose();
+                        }}
+                        className="text-sm font-medium text-yellow-900 hover:text-yellow-700 underline"
+                      >
+                        Понятно
+                      </button>
                     </div>
                   </div>
                 )}

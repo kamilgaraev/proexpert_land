@@ -47,6 +47,7 @@ export interface OrganizationUser {
   status: string;
   user_type: string;
   last_login_at: string | null;
+  email_verified_at: string | null;
   roles: Array<{
     id: number;
     name: string;
@@ -369,6 +370,23 @@ export const useUserManagement = () => {
     }
   };
 
+  const resendVerificationEmailForUser = async (userId: number) => {
+    try {
+      setLoading(true);
+      const response = await userManagementService.resendVerificationEmailForUser(userId);
+      if (response.data && response.data.success) {
+        await fetchUsers(); // Обновляем список пользователей
+        return response.data;
+      }
+      throw new Error(response.data?.message || 'Ошибка отправки письма');
+    } catch (err: any) {
+      setError(err.message || 'Ошибка отправки письма');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -396,6 +414,7 @@ export const useUserManagement = () => {
     getUserRoles,
     assignRoleToUser,
     unassignRoleFromUser,
+    resendVerificationEmailForUser,
     clearError
   };
 }; 

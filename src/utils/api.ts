@@ -139,14 +139,22 @@ api.interceptors.response.use(
     }
     
     // Обработка 403 (Forbidden / insufficient permissions)
+    // Не показываем уведомление для ошибок верификации email при логине - они обрабатываются в LoginPage
     if (error.response?.status === 403) {
-      const apiMessage = error.response?.data?.message || 'У вас нет доступа к этому ресурсу.﻿';
-      NotificationService.show({
-        type: 'error',
-        title: 'Недостаточно прав',
-        message: apiMessage,
-        duration: 7000,
-      });
+      const apiMessage = error.response?.data?.message || 'У вас нет доступа к этому ресурсу.';
+      const isEmailVerificationError = apiMessage.includes('подтвердите ваш email') || 
+                                       apiMessage.includes('подтвердите email') ||
+                                       apiMessage.includes('Пожалуйста, подтвердите ваш email адрес');
+      
+      // Показываем уведомление только если это не ошибка верификации email (она обрабатывается в LoginPage)
+      if (!isEmailVerificationError) {
+        NotificationService.show({
+          type: 'error',
+          title: 'Недостаточно прав',
+          message: apiMessage,
+          duration: 7000,
+        });
+      }
     }
     
     return Promise.reject(error);
@@ -878,6 +886,20 @@ export const adminPanelUserService = {
     }
     return response.data as AdminUserDeleteResponse; 
   },
+
+  // Отправка письма верификации email от имени админа для другого администратора
+  resendVerificationEmailForAdmin: async (userId: number): Promise<{ success: boolean; message?: string }> => {
+    try {
+      // Пробуем использовать специальный эндпоинт для админа
+      const response = await api.post(`/adminPanelUsers/${userId}/resend-verification-email`);
+      return response.data;
+    } catch (error: any) {
+      // Если такого эндпоинта нет, используем общий resend от имени админа
+      // В этом случае бэкенд должен обработать запрос от имени админа
+      const response = await api.post('/auth/email/resend', { user_id: userId });
+      return response.data;
+    }
+  },
 };
 
 // Интерфейсы для Billing API на основе billing_openapi.yaml
@@ -1589,6 +1611,12 @@ export const userManagementService = {
 
   cancelInvitation: async (invitationId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const response = await api.delete(`/user-management/invitations/${invitationId}`);
+    return response;
+  },
+
+  // Отправка письма верификации email от имени админа для другого пользователя
+  resendVerificationEmailForUser: async (userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.post(`/user-management/organization-users/${userId}/resend-verification-email`);
     return response;
   },
 };
@@ -3064,12 +3092,20 @@ if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(win
           const body = await cloned.json();
           apiMessage = body?.message || apiMessage;
         } catch {}
-        NotificationService.show({
-          type: 'error',
-          title: 'Недостаточно прав',
-          message: apiMessage,
-          duration: 7000,
-        });
+        
+        // Не показываем уведомление для ошибок верификации email при логине
+        const isEmailVerificationError = apiMessage.includes('подтвердите ваш email') || 
+                                         apiMessage.includes('подтвердите email') ||
+                                         apiMessage.includes('Пожалуйста, подтвердите ваш email адрес');
+        
+        if (!isEmailVerificationError) {
+          NotificationService.show({
+            type: 'error',
+            title: 'Недостаточно прав',
+            message: apiMessage,
+            duration: 7000,
+          });
+        }
       } catch {}
     }
     return resp;

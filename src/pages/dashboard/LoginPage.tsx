@@ -53,7 +53,13 @@ const LoginPage = () => {
     } catch (err: any) {
       console.error('Ошибка входа:', err);
       
-      if (err.status === 403 && (err.message?.includes('подтвердите ваш email') || err.message?.includes('подтвердите email'))) {
+      // Проверяем ошибку 403 с сообщением о неподтвержденном email
+      const errorMessage = err.response?.data?.message || err.message || '';
+      if (err.status === 403 && (
+        errorMessage.includes('подтвердите ваш email') || 
+        errorMessage.includes('подтвердите email') ||
+        errorMessage.includes('Пожалуйста, подтвердите ваш email адрес')
+      )) {
         setShowEmailVerificationModal(true);
         setError('');
       } else if (err.message?.includes('Не удалось подключиться к серверу')) {
@@ -62,7 +68,7 @@ const LoginPage = () => {
       } else if (err.message?.includes('Неверные учетные данные')) {
         setError('Неверный email или пароль');
       } else {
-        setError(err.message || 'Ошибка при входе. Проверьте учетные данные.');
+        setError(errorMessage || 'Ошибка при входе. Проверьте учетные данные.');
       }
     } finally {
       setIsLoading(false);

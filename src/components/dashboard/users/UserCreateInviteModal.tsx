@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import OrangeModal from '@/components/shared/OrangeModal';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useCustomRoles } from '@/hooks/useCustomRoles';
+import { ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify';
 
 interface Props {
   isOpen: boolean;
@@ -18,6 +20,7 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
   const [mode, setMode] = useState<Mode>('invitation');
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState('');
+  const [showEmailVerificationNotice, setShowEmailVerificationNotice] = useState(false);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -69,9 +72,10 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
 
   const submit = async () => {
     setLoading(true);
+    setShowEmailVerificationNotice(false);
     try {
       if (mode === 'direct') {
-        await createUserWithCustomRoles({
+        const response = await createUserWithCustomRoles({
           name: form.name,
           email: form.email,
           password: form.password,
@@ -79,6 +83,13 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
           custom_role_ids: form.custom_role_ids,
           send_credentials: form.send_credentials
         });
+        
+        // Проверяем статус верификации email
+        if (response?.data?.user?.email_verified_at === null || response?.data?.user?.email_verified_at === undefined) {
+          setShowEmailVerificationNotice(true);
+        } else {
+          onSave();
+        }
       } else {
         await sendInvitation({
           name: form.name,
@@ -86,8 +97,10 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
           role_slugs: form.role_slugs,
           metadata: {}
         });
+        onSave();
       }
-      onSave();
+    } catch (error: any) {
+      toast.error(error.message || 'Ошибка создания пользователя');
     } finally {
       setLoading(false);
     }
@@ -104,6 +117,27 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
       widthClassName="max-w-3xl"
     >
       <div className="space-y-5">
+        {showEmailVerificationNotice && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
+            <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-yellow-900 mb-1">Пользователь создан успешно</h4>
+              <p className="text-sm text-yellow-800">
+                На его email отправлено письмо для подтверждения адреса. Пользователь сможет войти в систему только после подтверждения email.
+              </p>
+              <button
+                onClick={() => {
+                  setShowEmailVerificationNotice(false);
+                  onSave();
+                }}
+                className="mt-3 text-sm font-medium text-yellow-900 hover:text-yellow-700 underline"
+              >
+                Понятно
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-2 bg-gray-50 p-1 rounded-lg w-fit">
           <button
             className={`px-3 py-1.5 rounded-md text-sm font-medium ${mode === 'invitation' ? 'bg-white text-orange-700 border border-orange-200' : 'text-gray-700'}`}
