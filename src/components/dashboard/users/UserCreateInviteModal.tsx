@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import OrangeModal from '@/components/shared/OrangeModal';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useCustomRoles } from '@/hooks/useCustomRoles';
-import { ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 
 interface Props {

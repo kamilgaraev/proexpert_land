@@ -892,12 +892,12 @@ export const adminPanelUserService = {
     try {
       // Пробуем использовать специальный эндпоинт для админа
       const response = await api.post(`/adminPanelUsers/${userId}/resend-verification-email`);
-      return response.data;
+      return response.data as { success: boolean; message?: string };
     } catch (error: any) {
       // Если такого эндпоинта нет, используем общий resend от имени админа
       // В этом случае бэкенд должен обработать запрос от имени админа
       const response = await api.post('/auth/email/resend', { user_id: userId });
-      return response.data;
+      return response.data as { success: boolean; message?: string };
     }
   },
 };
