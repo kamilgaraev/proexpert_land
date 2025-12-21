@@ -1481,6 +1481,46 @@ export const customRolesService = {
   },
 };
 
+// Интерфейсы для сравнения ролей
+export interface RoleComparison {
+  slug: string;
+  name: string;
+  description: string;
+  context: string;
+  context_slug: 'system' | 'organization' | 'project';
+  interfaces: string[];
+  interfaces_slugs: string[];
+  billing_access: boolean;
+  can_manage_roles: string[];
+  cannot_manage_roles: string[];
+  time_restrictions: {
+    has_restrictions: boolean;
+    working_hours: string | null;
+    working_days: string | null;
+  };
+  system_permissions_count: number;
+  module_permissions_count: number;
+  has_all_permissions: boolean;
+  has_all_modules: boolean;
+}
+
+export interface RolesComparisonResponse {
+  success: boolean;
+  data: {
+    roles: RoleComparison[];
+    total: number;
+    last_updated: string;
+  };
+}
+
+// Сервис для сравнения ролей
+export const rolesComparisonService = {
+  getRolesComparison: async (): Promise<{ data: RolesComparisonResponse, status: number, statusText: string }> => {
+    const response = await api.get('/authorization/roles/comparison');
+    return response;
+  },
+};
+
 // Обновленный сервис управления пользователями
 export const userManagementService = {
   getRoles: async (): Promise<{ data: any, status: number, statusText: string }> => {

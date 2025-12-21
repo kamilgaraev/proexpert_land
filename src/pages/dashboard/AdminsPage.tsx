@@ -13,7 +13,8 @@ import {
   UserPlusIcon,
   PaperAirplaneIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
 import { adminPanelUserService } from '@utils/api';
 import { AdminPanelUser } from '@/types/admin';
@@ -24,9 +25,11 @@ import { useUserManagement } from '@hooks/useUserManagement';
 import UsersList from '@components/dashboard/users/UsersList';
 import InvitationsList from '@components/dashboard/users/InvitationsList';
 import UserCreateInviteModal from '@components/dashboard/users/UserCreateInviteModal';
+import RolesComparisonTable from '@components/dashboard/roles/RolesComparisonTable';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
+import { ChartBarIcon } from '@heroicons/react/24/outline';
 
-type TabType = 'admins' | 'users' | 'invitations';
+type TabType = 'admins' | 'users' | 'invitations' | 'roles-comparison';
 
 const AdminsPage = () => {
   const [activeTab, setActiveTab] = useState<TabType>('admins');
@@ -273,7 +276,8 @@ const AdminsPage = () => {
   const tabs = [
     { id: 'admins' as TabType, name: 'Администраторы', icon: UsersIcon, count: admins.length },
     { id: 'users' as TabType, name: 'Пользователи', icon: UserPlusIcon, count: users.length },
-    { id: 'invitations' as TabType, name: 'Приглашения', icon: PaperAirplaneIcon, count: invitations.filter(i => i.status === 'pending').length }
+    { id: 'invitations' as TabType, name: 'Приглашения', icon: PaperAirplaneIcon, count: invitations.filter(i => i.status === 'pending').length },
+    { id: 'roles-comparison' as TabType, name: 'Сравнение ролей', icon: ChartBarIcon, count: null }
   ];
 
   const renderContent = () => {
@@ -323,6 +327,8 @@ const AdminsPage = () => {
             />
           </>
         );
+      case 'roles-comparison':
+        return <RolesComparisonTable />;
       case 'admins':
       default:
         return renderAdminsContent();
@@ -535,11 +541,13 @@ const AdminsPage = () => {
                  <span className="relative z-10 flex items-center">
                    <Icon className={`w-5 h-5 mr-2 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                    {tab.name}
-                   <span className={`ml-2 px-2 py-0.5 rounded-lg text-xs ${
-                     isActive ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'
-                   }`}>
-                     {tab.count}
-                   </span>
+                   {tab.count !== null && (
+                     <span className={`ml-2 px-2 py-0.5 rounded-lg text-xs ${
+                       isActive ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'
+                     }`}>
+                       {tab.count}
+                     </span>
+                   )}
                  </span>
                </button>
              );
