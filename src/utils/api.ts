@@ -1516,7 +1516,7 @@ export interface RolesComparisonResponse {
 // Сервис для сравнения ролей
 export const rolesComparisonService = {
   getRolesComparison: async (): Promise<{ data: RolesComparisonResponse, status: number, statusText: string }> => {
-    const response = await api.get('/authorization/roles/comparison');
+    const response = await api.get<RolesComparisonResponse>('/authorization/roles/comparison');
     return response;
   },
 };

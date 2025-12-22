@@ -27,7 +27,6 @@ import InvitationsList from '@components/dashboard/users/InvitationsList';
 import UserCreateInviteModal from '@components/dashboard/users/UserCreateInviteModal';
 import RolesComparisonTable from '@components/dashboard/roles/RolesComparisonTable';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
-import { ChartBarIcon } from '@heroicons/react/24/outline';
 
 type TabType = 'admins' | 'users' | 'invitations' | 'roles-comparison';
 
