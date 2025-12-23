@@ -7,13 +7,12 @@ import { cn } from '@/lib/utils';
 interface ProjectCardProps {
   project: ProjectOverview;
   onViewDetails: (projectId: number) => void;
-  onGoToWork: (projectId: number) => void;
+  onGoToWork?: (projectId: number) => void;
 }
 
 export const ProjectCard = ({
   project,
-  onViewDetails,
-  onGoToWork
+  onViewDetails
 }: ProjectCardProps) => {
   const statusConfig: Record<string, { color: string; label: string; dot: string; bg: string }> = {
     planned: { color: 'text-slate-600', bg: 'bg-slate-100', dot: 'bg-slate-400', label: 'Запланирован' },

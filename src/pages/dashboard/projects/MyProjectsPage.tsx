@@ -54,10 +54,6 @@ export const MyProjectsPage = () => {
     window.location.href = `https://admin.prohelper.pro/projects/${projectId}`;
   };
 
-  const handleGoToWork = (projectId: number) => {
-    window.location.href = `/work/${projectId}`; // Assuming this is the work interface
-  };
-
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 pb-20">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -122,7 +118,6 @@ export const MyProjectsPage = () => {
                         key={project.id}
                         project={project}
                         onViewDetails={handleViewDetails}
-                        onGoToWork={handleGoToWork}
                     />
                 ))}
             </div>
