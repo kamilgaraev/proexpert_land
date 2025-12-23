@@ -50,7 +50,8 @@ export const MyProjectsPage = () => {
   });
 
   const handleViewDetails = (projectId: number) => {
-    navigate(`/dashboard/projects/${projectId}`);
+    // Временно перенаправляем в админку для просмотра подробной информации
+    window.location.href = `https://admin.prohelper.pro/projects/${projectId}`;
   };
 
   const handleGoToWork = (projectId: number) => {
