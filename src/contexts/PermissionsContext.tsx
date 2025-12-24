@@ -179,6 +179,11 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
 
   // Обработка событий смены организации/входа/выхода
   useEffect(() => {
+    // Проверка на SSR
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'organization_id' || e.key === 'token' || e.key === 'authToken') {
         console.log('🔄 Изменение в localStorage, перезагружаем права...');

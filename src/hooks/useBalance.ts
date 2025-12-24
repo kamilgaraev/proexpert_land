@@ -56,7 +56,9 @@ export const useBalance = (): UseBalanceReturn => {
   }, [fetchBalance]);
 
   const triggerRefresh = useCallback(() => {
-    window.dispatchEvent(new CustomEvent('balance-refresh-requested'));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('balance-refresh-requested'));
+    }
   }, []);
 
   useEffect(() => {
@@ -64,6 +66,11 @@ export const useBalance = (): UseBalanceReturn => {
   }, [fetchBalance]);
 
   useEffect(() => {
+    // Проверка на SSR
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const handleRefreshRequest = () => {
       refresh();
     };
@@ -110,5 +117,7 @@ export const useBalance = (): UseBalanceReturn => {
 };
 
 export const dispatchBalanceUpdate = () => {
-  window.dispatchEvent(new CustomEvent('balance-updated'));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('balance-updated'));
+  }
 };

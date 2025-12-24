@@ -16,6 +16,11 @@ const Navbar = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // Проверка на SSR
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
@@ -25,7 +30,7 @@ const Navbar = () => {
   }, []);
 
   const handleLinkClick = (path: string) => {
-    if (path.startsWith('#')) {
+    if (path.startsWith('#') && typeof document !== 'undefined') {
       const element = document.querySelector(path);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
