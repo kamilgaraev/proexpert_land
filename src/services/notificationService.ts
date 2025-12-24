@@ -4,6 +4,10 @@ import type { NotificationResponse, UnreadCountResponse, NotificationFilter } fr
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.prohelper.pro';
 
 const getAuthToken = () => {
+  // SSR-safe: проверяем window перед доступом
+  if (typeof window === 'undefined') {
+    return '';
+  }
   return localStorage.getItem('token') || 
          sessionStorage.getItem('authToken') || 
          '';

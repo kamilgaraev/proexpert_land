@@ -37,6 +37,11 @@ const api = axios.create({
 
 // Дополнительная функция для работы с токеном через разные типы хранилищ
 const saveTokenToMultipleStorages = (token: string) => {
+  // SSR-safe: проверяем window перед доступом
+  if (typeof window === 'undefined') {
+    return;
+  }
+  
   // Сохраняем в localStorage
   try {
     localStorage.setItem('token', token);
@@ -60,6 +65,11 @@ const saveTokenToMultipleStorages = (token: string) => {
 };
 
 export const getTokenFromStorages = (): string | null => {
+  // SSR-safe: проверяем window перед доступом
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
   // Пробуем сначала localStorage
   let token = localStorage.getItem('token');
   
@@ -83,6 +93,11 @@ export const getTokenFromStorages = (): string | null => {
 };
 
 const clearTokenFromStorages = () => {
+  // SSR-safe: проверяем window перед доступом
+  if (typeof window === 'undefined') {
+    return;
+  }
+  
   // Очищаем во всех хранилищах
   localStorage.removeItem('token');
   sessionStorage.removeItem('authToken');

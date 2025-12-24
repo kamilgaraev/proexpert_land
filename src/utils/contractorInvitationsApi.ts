@@ -28,12 +28,15 @@ const contractorInvitationsApi = axios.create({
 // Добавляем интерцептор для автоматического добавления токена авторизации
 contractorInvitationsApi.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('authToken');
-    if (token) {
-      if (!config.headers) {
-        config.headers = {};
+    // SSR-safe: проверяем window перед доступом
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('authToken');
+      if (token) {
+        if (!config.headers) {
+          config.headers = {};
+        }
+        config.headers.Authorization = `Bearer ${token}`;
       }
-      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },

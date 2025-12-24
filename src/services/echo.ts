@@ -8,9 +8,16 @@ declare global {
   }
 }
 
-window.Pusher = Pusher;
+// SSR-safe: присваиваем только на клиенте
+if (typeof window !== 'undefined') {
+  window.Pusher = Pusher;
+}
 
 const getToken = () => {
+  // SSR-safe: проверяем window перед доступом
+  if (typeof window === 'undefined') {
+    return null;
+  }
   return localStorage.getItem('token') || 
          sessionStorage.getItem('authToken') || 
          null;
@@ -19,6 +26,11 @@ const getToken = () => {
 let echoInstance: any = null;
 
 const getEcho = () => {
+  // SSR-safe: Echo работает только на клиенте
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
   if (!echoInstance) {
     const token = getToken();
     

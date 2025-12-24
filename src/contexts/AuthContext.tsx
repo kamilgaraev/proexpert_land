@@ -45,7 +45,13 @@ export const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(window.getTokenFromStorages ? window.getTokenFromStorages() : localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(() => {
+    // SSR-safe: проверяем window перед доступом
+    if (typeof window === 'undefined') {
+      return null;
+    }
+    return window.getTokenFromStorages ? window.getTokenFromStorages() : localStorage.getItem('token');
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   // Экспортирую функции в window для доступа из других частей приложения и отладки
@@ -112,6 +118,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Определяем fetchUser с useCallback до useEffect, который его использует
   const fetchUser = useCallback(async () => {
+    // SSR-safe: проверяем window перед доступом
+    if (typeof window === 'undefined') {
+      return;
+    }
     // Используем token из замыкания useCallback или получаем актуальный, если нужно
     // Но т.к. fetchUser будет в зависимостях у другого useEffect, который следит за token,
     // то при изменении token, fetchUser пересоздастся и useEffect вызовется с актуальной версией.
@@ -140,6 +150,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Проверяем авторизацию при загрузке
   useEffect(() => {
+    // SSR-safe: useEffect не выполняется на сервере, но добавим проверку на всякий случай
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
     const checkAuth = async () => {
       const currentTokenFromStorage = window.getTokenFromStorages ? window.getTokenFromStorages() : localStorage.getItem('token');
       
