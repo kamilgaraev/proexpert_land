@@ -61,22 +61,38 @@ export const useCustomRoles = () => {
       const raw = response?.data?.data || response?.data;
       if (!raw) return;
 
-      const systemPermissionsObj = raw.system_permissions || {};
-      const modulePermissionsObj = raw.module_permissions || {};
+      const values = raw.values || {};
+      const systemPermissionsRaw = raw.system_permissions || [];
+      const modulePermissionsRaw = raw.module_permissions || {};
       const moduleGroupsObj = raw.module_groups || {};
       const interfaceAccessObj = raw.interface_access || {};
 
-      const system_permissions: Permission[] = Object.entries(systemPermissionsObj).map(([key, name]: [string, any]) => ({
-        key,
-        name: String(name ?? key)
-      }));
+      // Обработка системных прав (список ключей)
+      let system_permissions: Permission[] = [];
+      if (Array.isArray(systemPermissionsRaw)) {
+        system_permissions = systemPermissionsRaw.map((key: string) => ({
+          key,
+          name: values[key] || key
+        }));
+      } else if (typeof systemPermissionsRaw === 'object') {
+        // Fallback для старого формата (если вдруг придет объект)
+        system_permissions = Object.entries(systemPermissionsRaw).map(([key, name]: [string, any]) => ({
+          key,
+          name: String(name ?? key)
+        }));
+      }
 
-      const module_permissions: { [module: string]: Permission[] } = Object.entries(modulePermissionsObj).reduce(
+      // Обработка прав модулей
+      const module_permissions: { [module: string]: Permission[] } = Object.entries(modulePermissionsRaw).reduce(
         (acc, [module, perms]: [string, any]) => {
-          // В ответе может прийти либо массив строк, либо объект { slug: translated_name }
           if (Array.isArray(perms)) {
-            acc[module] = perms.map((perm: any) => ({ key: String(perm), name: String(perm) }));
+            // Новый формат: список ключей
+            acc[module] = perms.map((key: any) => ({
+              key: String(key),
+              name: values[String(key)] || String(key)
+            }));
           } else if (perms && typeof perms === 'object') {
+            // Старый формат: объект {slug: name}
             acc[module] = Object.entries(perms).map(([permKey, permName]: [string, any]) => ({
               key: permKey,
               name: String(permName ?? permKey)
