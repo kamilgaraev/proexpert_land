@@ -58,13 +58,13 @@ export class PermissionsManager {
     // Создаем новый промис загрузки
     this.loadPromise = this.performLoad(interfaceType);
     const result = await this.loadPromise;
-    
+
     // Очищаем промис после завершения
     this.loadPromise = null;
     if (result) {
       this.lastLoadTime = Date.now();
     }
-    
+
     return result;
   }
 
@@ -79,14 +79,14 @@ export class PermissionsManager {
     try {
       this.isLoading = true;
       const token = this.getToken();
-      
+
       if (!token) {
         console.warn('⚠️ Токен авторизации отсутствует');
         return false;
       }
 
       const endpoint = this.getEndpoint(interfaceType);
-      
+
       // Добавляем контроллер для отмены запроса по таймауту
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
@@ -106,22 +106,29 @@ export class PermissionsManager {
 
       if (!response.ok) {
         console.error(`❌ HTTP ошибка: ${response.status} ${response.statusText} для ${endpoint}`);
-        
+
         // Если 404, значит endpoint не существует - не нужно спамить
         if (response.status === 404) {
           console.warn('⚠️ Endpoint прав не найден. Ждем появления API.');
           return false;
         }
-        
+
         return false;
       }
 
       const data: PermissionsResponse = await response.json();
 
       if (data.success && data.data) {
-        this.permissions = data.data.permissions_flat || [];
-        this.roles = data.data.roles || [];
-        this.interfaces = data.data.interfaces || [];
+        // Нормализуем права (защита от объектов с числовыми ключами из PHP)
+        const rawPerms = data.data.permissions_flat || [];
+        this.permissions = Array.isArray(rawPerms) ? rawPerms : Object.values(rawPerms);
+
+        const rawRoles = data.data.roles || [];
+        this.roles = Array.isArray(rawRoles) ? rawRoles : Object.values(rawRoles);
+
+        const rawInterfaces = data.data.interfaces || [];
+        this.interfaces = Array.isArray(rawInterfaces) ? rawInterfaces : Object.values(rawInterfaces);
+
         // Нормализуем активные модули: API может вернуть массив строк или объектов с полем slug
         const rawModules: any = (data as any).data?.active_modules ?? [];
         let normalized: string[] = [];
@@ -185,7 +192,7 @@ export class PermissionsManager {
     if (permission.includes('.')) {
       const [module] = permission.split('.');
       const wildcardPermission = `${module}.*`;
-      
+
       if (this.permissions.includes(wildcardPermission)) {
         return true;
       }
@@ -202,7 +209,7 @@ export class PermissionsManager {
       console.warn('⚠️ Права не загружены. Вызовите load() сначала.');
       return false;
     }
-    
+
     return this.roles.includes(role);
   }
 
@@ -214,7 +221,7 @@ export class PermissionsManager {
       console.warn('⚠️ Права не загружены. Вызовите load() сначала.');
       return false;
     }
-    
+
     return this.activeModules.includes(module);
   }
 
@@ -226,7 +233,7 @@ export class PermissionsManager {
       console.warn('⚠️ Права не загружены. Вызовите load() сначала.');
       return false;
     }
-    
+
     return this.interfaces.includes(interfaceName);
   }
 
@@ -239,12 +246,12 @@ export class PermissionsManager {
       return false;
     }
 
-    const { 
-      permission, 
-      role, 
-      module, 
-      interface: interfaceName, 
-      requireAll = true 
+    const {
+      permission,
+      role,
+      module,
+      interface: interfaceName,
+      requireAll = true
     } = options;
 
     const checks: boolean[] = [];
@@ -252,15 +259,15 @@ export class PermissionsManager {
     if (permission !== undefined) {
       checks.push(this.can(permission));
     }
-    
+
     if (role !== undefined) {
       checks.push(this.hasRole(role));
     }
-    
+
     if (module !== undefined) {
       checks.push(this.hasModule(module));
     }
-    
+
     if (interfaceName !== undefined) {
       checks.push(this.canAccessInterface(interfaceName));
     }
@@ -273,7 +280,7 @@ export class PermissionsManager {
     if (requireAll) {
       return checks.every(check => check);
     }
-    
+
     // OR логика - хотя бы одна проверка должна пройти  
     return checks.some(check => check);
   }
@@ -344,7 +351,7 @@ export class PermissionsManager {
     this.organizationId = null;
     this.isLoaded = false;
     this.isLoading = false;
-    
+
     console.log('🧹 Права очищены');
   }
 
@@ -363,10 +370,10 @@ export class PermissionsManager {
     const baseUrl = 'https://api.prohelper.pro/api';
     const endpoints = {
       'lk': `${baseUrl}/lk/v1/permissions`,
-      'admin': `${baseUrl}/admin/v1/permissions`, 
+      'admin': `${baseUrl}/admin/v1/permissions`,
       'mobile': `${baseUrl}/mobile/v1/permissions`
     };
-    
+
     return endpoints[interfaceType];
   }
 
@@ -376,26 +383,26 @@ export class PermissionsManager {
       if (process.env.NODE_ENV !== 'development') return;
       console.table(this.permissions);
     },
-    
+
     can: (permission: Permission) => {
       if (process.env.NODE_ENV !== 'development') return false;
       const result = this.can(permission);
       console.log(`🔒 ${permission}: ${result ? '✅ РАЗРЕШЕНО' : '❌ ЗАПРЕЩЕНО'}`);
       return result;
     },
-    
+
     roles: () => {
       if (process.env.NODE_ENV !== 'development') return [];
       console.log('👤 Роли:', this.roles);
       return this.roles;
     },
-    
+
     modules: () => {
       if (process.env.NODE_ENV !== 'development') return [];
       console.log('📦 Модули:', this.activeModules);
       return this.activeModules;
     },
-    
+
     reload: () => this.load()
   };
 }
