@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCustomRoles } from '@hooks/useCustomRoles';
 import { CustomRole, CreateCustomRoleData } from '@utils/api';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
@@ -34,9 +34,44 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
     interface_access: role?.interface_access || ['lk'],
     conditions: role?.conditions || {}
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'permissions' | 'modules'>('basic');
+
+  useEffect(() => {
+    if (isOpen) {
+      if (role) {
+        // Нормализуем данные при редактировании
+        const sysPerms = role.system_permissions || [];
+        const modPerms = role.module_permissions || {};
+
+        const normalizedModPerms: Record<string, string[]> = {};
+        Object.entries(modPerms).forEach(([mod, perms]) => {
+          normalizedModPerms[mod] = Array.isArray(perms) ? perms : Object.values(perms);
+        });
+
+        setFormData({
+          name: role.name || '',
+          description: role.description || '',
+          system_permissions: Array.isArray(sysPerms) ? sysPerms : Object.values(sysPerms),
+          module_permissions: normalizedModPerms,
+          interface_access: role.interface_access || ['lk'],
+          conditions: role.conditions || {}
+        });
+      } else {
+        // Сброс для новой роли
+        setFormData({
+          name: '',
+          description: '',
+          system_permissions: [],
+          module_permissions: {},
+          interface_access: ['lk'],
+          conditions: {}
+        });
+      }
+      setActiveTab('basic');
+    }
+  }, [isOpen, role]);
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
@@ -126,11 +161,10 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as any)}
-                className={`flex items-center px-6 py-3 text-sm font-medium border-b-2 ${
-                  activeTab === tab.key
+                className={`flex items-center px-6 py-3 text-sm font-medium border-b-2 ${activeTab === tab.key
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`}
+                  }`}
               >
                 <tab.icon className="w-4 h-4 mr-2" />
                 {tab.label}
@@ -156,7 +190,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                   placeholder="Введите название роли"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Описание
@@ -361,7 +395,7 @@ const CustomRolesPage = () => {
             Создавайте и настраивайте кастомные роли для пользователей организации
           </p>
         </div>
-        
+
         <ProtectedComponent
           permission="roles.create_custom"
           role="organization_owner"
@@ -416,17 +450,16 @@ const CustomRolesPage = () => {
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
                       <h3 className="text-lg font-semibold text-foreground">{role.name}</h3>
-                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                        role.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-secondary text-foreground'
-                      }`}>
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${role.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-secondary text-foreground'
+                        }`}>
                         {role.is_active ? 'Активна' : 'Неактивна'}
                       </span>
                     </div>
-                    
+
                     {role.description && (
                       <p className="text-muted-foreground mb-3">{role.description}</p>
                     )}
-                    
+
                     <div className="flex items-center space-x-6 text-sm text-muted-foreground">
                       <div className="flex items-center">
                         <CheckIcon className="w-4 h-4 mr-1" />
@@ -441,7 +474,7 @@ const CustomRolesPage = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <ProtectedComponent
                       permission="roles.manage_custom"
@@ -456,7 +489,7 @@ const CustomRolesPage = () => {
                       >
                         <PencilIcon className="w-4 h-4" />
                       </button>
-                      
+
                       <button
                         onClick={() => setCloningRole(role)}
                         className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg"
@@ -464,7 +497,7 @@ const CustomRolesPage = () => {
                       >
                         <DocumentDuplicateIcon className="w-4 h-4" />
                       </button>
-                      
+
                       <button
                         onClick={() => setDeletingRole(role)}
                         className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
@@ -488,7 +521,7 @@ const CustomRolesPage = () => {
         onSave={handleCreateRole}
         availablePermissions={availablePermissions}
       />
-      
+
       <CustomRoleFormModal
         role={editingRole || undefined}
         isOpen={!!editingRole}
