@@ -59,7 +59,7 @@ const DashboardProtectedRoute = ({ children }: DashboardProtectedRouteProps) => 
             <p className="text-sm text-red-600 bg-red-50 p-3 rounded-lg flex flex-col gap-2">
               <span className="font-medium">Возможные причины:</span>
               <span>- Ведутся технические работы на сервере</span>
-              <span>- Превышен лимит запросов: {permissionsError}</span>
+              <span>- Превышен лимит запросов или возникла ошибка сети: {permissionsError}</span>
             </p>
           </div>
           <button
