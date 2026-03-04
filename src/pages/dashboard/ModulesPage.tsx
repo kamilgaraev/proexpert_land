@@ -3,10 +3,11 @@ import { motion } from 'framer-motion';
 import { useModules } from '@hooks/useModules';
 import { Module } from '@utils/api';
 import ModuleStatusBadge from '@components/dashboard/ModuleStatusBadge';
+import PackagesView from '@components/dashboard/PackagesView';
 import {
   PuzzlePieceIcon,
   CheckCircleIcon,
-  XCircleIcon, 
+  XCircleIcon,
   ExclamationTriangleIcon,
   ArrowPathIcon,
   PlayIcon,
@@ -34,10 +35,12 @@ import {
   PaperAirplaneIcon,
   WrenchScrewdriverIcon,
   Squares2X2Icon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  RectangleGroupIcon,
 } from '@heroicons/react/24/outline';
 import { PageLoading } from '@components/common/PageLoading';
 import NotificationService from '@components/shared/NotificationService';
+
 
 // Категории модулей
 const MODULE_CATEGORIES = {
@@ -98,15 +101,15 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         <h3 className="text-xl font-bold mb-6">Активация модуля</h3>
-        
+
         <div className="space-y-6">
           {/* Информация о модуле */}
           <div className="border border-orange-200 bg-orange-50 rounded-lg p-4">
             <h4 className="font-semibold text-orange-900 mb-3">{module.name}</h4>
             <div className="space-y-2 text-sm">
               <div className="text-orange-700">
-                {(module.pricing_config?.base_price || module.price || 0).toLocaleString('ru-RU', { 
-                  style: 'currency', 
+                {(module.pricing_config?.base_price || module.price || 0).toLocaleString('ru-RU', {
+                  style: 'currency',
                   currency: module.pricing_config?.currency || module.currency || 'RUB'
                 })} / {module.pricing_config?.duration_days || module.duration_days} дней
               </div>
@@ -134,8 +137,8 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                     onChange={() => setDurationDays(30)}
                     className="mr-2"
                   />
-                  30 дней ({(module.pricing_config?.base_price || module.price || 0).toLocaleString('ru-RU', { 
-                    style: 'currency', 
+                  30 дней ({(module.pricing_config?.base_price || module.price || 0).toLocaleString('ru-RU', {
+                    style: 'currency',
                     currency: module.pricing_config?.currency || module.currency || 'RUB'
                   })})
                 </label>
@@ -146,8 +149,8 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                     onChange={() => setDurationDays(90)}
                     className="mr-2"
                   />
-                  90 дней ({((module.pricing_config?.base_price || module.price || 0) * 3 * 0.95).toLocaleString('ru-RU', { 
-                    style: 'currency', 
+                  90 дней ({((module.pricing_config?.base_price || module.price || 0) * 3 * 0.95).toLocaleString('ru-RU', {
+                    style: 'currency',
                     currency: module.pricing_config?.currency || module.currency || 'RUB'
                   })})
                   <span className="ml-1 text-xs text-green-600">-5%</span>
@@ -161,8 +164,8 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                     onChange={() => setDurationDays(365)}
                     className="mr-2"
                   />
-                  365 дней ({((module.pricing_config?.base_price || module.price || 0) * 12 * 0.85).toLocaleString('ru-RU', { 
-                    style: 'currency', 
+                  365 дней ({((module.pricing_config?.base_price || module.price || 0) * 12 * 0.85).toLocaleString('ru-RU', {
+                    style: 'currency',
                     currency: module.pricing_config?.currency || module.currency || 'RUB'
                   })})
                   <span className="ml-1 text-xs text-green-600">-15%</span>
@@ -182,19 +185,19 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                     <div className="flex justify-between">
                       <span>Стоимость:</span>
                       <span className="font-semibold">
-                        {previewData.module.pricing_config?.base_price?.toLocaleString('ru-RU', { 
-                          style: 'currency', 
-                          currency: previewData.module.pricing_config?.currency || 'RUB' 
+                        {previewData.module.pricing_config?.base_price?.toLocaleString('ru-RU', {
+                          style: 'currency',
+                          currency: previewData.module.pricing_config?.currency || 'RUB'
                         })}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Модель биллинга:</span>
                       <span className="capitalize">
-                        {previewData.module.billing_model === 'one_time' ? 'Разовый платеж' : 
-                         previewData.module.billing_model === 'subscription' ? 'Подписка' : 
-                         previewData.module.billing_model === 'free' ? 'Бесплатно' : 
-                         previewData.module.billing_model}
+                        {previewData.module.billing_model === 'one_time' ? 'Разовый платеж' :
+                          previewData.module.billing_model === 'subscription' ? 'Подписка' :
+                            previewData.module.billing_model === 'free' ? 'Бесплатно' :
+                              previewData.module.billing_model}
                       </span>
                     </div>
                     {previewData.module.pricing_config?.duration_days > 0 && (
@@ -205,7 +208,7 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                     )}
                   </div>
                 )}
-                
+
                 {/* Проверки */}
                 {previewData.checks && (
                   <div className="space-y-3">
@@ -217,7 +220,7 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Недостающие зависимости */}
                     {previewData.checks.missing_dependencies?.length > 0 && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
@@ -226,10 +229,10 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                           <ul className="list-disc list-inside space-y-0.5">
                             {previewData.checks.missing_dependencies.map((dep: string, index: number) => (
                               <li key={index} className="text-yellow-700">
-                                {dep === 'organizations' ? 'Организации' : 
-                                 dep === 'users' ? 'Пользователи' : 
-                                 dep === 'basic-reports' ? 'Базовые отчеты' : 
-                                 dep === 'projects' ? 'Проекты' : dep}
+                                {dep === 'organizations' ? 'Организации' :
+                                  dep === 'users' ? 'Пользователи' :
+                                    dep === 'basic-reports' ? 'Базовые отчеты' :
+                                      dep === 'projects' ? 'Проекты' : dep}
                               </li>
                             ))}
                           </ul>
@@ -240,7 +243,7 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Конфликты */}
                     {previewData.checks.conflicts?.length > 0 && (
                       <div className="bg-red-50 border border-red-200 rounded p-2">
@@ -254,7 +257,7 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Уже активен */}
                     {previewData.checks.is_already_active && (
                       <div className="bg-blue-50 border border-blue-200 rounded p-2">
@@ -315,14 +318,14 @@ const ModuleActivationModal = ({ module, isOpen, onClose, onConfirm, isLoading, 
             >
               Отменить
             </button>
-            
+
             <button
               onClick={handleConfirm}
               disabled={isLoading || (previewData && !previewData.can_activate)}
               className="flex-1 py-3 px-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-60 font-medium"
             >
-              {isLoading ? 'Активация...' : 
-               (previewData && !previewData.can_activate) ? 'Невозможно активировать' : 'Активировать'}
+              {isLoading ? 'Активация...' :
+                (previewData && !previewData.can_activate) ? 'Невозможно активировать' : 'Активировать'}
             </button>
           </div>
         </div>
@@ -343,24 +346,24 @@ const DevelopmentWarningModal = ({ module, isOpen, onClose, onConfirm }: Develop
           <ExclamationTriangleIcon className={`h-8 w-8 mr-3 text-${development_status.color}-500`} />
           <h2 className="text-xl font-bold">Активировать {module.name}?</h2>
         </div>
-        
+
         <div className="mb-4">
           <ModuleStatusBadge developmentStatus={development_status} />
         </div>
-        
+
         <p className="text-gray-700 mb-6">
           {development_status.warning_message}
         </p>
-        
+
         <div className="flex justify-end space-x-3">
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
           >
             Отмена
           </button>
-          <button 
-            onClick={onConfirm} 
+          <button
+            onClick={onConfirm}
             className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium"
           >
             Продолжить
@@ -425,7 +428,7 @@ const ModuleDeactivationPreviewModal = ({ module, isOpen, onClose, onConfirm, is
         <h3 className="text-xl font-bold mb-6 text-red-900">
           Вы действительно хотите отключить модуль "{module.name}"?
         </h3>
-        
+
         <div className="space-y-6">
           {/* Финансовая информация */}
           {previewData?.financial_impact && (
@@ -530,15 +533,15 @@ const ModuleDeactivationPreviewModal = ({ module, isOpen, onClose, onConfirm, is
                     return severityOrder[a.severity as keyof typeof severityOrder] - severityOrder[b.severity as keyof typeof severityOrder];
                   })
                   .map((warning: any, index: number) => (
-                  <div key={index} className={`border rounded p-3 flex items-start ${getWarningBgColor(warning.severity)}`}>
-                    <div className="mr-3 mt-0.5">
-                      {getWarningIcon(warning.severity)}
+                    <div key={index} className={`border rounded p-3 flex items-start ${getWarningBgColor(warning.severity)}`}>
+                      <div className="mr-3 mt-0.5">
+                        {getWarningIcon(warning.severity)}
+                      </div>
+                      <div className={`text-sm ${getWarningTextColor(warning.severity)}`}>
+                        {warning.message}
+                      </div>
                     </div>
-                    <div className={`text-sm ${getWarningTextColor(warning.severity)}`}>
-                      {warning.message}
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           )}
@@ -551,7 +554,7 @@ const ModuleDeactivationPreviewModal = ({ module, isOpen, onClose, onConfirm, is
             >
               Отменить
             </button>
-            
+
             {previewData?.can_proceed ? (
               <button
                 onClick={onConfirm}
@@ -592,64 +595,64 @@ const getModuleIcon = (iconName: string | null | undefined, module?: Module) => 
     'office': BuildingOfficeIcon,
     'organization': BuildingOfficeIcon,
     'company': BuildingOfficeIcon,
-    
+
     'users': UsersIcon,
     'user': UsersIcon,
     'people': UsersIcon,
     'team': UsersIcon,
-    
+
     'sitemap': ShareIcon,
     'share': ShareIcon,
     'network': ShareIcon,
     'multi': ShareIcon,
     'hierarchy': ShareIcon,
-    
+
     'chart-bar': ChartBarIcon,
     'chart': ChartBarIcon,
     'bar': ChartBarIcon,
     'analytics': ChartBarIcon,
     'stats': ChartBarIcon,
-    
+
     'chart-line': ChartPieIcon,
     'chart-pie': ChartPieIcon,
     'pie': ChartPieIcon,
     'advanced': ChartPieIcon,
-    
+
     'document-chart': DocumentChartBarIcon,
     'document': DocumentChartBarIcon,
     'report': DocumentChartBarIcon,
     'reports': DocumentChartBarIcon,
-    
+
     'cpu-chip': CpuChipIcon,
     'cpu': CpuChipIcon,
     'chip': CpuChipIcon,
     'processing': CpuChipIcon,
-    
+
     'server': ServerIcon,
     'database': ServerIcon,
     'storage': ServerIcon,
-    
+
     'beaker': BeakerIcon,
     'experiment': BeakerIcon,
     'test': BeakerIcon,
     'lab': BeakerIcon,
-    
+
     'cloud': CloudIcon,
     'api': CloudIcon,
     'service': CloudIcon,
-    
+
     'puzzle': PuzzlePieceIcon,
     'puzzle-piece': PuzzlePieceIcon,
     'module': PuzzlePieceIcon,
     'addon': PuzzlePieceIcon,
     'plugin': PuzzlePieceIcon,
-    
+
     'cog': CogIcon,
     'settings': CogIcon,
     'config': CogIcon,
     'configuration': CogIcon,
     'gear': CogIcon,
-    
+
     'shield': ShieldCheckIcon,
     'shield-check': ShieldCheckIcon,
     'security': ShieldCheckIcon,
@@ -657,7 +660,7 @@ const getModuleIcon = (iconName: string | null | undefined, module?: Module) => 
     'auth': ShieldCheckIcon,
     'authentication': ShieldCheckIcon,
     'permissions': ShieldCheckIcon,
-    
+
     'banknotes': BanknotesIcon,
     'money': BanknotesIcon,
     'finance': BanknotesIcon,
@@ -665,25 +668,25 @@ const getModuleIcon = (iconName: string | null | undefined, module?: Module) => 
     'billing': BanknotesIcon,
     'payment': BanknotesIcon,
     'invoice': BanknotesIcon,
-    
+
     'calendar': CalendarIcon,
     'schedule': CalendarIcon,
     'time': CalendarIcon,
     'date': CalendarIcon,
     'planning': CalendarIcon,
-    
+
     'clock': ClockIcon,
     'timer': ClockIcon,
     'history': ClockIcon,
     'tracking': ClockIcon,
-    
+
     'document-duplicate': DocumentDuplicateIcon,
     'copy': DocumentDuplicateIcon,
     'duplicate': DocumentDuplicateIcon,
     'backup': DocumentDuplicateIcon,
     'export': DocumentDuplicateIcon,
     'import': DocumentDuplicateIcon,
-    
+
     'globe': GlobeAltIcon,
     'globe-alt': GlobeAltIcon,
     'web': GlobeAltIcon,
@@ -691,33 +694,33 @@ const getModuleIcon = (iconName: string | null | undefined, module?: Module) => 
     'internet': GlobeAltIcon,
     'integration': GlobeAltIcon,
     'external': GlobeAltIcon,
-    
+
     'key': KeyIcon,
     'password': KeyIcon,
     'access': KeyIcon,
     'credential': KeyIcon,
     'token': KeyIcon,
-    
+
     'lock': LockClosedIcon,
     'lock-closed': LockClosedIcon,
     'locked': LockClosedIcon,
     'private': LockClosedIcon,
     'secure': LockClosedIcon,
     'encrypted': LockClosedIcon,
-    
+
     'magnifying-glass': MagnifyingGlassIcon,
     'search': MagnifyingGlassIcon,
     'find': MagnifyingGlassIcon,
     'lookup': MagnifyingGlassIcon,
     'filter': MagnifyingGlassIcon,
-    
+
     'paper-airplane': PaperAirplaneIcon,
     'send': PaperAirplaneIcon,
     'message': PaperAirplaneIcon,
     'notification': PaperAirplaneIcon,
     'email': PaperAirplaneIcon,
     'mail': PaperAirplaneIcon,
-    
+
     'wrench-screwdriver': WrenchScrewdriverIcon,
     'tools': WrenchScrewdriverIcon,
     'maintenance': WrenchScrewdriverIcon,
@@ -729,36 +732,36 @@ const getModuleIcon = (iconName: string | null | undefined, module?: Module) => 
   // Функция для попытки найти иконку
   const findIcon = (searchTerm: string): any => {
     if (!searchTerm) return null;
-    
+
     // Прямое совпадение
     if (availableIcons[searchTerm.toLowerCase()]) {
       return availableIcons[searchTerm.toLowerCase()];
     }
-    
+
     // Поиск по частичному совпадению
-    const partial = Object.keys(availableIcons).find(key => 
+    const partial = Object.keys(availableIcons).find(key =>
       key.includes(searchTerm.toLowerCase()) || searchTerm.toLowerCase().includes(key)
     );
     if (partial) {
       return availableIcons[partial];
     }
-    
+
     return null;
   };
 
   // 1. Пробуем прямой поиск по названию иконки
   let IconComponent = iconName ? findIcon(iconName as string) : null;
-  
+
   // 2. Если не найдено, пробуем по категории модуля
   if (!IconComponent && module?.category) {
     IconComponent = findIcon(module.category);
   }
-  
+
   // 3. Если не найдено, пробуем по типу модуля
   if (!IconComponent && module?.type) {
     IconComponent = findIcon(module.type);
   }
-  
+
   // 4. Если не найдено, пробуем найти по ключевым словам в названии модуля
   if (!IconComponent && module?.name) {
     const nameWords = module.name.toLowerCase().split(/\s+/);
@@ -767,7 +770,7 @@ const getModuleIcon = (iconName: string | null | undefined, module?: Module) => 
       if (IconComponent) break;
     }
   }
-  
+
   // 5. Категорийный fallback
   if (!IconComponent && module) {
     const categoryFallbacks: { [key: string]: any } = {
@@ -780,21 +783,23 @@ const getModuleIcon = (iconName: string | null | undefined, module?: Module) => 
     };
     IconComponent = categoryFallbacks[module.category] || categoryFallbacks[module.type];
   }
-  
+
   // 6. Общий fallback
   if (!IconComponent) {
-    console.log(`🎨 Icon not found for: "${iconName}". Using fallback.`, { 
-      module: module?.name, 
-      category: module?.category, 
-      type: module?.type 
+    console.log(`🎨 Icon not found for: "${iconName}". Using fallback.`, {
+      module: module?.name,
+      category: module?.category,
+      type: module?.type
     });
     IconComponent = PuzzlePieceIcon;
   }
-  
+
   return IconComponent;
 };
 
 const ModulesPage = () => {
+  const [activeTab, setActiveTab] = useState<'packages' | 'modules'>('packages');
+
   const {
     allModules,
     expiringModules,
@@ -812,8 +817,8 @@ const ModulesPage = () => {
     toggleAutoRenew,
     bulkToggleAutoRenew,
     hasExpiring
-  } = useModules({ 
-    autoRefresh: true, 
+  } = useModules({
+    autoRefresh: true,
     refreshInterval: 900000,
     onError: (errorMessage: string) => {
       // Показываем уведомление пользователю при ошибке
@@ -836,8 +841,8 @@ const ModulesPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<ModuleCategory>('all');
 
   // Фильтрация модулей по выбранной категории
-  const filteredModules = selectedCategory === 'all' 
-    ? allModules 
+  const filteredModules = selectedCategory === 'all'
+    ? allModules
     : allModules.filter(module => module.category === selectedCategory);
 
   // Статистика по категориям
@@ -881,7 +886,7 @@ const ModulesPage = () => {
 
     setSelectedModule(module);
     setActionLoading(`preview-${module.slug}`);
-    
+
     try {
       const preview = await getActivationPreview(module.slug);
       setPreviewData(preview);
@@ -889,7 +894,7 @@ const ModulesPage = () => {
       console.error('Ошибка получения предпросмотра:', error);
     } finally {
       setActionLoading(null);
-      
+
       // Показываем предупреждение если нужно
       if (module.development_status?.should_show_warning) {
         setShowDevelopmentWarning(true);
@@ -917,13 +922,13 @@ const ModulesPage = () => {
 
     setSelectedModule(module);
     setActionLoading(`trial-check-${module.slug}`);
-    
+
     try {
       const availability = await checkTrialAvailability(module.slug);
-      
+
       if (!availability.can_activate_trial) {
         let message = 'Trial период недоступен';
-        
+
         switch (availability.reason) {
           case 'TRIAL_ALREADY_USED':
             message = 'Вы уже использовали trial период для этого модуля. Активируйте полную версию.';
@@ -938,17 +943,17 @@ const ModulesPage = () => {
             message = availability.development_status?.description || 'Модуль находится в разработке';
             break;
         }
-        
+
         NotificationService.show({
           type: 'info',
           title: 'Trial недоступен',
           message
         });
-        
+
         setSelectedModule(null);
         return;
       }
-      
+
       // Показываем предупреждение если нужно
       if (module.development_status?.should_show_warning) {
         setShowDevelopmentWarning(true);
@@ -969,7 +974,7 @@ const ModulesPage = () => {
 
   const handleTrialActivate = async (moduleSlug: string) => {
     setActionLoading(`trial-activate-${moduleSlug}`);
-    
+
     try {
       const success = await activateTrial(moduleSlug);
       if (success) {
@@ -1015,27 +1020,27 @@ const ModulesPage = () => {
 
     // Подтверждение при отключении
     if (!enabled) {
-      const expiresDate = module.activation?.expires_at 
+      const expiresDate = module.activation?.expires_at
         ? new Date(module.activation.expires_at).toLocaleDateString('ru-RU')
         : 'истечения срока';
-      
+
       const confirmed = window.confirm(
         `Отключить автопродление?\n\nМодуль будет деактивирован после ${expiresDate}`
       );
-      
+
       if (!confirmed) return;
     }
 
     setActionLoading(`auto-renew-${module.slug}`);
-    
+
     try {
       const success = await toggleAutoRenew(module.slug, enabled);
       if (success) {
         NotificationService.show({
           type: 'success',
           title: enabled ? 'Автопродление включено' : 'Автопродление выключено',
-          message: enabled 
-            ? 'Модуль будет автоматически продлен' 
+          message: enabled
+            ? 'Модуль будет автоматически продлен'
             : 'Модуль не будет продлен автоматически'
         });
       }
@@ -1055,11 +1060,11 @@ const ModulesPage = () => {
     const confirmed = window.confirm(
       `${enabled ? 'Включить' : 'Выключить'} автопродление для всех модулей?\n\nЭто действие затронет только активные платные модули.`
     );
-    
+
     if (!confirmed) return;
 
     setActionLoading(`bulk-auto-renew-${enabled}`);
-    
+
     try {
       const success = await bulkToggleAutoRenew(enabled);
       if (success) {
@@ -1082,14 +1087,14 @@ const ModulesPage = () => {
 
   const handleActivateConfirm = async (durationDays: number) => {
     if (!selectedModule) return;
-    
+
     setActionLoading(`activate-${selectedModule.slug}`);
-    
+
     try {
       const success = await activateModule(selectedModule.slug, durationDays);
       if (success) {
         setShowActivationModal(false);
-      setSelectedModule(null);
+        setSelectedModule(null);
         setPreviewData(null);
       }
     } finally {
@@ -1100,7 +1105,7 @@ const ModulesPage = () => {
   const handleDeactivateClick = async (module: Module) => {
     setSelectedModule(module);
     setActionLoading(`deactivation-preview-${module.slug}`);
-    
+
     try {
       const preview = await getDeactivationPreview(module.slug);
       setDeactivationPreviewData(preview);
@@ -1119,16 +1124,16 @@ const ModulesPage = () => {
 
   const handleDeactivatePreviewConfirm = async () => {
     if (!selectedModule) return;
-    
+
     setActionLoading(`deactivate-${selectedModule.slug}`);
-    
+
     try {
       const success = await deactivateModule(selectedModule.slug);
       if (success) {
         setShowDeactivationPreviewModal(false);
         setSelectedModule(null);
         setDeactivationPreviewData(null);
-        
+
         NotificationService.show({
           type: 'success',
           title: 'Модуль отключен',
@@ -1143,7 +1148,7 @@ const ModulesPage = () => {
 
   const handleRenewModule = async (module: Module) => {
     setActionLoading(`renew-${module.slug}`);
-    
+
     try {
       await renewModule(module.slug, 30);
     } finally {
@@ -1163,7 +1168,7 @@ const ModulesPage = () => {
   const isExpiringSoon = (module: Module) => {
     // Бесплатные модули никогда не истекают
     if (module.billing_model === 'free') return false;
-    
+
     const expiresAt = getModuleExpiresAt(module);
     if (!expiresAt) return false;
     const expiry = new Date(expiresAt);
@@ -1176,7 +1181,7 @@ const ModulesPage = () => {
   const getModuleStatusText = (module: Module) => {
     const active = isModuleActive(module.slug);
     const expiring = isExpiringSoon(module);
-    
+
     if (!active) {
       return { text: 'Неактивен', className: 'text-gray-600' };
     } else if (expiring) {
@@ -1186,7 +1191,7 @@ const ModulesPage = () => {
     }
   };
 
-  if (loading) return <PageLoading message="Загрузка модулей..." />;
+  if (loading && activeTab === 'modules') return <PageLoading message="Загрузка модулей..." />;
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 pb-20">
@@ -1194,419 +1199,453 @@ const ModulesPage = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-             <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Модули</h1>
-                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold border border-orange-200">
-                   {allModules.length} доступно
-                </span>
-             </div>
-             <p className="text-slate-500 text-lg">
-               Расширяйте возможности вашей организации с помощью дополнительных модулей
-             </p>
-          </div>
-          
-          <div className="flex flex-wrap gap-3">
-             {/* Кнопки массового управления автопродлением */}
-             <div className="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
-               <button
-                 onClick={() => handleBulkAutoRenew(true)}
-                 disabled={loading || actionLoading?.startsWith('bulk-auto-renew')}
-                 className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 disabled:opacity-50 transition-colors"
-                 title="Включить автопродление для всех активных модулей"
-               >
-                 <ArrowPathIcon className="h-4 w-4 mr-1" />
-                 Вкл. автопродление
-               </button>
-               <div className="w-px h-6 bg-slate-200 mx-1"></div>
-               <button
-                 onClick={() => handleBulkAutoRenew(false)}
-                 disabled={loading || actionLoading?.startsWith('bulk-auto-renew')}
-                 className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
-                 title="Выключить автопродление для всех активных модулей"
-               >
-                 <XMarkIcon className="h-4 w-4 mr-1" />
-                 Выкл.
-               </button>
-             </div>
-             
-             <button
-               onClick={refresh}
-               disabled={loading}
-               className="inline-flex items-center px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-orange-600 disabled:opacity-50 transition-colors shadow-sm"
-             >
-               <ArrowPathIcon className={`h-5 w-5 mr-2 ${loading ? 'animate-spin' : ''}`} />
-               Обновить
-             </button>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Модули и пакеты</h1>
+            <p className="text-slate-500 text-lg">
+              Расширяйте возможности вашей организации
+            </p>
           </div>
         </div>
 
-        {error && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3"
+        {/* Переключатель вкладок */}
+        <div className="bg-white inline-flex rounded-2xl border border-slate-200 shadow-sm p-1 gap-1">
+          <button
+            onClick={() => setActiveTab('packages')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'packages'
+              ? 'bg-orange-600 text-white shadow-lg shadow-orange-200'
+              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              }`}
           >
-            <XCircleIcon className="h-6 w-6 text-red-500 mt-0.5 flex-shrink-0" />
-            <div>
-               <h3 className="font-bold text-red-900">Ошибка загрузки</h3>
-               <p className="text-red-800 mt-1">{error}</p>
-            </div>
-          </motion.div>
-        )}
+            <RectangleGroupIcon className="w-4 h-4" />
+            Пакеты
+          </button>
+          <button
+            onClick={() => setActiveTab('modules')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'modules'
+              ? 'bg-orange-600 text-white shadow-lg shadow-orange-200'
+              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              }`}
+          >
+            <Squares2X2Icon className="w-4 h-4" />
+            Все модули
+          </button>
+        </div>
 
-        {/* Сводка */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-green-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
-              <div className="relative z-10">
-                 <div className="flex items-center justify-between mb-4">
+        {activeTab === 'packages' && <PackagesView />}
+
+        {activeTab === 'modules' && (
+          <>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Модули</h1>
+                  <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold border border-orange-200">
+                    {allModules.length} доступно
+                  </span>
+                </div>
+                <p className="text-slate-500 text-lg">
+                  Расширяйте возможности вашей организации с помощью дополнительных модулей
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {/* Кнопки массового управления автопродлением */}
+                <div className="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                  <button
+                    onClick={() => handleBulkAutoRenew(true)}
+                    disabled={loading || actionLoading?.startsWith('bulk-auto-renew')}
+                    className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 disabled:opacity-50 transition-colors"
+                    title="Включить автопродление для всех активных модулей"
+                  >
+                    <ArrowPathIcon className="h-4 w-4 mr-1" />
+                    Вкл. автопродление
+                  </button>
+                  <div className="w-px h-6 bg-slate-200 mx-1"></div>
+                  <button
+                    onClick={() => handleBulkAutoRenew(false)}
+                    disabled={loading || actionLoading?.startsWith('bulk-auto-renew')}
+                    className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                    title="Выключить автопродление для всех активных модулей"
+                  >
+                    <XMarkIcon className="h-4 w-4 mr-1" />
+                    Выкл.
+                  </button>
+                </div>
+
+                <button
+                  onClick={refresh}
+                  disabled={loading}
+                  className="inline-flex items-center px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-orange-600 disabled:opacity-50 transition-colors shadow-sm"
+                >
+                  <ArrowPathIcon className={`h-5 w-5 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  Обновить
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3"
+              >
+                <XCircleIcon className="h-6 w-6 text-red-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="font-bold text-red-900">Ошибка загрузки</h3>
+                  <p className="text-red-800 mt-1">{error}</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Сводка */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-green-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="p-3 bg-green-50 rounded-2xl text-green-600">
-                       <CheckCircleIcon className="w-6 h-6" />
+                      <CheckCircleIcon className="w-6 h-6" />
                     </div>
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Активные</span>
-                 </div>
-                 <p className="text-3xl font-bold text-slate-900">
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900">
                     {filteredModules.filter(m => isModuleActive(m.slug)).length}
-                 </p>
-                 <p className="text-sm text-slate-500 mt-1">модулей используется</p>
+                  </p>
+                  <p className="text-sm text-slate-500 mt-1">модулей используется</p>
+                </div>
               </div>
-           </div>
 
-           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-orange-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
-              <div className="relative z-10">
-                 <div className="flex items-center justify-between mb-4">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-orange-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="p-3 bg-orange-50 rounded-2xl text-orange-600">
-                       <BanknotesIcon className="w-6 h-6" />
+                      <BanknotesIcon className="w-6 h-6" />
                     </div>
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Стоимость</span>
-                 </div>
-                 <p className="text-3xl font-bold text-slate-900">
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900">
                     {filteredModules
                       .filter(m => isModuleActive(m.slug))
                       .reduce((sum, m) => sum + (m.billing_model !== 'free' ? (m.pricing_config?.base_price || m.price || 0) : 0), 0)
                       .toLocaleString('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 })}
-                 </p>
-                 <p className="text-sm text-slate-500 mt-1">в месяц</p>
+                  </p>
+                  <p className="text-sm text-slate-500 mt-1">в месяц</p>
+                </div>
               </div>
-           </div>
 
-           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-yellow-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
-              <div className="relative z-10">
-                 <div className="flex items-center justify-between mb-4">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-yellow-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="p-3 bg-yellow-50 rounded-2xl text-yellow-600">
-                       <ClockIcon className="w-6 h-6" />
+                      <ClockIcon className="w-6 h-6" />
                     </div>
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Внимание</span>
-                 </div>
-                 <p className="text-3xl font-bold text-slate-900">
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900">
                     {filteredModules.filter(m => expiringModules.some(exp => exp.slug === m.slug)).length}
-                 </p>
-                 <p className="text-sm text-slate-500 mt-1">истекают скоро</p>
+                  </p>
+                  <p className="text-sm text-slate-500 mt-1">истекают скоро</p>
+                </div>
               </div>
-           </div>
 
-           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
-              <div className="relative z-10">
-                 <div className="flex items-center justify-between mb-4">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-50 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
-                       <Squares2X2Icon className="w-6 h-6" />
+                      <Squares2X2Icon className="w-6 h-6" />
                     </div>
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Всего</span>
-                 </div>
-                 <p className="text-3xl font-bold text-slate-900">
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900">
                     {filteredModules.length}
-                 </p>
-                 <p className="text-sm text-slate-500 mt-1">доступных модулей</p>
-              </div>
-           </div>
-        </div>
-
-        {/* Фильтр по категориям */}
-        <div className="bg-white shadow-sm rounded-3xl p-2 border border-slate-200 inline-flex flex-wrap gap-1">
-           {availableCategories.map((category) => {
-             const categoryInfo = MODULE_CATEGORIES[category];
-             const stats = category === 'all' 
-               ? { total: allModules.length, active: filteredModules.filter(m => isModuleActive(m.slug)).length }
-               : categoryStats[category] || { total: 0, active: 0 };
-             const IconComponent = categoryInfo?.icon || Squares2X2Icon;
-             const isSelected = selectedCategory === category;
-             
-             return (
-               <button
-                 key={category}
-                 onClick={() => setSelectedCategory(category)}
-                 className={`flex items-center px-4 py-2.5 rounded-2xl text-sm font-bold transition-all border ${
-                   isSelected
-                     ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-200'
-                     : 'bg-transparent border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                 }`}
-               >
-                 <IconComponent className={`h-4 w-4 mr-2 ${isSelected ? 'text-white' : ''}`} />
-                 <span>{categoryInfo?.name || 'Категория'}</span>
-                 {isSelected && (
-                   <span className="ml-2 bg-white/20 px-1.5 py-0.5 rounded-md text-xs text-white">
-                     {stats.total}
-                   </span>
-                 )}
-               </button>
-             );
-           })}
-        </div>
-
-        {/* Уведомления об истекающих модулях */}
-        {hasExpiring && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4"
-          >
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-yellow-100 rounded-xl text-yellow-600 mt-1">
-                 <ExclamationTriangleIcon className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="font-bold text-yellow-900 text-lg">Требуется внимание</div>
-                <div className="text-yellow-800 mt-1 mb-3">
-                  У следующих модулей истекает срок действия в ближайшие 7 дней:
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {expiringModules.map((module) => (
-                    <div key={module.slug} className="inline-flex items-center bg-white border border-yellow-200 rounded-xl px-3 py-1.5 shadow-sm">
-                      <span className="font-bold text-yellow-900 mr-2">{module.name}</span>
-                      <span className="text-yellow-600 text-sm">до {formatDate(getModuleExpiresAt(module))}</span>
-                    </div>
-                  ))}
+                  </p>
+                  <p className="text-sm text-slate-500 mt-1">доступных модулей</p>
                 </div>
               </div>
             </div>
-          </motion.div>
-        )}
 
-        {/* Список модулей */}
-        {filteredModules.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredModules.map((module) => {
-                const active = isModuleActive(module.slug);
-                const status = getModuleStatusText(module);
-                const ModuleIconComponent = getModuleIcon(module.icon || 'puzzle-piece', module);
-                const actionInProgress = actionLoading?.includes(module.slug);
-                const canActivate = module.development_status?.can_be_activated !== false;
-                const isDisabled = !active && !canActivate;
-                
+            {/* Фильтр по категориям */}
+            <div className="bg-white shadow-sm rounded-3xl p-2 border border-slate-200 inline-flex flex-wrap gap-1">
+              {availableCategories.map((category) => {
+                const categoryInfo = MODULE_CATEGORIES[category];
+                const stats = category === 'all'
+                  ? { total: allModules.length, active: filteredModules.filter(m => isModuleActive(m.slug)).length }
+                  : categoryStats[category] || { total: 0, active: 0 };
+                const IconComponent = categoryInfo?.icon || Squares2X2Icon;
+                const isSelected = selectedCategory === category;
+
                 return (
-              <div
-                key={module.slug}
-                className={`relative bg-white rounded-3xl p-6 border transition-all duration-300 flex flex-col h-full ${
-                  active 
-                    ? 'border-orange-200 shadow-lg shadow-orange-100 ring-1 ring-orange-500/20' 
-                    : canActivate 
-                      ? 'border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-orange-200'
-                      : 'border-slate-100 bg-slate-50/50 opacity-75'
-                }`}
-              >
-                  {/* Status Badge */}
-                  <div className="absolute top-6 right-6">
-                    {module.billing_model === 'free' ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">
-                        Бесплатно
-                      </span>
-                    ) : (
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                        isDisabled ? 'bg-slate-100 text-slate-500' : 'bg-slate-100 text-slate-700'
-                      }`}>
-                        {(module.pricing_config?.base_price || module.price || 0).toLocaleString('ru-RU', { 
-                          style: 'currency', 
-                          currency: module.pricing_config?.currency || module.currency || 'RUB',
-                          maximumFractionDigits: 0
-                        })}
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`flex items-center px-4 py-2.5 rounded-2xl text-sm font-bold transition-all border ${isSelected
+                      ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-200'
+                      : 'bg-transparent border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                      }`}
+                  >
+                    <IconComponent className={`h-4 w-4 mr-2 ${isSelected ? 'text-white' : ''}`} />
+                    <span>{categoryInfo?.name || 'Категория'}</span>
+                    {isSelected && (
+                      <span className="ml-2 bg-white/20 px-1.5 py-0.5 rounded-md text-xs text-white">
+                        {stats.total}
                       </span>
                     )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Уведомления об истекающих модулях */}
+            {hasExpiring && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-yellow-100 rounded-xl text-yellow-600 mt-1">
+                    <ExclamationTriangleIcon className="h-5 w-5" />
                   </div>
-
-                  <div className="flex items-center space-x-4 mb-6">
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm transition-colors ${
-                      active ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white' : 
-                      canActivate ? 'bg-white border border-slate-100 text-slate-500 group-hover:text-orange-500 group-hover:border-orange-100' : 'bg-slate-100 text-slate-400'
-                    }`}>
-                      <ModuleIconComponent className="h-8 w-8" />
+                  <div>
+                    <div className="font-bold text-yellow-900 text-lg">Требуется внимание</div>
+                    <div className="text-yellow-800 mt-1 mb-3">
+                      У следующих модулей истекает срок действия в ближайшие 7 дней:
                     </div>
-                    <div className="flex-1 pr-20">
-                      <h3 className={`font-bold text-lg leading-tight mb-1 ${isDisabled ? 'text-slate-500' : 'text-slate-900'}`}>
-                        {module.name}
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                         <div className="flex items-center space-x-1">
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-md flex items-center w-fit ${
-                               active ? 'text-green-600 bg-green-50' : 
-                               status.text === 'Истекает скоро' ? 'text-yellow-600 bg-yellow-50' : 'text-slate-500 bg-slate-100'
-                            }`}>
-                               {active && <CheckCircleIcon className="w-3 h-3 mr-1" />}
-                               {status.text}
-                            </span>
-                         </div>
-                         
-                         {!active && (
-                            <span className="text-xs font-medium text-slate-500 px-2 py-0.5 bg-slate-50 rounded-md border border-slate-100">
-                               {module.category ? MODULE_CATEGORIES[module.category as ModuleCategory]?.name : 'Модуль'}
-                            </span>
-                         )}
-                         
-                         {module.activation?.status === 'trial' && (
-                            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md flex items-center w-fit">
-                               Trial
-                            </span>
-                         )}
-                      </div>
-                    </div>
-                  </div>
-
-                <p className={`text-sm mb-6 line-clamp-2 flex-grow ${isDisabled ? 'text-slate-400' : 'text-slate-600'}`}>
-                  {module.description}
-                </p>
-
-                {/* Features Preview */}
-                {module.features.length > 0 && !isDisabled && (
-                   <div className="mb-6 space-y-2 bg-slate-50/50 rounded-xl p-3">
-                      {module.features.slice(0, 2).map((feature, idx) => (
-                         <div key={idx} className="flex items-start text-xs text-slate-600">
-                            <CheckCircleIcon className="w-3.5 h-3.5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                            <span className="line-clamp-1">{feature}</span>
-                         </div>
+                    <div className="flex flex-wrap gap-2">
+                      {expiringModules.map((module) => (
+                        <div key={module.slug} className="inline-flex items-center bg-white border border-yellow-200 rounded-xl px-3 py-1.5 shadow-sm">
+                          <span className="font-bold text-yellow-900 mr-2">{module.name}</span>
+                          <span className="text-yellow-600 text-sm">до {formatDate(getModuleExpiresAt(module))}</span>
+                        </div>
                       ))}
-                      {module.features.length > 2 && (
-                         <button 
-                           onClick={() => toggleModuleExpanded(module.slug)}
-                           className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center pl-5"
-                         >
-                            {expandedModules.has(module.slug) ? 'Скрыть' : `Еще ${module.features.length - 2} функций`}
-                         </button>
-                      )}
-                      
-                      {expandedModules.has(module.slug) && (
-                         <motion.div 
-                           initial={{ opacity: 0, height: 0 }}
-                           animate={{ opacity: 1, height: 'auto' }}
-                           className="space-y-2 pt-1"
-                         >
-                            {module.features.slice(2).map((feature, idx) => (
-                               <div key={idx} className="flex items-start text-xs text-slate-600">
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Список модулей */}
+            {filteredModules.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredModules.map((module) => {
+                  const active = isModuleActive(module.slug);
+                  const status = getModuleStatusText(module);
+                  const ModuleIconComponent = getModuleIcon(module.icon || 'puzzle-piece', module);
+                  const actionInProgress = actionLoading?.includes(module.slug);
+                  const canActivate = module.development_status?.can_be_activated !== false;
+                  const isDisabled = !active && !canActivate;
+
+                  return (
+                    <div
+                      key={module.slug}
+                      className={`relative bg-white rounded-3xl p-6 border transition-all duration-300 flex flex-col h-full ${active
+                        ? 'border-orange-200 shadow-lg shadow-orange-100 ring-1 ring-orange-500/20'
+                        : canActivate
+                          ? 'border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-orange-200'
+                          : 'border-slate-100 bg-slate-50/50 opacity-75'
+                        }`}
+                    >
+                      {/* Status Badge */}
+                      <div className="absolute top-6 right-6">
+                        {module.billing_model === 'free' ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                            Бесплатно
+                          </span>
+                        ) : (
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${isDisabled ? 'bg-slate-100 text-slate-500' : 'bg-slate-100 text-slate-700'
+                            }`}>
+                            {(module.pricing_config?.base_price || module.price || 0).toLocaleString('ru-RU', {
+                              style: 'currency',
+                              currency: module.pricing_config?.currency || module.currency || 'RUB',
+                              maximumFractionDigits: 0
+                            })}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center space-x-4 mb-6">
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm transition-colors ${active ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white' :
+                          canActivate ? 'bg-white border border-slate-100 text-slate-500 group-hover:text-orange-500 group-hover:border-orange-100' : 'bg-slate-100 text-slate-400'
+                          }`}>
+                          <ModuleIconComponent className="h-8 w-8" />
+                        </div>
+                        <div className="flex-1 pr-20">
+                          <h3 className={`font-bold text-lg leading-tight mb-1 ${isDisabled ? 'text-slate-500' : 'text-slate-900'}`}>
+                            {module.name}
+                          </h3>
+                          <div className="flex flex-wrap gap-2">
+                            <div className="flex items-center space-x-1">
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-md flex items-center w-fit ${active ? 'text-green-600 bg-green-50' :
+                                status.text === 'Истекает скоро' ? 'text-yellow-600 bg-yellow-50' : 'text-slate-500 bg-slate-100'
+                                }`}>
+                                {active && <CheckCircleIcon className="w-3 h-3 mr-1" />}
+                                {status.text}
+                              </span>
+                            </div>
+
+                            {!active && (
+                              <span className="text-xs font-medium text-slate-500 px-2 py-0.5 bg-slate-50 rounded-md border border-slate-100">
+                                {module.category ? MODULE_CATEGORIES[module.category as ModuleCategory]?.name : 'Модуль'}
+                              </span>
+                            )}
+
+                            {module.activation?.status === 'trial' && (
+                              <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md flex items-center w-fit">
+                                Trial
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className={`text-sm mb-6 line-clamp-2 flex-grow ${isDisabled ? 'text-slate-400' : 'text-slate-600'}`}>
+                        {module.description}
+                      </p>
+
+                      {/* Features Preview */}
+                      {module.features.length > 0 && !isDisabled && (
+                        <div className="mb-6 space-y-2 bg-slate-50/50 rounded-xl p-3">
+                          {module.features.slice(0, 2).map((feature, idx) => (
+                            <div key={idx} className="flex items-start text-xs text-slate-600">
+                              <CheckCircleIcon className="w-3.5 h-3.5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                              <span className="line-clamp-1">{feature}</span>
+                            </div>
+                          ))}
+                          {module.features.length > 2 && (
+                            <button
+                              onClick={() => toggleModuleExpanded(module.slug)}
+                              className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center pl-5"
+                            >
+                              {expandedModules.has(module.slug) ? 'Скрыть' : `Еще ${module.features.length - 2} функций`}
+                            </button>
+                          )}
+
+                          {expandedModules.has(module.slug) && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              className="space-y-2 pt-1"
+                            >
+                              {module.features.slice(2).map((feature, idx) => (
+                                <div key={idx} className="flex items-start text-xs text-slate-600">
                                   <CheckCircleIcon className="w-3.5 h-3.5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                                   <span>{feature}</span>
-                               </div>
-                            ))}
-                         </motion.div>
+                                </div>
+                              ))}
+                            </motion.div>
+                          )}
+                        </div>
                       )}
-                   </div>
-                )}
 
-                {/* Actions */}
-                <div className="pt-4 mt-auto border-t border-slate-100">
-                  <div className="flex gap-2">
-                     {active ? (
-                        <>
-                           {module.billing_model !== 'free' && (
-                              <button 
-                                 onClick={() => handleRenewModule(module)}
-                                 disabled={actionInProgress}
-                                 className="flex-1 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center"
-                              >
-                                 {actionLoading === `renew-${module.slug}` ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : 'Продлить'}
-                              </button>
-                           )}
-                           
-                           <div className="relative group/settings">
-                              <button className="p-2.5 border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
-                                 <CogIcon className="w-5 h-5" />
-                              </button>
-                              {/* Settings dropdown could go here */}
-                           </div>
-                           
-                           {module.can_deactivate !== false && (
-                             <button
-                                onClick={() => handleDeactivateClick(module)}
+                      {/* Actions */}
+                      <div className="pt-4 mt-auto border-t border-slate-100">
+                        <div className="flex gap-2">
+                          {active ? (
+                            <>
+                              {module.billing_model !== 'free' && (
+                                <button
+                                  onClick={() => handleRenewModule(module)}
+                                  disabled={actionInProgress}
+                                  className="flex-1 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center"
+                                >
+                                  {actionLoading === `renew-${module.slug}` ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : 'Продлить'}
+                                </button>
+                              )}
+
+                              <div className="relative group/settings">
+                                <button className="p-2.5 border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                                  <CogIcon className="w-5 h-5" />
+                                </button>
+                                {/* Settings dropdown could go here */}
+                              </div>
+
+                              {module.can_deactivate !== false && (
+                                <button
+                                  onClick={() => handleDeactivateClick(module)}
+                                  disabled={actionInProgress}
+                                  className="p-2.5 border border-red-100 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                                  title="Отключить"
+                                >
+                                  <XMarkIcon className="w-5 h-5" />
+                                </button>
+                              )}
+                            </>
+                          ) : isDisabled ? (
+                            <button disabled className="w-full py-2.5 bg-slate-100 text-slate-400 rounded-xl text-sm font-bold cursor-not-allowed">
+                              Недоступен
+                            </button>
+                          ) : (
+                            <>
+                              {module.billing_model !== 'free' && canActivate && (
+                                <button
+                                  onClick={() => handleTrialClick(module)}
+                                  disabled={actionInProgress}
+                                  className="px-4 py-2.5 border-2 border-orange-100 text-orange-600 hover:bg-orange-50 hover:border-orange-200 rounded-xl text-sm font-bold transition-colors"
+                                >
+                                  Trial
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleActivateClick(module)}
                                 disabled={actionInProgress}
-                                className="p-2.5 border border-red-100 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                                title="Отключить"
-                             >
-                                <XMarkIcon className="w-5 h-5" />
-                             </button>
-                           )}
-                        </>
-                     ) : isDisabled ? (
-                        <button disabled className="w-full py-2.5 bg-slate-100 text-slate-400 rounded-xl text-sm font-bold cursor-not-allowed">
-                           Недоступен
-                        </button>
-                     ) : (
-                        <>
-                           {module.billing_model !== 'free' && canActivate && (
-                              <button 
-                                 onClick={() => handleTrialClick(module)}
-                                 disabled={actionInProgress}
-                                 className="px-4 py-2.5 border-2 border-orange-100 text-orange-600 hover:bg-orange-50 hover:border-orange-200 rounded-xl text-sm font-bold transition-colors"
+                                className="flex-1 py-2.5 bg-slate-900 text-white hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-200 rounded-xl text-sm font-bold transition-all flex items-center justify-center"
                               >
-                                 Trial
-                              </button>
-                           )}
-                           <button 
-                              onClick={() => handleActivateClick(module)}
-                              disabled={actionInProgress}
-                              className="flex-1 py-2.5 bg-slate-900 text-white hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-200 rounded-xl text-sm font-bold transition-all flex items-center justify-center"
-                           >
-                              {actionLoading?.includes(module.slug) ? (
-                                 <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                              ) : (
-                                 <>
+                                {actionLoading?.includes(module.slug) ? (
+                                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <>
                                     <PlayIcon className="w-4 h-4 mr-2" />
                                     Активировать
-                                 </>
-                              )}
-                           </button>
-                        </>
-                     )}
-                  </div>
-                  
-                  {/* Auto-renew info */}
-                  {active && module.billing_model === 'subscription' && (
-                     <div className="mt-3 flex items-center justify-between text-xs">
-                        <span className="text-slate-400">Автопродление</span>
-                        <button 
-                           onClick={() => handleAutoRenewToggle(module, !module.activation?.is_auto_renew_enabled)}
-                           disabled={module.activation?.is_bundled_with_plan}
-                           className={`font-bold ${module.activation?.is_auto_renew_enabled ? 'text-green-600' : 'text-slate-400'}`}
-                        >
-                           {module.activation?.is_auto_renew_enabled ? 'ВКЛЮЧЕНО' : 'ВЫКЛЮЧЕНО'}
-                        </button>
-                     </div>
-                  )}
-                </div>
+                                  </>
+                                )}
+                              </button>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Auto-renew info */}
+                        {active && module.billing_model === 'subscription' && (
+                          <div className="mt-3 flex items-center justify-between text-xs">
+                            <span className="text-slate-400">Автопродление</span>
+                            <button
+                              onClick={() => handleAutoRenewToggle(module, !module.activation?.is_auto_renew_enabled)}
+                              disabled={module.activation?.is_bundled_with_plan}
+                              className={`font-bold ${module.activation?.is_auto_renew_enabled ? 'text-green-600' : 'text-slate-400'}`}
+                            >
+                              {module.activation?.is_auto_renew_enabled ? 'ВКЛЮЧЕНО' : 'ВЫКЛЮЧЕНО'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-                );
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-20">
-            <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-               <PuzzlePieceIcon className="h-10 w-10 text-slate-300" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">
-              Модули не найдены
-            </h3>
-            <p className="text-slate-500 max-w-md mx-auto">
-              {selectedCategory === 'all' 
-                ? 'Нет доступных модулей для организации. Попробуйте обновить страницу.'
-                : `В категории "${MODULE_CATEGORIES[selectedCategory]?.name || 'Неизвестная категория'}" модули пока отсутствуют.`
-              }
-            </p>
-            <button 
-               onClick={() => setSelectedCategory('all')}
-               className="mt-6 px-6 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors"
-            >
-               Показать все модули
-            </button>
-          </div>
+            ) : (
+              <div className="text-center py-20">
+                <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <PuzzlePieceIcon className="h-10 w-10 text-slate-300" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">
+                  Модули не найдены
+                </h3>
+                <p className="text-slate-500 max-w-md mx-auto">
+                  {selectedCategory === 'all'
+                    ? 'Нет доступных модулей для организации. Попробуйте обновить страницу.'
+                    : `В категории "${MODULE_CATEGORIES[selectedCategory]?.name || 'Неизвестная категория'}" модули пока отсутствуют.`
+                  }
+                </p>
+                <button
+                  onClick={() => setSelectedCategory('all')}
+                  className="mt-6 px-6 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  Показать все модули
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

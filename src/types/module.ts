@@ -1,11 +1,11 @@
 // types/module.ts
 
-export type ModuleDevelopmentStatus = 
-  | 'stable' 
-  | 'beta' 
-  | 'alpha' 
-  | 'development' 
-  | 'coming_soon' 
+export type ModuleDevelopmentStatus =
+  | 'stable'
+  | 'beta'
+  | 'alpha'
+  | 'development'
+  | 'coming_soon'
   | 'deprecated';
 
 export interface DevelopmentStatusInfo {
@@ -66,3 +66,24 @@ export interface ModulesResponse {
   };
 }
 
+export interface PackageTierInfo {
+  label: string;
+  description: string;
+  price: number;
+  modules: string[];
+  highlights: string[];
+}
+
+export type PackageTierKey = 'base' | 'pro' | 'enterprise';
+
+export interface Package {
+  slug: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  sort_order: number;
+  tiers: Partial<Record<PackageTierKey, PackageTierInfo>>;
+  active_tier: PackageTierKey | null;
+  expires_at: string | null;
+}

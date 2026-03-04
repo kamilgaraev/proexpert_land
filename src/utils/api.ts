@@ -28,7 +28,7 @@ export { API_URL };
 // Создаем экземпляр axios с базовым URL
 // Этот экземпляр axios используется для старых сервисов, которые ожидают /landing в пути.
 const api = axios.create({
-  baseURL: API_URL, 
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -41,21 +41,21 @@ const saveTokenToMultipleStorages = (token: string) => {
   if (typeof window === 'undefined') {
     return;
   }
-  
+
   // Сохраняем в localStorage
   try {
     localStorage.setItem('token', token);
   } catch (e) {
     console.error('Ошибка сохранения в localStorage', e);
   }
-  
+
   // Сохраняем в sessionStorage как запасной вариант
   try {
     sessionStorage.setItem('authToken', token);
   } catch (e) {
     console.error('Ошибка сохранения в sessionStorage', e);
   }
-  
+
   // Пробуем использовать куки (работает только при определенных настройках безопасности)
   try {
     document.cookie = `authToken=${token}; path=/; max-age=86400`;
@@ -69,15 +69,15 @@ export const getTokenFromStorages = (): string | null => {
   if (typeof window === 'undefined') {
     return null;
   }
-  
+
   // Пробуем сначала localStorage
   let token = localStorage.getItem('token');
-  
+
   // Если не нашли, пробуем в sessionStorage
   if (!token) {
     token = sessionStorage.getItem('authToken');
   }
-  
+
   // Если и там нет, пробуем куки
   if (!token) {
     const cookies = document.cookie.split('; ').reduce((acc, cookie) => {
@@ -85,10 +85,10 @@ export const getTokenFromStorages = (): string | null => {
       acc[key] = value;
       return acc;
     }, {} as Record<string, string>);
-    
+
     token = cookies.authToken || null;
   }
-  
+
   return token;
 };
 
@@ -97,7 +97,7 @@ const clearTokenFromStorages = () => {
   if (typeof window === 'undefined') {
     return;
   }
-  
+
   // Очищаем во всех хранилищах
   localStorage.removeItem('token');
   sessionStorage.removeItem('authToken');
@@ -125,16 +125,16 @@ api.interceptors.response.use(
       try {
         const refreshResponse = await api.post('/auth/refresh'); // Предполагается, что refresh-токен обрабатывается бэкендом через httpOnly cookie или сессию
         const token = (refreshResponse.data as any).token; // ВАЖНО: Убедитесь, что API /auth/refresh возвращает access_token в поле token
-        
+
         if (!token) {
-            console.error('Refresh response did not contain a token.');
-            clearTokenFromStorages();
-            window.location.href = '/login'; // Или другой обработчик, например, показать модальное окно
-            return Promise.reject(new Error('Refresh response did not contain a token.'));
+          console.error('Refresh response did not contain a token.');
+          clearTokenFromStorages();
+          window.location.href = '/login'; // Или другой обработчик, например, показать модальное окно
+          return Promise.reject(new Error('Refresh response did not contain a token.'));
         }
 
         saveTokenToMultipleStorages(token);
-        
+
         // Повторяем оригинальный запрос с новым токеном
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${token}`;
@@ -152,15 +152,15 @@ api.interceptors.response.use(
       window.location.href = '/login'; // Или другой обработчик
       return Promise.reject(error); // Важно отклонить промис, чтобы вызывающий код мог обработать ошибку
     }
-    
+
     // Обработка 403 (Forbidden / insufficient permissions)
     // Не показываем уведомление для ошибок верификации email при логине - они обрабатываются в LoginPage
     if (error.response?.status === 403) {
       const apiMessage = error.response?.data?.message || 'У вас нет доступа к этому ресурсу.';
-      const isEmailVerificationError = apiMessage.includes('подтвердите ваш email') || 
-                                       apiMessage.includes('подтвердите email') ||
-                                       apiMessage.includes('Пожалуйста, подтвердите ваш email адрес');
-      
+      const isEmailVerificationError = apiMessage.includes('подтвердите ваш email') ||
+        apiMessage.includes('подтвердите email') ||
+        apiMessage.includes('Пожалуйста, подтвердите ваш email адрес');
+
       // Показываем уведомление только если это не ошибка верификации email (она обрабатывается в LoginPage)
       if (!isEmailVerificationError) {
         NotificationService.show({
@@ -171,7 +171,7 @@ api.interceptors.response.use(
         });
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -208,15 +208,15 @@ export const authService = {
       },
       body: formData
     });
-    
+
     const data = await response.json();
-    
+
     if (data && data.token) {
       saveTokenToMultipleStorages(data.token);
     } else if (data && data.data && data.data.token) {
       saveTokenToMultipleStorages(data.data.token);
     }
-    
+
     return {
       data: data,
       status: response.status,
@@ -225,7 +225,7 @@ export const authService = {
       config: {} as any
     };
   },
-  
+
   // Вход в систему
   login: async (credentials: LoginRequest): Promise<any> => {
     const response = await fetch(`${API_URL}/auth/login`, {
@@ -236,21 +236,21 @@ export const authService = {
       },
       body: JSON.stringify(credentials)
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       const error: any = new Error(data?.message || 'Ошибка входа');
       error.status = response.status;
       error.data = data;
       throw error;
     }
-    
+
     // Сразу сохраняем токен в хранилище
     if (data && data.success && data.data && data.data.token) {
       saveTokenToMultipleStorages(data.data.token);
     }
-    
+
     // Создаем объект, имитирующий ответ Axios
     return {
       data: data,
@@ -260,21 +260,21 @@ export const authService = {
       config: {} as any
     };
   },
-  
+
   // Выход из системы
   logout: () => {
     clearTokenFromStorages();
     return api.post<ApiResponse<null>>('/auth/logout');
   },
-  
+
   // Получение данных текущего пользователя
   getCurrentUser: async (): Promise<any> => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/auth/me`, {
       method: 'GET',
       headers: {
@@ -283,9 +283,9 @@ export const authService = {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     // Создаем объект, имитирующий ответ Axios
     return {
       data: data,
@@ -293,26 +293,26 @@ export const authService = {
       statusText: response.statusText
     };
   },
-  
+
   // Обновление токена
   refreshToken: () => api.post<ApiResponse<{ token: string }>>('/auth/refresh'),
-  
+
   // Запрос на сброс пароля
-  requestPasswordReset: (email: string) => 
+  requestPasswordReset: (email: string) =>
     api.post<ApiResponse<null>>('/auth/password/email', { email }),
-  
+
   // Сброс пароля
-  resetPassword: (resetData: { token: string; email: string; password: string; password_confirmation: string }) => 
+  resetPassword: (resetData: { token: string; email: string; password: string; password_confirmation: string }) =>
     api.post<ApiResponse<null>>('/auth/password/reset', resetData),
-  
+
   // Повторная отправка письма с подтверждением
   resendVerificationEmail: async () => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/auth/email/resend`, {
       method: 'POST',
       headers: {
@@ -321,13 +321,13 @@ export const authService = {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data?.message || 'Ошибка отправки письма');
     }
-    
+
     return {
       data,
       status: response.status,
@@ -338,16 +338,16 @@ export const authService = {
   // Верификация email по ссылке
   verifyEmail: async (id: string, hash: string, expires: string) => {
     const apiUrl = `${API_URL}/email/verify/${id}/${hash}?expires=${encodeURIComponent(expires)}`;
-    
+
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
         'Accept': 'application/json'
       }
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data,
       status: response.status,
@@ -358,11 +358,11 @@ export const authService = {
   // Проверка статуса верификации email (используем данные из /me, но оставляем для совместимости)
   checkEmailVerification: async () => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/auth/email/check`, {
       method: 'GET',
       headers: {
@@ -371,9 +371,9 @@ export const authService = {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data,
       status: response.status,
@@ -386,11 +386,11 @@ export const userService = {
   // Получение профиля пользователя
   getProfile: async () => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/user/profile`, {
       method: 'GET',
       headers: {
@@ -399,24 +399,24 @@ export const userService = {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data: data,
       status: response.status,
       statusText: response.statusText
     };
   },
-  
+
   // Обновление профиля пользователя
   updateProfile: async (formData: FormData) => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/auth/me`, {
       method: 'POST',
       headers: {
@@ -425,35 +425,35 @@ export const userService = {
       },
       body: formData
     });
-    
+
     const data = await response.json();
 
     if (!response.ok) {
-        const errorMsg = data?.message || `Ошибка обновления профиля (статус ${response.status})`;
-        const validationErrors = data?.errors;
-        const errorToThrow = new Error(errorMsg) as any;
-        if (validationErrors) {
-          errorToThrow.errors = validationErrors; 
-        }
-        errorToThrow.status = response.status;
-        throw errorToThrow; 
+      const errorMsg = data?.message || `Ошибка обновления профиля (статус ${response.status})`;
+      const validationErrors = data?.errors;
+      const errorToThrow = new Error(errorMsg) as any;
+      if (validationErrors) {
+        errorToThrow.errors = validationErrors;
+      }
+      errorToThrow.status = response.status;
+      throw errorToThrow;
     }
-    
+
     return {
-      data: data, 
+      data: data,
       status: response.status,
       statusText: response.statusText
     };
   },
-  
+
   // Изменение пароля
   changePassword: async (passwordData: ChangePasswordRequest) => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/user/password`, {
       method: 'PUT',
       headers: {
@@ -463,24 +463,24 @@ export const userService = {
       },
       body: JSON.stringify(passwordData)
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data: data,
       status: response.status,
       statusText: response.statusText
     };
   },
-  
+
   // Получение списка организаций пользователя
   getUserOrganizations: async () => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/user/organizations`, {
       method: 'GET',
       headers: {
@@ -489,24 +489,24 @@ export const userService = {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data: data,
       status: response.status,
       statusText: response.statusText
     };
   },
-  
+
   // Получение списка пользователей организации
   getOrganizationUsers: async () => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/adminPanelUsers`, {
       method: 'GET',
       headers: {
@@ -515,26 +515,26 @@ export const userService = {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data: {
         success: data.success !== undefined ? data.success : response.ok,
         message: data.message || '',
-        data: (data && data.data && typeof data.data === 'object' && data.data.data && Array.isArray(data.data.data)) 
-              ? data.data.data 
-              : (data && Array.isArray(data.data)) 
-                ? data.data
-                : Array.isArray(data) 
-                  ? data
-                  : []
+        data: (data && data.data && typeof data.data === 'object' && data.data.data && Array.isArray(data.data.data))
+          ? data.data.data
+          : (data && Array.isArray(data.data))
+            ? data.data
+            : Array.isArray(data)
+              ? data
+              : []
       },
       status: response.status,
       statusText: response.statusText
     };
   },
-  
+
   // Приглашение нового пользователя в организацию
   inviteUser: async (userData: {
     name: string;
@@ -545,11 +545,11 @@ export const userService = {
     organization_id?: number;
   }) => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/users/invite`, {
       method: 'POST',
       headers: {
@@ -559,9 +559,9 @@ export const userService = {
       },
       body: JSON.stringify(userData)
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data: data,
       status: response.status,
@@ -574,11 +574,11 @@ export const organizationService = {
   // Создание новой организации
   createOrganization: async (orgData: any) => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/organizations`, {
       method: 'POST',
       headers: {
@@ -588,24 +588,24 @@ export const organizationService = {
       },
       body: JSON.stringify(orgData)
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data: data,
       status: response.status,
       statusText: response.statusText
     };
   },
-  
+
   // Получение данных организации
   getOrganization: async (orgId: number) => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/organizations/${orgId}`, {
       method: 'GET',
       headers: {
@@ -614,24 +614,24 @@ export const organizationService = {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data: data,
       status: response.status,
       statusText: response.statusText
     };
   },
-  
+
   // Обновление данных организации
   updateOrganization: async (orgId: number, orgData: any) => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/organizations/${orgId}`, {
       method: 'PUT',
       headers: {
@@ -641,9 +641,9 @@ export const organizationService = {
       },
       body: JSON.stringify(orgData)
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data: data,
       status: response.status,
@@ -685,19 +685,19 @@ export const supportService = {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     };
-    
+
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    
+
     const response = await fetch(`${API_URL}/support/request`, {
       method: 'POST',
       headers,
       body: JSON.stringify(requestData)
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data: data,
       status: response.status,
@@ -876,7 +876,7 @@ export interface AdminUser {
 export const adminPanelUserService = {
   getAdminPanelUsers: async (): Promise<AdminUsersListResponse> => {
     const response = await api.get('/adminPanelUsers');
-    return response.data as AdminUsersListResponse; 
+    return response.data as AdminUsersListResponse;
   },
 
   getAdminPanelUserById: async (userId: number): Promise<AdminUserDetailResponse> => {
@@ -888,18 +888,18 @@ export const adminPanelUserService = {
     const response = await api.post('/adminPanelUsers', userData);
     return response.data as AdminUserDetailResponse;
   },
-  
+
   updateAdminPanelUser: async (userId: number, userData: Partial<AdminFormDataExternal>): Promise<AdminUserDetailResponse> => {
     const response = await api.patch(`/adminPanelUsers/${userId}`, userData);
     return response.data as AdminUserDetailResponse;
   },
-  
+
   deleteAdminPanelUser: async (userId: number): Promise<AdminUserDeleteResponse> => {
     const response = await api.delete(`/adminPanelUsers/${userId}`);
     if (response.status === 204) {
       return { success: true, message: 'Пользователь успешно удален' };
     }
-    return response.data as AdminUserDeleteResponse; 
+    return response.data as AdminUserDeleteResponse;
   },
 
   // Отправка письма верификации email от имени админа для другого администратора
@@ -1102,7 +1102,7 @@ export interface SubscriptionLimitsResponse {
 // Вспомогательная функция для запросов
 async function fetchWithBillingLogging(url: string, options: RequestInit): Promise<Response> {
   const response = await fetch(url, options);
-  
+
   // Если токен истёк или сессия недействительна, перенаправляем на страницу логина
   if (response.status === 401 || response.status === 419) {
     try {
@@ -1132,7 +1132,7 @@ export const billingService = {
 
     if (response.ok && responseData && typeof responseData === 'object' && 'data' in responseData && Array.isArray(responseData.data)) {
       // Успешный ответ, и структура соответствует { data: [...] }
-      return { data: responseData.data as SubscriptionPlan[], status: response.status, statusText: response.statusText }; 
+      return { data: responseData.data as SubscriptionPlan[], status: response.status, statusText: response.statusText };
     } else if (!response.ok) {
       // Ошибка от сервера
       return { data: responseData as ErrorResponse, status: response.status, statusText: response.statusText };
@@ -1187,14 +1187,14 @@ export const billingService = {
   changePlanPreview: async (payload: { plan_slug: string }): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${BILLING_API_URL}/subscription/change-plan-preview`;
     const options: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(payload),
     };
-    
+
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
@@ -1571,7 +1571,7 @@ export const userManagementService = {
     const params = new URLSearchParams();
     if (status) params.append('status', status);
     if (email) params.append('email', email);
-    
+
     const response = await api.get(`/user-management/invitations${params.toString() ? '?' + params.toString() : ''}`);
     return response;
   },
@@ -1592,7 +1592,7 @@ export const userManagementService = {
       payload.password = password;
       payload.password_confirmation = passwordConfirmation;
     }
-    
+
     const response = await api.post(`/user-management/invitation/${token}/accept`, payload);
     return response;
   },
@@ -1916,13 +1916,13 @@ export const multiOrganizationService = {
   getHoldingPublicInfo: async (slug: string): Promise<HoldingPublicData> => {
     const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
     let url: string;
-    
+
     if (isLocalDev) {
       url = `https://api.prohelper.pro/api/v1/holding-api/${slug}`;
     } else {
       url = `https://api.prohelper.pro/api/v1/holding-api/${slug}`;
     }
-    
+
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -1930,30 +1930,30 @@ export const multiOrganizationService = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`Ошибка загрузки данных холдинга: ${response.status}`);
     }
 
     const responseData = await response.json();
-    
+
     if (!responseData.success) {
       throw new Error(responseData.message || 'Ошибка при получении данных холдинга');
     }
-    
+
     return responseData.data;
   },
 
   getHoldingDashboardInfo: async (slug: string, token: string): Promise<HoldingDashboardData> => {
     const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
     let url: string;
-    
+
     if (isLocalDev) {
       url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/dashboard`;
     } else {
       url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/dashboard`;
     }
-    
+
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -1962,33 +1962,33 @@ export const multiOrganizationService = {
         'Authorization': `Bearer ${token}`,
       },
     });
-    
+
     if (response.status === 401) {
       throw new Error('UNAUTHORIZED');
     }
-    
+
     if (!response.ok) {
       throw new Error(`Ошибка загрузки панели управления: ${response.status}`);
     }
-    
+
     const data = await response.json();
     if (!data.success) {
       throw new Error(data.message || 'Не удалось загрузить данные холдинга');
     }
-    
+
     return data.data;
   },
 
   getHoldingOrganizations: async (slug: string, token: string): Promise<any[]> => {
     const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
     let url: string;
-    
+
     if (isLocalDev) {
       url = `/api/v1/multi-organization/accessible`;
     } else {
       url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/organizations`;
     }
-    
+
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -1997,19 +1997,19 @@ export const multiOrganizationService = {
         'Authorization': `Bearer ${token}`,
       },
     });
-    
+
     if (!response.ok) {
       if (response.status === 401) {
         throw new Error('UNAUTHORIZED');
       }
       throw new Error(`Ошибка загрузки организаций: ${response.status}`);
     }
-    
+
     const data = await response.json();
     if (!data.success) {
       throw new Error(data.message || 'Не удалось загрузить организации');
     }
-    
+
     return data.data;
   },
 
@@ -2027,7 +2027,7 @@ export const multiOrganizationService = {
         if (value !== undefined) queryParams.append(key, value.toString());
       });
     }
-    
+
     const response = await api.get(`/multi-organization/child-organizations?${queryParams}`);
     return response;
   },
@@ -2060,11 +2060,11 @@ export const multiOrganizationService = {
       },
       body: JSON.stringify(data),
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
@@ -2087,7 +2087,7 @@ export const multiOrganizationService = {
         if (value !== undefined) queryParams.append(key, value.toString());
       });
     }
-    
+
     const response = await api.get(`/multi-organization/child-organizations/${childOrgId}/users?${queryParams}`);
     return response;
   },
@@ -2155,7 +2155,7 @@ export const multiOrganizationService = {
         }
       });
     }
-    
+
     const response = await api.get(`/multi-organization/child-organizations/export?${queryParams}`);
     return response;
   },
@@ -2171,7 +2171,7 @@ export const multiOrganizationService = {
         if (value !== undefined) queryParams.append(key, value.toString());
       });
     }
-    
+
     const response = await api.get(`/multi-organization/analytics/summary?${queryParams}`);
     return response;
   },
@@ -2205,12 +2205,12 @@ export const multiOrganizationService = {
 };
 
 // Новые типы для модульной системы
-export type ModuleDevelopmentStatus = 
-  | 'stable' 
-  | 'beta' 
-  | 'alpha' 
-  | 'development' 
-  | 'coming_soon' 
+export type ModuleDevelopmentStatus =
+  | 'stable'
+  | 'beta'
+  | 'alpha'
+  | 'development'
+  | 'coming_soon'
   | 'deprecated';
 
 export interface DevelopmentStatusInfo {
@@ -2393,7 +2393,7 @@ export const newModulesService = {
   getModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules`;
     const options: RequestInit = {
       method: 'GET',
@@ -2412,7 +2412,7 @@ export const newModulesService = {
   getActiveModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/active`;
     const options: RequestInit = {
       method: 'GET',
@@ -2431,11 +2431,11 @@ export const newModulesService = {
   checkAccess: async (module_slug: string, permission?: string): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/check-access`;
     const payload: any = { module_slug };
     if (permission) payload.permission = permission;
-    
+
     const options: RequestInit = {
       method: 'POST',
       headers: {
@@ -2454,7 +2454,7 @@ export const newModulesService = {
   activateModule: async (module_slug: string, duration_days: number = 30): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/activate`;
     const options: RequestInit = {
       method: 'POST',
@@ -2474,7 +2474,7 @@ export const newModulesService = {
   deactivateModule: async (module_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/${module_slug}`;
     const options: RequestInit = {
       method: 'DELETE',
@@ -2493,7 +2493,7 @@ export const newModulesService = {
   getDeactivationPreview: async (module_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/${module_slug}/deactivation-preview`;
     const options: RequestInit = {
       method: 'GET',
@@ -2503,7 +2503,7 @@ export const newModulesService = {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetchWithBillingLogging(url, options);
     if (!response.ok) {
       if (response.status === 404) {
@@ -2513,7 +2513,7 @@ export const newModulesService = {
       }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
+
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
@@ -2522,7 +2522,7 @@ export const newModulesService = {
   getActivationPreview: async (module_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/${module_slug}/preview`;
     const options: RequestInit = {
       method: 'GET',
@@ -2541,7 +2541,7 @@ export const newModulesService = {
   getExpiringModules: async (days: number = 7): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/expiring?days=${days}`;
     const options: RequestInit = {
       method: 'GET',
@@ -2560,7 +2560,7 @@ export const newModulesService = {
   renewModule: async (module_slug: string, duration_days: number = 30): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/${module_slug}/renew`;
     const options: RequestInit = {
       method: 'PATCH',
@@ -2580,7 +2580,7 @@ export const newModulesService = {
   checkTrialAvailability: async (module_slug: string): Promise<TrialAvailability> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/${module_slug}/trial-availability`;
     const options: RequestInit = {
       method: 'GET',
@@ -2599,7 +2599,7 @@ export const newModulesService = {
   activateTrial: async (module_slug: string): Promise<TrialActivationResponse> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/${module_slug}/trial/activate`;
     const options: RequestInit = {
       method: 'POST',
@@ -2611,11 +2611,11 @@ export const newModulesService = {
     };
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    
+
     if (!responseData.success) {
       throw new Error(responseData.message || 'Не удалось активировать trial период');
     }
-    
+
     return responseData;
   },
 
@@ -2623,7 +2623,7 @@ export const newModulesService = {
   toggleAutoRenew: async (module_slug: string, enabled: boolean): Promise<AutoRenewResponse> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/${module_slug}/auto-renew`;
     const options: RequestInit = {
       method: 'PATCH',
@@ -2636,11 +2636,11 @@ export const newModulesService = {
     };
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    
+
     if (!responseData.success) {
       throw new Error(responseData.message || 'Не удалось изменить автопродление');
     }
-    
+
     return responseData;
   },
 
@@ -2648,7 +2648,7 @@ export const newModulesService = {
   bulkToggleAutoRenew: async (enabled: boolean): Promise<BulkAutoRenewResponse> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/auto-renew/bulk`;
     const options: RequestInit = {
       method: 'POST',
@@ -2661,11 +2661,11 @@ export const newModulesService = {
     };
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    
+
     if (!responseData.success) {
       throw new Error(responseData.message || 'Не удалось изменить автопродление');
     }
-    
+
     return responseData;
   },
 
@@ -2673,7 +2673,7 @@ export const newModulesService = {
   bulkActivateModules: async (modules: Array<{ slug: string; duration_days: number }>): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/bulk-activate`;
     const options: RequestInit = {
       method: 'POST',
@@ -2693,7 +2693,7 @@ export const newModulesService = {
   getBillingInfo: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/billing`;
     const options: RequestInit = {
       method: 'GET',
@@ -2712,14 +2712,14 @@ export const newModulesService = {
   getBillingHistory: async (page: number = 1, per_page: number = 20, from?: string, to?: string): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const params = new URLSearchParams({
       page: page.toString(),
       per_page: per_page.toString()
     });
     if (from) params.append('from', from);
     if (to) params.append('to', to);
-    
+
     const url = `${API_URL}/modules/billing/history?${params}`;
     const options: RequestInit = {
       method: 'GET',
@@ -2738,7 +2738,7 @@ export const newModulesService = {
   getBillingStats: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    
+
     const url = `${API_URL}/modules/billing`;
     const options: RequestInit = {
       method: 'GET',
@@ -2781,7 +2781,7 @@ export const holdingReportsService = {
     if (!token) throw new Error('Токен авторизации отсутствует');
 
     const url = new URL(`${API_URL}/multi-organization/reports/projects-summary`);
-    
+
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -2804,7 +2804,7 @@ export const holdingReportsService = {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetchWithBillingLogging(url.toString(), options);
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
@@ -2815,7 +2815,7 @@ export const holdingReportsService = {
     if (!token) throw new Error('Токен авторизации отсутствует');
 
     const url = new URL(`${API_URL}/multi-organization/reports/contracts-summary`);
-    
+
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -2838,7 +2838,7 @@ export const holdingReportsService = {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetchWithBillingLogging(url.toString(), options);
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
@@ -2849,9 +2849,9 @@ export const holdingReportsService = {
     if (!token) throw new Error('Токен авторизации отсутствует');
 
     const url = new URL(`${API_URL}/multi-organization/reports/projects-summary`);
-    
+
     const allFilters = { ...filters, export_format: format };
-    
+
     Object.entries(allFilters).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         const stringValue = String(value);
@@ -2875,7 +2875,7 @@ export const holdingReportsService = {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetchWithBillingLogging(url.toString(), options);
     return await response.blob();
   },
@@ -2885,9 +2885,9 @@ export const holdingReportsService = {
     if (!token) throw new Error('Токен авторизации отсутствует');
 
     const url = new URL(`${API_URL}/multi-organization/reports/contracts-summary`);
-    
+
     const allFilters = { ...filters, export_format: format };
-    
+
     Object.entries(allFilters).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         const stringValue = String(value);
@@ -2911,7 +2911,7 @@ export const holdingReportsService = {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetchWithBillingLogging(url.toString(), options);
     return await response.blob();
   },
@@ -2921,7 +2921,7 @@ export const holdingReportsService = {
     if (!token) throw new Error('Токен авторизации отсутствует');
 
     const url = new URL(`${API_URL}/multi-organization/reports/intra-group`);
-    
+
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -2944,7 +2944,7 @@ export const holdingReportsService = {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetchWithBillingLogging(url.toString(), options);
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
@@ -2955,9 +2955,9 @@ export const holdingReportsService = {
     if (!token) throw new Error('Токен авторизации отсутствует');
 
     const url = new URL(`${API_URL}/multi-organization/reports/intra-group`);
-    
+
     const allFilters = { ...filters, export_format: format };
-    
+
     Object.entries(allFilters).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         const stringValue = String(value);
@@ -2981,7 +2981,7 @@ export const holdingReportsService = {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetchWithBillingLogging(url.toString(), options);
     return await response.blob();
   },
@@ -2991,7 +2991,7 @@ export const holdingReportsService = {
     if (!token) throw new Error('Токен авторизации отсутствует');
 
     const url = new URL(`${API_URL}/multi-organization/reports/consolidated`);
-    
+
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -3014,7 +3014,7 @@ export const holdingReportsService = {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetchWithBillingLogging(url.toString(), options);
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
@@ -3025,9 +3025,9 @@ export const holdingReportsService = {
     if (!token) throw new Error('Токен авторизации отсутствует');
 
     const url = new URL(`${API_URL}/multi-organization/reports/consolidated`);
-    
+
     const allFilters = { ...filters, export_format: format };
-    
+
     Object.entries(allFilters).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         const stringValue = String(value);
@@ -3051,7 +3051,7 @@ export const holdingReportsService = {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetchWithBillingLogging(url.toString(), options);
     return await response.blob();
   },
@@ -3061,7 +3061,7 @@ export const holdingReportsService = {
     if (!token) throw new Error('Токен авторизации отсутствует');
 
     const url = new URL(`${API_URL}/multi-organization/reports/detailed-contracts`);
-    
+
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -3084,7 +3084,7 @@ export const holdingReportsService = {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetchWithBillingLogging(url.toString(), options);
     const responseData = await response.json();
     return { data: responseData, status: response.status, statusText: response.statusText };
@@ -3095,9 +3095,9 @@ export const holdingReportsService = {
     if (!token) throw new Error('Токен авторизации отсутствует');
 
     const url = new URL(`${API_URL}/multi-organization/reports/detailed-contracts`);
-    
+
     const allFilters = { ...filters, export_format: format };
-    
+
     Object.entries(allFilters).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         const stringValue = String(value);
@@ -3121,7 +3121,7 @@ export const holdingReportsService = {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetchWithBillingLogging(url.toString(), options);
     return await response.blob();
   }
@@ -3134,7 +3134,7 @@ if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(win
   window.fetch = async (...args: Parameters<typeof nativeFetch>): Promise<Response> => {
     const resp = await nativeFetch(...(args as Parameters<typeof nativeFetch>));
     if (resp.status === 401 || resp.status === 419) {
-      try { clearTokenFromStorages(); } catch {}
+      try { clearTokenFromStorages(); } catch { }
       if (!window.location.pathname.includes('/login')) {
         window.location.replace('/login');
       }
@@ -3146,13 +3146,13 @@ if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(win
         try {
           const body = await cloned.json();
           apiMessage = body?.message || apiMessage;
-        } catch {}
-        
+        } catch { }
+
         // Не показываем уведомление для ошибок верификации email при логине
-        const isEmailVerificationError = apiMessage.includes('подтвердите ваш email') || 
-                                         apiMessage.includes('подтвердите email') ||
-                                         apiMessage.includes('Пожалуйста, подтвердите ваш email адрес');
-        
+        const isEmailVerificationError = apiMessage.includes('подтвердите ваш email') ||
+          apiMessage.includes('подтвердите email') ||
+          apiMessage.includes('Пожалуйста, подтвердите ваш email адрес');
+
         if (!isEmailVerificationError) {
           NotificationService.show({
             type: 'error',
@@ -3161,7 +3161,7 @@ if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(win
             duration: 7000,
           });
         }
-      } catch {}
+      } catch { }
     }
     return resp;
   };
@@ -3174,7 +3174,7 @@ export const holdingLandingService = {
   // Управление лендингом холдинга
   getLanding: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
-    
+
     const response = await fetch(`${API_URL}/holding/site`, {
       method: 'GET',
       headers: {
@@ -3194,7 +3194,7 @@ export const holdingLandingService = {
 
   updateLanding: async (landingData: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
-    
+
     const response = await fetch(`${API_URL}/holding/site`, {
       method: 'PUT',
       headers: {
@@ -3215,7 +3215,7 @@ export const holdingLandingService = {
 
   publishLanding: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
-    
+
     const response = await fetch(`${API_URL}/holding/site/publish`, {
       method: 'POST',
       headers: {
@@ -3237,7 +3237,7 @@ export const holdingLandingService = {
   getBlocks: async (filters?: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     const params = new URLSearchParams();
-    
+
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== '') {
@@ -3245,9 +3245,9 @@ export const holdingLandingService = {
         }
       });
     }
-    
+
     const queryString = params.toString() ? `?${params.toString()}` : '';
-    
+
     const response = await fetch(`${API_URL}/holding/site/blocks${queryString}`, {
       method: 'GET',
       headers: {
@@ -3267,7 +3267,7 @@ export const holdingLandingService = {
 
   createBlock: async (blockData: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
-    
+
     const response = await fetch(`${API_URL}/holding/site/blocks`, {
       method: 'POST',
       headers: {
@@ -3288,7 +3288,7 @@ export const holdingLandingService = {
 
   updateBlock: async (blockId: number, blockData: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
-    
+
     const response = await fetch(`${API_URL}/holding/site/blocks/${blockId}`, {
       method: 'PUT',
       headers: {
@@ -3309,7 +3309,7 @@ export const holdingLandingService = {
 
   publishBlock: async (blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
-    
+
     const response = await fetch(`${API_URL}/holding/site/blocks/${blockId}/publish`, {
       method: 'POST',
       headers: {
@@ -3329,7 +3329,7 @@ export const holdingLandingService = {
 
   duplicateBlock: async (blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
-    
+
     const response = await fetch(`${API_URL}/holding/site/blocks/${blockId}/duplicate`, {
       method: 'POST',
       headers: {
@@ -3349,7 +3349,7 @@ export const holdingLandingService = {
 
   deleteBlock: async (blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
-    
+
     const response = await fetch(`${API_URL}/holding/site/blocks/${blockId}`, {
       method: 'DELETE',
       headers: {
@@ -3369,7 +3369,7 @@ export const holdingLandingService = {
 
   reorderBlocks: async (blockOrder: { id: number; sort_order: number }[]): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
-    
+
     const response = await fetch(`${API_URL}/holding/site/blocks/reorder`, {
       method: 'PUT',
       headers: {
@@ -3392,7 +3392,7 @@ export const holdingLandingService = {
   getAssets: async (filters?: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     const params = new URLSearchParams();
-    
+
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== '') {
@@ -3400,9 +3400,9 @@ export const holdingLandingService = {
         }
       });
     }
-    
+
     const queryString = params.toString() ? `?${params.toString()}` : '';
-    
+
     const response = await fetch(`${API_URL}/holding/site/assets${queryString}`, {
       method: 'GET',
       headers: {
@@ -3422,7 +3422,7 @@ export const holdingLandingService = {
 
   uploadAsset: async (file: File, usageContext?: string, metadata?: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
-    
+
     const formData = new FormData();
     formData.append('file', file);
     if (usageContext) {
@@ -3431,7 +3431,7 @@ export const holdingLandingService = {
     if (metadata) {
       formData.append('metadata', JSON.stringify(metadata));
     }
-    
+
     const response = await fetch(`${API_URL}/holding/site/assets`, {
       method: 'POST',
       headers: {
@@ -3451,7 +3451,7 @@ export const holdingLandingService = {
 
   updateAsset: async (assetId: number, metadata: any): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
-    
+
     const response = await fetch(`${API_URL}/holding/site/assets/${assetId}`, {
       method: 'PUT',
       headers: {
@@ -3472,7 +3472,7 @@ export const holdingLandingService = {
 
   deleteAsset: async (assetId: number): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
-    
+
     const response = await fetch(`${API_URL}/holding/site/assets/${assetId}`, {
       method: 'DELETE',
       headers: {
@@ -3494,11 +3494,11 @@ export const holdingLandingService = {
 export const organizationProfileService = {
   getProfile: async () => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/organization/profile`, {
       method: 'GET',
       headers: {
@@ -3507,9 +3507,9 @@ export const organizationProfileService = {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data,
       status: response.status,
@@ -3519,11 +3519,11 @@ export const organizationProfileService = {
 
   updateCapabilities: async (capabilities: string[]) => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/organization/profile/capabilities`, {
       method: 'PUT',
       headers: {
@@ -3533,13 +3533,13 @@ export const organizationProfileService = {
       },
       body: JSON.stringify({ capabilities })
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data?.message || 'Ошибка обновления capabilities');
     }
-    
+
     return {
       data,
       status: response.status,
@@ -3549,11 +3549,11 @@ export const organizationProfileService = {
 
   updateBusinessType: async (primary_business_type: string) => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/organization/profile/business-type`, {
       method: 'PUT',
       headers: {
@@ -3563,13 +3563,13 @@ export const organizationProfileService = {
       },
       body: JSON.stringify({ primary_business_type })
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data?.message || 'Ошибка обновления типа бизнеса');
     }
-    
+
     return {
       data,
       status: response.status,
@@ -3579,11 +3579,11 @@ export const organizationProfileService = {
 
   updateSpecializations: async (specializations: string[]) => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/organization/profile/specializations`, {
       method: 'PUT',
       headers: {
@@ -3593,13 +3593,13 @@ export const organizationProfileService = {
       },
       body: JSON.stringify({ specializations })
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data?.message || 'Ошибка обновления специализаций');
     }
-    
+
     return {
       data,
       status: response.status,
@@ -3609,11 +3609,11 @@ export const organizationProfileService = {
 
   updateCertifications: async (certifications: string[]) => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/organization/profile/certifications`, {
       method: 'PUT',
       headers: {
@@ -3623,13 +3623,13 @@ export const organizationProfileService = {
       },
       body: JSON.stringify({ certifications })
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data?.message || 'Ошибка обновления сертификатов');
     }
-    
+
     return {
       data,
       status: response.status,
@@ -3639,11 +3639,11 @@ export const organizationProfileService = {
 
   completeOnboarding: async () => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/organization/profile/complete-onboarding`, {
       method: 'POST',
       headers: {
@@ -3652,13 +3652,13 @@ export const organizationProfileService = {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data?.message || 'Ошибка завершения onboarding');
     }
-    
+
     return {
       data,
       status: response.status,
@@ -3668,11 +3668,11 @@ export const organizationProfileService = {
 
   getAvailableCapabilities: async () => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/organization/capabilities`, {
       method: 'GET',
       headers: {
@@ -3681,9 +3681,9 @@ export const organizationProfileService = {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data,
       status: response.status,
@@ -3695,11 +3695,11 @@ export const organizationProfileService = {
 export const myProjectsService = {
   getMyProjects: async () => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/my-projects`, {
       method: 'GET',
       headers: {
@@ -3708,9 +3708,9 @@ export const myProjectsService = {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data,
       status: response.status,
@@ -3720,11 +3720,11 @@ export const myProjectsService = {
 
   getProjectDetails: async (projectId: number) => {
     const token = getTokenFromStorages();
-    
+
     if (!token) {
       throw new Error('Токен авторизации отсутствует');
     }
-    
+
     const response = await fetch(`${API_URL}/my-projects/${projectId}`, {
       method: 'GET',
       headers: {
@@ -3733,9 +3733,9 @@ export const myProjectsService = {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = await response.json();
-    
+
     return {
       data,
       status: response.status,
@@ -3744,7 +3744,7 @@ export const myProjectsService = {
   }
 };
 
-export default api; 
+export default api;
 
 // --- Типы дашборда лендинга ---
 export interface LandingDashboardResponse {
@@ -3788,4 +3788,73 @@ export interface LandingDashboardResponse {
     contracts_status: Record<string, number>;
   };
 }
-// --- конец типов дашборда лендинга --- 
+// --- конец типов дашборда лендинга ---
+
+export interface PackageTierConfig {
+  label: string;
+  description: string;
+  price: number;
+  modules: string[];
+  highlights: string[];
+}
+
+export interface Package {
+  slug: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  sort_order: number;
+  tiers: {
+    base?: PackageTierConfig;
+    pro?: PackageTierConfig;
+    enterprise?: PackageTierConfig;
+  };
+  active_tier: 'base' | 'pro' | 'enterprise' | null;
+  expires_at: string | null;
+}
+
+export const packagesService = {
+  getPackages: async (): Promise<any> => {
+    const token = getTokenFromStorages();
+    const response = await fetch(`${API_URL}/packages`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    return { data, status: response.status };
+  },
+
+  subscribe: async (packageSlug: string, tier: string, durationDays: number = 30): Promise<any> => {
+    const token = getTokenFromStorages();
+    const response = await fetch(`${API_URL}/packages/subscribe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ package_slug: packageSlug, tier, duration_days: durationDays }),
+    });
+    const data = await response.json();
+    return { data, status: response.status };
+  },
+
+  unsubscribe: async (packageSlug: string): Promise<any> => {
+    const token = getTokenFromStorages();
+    const response = await fetch(`${API_URL}/packages/${packageSlug}/unsubscribe`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    return { data, status: response.status };
+  },
+};
