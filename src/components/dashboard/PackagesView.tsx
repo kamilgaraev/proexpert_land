@@ -133,13 +133,13 @@ const PackageCard = ({ pkg, onSubscribe, onUnsubscribe, loading, getModuleProgre
                                                 <div
                                                     className="h-full rounded-full transition-all duration-500"
                                                     style={{
-                                                        width: `${(progress.activeCount / progress.totalCount) * 100}%`,
+                                                        width: `${progress.totalCount > 0 ? (progress.activeCount / progress.totalCount) * 100 : 100}%`,
                                                         backgroundColor: progress.activeCount === progress.totalCount ? '#16a34a' : pkg.color,
                                                     }}
                                                 />
                                             </div>
                                             <span className="font-bold">
-                                                {progress.activeCount}/{progress.totalCount} модулей активно
+                                                {progress.activeCount}/{progress.totalCount} платных модулей
                                             </span>
                                         </div>
                                         <span className="text-slate-400">{isModulesExpanded ? '▲' : '▼'}</span>
@@ -280,23 +280,30 @@ const PackagesView = () => {
     }, [allModules]);
 
     const getModuleProgress = (tier: PackageTierInfo): ModuleProgressInfo => {
-        const moduleStatuses = tier.modules.map(slug => {
-            const info = moduleMap.get(slug);
-            return {
-                slug,
-                name: info?.name || slug,
-                active: isModuleActive(slug),
-                price: info?.price || 0,
-            };
-        });
+        // Оставляем только ПЛАТНЫЕ модули из пакета для расчёта (цена > 0)
+        const paidModuleStatuses = tier.modules
+            .map(slug => {
+                const info = moduleMap.get(slug);
+                return {
+                    slug,
+                    name: info?.name || slug,
+                    active: isModuleActive(slug),
+                    price: info?.price || 0,
+                };
+            })
+            .filter(m => m.price > 0);
 
-        const activeCount = moduleStatuses.filter((m: any) => m.active).length;
-        const totalCount = moduleStatuses.length;
-        const alreadyPaidSum = moduleStatuses.filter((m: any) => m.active).reduce((sum: number, m: any) => sum + m.price, 0);
+        const activeCount = paidModuleStatuses.filter(m => m.active).length;
+        const totalCount = paidModuleStatuses.length;
+        const alreadyPaidSum = paidModuleStatuses.filter(m => m.active).reduce((sum, m) => sum + m.price, 0);
+
+        // Доплата: если уже платим за отдельные модули больше, чем стоит пакет — доплата 0.
         const upgradePrice = Math.max(0, tier.price - alreadyPaidSum);
+
+        // Все ПЛАТНЫЕ модули из этого тира активны
         const allActive = activeCount === totalCount && totalCount > 0;
 
-        return { activeCount, totalCount, alreadyPaidSum, upgradePrice, allActive, moduleStatuses };
+        return { activeCount, totalCount, alreadyPaidSum, upgradePrice, allActive, moduleStatuses: paidModuleStatuses };
     };
 
     const handleSubscribe = async (slug: string, tier: PackageTierKey) => {
