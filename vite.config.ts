@@ -36,7 +36,7 @@ export default defineConfig({
   // чтобы при переходе на вложенные маршруты (/blog) браузер не запрашивал /blog/assets/…
   base: '/',
   build: {
-    manifest: 'manifest.json',
+    manifest: 'assets.json',
     // Включаем минификацию
     minify: 'terser',
     terserOptions: {
