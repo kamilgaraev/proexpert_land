@@ -25,7 +25,11 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   modifiedTime,
   structuredData
 }) => {
-  const currentUrl = canonicalUrl || `https://prohelper.pro${window.location.pathname}`;
+  const currentUrl =
+    canonicalUrl ||
+    (typeof window !== 'undefined'
+      ? `https://prohelper.pro${window.location.pathname}`
+      : 'https://prohelper.pro');
 
   useEffect(() => {
     document.title = title;

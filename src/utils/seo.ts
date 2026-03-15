@@ -590,48 +590,7 @@ export const validateSEOLength = (title: string, description: string) => {
 
 // Функция генерации оптимального Open Graph изображения
 export const generateOGImage = (page: string, title?: string) => {
-  const baseUrl = 'https://prohelper.pro/og-images';
-  
-  // Специфичные OG изображения для важных страниц (1200x630px)
-  const pageImages: Record<string, string> = {
-    home: `${baseUrl}/home.jpg`,
-    pricing: `${baseUrl}/pricing.jpg`, 
-    features: `${baseUrl}/features.jpg`,
-    integrations: `${baseUrl}/integrations.jpg`,
-    blog: `${baseUrl}/blog.jpg`,
-    contact: `${baseUrl}/contact.jpg`,
-    'small-business': `${baseUrl}/small-business.jpg`,
-    enterprise: `${baseUrl}/enterprise.jpg`,
-    contractors: `${baseUrl}/contractors.jpg`,
-    developers: `${baseUrl}/developers.jpg`,
-    about: `${baseUrl}/about.jpg`,
-    docs: `${baseUrl}/docs.jpg`,
-    webinars: `${baseUrl}/webinars.jpg`,
-    careers: `${baseUrl}/careers.jpg`,
-    partners: `${baseUrl}/partners.jpg`,
-    press: `${baseUrl}/press.jpg`,
-    help: `${baseUrl}/help.jpg`
-  };
-  
-  if (pageImages[page]) {
-    return pageImages[page];
-  }
-  
-  // Для блога - динамическое изображение с заголовком
-  if (page.startsWith('blog/') && title) {
-    return `${baseUrl}/blog-dynamic.jpg?title=${encodeURIComponent(title)}`;
-  }
-  
-  // Для категорий блога
-  if (page.startsWith('blog/category/')) {
-    return `${baseUrl}/blog-category.jpg`;
-  }
-  
-  // Для тегов блога
-  if (page.startsWith('blog/tag/')) {
-    return `${baseUrl}/blog-tag.jpg`;
-  }
-  
-  // Fallback - общее изображение
-  return `${baseUrl}/default.jpg`;
-}; 
+  void page;
+  void title;
+  return 'https://prohelper.pro/logo.svg';
+};

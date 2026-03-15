@@ -12,6 +12,8 @@ import {
   generateWebPageSchema
 } from '../utils/seo';
 
+const isBrowser = typeof document !== 'undefined';
+
 interface AdvancedSEOProps {
   title?: string;
   description?: string;
@@ -34,6 +36,10 @@ interface AdvancedSEOProps {
 }
 
 export const useAdvancedSEO = (props: AdvancedSEOProps = {}) => {
+  if (!isBrowser) {
+    return { seoWarnings: [] };
+  }
+
   const location = useLocation();
   const [seoWarnings, setSeoWarnings] = useState<string[]>([]);
   
@@ -201,8 +207,7 @@ const setStructuredData = (schemas: any[]) => {
 const preloadCriticalResources = () => {
   const criticalResources = [
     '/images/hero-bg.jpg',
-    '/fonts/inter-var.woff2',
-    'https://prohelper.pro/og-images/home.jpg'
+    '/fonts/inter-var.woff2'
   ];
   
   criticalResources.forEach(resource => {

@@ -35,27 +35,23 @@ const server = http.createServer(async (req, res) => {
   const pageContext = await renderPage({ urlOriginal: req.url });
   const { httpResponse } = pageContext;
   if (!httpResponse) {
-    const htmlPath = path.join(distDir, 'index.html');
-    try {
-      const html = await fs.promises.readFile(htmlPath);
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      return res.end(html);
-    } catch (e) {
-      res.writeHead(404, { 'Content-Type': 'text/html' });
-      const notFoundPath = path.join(distDir, '404.html');
-      if (fs.existsSync(notFoundPath)) {
-        const notFoundHtml = await fs.promises.readFile(notFoundPath);
-        return res.end(notFoundHtml);
-      }
+    if (path.extname(url)) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
       res.end('Not found');
       return;
     }
-  }
-  if (httpResponse.statusCode === 404) {
-    const htmlPath = path.join(distDir, 'index.html');
-    const html = await fs.promises.readFile(htmlPath);
-    res.writeHead(404, { 'Content-Type': 'text/html' });
-    return res.end(html);
+
+    console.error('SSR render returned no httpResponse', {
+      url,
+      abortReason: pageContext.abortReason || null,
+      errorWhileRendering: pageContext.errorWhileRendering
+        ? String(pageContext.errorWhileRendering)
+        : null,
+    });
+
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
+    res.end('SSR render failed');
+    return;
   }
   res.writeHead(httpResponse.statusCode, httpResponse.headers);
   res.end(httpResponse.body);
