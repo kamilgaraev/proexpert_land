@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'prohelper-ssr',
       cwd: '/var/www/prohelper_marketing/current',
-      script: 'dist/server/index.cjs',
+      script: 'server/index.cjs',
       args: '--port 3001',
       instances: 'max',
       exec_mode: 'cluster',

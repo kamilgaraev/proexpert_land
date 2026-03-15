@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "cross-env ROLLUP_NO_NATIVE=1 npx tsc && npx vite build",
-    "build:marketing": "cross-env ROLLUP_NO_NATIVE=1 BUILD_TARGET=marketing vite build && cp server/index.cjs dist/server/ && node scripts/copyManifest.js dist/client",
+    "build:marketing": "cross-env ROLLUP_NO_NATIVE=1 BUILD_TARGET=marketing vite build && cp server/index.cjs dist/server/ && node scripts/copyManifest.js dist/client && rm -rf client server && mv dist/client client && mv dist/server server && mv dist/assets.json assets.json",
     "build:lk": "cross-env ROLLUP_NO_NATIVE=1 BUILD_TARGET=lk npx tsc && cross-env ROLLUP_NO_NATIVE=1 BUILD_TARGET=lk npx vite build --outDir dist-lk",
     "ssr:dev": "vite",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

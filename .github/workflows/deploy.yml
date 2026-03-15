@@ -45,13 +45,15 @@ jobs:
       - name: Build marketing SSR
         run: |
           npm run build:marketing
+          if [ -f server/importBuild.cjs ]; then
+            sed -i 's|../../node_modules|../node_modules|g' server/importBuild.cjs
+          fi
 
       - name: Prepare marketing artefact
         run: |
           rm -rf .deploy/marketing
           mkdir -p .deploy/marketing
-          cp -R dist .deploy/marketing/
-          cp ecosystem.config.cjs package.json package-lock.json .deploy/marketing/
+          cp -R client server assets.json ecosystem.config.cjs package.json package-lock.json .deploy/marketing/
           tar -czf marketing.tgz -C .deploy/marketing .
 
       - name: Upload marketing artefact
