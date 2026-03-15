@@ -88,7 +88,7 @@ jobs:
             rm -f /tmp/marketing.tgz
 
             cd "$RELEASE_PATH"
-            npm ci --omit=dev --no-audit --no-fund
+            npm install --omit=dev --no-audit --no-fund
 
             ln -sfn "$RELEASE_PATH" "${{ env.CURRENT_LINK }}"
 
