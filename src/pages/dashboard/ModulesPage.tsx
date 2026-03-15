@@ -8,9 +8,11 @@ import PackagesView from '@components/dashboard/PackagesView';
 import ModuleCard from '@components/dashboard/ModuleCard';
 import {
   ModuleActivationModal,
+  ModuleDetailsModal,
   DevelopmentWarningModal,
   ModuleDeactivationPreviewModal,
 } from '@components/dashboard/ModuleModals';
+import { getCatalogModules, getModuleAddonCount, getModuleAddonPreviews } from '@utils/moduleAddons';
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -53,6 +55,7 @@ const ModulesPage = () => {
 
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [showActivationModal, setShowActivationModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeactivationPreviewModal, setShowDeactivationPreviewModal] = useState(false);
   const [showDevelopmentWarning, setShowDevelopmentWarning] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -61,7 +64,8 @@ const ModulesPage = () => {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
 
   const { packages } = usePackages();
-  const moduleGroups = useModulesByPackage({ modules: allModules, packages });
+  const catalogModules = getCatalogModules(allModules);
+  const moduleGroups = useModulesByPackage({ modules: catalogModules, packages });
 
   const toggleModuleExpanded = (slug: string) => {
     setExpandedModules(prev => {
@@ -89,6 +93,11 @@ const ModulesPage = () => {
   const handleDevelopmentWarningConfirm = () => {
     setShowDevelopmentWarning(false);
     setShowActivationModal(true);
+  };
+
+  const handleOpenDetails = (module: Module) => {
+    setSelectedModule(module);
+    setShowDetailsModal(true);
   };
 
   const handleTrialClick = async (module: Module) => {
@@ -252,11 +261,11 @@ const ModulesPage = () => {
     return { text: 'Не активен' };
   };
 
-  const activeCount = allModules.filter(m => isModuleActive(m.slug)).length;
+  const activeCount = catalogModules.filter(m => isModuleActive(m.slug)).length;
   const monthlyTotal = allModules
     .filter(m => isModuleActive(m.slug) && m.billing_model !== 'free')
     .reduce((sum, m) => sum + (m.pricing_config?.base_price || m.price || 0), 0);
-  const expiringCount = allModules.filter(m => expiringModules.some(e => e.slug === m.slug)).length;
+  const expiringCount = catalogModules.filter(m => expiringModules.some(e => e.slug === m.slug)).length;
 
   if (loading && activeTab === 'modules') return <PageLoading message="Загрузка модулей..." />;
 
@@ -296,7 +305,7 @@ const ModulesPage = () => {
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Модули</h2>
-                  <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold border border-orange-200">{allModules.length} доступно</span>
+                  <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold border border-orange-200">{catalogModules.length} доступно</span>
                 </div>
                 <p className="text-slate-500 text-lg">Расширяйте возможности с помощью дополнительных модулей</p>
               </div>
@@ -334,7 +343,7 @@ const ModulesPage = () => {
                 { bg: 'green', icon: <CheckCircleIcon className="w-6 h-6" />, label: 'Активные', value: activeCount, sub: 'модулей используется' },
                 { bg: 'orange', icon: <BanknotesIcon className="w-6 h-6" />, label: 'Стоимость', value: monthlyTotal.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }), sub: 'в месяц' },
                 { bg: 'yellow', icon: <ClockIcon className="w-6 h-6" />, label: 'Внимание', value: expiringCount, sub: 'истекают скоро' },
-                { bg: 'blue', icon: <Squares2X2Icon className="w-6 h-6" />, label: 'Всего', value: allModules.length, sub: 'доступных модулей' },
+                { bg: 'blue', icon: <Squares2X2Icon className="w-6 h-6" />, label: 'Всего', value: catalogModules.length, sub: 'доступных модулей' },
               ].map(({ bg, icon, label, value, sub }) => (
                 <div key={label} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
                   <div className={`absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-${bg}-50 rounded-full transition-transform group-hover:scale-150 duration-500`} />
@@ -404,6 +413,8 @@ const ModulesPage = () => {
                         onRenew={handleRenewModule}
                         onToggleExpand={toggleModuleExpanded}
                         onAutoRenewToggle={handleAutoRenewToggle}
+                        onOpenDetails={handleOpenDetails}
+                        addonCount={getModuleAddonCount(module.slug)}
                       />
                     ))}
                   </div>
@@ -419,6 +430,12 @@ const ModulesPage = () => {
         isOpen={showDevelopmentWarning}
         onClose={() => { setShowDevelopmentWarning(false); setSelectedModule(null); setPreviewData(null); }}
         onConfirm={handleDevelopmentWarningConfirm}
+      />
+      <ModuleDetailsModal
+        module={selectedModule}
+        isOpen={showDetailsModal}
+        onClose={() => { setShowDetailsModal(false); setSelectedModule(null); }}
+        addonPreviews={selectedModule ? getModuleAddonPreviews(selectedModule.slug, allModules) : []}
       />
       <ModuleActivationModal
         module={selectedModule}

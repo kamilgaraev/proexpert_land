@@ -15,6 +15,8 @@ interface ModuleCardProps {
     onRenew: (module: Module) => void;
     onToggleExpand: (slug: string) => void;
     onAutoRenewToggle: (module: Module, enabled: boolean) => void;
+    onOpenDetails: (module: Module) => void;
+    addonCount?: number;
 }
 
 const ModuleCard = ({
@@ -29,6 +31,8 @@ const ModuleCard = ({
     onRenew,
     onToggleExpand,
     onAutoRenewToggle,
+    onOpenDetails,
+    addonCount = 0,
 }: ModuleCardProps) => {
     const canActivate = module.development_status?.can_be_activated !== false;
     const isDisabled = !isActive && !canActivate;
@@ -97,6 +101,21 @@ const ModuleCard = ({
                 {module.description}
             </p>
 
+            {addonCount > 0 && (
+                <button
+                    onClick={() => onOpenDetails(module)}
+                    className="mb-6 flex items-center justify-between rounded-2xl border border-orange-100 bg-orange-50/80 px-4 py-3 text-left transition-colors hover:border-orange-200 hover:bg-orange-50"
+                >
+                    <div>
+                        <div className="text-sm font-bold text-orange-700">
+                            {addonCount} {addonCount === 1 ? 'дополнение' : addonCount < 5 ? 'дополнения' : 'дополнений'}
+                        </div>
+                        <div className="text-xs text-orange-600">Доступны расширения для этого модуля</div>
+                    </div>
+                    <span className="text-xs font-bold text-orange-700">Открыть</span>
+                </button>
+            )}
+
             {module.features.length > 0 && !isDisabled && (
                 <div className="mb-6 space-y-2 bg-slate-50/50 rounded-xl p-3">
                     {module.features.slice(0, 2).map((feature, idx) => (
@@ -140,7 +159,11 @@ const ModuleCard = ({
                                 </button>
                             )}
                             <div className="relative">
-                                <button className="p-2.5 border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                                <button
+                                    onClick={() => onOpenDetails(module)}
+                                    className="p-2.5 border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors"
+                                    title="Открыть детали модуля"
+                                >
                                     <CogIcon className="w-5 h-5" />
                                 </button>
                             </div>
