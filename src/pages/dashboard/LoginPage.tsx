@@ -76,9 +76,12 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 lg:p-8">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none bg-[url('https://img.freepik.com/free-vector/construction-set-icons_1284-13233.jpg?w=740&t=st=1688212739~exp=1688213339~hmac=5c40049880458034950549147135503451414741490107508071527005575610')] bg-repeat bg-[length:400px]"></div>
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#fff_0%,#fff8f1_46%,#f8fafc_100%)] flex items-center justify-center p-4 lg:p-8">
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute left-[8%] top-[10%] h-72 w-72 rounded-full bg-orange-200/35 blur-3xl" />
+        <div className="absolute bottom-[8%] right-[10%] h-80 w-80 rounded-full bg-sky-100/60 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.94),rgba(255,255,255,0.78)_42%,rgba(248,250,252,0.96)_100%)]" />
+      </div>
 
       <motion.div 
         className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-card border rounded-3xl shadow-2xl overflow-hidden relative z-10"
