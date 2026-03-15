@@ -1,84 +1,99 @@
 import { Link } from 'react-router-dom';
-import { 
-  EnvelopeIcon, 
-  PhoneIcon, 
+import {
+  BuildingOfficeIcon,
+  EnvelopeIcon,
   MapPinIcon,
-  BuildingOfficeIcon
+  PhoneIcon,
 } from '@heroicons/react/24/outline';
-import { NAV_LINKS, SOLUTIONS } from '../../constants/landing-content';
+import { marketingContacts, marketingNavLinks, packageItems } from '../../data/marketingContent';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800">
-      <div className="container-custom px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-4 gap-8 mb-12">
-          
-          {/* Brand Column */}
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-construction-600 rounded-lg flex items-center justify-center">
-                <BuildingOfficeIcon className="w-5 h-5 text-white" />
+    <footer className="border-t border-steel-800 bg-steel-950 text-white">
+      <div className="container-custom py-14">
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-construction-300">
+                <BuildingOfficeIcon className="h-6 w-6" />
               </div>
-              <span className="text-xl font-bold text-white">ProHelper</span>
+              <div>
+                <div className="text-xl font-bold">ProHelper</div>
+                <div className="text-xs uppercase tracking-[0.22em] text-white/45">construction operating system</div>
+              </div>
             </div>
-            <p className="text-slate-400 mb-6 max-w-sm">
-              ERP-конструктор для строительного бизнеса. 
-              Стройте системно, управляйте гибко.
+
+            <p className="mt-6 max-w-xl text-sm leading-7 text-white/70">
+              Продающий лендинг должен обещать только то, что продукт реально умеет. Поэтому в основе ProHelper
+              лежит сильная backend- и admin-архитектура: проекты, документы, материалы, финансы, роли, аналитика и AI.
             </p>
-            <div className="space-y-3">
-              <a href="tel:+79991234567" className="flex items-center gap-3 hover:text-construction-500 transition-colors">
-                <PhoneIcon className="w-5 h-5" />
-                +7 (999) 123-45-67
+
+            <div className="mt-6 space-y-3 text-sm text-white/75">
+              <a href={marketingContacts.phoneHref} className="flex items-center gap-3 transition hover:text-construction-200">
+                <PhoneIcon className="h-5 w-5" />
+                {marketingContacts.phone}
               </a>
-              <a href="mailto:info@prohelper.ru" className="flex items-center gap-3 hover:text-construction-500 transition-colors">
-                <EnvelopeIcon className="w-5 h-5" />
-                info@prohelper.ru
+              <a href={marketingContacts.emailHref} className="flex items-center gap-3 transition hover:text-construction-200">
+                <EnvelopeIcon className="h-5 w-5" />
+                {marketingContacts.email}
               </a>
-              <div className="flex items-center gap-3 text-slate-500">
-                <MapPinIcon className="w-5 h-5" />
-                Москва, ул. Строителей, 25
+              <div className="flex items-center gap-3">
+                <MapPinIcon className="h-5 w-5" />
+                {marketingContacts.location}
               </div>
             </div>
           </div>
 
-          {/* Navigation */}
           <div>
-            <h3 className="text-white font-bold mb-4">Навигация</h3>
-            <ul className="space-y-2">
-              {NAV_LINKS.map((link) => (
-                <li key={link.name}>
-                  <Link to={link.path} className="hover:text-construction-500 transition-colors">
-                    {link.name}
+            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-construction-200">Навигация</div>
+            <div className="mt-5 space-y-3">
+              {marketingNavLinks.map((item) => {
+                if (item.href.startsWith('/#')) {
+                  return (
+                    <a key={item.href} href={item.href} className="block text-sm text-white/70 transition hover:text-white">
+                      {item.label}
+                    </a>
+                  );
+                }
+
+                return (
+                  <Link key={item.href} to={item.href} className="block text-sm text-white/70 transition hover:text-white">
+                    {item.label}
                   </Link>
-                </li>
-              ))}
-            </ul>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Solutions */}
           <div>
-            <h3 className="text-white font-bold mb-4">Решения</h3>
-            <ul className="space-y-2">
-              {SOLUTIONS.map((sol) => (
-                <li key={sol.id}>
-                  <Link to="/solutions" className="hover:text-construction-500 transition-colors">
-                    {sol.title}
-                  </Link>
-                </li>
+            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-construction-200">Пакеты</div>
+            <div className="mt-5 space-y-3">
+              {packageItems.map((item) => (
+                <a key={item.name} href="/pricing#pricing-contact" className="block text-sm text-white/70 transition hover:text-white">
+                  {item.name}: {item.audience}
+                </a>
               ))}
-            </ul>
+            </div>
+            <a
+              href="/#contact"
+              className="mt-6 inline-flex items-center justify-center rounded-2xl bg-white px-6 py-4 text-sm font-semibold text-steel-950 transition hover:-translate-y-0.5 hover:bg-construction-100"
+            >
+              Обсудить внедрение
+            </a>
           </div>
         </div>
 
-        <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-          <div>
-            &copy; {currentYear} ProHelper. Все права защищены.
-          </div>
-          <div className="flex gap-6">
-            <Link to="/privacy" className="hover:text-white transition-colors">Конфиденциальность</Link>
-            <Link to="/terms" className="hover:text-white transition-colors">Оферта</Link>
+        <div className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-6 text-sm text-white/45 md:flex-row md:items-center md:justify-between">
+          <div>© {currentYear} ProHelper. Все права защищены.</div>
+          <div className="flex flex-wrap gap-5">
+            <Link to="/privacy" className="transition hover:text-white">
+              Конфиденциальность
+            </Link>
+            <Link to="/terms" className="transition hover:text-white">
+              Оферта
+            </Link>
           </div>
         </div>
       </div>

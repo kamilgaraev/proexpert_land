@@ -1,16 +1,34 @@
-name: Deploy ProHelper
+name: Deploy ProHelper Frontend
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deploy target
+        required: true
+        default: both
+        type: choice
+        options:
+          - both
+          - marketing
+          - lk
+
+concurrency:
+  group: prohelper-frontend-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy-marketing:
-    if: contains(github.event.head_commit.message, '[marketing]') || contains(github.event.head_commit.message, '[both]')
+    if: github.event_name == 'push' || inputs.target == 'both' || inputs.target == 'marketing'
     runs-on: ubuntu-latest
     env:
-      TARGET_PATH: /var/www/prohelper_marketing
       NODE_VERSION: '22'
+      RELEASES_ROOT: /var/www/prohelper_marketing/releases
+      CURRENT_LINK: /var/www/prohelper_marketing/current
+      KEEP_RELEASES: '5'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,69 +37,89 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
-      - name: Install dependencies & build SSR
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build marketing SSR
         run: |
-          rm -rf node_modules package-lock.json || true
-          npm install --include=dev --no-audit --no-fund
-          chmod +x node_modules/.bin/* || true
           npm run build:marketing
-          # Исправляем неправильные пути в importBuild.cjs
-          sed -i 's|../../node_modules|../node_modules|g' dist/server/importBuild.cjs
-
-      - name: Pack artefacts
-        run: |
-          cp package.json dist/
-          if [ -f package-lock.json ]; then cp package-lock.json dist/; fi
-          if [ -d dist/prerender ]; then
-            tar -czf marketing.tgz -C dist client prerender server assets.json package.json package-lock.json || true
-          else
-            tar -czf marketing.tgz -C dist client server assets.json package.json package-lock.json || true
+          if [ -f dist/server/importBuild.cjs ]; then
+            sed -i 's|../../node_modules|../node_modules|g' dist/server/importBuild.cjs
           fi
 
-      - name: Upload artefacts to server
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.HOST }}
-          key: ${{ secrets.SSH_KEY }}
-          username: root
-          source: "marketing.tgz"
-          target: "/tmp/"
+      - name: Prepare marketing artefact
+        run: |
+          rm -rf .deploy/marketing
+          mkdir -p .deploy/marketing
+          cp -R dist/client .deploy/marketing/client
+          cp -R dist/server .deploy/marketing/server
+          cp ecosystem.config.cjs package.json package-lock.json .deploy/marketing/
+          tar -czf marketing.tgz -C .deploy/marketing .
 
-      - name: Deploy on server & restart PM2_
-        uses: appleboy/ssh-action@v1.0.0
+      - name: Upload marketing artefact
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HOST }}
-          key: ${{ secrets.SSH_KEY }}
           username: root
+          key: ${{ secrets.SSH_KEY }}
+          source: marketing.tgz
+          target: /tmp/
+
+      - name: Deploy marketing on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: root
+          key: ${{ secrets.SSH_KEY }}
           script: |
-            set -e
-            TARGET_PATH=${{ env.TARGET_PATH }}
-            rm -rf /tmp/marketing.tgz.dir || true
-            mkdir -p $TARGET_PATH
-            if [ -f /tmp/marketing.tgz ]; then
-              tar -xzf /tmp/marketing.tgz -C $TARGET_PATH
-              rm /tmp/marketing.tgz
+            set -euo pipefail
+
+            SHA_SHORT="$(printf '%s' '${{ github.sha }}' | cut -c1-7)"
+            RELEASE_ID="$(date +%Y%m%d%H%M%S)-$SHA_SHORT"
+            RELEASE_PATH="${{ env.RELEASES_ROOT }}/$RELEASE_ID"
+            PREVIOUS_RELEASE="$(readlink -f "${{ env.CURRENT_LINK }}" || true)"
+
+            mkdir -p "${{ env.RELEASES_ROOT }}"
+            mkdir -p "$RELEASE_PATH"
+
+            tar -xzf /tmp/marketing.tgz -C "$RELEASE_PATH"
+            rm -f /tmp/marketing.tgz
+
+            cd "$RELEASE_PATH"
+            npm ci --omit=dev --no-audit --no-fund
+
+            ln -sfn "$RELEASE_PATH" "${{ env.CURRENT_LINK }}"
+
+            if pm2 describe prohelper-ssr >/dev/null 2>&1; then
+              pm2 startOrReload "${{ env.CURRENT_LINK }}/ecosystem.config.cjs" --only prohelper-ssr --update-env
             else
-              echo "Файл /tmp/marketing.tgz не найден" && exit 1
+              pm2 start "${{ env.CURRENT_LINK }}/ecosystem.config.cjs" --only prohelper-ssr --update-env
             fi
-            if [ -d "$TARGET_PATH/server" ]; then
-              cd "$TARGET_PATH"
-                npm install --omit=dev --no-audit --no-fund
-              pm2 delete prohelper-ssr || true
-              PORT=3001 pm2 start "$TARGET_PATH/server/index.cjs" --name prohelper-ssr --time
-              pm2 save
-            else
-              echo "SSR-entry не найден — деплой только статики, pm2 не требуется."
-            fi 
+
+            sleep 5
+
+            if ! curl -fsS http://127.0.0.1:3001 >/dev/null; then
+              if [ -n "$PREVIOUS_RELEASE" ] && [ -d "$PREVIOUS_RELEASE" ]; then
+                ln -sfn "$PREVIOUS_RELEASE" "${{ env.CURRENT_LINK }}"
+                pm2 startOrReload "${{ env.CURRENT_LINK }}/ecosystem.config.cjs" --only prohelper-ssr --update-env || true
+              fi
+              exit 1
+            fi
+
+            pm2 save
+
+            ls -1dt "${{ env.RELEASES_ROOT }}"/* | tail -n +$((${{ env.KEEP_RELEASES }} + 1)) | xargs -r rm -rf
 
   deploy-lk:
-    if: contains(github.event.head_commit.message, '[lk]') || contains(github.event.head_commit.message, '[both]')
+    if: github.event_name == 'push' || inputs.target == 'both' || inputs.target == 'lk'
     runs-on: ubuntu-latest
     env:
-      TARGET_PATH: /var/www/prohelper_lk
       NODE_VERSION: '22'
+      RELEASES_ROOT: /var/www/prohelper_lk/releases
+      CURRENT_LINK: /var/www/prohelper_lk/current
+      KEEP_RELEASES: '5'
       VITE_API_URL: https://api.prohelper.pro
       VITE_REVERB_APP_KEY: 1234567890abcdef1234567890abcdef
       VITE_REVERB_HOST: api.prohelper.pro
@@ -95,31 +133,62 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
-      - name: Install dependencies & build LK
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build lk
+        run: npm run build:lk
+
+      - name: Prepare lk artefact
         run: |
-          rm -rf node_modules package-lock.json || true
-          npm install --include=dev --no-audit --no-fund
-          chmod +x node_modules/.bin/* || true
-          npm run build:lk
+          rm -rf .deploy/lk
+          mkdir -p .deploy/lk
+          cp -R dist-lk/. .deploy/lk/
+          tar -czf lk.tgz -C .deploy/lk .
 
-      - name: Upload artefacts to server
-        uses: appleboy/scp-action@v0.1.4
+      - name: Upload lk artefact
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HOST }}
-          key: ${{ secrets.SSH_KEY }}
           username: root
-          source: "dist-lk/**"
-          target: "/var/www/prohelper_lk/"
-          strip_components: 1
+          key: ${{ secrets.SSH_KEY }}
+          source: lk.tgz
+          target: /tmp/
 
-      - name: Clean old files on server (optional)
-        uses: appleboy/ssh-action@v1.0.0
+      - name: Deploy lk on server
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.HOST }}
-          key: ${{ secrets.SSH_KEY }}
           username: root
+          key: ${{ secrets.SSH_KEY }}
           script: |
-            set -e
-            mkdir -p /var/www/prohelper_lk
+            set -euo pipefail
+
+            SHA_SHORT="$(printf '%s' '${{ github.sha }}' | cut -c1-7)"
+            RELEASE_ID="$(date +%Y%m%d%H%M%S)-$SHA_SHORT"
+            RELEASE_PATH="${{ env.RELEASES_ROOT }}/$RELEASE_ID"
+            PREVIOUS_RELEASE="$(readlink -f "${{ env.CURRENT_LINK }}" || true)"
+
+            mkdir -p "${{ env.RELEASES_ROOT }}"
+            mkdir -p "$RELEASE_PATH"
+
+            tar -xzf /tmp/lk.tgz -C "$RELEASE_PATH"
+            rm -f /tmp/lk.tgz
+
+            if [ ! -f "$RELEASE_PATH/index.html" ]; then
+              rm -rf "$RELEASE_PATH"
+              exit 1
+            fi
+
+            ln -sfn "$RELEASE_PATH" "${{ env.CURRENT_LINK }}"
+
+            if [ ! -f "${{ env.CURRENT_LINK }}/index.html" ]; then
+              if [ -n "$PREVIOUS_RELEASE" ] && [ -d "$PREVIOUS_RELEASE" ]; then
+                ln -sfn "$PREVIOUS_RELEASE" "${{ env.CURRENT_LINK }}"
+              fi
+              exit 1
+            fi
+
+            ls -1dt "${{ env.RELEASES_ROOT }}"/* | tail -n +$((${{ env.KEEP_RELEASES }} + 1)) | xargs -r rm -rf

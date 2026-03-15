@@ -19,7 +19,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        construction: ['Inter', 'sans-serif'],
+        construction: ['Roboto Slab', 'serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {

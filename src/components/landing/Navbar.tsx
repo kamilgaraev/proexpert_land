@@ -1,14 +1,14 @@
 /// <reference types="vite/client" />
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Bars3Icon, 
-  XMarkIcon,
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Bars3Icon,
   BuildingOfficeIcon,
-  PhoneIcon
+  PhoneIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { NAV_LINKS } from '../../constants/landing-content';
+import { marketingContacts, marketingNavLinks } from '../../data/marketingContent';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,154 +16,178 @@ const Navbar = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Проверка на SSR
     if (typeof window === 'undefined') {
       return;
     }
 
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 24);
     };
 
+    handleScroll();
     window.addEventListener('scroll', handleScroll);
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLinkClick = (path: string) => {
-    if (path.startsWith('#') && typeof document !== 'undefined') {
-      const element = document.querySelector(path);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
+  useEffect(() => {
     setIsOpen(false);
+  }, [location.pathname, location.hash]);
+
+  const isActiveLink = (href: string, exact = false) => {
+    if (href.startsWith('/#')) {
+      return location.pathname === '/';
+    }
+
+    if (exact) {
+      return location.pathname === href;
+    }
+
+    return location.pathname === href || location.pathname.startsWith(`${href}/`);
   };
 
+  const navSurfaceClass =
+    isScrolled || location.pathname !== '/'
+      ? 'border-b border-steel-200 bg-white/92 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.55)] backdrop-blur-xl'
+      : 'bg-white/65 backdrop-blur-xl';
+
   return (
-    <nav 
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled || location.pathname !== '/' 
-          ? 'bg-white/95 backdrop-blur-sm shadow-lg border-b border-steel-200' 
-          : 'bg-white/20 backdrop-blur-md'
-      }`}
-      data-seo-track="navbar_view"
-    >
+    <nav className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${navSurfaceClass}`}>
       <div className="container-custom">
-        <div className="flex items-center justify-between h-14 sm:h-16 md:h-18 lg:h-20">
-          <Link 
-            to="/" 
-            className="flex items-center gap-2 sm:gap-3 group"
-            data-seo-track="logo_click"
-          >
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-construction-500 to-construction-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <BuildingOfficeIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+        <div className="flex h-20 items-center justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-steel-950 text-construction-300">
+              <BuildingOfficeIcon className="h-6 w-6" />
             </div>
-            <span className="text-xl sm:text-2xl font-bold transition-colors duration-300 text-steel-900">
-              ProHelper
-            </span>
+            <div>
+              <div className="text-xl font-bold text-steel-950">ProHelper</div>
+              <div className="text-xs uppercase tracking-[0.22em] text-steel-500">construction operating system</div>
+            </div>
           </Link>
 
-          <div className="hidden xl:flex items-center space-x-6 2xl:space-x-8">
-            {NAV_LINKS.map((item) => (
-              <Link
-                key={item.name}
-                to={item.path}
-                className={`px-2 py-2 rounded-lg font-medium transition-all duration-300 hover:bg-construction-50 text-steel-700 hover:text-construction-600 ${
-                  location.pathname === item.path ? 'text-construction-600 bg-construction-50' : ''
-                }`}
-                onClick={() => handleLinkClick(item.path)}
-              >
-                {item.name}
-              </Link>
-            ))}
+          <div className="hidden xl:flex items-center gap-2 rounded-full border border-steel-200 bg-white px-3 py-2 shadow-sm">
+            {marketingNavLinks.map((item) => {
+              const active = isActiveLink(item.href, item.exact);
+              const className = active
+                ? 'bg-construction-50 text-construction-700'
+                : 'text-steel-700 hover:bg-steel-50 hover:text-steel-950';
+
+              if (item.href.startsWith('/#')) {
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${className}`}
+                  >
+                    {item.label}
+                  </a>
+                );
+              }
+
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${className}`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </div>
 
-          <div className="hidden lg:flex items-center gap-2 xl:gap-4">
+          <div className="hidden lg:flex items-center gap-3">
             <a
-              href="tel:+79991234567"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105 text-steel-700 hover:text-construction-600 hover:bg-construction-50"
+              href={marketingContacts.phoneHref}
+              className="inline-flex items-center gap-2 rounded-full border border-steel-200 bg-white px-4 py-3 text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700"
             >
-              <PhoneIcon className="w-4 h-4" />
-              <span className="hidden lg:inline xl:inline text-sm xl:text-base">+7 (999) 123-45-67</span>
+              <PhoneIcon className="h-4 w-4" />
+              {marketingContacts.phone}
             </a>
-            
             <Link
               to="/login"
-              className="px-3 xl:px-4 py-2 rounded-lg font-medium transition-all duration-300 text-sm xl:text-base text-steel-700 hover:text-construction-600 hover:bg-construction-50"
+              className="rounded-full px-5 py-3 text-sm font-semibold text-steel-700 transition hover:bg-steel-100 hover:text-steel-950"
             >
               Войти
             </Link>
-            
-            <Link
-              to="/register"
-              className="px-4 xl:px-6 py-2 xl:py-3 bg-gradient-to-r from-construction-600 to-construction-500 text-white font-semibold rounded-lg hover:shadow-construction transition-all duration-300 hover:scale-105 text-sm xl:text-base"
+            <a
+              href="/#contact"
+              className="rounded-full bg-steel-950 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-steel-900"
             >
-              <span className="hidden lg:inline xl:hidden">Попробовать</span>
-              <span className="hidden xl:inline">Попробовать бесплатно</span>
-            </Link>
+              Получить демо
+            </a>
           </div>
 
-          <div className="lg:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg transition-colors duration-300 text-steel-700 hover:bg-steel-100"
-            >
-              {isOpen ? (
-                <XMarkIcon className="w-6 h-6" />
-              ) : (
-                <Bars3Icon className="w-6 h-6" />
-              )}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setIsOpen((value) => !value)}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-steel-200 bg-white text-steel-900 lg:hidden"
+          >
+            {isOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+          </button>
         </div>
 
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="lg:hidden bg-white border-t border-steel-200 shadow-lg"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="mb-4 rounded-[1.75rem] border border-steel-200 bg-white p-5 shadow-xl lg:hidden"
             >
-              <div className="px-4 py-6 space-y-4">
-                {NAV_LINKS.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.path}
-                    className={`block px-3 py-3 rounded-lg font-medium text-base transition-colors ${
-                      location.pathname === item.path ? 'text-construction-600 bg-construction-50' : 'text-steel-700 hover:text-construction-600'
-                    }`}
-                    onClick={() => handleLinkClick(item.path)}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-                
-                <div className="pt-4 border-t border-steel-200 space-y-4">
-                  <a
-                    href="tel:+79991234567"
-                    className="flex items-center gap-3 px-3 py-3 text-steel-700 hover:text-construction-600 text-base"
-                  >
-                    <PhoneIcon className="w-5 h-5" />
-                    +7 (999) 123-45-67
-                  </a>
-                  
+              <div className="space-y-2">
+                {marketingNavLinks.map((item) => {
+                  const active = isActiveLink(item.href, item.exact);
+                  const className = active
+                    ? 'bg-construction-50 text-construction-700'
+                    : 'text-steel-700 hover:bg-steel-50 hover:text-steel-950';
+
+                  if (item.href.startsWith('/#')) {
+                    return (
+                      <a
+                        key={item.href}
+                        href={item.href}
+                        className={`block rounded-2xl px-4 py-3 text-sm font-semibold transition ${className}`}
+                      >
+                        {item.label}
+                      </a>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className={`block rounded-2xl px-4 py-3 text-sm font-semibold transition ${className}`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+
+              <div className="mt-5 border-t border-steel-100 pt-5">
+                <a
+                  href={marketingContacts.phoneHref}
+                  className="flex items-center gap-3 rounded-2xl bg-concrete-50 px-4 py-3 text-sm font-semibold text-steel-700"
+                >
+                  <PhoneIcon className="h-5 w-5" />
+                  {marketingContacts.phone}
+                </a>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <Link
                     to="/login"
-                    className="block px-3 py-3 text-steel-700 hover:text-construction-600 font-medium text-base"
-                    onClick={() => setIsOpen(false)}
+                    className="inline-flex items-center justify-center rounded-2xl border border-steel-200 px-4 py-3 text-sm font-semibold text-steel-700"
                   >
                     Войти
                   </Link>
-                  
-                  <Link
-                    to="/register"
-                    className="block w-full px-6 py-4 bg-gradient-to-r from-construction-600 to-construction-500 text-white font-semibold rounded-lg text-center hover:shadow-construction transition-all duration-300 text-base"
-                    onClick={() => setIsOpen(false)}
+                  <a
+                    href="/#contact"
+                    className="inline-flex items-center justify-center rounded-2xl bg-steel-950 px-4 py-3 text-sm font-semibold text-white"
                   >
-                    Попробовать бесплатно
-                  </Link>
+                    Получить демо
+                  </a>
                 </div>
               </div>
             </motion.div>
