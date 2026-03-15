@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
+import { copyFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 
 const [,, clientDirArg] = process.argv;
@@ -7,14 +7,34 @@ if (!clientDirArg) {
 }
 
 const clientDir = resolve(process.cwd(), clientDirArg);
-const src = resolve(clientDir, '.vite/manifest.json');
-const dst = resolve(clientDir, 'manifest.json');
+const distDir = dirname(clientDir);
 
-try {
+// Possible manifest locations
+const possibleSources = [
+  resolve(clientDir, '.vite/manifest.json'),
+  resolve(clientDir, 'manifest.json'),
+  resolve(clientDir, 'assets.json'),
+  resolve(clientDir, '_temp_manifest.json')
+];
+
+let found = false;
+for (const src of possibleSources) {
   if (existsSync(src)) {
-    mkdirSync(dirname(dst), { recursive: true });
-    copyFileSync(src, dst);
+    // Copy for SSR (expected at dist/assets.json)
+    const ssrDst = resolve(distDir, 'assets.json');
+    copyFileSync(src, ssrDst);
+    
+    // Copy for client (some tools look for manifest.json in client dir)
+    const clientDst = resolve(clientDir, 'manifest.json');
+    if (src !== clientDst) {
+        copyFileSync(src, clientDst);
+    }
+    
+    found = true;
+    break;
   }
-} catch (e) {
-  process.exit(1);
-} 
+}
+
+if (!found) {
+    process.exit(1);
+}
