@@ -94,6 +94,8 @@ export const HoldingPanelLayout = () => {
 
   const userOrg = user && 'organization' in user ? (user.organization as any) : null;
   const isHoldingOrg = userOrg?.organization_type === 'holding';
+  const isLandingEditorRoute =
+    location.pathname === '/landing/editor' || location.pathname.includes('/landing/edit');
 
   return (
     <MultiOrgErrorBoundary fallbackPath="/dashboard">
@@ -330,7 +332,11 @@ export const HoldingPanelLayout = () => {
 
           {/* Main Content Area */}
           <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
+            <div
+              className={`mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 ${
+                isLandingEditorRoute ? 'max-w-none' : 'container max-w-7xl'
+              }`}
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={location.pathname}

@@ -22,7 +22,7 @@ export const BLOCK_LIBRARY: BlockLibraryItem[] = [
   { type: 'testimonials', label: 'Отзывы', description: 'Социальное доказательство', accent: 'bg-pink-500' },
   { type: 'gallery', label: 'Галерея', description: 'Фото работ и медиа', accent: 'bg-cyan-600' },
   { type: 'faq', label: 'FAQ', description: 'Ответы на частые вопросы', accent: 'bg-lime-600' },
-  { type: 'lead_form', label: 'Лид-форма', description: 'Обязательный конверсионный блок', accent: 'bg-rose-600' },
+  { type: 'lead_form', label: 'Лид-форма', description: 'Форма заявки и CTA по сценарию страницы', accent: 'bg-rose-600' },
   { type: 'contacts', label: 'Контакты', description: 'Телефон, email, адрес и график', accent: 'bg-indigo-600' },
   { type: 'custom_html', label: 'Custom HTML', description: 'Встраиваемый кастомный блок', accent: 'bg-neutral-700' },
 ];
@@ -119,7 +119,7 @@ export const createFallbackBlock = (type: BuilderBlockType, id: number): EditorB
     published_at: null,
     schema: getDefaultSchema(type),
     default_content: content,
-    can_delete: !['hero', 'lead_form', 'contacts'].includes(type),
+    can_delete: true,
     is_renderable: true,
     assets: [],
   };

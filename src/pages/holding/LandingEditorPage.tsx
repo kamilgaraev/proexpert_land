@@ -521,6 +521,7 @@ const LandingEditorPage = () => {
 
   const selectedIndex = workspace.blocks.findIndex((block) => block.id === selectedBlockId);
   const selectedPosition = selectedIndex >= 0 ? selectedIndex + 1 : null;
+  const activeTabMeta = TAB_META.find((tab) => tab.id === activeTab) ?? TAB_META[0];
 
   const moveSelectedBlock = async (direction: -1 | 1) => {
     if (!canEdit || selectedIndex < 0) {
@@ -556,7 +557,6 @@ const LandingEditorPage = () => {
         <PanelCard
           title="Композиция сайта"
           subtitle="Выберите блок, меняйте порядок и управляйте секциями без потери контекста."
-          className="2xl:sticky 2xl:top-6"
         >
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -670,7 +670,7 @@ const LandingEditorPage = () => {
 
     if (activeTab === 'media') {
       return (
-        <div className="space-y-6 2xl:sticky 2xl:top-6">
+        <div className="space-y-6">
           <PanelCard
             title="Загрузка"
             subtitle="Новые изображения, баннеры и SEO-ассеты попадают в общую медиатеку сайта."
@@ -787,7 +787,7 @@ const LandingEditorPage = () => {
 
     if (activeTab === 'settings') {
       return (
-        <div className="space-y-6 2xl:sticky 2xl:top-6">
+        <div className="space-y-6">
           <PanelCard
             title="Идентичность"
             subtitle="Основные параметры сайта, которые влияют на публичный runtime и editor preview."
@@ -875,7 +875,7 @@ const LandingEditorPage = () => {
     }
 
     return (
-      <div className="space-y-6 2xl:sticky 2xl:top-6">
+      <div className="space-y-6">
         <PanelCard
           title="SEO"
           subtitle="Meta title, description и keywords хранятся на уровне сайта и уходят в public runtime."
@@ -974,9 +974,9 @@ const LandingEditorPage = () => {
   })();
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)]">
-      <div className="mx-auto max-w-[1880px] px-4 py-6 sm:px-6">
-        <div className="rounded-[36px] border border-slate-200 bg-white/90 p-6 shadow-[0_40px_120px_-60px_rgba(15,23,42,0.55)] backdrop-blur">
+    <div className="-mx-4 min-h-full bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] sm:-mx-6 lg:-mx-8">
+      <div className="px-4 py-5 sm:px-6 lg:px-8">
+        <div className="rounded-[36px] border border-slate-200 bg-white/90 p-5 shadow-[0_40px_120px_-60px_rgba(15,23,42,0.55)] backdrop-blur sm:p-6 lg:p-8">
           <div className="flex flex-col gap-6 border-b border-slate-200 pb-6">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
               <div className="flex items-start gap-4">
@@ -1055,7 +1055,7 @@ const LandingEditorPage = () => {
                 </div>
                 <div className="mt-3 text-sm text-blue-100/80">
                   {selectedBlock
-                    ? `Тип: ${selectedBlock.type}. ${
+                    ? `${activeTabMeta.label}: ${selectedBlock.type}. ${
                         selectedBlock.is_renderable
                           ? 'Блок можно отрендерить.'
                           : 'Нужно заполнить данные или настроить bindings.'
@@ -1093,10 +1093,10 @@ const LandingEditorPage = () => {
             </div>
           )}
 
-          <div className="mt-8 grid gap-6 xl:grid-cols-[280px,minmax(0,1fr)] 2xl:grid-cols-[280px,minmax(0,1fr),360px]">
-            <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
+          <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr),360px] 2xl:grid-cols-[minmax(0,1fr),390px]">
+            <aside className="space-y-6 xl:col-span-2">
               <PanelCard title="Режим работы" subtitle="Переключайте рабочие зоны, не покидая редактор.">
-                <div className="grid gap-2">
+                <div className="grid gap-2 md:grid-cols-2 2xl:grid-cols-5">
                   {TAB_META.map((tab) => (
                     <button
                       key={tab.id}
@@ -1121,12 +1121,12 @@ const LandingEditorPage = () => {
               </PanelCard>
 
               {activeTab === 'structure' ? (
-                <>
+                <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.15fr),0.85fr]">
                   <PanelCard
                     title="Добавить секцию"
-                    subtitle="Слева находится curated library для one-page сценария холдинга."
+                    subtitle="Curated library для one-page сценария. Добавляйте секции, не уходя из canvas."
                   >
-                    <div className="max-h-[44vh] space-y-3 overflow-auto pr-1">
+                    <div className="grid gap-3 lg:grid-cols-2">
                       {blockLibrary.map((block) => (
                         <button
                           key={block.type}
@@ -1163,7 +1163,7 @@ const LandingEditorPage = () => {
                       ))}
                     </div>
                   </PanelCard>
-                </>
+                </div>
               ) : (
                 <PanelCard
                   title="В фокусе"
@@ -1209,12 +1209,12 @@ const LandingEditorPage = () => {
                 subtitle="Превью живого черновика. Компоненты совпадают с публичным runtime."
                 actions={
                   <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                    {activeTab === 'structure' ? 'Desktop preview' : TAB_META.find((tab) => tab.id === activeTab)?.label}
+                    {activeTab === 'structure' ? 'Desktop preview' : activeTabMeta.label}
                   </div>
                 }
               >
                 <div className="rounded-[32px] border border-slate-200 bg-[linear-gradient(180deg,#eef2ff_0%,#f8fafc_100%)] p-4 sm:p-6">
-                  <div className="mx-auto max-w-[1080px] overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_40px_100px_-50px_rgba(15,23,42,0.7)]">
+                  <div className="overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_40px_100px_-50px_rgba(15,23,42,0.7)]">
                     <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3">
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5">
@@ -1230,15 +1230,27 @@ const LandingEditorPage = () => {
                         {hasUnsavedChanges ? 'Есть локальные изменения' : 'Черновик синхронизирован'}
                       </div>
                     </div>
-                    <div className="max-h-[74vh] overflow-auto p-3 sm:p-5">
-                      <SiteBuilderRenderer blocks={publicBlocks} mode="editor" site={workspace.site} />
+                    <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-5 py-3">
+                      <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                        {workspace.publication.is_published ? 'Публичный snapshot активен' : 'Работаем с live draft'}
+                      </div>
+                      {selectedBlock && (
+                        <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                          {selectedBlock.title}
+                        </div>
+                      )}
+                    </div>
+                    <div className="max-h-[78vh] overflow-auto bg-slate-100/70 p-3 sm:p-5">
+                      <div className="mx-auto max-w-[1240px]">
+                        <SiteBuilderRenderer blocks={publicBlocks} mode="editor" site={workspace.site} />
+                      </div>
                     </div>
                   </div>
                 </div>
               </PanelCard>
             </section>
 
-            <section className="min-w-0 xl:col-start-2 2xl:col-start-3">{contextPanel}</section>
+            <section className="min-w-0 xl:sticky xl:top-6 xl:self-start">{contextPanel}</section>
           </div>
         </div>
       </div>

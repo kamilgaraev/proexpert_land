@@ -90,7 +90,7 @@ export const createWorkspaceFixture = (): BuilderWorkspaceData => ({
       default_content: {
         title: '',
       },
-      can_delete: false,
+      can_delete: true,
       is_renderable: true,
       assets: [],
     },
