@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { HoldingLandingPage, HoldingDashboardPage, HoldingOrganizationsPage } from '@pages/holding';
+import { HoldingDashboardPage, HoldingOrganizationsPage } from '@pages/holding';
 import HoldingLoginPage from '@pages/holding/HoldingLoginPage';
 import HoldingReportsIndexPage from '@pages/holding/HoldingReportsIndexPage';
 import HoldingProjectsReportPage from '@pages/holding/HoldingProjectsReportPage';
@@ -10,6 +10,7 @@ import HoldingDetailedContractsReportPage from '@pages/holding/HoldingDetailedCo
 import HoldingContractsPage from '@pages/holding/HoldingContractsPage';
 import HoldingContractDetailsPage from '@pages/holding/HoldingContractDetailsPage';
 import LandingEditorPage from '@pages/holding/LandingEditorPage';
+import HoldingLandingRuntimePage from '@pages/holding/HoldingLandingRuntimePage';
 import NotFoundPage from '@pages/NotFoundPage';
 import { ThemeProvider } from '@components/shared/ThemeProvider';
 import { HoldingPanelLayout } from '@layouts/HoldingPanelLayout';
@@ -19,7 +20,7 @@ const HoldingRouter = () => {
   return (
     <ThemeProvider>
       <Routes>
-        <Route path="/" element={<HoldingLandingPage />} />
+        <Route path="/" element={<HoldingLandingRuntimePage />} />
         <Route path="/login" element={<HoldingLoginPage />} />
         
         <Route element={<HoldingPanelLayout />}>

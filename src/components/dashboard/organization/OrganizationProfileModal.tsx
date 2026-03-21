@@ -1,34 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Building2, CheckCircle, ArrowRight, ArrowLeft, X, Loader2 } from 'lucide-react';
 import { useOrganizationProfile } from '@/hooks/useOrganizationProfile';
-import { CapabilitiesSelector } from './CapabilitiesSelector';
-import { BusinessTypeSelector } from './BusinessTypeSelector';
-import { SpecializationsSelector } from './SpecializationsSelector';
-import { RecommendedModulesCard } from './RecommendedModulesCard';
+import { getPrimaryWorkspaceRoute, resolvePrimaryBusinessType } from '@/utils/organizationProfile';
 import type { OrganizationCapability } from '@/types/organization-profile';
-import { 
-  Building2, 
-  CheckCircle, 
-  ArrowRight,
-  ArrowLeft,
-  X,
-  Loader2
-} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { CapabilitiesSelector } from './CapabilitiesSelector';
+import { BusinessTypeSelector } from './BusinessTypeSelector';
+import { RecommendedModulesCard } from './RecommendedModulesCard';
+import { SpecializationsSelector } from './SpecializationsSelector';
+import { WorkspaceQuickActionsCard } from './WorkspaceQuickActionsCard';
 
 interface OrganizationProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete: () => void;
+  onComplete: (defaultRoute?: string) => void;
 }
 
-type Step = 'capabilities' | 'business_type' | 'specializations' | 'modules' | 'complete';
+type Step = 'capabilities' | 'business_type' | 'specializations' | 'workspace' | 'complete';
 
 export const OrganizationProfileModal = ({
   isOpen,
   onClose,
-  onComplete
+  onComplete,
 }: OrganizationProfileModalProps) => {
   const navigate = useNavigate();
   const {
@@ -40,61 +35,76 @@ export const OrganizationProfileModal = ({
     updateCapabilities,
     updateBusinessType,
     updateSpecializations,
-    completeOnboarding
+    completeOnboarding,
   } = useOrganizationProfile();
 
   const [currentStep, setCurrentStep] = useState<Step>('capabilities');
   const [isSaving, setIsSaving] = useState(false);
-  
   const [localCapabilities, setLocalCapabilities] = useState<OrganizationCapability[]>([]);
-  const [localBusinessType, setLocalBusinessType] = useState<string | null>(null);
+  const [localBusinessType, setLocalBusinessType] = useState<OrganizationCapability | null>(null);
   const [localSpecializations, setLocalSpecializations] = useState<string[]>([]);
 
   useEffect(() => {
-    if (isOpen) {
-      fetchProfile();
-      fetchAvailableCapabilities();
+    if (!isOpen) {
+      return;
     }
-  }, [isOpen]);
+
+    fetchProfile();
+    fetchAvailableCapabilities();
+  }, [fetchAvailableCapabilities, fetchProfile, isOpen]);
 
   useEffect(() => {
-    if (profile) {
-      setLocalCapabilities(profile.capabilities || []);
-      setLocalBusinessType(profile.primary_business_type);
-      setLocalSpecializations(profile.specializations || []);
+    if (!profile) {
+      return;
     }
+
+    setLocalCapabilities(profile.capabilities || []);
+    setLocalBusinessType(profile.primary_business_type);
+    setLocalSpecializations(profile.specializations || []);
   }, [profile]);
 
-  const steps: { id: Step; title: string; description: string }[] = [
-    { 
-      id: 'capabilities', 
-      title: 'Возможности организации', 
-      description: 'Выберите, что умеет делать ваша организация' 
-    },
-    { 
-      id: 'business_type', 
-      title: 'Основной тип деятельности', 
-      description: 'Укажите основное направление вашего бизнеса' 
-    },
-    { 
-      id: 'specializations', 
-      title: 'Специализации', 
-      description: 'В каких областях вы специализируетесь?' 
-    },
-    { 
-      id: 'modules', 
-      title: 'Рекомендуемые модули', 
-      description: 'На основе вашего профиля мы рекомендуем следующие модули' 
-    },
-    { 
-      id: 'complete', 
-      title: 'Готово!', 
-      description: 'Профиль организации настроен' 
+  useEffect(() => {
+    const nextBusinessType = resolvePrimaryBusinessType(localCapabilities, localBusinessType);
+
+    if (nextBusinessType !== localBusinessType) {
+      setLocalBusinessType(nextBusinessType);
     }
+  }, [localCapabilities, localBusinessType]);
+
+  const steps: { id: Step; title: string; description: string }[] = [
+    {
+      id: 'capabilities',
+      title: 'Направления деятельности',
+      description: 'Выберите все направления, которыми занимается организация',
+    },
+    {
+      id: 'business_type',
+      title: 'Основной режим работы',
+      description: 'Определяет стартовый workspace и приоритет рекомендаций',
+    },
+    {
+      id: 'specializations',
+      title: 'Специализации',
+      description: 'Уточните специализацию организации, если это важно',
+    },
+    {
+      id: 'workspace',
+      title: 'Стартовый workspace',
+      description: 'Быстрые действия и рекомендуемые модули по выбранному режиму',
+    },
+    {
+      id: 'complete',
+      title: 'Готово',
+      description: 'Профиль организации настроен',
+    },
   ];
 
-  const currentStepIndex = steps.findIndex(s => s.id === currentStep);
+  const currentStepIndex = steps.findIndex((step) => step.id === currentStep);
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
+  const primaryWorkspaceRoute = useMemo(
+    () => getPrimaryWorkspaceRoute(profile?.workspace_profile),
+    [profile?.workspace_profile]
+  );
 
   const handleNext = async () => {
     try {
@@ -103,86 +113,101 @@ export const OrganizationProfileModal = ({
       if (currentStep === 'capabilities') {
         await updateCapabilities(localCapabilities);
         setCurrentStep('business_type');
-      } else if (currentStep === 'business_type') {
+        return;
+      }
+
+      if (currentStep === 'business_type') {
         if (localBusinessType) {
           await updateBusinessType(localBusinessType);
         }
         setCurrentStep('specializations');
-      } else if (currentStep === 'specializations') {
-        await updateSpecializations(localSpecializations);
-        setCurrentStep('modules');
-      } else if (currentStep === 'modules') {
-        setCurrentStep('complete');
-      } else if (currentStep === 'complete') {
-        await completeOnboarding();
-        onComplete();
+        return;
       }
+
+      if (currentStep === 'specializations') {
+        await updateSpecializations(localSpecializations);
+        setCurrentStep('workspace');
+        return;
+      }
+
+      if (currentStep === 'workspace') {
+        setCurrentStep('complete');
+        return;
+      }
+
+      await completeOnboarding();
+      onComplete(primaryWorkspaceRoute);
     } catch (error) {
-      console.error('Ошибка при сохранении:', error);
+      console.error('Ошибка при сохранении профиля организации:', error);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleBack = () => {
-    const stepIds: Step[] = ['capabilities', 'business_type', 'specializations', 'modules', 'complete'];
+    const stepIds: Step[] = ['capabilities', 'business_type', 'specializations', 'workspace', 'complete'];
     const currentIndex = stepIds.indexOf(currentStep);
+
     if (currentIndex > 0) {
       setCurrentStep(stepIds[currentIndex - 1]);
     }
   };
 
   const handleSkip = () => {
-    onComplete();
+    onComplete(primaryWorkspaceRoute);
     onClose();
   };
 
   const canProceed = () => {
-    if (currentStep === 'capabilities') return localCapabilities.length > 0;
-    if (currentStep === 'business_type') return localBusinessType !== null;
+    if (currentStep === 'capabilities') {
+      return localCapabilities.length > 0;
+    }
+
+    if (currentStep === 'business_type') {
+      return localBusinessType !== null;
+    }
+
     return true;
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4 bg-black bg-opacity-50">
-        <div 
-          className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
+      <div className="flex min-h-screen items-center justify-center bg-black/50 p-4">
+        <div
+          className="relative max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+          onClick={(event) => event.stopPropagation()}
         >
           <button
             onClick={handleSkip}
-            className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute right-4 top-4 z-10 p-2 text-gray-400 transition-colors hover:text-gray-600"
             title="Пропустить"
           >
-            <X className="w-6 h-6" />
+            <X className="h-6 w-6" />
           </button>
 
           <div className="h-2 bg-gray-100">
-            <div 
+            <div
               className="h-full bg-gradient-to-r from-construction-500 to-construction-600 transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
 
-          <div className="p-8 overflow-y-auto max-h-[calc(90vh-100px)]">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-construction-100 rounded-full mb-4">
-                <Building2 className="w-8 h-8 text-construction-600" />
+          <div className="max-h-[calc(90vh-100px)] overflow-y-auto p-8">
+            <div className="mb-8 text-center">
+              <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-construction-100">
+                <Building2 className="h-8 w-8 text-construction-600" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                {steps[currentStepIndex].title}
-              </h2>
-              <p className="text-gray-600">
-                {steps[currentStepIndex].description}
-              </p>
+              <h2 className="mb-2 text-3xl font-bold text-gray-900">{steps[currentStepIndex].title}</h2>
+              <p className="text-gray-600">{steps[currentStepIndex].description}</p>
             </div>
 
             {loading && currentStepIndex === 0 ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-construction-600" />
+                <Loader2 className="h-8 w-8 animate-spin text-construction-600" />
               </div>
             ) : (
               <div className="mb-8">
@@ -199,6 +224,7 @@ export const OrganizationProfileModal = ({
                   <BusinessTypeSelector
                     selectedType={localBusinessType}
                     onChange={setLocalBusinessType}
+                    availableTypes={localCapabilities}
                   />
                 )}
 
@@ -209,30 +235,38 @@ export const OrganizationProfileModal = ({
                   />
                 )}
 
-                {currentStep === 'modules' && profile && (
-                  <RecommendedModulesCard
-                    modules={profile.recommended_modules || []}
-                    onModuleClick={() => {
-                      navigate('/dashboard/modules');
-                      onClose();
-                    }}
-                  />
+                {currentStep === 'workspace' && (
+                  <div className="space-y-6">
+                    <WorkspaceQuickActionsCard
+                      workspaceProfile={profile?.workspace_profile}
+                      onActionClick={(action) => {
+                        navigate(action.route);
+                        onClose();
+                      }}
+                    />
+
+                    <RecommendedModulesCard
+                      modules={profile?.recommended_modules || []}
+                      onModuleClick={() => {
+                        navigate('/dashboard/modules');
+                        onClose();
+                      }}
+                    />
+                  </div>
                 )}
 
                 {currentStep === 'complete' && (
                   <Card>
                     <CardContent className="p-8 text-center">
-                      <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-                        <CheckCircle className="w-12 h-12 text-green-600" />
+                      <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+                        <CheckCircle className="h-12 w-12 text-green-600" />
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                        Профиль успешно настроен!
-                      </h3>
-                      <p className="text-gray-600 mb-4">
+                      <h3 className="mb-2 text-2xl font-bold text-gray-900">Профиль успешно настроен</h3>
+                      <p className="mb-4 text-gray-600">
                         Полнота профиля: <span className="font-bold text-construction-600">{profile?.profile_completeness || 0}%</span>
                       </p>
                       <p className="text-sm text-gray-500">
-                        Теперь вы можете пользоваться всеми возможностями платформы ProHelper
+                        После завершения откроется основной workspace, связанный с выбранным режимом работы.
                       </p>
                     </CardContent>
                   </Card>
@@ -240,15 +274,13 @@ export const OrganizationProfileModal = ({
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-6 border-t">
+            <div className="flex items-center justify-between border-t pt-6">
               <div className="flex items-center space-x-2">
                 {steps.map((step, index) => (
                   <div
                     key={step.id}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      index <= currentStepIndex
-                        ? 'bg-construction-600 w-8'
-                        : 'bg-gray-300'
+                    className={`h-2 rounded-full transition-all ${
+                      index <= currentStepIndex ? 'w-8 bg-construction-600' : 'w-2 bg-gray-300'
                     }`}
                   />
                 ))}
@@ -256,37 +288,25 @@ export const OrganizationProfileModal = ({
 
               <div className="flex items-center space-x-3">
                 {currentStepIndex > 0 && currentStep !== 'complete' && (
-                  <Button
-                    variant="outline"
-                    onClick={handleBack}
-                    disabled={isSaving}
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
+                  <Button variant="outline" onClick={handleBack} disabled={isSaving}>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
                     Назад
                   </Button>
                 )}
 
                 {currentStep !== 'complete' && (
-                  <Button
-                    variant="ghost"
-                    onClick={handleSkip}
-                    disabled={isSaving}
-                  >
+                  <Button variant="ghost" onClick={handleSkip} disabled={isSaving}>
                     Пропустить
                   </Button>
                 )}
 
-                <Button
-                  onClick={handleNext}
-                  disabled={!canProceed() || isSaving}
-                  className="min-w-[140px]"
-                >
+                <Button onClick={handleNext} disabled={!canProceed() || isSaving} className="min-w-[160px]">
                   {isSaving ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <>
                       {currentStep === 'complete' ? 'Начать работу' : 'Далее'}
-                      {currentStep !== 'complete' && <ArrowRight className="w-4 h-4 ml-2" />}
+                      {currentStep !== 'complete' && <ArrowRight className="ml-2 h-4 w-4" />}
                     </>
                   )}
                 </Button>
@@ -298,4 +318,3 @@ export const OrganizationProfileModal = ({
     </div>
   );
 };
-

@@ -60,7 +60,7 @@ interface UseOnboardingReturn {
   goPrev: () => void;
   goToStep: (step: OnboardingStep) => void;
   updateCapabilities: (capabilities: OrganizationCapability[]) => void;
-  updateBusinessType: (businessType: string) => void;
+  updateBusinessType: (businessType: OrganizationCapability | null) => void;
   updateSpecializations: (specializations: string[]) => void;
   updateCertifications: (certifications: string[]) => void;
   reset: () => void;
@@ -126,7 +126,7 @@ export const useOnboarding = (): UseOnboardingReturn => {
     }));
   }, []);
 
-  const updateBusinessType = useCallback((businessType: string) => {
+  const updateBusinessType = useCallback((businessType: OrganizationCapability | null) => {
     setState(prev => ({
       ...prev,
       data: {

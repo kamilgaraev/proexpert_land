@@ -1,415 +1,988 @@
-import React, { useState, useEffect } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Tab } from '@headlessui/react';
 import {
   ArrowLeftIcon,
-  EyeIcon,
-  CloudArrowUpIcon,
-  Cog6ToothIcon,
-  PhotoIcon,
-  PlusIcon,
-  GlobeAltIcon,
+  ArrowPathIcon,
   Bars3Icon,
-  XMarkIcon
+  CloudArrowUpIcon,
+  EyeIcon,
+  PaintBrushIcon,
+  PhotoIcon,
+  RectangleGroupIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
-import { useHoldingLanding, useLandingBlocks, useLandingAssets } from '@/hooks/useHoldingLanding';
+import SiteBuilderRenderer from '@/components/holding/site-builder/SiteBuilderRenderer';
+import { ARRAY_ITEM_TEMPLATES, FIELD_LABELS } from '@/constants/holdingSiteBuilder';
 import { usePermissionsContext } from '@/contexts/PermissionsContext';
-import { useTheme } from '@components/shared/ThemeProvider';
-import { LandingBlockEditor } from '@/components/holding/landing/LandingBlockEditor';
-import { LandingMediaManager } from '@/components/holding/landing/LandingMediaManager';
-import { LandingSettings } from '@/components/holding/landing/LandingSettings';
-import type { 
-  BlockType, 
-  UpdateBlockRequest, 
-  UpdateLandingRequest,
-  UpdateAssetRequest,
-  AssetUsageContext 
-} from '@/types/holding-landing';
+import { useHoldingSiteBuilder } from '@/hooks/useHoldingSiteBuilder';
+import type { EditorAsset, EditorBlock } from '@/types/holding-site-builder';
 
-const LandingEditorPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { can } = usePermissionsContext();
-  const { getThemeClasses } = useTheme();
-  const theme = getThemeClasses();
+type WorkspaceTab = 'structure' | 'properties' | 'media' | 'settings' | 'leads';
 
-  const {
-    landing,
-    loading: landingLoading,
-    error: landingError,
-    fetchLanding,
-    updateLanding,
-    publishLanding
-  } = useHoldingLanding();
+const TAB_META: Array<{
+  id: WorkspaceTab;
+  label: string;
+  icon: typeof RectangleGroupIcon;
+}> = [
+  { id: 'structure', label: 'Структура', icon: RectangleGroupIcon },
+  { id: 'properties', label: 'Свойства', icon: SparklesIcon },
+  { id: 'media', label: 'Медиа', icon: PhotoIcon },
+  { id: 'settings', label: 'Настройки', icon: PaintBrushIcon },
+  { id: 'leads', label: 'Лиды и SEO', icon: ShieldCheckIcon },
+];
 
-  const {
-    blocks,
-    loading: blocksLoading,
-    error: blocksError,
-    fetchBlocks,
-    createBlock,
-    updateBlock,
-    publishBlock,
-    duplicateBlock,
-    deleteBlock,
-    reorderBlocks
-  } = useLandingBlocks();
+const textInputClassName =
+  'w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-300 focus:bg-white';
 
-  const {
-    assets,
-    loading: assetsLoading,
-    error: assetsError,
-    fetchAssets,
-    uploadAsset,
-    updateAsset,
-    deleteAsset
-  } = useLandingAssets();
+const asString = (value: unknown): string => (typeof value === 'string' ? value : '');
+const asScalarString = (value: unknown): string =>
+  typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+const asArray = <T,>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
 
-  const [activeTab, setActiveTab] = useState(0);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [hasUnsavedChanges] = useState(false);
-  const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
+const moveArrayItem = <T,>(items: T[], from: number, to: number): T[] => {
+  const nextItems = [...items];
+  const [item] = nextItems.splice(from, 1);
+  nextItems.splice(to, 0, item);
+  return nextItems;
+};
 
-  useEffect(() => {
-    fetchLanding();
-    fetchBlocks();
-    fetchAssets();
-  }, [fetchLanding, fetchBlocks, fetchAssets]);
+const PanelCard = ({ title, children }: { title: string; children: ReactNode }) => (
+  <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+    <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">{title}</h3>
+    <div className="mt-4 space-y-4">{children}</div>
+  </section>
+);
 
-  if (!can('multi-organization.website.view')) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Доступ ограничен</h3>
-          <p className="text-gray-600">У вас нет прав для просмотра редактора лендинга</p>
-        </div>
+const Field = ({ label, children }: { label: string; children: ReactNode }) => (
+  <label className="block">
+    <span className="mb-2 block text-xs font-medium uppercase tracking-[0.22em] text-slate-500">
+      {label}
+    </span>
+    {children}
+  </label>
+);
+
+const AssetSelect = ({
+  assets,
+  value,
+  onChange,
+}: {
+  assets: EditorAsset[];
+  value: string;
+  onChange: (value: string) => void;
+}) => (
+  <div className="space-y-3">
+    <select className={textInputClassName} value={value} onChange={(event) => onChange(event.target.value)}>
+      <option value="">Без изображения</option>
+      {assets.map((asset) => (
+        <option key={asset.id} value={asset.public_url}>
+          {asset.filename}
+        </option>
+      ))}
+    </select>
+    {value && (
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+        <img alt="" className="h-36 w-full object-cover" src={value} />
       </div>
+    )}
+  </div>
+);
+
+const ArrayEditor = ({
+  blockType,
+  fieldName,
+  value,
+  onChange,
+}: {
+  blockType: string;
+  fieldName: string;
+  value: unknown;
+  onChange: (nextValue: Record<string, unknown>[]) => void;
+}) => {
+  const items = asArray<Record<string, unknown>>(value);
+  const template = ARRAY_ITEM_TEMPLATES[`${blockType}.${fieldName}`] ?? { value: '' };
+
+  const addItem = () => onChange([...items, template]);
+  const updateItem = (index: number, key: string, nextValue: string) => {
+    const nextItems = items.map((item, itemIndex) =>
+      itemIndex === index ? { ...item, [key]: nextValue } : item,
     );
-  }
-
-  if (landingLoading && !landing) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-          <p className="text-gray-600 mt-2">Загрузка лендинга...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!landing) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Лендинг не найден</h3>
-          <p className="text-gray-600">Проверьте правильность ссылки или обратитесь к администратору</p>
-        </div>
-      </div>
-    );
-  }
-
-  const handlePublish = async () => {
-    if (hasUnsavedChanges) {
-      const shouldSave = confirm('У вас есть несохраненные изменения. Продолжить публикацию?');
-      if (!shouldSave) return;
-    }
-    
-    const result = await publishLanding();
-    if (result) {
-      alert('Лендинг успешно опубликован!');
-    }
+    onChange(nextItems);
   };
-
-  const handlePreview = () => {
-    if (landing.preview_url) {
-      window.open(landing.preview_url, '_blank');
-    }
-  };
-
-  const blockTypes: Array<{ type: BlockType; name: string; description: string; icon: string }> = [
-    { type: 'hero', name: 'Главный баннер', description: 'Заголовок с призывом к действию', icon: '🏆' },
-    { type: 'about', name: 'О компании', description: 'Информация о вашей компании', icon: '📋' },
-    { type: 'services', name: 'Услуги', description: 'Список ваших услуг', icon: '⚙️' },
-    { type: 'projects', name: 'Проекты', description: 'Портфолио и кейсы', icon: '📁' },
-    { type: 'team', name: 'Команда', description: 'Сотрудники компании', icon: '👥' },
-    { type: 'contacts', name: 'Контакты', description: 'Способы связи', icon: '📞' },
-    { type: 'testimonials', name: 'Отзывы', description: 'Отзывы клиентов', icon: '💬' },
-    { type: 'gallery', name: 'Галерея', description: 'Фотографии и изображения', icon: '🖼️' },
-    { type: 'news', name: 'Новости', description: 'Новости и статьи', icon: '📰' },
-    { type: 'custom', name: 'Произвольный', description: 'Кастомный блок', icon: '🔧' }
-  ];
-
-  const getDefaultContent = (blockType: BlockType) => {
-    const contentTemplates = {
-      hero: {
-        title: 'Заголовок блока',
-        subtitle: 'Подзаголовок блока',
-        description: 'Описание блока',
-        button_text: 'Перейти',
-        button_url: 'https://example.com',
-        background_image: '',
-        text_color: '#000000',
-        background_color: '#ffffff'
-      },
-      about: {
-        title: 'О компании',
-        description: 'Здесь расположена информация о компании',
-        image: '',
-        features: []
-      },
-      services: {
-        title: 'Наши услуги',
-        description: 'Описание услуг компании',
-        services: []
-      },
-      projects: {
-        title: 'Наши проекты',
-        description: 'Портфолио выполненных проектов',
-        projects: []
-      },
-      team: {
-        title: 'Наша команда',
-        description: 'Познакомьтесь с нашей командой',
-        members: []
-      },
-      contacts: {
-        title: 'Контакты',
-        phone: '+7 (000) 000-00-00',
-        email: 'info@company.com',
-        address: 'Адрес компании',
-        working_hours: 'Пн-Пт: 9:00-18:00',
-        social_links: []
-      },
-      testimonials: {
-        title: 'Отзывы клиентов',
-        description: 'Что говорят о нас наши клиенты',
-        testimonials: []
-      },
-      gallery: {
-        title: 'Галерея',
-        description: 'Фотографии наших работ',
-        images: []
-      },
-      news: {
-        title: 'Новости',
-        description: 'Актуальные новости компании',
-        articles: []
-      },
-      custom: {
-        html_content: '<div>Пользовательский контент</div>',
-        css_styles: ''
-      }
-    };
-
-    return contentTemplates[blockType] || { title: 'Новый блок', description: 'Описание блока' };
-  };
-
-  const handleAddBlock = async (blockType: BlockType) => {
-    const blockConfig = blockTypes.find(b => b.type === blockType);
-    const newBlock = await createBlock({
-      block_type: blockType,
-      title: blockConfig?.name || 'Новый блок',
-      content: getDefaultContent(blockType),
-      settings: {
-        animation: 'none',
-        padding: 'normal',
-        text_align: 'left'
-      },
-      sort_order: blocks.length,
-      is_active: true
-    });
-    
-    if (newBlock) {
-      setSelectedBlockId(newBlock.id);
-      setSidebarOpen(false);
-    }
-  };
-
-  const tabs = [
-    { 
-      name: 'Блоки', 
-      icon: Bars3Icon,
-      component: (
-        <LandingBlockEditor 
-          blocks={blocks}
-          selectedBlockId={selectedBlockId}
-          onUpdateBlock={(blockId: number, data: UpdateBlockRequest) => updateBlock(blockId, data)}
-          onPublishBlock={(blockId: number) => publishBlock(blockId)}
-          onDuplicateBlock={(blockId: number) => duplicateBlock(blockId)}
-          onDeleteBlock={(blockId: number) => deleteBlock(blockId)}
-          onReorderBlocks={(order: { id: number; sort_order: number }[]) => reorderBlocks(order)}
-          loading={blocksLoading}
-          error={blocksError}
-        />
-      )
-    },
-    { 
-      name: 'Медиафайлы', 
-      icon: PhotoIcon,
-      component: (
-        <LandingMediaManager 
-          assets={assets}
-          onUpload={(file: File, context?: AssetUsageContext, metadata?: any) => uploadAsset(file, context, metadata)}
-          onUpdate={(assetId: number, metadata: UpdateAssetRequest['metadata']) => updateAsset(assetId, metadata)}
-          onDelete={(assetId: number) => deleteAsset(assetId)}
-          loading={assetsLoading}
-          error={assetsError}
-        />
-      )
-    },
-    { 
-      name: 'Настройки', 
-      icon: Cog6ToothIcon,
-      component: (
-        <LandingSettings 
-          landing={landing}
-          onUpdate={(data: UpdateLandingRequest) => updateLanding(data)}
-          loading={landingLoading}
-          error={landingError}
-        />
-      )
-    }
-  ];
+  const removeItem = (index: number) => onChange(items.filter((_, itemIndex) => itemIndex !== index));
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Шапка редактора */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-20">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+    <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      {items.map((item, index) => (
+        <div key={`${fieldName}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+              Элемент {index + 1}
+            </div>
+            <button
+              className="text-sm text-rose-600 transition hover:text-rose-700"
+              onClick={() => removeItem(index)}
+              type="button"
+            >
+              Удалить
+            </button>
+          </div>
+          <div className="grid gap-3">
+            {Object.entries(item).map(([key, itemValue]) => (
+              <Field key={key} label={FIELD_LABELS[key] ?? key}>
+                <input
+                  className={textInputClassName}
+                  value={asScalarString(itemValue)}
+                  onChange={(event) => updateItem(index, key, event.target.value)}
+                />
+              </Field>
+            ))}
+          </div>
+        </div>
+      ))}
+      <button
+        className="w-full rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-white"
+        onClick={addItem}
+        type="button"
+      >
+        Добавить элемент
+      </button>
+    </div>
+  );
+};
+
+const BlockInspector = ({
+  block,
+  assets,
+  onChange,
+}: {
+  block: EditorBlock | null;
+  assets: EditorAsset[];
+  onChange: (patch: Partial<EditorBlock>) => void;
+}) => {
+  if (!block) {
+    return (
+      <PanelCard title="Свойства">
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+          Выберите блок в структуре, чтобы редактировать поля, bindings и настройки.
+        </div>
+      </PanelCard>
+    );
+  }
+
+  const schemaEntries = Object.entries(block.schema);
+
+  return (
+    <PanelCard title={block.title}>
+      <Field label="Название секции">
+        <input
+          className={textInputClassName}
+          value={block.title}
+          onChange={(event) => onChange({ title: event.target.value })}
+        />
+      </Field>
+
+      {!block.is_renderable && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          У блока пока нет данных для рендера. Заполните поля вручную или настройте автоисточник.
+        </div>
+      )}
+
+      {schemaEntries.map(([fieldName, fieldSchema]) => (
+        <div key={fieldName} className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <Field label={FIELD_LABELS[fieldName] ?? fieldName}>
+            {fieldSchema.type === 'text' || fieldSchema.type === 'html' ? (
+              <textarea
+                className={`${textInputClassName} min-h-28`}
+                value={asString(block.content[fieldName])}
+                onChange={(event) =>
+                  onChange({
+                    content: {
+                      [fieldName]: event.target.value,
+                    },
+                  })
+                }
+              />
+            ) : fieldSchema.type === 'image' ? (
+              <AssetSelect
+                assets={assets}
+                value={asString(block.content[fieldName])}
+                onChange={(value) =>
+                  onChange({
+                    content: {
+                      [fieldName]: value,
+                    },
+                  })
+                }
+              />
+            ) : fieldSchema.type === 'array' ? (
+              <ArrayEditor
+                blockType={block.type}
+                fieldName={fieldName}
+                value={block.content[fieldName]}
+                onChange={(nextValue) =>
+                  onChange({
+                    content: {
+                      [fieldName]: nextValue,
+                    },
+                  })
+                }
+              />
+            ) : (
+              <input
+                className={textInputClassName}
+                type={fieldSchema.type === 'number' ? 'number' : 'text'}
+                value={asScalarString(block.content[fieldName])}
+                onChange={(event) =>
+                  onChange({
+                    content: {
+                      [fieldName]:
+                        fieldSchema.type === 'number' ? Number(event.target.value || 0) : event.target.value,
+                    },
+                  })
+                }
+              />
+            )}
+          </Field>
+
+          <div className="grid gap-3">
+            <div className="grid gap-3 lg:grid-cols-[0.32fr,0.68fr]">
+              <Field label="Режим binding">
+                <select
+                  className={textInputClassName}
+                  value={block.bindings[fieldName]?.mode ?? 'manual'}
+                  onChange={(event) =>
+                    onChange({
+                      bindings: {
+                        [fieldName]: {
+                          ...block.bindings[fieldName],
+                          mode: event.target.value as 'manual' | 'auto' | 'hybrid',
+                        },
+                      },
+                    })
+                  }
+                >
+                  <option value="manual">Manual</option>
+                  <option value="auto">Auto</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+              </Field>
+              <Field label="Источник данных">
+                <input
+                  className={textInputClassName}
+                  placeholder="organization.name"
+                  value={block.bindings[fieldName]?.source ?? ''}
+                  onChange={(event) =>
+                    onChange({
+                      bindings: {
+                        [fieldName]: {
+                          ...block.bindings[fieldName],
+                          source: event.target.value,
+                        },
+                      },
+                    })
+                  }
+                />
+              </Field>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              <Field label="Fallback">
+                <input
+                  className={textInputClassName}
+                  placeholder="Запасное значение"
+                  value={asScalarString(block.bindings[fieldName]?.fallback)}
+                  onChange={(event) =>
+                    onChange({
+                      bindings: {
+                        [fieldName]: {
+                          ...block.bindings[fieldName],
+                          fallback: event.target.value,
+                        },
+                      },
+                    })
+                  }
+                />
+              </Field>
+              <Field label="Override">
+                <input
+                  className={textInputClassName}
+                  placeholder="Принудительное значение"
+                  value={asScalarString(block.bindings[fieldName]?.override)}
+                  onChange={(event) =>
+                    onChange({
+                      bindings: {
+                        [fieldName]: {
+                          ...block.bindings[fieldName],
+                          override: event.target.value,
+                        },
+                      },
+                    })
+                  }
+                />
+              </Field>
+            </div>
+          </div>
+        </div>
+      ))}
+    </PanelCard>
+  );
+};
+
+const LandingEditorPage = () => {
+  const navigate = useNavigate();
+  const { can } = usePermissionsContext();
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>('structure');
+  const [armedBlockDeleteId, setArmedBlockDeleteId] = useState<number | null>(null);
+  const [armedAssetDeleteId, setArmedAssetDeleteId] = useState<number | null>(null);
+
+  const {
+    workspace,
+    leads,
+    leadSummary,
+    selectedBlockId,
+    selectedBlock,
+    loading,
+    savingSite,
+    savingBlocks,
+    publishing,
+    error,
+    hasUnsavedChanges,
+    blockLibrary,
+    templates,
+    selectBlock,
+    updateSiteDraft,
+    updateBlockDraft,
+    addBlock,
+    deleteBlock,
+    duplicateBlock,
+    reorderBlocks,
+    uploadAsset,
+    updateAsset,
+    deleteAsset,
+    publishSite,
+    applyTemplate,
+    openPreview,
+  } = useHoldingSiteBuilder();
+
+  const canView = can('multi-organization.website.view');
+  const canEdit = can('multi-organization.website.edit');
+  const canPublish = can('multi-organization.website.publish');
+  const canUploadAssets = can('multi-organization.website.assets.upload');
+  const canManageAssets = can('multi-organization.website.assets.manage');
+  const canUseTemplates = can('multi-organization.website.templates.access') || canEdit;
+
+  const deferredBlocks = useDeferredValue(workspace?.blocks ?? []);
+  const publicBlocks = useMemo(
+    () =>
+      deferredBlocks.map((block) => ({
+        id: block.id,
+        type: block.type,
+        key: block.key,
+        title: block.title,
+        content: block.resolved_content,
+        settings: block.settings,
+        sort_order: block.sort_order,
+        assets: block.assets,
+      })),
+    [deferredBlocks],
+  );
+
+  if (!canView) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-slate-100 px-4">
+        <div className="max-w-md rounded-[28px] border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <h1 className="text-2xl font-semibold text-slate-950">Доступ ограничен</h1>
+          <p className="mt-3 text-sm text-slate-600">
+            Для работы с конструктором сайта нужны права `multi-organization.website.view`.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading || !workspace) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-slate-100">
+        <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm text-slate-600 shadow-sm">
+          <ArrowPathIcon className="h-4 w-4 animate-spin" />
+          Загрузка workspace конструктора...
+        </div>
+      </div>
+    );
+  }
+
+  const selectedIndex = workspace.blocks.findIndex((block) => block.id === selectedBlockId);
+
+  const moveSelectedBlock = async (direction: -1 | 1) => {
+    if (!canEdit || selectedIndex < 0) {
+      return;
+    }
+
+    const nextIndex = selectedIndex + direction;
+    if (nextIndex < 0 || nextIndex >= workspace.blocks.length) {
+      return;
+    }
+
+    const reordered = moveArrayItem(workspace.blocks, selectedIndex, nextIndex);
+    await reorderBlocks(reordered.map((block) => block.id));
+  };
+
+  const handleBlockDelete = async () => {
+    if (!selectedBlockId || !selectedBlock?.can_delete || !canEdit) {
+      return;
+    }
+
+    if (armedBlockDeleteId !== selectedBlockId) {
+      setArmedBlockDeleteId(selectedBlockId);
+      return;
+    }
+
+    await deleteBlock(selectedBlockId);
+    setArmedBlockDeleteId(null);
+  };
+
+  const siteIdentity = (
+    <div className="flex items-start gap-4">
+      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-950 text-lg font-semibold text-white">
+        {workspace.site.title.slice(0, 1).toUpperCase()}
+      </div>
+      <div>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-semibold text-slate-950">{workspace.site.title}</h1>
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-medium ${
+              workspace.publication.is_published ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+            }`}
+          >
+            {workspace.publication.is_published ? 'Опубликован' : 'Черновик'}
+          </span>
+          {hasUnsavedChanges && (
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+              Есть несохраненные изменения
+            </span>
+          )}
+        </div>
+        <p className="mt-1 text-sm text-slate-500">{workspace.site.domain}</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)]">
+      <div className="mx-auto max-w-[1700px] px-4 py-6 sm:px-6">
+        <div className="rounded-[32px] border border-slate-200 bg-white/90 p-6 shadow-[0_40px_120px_-60px_rgba(15,23,42,0.55)] backdrop-blur">
+          <div className="flex flex-col gap-6 border-b border-slate-200 pb-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex items-center gap-4">
               <button
+                className="grid h-12 w-12 place-items-center rounded-2xl border border-slate-200 text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
                 onClick={() => navigate('/dashboard')}
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                type="button"
               >
                 <ArrowLeftIcon className="h-5 w-5" />
               </button>
-              
-              <div className="flex items-center gap-3">
-                <div className={`${theme.primary} p-2 rounded-lg shadow-sm`}>
-                  <GlobeAltIcon className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-semibold text-gray-900">{landing.title}</h1>
-                  <p className="text-sm text-gray-600">{landing.domain}.prohelper.pro</p>
-                </div>
-              </div>
-
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                landing.status === 'published' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                {landing.status === 'published' ? 'Опубликован' : 'Черновик'}
-              </span>
-
-              {hasUnsavedChanges && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                  Есть изменения
-                </span>
-              )}
+              {siteIdentity}
             </div>
-
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <button
-                onClick={handlePreview}
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                onClick={openPreview}
+                type="button"
               >
                 <EyeIcon className="h-4 w-4" />
                 Превью
               </button>
+              <button
+                className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                disabled={!canPublish || publishing}
+                onClick={publishSite}
+                type="button"
+              >
+                <CloudArrowUpIcon className="h-4 w-4" />
+                {publishing ? 'Публикация...' : 'Опубликовать'}
+              </button>
+            </div>
+          </div>
 
-              {can('multi-organization.website.publish') && (
-                <button
-                  onClick={handlePublish}
-                  className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors ${theme.primary} ${theme.hover}`}
-                >
-                  <CloudArrowUpIcon className="h-4 w-4" />
-                  Опубликовать
-                </button>
+          {error && (
+            <div className="mt-6 rounded-[24px] border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
+              {error}
+            </div>
+          )}
+
+          <div className="mt-6 grid gap-6 xl:grid-cols-[320px,minmax(0,1fr),420px]">
+            <div className="space-y-4">
+              <PanelCard title="Workspace">
+                <div className="grid grid-cols-2 gap-2">
+                  {TAB_META.map((tab) => (
+                    <button
+                      key={tab.id}
+                      className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                        activeTab === tab.id
+                          ? 'bg-slate-950 text-white'
+                          : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                      }`}
+                      onClick={() => setActiveTab(tab.id)}
+                      type="button"
+                    >
+                      <tab.icon className="h-4 w-4" />
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </PanelCard>
+
+              <PanelCard title="Сводка">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-slate-50 p-4">
+                    <div className="text-xs uppercase tracking-[0.2em] text-slate-500">Блоки</div>
+                    <div className="mt-2 text-2xl font-semibold text-slate-950">{workspace.summary.blocks_count}</div>
+                  </div>
+                  <div className="rounded-2xl bg-slate-50 p-4">
+                    <div className="text-xs uppercase tracking-[0.2em] text-slate-500">Медиа</div>
+                    <div className="mt-2 text-2xl font-semibold text-slate-950">{workspace.summary.assets_count}</div>
+                  </div>
+                  <div className="rounded-2xl bg-slate-50 p-4">
+                    <div className="text-xs uppercase tracking-[0.2em] text-slate-500">Лиды</div>
+                    <div className="mt-2 text-2xl font-semibold text-slate-950">
+                      {leadSummary?.total ?? workspace.summary.leads_count}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl bg-slate-50 p-4">
+                    <div className="text-xs uppercase tracking-[0.2em] text-slate-500">Автосохранение</div>
+                    <div className="mt-2 text-sm font-medium text-slate-950">
+                      {savingSite ? 'Сохраняем сайт...' : 'Живой черновик'}
+                    </div>
+                  </div>
+                </div>
+              </PanelCard>
+            </div>
+
+            <div className="space-y-4">
+              <PanelCard title="Canvas">
+                <div className="rounded-[28px] bg-slate-100 p-4">
+                  <SiteBuilderRenderer blocks={publicBlocks} mode="editor" site={workspace.site} />
+                </div>
+              </PanelCard>
+            </div>
+
+            <div className="space-y-4">
+              {activeTab === 'structure' && (
+                <>
+                  <PanelCard title="Шаблоны">
+                    <div className="space-y-3">
+                      {templates.map((template) => (
+                        <button
+                          key={template.id}
+                          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-left transition hover:border-slate-300 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={!canUseTemplates}
+                          onClick={() => void applyTemplate(template)}
+                          type="button"
+                        >
+                          <div className="text-sm font-semibold text-slate-950">{template.name}</div>
+                          <div className="mt-1 text-sm text-slate-600">{template.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </PanelCard>
+
+                  <PanelCard title="Структура">
+                    <div className="space-y-3">
+                      {workspace.blocks.map((block, index) => (
+                        <button
+                          key={block.id}
+                          className={`w-full rounded-2xl border px-4 py-4 text-left transition ${
+                            block.id === selectedBlockId
+                              ? 'border-slate-950 bg-slate-950 text-white'
+                              : 'border-slate-200 bg-white hover:border-slate-300'
+                          }`}
+                          onClick={() => {
+                            setArmedBlockDeleteId(null);
+                            selectBlock(block.id);
+                          }}
+                          type="button"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <div className="text-sm font-semibold">{block.title}</div>
+                              <div className={`mt-1 text-xs ${block.id === selectedBlockId ? 'text-slate-300' : 'text-slate-500'}`}>
+                                {block.type}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span>{index + 1}</span>
+                              {savingBlocks[block.id] && <ArrowPathIcon className="h-4 w-4 animate-spin" />}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <button
+                        className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={!canEdit || selectedIndex <= 0}
+                        onClick={() => void moveSelectedBlock(-1)}
+                        type="button"
+                      >
+                        Выше
+                      </button>
+                      <button
+                        className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={!canEdit || selectedIndex < 0 || selectedIndex >= workspace.blocks.length - 1}
+                        onClick={() => void moveSelectedBlock(1)}
+                        type="button"
+                      >
+                        Ниже
+                      </button>
+                      <button
+                        className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={!canEdit || !selectedBlockId}
+                        onClick={() => selectedBlockId && void duplicateBlock(selectedBlockId)}
+                        type="button"
+                      >
+                        Дубль
+                      </button>
+                      <button
+                        className={`rounded-2xl border px-4 py-3 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                          armedBlockDeleteId === selectedBlockId
+                            ? 'border-rose-400 bg-rose-50 text-rose-700'
+                            : 'border-rose-200 text-rose-700 hover:bg-rose-50'
+                        }`}
+                        disabled={!canEdit || !selectedBlock?.can_delete}
+                        onClick={() => void handleBlockDelete()}
+                        type="button"
+                      >
+                        {armedBlockDeleteId === selectedBlockId ? 'Подтвердить удаление' : 'Удалить'}
+                      </button>
+                    </div>
+                  </PanelCard>
+
+                  <PanelCard title="Библиотека">
+                    <div className="space-y-3">
+                      {blockLibrary.map((block) => (
+                        <button
+                          key={block.type}
+                          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={!canEdit}
+                          onClick={() => void addBlock(block.type)}
+                          type="button"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`h-10 w-2 rounded-full ${block.accent}`} />
+                            <div>
+                              <div className="text-sm font-semibold text-slate-950">{block.label}</div>
+                              <div className="mt-1 text-sm text-slate-600">{block.description}</div>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </PanelCard>
+                </>
               )}
 
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <Bars3Icon className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex">
-        {/* Боковая панель с библиотекой блоков */}
-        <div className={`${sidebarOpen ? 'block' : 'hidden'} lg:block fixed lg:static inset-y-0 left-0 z-10 w-80 bg-white border-r border-gray-200 overflow-y-auto`}>
-          <div className="p-4 border-b border-gray-200 lg:hidden">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Библиотека блоков</h2>
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="p-2 text-gray-400 hover:text-gray-600"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-
-          <div className="p-4">
-            <h3 className="text-sm font-medium text-gray-900 mb-4">Добавить блок</h3>
-            <div className="space-y-2">
-              {blockTypes.map((blockType) => (
-                <button
-                  key={blockType.type}
-                  onClick={() => handleAddBlock(blockType.type)}
-                  className="w-full p-3 text-left rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{blockType.icon}</span>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{blockType.name}</p>
-                      <p className="text-xs text-gray-600">{blockType.description}</p>
-                    </div>
-                    <PlusIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-600 ml-auto" />
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Основная область с вкладками */}
-        <div className="flex-1 lg:ml-0">
-          <div className="p-6">
-            <Tab.Group selectedIndex={activeTab} onChange={setActiveTab}>
-              <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1 mb-6">
-                {tabs.map((tab) => (
-                  <Tab
-                    key={tab.name}
-                    className={({ selected }) =>
-                      `w-full rounded-lg py-2.5 px-4 text-sm font-medium leading-5 transition-colors ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2 ${
-                        selected
-                          ? `${theme.primary.replace('bg-', 'bg-')} text-white shadow`
-                          : 'text-blue-700 hover:bg-white/[0.12] hover:text-blue-800'
-                      }`
+              {activeTab === 'properties' && (
+                <BlockInspector
+                  assets={workspace.assets}
+                  block={selectedBlock}
+                  onChange={(patch) => {
+                    if (selectedBlock && canEdit) {
+                      updateBlockDraft(selectedBlock.id, patch);
                     }
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      <tab.icon className="h-4 w-4" />
-                      {tab.name}
-                    </div>
-                  </Tab>
-                ))}
-              </Tab.List>
+                  }}
+                />
+              )}
 
-              <Tab.Panels>
-                {tabs.map((tab, index) => (
-                  <Tab.Panel key={index} className="focus:outline-none">
-                    {tab.component}
-                  </Tab.Panel>
-                ))}
-              </Tab.Panels>
-            </Tab.Group>
+              {activeTab === 'media' && (
+                <>
+                  <PanelCard title="Загрузка">
+                    <label className="block rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-600 transition hover:border-slate-400 hover:bg-white">
+                      <Bars3Icon className="mx-auto h-6 w-6 text-slate-500" />
+                      <div className="mt-3 font-medium">Выберите файл для медиатеки</div>
+                      <div className="mt-1 text-xs uppercase tracking-[0.24em] text-slate-400">S3 upload</div>
+                      <input
+                        className="hidden"
+                        disabled={!canUploadAssets}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          if (file) {
+                            void uploadAsset(file, selectedBlock?.type ?? 'general');
+                            event.target.value = '';
+                          }
+                        }}
+                        type="file"
+                      />
+                    </label>
+                    {!canUploadAssets && (
+                      <div className="text-xs text-slate-500">
+                        Нужны права `multi-organization.website.assets.upload`.
+                      </div>
+                    )}
+                  </PanelCard>
+
+                  <PanelCard title="Медиатека">
+                    <div className="space-y-4">
+                      {workspace.assets.length === 0 && (
+                        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+                          Пока нет файлов. Загрузите изображения для блоков и SEO.
+                        </div>
+                      )}
+                      {workspace.assets.map((asset) => (
+                        <div key={asset.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                          <div className="flex gap-4">
+                            <div className="h-20 w-20 overflow-hidden rounded-2xl bg-slate-200">
+                              {asset.public_url ? (
+                                <img alt={asset.filename} className="h-full w-full object-cover" src={asset.public_url} />
+                              ) : null}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-semibold text-slate-950">{asset.filename}</div>
+                              <div className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">
+                                {asset.asset_type} · {asset.human_size}
+                              </div>
+                              <div className="mt-3 grid gap-3">
+                                <input
+                                  className={textInputClassName}
+                                  placeholder="Alt text"
+                                  value={asString(asset.metadata.alt_text)}
+                                  onChange={(event) =>
+                                    canManageAssets &&
+                                    void updateAsset(asset.id, {
+                                      ...asset.metadata,
+                                      alt_text: event.target.value,
+                                    })
+                                  }
+                                />
+                                <input
+                                  className={textInputClassName}
+                                  placeholder="Caption"
+                                  value={asString(asset.metadata.caption)}
+                                  onChange={(event) =>
+                                    canManageAssets &&
+                                    void updateAsset(asset.id, {
+                                      ...asset.metadata,
+                                      caption: event.target.value,
+                                    })
+                                  }
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
+                            <div>
+                              {asset.usage_map?.length ? `Используется в ${asset.usage_map.length} местах` : 'Файл не используется'}
+                            </div>
+                            <button
+                              className={`font-medium transition disabled:text-slate-400 ${
+                                armedAssetDeleteId === asset.id ? 'text-rose-700' : 'text-rose-600 hover:text-rose-700'
+                              }`}
+                              disabled={!canManageAssets || !asset.safe_delete}
+                              onClick={() => {
+                                if (armedAssetDeleteId !== asset.id) {
+                                  setArmedAssetDeleteId(asset.id);
+                                  return;
+                                }
+
+                                void deleteAsset(asset.id);
+                                setArmedAssetDeleteId(null);
+                              }}
+                              type="button"
+                            >
+                              {armedAssetDeleteId === asset.id ? 'Подтвердить удаление' : 'Удалить'}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </PanelCard>
+                </>
+              )}
+
+              {activeTab === 'settings' && (
+                <>
+                  <PanelCard title="Идентичность">
+                    <Field label="Домен">
+                      <input
+                        className={textInputClassName}
+                        value={workspace.site.domain}
+                        onChange={(event) => canEdit && updateSiteDraft({ domain: event.target.value })}
+                      />
+                    </Field>
+                    <Field label="Название сайта">
+                      <input
+                        className={textInputClassName}
+                        value={workspace.site.title}
+                        onChange={(event) => canEdit && updateSiteDraft({ title: event.target.value })}
+                      />
+                    </Field>
+                    <Field label="Описание сайта">
+                      <textarea
+                        className={`${textInputClassName} min-h-24`}
+                        value={workspace.site.description}
+                        onChange={(event) => canEdit && updateSiteDraft({ description: event.target.value })}
+                      />
+                    </Field>
+                  </PanelCard>
+
+                  <PanelCard title="Тема">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {(['primary_color', 'secondary_color', 'accent_color', 'background_color', 'text_color'] as const).map((field) => (
+                        <Field key={field} label={field}>
+                          <input
+                            className={`${textInputClassName} h-12`}
+                            type="color"
+                            value={workspace.site.theme_config[field]}
+                            onChange={(event) =>
+                              canEdit &&
+                              updateSiteDraft({
+                                theme_config: {
+                                  ...workspace.site.theme_config,
+                                  [field]: event.target.value,
+                                },
+                              })
+                            }
+                          />
+                        </Field>
+                      ))}
+                      <Field label="Шрифт">
+                        <input
+                          className={textInputClassName}
+                          value={workspace.site.theme_config.font_family}
+                          onChange={(event) =>
+                            canEdit &&
+                            updateSiteDraft({
+                              theme_config: {
+                                ...workspace.site.theme_config,
+                                font_family: event.target.value,
+                              },
+                            })
+                          }
+                        />
+                      </Field>
+                      <Field label="Скругление">
+                        <input
+                          className={textInputClassName}
+                          value={workspace.site.theme_config.border_radius}
+                          onChange={(event) =>
+                            canEdit &&
+                            updateSiteDraft({
+                              theme_config: {
+                                ...workspace.site.theme_config,
+                                border_radius: event.target.value,
+                              },
+                            })
+                          }
+                        />
+                      </Field>
+                    </div>
+                  </PanelCard>
+                </>
+              )}
+
+              {activeTab === 'leads' && (
+                <>
+                  <PanelCard title="SEO">
+                    <Field label="Meta title">
+                      <input
+                        className={textInputClassName}
+                        value={workspace.site.seo_meta.title}
+                        onChange={(event) =>
+                          canEdit &&
+                          updateSiteDraft({
+                            seo_meta: {
+                              ...workspace.site.seo_meta,
+                              title: event.target.value,
+                            },
+                          })
+                        }
+                      />
+                    </Field>
+                    <Field label="Meta description">
+                      <textarea
+                        className={`${textInputClassName} min-h-24`}
+                        value={workspace.site.seo_meta.description}
+                        onChange={(event) =>
+                          canEdit &&
+                          updateSiteDraft({
+                            seo_meta: {
+                              ...workspace.site.seo_meta,
+                              description: event.target.value,
+                            },
+                          })
+                        }
+                      />
+                    </Field>
+                    <Field label="Keywords">
+                      <input
+                        className={textInputClassName}
+                        value={workspace.site.seo_meta.keywords}
+                        onChange={(event) =>
+                          canEdit &&
+                          updateSiteDraft({
+                            seo_meta: {
+                              ...workspace.site.seo_meta,
+                              keywords: event.target.value,
+                            },
+                          })
+                        }
+                      />
+                    </Field>
+                  </PanelCard>
+
+                  <PanelCard title="Лид-инбокс">
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <div className="rounded-2xl bg-slate-50 p-4">
+                        <div className="text-xs uppercase tracking-[0.2em] text-slate-500">Всего</div>
+                        <div className="mt-2 text-2xl font-semibold text-slate-950">{leadSummary?.total ?? 0}</div>
+                      </div>
+                      <div className="rounded-2xl bg-slate-50 p-4">
+                        <div className="text-xs uppercase tracking-[0.2em] text-slate-500">Сегодня</div>
+                        <div className="mt-2 text-2xl font-semibold text-slate-950">{leadSummary?.today ?? 0}</div>
+                      </div>
+                      <div className="rounded-2xl bg-slate-50 p-4">
+                        <div className="text-xs uppercase tracking-[0.2em] text-slate-500">За неделю</div>
+                        <div className="mt-2 text-2xl font-semibold text-slate-950">{leadSummary?.week ?? 0}</div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {leads.length === 0 && (
+                        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+                          Пока нет входящих заявок.
+                        </div>
+                      )}
+                      {leads.map((lead) => (
+                        <div key={lead.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <div className="text-sm font-semibold text-slate-950">
+                                {lead.name || lead.company || 'Новый лид'}
+                              </div>
+                              <div className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">
+                                {lead.block_key || 'lead_form'}
+                              </div>
+                            </div>
+                            <div className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-600">
+                              {lead.status}
+                            </div>
+                          </div>
+                          <div className="mt-3 grid gap-2 text-sm text-slate-600">
+                            {lead.phone && <div>Телефон: {lead.phone}</div>}
+                            {lead.email && <div>Email: {lead.email}</div>}
+                            {lead.message && <div>Сообщение: {lead.message}</div>}
+                            {lead.submitted_at && (
+                              <div>Создано: {new Date(lead.submitted_at).toLocaleString('ru-RU')}</div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </PanelCard>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

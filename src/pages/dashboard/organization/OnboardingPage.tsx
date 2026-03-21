@@ -4,8 +4,8 @@ import { OnboardingWizard } from '@/components/dashboard/onboarding/OnboardingWi
 export const OnboardingPage = () => {
   const navigate = useNavigate();
 
-  const handleComplete = () => {
-    navigate('/dashboard');
+  const handleComplete = (defaultRoute?: string) => {
+    navigate(defaultRoute || '/dashboard');
   };
 
   return <OnboardingWizard onComplete={handleComplete} />;

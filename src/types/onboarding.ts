@@ -13,7 +13,7 @@ export interface OnboardingState {
   completedSteps: OnboardingStep[];
   data: {
     capabilities: OrganizationCapability[];
-    primary_business_type: string | null;
+    primary_business_type: OrganizationCapability | null;
     specializations: string[];
     certifications: string[];
   };

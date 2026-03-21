@@ -231,9 +231,9 @@ const DashboardLayout = () => {
       <OrganizationProfileModal
         isOpen={shouldShowOnboarding}
         onClose={hideOnboarding}
-        onComplete={() => {
+        onComplete={(defaultRoute) => {
           hideOnboarding();
-          navigate('/dashboard');
+          navigate(defaultRoute || '/dashboard');
         }}
       />
     </div>

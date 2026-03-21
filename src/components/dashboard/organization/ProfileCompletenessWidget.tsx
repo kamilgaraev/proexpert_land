@@ -6,55 +6,64 @@ interface ProfileCompletenessWidgetProps {
 }
 
 const FIELD_LABELS: Record<string, string> = {
-  'capabilities': 'Возможности организации',
-  'primary_business_type': 'Основной тип деятельности',
-  'specializations': 'Специализации',
-  'certifications': 'Сертификаты',
-  'description': 'Описание организации',
-  'contacts': 'Контактная информация'
+  capabilities: 'Возможности организации',
+  primary_business_type: 'Основной режим работы',
+  specializations: 'Специализации',
+  certifications: 'Сертификаты',
+  description: 'Описание организации',
+  contacts: 'Контактная информация',
 };
 
 export const ProfileCompletenessWidget = ({
   completeness,
   missingFields = [],
   onComplete,
-  className = ''
+  className = '',
 }: ProfileCompletenessWidgetProps) => {
   const radius = 50;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (completeness / 100) * circumference;
 
   const getCompletenessColor = () => {
-    if (completeness >= 90) return 'text-green-600';
-    if (completeness >= 70) return 'text-construction-600';
-    if (completeness >= 50) return 'text-yellow-600';
+    if (completeness >= 90) {
+      return 'text-green-600';
+    }
+
+    if (completeness >= 70) {
+      return 'text-construction-600';
+    }
+
+    if (completeness >= 50) {
+      return 'text-yellow-600';
+    }
+
     return 'text-red-600';
   };
 
   const getCompletenessStrokeColor = () => {
-    if (completeness >= 90) return '#10b981';
-    if (completeness >= 70) return '#ea580c';
-    if (completeness >= 50) return '#eab308';
+    if (completeness >= 90) {
+      return '#10b981';
+    }
+
+    if (completeness >= 70) {
+      return '#ea580c';
+    }
+
+    if (completeness >= 50) {
+      return '#eab308';
+    }
+
     return '#ef4444';
   };
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg p-6 ${className}`}>
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Полнота профиля
-      </h3>
+    <div className={`rounded-lg border border-gray-200 bg-white p-6 ${className}`}>
+      <h3 className="mb-4 text-lg font-semibold text-gray-900">Полнота профиля</h3>
 
-      <div className="flex items-center justify-center mb-6">
+      <div className="mb-6 flex items-center justify-center">
         <div className="relative">
           <svg className="transform -rotate-90" width="140" height="140">
-            <circle
-              cx="70"
-              cy="70"
-              r={radius}
-              stroke="#e5e7eb"
-              strokeWidth="8"
-              fill="none"
-            />
+            <circle cx="70" cy="70" r={radius} stroke="#e5e7eb" strokeWidth="8" fill="none" />
             <circle
               cx="70"
               cy="70"
@@ -70,12 +79,8 @@ export const ProfileCompletenessWidget = ({
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <div className={`text-3xl font-bold ${getCompletenessColor()}`}>
-                {completeness}%
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                заполнено
-              </div>
+              <div className={`text-3xl font-bold ${getCompletenessColor()}`}>{completeness}%</div>
+              <div className="mt-1 text-xs text-gray-500">заполнено</div>
             </div>
           </div>
         </div>
@@ -83,18 +88,24 @@ export const ProfileCompletenessWidget = ({
 
       {missingFields.length > 0 && (
         <div className="space-y-3">
-          <h4 className="text-sm font-medium text-gray-700">
-            Осталось заполнить:
-          </h4>
+          <h4 className="text-sm font-medium text-gray-700">Осталось заполнить:</h4>
           <ul className="space-y-2">
-            {missingFields.map(field => (
+            {missingFields.map((field) => (
               <li key={field} className="flex items-start space-x-2 text-sm">
-                <svg className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
                 </svg>
-                <span className="text-gray-700">
-                  {FIELD_LABELS[field] || field}
-                </span>
+                <span className="text-gray-700">{FIELD_LABELS[field] || field}</span>
               </li>
             ))}
           </ul>
@@ -102,19 +113,22 @@ export const ProfileCompletenessWidget = ({
       )}
 
       {completeness >= 100 ? (
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2">
-          <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div className="mt-4 flex items-center space-x-2 rounded-lg border border-green-200 bg-green-50 p-3">
+          <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
-          <span className="text-sm font-medium text-green-800">
-            Профиль полностью заполнен!
-          </span>
+          <span className="text-sm font-medium text-green-800">Профиль полностью заполнен!</span>
         </div>
       ) : (
         onComplete && (
           <button
             onClick={onComplete}
-            className="mt-4 w-full px-4 py-2 bg-construction-600 text-white text-sm font-medium rounded-lg hover:bg-construction-700 transition-colors focus:outline-none focus:ring-2 focus:ring-construction-500 focus:ring-offset-2"
+            className="mt-4 w-full rounded-lg bg-construction-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-construction-700 focus:outline-none focus:ring-2 focus:ring-construction-500 focus:ring-offset-2"
           >
             Завершить настройку профиля
           </button>
@@ -122,11 +136,10 @@ export const ProfileCompletenessWidget = ({
       )}
 
       {completeness < 80 && (
-        <p className="mt-3 text-xs text-gray-500 text-center">
+        <p className="mt-3 text-center text-xs text-gray-500">
           Рекомендуем заполнить профиль минимум на 80% для лучших результатов
         </p>
       )}
     </div>
   );
 };
-

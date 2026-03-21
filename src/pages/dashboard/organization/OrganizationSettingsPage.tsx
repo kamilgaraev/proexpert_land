@@ -8,59 +8,38 @@ import { SpecializationsSelector } from '@/components/dashboard/organization/Spe
 import { CertificationsList } from '@/components/dashboard/organization/CertificationsList';
 import { ProfileCompletenessWidget } from '@/components/dashboard/organization/ProfileCompletenessWidget';
 import { RecommendedModulesCard } from '@/components/dashboard/organization/RecommendedModulesCard';
+import { WorkspaceQuickActionsCard } from '@/components/dashboard/organization/WorkspaceQuickActionsCard';
 import type { OrganizationCapability } from '@/types/organization-profile';
-import { 
-  Building2, 
-  CheckCircle, 
+import { BUSINESS_TYPE_LABELS, resolvePrimaryBusinessType } from '@/utils/organizationProfile';
+import {
+  Building2,
+  CheckCircle,
   AlertTriangle,
   Pencil,
   Loader2,
   Briefcase,
   Award,
-  ListChecks
+  ListChecks,
 } from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-// import { Separator } from '@/components/ui/separator';
-
-const CAPABILITY_LABELS: Record<OrganizationCapability, string> = {
-  'general_contracting': 'Генеральный подряд',
-  'subcontracting': 'Субподрядные работы',
-  'design': 'Проектирование',
-  'construction_supervision': 'Строительный контроль',
-  'equipment_rental': 'Аренда техники',
-  'materials_supply': 'Поставка материалов',
-  'consulting': 'Консалтинг',
-  'facility_management': 'Эксплуатация объектов'
-};
-
-const BUSINESS_TYPE_LABELS: Record<string, string> = {
-  'general_contracting': 'Генеральный подряд',
-  'subcontracting': 'Субподрядные работы',
-  'design': 'Проектирование',
-  'construction_supervision': 'Строительный контроль',
-  'equipment_rental': 'Аренда техники',
-  'materials_supply': 'Поставка материалов',
-  'consulting': 'Консалтинг',
-  'facility_management': 'Эксплуатация объектов'
-};
 
 const SPECIALIZATION_LABELS: Record<string, string> = {
-  'building_construction': 'Промышленное и гражданское строительство',
-  'road_construction': 'Дорожное строительство',
-  'bridge_construction': 'Мостовое строительство',
-  'electrical_works': 'Электромонтажные работы',
-  'plumbing_works': 'Сантехнические работы',
-  'hvac_systems': 'Системы отопления и вентиляции',
-  'roofing_works': 'Кровельные работы',
-  'facade_works': 'Фасадные работы',
-  'foundation_works': 'Фундаментные работы',
-  'interior_finishing': 'Внутренняя отделка',
-  'landscape_works': 'Благоустройство территории',
-  'demolition_works': 'Демонтажные работы'
+  building_construction: 'Промышленное и гражданское строительство',
+  road_construction: 'Дорожное строительство',
+  bridge_construction: 'Мостовое строительство',
+  electrical_works: 'Электромонтажные работы',
+  plumbing_works: 'Сантехнические работы',
+  hvac_systems: 'Системы отопления и вентиляции',
+  roofing_works: 'Кровельные работы',
+  facade_works: 'Фасадные работы',
+  foundation_works: 'Фундаментные работы',
+  interior_finishing: 'Внутренняя отделка',
+  landscape_works: 'Благоустройство территории',
+  demolition_works: 'Демонтажные работы',
 };
 
 export const OrganizationSettingsPage = () => {
@@ -74,16 +53,18 @@ export const OrganizationSettingsPage = () => {
     updateCapabilities,
     updateBusinessType,
     updateSpecializations,
-    updateCertifications
+    updateCertifications,
   } = useOrganizationProfile();
 
   const { getOrganization, organization: orgVerification } = useOrganizationVerification();
 
-  const [editingSection, setEditingSection] = useState<'capabilities' | 'business_type' | 'specializations' | 'certifications' | null>(null);
+  const [editingSection, setEditingSection] = useState<
+    'capabilities' | 'business_type' | 'specializations' | 'certifications' | null
+  >(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const [localCapabilities, setLocalCapabilities] = useState<OrganizationCapability[]>([]);
-  const [localBusinessType, setLocalBusinessType] = useState<string | null>(null);
+  const [localBusinessType, setLocalBusinessType] = useState<OrganizationCapability | null>(null);
   const [localSpecializations, setLocalSpecializations] = useState<string[]>([]);
   const [localCertifications, setLocalCertifications] = useState<string[]>([]);
 
@@ -91,23 +72,35 @@ export const OrganizationSettingsPage = () => {
     fetchProfile();
     fetchAvailableCapabilities();
     getOrganization().catch(() => {});
-  }, []);
+  }, [fetchAvailableCapabilities, fetchProfile, getOrganization]);
 
   useEffect(() => {
-    if (profile) {
-      setLocalCapabilities(profile.capabilities || []);
-      setLocalBusinessType(profile.primary_business_type);
-      setLocalSpecializations(profile.specializations || []);
-      setLocalCertifications(profile.certifications || []);
+    if (!profile) {
+      return;
     }
+
+    setLocalCapabilities(profile.capabilities || []);
+    setLocalBusinessType(profile.primary_business_type);
+    setLocalSpecializations(profile.specializations || []);
+    setLocalCertifications(profile.certifications || []);
   }, [profile]);
 
+  useEffect(() => {
+    const nextBusinessType = resolvePrimaryBusinessType(localCapabilities, localBusinessType);
+
+    if (nextBusinessType !== localBusinessType) {
+      setLocalBusinessType(nextBusinessType);
+    }
+  }, [localCapabilities, localBusinessType]);
+
   const handleSave = async (section: typeof editingSection) => {
-    if (!profile) return;
-    
+    if (!profile) {
+      return;
+    }
+
     try {
       setIsSaving(true);
-      
+
       if (section === 'capabilities') {
         await updateCapabilities(localCapabilities);
       } else if (section === 'business_type' && localBusinessType) {
@@ -117,7 +110,7 @@ export const OrganizationSettingsPage = () => {
       } else if (section === 'certifications') {
         await updateCertifications(localCertifications);
       }
-      
+
       setEditingSection(null);
     } catch (error) {
       console.error('Error saving:', error);
@@ -133,28 +126,40 @@ export const OrganizationSettingsPage = () => {
       setLocalSpecializations(profile.specializations || []);
       setLocalCertifications(profile.certifications || []);
     }
+
     setEditingSection(null);
   };
 
   const getMissingFields = (): string[] => {
-    if (!profile) return [];
+    if (!profile) {
+      return [];
+    }
+
     const missing: string[] = [];
-    
-    if (!profile.capabilities || profile.capabilities.length === 0) missing.push('capabilities');
-    if (!profile.primary_business_type) missing.push('primary_business_type');
-    if (!profile.specializations || profile.specializations.length === 0) missing.push('specializations');
-    
+
+    if (!profile.capabilities || profile.capabilities.length === 0) {
+      missing.push('capabilities');
+    }
+
+    if (!profile.primary_business_type) {
+      missing.push('primary_business_type');
+    }
+
+    if (!profile.specializations || profile.specializations.length === 0) {
+      missing.push('specializations');
+    }
+
     return missing;
   };
 
   if (loading && !profile) {
     return (
-      <div className="container mx-auto py-8 space-y-6">
-         <Skeleton className="h-12 w-64" />
-         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Skeleton className="lg:col-span-2 h-[600px] rounded-xl" />
-            <Skeleton className="h-[300px] rounded-xl" />
-         </div>
+      <div className="container mx-auto space-y-6 py-8">
+        <Skeleton className="h-12 w-64" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <Skeleton className="h-[600px] rounded-xl lg:col-span-2" />
+          <Skeleton className="h-[300px] rounded-xl" />
+        </div>
       </div>
     );
   }
@@ -170,16 +175,14 @@ export const OrganizationSettingsPage = () => {
 
     return (
       <Card className="overflow-hidden">
-        <div className="px-6 py-4 border-b bg-muted/20 flex items-center justify-between">
+        <div className="flex items-center justify-between border-b bg-muted/20 px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-background rounded-lg shadow-sm border">
-              {icon}
-            </div>
+            <div className="rounded-lg border bg-background p-2 shadow-sm">{icon}</div>
             <div>
-              <h3 className="font-bold text-lg leading-none">{title}</h3>
+              <h3 className="text-lg font-bold leading-none">{title}</h3>
               {isEmpty && !isEditing && (
-                <p className="text-xs text-destructive flex items-center gap-1 mt-1">
-                  <AlertTriangle className="w-3 h-3" />
+                <p className="mt-1 flex items-center gap-1 text-xs text-destructive">
+                  <AlertTriangle className="h-3 w-3" />
                   Не заполнено
                 </p>
               )}
@@ -192,7 +195,7 @@ export const OrganizationSettingsPage = () => {
               onClick={() => setEditingSection(section)}
               className="gap-2"
             >
-              <Pencil className="w-3 h-3" />
+              <Pencil className="h-3 w-3" />
               {isEmpty ? 'Заполнить' : 'Изменить'}
             </Button>
           )}
@@ -202,30 +205,23 @@ export const OrganizationSettingsPage = () => {
           {isEditing ? (
             <div className="space-y-6">
               {content}
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button
-                  variant="ghost"
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                >
+              <div className="flex justify-end gap-3 border-t pt-4">
+                <Button variant="ghost" onClick={handleCancel} disabled={isSaving}>
                   Отменить
                 </Button>
-                <Button
-                  onClick={() => handleSave(section)}
-                  disabled={isSaving}
-                >
+                <Button onClick={() => handleSave(section)} disabled={isSaving}>
                   {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Сохранить
                 </Button>
               </div>
             </div>
           ) : isEmpty ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-muted rounded-full mb-3">
-                <AlertTriangle className="w-6 h-6 opacity-50" />
+            <div className="py-8 text-center text-muted-foreground">
+              <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <AlertTriangle className="h-6 w-6 opacity-50" />
               </div>
               <p className="font-medium">Информация не заполнена</p>
-              <p className="text-xs mt-1">Нажмите "Заполнить" для добавления данных</p>
+              <p className="mt-1 text-xs">Нажмите "Заполнить" для добавления данных</p>
             </div>
           ) : (
             content
@@ -235,22 +231,25 @@ export const OrganizationSettingsPage = () => {
     );
   };
 
+  const primaryBusinessType = profile?.primary_business_type;
+
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Профиль организации</h1>
         <p className="text-muted-foreground">
-          Управляйте информацией о возможностях и специализациях вашей организации
+          Управляйте направлениями деятельности, основным режимом работы и специализациями
+          вашей организации
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-primary/10 rounded-xl">
-                  <Building2 className="w-8 h-8 text-primary" />
+              <div className="mb-6 flex items-center gap-4">
+                <div className="rounded-xl bg-primary/10 p-3">
+                  <Building2 className="h-8 w-8 text-primary" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">
@@ -262,15 +261,15 @@ export const OrganizationSettingsPage = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-xl border">
+              <div className="grid grid-cols-2 gap-4 rounded-xl border bg-muted/30 p-4">
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Полнота профиля</p>
+                  <p className="mb-1 text-xs text-muted-foreground">Полнота профиля</p>
                   <p className="text-2xl font-bold text-primary">
                     {profile?.profile_completeness || 0}%
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Рекомендуемые модули</p>
+                  <p className="mb-1 text-xs text-muted-foreground">Рекомендуемые модули</p>
                   <p className="text-2xl font-bold">
                     {profile?.recommended_modules?.length || 0}
                   </p>
@@ -280,22 +279,22 @@ export const OrganizationSettingsPage = () => {
           </Card>
 
           {renderInfoSection(
-            'Возможности организации',
-            <CheckCircle className="w-5 h-5 text-primary" />,
+            'Направления деятельности',
+            <CheckCircle className="h-5 w-5 text-primary" />,
             !profile?.capabilities || profile.capabilities.length === 0,
             editingSection === 'capabilities' ? (
               <CapabilitiesSelector
                 selectedCapabilities={localCapabilities}
                 availableCapabilities={availableCapabilities || []}
                 onChange={setLocalCapabilities}
-                showRecommendations={true}
+                showRecommendations
               />
             ) : (
               <div className="flex flex-wrap gap-2">
-                {profile?.capabilities?.map((cap) => (
-                  <Badge key={cap} variant="secondary" className="px-3 py-1">
-                    <CheckCircle className="w-3 h-3 mr-2 opacity-50" />
-                    {CAPABILITY_LABELS[cap] || cap}
+                {profile?.capabilities?.map((capability) => (
+                  <Badge key={capability} variant="secondary" className="px-3 py-1">
+                    <CheckCircle className="mr-2 h-3 w-3 opacity-50" />
+                    {BUSINESS_TYPE_LABELS[capability] || capability}
                   </Badge>
                 ))}
               </div>
@@ -304,23 +303,24 @@ export const OrganizationSettingsPage = () => {
           )}
 
           {renderInfoSection(
-            'Основной тип деятельности',
-            <Briefcase className="w-5 h-5 text-blue-600" />,
+            'Основной режим работы',
+            <Briefcase className="h-5 w-5 text-blue-600" />,
             !profile?.primary_business_type,
             editingSection === 'business_type' ? (
               <BusinessTypeSelector
                 selectedType={localBusinessType}
                 onChange={setLocalBusinessType}
+                availableTypes={localCapabilities}
               />
             ) : (
-              <div className="flex items-center gap-4 p-4 bg-blue-50/50 border border-blue-100 rounded-lg">
+              <div className="flex items-center gap-4 rounded-lg border border-blue-100 bg-blue-50/50 p-4">
                 <div className="text-3xl">🏗️</div>
                 <div>
                   <p className="font-bold text-foreground">
-                    {BUSINESS_TYPE_LABELS[profile?.primary_business_type || ''] || profile?.primary_business_type}
+                    {primaryBusinessType ? BUSINESS_TYPE_LABELS[primaryBusinessType] : null}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    Основное направление работы организации
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    Основной workspace и сценарий, который открывается первым
                   </p>
                 </div>
               </div>
@@ -330,7 +330,7 @@ export const OrganizationSettingsPage = () => {
 
           {renderInfoSection(
             'Специализации',
-            <ListChecks className="w-5 h-5 text-emerald-600" />,
+            <ListChecks className="h-5 w-5 text-emerald-600" />,
             !profile?.specializations || profile.specializations.length === 0,
             editingSection === 'specializations' ? (
               <SpecializationsSelector
@@ -339,9 +339,13 @@ export const OrganizationSettingsPage = () => {
               />
             ) : (
               <div className="flex flex-wrap gap-2">
-                {profile?.specializations?.map((spec) => (
-                  <Badge key={spec} variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 px-3 py-1">
-                    {SPECIALIZATION_LABELS[spec] || spec}
+                {profile?.specializations?.map((specialization) => (
+                  <Badge
+                    key={specialization}
+                    variant="outline"
+                    className="border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700"
+                  >
+                    {SPECIALIZATION_LABELS[specialization] || specialization}
                   </Badge>
                 ))}
               </div>
@@ -351,7 +355,7 @@ export const OrganizationSettingsPage = () => {
 
           {renderInfoSection(
             'Сертификаты и допуски',
-            <Award className="w-5 h-5 text-violet-600" />,
+            <Award className="h-5 w-5 text-violet-600" />,
             !profile?.certifications || profile.certifications.length === 0,
             editingSection === 'certifications' ? (
               <CertificationsList
@@ -360,15 +364,15 @@ export const OrganizationSettingsPage = () => {
               />
             ) : (
               <div className="space-y-2">
-                {profile?.certifications?.map((cert, index) => (
+                {profile?.certifications?.map((certification, index) => (
                   <div
-                    key={index}
-                    className="flex items-center gap-3 p-3 bg-violet-50/50 border border-violet-100 rounded-lg"
+                    key={`${certification}-${index}`}
+                    className="flex items-center gap-3 rounded-lg border border-violet-100 bg-violet-50/50 p-3"
                   >
-                    <div className="p-1 bg-violet-100 rounded-md">
-                        <CheckCircle className="w-4 h-4 text-violet-600" />
+                    <div className="rounded-md bg-violet-100 p-1">
+                      <CheckCircle className="h-4 w-4 text-violet-600" />
                     </div>
-                    <span className="text-sm font-medium">{cert}</span>
+                    <span className="text-sm font-medium">{certification}</span>
                   </div>
                 ))}
               </div>
@@ -377,12 +381,19 @@ export const OrganizationSettingsPage = () => {
           )}
         </div>
 
-        <div className="lg:col-span-1 space-y-6">
+        <div className="space-y-6 lg:col-span-1">
           {profile && (
             <ProfileCompletenessWidget
               completeness={profile.profile_completeness}
               missingFields={getMissingFields()}
               onComplete={() => setEditingSection('capabilities')}
+            />
+          )}
+
+          {profile && (
+            <WorkspaceQuickActionsCard
+              workspaceProfile={profile.workspace_profile}
+              onActionClick={(action) => navigate(action.route)}
             />
           )}
 
@@ -392,7 +403,7 @@ export const OrganizationSettingsPage = () => {
               onModuleClick={() => {
                 navigate('/dashboard/modules');
               }}
-              showTitle={true}
+              showTitle
             />
           )}
         </div>
