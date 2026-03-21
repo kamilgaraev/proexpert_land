@@ -29,14 +29,36 @@ const server = setupServer(
       data: workspaceFixture,
     }),
   ),
-  http.get('http://localhost:3000/api/site-data', () =>
-    HttpResponse.json({
+  http.get('https://api.example.test/api/v1/landing/holding/public/site-data', ({ request }) => {
+    const url = new URL(request.url);
+
+    if (url.searchParams.get('site_domain') !== 'localhost') {
+      return HttpResponse.json(
+        {
+          success: false,
+          message: 'Неверный домен сайта',
+        },
+        { status: 422 },
+      );
+    }
+
+    return HttpResponse.json({
       success: true,
       data: publicPayloadFixture,
-    }),
-  ),
-  http.post('http://localhost:3000/api/site-leads', async ({ request }) => {
+    });
+  }),
+  http.post('https://api.example.test/api/v1/landing/holding/public/site-leads', async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>;
+
+    if (body.site_domain !== 'localhost') {
+      return HttpResponse.json(
+        {
+          success: false,
+          message: 'Неверный домен сайта',
+        },
+        { status: 422 },
+      );
+    }
 
     return HttpResponse.json({
       success: true,

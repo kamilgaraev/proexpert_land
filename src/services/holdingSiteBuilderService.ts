@@ -51,11 +51,11 @@ const requestAuth = async <T>(path: string, init?: RequestInit): Promise<T> => {
   return parseEnvelope<T>(response);
 };
 
-const requestPublic = async <T>(path: string, init?: RequestInit): Promise<T> => {
+const requestPublicApi = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const headers = new Headers(init?.headers);
   headers.set('Accept', 'application/json');
 
-  const response = await fetch(path, {
+  const response = await fetch(`${API_URL}${path}`, {
     ...init,
     headers,
   });
@@ -164,15 +164,23 @@ export const holdingSiteBuilderService = {
 };
 
 export const publicHoldingSiteService = {
-  getSiteData: (search = window.location.search) =>
-    requestPublic<PublicSitePayload>(`/api/site-data${search}`),
+  getSiteData: (search = window.location.search) => {
+    const params = new URLSearchParams(search);
+    params.set('site_domain', window.location.hostname);
+
+    return requestPublicApi<PublicSitePayload>(`/holding/public/site-data?${params.toString()}`);
+  },
   submitLead: (payload: LeadSubmissionPayload) =>
-    requestPublic<LeadEntry>('/api/site-leads', {
+    requestPublicApi<LeadEntry>('/holding/public/site-leads', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        site_domain: window.location.hostname,
+        source_url: payload.source_url ?? window.location.href,
+      }),
     }),
 };
 
