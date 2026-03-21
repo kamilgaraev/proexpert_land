@@ -32,6 +32,7 @@ const HoldingLandingRuntimePage = () => {
   }, []);
 
   const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
+  const showPreviewBadge = isPreview && payload?.runtime.mode === 'draft';
 
   if (loading) {
     return (
@@ -68,15 +69,12 @@ const HoldingLandingRuntimePage = () => {
         keywords={payload.site.seo_meta.keywords}
       />
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex items-center justify-between rounded-[28px] border border-slate-200 bg-white px-6 py-5 shadow-sm">
-          <div>
-            <div className="text-xs uppercase tracking-[0.28em] text-slate-500">
-              {payload.runtime.mode === 'draft' ? 'Preview' : 'Published'}
-            </div>
-            <div className="mt-2 text-xl font-semibold text-slate-950">{payload.site.title}</div>
+        {showPreviewBadge && (
+          <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900 shadow-sm">
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+            <span>Режим превью</span>
           </div>
-          <div className="text-sm text-slate-500">{payload.organization.holding.name}</div>
-        </div>
+        )}
 
         <SiteBuilderRenderer
           blocks={payload.blocks}
