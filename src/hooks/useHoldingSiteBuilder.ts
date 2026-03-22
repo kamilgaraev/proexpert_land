@@ -83,7 +83,6 @@ const sanitizePagePayload = (page: EditorPage) => ({
   layout_config: page.layout_config,
   locale_content: page.locale_content,
   visibility: page.visibility,
-  sort_order: page.sort_order,
   is_home: page.is_home,
   is_active: page.is_active,
 });
@@ -95,7 +94,6 @@ const sanitizeSectionPayload = (section: EditorSection) => ({
   bindings: section.bindings,
   locale_content: section.locale_content,
   style_config: section.style_config,
-  sort_order: section.sort_order,
   is_active: section.is_active,
 });
 
