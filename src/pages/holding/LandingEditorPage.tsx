@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent, DragEvent, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeftIcon,
+  ArrowUpTrayIcon,
   ArrowTopRightOnSquareIcon,
   Bars3Icon,
   ChevronDownIcon,
@@ -36,6 +38,9 @@ const inputClassName =
   'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100';
 
 const panelClassName = 'rounded-[30px] border border-slate-200 bg-white p-5 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.4)]';
+const imageDropzoneClassName =
+  'rounded-[24px] border border-dashed border-slate-300 bg-slate-50 p-4 transition hover:border-slate-400 hover:bg-white';
+const imageAccept = 'image/*,.jpg,.jpeg,.png,.gif,.webp,.svg,.ico';
 
 const INSPECTOR_TABS: Array<{
   id: InspectorTab;
@@ -56,7 +61,7 @@ const moveArrayItem = <T,>(items: T[], from: number, to: number): T[] => {
   return next;
 };
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   <label className="block">
     <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
       {label}
@@ -65,14 +70,158 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
   </label>
 );
 
+const isImageField = (fieldName: string, fieldType?: string): boolean => {
+  if (fieldType === 'image') {
+    return true;
+  }
+
+  const normalized = fieldName.toLowerCase();
+
+  return ['image', 'background_image', 'logo_url', 'favicon_url', 'featured_image'].includes(normalized);
+};
+
+const isImageCollectionField = (collectionFieldName: string, fieldName: string): boolean => {
+  const normalizedCollection = collectionFieldName.toLowerCase();
+  const normalizedField = fieldName.toLowerCase();
+
+  if (['image', 'background_image'].includes(normalizedField)) {
+    return true;
+  }
+
+  if (normalizedField !== 'url') {
+    return false;
+  }
+
+  return normalizedCollection.includes('image') || normalizedCollection.includes('gallery');
+};
+
+const ImageUploadField = ({
+  value,
+  onChange,
+  onUpload,
+  inputRef,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onUpload: (file: File) => Promise<string | null>;
+  inputRef?: (node: HTMLInputElement | null) => void;
+}) => {
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleFiles = async (fileList: FileList | null) => {
+    const file = fileList?.[0];
+    if (!file) {
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const uploadedUrl = await onUpload(file);
+      if (uploadedUrl) {
+        onChange(uploadedUrl);
+      }
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDrop = async (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragging(false);
+    await handleFiles(event.dataTransfer.files);
+  };
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    await handleFiles(event.target.files);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div
+        className={`${imageDropzoneClassName} ${dragging ? 'border-blue-400 bg-blue-50' : ''} ${uploading ? 'cursor-wait opacity-70' : ''}`}
+        onDragEnter={(event) => {
+          event.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={(event) => {
+          event.preventDefault();
+          if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            return;
+          }
+          setDragging(false);
+        }}
+        onDragOver={(event) => {
+          event.preventDefault();
+          setDragging(true);
+        }}
+        onDrop={(event) => {
+          void handleDrop(event);
+        }}
+      >
+        <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-white">
+          {value ? (
+            <img alt="" className="h-40 w-full object-cover" src={value} />
+          ) : (
+            <div className="flex h-40 items-center justify-center bg-[linear-gradient(135deg,#eff6ff,#f8fafc)] text-5xl text-slate-300">
+              <PhotoIcon className="h-12 w-12" />
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="text-sm font-semibold text-slate-950">
+              {uploading ? 'Загрузка в S3...' : 'Перетащите изображение сюда'}
+            </div>
+            <div className="mt-1 text-sm text-slate-500">
+              Или выберите файл. Внешний URL тоже можно оставить вручную.
+            </div>
+          </div>
+          <button
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+            type="button"
+          >
+            <ArrowUpTrayIcon className="h-4 w-4" />
+            {uploading ? 'Загрузка...' : 'Загрузить'}
+          </button>
+        </div>
+        <input
+          ref={fileInputRef}
+          accept={imageAccept}
+          className="hidden"
+          onChange={(event) => {
+            void handleFileChange(event);
+          }}
+          type="file"
+        />
+      </div>
+      <input
+        ref={inputRef}
+        className={inputClassName}
+        placeholder="https://..."
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </div>
+  );
+};
+
 const ArrayEditor = ({
   section,
   fieldName,
   onChange,
+  onUploadAsset,
 }: {
   section: EditorSection;
   fieldName: string;
   onChange: (value: Record<string, unknown>[]) => void;
+  onUploadAsset?: (file: File, metadata?: Record<string, unknown>) => Promise<string | null>;
 }) => {
   const value = Array.isArray(section.content[fieldName]) ? (section.content[fieldName] as Record<string, unknown>[]) : [];
   const template = ARRAY_ITEM_TEMPLATES[`${section.type}.${fieldName}`] ?? { value: '' };
@@ -96,17 +245,38 @@ const ArrayEditor = ({
           <div className="grid gap-3">
             {Object.entries(item).map(([key, itemValue]) => (
               <Field key={key} label={FIELD_LABELS[key] ?? key}>
-                <input
-                  className={inputClassName}
-                  value={typeof itemValue === 'string' || typeof itemValue === 'number' ? String(itemValue) : ''}
-                  onChange={(event) =>
-                    onChange(
-                      value.map((currentItem, itemIndex) =>
-                        itemIndex === index ? { ...currentItem, [key]: event.target.value } : currentItem,
-                      ),
-                    )
-                  }
-                />
+                {onUploadAsset && isImageCollectionField(fieldName, key) ? (
+                  <ImageUploadField
+                    value={typeof itemValue === 'string' ? itemValue : ''}
+                    onChange={(nextValue) =>
+                      onChange(
+                        value.map((currentItem, itemIndex) =>
+                          itemIndex === index ? { ...currentItem, [key]: nextValue } : currentItem,
+                        ),
+                      )
+                    }
+                    onUpload={async (file) => {
+                      const metadata = {
+                        alt_text: typeof item.alt === 'string' ? item.alt : undefined,
+                        caption: typeof item.caption === 'string' ? item.caption : undefined,
+                      };
+
+                      return onUploadAsset(file, metadata);
+                    }}
+                  />
+                ) : (
+                  <input
+                    className={inputClassName}
+                    value={typeof itemValue === 'string' || typeof itemValue === 'number' ? String(itemValue) : ''}
+                    onChange={(event) =>
+                      onChange(
+                        value.map((currentItem, itemIndex) =>
+                          itemIndex === index ? { ...currentItem, [key]: event.target.value } : currentItem,
+                        ),
+                      )
+                    }
+                  />
+                )}
               </Field>
             ))}
           </div>
@@ -220,6 +390,12 @@ const LandingEditorPage = () => {
   const selectedPage = builder.selectedPage;
   const selectedSection = builder.selectedSection;
   const selectedSectionsOrder = selectedPage?.sections.map((section) => section.id) ?? [];
+
+  const uploadAssetToSection = async (usageContext: string, file: File, metadata?: Record<string, unknown>) => {
+    const asset = await builder.uploadAsset(file, usageContext, metadata);
+
+    return asset?.public_url ?? null;
+  };
 
   useEffect(() => {
     if (!selectedFieldPath) {
@@ -592,9 +768,25 @@ const LandingEditorPage = () => {
                       <ArrayEditor
                         fieldName={fieldName}
                         onChange={(value) => builder.updateSectionField(selectedPage!.id, selectedSection.id, fieldPath, value)}
+                        onUploadAsset={(file, metadata) => uploadAssetToSection(selectedSection.type, file, metadata)}
                         section={selectedSection}
                       />
                     </div>
+                  );
+                }
+
+                if (isImageField(fieldName, schema.type)) {
+                  return (
+                    <Field key={fieldName} label={FIELD_LABELS[fieldName] ?? fieldName}>
+                      <ImageUploadField
+                        inputRef={(node) => {
+                          fieldRefs.current[fieldPath] = node;
+                        }}
+                        value={buildFieldValue(selectedSection, fieldName)}
+                        onChange={(value) => builder.updateSectionField(selectedPage!.id, selectedSection.id, fieldPath, value)}
+                        onUpload={(file) => uploadAssetToSection(selectedSection.type, file)}
+                      />
+                    </Field>
                   );
                 }
 
@@ -669,6 +861,28 @@ const LandingEditorPage = () => {
               </Field>
               <Field label="Описание">
                 <textarea className={`${inputClassName} min-h-24`} value={builder.site.description} onChange={(event) => builder.updateSiteDraft({ description: event.target.value })} />
+              </Field>
+              <Field label="Logo">
+                <ImageUploadField
+                  value={builder.site.logo_url ?? ''}
+                  onChange={(value) => builder.updateSiteDraft({ logo_url: value })}
+                  onUpload={async (file) => {
+                    const asset = await builder.uploadAsset(file, 'logo');
+
+                    return asset?.public_url ?? null;
+                  }}
+                />
+              </Field>
+              <Field label="Favicon">
+                <ImageUploadField
+                  value={builder.site.favicon_url ?? ''}
+                  onChange={(value) => builder.updateSiteDraft({ favicon_url: value })}
+                  onUpload={async (file) => {
+                    const asset = await builder.uploadAsset(file, 'favicon');
+
+                    return asset?.public_url ?? null;
+                  }}
+                />
               </Field>
               <Field label="Default locale">
                 <input className={inputClassName} value={builder.site.default_locale} onChange={(event) => builder.updateSiteDraft({ default_locale: event.target.value })} />

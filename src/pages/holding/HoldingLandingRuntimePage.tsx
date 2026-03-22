@@ -33,6 +33,18 @@ const HoldingLandingRuntimePage = () => {
 
   const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
   const showPreviewBadge = isPreview && payload?.runtime.mode === 'draft';
+  const navigation =
+    payload?.navigation && payload.navigation.length > 0
+      ? payload.navigation
+      : (payload?.pages ?? [])
+          .filter((page) => page.is_active)
+          .map((page) => ({
+            id: page.id,
+            slug: page.slug,
+            label: page.navigation_label || page.title,
+            page_type: page.page_type,
+            is_home: page.is_home,
+          }));
 
   if (loading) {
     return (
@@ -62,7 +74,7 @@ const HoldingLandingRuntimePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-4 py-6 sm:px-6">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)]">
       <SEOHead
         title={payload.current_page?.seo_meta.title || payload.site.seo_meta.title || payload.site.title}
         description={
@@ -72,23 +84,21 @@ const HoldingLandingRuntimePage = () => {
         }
         keywords={payload.site.seo_meta.keywords}
       />
-      <div className="mx-auto max-w-none">
-        {showPreviewBadge && (
-          <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900 shadow-sm">
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-            <span>Режим превью</span>
-          </div>
-        )}
-
-        <SiteBuilderRenderer
-          blog={payload.blog}
-          blocks={payload.blocks}
-          mode="public"
-          onSubmitLead={publicHoldingSiteService.submitLead}
-          page={payload.current_page ?? payload.page ?? null}
-          site={payload.site}
-        />
-      </div>
+      {showPreviewBadge && (
+        <div className="fixed right-4 top-4 z-50 inline-flex items-center gap-3 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900 shadow-sm">
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+          <span>Режим превью</span>
+        </div>
+      )}
+      <SiteBuilderRenderer
+        blog={payload.blog}
+        blocks={payload.blocks}
+        mode="public"
+        navigation={navigation}
+        onSubmitLead={publicHoldingSiteService.submitLead}
+        page={payload.current_page ?? payload.page ?? null}
+        site={payload.site}
+      />
     </div>
   );
 };

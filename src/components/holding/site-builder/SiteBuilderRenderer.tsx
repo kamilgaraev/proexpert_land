@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent, KeyboardEvent, MouseEvent, ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import NotificationService from '@components/shared/NotificationService';
 import type {
   BuilderCanvasFocusTarget,
@@ -7,6 +8,7 @@ import type {
   EditorSection,
   EditorSite,
   LeadSubmissionPayload,
+  PublicNavigationItem,
   SiteBlogArticle,
 } from '@/types/holding-site-builder';
 
@@ -14,6 +16,7 @@ interface SiteBuilderRendererProps {
   site: EditorSite;
   page?: EditorPage | null;
   blocks?: EditorSection[];
+  navigation?: PublicNavigationItem[];
   mode?: 'public' | 'editor';
   selectedBlockId?: number | null;
   selectedFieldPath?: string | null;
@@ -27,6 +30,35 @@ interface SiteBuilderRendererProps {
 
 const stringValue = (value: unknown): string => (typeof value === 'string' ? value : '');
 const arrayValue = <T,>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
+const normalizePublicPath = (value: unknown): string => {
+  const rawValue = stringValue(value).trim();
+
+  if (!rawValue || rawValue === '/') {
+    return '/';
+  }
+
+  const withLeadingSlash = rawValue.startsWith('/') ? rawValue : `/${rawValue}`;
+
+  return withLeadingSlash.length > 1 && withLeadingSlash.endsWith('/')
+    ? withLeadingSlash.slice(0, -1)
+    : withLeadingSlash;
+};
+
+const getPreviewSearch = (): string => {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  const params = new URLSearchParams(window.location.search);
+
+  return params.get('preview') === 'true' ? window.location.search : '';
+};
+
+const buildPublicHref = (slug: unknown, search = ''): string => {
+  const path = normalizePublicPath(slug);
+
+  return search ? `${path}${search}` : path;
+};
 
 const handleInteractiveKeyDown = (event: KeyboardEvent<HTMLElement>, onInteract: () => void) => {
   if (event.key !== 'Enter' && event.key !== ' ') {
@@ -186,6 +218,88 @@ const SectionHeading = ({
     )}
   </>
 );
+
+const PublicSiteHeader = ({
+  site,
+  currentPage,
+  navigation,
+}: {
+  site: EditorSite;
+  currentPage?: EditorPage | null;
+  navigation: PublicNavigationItem[];
+}) => {
+  const previewSearch = getPreviewSearch();
+  const currentPath =
+    typeof window === 'undefined'
+      ? normalizePublicPath(currentPage?.slug ?? '/')
+      : normalizePublicPath(window.location.pathname);
+  const currentPageLabel = stringValue(currentPage?.navigation_label) || stringValue(currentPage?.title) || site.title;
+
+  return (
+    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+      <div
+        className="mx-auto flex w-full flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8"
+        style={{ maxWidth: site.theme_config.container_width ?? '1240px' }}
+      >
+        <Link className="flex min-w-0 items-center gap-3" to={buildPublicHref('/', previewSearch)}>
+          <span
+            className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-lg font-semibold text-white shadow-[0_18px_45px_-32px_rgba(15,23,42,0.45)]"
+            style={site.logo_url ? { backgroundColor: '#ffffff' } : { backgroundColor: site.theme_config.primary_color }}
+          >
+            {site.logo_url ? (
+              <img alt={site.title} className="h-full w-full object-cover" src={site.logo_url} />
+            ) : (
+              site.title.trim().charAt(0).toUpperCase() || 'P'
+            )}
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+              {site.domain}
+            </span>
+            <span className="block truncate text-lg font-semibold text-slate-950">{site.title}</span>
+          </span>
+        </Link>
+
+        {navigation.length > 0 && (
+          <nav className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-1 lg:justify-center lg:pb-0">
+            {navigation.map((item) => {
+              const itemPath = normalizePublicPath(item.slug);
+              const isBlogMatch =
+                currentPage?.page_type === 'blog_post' &&
+                (item.page_type === 'blog_index' || itemPath === '/blog');
+              const isActive =
+                currentPath === itemPath ||
+                (itemPath !== '/' && currentPath.startsWith(`${itemPath}/`)) ||
+                isBlogMatch;
+
+              return (
+                <Link
+                  key={`${item.id}-${item.slug}`}
+                  className={`inline-flex flex-shrink-0 items-center rounded-full px-4 py-2 text-sm font-medium transition ${
+                    isActive ? 'text-white shadow-[0_18px_45px_-32px_rgba(37,99,235,0.6)]' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+                  }`}
+                  style={isActive ? { backgroundColor: site.theme_config.primary_color } : undefined}
+                  to={buildPublicHref(item.slug, previewSearch)}
+                >
+                  {stringValue(item.label) || (itemPath === '/' ? 'Главная' : itemPath.slice(1))}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
+
+        <div className="hidden items-center lg:flex">
+          <span
+            className="inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium text-slate-700"
+            style={{ borderColor: `${site.theme_config.primary_color}33` }}
+          >
+            {currentPageLabel}
+          </span>
+        </div>
+      </div>
+    </header>
+  );
+};
 
 const renderCards = (items: Array<Record<string, unknown>>, colorClass: string) => (
   <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -517,6 +631,7 @@ const SiteBuilderRenderer = ({
   site,
   page,
   blocks,
+  navigation = [],
   mode = 'public',
   selectedBlockId,
   selectedFieldPath,
@@ -527,10 +642,24 @@ const SiteBuilderRenderer = ({
   const sections = page?.sections ?? blocks ?? [];
   const currentPage = page;
   const background = mode === 'public' ? 'bg-[linear-gradient(180deg,#f7f9fc_0%,#eef2ff_100%)]' : 'bg-slate-100';
+  const navigationItems =
+    navigation.length > 0
+      ? navigation
+      : currentPage
+        ? [
+            {
+              id: currentPage.id,
+              slug: currentPage.slug,
+              label: stringValue(currentPage.navigation_label) || currentPage.title,
+              page_type: currentPage.page_type,
+              is_home: currentPage.is_home,
+            },
+          ]
+        : [];
 
   return (
     <div className={`${background}`} style={{ color: site.theme_config.text_color, fontFamily: site.theme_config.font_family }}>
-      {mode === 'editor' && (
+      {mode === 'editor' ? (
         <div className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/85 backdrop-blur">
           <div className="mx-auto flex w-full items-center justify-between px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500" style={{ maxWidth: '1320px' }}>
             <div className="flex items-center gap-3">
@@ -544,6 +673,8 @@ const SiteBuilderRenderer = ({
             <div>{currentPage?.navigation_label || currentPage?.title || site.title}</div>
           </div>
         </div>
+      ) : (
+        <PublicSiteHeader currentPage={currentPage} navigation={navigationItems} site={site} />
       )}
 
       {currentPage?.page_type === 'blog_post' && blog?.current_article ? (

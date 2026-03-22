@@ -11,6 +11,7 @@ import {
 } from '@/services/holdingSiteBuilderService';
 import type {
   BuilderWorkspaceData,
+  EditorAsset,
   EditorCollaborator,
   EditorPage,
   EditorSection,
@@ -834,12 +835,45 @@ export const useHoldingSiteBuilder = () => {
     setWorkspace((current) => (current ? { ...current, collaborators } : current));
   }, []);
 
+  const uploadAsset = useCallback(async (file: File, usageContext: string, metadata?: Record<string, unknown>) => {
+    try {
+      const asset = await holdingSiteBuilderService.uploadAsset(file, usageContext, metadata);
+
+      startTransition(() => {
+        setWorkspace((current) => {
+          if (!current) {
+            return current;
+          }
+
+          const nextAssets = [asset, ...current.assets.filter((currentAsset) => currentAsset.id !== asset.id)];
+
+          return {
+            ...current,
+            assets: nextAssets,
+            summary: {
+              ...current.summary,
+              assets_count: nextAssets.length,
+            },
+          };
+        });
+      });
+
+      return asset;
+    } catch (uploadError) {
+      const message = getErrorMessage(uploadError, 'Не удалось загрузить файл в медиатеку.');
+      setError(message);
+      NotificationService.show({ type: 'error', title: 'Медиатека', message });
+      return null as EditorAsset | null;
+    }
+  }, []);
+
   const hasUnsavedChanges = dirtySite || Object.values(dirtyPages).some(Boolean) || Object.values(dirtySections).some(Boolean);
 
   return {
     workspace,
     site: workspace?.site ?? null,
     pages: workspace?.pages ?? [],
+    assets: workspace?.assets ?? ([] as EditorAsset[]),
     templates: workspace?.templates ?? FALLBACK_TEMPLATES,
     sectionPresets: workspace?.section_presets ?? workspace?.templates ?? FALLBACK_TEMPLATES,
     pageTemplates: workspace?.page_templates ?? [],
@@ -884,6 +918,7 @@ export const useHoldingSiteBuilder = () => {
     createCollaborator,
     updateCollaborator,
     deleteCollaborator,
+    uploadAsset,
     reload: loadWorkspace,
   };
 };
