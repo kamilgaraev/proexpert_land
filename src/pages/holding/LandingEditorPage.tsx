@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -23,7 +23,12 @@ import SiteBuilderRenderer from '@/components/holding/site-builder/SiteBuilderRe
 import { ARRAY_ITEM_TEMPLATES, FIELD_LABELS } from '@/constants/holdingSiteBuilder';
 import { usePermissionsContext } from '@/contexts/PermissionsContext';
 import { useHoldingSiteBuilder } from '@/hooks/useHoldingSiteBuilder';
-import type { EditorAsset, EditorBlock, SiteTemplatePreset } from '@/types/holding-site-builder';
+import type {
+  BuilderCanvasFocusTarget,
+  EditorAsset,
+  EditorBlock,
+  SiteTemplatePreset,
+} from '@/types/holding-site-builder';
 
 type WorkspaceTab = 'structure' | 'properties' | 'media' | 'settings' | 'leads';
 
@@ -253,12 +258,34 @@ const ArrayEditor = ({
 const BlockInspector = ({
   block,
   assets,
+  focusedFieldPath,
   onChange,
 }: {
   block: EditorBlock | null;
   assets: EditorAsset[];
+  focusedFieldPath?: string | null;
   onChange: (patch: Partial<EditorBlock>) => void;
 }) => {
+  const fieldRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    if (!focusedFieldPath) {
+      return;
+    }
+
+    const fieldElement = fieldRefs.current[focusedFieldPath];
+    if (!fieldElement) {
+      return;
+    }
+
+    fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    const focusable = fieldElement.querySelector('input, textarea, select, button');
+    if (focusable instanceof HTMLElement) {
+      focusable.focus({ preventScroll: true });
+    }
+  }, [block?.id, focusedFieldPath]);
+
   if (!block) {
     return (
       <PanelCard
@@ -288,16 +315,37 @@ const BlockInspector = ({
         </div>
       }
     >
-      <Field label="Название секции">
-        <input
-          className={textInputClassName}
-          value={block.title}
-          onChange={(event) => onChange({ title: event.target.value })}
-        />
-      </Field>
+      <div
+        className={`rounded-[24px] border p-4 transition ${
+          focusedFieldPath === '__meta.title' ? 'border-blue-300 bg-blue-50/60' : 'border-slate-200 bg-slate-50'
+        }`}
+        data-editor-focus-target="__meta.title"
+        ref={(element) => {
+          fieldRefs.current['__meta.title'] = element;
+        }}
+      >
+        <Field label="Название секции">
+          <input
+            className={textInputClassName}
+            value={block.title}
+            onChange={(event) => onChange({ title: event.target.value })}
+          />
+        </Field>
+      </div>
 
       {schemaEntries.map(([fieldName, fieldSchema]) => (
-        <div key={fieldName} className="space-y-4 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+        <div
+          key={fieldName}
+          className={`space-y-4 rounded-[24px] border p-4 transition ${
+            focusedFieldPath === `content.${fieldName}`
+              ? 'border-blue-300 bg-blue-50/60'
+              : 'border-slate-200 bg-slate-50'
+          }`}
+          data-editor-focus-target={`content.${fieldName}`}
+          ref={(element) => {
+            fieldRefs.current[`content.${fieldName}`] = element;
+          }}
+        >
           <Field label={FIELD_LABELS[fieldName] ?? fieldName}>
             {fieldSchema.type === 'text' || fieldSchema.type === 'html' ? (
               <textarea
@@ -440,6 +488,7 @@ const LandingEditorPage = () => {
   const navigate = useNavigate();
   const { can } = usePermissionsContext();
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('structure');
+  const [selectedFieldPath, setSelectedFieldPath] = useState<string | null>(null);
   const [armedBlockDeleteId, setArmedBlockDeleteId] = useState<number | null>(null);
   const [armedAssetDeleteId, setArmedAssetDeleteId] = useState<number | null>(null);
 
@@ -522,6 +571,19 @@ const LandingEditorPage = () => {
   const selectedIndex = workspace.blocks.findIndex((block) => block.id === selectedBlockId);
   const selectedPosition = selectedIndex >= 0 ? selectedIndex + 1 : null;
   const activeTabMeta = TAB_META.find((tab) => tab.id === activeTab) ?? TAB_META[0];
+
+  const handleCanvasInteract = ({ blockId, fieldPath }: BuilderCanvasFocusTarget) => {
+    selectBlock(blockId);
+    setSelectedFieldPath(fieldPath ?? '__meta.title');
+    setArmedBlockDeleteId(null);
+    setActiveTab('properties');
+  };
+
+  useEffect(() => {
+    if (!selectedBlockId) {
+      setSelectedFieldPath(null);
+    }
+  }, [selectedBlockId]);
 
   const moveSelectedBlock = async (direction: -1 | 1) => {
     if (!canEdit || selectedIndex < 0) {
@@ -612,6 +674,7 @@ const LandingEditorPage = () => {
                 }`}
                 onClick={() => {
                   setArmedBlockDeleteId(null);
+                  setSelectedFieldPath(null);
                   selectBlock(block.id);
                 }}
                 type="button"
@@ -659,6 +722,7 @@ const LandingEditorPage = () => {
         <BlockInspector
           assets={workspace.assets}
           block={selectedBlock}
+          focusedFieldPath={selectedFieldPath}
           onChange={(patch) => {
             if (selectedBlock && canEdit) {
               updateBlockDraft(selectedBlock.id, patch);
@@ -1208,8 +1272,13 @@ const LandingEditorPage = () => {
                 title="Canvas"
                 subtitle="Превью живого черновика. Компоненты совпадают с публичным runtime."
                 actions={
-                  <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                    {activeTab === 'structure' ? 'Desktop preview' : activeTabMeta.label}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                      Клик по тексту или изображению открывает нужное поле
+                    </div>
+                    <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                      {activeTab === 'structure' ? 'Desktop preview' : activeTabMeta.label}
+                    </div>
                   </div>
                 }
               >
@@ -1242,7 +1311,14 @@ const LandingEditorPage = () => {
                     </div>
                     <div className="max-h-[78vh] overflow-auto bg-slate-100/70 p-3 sm:p-5">
                       <div className="mx-auto max-w-[1240px]">
-                        <SiteBuilderRenderer blocks={publicBlocks} mode="editor" site={workspace.site} />
+                        <SiteBuilderRenderer
+                          blocks={publicBlocks}
+                          mode="editor"
+                          onEditorInteract={handleCanvasInteract}
+                          selectedBlockId={selectedBlockId}
+                          selectedFieldPath={selectedFieldPath}
+                          site={workspace.site}
+                        />
                       </div>
                     </div>
                   </div>

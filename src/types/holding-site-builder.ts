@@ -148,6 +148,12 @@ export interface EditorBlock {
   assets: EditorAsset[];
 }
 
+export interface BuilderCanvasFocusTarget {
+  blockId: number;
+  fieldPath?: string;
+  intent?: 'block' | 'text' | 'image' | 'button' | 'collection';
+}
+
 export interface BuilderWorkspaceData {
   site: EditorSite;
   blocks: EditorBlock[];
