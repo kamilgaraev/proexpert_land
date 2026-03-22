@@ -105,7 +105,7 @@ const DashboardPage = () => {
     {
       name: 'Создать проект',
       description: 'Новый объект строительства',
-      href: '/dashboard/projects/create',
+      href: 'https://admin.prohelper.pro/projects/create',
       icon: Building2,
       variant: 'default' as const
     },
@@ -119,14 +119,14 @@ const DashboardPage = () => {
     {
       name: 'Загрузить документы',
       description: 'Планы и чертежи',
-      href: '/dashboard/documents',
+      href: '/dashboard/modules',
       icon: File,
       variant: 'outline' as const
     },
     {
       name: 'Посмотреть отчеты',
       description: 'Сводная аналитика',
-      href: '/dashboard/reports',
+      href: '/dashboard/contractor-invitations',
       icon: BarChart,
       variant: 'outline' as const
     }
@@ -146,7 +146,7 @@ const DashboardPage = () => {
              Обновлено: {new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
            </span>
            <Button asChild>
-             <Link to="/dashboard/projects/create">
+             <Link to="https://admin.prohelper.pro/projects/create">
                <Plus className="h-4 w-4 mr-2" />
                Новый проект
              </Link>

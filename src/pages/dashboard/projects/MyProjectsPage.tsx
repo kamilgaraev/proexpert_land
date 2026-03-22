@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ProjectCard } from '@/components/dashboard/projects/ProjectCard';
 import api from '@/utils/api';
 import { PlusIcon, FolderIcon, Search } from 'lucide-react';
@@ -9,7 +8,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ProjectOverview } from '@/types/projects-overview';
 
 export const MyProjectsPage = () => {
-  const navigate = useNavigate();
   const [projects, setProjects] = useState<ProjectOverview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,7 +65,9 @@ export const MyProjectsPage = () => {
           </div>
           <Button 
             className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 rounded-xl h-12 px-6 font-bold transition-all hover:scale-[1.02]"
-            onClick={() => navigate('/dashboard/projects/create')}
+            onClick={() => {
+              window.location.href = 'https://admin.prohelper.pro/projects/create';
+            }}
           >
             <PlusIcon className="w-5 h-5 mr-2" />
             Создать проект
