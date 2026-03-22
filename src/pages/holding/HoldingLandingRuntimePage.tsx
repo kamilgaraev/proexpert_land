@@ -18,7 +18,7 @@ const HoldingLandingRuntimePage = () => {
       setErrorStatus(null);
 
       try {
-        const data = await publicHoldingSiteService.getSiteData(window.location.search);
+        const data = await publicHoldingSiteService.getSiteData(window.location.pathname, window.location.search);
         setPayload(data);
       } catch (loadError) {
         setError(loadError instanceof Error ? loadError.message : 'Не удалось загрузить опубликованный сайт.');
@@ -64,11 +64,15 @@ const HoldingLandingRuntimePage = () => {
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-4 py-6 sm:px-6">
       <SEOHead
-        title={payload.site.seo_meta.title || payload.site.title}
-        description={payload.site.seo_meta.description || payload.site.description}
+        title={payload.current_page?.seo_meta.title || payload.site.seo_meta.title || payload.site.title}
+        description={
+          payload.current_page?.seo_meta.description ||
+          payload.site.seo_meta.description ||
+          payload.site.description
+        }
         keywords={payload.site.seo_meta.keywords}
       />
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-none">
         {showPreviewBadge && (
           <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900 shadow-sm">
             <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
@@ -77,9 +81,11 @@ const HoldingLandingRuntimePage = () => {
         )}
 
         <SiteBuilderRenderer
+          blog={payload.blog}
           blocks={payload.blocks}
           mode="public"
           onSubmitLead={publicHoldingSiteService.submitLead}
+          page={payload.current_page ?? payload.page ?? null}
           site={payload.site}
         />
       </div>

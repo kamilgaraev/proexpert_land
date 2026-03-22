@@ -11,15 +11,20 @@ import {
 } from '@/services/holdingSiteBuilderService';
 import type {
   BuilderWorkspaceData,
-  EditorBlock,
+  EditorCollaborator,
+  EditorPage,
+  EditorSection,
   EditorSite,
   LeadEntry,
   LeadSummary,
-  SiteTemplatePreset,
+  PageTemplatePreset,
+  SiteBlogArticle,
+  SiteRevision,
 } from '@/types/holding-site-builder';
 
 const SITE_SAVE_DELAY = 700;
-const BLOCK_SAVE_DELAY = 700;
+const PAGE_SAVE_DELAY = 700;
+const SECTION_SAVE_DELAY = 700;
 
 const getErrorMessage = (error: unknown, fallback: string): string => {
   if (error instanceof BuilderApiError) {
@@ -33,8 +38,31 @@ const getErrorMessage = (error: unknown, fallback: string): string => {
   return fallback;
 };
 
+const setDeepValue = (target: Record<string, unknown>, path: string, value: unknown): Record<string, unknown> => {
+  const segments = path.split('.');
+  const next = structuredClone(target);
+  let cursor: Record<string, unknown> = next;
+
+  segments.forEach((segment, index) => {
+    if (index === segments.length - 1) {
+      cursor[segment] = value;
+      return;
+    }
+
+    const current = cursor[segment];
+    if (!current || typeof current !== 'object' || Array.isArray(current)) {
+      cursor[segment] = {};
+    }
+    cursor = cursor[segment] as Record<string, unknown>;
+  });
+
+  return next;
+};
+
 const sanitizeSitePayload = (site: EditorSite) => ({
   domain: site.domain,
+  default_locale: site.default_locale,
+  enabled_locales: site.enabled_locales,
   title: site.title,
   description: site.description,
   logo_url: site.logo_url,
@@ -44,36 +72,52 @@ const sanitizeSitePayload = (site: EditorSite) => ({
   analytics_config: site.analytics_config,
 });
 
-const sanitizeBlockPayload = (block: EditorBlock) => ({
-  title: block.title,
-  content: block.content,
-  settings: block.settings,
-  bindings: block.bindings,
-  sort_order: block.sort_order,
-  is_active: block.is_active,
+const sanitizePagePayload = (page: EditorPage) => ({
+  page_type: page.page_type,
+  slug: page.slug,
+  navigation_label: page.navigation_label,
+  title: page.title,
+  description: page.description,
+  seo_meta: page.seo_meta,
+  layout_config: page.layout_config,
+  locale_content: page.locale_content,
+  visibility: page.visibility,
+  sort_order: page.sort_order,
+  is_home: page.is_home,
+  is_active: page.is_active,
 });
 
-const mergeRecord = (
-  target: Record<string, unknown>,
-  patch: Record<string, unknown> | undefined,
-): Record<string, unknown> => ({ ...target, ...(patch ?? {}) });
+const sanitizeSectionPayload = (section: EditorSection) => ({
+  title: section.title,
+  content: section.content,
+  settings: section.settings,
+  bindings: section.bindings,
+  locale_content: section.locale_content,
+  style_config: section.style_config,
+  sort_order: section.sort_order,
+  is_active: section.is_active,
+});
 
 export const useHoldingSiteBuilder = () => {
   const [workspace, setWorkspace] = useState<BuilderWorkspaceData | null>(null);
   const [leads, setLeads] = useState<LeadEntry[]>([]);
   const [leadSummary, setLeadSummary] = useState<LeadSummary | null>(null);
-  const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
+  const [selectedPageId, setSelectedPageId] = useState<number | string | null>(null);
+  const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [savingSite, setSavingSite] = useState(false);
-  const [savingBlocks, setSavingBlocks] = useState<Record<number, boolean>>({});
+  const [savingPages, setSavingPages] = useState<Record<string, boolean>>({});
+  const [savingSections, setSavingSections] = useState<Record<number, boolean>>({});
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dirtySite, setDirtySite] = useState(false);
-  const [dirtyBlocks, setDirtyBlocks] = useState<Record<number, boolean>>({});
+  const [dirtyPages, setDirtyPages] = useState<Record<string, boolean>>({});
+  const [dirtySections, setDirtySections] = useState<Record<number, boolean>>({});
 
   const workspaceRef = useRef<BuilderWorkspaceData | null>(null);
   const siteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const blockTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+  const pageTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const sectionTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
     workspaceRef.current = workspace;
@@ -85,19 +129,35 @@ export const useHoldingSiteBuilder = () => {
         clearTimeout(siteTimerRef.current);
       }
 
-      Object.values(blockTimersRef.current).forEach((timer) => clearTimeout(timer));
+      Object.values(pageTimersRef.current).forEach((timer) => clearTimeout(timer));
+      Object.values(sectionTimersRef.current).forEach((timer) => clearTimeout(timer));
     };
   }, []);
 
   const replaceWorkspace = useCallback((nextWorkspace: BuilderWorkspaceData) => {
     startTransition(() => {
-      setWorkspace(nextWorkspace);
-      setSelectedBlockId((currentSelected) => {
-        if (currentSelected && nextWorkspace.blocks.some((block) => block.id === currentSelected)) {
-          return currentSelected;
+      setWorkspace({
+        ...nextWorkspace,
+        templates: nextWorkspace.templates.length > 0 ? nextWorkspace.templates : FALLBACK_TEMPLATES,
+      });
+
+      setSelectedPageId((currentPageId) => {
+        if (currentPageId && nextWorkspace.pages.some((page) => page.id === currentPageId)) {
+          return currentPageId;
         }
 
-        return nextWorkspace.blocks[0]?.id ?? null;
+        return nextWorkspace.pages[0]?.id ?? null;
+      });
+
+      setSelectedSectionId((currentSectionId) => {
+        if (
+          currentSectionId &&
+          nextWorkspace.pages.some((page) => page.sections.some((section) => section.id === currentSectionId))
+        ) {
+          return currentSectionId;
+        }
+
+        return nextWorkspace.pages[0]?.sections[0]?.id ?? null;
       });
     });
   }, []);
@@ -113,14 +173,12 @@ export const useHoldingSiteBuilder = () => {
         holdingSiteBuilderService.getLeads(),
       ]);
 
-      replaceWorkspace({
-        ...workspaceData,
-        templates: workspaceData.templates.length > 0 ? workspaceData.templates : FALLBACK_TEMPLATES,
-      });
+      replaceWorkspace(workspaceData);
       setLeadSummary(leadSummaryData);
       setLeads(leadEntries);
       setDirtySite(false);
-      setDirtyBlocks({});
+      setDirtyPages({});
+      setDirtySections({});
     } catch (loadError) {
       setError(getErrorMessage(loadError, 'Не удалось загрузить конструктор сайта.'));
     } finally {
@@ -131,25 +189,6 @@ export const useHoldingSiteBuilder = () => {
   useEffect(() => {
     void loadWorkspace();
   }, [loadWorkspace]);
-
-  useEffect(() => {
-    const hasDirtyBlocks = Object.values(dirtyBlocks).some(Boolean);
-
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (!dirtySite && !hasDirtyBlocks && !savingSite) {
-        return;
-      }
-
-      event.preventDefault();
-      event.returnValue = '';
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [dirtyBlocks, dirtySite, savingSite]);
 
   const saveSiteNow = useCallback(async () => {
     if (!workspaceRef.current) {
@@ -168,59 +207,102 @@ export const useHoldingSiteBuilder = () => {
     } catch (saveError) {
       const message = getErrorMessage(saveError, 'Не удалось сохранить настройки сайта.');
       setError(message);
-      NotificationService.show({
-        type: 'error',
-        title: 'Автосохранение',
-        message,
-      });
+      NotificationService.show({ type: 'error', title: 'Автосохранение', message });
     } finally {
       setSavingSite(false);
     }
   }, [replaceWorkspace]);
 
-  const saveBlockNow = useCallback(async (blockId: number) => {
+  const savePageNow = useCallback(async (pageId: number | string) => {
     const currentWorkspace = workspaceRef.current;
-    const block = currentWorkspace?.blocks.find((item) => item.id === blockId);
+    const page = currentWorkspace?.pages.find((item) => item.id === pageId);
 
-    if (!block) {
+    if (!page || typeof page.id !== 'number') {
       return;
     }
 
-    setSavingBlocks((current) => ({ ...current, [blockId]: true }));
-    setError(null);
+    setSavingPages((current) => ({ ...current, [String(pageId)]: true }));
 
     try {
-      const updatedBlock = await holdingSiteBuilderService.updateBlock(
-        blockId,
-        sanitizeBlockPayload(block),
-      );
+      const updatedPage = await holdingSiteBuilderService.updatePage(page.id, sanitizePagePayload(page));
 
       startTransition(() => {
-        setWorkspace((currentWorkspaceState) => {
-          if (!currentWorkspaceState) {
-            return currentWorkspaceState;
+        setWorkspace((currentState) => {
+          if (!currentState) {
+            return currentState;
           }
 
           return {
-            ...currentWorkspaceState,
-            blocks: currentWorkspaceState.blocks.map((item) =>
-              item.id === blockId ? updatedBlock : item,
-            ),
+            ...currentState,
+            pages: currentState.pages.map((item) => (item.id === pageId ? updatedPage : item)),
+            blocks:
+              currentState.pages.find((item) => item.id === pageId)?.is_home
+                ? updatedPage.sections
+                : currentState.blocks,
           };
         });
       });
 
-      setDirtyBlocks((current) => ({ ...current, [blockId]: false }));
+      setDirtyPages((current) => ({ ...current, [String(pageId)]: false }));
     } catch (saveError) {
-      const message = getErrorMessage(saveError, 'Не удалось сохранить блок.');
+      const message = getErrorMessage(saveError, 'Не удалось сохранить страницу.');
       setError(message);
-      NotificationService.show({
-        type: 'error',
-        title: 'Автосохранение',
-        message,
-      });
+      NotificationService.show({ type: 'error', title: 'Автосохранение', message });
     } finally {
-      setSavingBlocks((current) => ({ ...current, [blockId]: false }));
+      setSavingPages((current) => ({ ...current, [String(pageId)]: false }));
+    }
+  }, []);
+
+  const saveSectionNow = useCallback(async (pageId: number | string, sectionId: number) => {
+    const currentWorkspace = workspaceRef.current;
+    const page = currentWorkspace?.pages.find((item) => item.id === pageId);
+    const section = page?.sections.find((item) => item.id === sectionId);
+
+    if (!page || typeof page.id !== 'number' || !section) {
+      return;
+    }
+
+    setSavingSections((current) => ({ ...current, [sectionId]: true }));
+
+    try {
+      const updatedSection = await holdingSiteBuilderService.updateSection(
+        page.id,
+        sectionId,
+        sanitizeSectionPayload(section),
+      );
+
+      startTransition(() => {
+        setWorkspace((currentState) => {
+          if (!currentState) {
+            return currentState;
+          }
+
+          const nextPages = currentState.pages.map((currentPage) =>
+            currentPage.id === pageId
+              ? {
+                  ...currentPage,
+                  sections: currentPage.sections.map((currentSection) =>
+                    currentSection.id === sectionId ? updatedSection : currentSection,
+                  ),
+                }
+              : currentPage,
+          );
+
+          return {
+            ...currentState,
+            pages: nextPages,
+            blocks: nextPages.find((item) => item.is_home)?.sections ?? currentState.blocks,
+          };
+        });
+      });
+
+      setDirtySections((current) => ({ ...current, [sectionId]: false }));
+    } catch (saveError) {
+      const message = getErrorMessage(saveError, 'Не удалось сохранить секцию.');
+      setError(message);
+      NotificationService.show({ type: 'error', title: 'Автосохранение', message });
+    } finally {
+      setSavingSections((current) => ({ ...current, [sectionId]: false }));
     }
   }, []);
 
@@ -234,15 +316,26 @@ export const useHoldingSiteBuilder = () => {
     }, SITE_SAVE_DELAY);
   }, [saveSiteNow]);
 
-  const queueBlockSave = useCallback((blockId: number) => {
-    if (blockTimersRef.current[blockId]) {
-      clearTimeout(blockTimersRef.current[blockId]);
+  const queuePageSave = useCallback((pageId: number | string) => {
+    const key = String(pageId);
+    if (pageTimersRef.current[key]) {
+      clearTimeout(pageTimersRef.current[key]);
     }
 
-    blockTimersRef.current[blockId] = setTimeout(() => {
-      void saveBlockNow(blockId);
-    }, BLOCK_SAVE_DELAY);
-  }, [saveBlockNow]);
+    pageTimersRef.current[key] = setTimeout(() => {
+      void savePageNow(pageId);
+    }, PAGE_SAVE_DELAY);
+  }, [savePageNow]);
+
+  const queueSectionSave = useCallback((pageId: number | string, sectionId: number) => {
+    if (sectionTimersRef.current[sectionId]) {
+      clearTimeout(sectionTimersRef.current[sectionId]);
+    }
+
+    sectionTimersRef.current[sectionId] = setTimeout(() => {
+      void saveSectionNow(pageId, sectionId);
+    }, SECTION_SAVE_DELAY);
+  }, [saveSectionNow]);
 
   const flushPendingSaves = useCallback(async () => {
     if (siteTimerRef.current) {
@@ -251,17 +344,30 @@ export const useHoldingSiteBuilder = () => {
       await saveSiteNow();
     }
 
-    const pendingBlockIds = Object.entries(blockTimersRef.current).map(([blockId, timer]) => {
-      clearTimeout(timer);
-      return Number(blockId);
-    });
-    blockTimersRef.current = {};
+    const pageIds = Object.keys(pageTimersRef.current);
+    pageIds.forEach((pageId) => clearTimeout(pageTimersRef.current[pageId]));
+    pageTimersRef.current = {};
 
-    for (const blockId of pendingBlockIds) {
+    for (const pageId of pageIds) {
       // eslint-disable-next-line no-await-in-loop
-      await saveBlockNow(blockId);
+      await savePageNow(Number.isNaN(Number(pageId)) ? pageId : Number(pageId));
     }
-  }, [saveBlockNow, saveSiteNow]);
+
+    const sectionIds = Object.keys(sectionTimersRef.current).map((value) => Number(value));
+    sectionIds.forEach((sectionId) => clearTimeout(sectionTimersRef.current[sectionId]));
+    sectionTimersRef.current = {};
+
+    const currentWorkspace = workspaceRef.current;
+    for (const sectionId of sectionIds) {
+      const page = currentWorkspace?.pages.find((item) => item.sections.some((section) => section.id === sectionId));
+      if (!page) {
+        continue;
+      }
+
+      // eslint-disable-next-line no-await-in-loop
+      await saveSectionNow(page.id, sectionId);
+    }
+  }, [savePageNow, saveSectionNow, saveSiteNow]);
 
   const refreshLeads = useCallback(async () => {
     try {
@@ -276,9 +382,14 @@ export const useHoldingSiteBuilder = () => {
     }
   }, []);
 
-  const selectedBlock = useMemo(
-    () => workspace?.blocks.find((block) => block.id === selectedBlockId) ?? null,
-    [selectedBlockId, workspace?.blocks],
+  const selectedPage = useMemo(
+    () => workspace?.pages.find((page) => page.id === selectedPageId) ?? null,
+    [selectedPageId, workspace?.pages],
+  );
+
+  const selectedSection = useMemo(
+    () => selectedPage?.sections.find((section) => section.id === selectedSectionId) ?? null,
+    [selectedPage, selectedSectionId],
   );
 
   const updateSiteDraft = useCallback((patch: Partial<EditorSite>) => {
@@ -297,11 +408,12 @@ export const useHoldingSiteBuilder = () => {
         };
       });
     });
+
     setDirtySite(true);
     queueSiteSave();
   }, [queueSiteSave]);
 
-  const updateBlockDraft = useCallback((blockId: number, patch: Partial<EditorBlock>) => {
+  const updatePageDraft = useCallback((pageId: number | string, patch: Partial<EditorPage>) => {
     startTransition(() => {
       setWorkspace((current) => {
         if (!current) {
@@ -310,163 +422,298 @@ export const useHoldingSiteBuilder = () => {
 
         return {
           ...current,
-          blocks: current.blocks.map((block) => {
-            if (block.id !== blockId) {
-              return block;
-            }
-
-            return {
-              ...block,
-              ...patch,
-              content: patch.content ? mergeRecord(block.content, patch.content) : block.content,
-              settings: patch.settings ? mergeRecord(block.settings, patch.settings) : block.settings,
-              bindings: patch.bindings ? { ...block.bindings, ...patch.bindings } : block.bindings,
-            };
-          }),
+          pages: current.pages.map((page) => (page.id === pageId ? { ...page, ...patch } : page)),
         };
       });
     });
-    setDirtyBlocks((current) => ({ ...current, [blockId]: true }));
-    queueBlockSave(blockId);
-  }, [queueBlockSave]);
 
-  const addBlock = useCallback(async (type: SiteTemplatePreset['blocks'][number]) => {
-    try {
-      const createdBlock = await holdingSiteBuilderService.createBlock(createBlockPayloadFromTemplate(type));
+    setDirtyPages((current) => ({ ...current, [String(pageId)]: true }));
+    queuePageSave(pageId);
+  }, [queuePageSave]);
 
-      startTransition(() => {
-        setWorkspace((current) => {
-          if (!current) {
-            return current;
-          }
-
-          return {
-            ...current,
-            blocks: [...current.blocks, createdBlock].sort((a, b) => a.sort_order - b.sort_order),
-          };
-        });
-        setSelectedBlockId(createdBlock.id);
-      });
-
-      NotificationService.show({
-        type: 'success',
-        title: 'Конструктор',
-        message: `Блок «${BLOCK_LIBRARY.find((item) => item.type === type)?.label ?? type}» добавлен.`,
-      });
-
-      return createdBlock;
-    } catch (createError) {
-      const message = getErrorMessage(createError, 'Не удалось добавить блок.');
-      setError(message);
-      NotificationService.show({
-        type: 'error',
-        title: 'Конструктор',
-        message,
-      });
-      return null;
-    }
-  }, []);
-
-  const deleteBlock = useCallback(async (blockId: number) => {
-    try {
-      const response = await holdingSiteBuilderService.deleteBlock(blockId);
-
-      startTransition(() => {
-        setWorkspace((current) => {
-          if (!current) {
-            return current;
-          }
-
-          return {
-            ...current,
-            blocks: response.blocks,
-          };
-        });
-        setSelectedBlockId((current) => (current === blockId ? response.blocks[0]?.id ?? null : current));
-      });
-
-      NotificationService.show({
-        type: 'success',
-        title: 'Конструктор',
-        message: 'Блок удален.',
-      });
-    } catch (deleteError) {
-      const message = getErrorMessage(deleteError, 'Не удалось удалить блок.');
-      setError(message);
-      NotificationService.show({
-        type: 'error',
-        title: 'Конструктор',
-        message,
-      });
-    }
-  }, []);
-
-  const duplicateBlock = useCallback(async (blockId: number) => {
-    try {
-      const duplicated = await holdingSiteBuilderService.duplicateBlock(blockId);
-
-      startTransition(() => {
-        setWorkspace((current) => {
-          if (!current) {
-            return current;
-          }
-
-          return {
-            ...current,
-            blocks: [...current.blocks, duplicated].sort((a, b) => a.sort_order - b.sort_order),
-          };
-        });
-        setSelectedBlockId(duplicated.id);
-      });
-    } catch (duplicateError) {
-      const message = getErrorMessage(duplicateError, 'Не удалось продублировать блок.');
-      setError(message);
-      NotificationService.show({
-        type: 'error',
-        title: 'Конструктор',
-        message,
-      });
-    }
-  }, []);
-
-  const reorderBlocks = useCallback(async (blockOrder: number[]) => {
+  const updateSectionDraft = useCallback((pageId: number | string, sectionId: number, patch: Partial<EditorSection>) => {
     startTransition(() => {
       setWorkspace((current) => {
         if (!current) {
           return current;
         }
 
-        const sorted = [...current.blocks].sort(
-          (left, right) => blockOrder.indexOf(left.id) - blockOrder.indexOf(right.id),
+        const nextPages = current.pages.map((page) =>
+          page.id === pageId
+            ? {
+                ...page,
+                sections: page.sections.map((section) =>
+                  section.id === sectionId
+                    ? {
+                        ...section,
+                        ...patch,
+                        content: patch.content ? { ...section.content, ...patch.content } : section.content,
+                        settings: patch.settings ? { ...section.settings, ...patch.settings } : section.settings,
+                        bindings: patch.bindings ? { ...section.bindings, ...patch.bindings } : section.bindings,
+                        locale_content: patch.locale_content
+                          ? { ...(section.locale_content ?? {}), ...patch.locale_content }
+                          : section.locale_content,
+                        style_config: patch.style_config
+                          ? { ...(section.style_config ?? {}), ...patch.style_config }
+                          : section.style_config,
+                      }
+                    : section,
+                ),
+              }
+            : page,
         );
 
         return {
           ...current,
-          blocks: sorted.map((block, index) => ({
-            ...block,
-            sort_order: index + 1,
-          })),
+          pages: nextPages,
+          blocks: nextPages.find((page) => page.is_home)?.sections ?? current.blocks,
         };
       });
     });
 
+    setDirtySections((current) => ({ ...current, [sectionId]: true }));
+    queueSectionSave(pageId, sectionId);
+  }, [queueSectionSave]);
+
+  const updateSectionField = useCallback(
+    (pageId: number | string, sectionId: number, fieldPath: string, value: unknown) => {
+      const normalizedPath = fieldPath.startsWith('content.') ? fieldPath.replace(/^content\./, '') : fieldPath;
+      const page = workspaceRef.current?.pages.find((item) => item.id === pageId);
+      const section = page?.sections.find((item) => item.id === sectionId);
+
+      if (!section) {
+        return;
+      }
+
+      updateSectionDraft(pageId, sectionId, {
+        content: setDeepValue(section.content, normalizedPath, value),
+      });
+    },
+    [updateSectionDraft],
+  );
+
+  const createPage = useCallback(async (payload: Record<string, unknown>) => {
     try {
-      const blocks = await holdingSiteBuilderService.reorderBlocks(blockOrder);
+      const page = await holdingSiteBuilderService.createPage(payload);
 
       startTransition(() => {
-        setWorkspace((current) => (current ? { ...current, blocks } : current));
+        setWorkspace((current) => {
+          if (!current) {
+            return current;
+          }
+
+          return {
+            ...current,
+            pages: [...current.pages, page].sort((a, b) => a.sort_order - b.sort_order),
+          };
+        });
+        setSelectedPageId(page.id);
+        setSelectedSectionId(page.sections[0]?.id ?? null);
+      });
+
+      return page;
+    } catch (createError) {
+      const message = getErrorMessage(createError, 'Не удалось создать страницу.');
+      setError(message);
+      NotificationService.show({ type: 'error', title: 'Страницы', message });
+      return null;
+    }
+  }, []);
+
+  const deletePage = useCallback(async (pageId: number | string) => {
+    if (typeof pageId !== 'number') {
+      return false;
+    }
+
+    try {
+      const pages = await holdingSiteBuilderService.deletePage(pageId);
+
+      startTransition(() => {
+        setWorkspace((current) => (current ? { ...current, pages, blocks: pages.find((page) => page.is_home)?.sections ?? current.blocks } : current));
+        setSelectedPageId((currentSelected) => (currentSelected === pageId ? pages[0]?.id ?? null : currentSelected));
+      });
+
+      return true;
+    } catch (deleteError) {
+      const message = getErrorMessage(deleteError, 'Не удалось удалить страницу.');
+      setError(message);
+      NotificationService.show({ type: 'error', title: 'Страницы', message });
+      return false;
+    }
+  }, []);
+
+  const reorderPages = useCallback(async (pageOrder: Array<number | string>) => {
+    const numericOrder = pageOrder.filter((pageId): pageId is number => typeof pageId === 'number');
+
+    try {
+      const pages = await holdingSiteBuilderService.reorderPages(numericOrder);
+      startTransition(() => {
+        setWorkspace((current) => (current ? { ...current, pages, blocks: pages.find((page) => page.is_home)?.sections ?? current.blocks } : current));
       });
     } catch (reorderError) {
-      const message = getErrorMessage(reorderError, 'Не удалось изменить порядок блоков.');
+      const message = getErrorMessage(reorderError, 'Не удалось обновить порядок страниц.');
       setError(message);
-      NotificationService.show({
-        type: 'error',
-        title: 'Конструктор',
-        message,
-      });
-      await loadWorkspace();
+      NotificationService.show({ type: 'error', title: 'Страницы', message });
     }
-  }, [loadWorkspace]);
+  }, []);
+
+  const addSection = useCallback(async (pageId: number | string, type: EditorSection['type']) => {
+    if (typeof pageId !== 'number') {
+      return null;
+    }
+
+    try {
+      const section = await holdingSiteBuilderService.createSection(pageId, createBlockPayloadFromTemplate(type as never));
+
+      startTransition(() => {
+        setWorkspace((current) => {
+          if (!current) {
+            return current;
+          }
+
+          const nextPages = current.pages.map((page) =>
+            page.id === pageId
+              ? {
+                  ...page,
+                  sections: [...page.sections, section].sort((a, b) => a.sort_order - b.sort_order),
+                }
+              : page,
+          );
+
+          return {
+            ...current,
+            pages: nextPages,
+            blocks: nextPages.find((page) => page.is_home)?.sections ?? current.blocks,
+          };
+        });
+        setSelectedSectionId(section.id);
+      });
+
+      NotificationService.show({
+        type: 'success',
+        title: 'Структура сайта',
+        message: `Секция «${BLOCK_LIBRARY.find((item) => item.type === type)?.label ?? type}» добавлена.`,
+      });
+
+      return section;
+    } catch (createError) {
+      const message = getErrorMessage(createError, 'Не удалось добавить секцию.');
+      setError(message);
+      NotificationService.show({ type: 'error', title: 'Структура сайта', message });
+      return null;
+    }
+  }, []);
+
+  const deleteSection = useCallback(async (pageId: number | string, sectionId: number) => {
+    if (typeof pageId !== 'number') {
+      return false;
+    }
+
+    try {
+      const updatedPage = await holdingSiteBuilderService.deleteSection(pageId, sectionId);
+
+      startTransition(() => {
+        setWorkspace((current) => {
+          if (!current) {
+            return current;
+          }
+
+          const nextPages = current.pages.map((page) => (page.id === pageId ? updatedPage : page));
+          return {
+            ...current,
+            pages: nextPages,
+            blocks: nextPages.find((page) => page.is_home)?.sections ?? current.blocks,
+          };
+        });
+        setSelectedSectionId((currentSelected) => (currentSelected === sectionId ? updatedPage.sections[0]?.id ?? null : currentSelected));
+      });
+
+      return true;
+    } catch (deleteError) {
+      const message = getErrorMessage(deleteError, 'Не удалось удалить секцию.');
+      setError(message);
+      NotificationService.show({ type: 'error', title: 'Структура сайта', message });
+      return false;
+    }
+  }, []);
+
+  const duplicateSection = useCallback(async (sectionId: number) => {
+    try {
+      const section = await holdingSiteBuilderService.duplicateSection(sectionId);
+
+      startTransition(() => {
+        setWorkspace((current) => {
+          if (!current) {
+            return current;
+          }
+
+          const nextPages = current.pages.map((page) =>
+            page.id === section.page_id
+              ? {
+                  ...page,
+                  sections: [...page.sections, section].sort((a, b) => a.sort_order - b.sort_order),
+                }
+              : page,
+          );
+
+          return {
+            ...current,
+            pages: nextPages,
+            blocks: nextPages.find((page) => page.is_home)?.sections ?? current.blocks,
+          };
+        });
+        setSelectedSectionId(section.id);
+      });
+
+      return section;
+    } catch (duplicateError) {
+      const message = getErrorMessage(duplicateError, 'Не удалось продублировать секцию.');
+      setError(message);
+      NotificationService.show({ type: 'error', title: 'Структура сайта', message });
+      return null;
+    }
+  }, []);
+
+  const reorderSections = useCallback(async (pageId: number | string, sectionOrder: number[]) => {
+    if (typeof pageId !== 'number') {
+      return;
+    }
+
+    try {
+      const updatedPage = await holdingSiteBuilderService.reorderSections(pageId, sectionOrder);
+
+      startTransition(() => {
+        setWorkspace((current) => {
+          if (!current) {
+            return current;
+          }
+
+          const nextPages = current.pages.map((page) => (page.id === pageId ? updatedPage : page));
+          return {
+            ...current,
+            pages: nextPages,
+            blocks: nextPages.find((page) => page.is_home)?.sections ?? current.blocks,
+          };
+        });
+      });
+    } catch (reorderError) {
+      const message = getErrorMessage(reorderError, 'Не удалось обновить порядок секций.');
+      setError(message);
+      NotificationService.show({ type: 'error', title: 'Структура сайта', message });
+    }
+  }, []);
+
+  const applyPageTemplate = useCallback(async (template: PageTemplatePreset) => {
+    for (const pageDefinition of template.pages) {
+      const exists = workspaceRef.current?.pages.some((page) => page.slug === pageDefinition.slug);
+      if (exists) {
+        continue;
+      }
+
+      // eslint-disable-next-line no-await-in-loop
+      await createPage(pageDefinition);
+    }
+  }, [createPage]);
 
   const publishSite = useCallback(async () => {
     setPublishing(true);
@@ -480,178 +727,163 @@ export const useHoldingSiteBuilder = () => {
       NotificationService.show({
         type: 'success',
         title: 'Публикация',
-        message: 'Сайт холдинга опубликован.',
+        message: 'Сайт опубликован.',
       });
     } catch (publishError) {
       const message = getErrorMessage(publishError, 'Не удалось опубликовать сайт.');
       setError(message);
-      NotificationService.show({
-        type: 'error',
-        title: 'Публикация',
-        message,
-      });
+      NotificationService.show({ type: 'error', title: 'Публикация', message });
     } finally {
       setPublishing(false);
     }
   }, [flushPendingSaves, refreshLeads, replaceWorkspace]);
 
-  const applyTemplate = useCallback(async (template: SiteTemplatePreset) => {
-    const currentTypes = new Set(workspaceRef.current?.blocks.map((block) => block.type));
-
-    for (const type of template.blocks) {
-      if (!currentTypes.has(type)) {
-        // eslint-disable-next-line no-await-in-loop
-        const created = await addBlock(type);
-        if (created) {
-          currentTypes.add(type);
-        }
-      }
-    }
-  }, [addBlock]);
-
-  const uploadAsset = useCallback(async (file: File, usageContext: string, metadata?: Record<string, unknown>) => {
+  const rollbackRevision = useCallback(async (revisionId: number) => {
     try {
-      const asset = await holdingSiteBuilderService.uploadAsset(file, usageContext, metadata);
-
-      startTransition(() => {
-        setWorkspace((current) => {
-          if (!current) {
-            return current;
-          }
-
-          return {
-            ...current,
-            assets: [asset, ...current.assets],
-          };
-        });
-      });
-
-      NotificationService.show({
-        type: 'success',
-        title: 'Медиатека',
-        message: 'Файл загружен.',
-      });
-
-      return asset;
-    } catch (uploadError) {
-      const message = getErrorMessage(uploadError, 'Не удалось загрузить файл.');
+      const nextWorkspace = await holdingSiteBuilderService.rollbackRevision(revisionId);
+      replaceWorkspace(nextWorkspace);
+      NotificationService.show({ type: 'success', title: 'Ревизии', message: 'Публикация откатена.' });
+    } catch (rollbackError) {
+      const message = getErrorMessage(rollbackError, 'Не удалось откатить публикацию.');
       setError(message);
-      NotificationService.show({
-        type: 'error',
-        title: 'Медиатека',
-        message,
-      });
+      NotificationService.show({ type: 'error', title: 'Ревизии', message });
+    }
+  }, [replaceWorkspace]);
+
+  const createBlogArticle = useCallback(async (payload: Record<string, unknown>) => {
+    try {
+      const article = await holdingSiteBuilderService.createBlogArticle(payload);
+      setWorkspace((current) =>
+        current
+          ? {
+              ...current,
+              blog: {
+                ...current.blog,
+                articles: [article, ...(current.blog?.articles ?? [])],
+              },
+            }
+          : current,
+      );
+      return article;
+    } catch (createError) {
+      const message = getErrorMessage(createError, 'Не удалось создать статью.');
+      setError(message);
+      NotificationService.show({ type: 'error', title: 'Блог', message });
       return null;
     }
   }, []);
 
-  const updateAsset = useCallback(async (assetId: number, metadata: Record<string, unknown>) => {
+  const updateBlogArticle = useCallback(async (articleId: number, payload: Record<string, unknown>) => {
     try {
-      const asset = await holdingSiteBuilderService.updateAsset(assetId, metadata);
-
-      startTransition(() => {
-        setWorkspace((current) => {
-          if (!current) {
-            return current;
-          }
-
-          return {
-            ...current,
-            assets: current.assets.map((item) => (item.id === assetId ? asset : item)),
-          };
-        });
-      });
+      const article = await holdingSiteBuilderService.updateBlogArticle(articleId, payload);
+      setWorkspace((current) =>
+        current
+          ? {
+              ...current,
+              blog: {
+                ...current.blog,
+                articles: (current.blog?.articles ?? []).map((item) => (item.id === articleId ? article : item)),
+              },
+            }
+          : current,
+      );
+      return article;
     } catch (updateError) {
-      const message = getErrorMessage(updateError, 'Не удалось обновить файл.');
+      const message = getErrorMessage(updateError, 'Не удалось обновить статью.');
       setError(message);
-      NotificationService.show({
-        type: 'error',
-        title: 'Медиатека',
-        message,
-      });
+      NotificationService.show({ type: 'error', title: 'Блог', message });
+      return null;
     }
   }, []);
 
-  const deleteAsset = useCallback(async (assetId: number) => {
+  const deleteBlogArticle = useCallback(async (articleId: number) => {
     try {
-      await holdingSiteBuilderService.deleteAsset(assetId);
-
-      startTransition(() => {
-        setWorkspace((current) => {
-          if (!current) {
-            return current;
-          }
-
-          return {
-            ...current,
-            assets: current.assets.filter((asset) => asset.id !== assetId),
-          };
-        });
-      });
+      const articles = await holdingSiteBuilderService.deleteBlogArticle(articleId);
+      setWorkspace((current) =>
+        current
+          ? {
+              ...current,
+              blog: {
+                ...current.blog,
+                articles,
+              },
+            }
+          : current,
+      );
+      return true;
     } catch (deleteError) {
-      const message = getErrorMessage(deleteError, 'Не удалось удалить файл.');
+      const message = getErrorMessage(deleteError, 'Не удалось удалить статью.');
       setError(message);
-      NotificationService.show({
-        type: 'error',
-        title: 'Медиатека',
-        message,
-      });
+      NotificationService.show({ type: 'error', title: 'Блог', message });
+      return false;
     }
   }, []);
 
-  const refreshAssets = useCallback(async () => {
-    try {
-      const assets = await holdingSiteBuilderService.getAssets();
-      startTransition(() => {
-        setWorkspace((current) => (current ? { ...current, assets } : current));
-      });
-    } catch (refreshError) {
-      setError(getErrorMessage(refreshError, 'Не удалось обновить медиатеку.'));
-    }
+  const createCollaborator = useCallback(async (payload: { user_id: number; role: string }) => {
+    const collaborators = await holdingSiteBuilderService.createCollaborator(payload);
+    setWorkspace((current) => (current ? { ...current, collaborators } : current));
   }, []);
 
-  const openPreview = useCallback(async () => {
-    const previewUrl = workspaceRef.current?.publication.preview_url;
-    if (!previewUrl) {
-      return;
-    }
+  const updateCollaborator = useCallback(async (collaboratorId: number, role: string) => {
+    const collaborators = await holdingSiteBuilderService.updateCollaborator(collaboratorId, { role });
+    setWorkspace((current) => (current ? { ...current, collaborators } : current));
+  }, []);
 
-    await flushPendingSaves();
-    window.open(previewUrl, '_blank', 'noopener,noreferrer');
-  }, [flushPendingSaves]);
+  const deleteCollaborator = useCallback(async (collaboratorId: number) => {
+    const collaborators = await holdingSiteBuilderService.deleteCollaborator(collaboratorId);
+    setWorkspace((current) => (current ? { ...current, collaborators } : current));
+  }, []);
 
-  const hasUnsavedChanges = dirtySite || Object.values(dirtyBlocks).some(Boolean) || savingSite;
+  const hasUnsavedChanges = dirtySite || Object.values(dirtyPages).some(Boolean) || Object.values(dirtySections).some(Boolean);
 
   return {
     workspace,
+    site: workspace?.site ?? null,
+    pages: workspace?.pages ?? [],
+    templates: workspace?.templates ?? FALLBACK_TEMPLATES,
+    sectionPresets: workspace?.section_presets ?? workspace?.templates ?? FALLBACK_TEMPLATES,
+    pageTemplates: workspace?.page_templates ?? [],
+    collaborators: workspace?.collaborators ?? ([] as EditorCollaborator[]),
+    revisions: workspace?.revisions ?? ([] as SiteRevision[]),
+    blogArticles: workspace?.blog?.articles ?? ([] as SiteBlogArticle[]),
     leads,
     leadSummary,
-    selectedBlockId,
-    selectedBlock,
     loading,
-    savingSite,
-    savingBlocks,
-    publishing,
     error,
+    savingSite,
+    savingPages,
+    savingSections,
+    publishing,
+    selectedPageId,
+    selectedSectionId,
+    selectedPage,
+    selectedSection,
     hasUnsavedChanges,
-    blockLibrary: BLOCK_LIBRARY,
-    templates: workspace?.templates ?? FALLBACK_TEMPLATES,
-    loadWorkspace,
-    refreshAssets,
-    refreshLeads,
-    selectBlock: setSelectedBlockId,
+    publication: workspace?.publication ?? null,
+    summary: workspace?.summary ?? null,
+    setSelectedPageId,
+    setSelectedSectionId,
     updateSiteDraft,
-    updateBlockDraft,
-    addBlock,
-    deleteBlock,
-    duplicateBlock,
-    reorderBlocks,
-    uploadAsset,
-    updateAsset,
-    deleteAsset,
+    updatePageDraft,
+    updateSectionDraft,
+    updateSectionField,
+    createPage,
+    deletePage,
+    reorderPages,
+    addSection,
+    deleteSection,
+    duplicateSection,
+    reorderSections,
+    applyPageTemplate,
     publishSite,
-    applyTemplate,
-    flushPendingSaves,
-    openPreview,
+    rollbackRevision,
+    refreshLeads,
+    createBlogArticle,
+    updateBlogArticle,
+    deleteBlogArticle,
+    createCollaborator,
+    updateCollaborator,
+    deleteCollaborator,
+    reload: loadWorkspace,
   };
 };

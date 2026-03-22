@@ -3,11 +3,15 @@ import type {
   ApiEnvelope,
   BuilderWorkspaceData,
   EditorAsset,
-  EditorBlock,
+  EditorCollaborator,
+  EditorPage,
+  EditorSection,
   LeadEntry,
   LeadSubmissionPayload,
   LeadSummary,
   PublicSitePayload,
+  SiteBlogArticle,
+  SiteRevision,
 } from '@/types/holding-site-builder';
 
 class BuilderApiError extends Error {
@@ -51,6 +55,15 @@ const requestAuth = async <T>(path: string, init?: RequestInit): Promise<T> => {
   return parseEnvelope<T>(response);
 };
 
+const requestJsonAuth = <T>(path: string, method: string, payload?: unknown) =>
+  requestAuth<T>(path, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: payload === undefined ? undefined : JSON.stringify(payload),
+  });
+
 const requestPublicApi = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const headers = new Headers(init?.headers);
   headers.set('Accept', 'application/json');
@@ -65,59 +78,44 @@ const requestPublicApi = async <T>(path: string, init?: RequestInit): Promise<T>
 
 export const holdingSiteBuilderService = {
   getWorkspace: () => requestAuth<BuilderWorkspaceData>('/holding/site'),
-  updateSite: (payload: Record<string, unknown>) =>
-    requestAuth<BuilderWorkspaceData>('/holding/site', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+  updateSite: (payload: Record<string, unknown>) => requestJsonAuth<BuilderWorkspaceData>('/holding/site', 'PUT', payload),
+  publishSite: () => requestJsonAuth<BuilderWorkspaceData>('/holding/site/publish', 'POST'),
+  getPages: () => requestAuth<EditorPage[]>('/holding/site/pages'),
+  createPage: (payload: Record<string, unknown>) => requestJsonAuth<EditorPage>('/holding/site/pages', 'POST', payload),
+  updatePage: (pageId: number | string, payload: Record<string, unknown>) =>
+    requestJsonAuth<EditorPage>(`/holding/site/pages/${pageId}`, 'PUT', payload),
+  deletePage: (pageId: number | string) => requestAuth<EditorPage[]>(`/holding/site/pages/${pageId}`, { method: 'DELETE' }),
+  reorderPages: (pageOrder: Array<number | string>) =>
+    requestJsonAuth<EditorPage[]>('/holding/site/pages/reorder', 'PUT', { page_order: pageOrder }),
+  createSection: (pageId: number | string, payload: Record<string, unknown>) =>
+    requestJsonAuth<EditorSection>(`/holding/site/pages/${pageId}/sections`, 'POST', payload),
+  updateSection: (pageId: number | string, sectionId: number, payload: Record<string, unknown>) =>
+    requestJsonAuth<EditorSection>(`/holding/site/pages/${pageId}/sections/${sectionId}`, 'PUT', payload),
+  deleteSection: (pageId: number | string, sectionId: number) =>
+    requestAuth<EditorPage>(`/holding/site/pages/${pageId}/sections/${sectionId}`, { method: 'DELETE' }),
+  duplicateSection: (sectionId: number) =>
+    requestJsonAuth<EditorSection>(`/holding/site/sections/${sectionId}/duplicate`, 'POST'),
+  reorderSections: (pageId: number | string, sectionOrder: number[]) =>
+    requestJsonAuth<EditorPage>(`/holding/site/pages/${pageId}/sections/reorder`, 'PUT', {
+      section_order: sectionOrder,
     }),
-  publishSite: () =>
-    requestAuth<BuilderWorkspaceData>('/holding/site/publish', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }),
-  createBlock: (payload: Record<string, unknown>) =>
-    requestAuth<EditorBlock>('/holding/site/blocks', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    }),
-  updateBlock: (blockId: number, payload: Record<string, unknown>) =>
-    requestAuth<EditorBlock>(`/holding/site/blocks/${blockId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    }),
-  duplicateBlock: (blockId: number) =>
-    requestAuth<EditorBlock>(`/holding/site/blocks/${blockId}/duplicate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }),
-  deleteBlock: (blockId: number) =>
-    requestAuth<{ deleted_block_id: number; blocks: EditorBlock[] }>(`/holding/site/blocks/${blockId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }),
-  reorderBlocks: (blockOrder: number[]) =>
-    requestAuth<EditorBlock[]>('/holding/site/blocks/reorder', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ block_order: blockOrder }),
-    }),
+  getRevisions: () => requestAuth<SiteRevision[]>('/holding/site/revisions'),
+  rollbackRevision: (revisionId: number) =>
+    requestJsonAuth<BuilderWorkspaceData>(`/holding/site/rollback/${revisionId}`, 'POST'),
+  getCollaborators: () => requestAuth<EditorCollaborator[]>('/holding/site/collaborators'),
+  createCollaborator: (payload: { user_id: number; role: string }) =>
+    requestJsonAuth<EditorCollaborator[]>('/holding/site/collaborators', 'POST', payload),
+  updateCollaborator: (collaboratorId: number, payload: { role: string }) =>
+    requestJsonAuth<EditorCollaborator[]>(`/holding/site/collaborators/${collaboratorId}`, 'PUT', payload),
+  deleteCollaborator: (collaboratorId: number) =>
+    requestAuth<EditorCollaborator[]>(`/holding/site/collaborators/${collaboratorId}`, { method: 'DELETE' }),
+  getBlogArticles: () => requestAuth<SiteBlogArticle[]>('/holding/site/blog/articles'),
+  createBlogArticle: (payload: Record<string, unknown>) =>
+    requestJsonAuth<SiteBlogArticle>('/holding/site/blog/articles', 'POST', payload),
+  updateBlogArticle: (articleId: number, payload: Record<string, unknown>) =>
+    requestJsonAuth<SiteBlogArticle>(`/holding/site/blog/articles/${articleId}`, 'PUT', payload),
+  deleteBlogArticle: (articleId: number) =>
+    requestAuth<SiteBlogArticle[]>(`/holding/site/blog/articles/${articleId}`, { method: 'DELETE' }),
   getAssets: () => requestAuth<EditorAsset[]>('/holding/site/assets'),
   uploadAsset: async (file: File, usageContext: string, metadata?: Record<string, unknown>) => {
     const token = getTokenFromStorages();
@@ -145,28 +143,18 @@ export const holdingSiteBuilderService = {
     return parseEnvelope<EditorAsset>(response);
   },
   updateAsset: (assetId: number, metadata: Record<string, unknown>) =>
-    requestAuth<EditorAsset>(`/holding/site/assets/${assetId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ metadata }),
-    }),
+    requestJsonAuth<EditorAsset>(`/holding/site/assets/${assetId}`, 'PUT', { metadata }),
   deleteAsset: (assetId: number) =>
-    requestAuth<{ deleted_asset_id: number }>(`/holding/site/assets/${assetId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }),
+    requestAuth<{ deleted_asset_id: number }>(`/holding/site/assets/${assetId}`, { method: 'DELETE' }),
   getLeads: () => requestAuth<LeadEntry[]>('/holding/site/leads'),
   getLeadSummary: () => requestAuth<LeadSummary>('/holding/site/leads/summary'),
 };
 
 export const publicHoldingSiteService = {
-  getSiteData: (search = window.location.search) => {
+  getSiteData: (pathname = window.location.pathname, search = window.location.search) => {
     const params = new URLSearchParams(search);
     params.set('site_domain', window.location.hostname);
+    params.set('path', pathname || '/');
 
     return requestPublicApi<PublicSitePayload>(`/holding/public/site-data?${params.toString()}`);
   },

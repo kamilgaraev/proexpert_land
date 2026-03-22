@@ -2,6 +2,7 @@ import type {
   BlockBindings,
   BuilderBlockType,
   EditorBlock,
+  EditorElement,
   SiteTemplatePreset,
 } from '@/types/holding-site-builder';
 
@@ -102,9 +103,21 @@ export const createBlockPayloadFromTemplate = (type: BuilderBlockType) => {
 export const createFallbackBlock = (type: BuilderBlockType, id: number): EditorBlock => {
   const label = BLOCK_LIBRARY.find((item) => item.type === type)?.label ?? type;
   const content = getDefaultContent(type);
+  const elements = Object.keys(getDefaultSchema(type)).map<EditorElement>((field) => ({
+    id: `${type}:${field}`,
+    type: field.includes('image') ? 'image' : field.includes('button') || field.includes('url') ? 'button' : 'text',
+    label: field,
+    path: `content.${field}`,
+    props: { value: content[field] },
+    bindings: getDefaultBindings(type)[field] ?? { mode: 'manual' },
+    style: {},
+    responsive: {},
+    animation: {},
+  }));
 
   return {
     id,
+    page_id: null,
     type,
     source_type: type,
     key: `${type}_${id}`,
@@ -113,6 +126,8 @@ export const createFallbackBlock = (type: BuilderBlockType, id: number): EditorB
     resolved_content: content,
     settings: getDefaultSettings(type),
     bindings: getDefaultBindings(type),
+    locale_content: {},
+    style_config: {},
     sort_order: id,
     is_active: true,
     status: 'draft',
@@ -122,6 +137,7 @@ export const createFallbackBlock = (type: BuilderBlockType, id: number): EditorB
     can_delete: true,
     is_renderable: true,
     assets: [],
+    elements,
   };
 };
 

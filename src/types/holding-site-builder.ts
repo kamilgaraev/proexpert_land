@@ -12,7 +12,18 @@ export type BuilderBlockType =
   | 'contacts'
   | 'custom_html';
 
+export type SitePageType =
+  | 'home'
+  | 'about'
+  | 'services'
+  | 'projects'
+  | 'blog_index'
+  | 'blog_post'
+  | 'contacts'
+  | 'custom';
+
 export type BindingMode = 'manual' | 'auto' | 'hybrid';
+export type CollaboratorRole = 'owner' | 'editor' | 'publisher' | 'viewer';
 
 export interface BlockBindingConfig {
   mode: BindingMode;
@@ -33,6 +44,9 @@ export interface ThemeConfig {
   font_size_base: string;
   border_radius: string;
   shadow_style: string;
+  surface_style?: string;
+  container_width?: string;
+  section_spacing?: string;
 }
 
 export interface SeoMeta {
@@ -42,6 +56,8 @@ export interface SeoMeta {
   og_title?: string | null;
   og_description?: string | null;
   og_image?: string | null;
+  canonical?: string | null;
+  noindex?: boolean;
 }
 
 export interface PublicationState {
@@ -58,20 +74,36 @@ export interface BuilderSummary {
   active_blocks_count: number;
   assets_count: number;
   leads_count: number;
+  pages_count?: number;
+  collaborators_count?: number;
+  blog_articles_count?: number;
   last_published_at?: string | null;
 }
 
-export interface SiteTemplatePreset {
+export interface SectionPreset {
   id: string;
   name: string;
   description: string;
   blocks: BuilderBlockType[];
 }
 
+export interface PageTemplatePreset {
+  id: string;
+  name: string;
+  description: string;
+  pages: Array<{
+    page_type: SitePageType;
+    slug: string;
+    title: string;
+  }>;
+}
+
 export interface EditorSite {
   id: number;
   organization_group_id: number;
   domain: string;
+  default_locale: string;
+  enabled_locales: string[];
   title: string;
   description: string;
   logo_url?: string | null;
@@ -86,6 +118,7 @@ export interface EditorSite {
   url: string;
   preview_url: string;
   lead_endpoint: string;
+  current_locale?: string;
   created_at: string;
   updated_at: string;
 }
@@ -127,8 +160,21 @@ export interface BlockFieldSchema {
   required?: boolean;
 }
 
-export interface EditorBlock {
+export interface EditorElement {
+  id: string;
+  type: 'text' | 'rich_text' | 'image' | 'button' | 'badge' | 'metric' | 'card' | 'repeater' | 'form' | 'divider' | 'spacer' | 'embed';
+  label: string;
+  path: string;
+  props: Record<string, unknown>;
+  bindings: BlockBindingConfig;
+  style: Record<string, unknown>;
+  responsive: Record<string, unknown>;
+  animation: Record<string, unknown>;
+}
+
+export interface EditorSection {
   id: number;
+  page_id?: number | null;
   type: string;
   source_type: string;
   key: string;
@@ -137,6 +183,8 @@ export interface EditorBlock {
   resolved_content: Record<string, unknown>;
   settings: Record<string, unknown>;
   bindings: BlockBindings;
+  locale_content?: Record<string, Record<string, unknown>>;
+  style_config?: Record<string, unknown>;
   sort_order: number;
   is_active: boolean;
   status: 'draft' | 'published';
@@ -146,19 +194,96 @@ export interface EditorBlock {
   can_delete: boolean;
   is_renderable: boolean;
   assets: EditorAsset[];
+  elements: EditorElement[];
 }
 
-export interface BuilderCanvasFocusTarget {
-  blockId: number;
-  fieldPath?: string;
-  intent?: 'block' | 'text' | 'image' | 'button' | 'collection';
+export interface EditorPage {
+  id: number | string;
+  page_type: SitePageType | string;
+  slug: string;
+  navigation_label?: string | null;
+  title: string;
+  description?: string | null;
+  seo_meta: Partial<SeoMeta>;
+  layout_config: Record<string, unknown>;
+  locale_content: Record<string, Record<string, unknown>>;
+  visibility: string;
+  sort_order: number;
+  is_home: boolean;
+  is_active: boolean;
+  sections: EditorSection[];
+}
+
+export interface EditorCollaborator {
+  id: number;
+  role: CollaboratorRole;
+  user: {
+    id?: number | null;
+    name?: string | null;
+    email?: string | null;
+  };
+  invited_by?: {
+    id?: number | null;
+    name?: string | null;
+    email?: string | null;
+  };
+  created_at?: string | null;
+}
+
+export interface SiteRevision {
+  id: number;
+  kind: string;
+  label?: string | null;
+  created_at?: string | null;
+  creator?: {
+    id?: number | null;
+    name?: string | null;
+    email?: string | null;
+  };
+}
+
+export interface SiteBlogArticle {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt?: string | null;
+  content?: string | null;
+  featured_image?: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string[];
+  status: string;
+  published_at?: string | null;
+  reading_time?: number | null;
+  is_featured?: boolean;
+  category?: {
+    id?: number | null;
+    name?: string | null;
+    slug?: string | null;
+  };
+  author?: {
+    id?: number | null;
+    name?: string | null;
+  };
 }
 
 export interface BuilderWorkspaceData {
   site: EditorSite;
-  blocks: EditorBlock[];
+  pages: EditorPage[];
+  blocks: EditorSection[];
   assets: EditorAsset[];
-  templates: SiteTemplatePreset[];
+  templates: SectionPreset[];
+  page_templates?: PageTemplatePreset[];
+  section_presets?: SectionPreset[];
+  collaborators?: EditorCollaborator[];
+  revisions?: SiteRevision[];
+  blog?: {
+    articles: SiteBlogArticle[];
+    default_category?: {
+      id?: number | null;
+      name?: string | null;
+    };
+  };
   summary: BuilderSummary;
   publication: PublicationState;
 }
@@ -174,7 +299,10 @@ export interface LeadSummary {
 
 export interface LeadEntry {
   id: number;
+  page_id?: number | null;
   block_key?: string | null;
+  section_key?: string | null;
+  locale_code?: string | null;
   name?: string | null;
   company?: string | null;
   email?: string | null;
@@ -207,25 +335,34 @@ export interface PublicOrganizationPayload {
   };
 }
 
+export interface PublicNavigationItem {
+  id: number | string;
+  slug: string;
+  label: string;
+  page_type: string;
+  is_home: boolean;
+}
+
 export interface PublicRuntimePayload {
   mode: string;
   lead_endpoint: string;
   generated_at: string;
+  path?: string;
+  locale?: string;
 }
 
 export interface PublicSitePayload {
   site: EditorSite;
-  blocks: Array<{
-    id: number;
-    type: string;
-    key: string;
-    title: string;
-    content: Record<string, unknown>;
-    settings: Record<string, unknown>;
-    sort_order: number;
-    assets: EditorAsset[];
-  }>;
+  navigation?: PublicNavigationItem[];
+  pages?: EditorPage[];
+  page?: EditorPage | null;
+  current_page?: EditorPage | null;
+  blocks: EditorSection[];
   organization: PublicOrganizationPayload;
+  blog?: {
+    articles?: SiteBlogArticle[];
+    current_article?: SiteBlogArticle | null;
+  };
   runtime: PublicRuntimePayload;
 }
 
@@ -235,12 +372,22 @@ export interface LeadSubmissionPayload {
   email?: string;
   phone?: string;
   message?: string;
+  holding_site_page_id?: number;
   block_key?: string;
+  section_key?: string;
+  locale_code?: string;
   source_page?: string;
   source_url?: string;
   website?: string;
   metadata?: Record<string, unknown>;
   form_payload?: Record<string, unknown>;
+}
+
+export interface BuilderCanvasFocusTarget {
+  blockId: number;
+  pageId?: number | string;
+  fieldPath?: string;
+  intent?: 'block' | 'text' | 'image' | 'button' | 'collection' | 'page';
 }
 
 export interface ApiEnvelope<T> {
@@ -249,3 +396,6 @@ export interface ApiEnvelope<T> {
   data: T;
   errors?: unknown;
 }
+
+export type EditorBlock = EditorSection;
+export type SiteTemplatePreset = SectionPreset;

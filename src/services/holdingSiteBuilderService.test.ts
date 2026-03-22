@@ -118,7 +118,7 @@ describe('holdingSiteBuilderService', () => {
 
 describe('publicHoldingSiteService', () => {
   it('читает published runtime payload и отправляет лид на same-origin endpoints', async () => {
-    const payload = await publicHoldingSiteService.getSiteData('?preview=true');
+    const payload = await publicHoldingSiteService.getSiteData('/', '?preview=true');
     const lead = await publicHoldingSiteService.submitLead({
       name: 'Павел',
       phone: '+79991234567',
