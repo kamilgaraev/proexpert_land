@@ -544,6 +544,12 @@ const LandingEditorPage = () => {
     [deferredBlocks],
   );
 
+  useEffect(() => {
+    if (!selectedBlockId) {
+      setSelectedFieldPath(null);
+    }
+  }, [selectedBlockId]);
+
   if (!canView) {
     return (
       <div className="grid min-h-screen place-items-center bg-slate-100 px-4">
@@ -578,12 +584,6 @@ const LandingEditorPage = () => {
     setArmedBlockDeleteId(null);
     setActiveTab('properties');
   };
-
-  useEffect(() => {
-    if (!selectedBlockId) {
-      setSelectedFieldPath(null);
-    }
-  }, [selectedBlockId]);
 
   const moveSelectedBlock = async (direction: -1 | 1) => {
     if (!canEdit || selectedIndex < 0) {
