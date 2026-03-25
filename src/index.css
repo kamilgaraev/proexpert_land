@@ -197,32 +197,32 @@ body::selection {
 }
 
 .container-custom {
-  max-width: 1280px;
+  max-width: 1480px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 1.25rem;
 }
 
 @media (min-width: 640px) {
   .container-custom {
-    padding: 0 1.5rem;
+    padding: 0 1.75rem;
   }
 }
 
 @media (min-width: 768px) {
   .container-custom {
-    padding: 0 2rem;
+    padding: 0 2.25rem;
   }
 }
 
 @media (min-width: 1024px) {
   .container-custom {
-    padding: 0 2rem;
+    padding: 0 2.75rem;
   }
 }
 
 @media (min-width: 1280px) {
   .container-custom {
-    padding: 0 2rem;
+    padding: 0 3rem;
   }
 }
 
@@ -368,7 +368,7 @@ body::selection {
 /* Responsive utilities */
 @media (max-width: 640px) {
   .container-custom {
-    padding: 0 1rem;
+    padding: 0 1.25rem;
   }
   
   .section-title {
@@ -386,7 +386,7 @@ body::selection {
 
 @media (min-width: 641px) and (max-width: 767px) {
   .container-custom {
-    padding: 0 1.5rem;
+    padding: 0 1.75rem;
   }
   
   .section-title {
@@ -396,8 +396,8 @@ body::selection {
 
 @media (min-width: 768px) and (max-width: 1023px) {
   .container-custom {
-    padding: 0 2rem;
-    max-width: 90%;
+    padding: 0 2.25rem;
+    max-width: 100%;
   }
   
   .section-title {
@@ -411,7 +411,7 @@ body::selection {
 
 @media (min-width: 1024px) and (max-width: 1279px) {
   .container-custom {
-    max-width: 95%;
+    max-width: 100%;
   }
 }
 

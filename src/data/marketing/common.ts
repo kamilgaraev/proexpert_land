@@ -89,10 +89,11 @@ export const marketingSeo: Record<string, MarketingSeoMeta> = {
 };
 
 export const marketingNavigation: MarketingRouteLink[] = [
+  { label: 'Главная', href: marketingPaths.home, exact: true },
   { label: 'Решения', href: marketingPaths.solutions },
   { label: 'Возможности', href: marketingPaths.features },
   { label: 'Пакеты', href: marketingPaths.pricing },
-  { label: 'О продукте', href: marketingPaths.about },
+  { label: 'Безопасность', href: marketingPaths.security },
   { label: 'Контакты', href: marketingPaths.contact },
 ];
 

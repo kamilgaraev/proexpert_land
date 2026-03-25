@@ -16,23 +16,7 @@ import {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 18);
-    };
-
-    handleScroll();
-    window.addEventListener('scroll', handleScroll);
-
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     setIsOpen(false);
@@ -50,77 +34,77 @@ const Navbar = () => {
     return location.pathname === href || location.pathname.startsWith(`${href}/`);
   };
 
-  const shellClass =
-    isScrolled || location.pathname !== '/'
-      ? 'border-steel-200 bg-white/92 shadow-[0_24px_60px_-40px_rgba(15,23,42,0.45)]'
-      : 'border-white/15 bg-white/10 shadow-[0_24px_60px_-40px_rgba(15,23,42,0.35)]';
-  const textClass =
-    isScrolled || location.pathname !== '/' ? 'text-steel-950' : 'text-white';
-  const mutedClass =
-    isScrolled || location.pathname !== '/' ? 'text-steel-500' : 'text-white/58';
-
   return (
     <nav className="fixed inset-x-0 top-0 z-50 px-3 py-3 md:px-4">
       <div className="container-custom">
-        <div
-          className={`rounded-[1.75rem] border px-4 backdrop-blur-xl transition-all duration-300 ${shellClass}`}
-        >
-          <div className="flex min-h-[78px] items-center justify-between gap-4">
-            <Link to={marketingPaths.home} className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-steel-950 text-construction-200">
+        <div className="overflow-hidden rounded-[2rem] border border-steel-200/90 bg-white/92 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.55)] backdrop-blur-2xl">
+          <div className="hidden xl:flex items-center justify-between border-b border-steel-100 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+            <div className="flex items-center gap-3">
+              <span>Для подрядчика, генподрядчика и девелопера</span>
+              <span className="h-1 w-1 rounded-full bg-steel-300" />
+              <span>{marketingCompany.hours}</span>
+            </div>
+            <a
+              href={marketingCompany.emailHref}
+              className="transition hover:text-construction-700"
+            >
+              {marketingCompany.email}
+            </a>
+          </div>
+
+          <div className="flex min-h-[86px] items-center justify-between gap-4 px-4 sm:px-6">
+            <Link to={marketingPaths.home} className="flex min-w-0 items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-steel-950 text-construction-200">
                 <BuildingOfficeIcon className="h-6 w-6" />
               </div>
-              <div>
-                <div className={`text-lg font-bold ${textClass}`}>{marketingCompany.brand}</div>
-                <div className={`text-[11px] uppercase tracking-[0.22em] ${mutedClass}`}>
+              <div className="min-w-0">
+                <div className="truncate text-lg font-bold text-steel-950">
+                  {marketingCompany.brand}
+                </div>
+                <div className="truncate text-[11px] uppercase tracking-[0.22em] text-steel-500">
                   {marketingCompany.tagline}
                 </div>
               </div>
             </Link>
 
-            <div className="hidden xl:flex items-center gap-1 rounded-full border border-black/5 bg-black/[0.03] px-2 py-2">
-              {marketingNavigation.map((item) => {
-                const active = isActiveLink(item.href, item.exact);
-                const className = active
-                  ? 'bg-white text-steel-950 shadow-sm'
-                  : `${textClass} hover:bg-white/60 hover:text-steel-950`;
+            <div className="hidden flex-1 justify-center px-4 lg:flex xl:px-8">
+              <div className="flex flex-wrap items-center gap-1 rounded-full border border-steel-200 bg-steel-50 p-1.5">
+                {marketingNavigation.map((item) => {
+                  const active = isActiveLink(item.href, item.exact);
 
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${className}`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
+                  return (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className={`rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+                        active
+                          ? 'bg-white text-steel-950 shadow-sm'
+                          : 'text-steel-600 hover:bg-white hover:text-steel-950'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="hidden lg:flex items-center gap-3">
+            <div className="hidden items-center gap-3 lg:flex">
               <Link
                 to="/login"
-                className={`rounded-full px-4 py-3 text-sm font-semibold transition ${
-                  isScrolled || location.pathname !== '/'
-                    ? 'text-steel-700 hover:bg-steel-100 hover:text-steel-950'
-                    : 'text-white hover:bg-white/10'
-                }`}
+                className="hidden rounded-full px-4 py-3 text-sm font-semibold text-steel-700 transition hover:bg-steel-100 hover:text-steel-950 xl:inline-flex"
               >
                 Войти
               </Link>
-              <a
-                href={marketingCompany.emailHref}
-                className={`rounded-full border px-4 py-3 text-sm font-semibold transition ${
-                  isScrolled || location.pathname !== '/'
-                    ? 'border-steel-200 text-steel-700 hover:border-construction-300 hover:text-construction-700'
-                    : 'border-white/15 text-white hover:bg-white/10'
-                }`}
+              <Link
+                to={marketingPaths.contact}
+                className="hidden rounded-full border border-steel-200 px-4 py-3 text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700 2xl:inline-flex"
               >
-                {marketingCompany.email}
-              </a>
+                Контакты
+              </Link>
               <Link
                 to={`${marketingPaths.home}#contact`}
-                className="inline-flex items-center gap-2 rounded-full bg-steel-950 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-steel-900"
+                className="inline-flex items-center gap-2 rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-steel-900"
               >
                 Запросить демо
                 <ArrowUpRightIcon className="h-4 w-4" />
@@ -130,26 +114,23 @@ const Navbar = () => {
             <button
               type="button"
               onClick={() => setIsOpen((value) => !value)}
-              className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl border lg:hidden ${
-                isScrolled || location.pathname !== '/'
-                  ? 'border-steel-200 bg-white text-steel-950'
-                  : 'border-white/15 bg-white/10 text-white'
-              }`}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-steel-200 bg-white text-steel-950 lg:hidden"
+              aria-label={isOpen ? 'Закрыть меню' : 'Открыть меню'}
             >
               {isOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
             </button>
           </div>
 
           <AnimatePresence>
-            {isOpen && (
+            {isOpen ? (
               <motion.div
-                initial={{ opacity: 0, y: -8 }}
+                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
+                exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="mb-4 rounded-[1.75rem] border border-steel-200 bg-white p-5 shadow-xl lg:hidden"
+                className="mx-4 mb-4 rounded-[1.75rem] border border-steel-200 bg-white p-5 shadow-xl lg:hidden"
               >
-                <div className="space-y-2">
+                <div className="grid gap-2">
                   {marketingNavigation.map((item) => {
                     const active = isActiveLink(item.href, item.exact);
 
@@ -157,7 +138,7 @@ const Navbar = () => {
                       <Link
                         key={item.href}
                         to={item.href}
-                        className={`block rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                        className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                           active
                             ? 'bg-construction-50 text-construction-700'
                             : 'text-steel-700 hover:bg-steel-50 hover:text-steel-950'
@@ -171,26 +152,39 @@ const Navbar = () => {
 
                 <div className="mt-5 grid gap-3 border-t border-steel-100 pt-5">
                   <Link
-                    to="/login"
-                    className="inline-flex items-center justify-center rounded-2xl border border-steel-200 px-4 py-3 text-sm font-semibold text-steel-700"
-                  >
-                    Войти
-                  </Link>
-                  <a
-                    href={marketingCompany.emailHref}
-                    className="inline-flex items-center justify-center rounded-2xl border border-steel-200 px-4 py-3 text-sm font-semibold text-steel-700"
-                  >
-                    {marketingCompany.email}
-                  </a>
-                  <Link
                     to={`${marketingPaths.home}#contact`}
                     className="inline-flex items-center justify-center rounded-2xl bg-steel-950 px-4 py-3 text-sm font-semibold text-white"
                   >
                     Запросить демо
                   </Link>
+                  <Link
+                    to={marketingPaths.contact}
+                    className="inline-flex items-center justify-center rounded-2xl border border-steel-200 px-4 py-3 text-sm font-semibold text-steel-700"
+                  >
+                    Контакты
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center justify-center rounded-2xl border border-steel-200 px-4 py-3 text-sm font-semibold text-steel-700"
+                  >
+                    Войти
+                  </Link>
+                </div>
+
+                <div className="mt-5 rounded-[1.5rem] bg-concrete-50 px-4 py-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-steel-500">
+                    Связаться
+                  </div>
+                  <a
+                    href={marketingCompany.emailHref}
+                    className="mt-3 block text-sm font-semibold text-steel-950"
+                  >
+                    {marketingCompany.email}
+                  </a>
+                  <div className="mt-2 text-sm text-steel-600">{marketingCompany.hours}</div>
                 </div>
               </motion.div>
-            )}
+            ) : null}
           </AnimatePresence>
         </div>
       </div>

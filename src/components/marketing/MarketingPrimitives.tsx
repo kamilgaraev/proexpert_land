@@ -52,17 +52,19 @@ export const SectionHeader = ({
   const descriptionClass = tone === 'dark' ? 'text-white/70' : 'text-steel-600';
 
   return (
-    <div className={`max-w-3xl ${alignmentClass}`}>
+    <div className={`max-w-4xl ${alignmentClass}`}>
       <div
         className={`inline-flex rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] ${eyebrowClass}`}
       >
         {eyebrow}
       </div>
-      <h2 className={`mt-5 text-4xl font-bold tracking-tight sm:text-5xl ${titleClass}`}>
+      <h2
+        className={`mt-6 text-[clamp(2.35rem,4.8vw,4.7rem)] font-bold tracking-tight leading-[0.98] ${titleClass}`}
+      >
         {title}
       </h2>
       {description ? (
-        <p className={`mt-5 text-lg leading-8 ${descriptionClass}`}>{description}</p>
+        <p className={`mt-6 max-w-3xl text-lg leading-8 ${descriptionClass}`}>{description}</p>
       ) : null}
     </div>
   );
@@ -158,7 +160,7 @@ export const LegalDocumentView = ({
   return (
     <div className="bg-white pt-28">
       <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.15),_transparent_28%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
-        <div className="container-custom py-16 lg:py-20">
+        <div className="container-custom py-20 lg:py-24">
           <div className="max-w-4xl">
             <div className="inline-flex rounded-full border border-steel-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-steel-700">
               {document.shortTitle}
@@ -175,9 +177,9 @@ export const LegalDocumentView = ({
         </div>
       </section>
 
-      <section className="py-16 lg:py-20">
-        <div className="container-custom grid gap-10 lg:grid-cols-[0.7fr_1.3fr]">
-          <aside className="space-y-6 rounded-[2rem] border border-steel-200 bg-concrete-50 p-6">
+      <section className="py-20 lg:py-24">
+        <div className="container-custom grid gap-10 xl:grid-cols-[0.72fr_1.28fr]">
+          <aside className="space-y-6 rounded-[2.25rem] border border-steel-200 bg-concrete-50 p-7 lg:p-8">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-steel-500">
                 Ключевые положения
@@ -186,7 +188,7 @@ export const LegalDocumentView = ({
                 {document.highlights.map((item) => (
                   <div
                     key={item}
-                    className="rounded-2xl border border-white bg-white px-4 py-4 text-sm leading-7 text-steel-700"
+                    className="rounded-[1.5rem] border border-white bg-white px-5 py-5 text-sm leading-7 text-steel-700"
                   >
                     {item}
                   </div>
@@ -194,7 +196,7 @@ export const LegalDocumentView = ({
               </div>
             </div>
 
-            <div className="rounded-2xl bg-steel-950 p-5 text-white">
+            <div className="rounded-[1.75rem] bg-steel-950 p-6 text-white">
               <div className="text-sm font-semibold">Контакты по юридическим вопросам</div>
               <a
                 href={marketingCompany.emailHref}
@@ -212,7 +214,7 @@ export const LegalDocumentView = ({
             {document.sections.map((section) => (
               <article
                 key={section.title}
-                className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm"
+                className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm"
               >
                 <h2 className="text-2xl font-bold text-steel-950">{section.title}</h2>
                 <div className="mt-4 space-y-4 text-sm leading-7 text-steel-700">
@@ -225,7 +227,7 @@ export const LegalDocumentView = ({
                     {section.bullets.map((bullet) => (
                       <div
                         key={bullet}
-                        className="rounded-2xl bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                        className="rounded-[1.5rem] bg-concrete-50 px-5 py-5 text-sm leading-7 text-steel-700"
                       >
                         {bullet}
                       </div>
@@ -238,7 +240,7 @@ export const LegalDocumentView = ({
         </div>
       </section>
 
-      <section className="border-t border-steel-100 bg-concrete-50 py-16">
+      <section className="border-t border-steel-100 bg-concrete-50 py-20">
         <div className="container-custom flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-xl font-bold text-steel-950">Нужна дополнительная информация?</div>

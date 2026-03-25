@@ -33,7 +33,7 @@ const SolutionsPage = () => {
   return (
     <div className="bg-white pt-28">
       <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.16),_transparent_24%),linear-gradient(180deg,#fff7ed_0%,#ffffff_100%)]">
-        <div className="container-custom py-16 lg:py-20">
+        <div className="container-custom py-20 lg:py-24">
           <SectionHeader
             eyebrow="Решения"
             title="Показываем продукт через задачи команды, а не через абстрактный каталог функций"
@@ -42,8 +42,8 @@ const SolutionsPage = () => {
         </div>
       </section>
 
-      <section className="py-16 lg:py-20">
-        <div className="container-custom space-y-8">
+      <section className="py-20 lg:py-24">
+        <div className="container-custom space-y-10">
           {marketingSolutionSegments.map((segment, index) => {
             const capabilities = segment.capabilityIds
               .map((capabilityId) => capabilityMap.get(capabilityId))
@@ -65,7 +65,7 @@ const SolutionsPage = () => {
         </div>
       </section>
 
-      <section className="bg-concrete-50 py-16 lg:py-20">
+      <section className="bg-concrete-50 py-20 lg:py-24">
         <div className="container-custom grid gap-8 xl:grid-cols-[1fr_420px] xl:items-start">
           <CtaBand
             eyebrow="Следующий шаг"

@@ -29,34 +29,56 @@ import {
 import useAnalytics from '@/hooks/useAnalytics';
 import { useSEO } from '@/hooks/useSEO';
 
+const heroAudienceTags = [
+  'Подрядчик',
+  'Генподрядчик',
+  'Девелопер',
+  'ПТО',
+  'Управляющая компания',
+];
+
 const heroSignals = [
   {
-    title: 'Объект под контролем',
-    text: 'Задачи, статусы и рабочие договоренности остаются в одном контуре.',
+    title: 'Объект',
+    label: 'Заявки, задачи и исполнение',
+    text: 'Площадка, офис и ПТО работают в одном рабочем контуре без потерь в статусах и сроках.',
     icon: BuildingOffice2Icon,
+    accent: ['Задачи и сроки', 'Ответственные и статусы'],
   },
   {
-    title: 'Снабжение без потерь',
-    text: 'Потребности с площадки быстрее доходят до закупки и учета материалов.',
+    title: 'Снабжение',
+    label: 'Материалы, закупка и остатки',
+    text: 'Потребности с объекта быстрее доходят до закупки, склада и контроля движения материалов.',
     icon: CubeIcon,
+    accent: ['Потребности с площадки', 'Закупка и склад'],
   },
   {
-    title: 'Финансы и документы связаны',
-    text: 'Платежи, акты и проектный контекст видны руководителю в одной логике.',
+    title: 'Финансы',
+    label: 'Платежи, акты и документы',
+    text: 'Финансовый блок и проектный контекст остаются связаны, поэтому решение принимается быстрее.',
     icon: ClipboardDocumentListIcon,
-  },
-  {
-    title: 'Руководитель видит картину',
-    text: 'Отчетность и контроль собираются без ручного свода в конце периода.',
-    icon: ChartBarSquareIcon,
+    accent: ['Платежи и акты', 'Документы в контексте'],
   },
 ];
+
+const heroCommandCard = {
+  title: 'Руководитель видит картину без ручного свода',
+  text: 'Вместо разрозненных таблиц команда получает понятный свод по объектам, снабжению, платежам и исполнению.',
+  accent: ['Свод по объектам', 'Контроль отклонений', 'Понятный следующий шаг'],
+};
 
 const featuredCapabilityIds = [
   'project-control',
   'supply-chain',
   'finance-control',
   'multi-org',
+];
+
+const contactHighlights = [
+  'Разберем текущий процесс до показа системы.',
+  'Сфокусируемся на самом болезненном участке работы.',
+  'Предложим маршрут запуска без лишних модулей.',
+  'Отдельно обсудим безопасность и документы, если это важно на старте.',
 ];
 
 const HomePage = () => {
@@ -80,25 +102,30 @@ const HomePage = () => {
 
   return (
     <div className="overflow-hidden bg-white">
-      <section className="relative overflow-hidden bg-steel-950 pt-28 text-white">
+      <section className="relative overflow-hidden bg-steel-950 pt-[9rem] text-white lg:pt-[10.5rem]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.22),_transparent_24%),radial-gradient(circle_at_80%_20%,_rgba(125,211,252,0.16),_transparent_24%),linear-gradient(180deg,rgba(2,6,23,0.92)_0%,rgba(2,6,23,1)_100%)]" />
-        <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-blueprint opacity-20 lg:block" />
+        <div className="absolute inset-y-0 right-0 hidden w-[48%] bg-blueprint opacity-20 xl:block" />
+        <div className="absolute left-[8%] top-[18%] h-72 w-72 rounded-full bg-construction-500/10 blur-3xl" />
 
-        <div className="container-custom relative pb-20">
-          <div className="grid gap-12 xl:grid-cols-[1.05fr_0.95fr] xl:items-center">
-            <div>
+        <div className="container-custom relative pb-28 lg:pb-32">
+          <div className="grid gap-14 xl:grid-cols-[minmax(0,1.02fr)_minmax(620px,0.98fr)] xl:items-center">
+            <div className="max-w-[720px]">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-construction-200">
                 ProHelper для строительных компаний
               </div>
-              <h1 className="mt-6 max-w-5xl text-5xl font-bold leading-[0.95] tracking-tight sm:text-6xl xl:text-7xl">
-                Управляйте стройкой в одной системе: объект, снабжение, финансы и документы.
+              <h1 className="mt-7 max-w-[700px] text-[clamp(3.35rem,6.6vw,6.2rem)] font-bold leading-[0.93] tracking-[-0.04em]">
+                Управляйте строительством в одной системе.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/70">
-                ProHelper помогает собрать рабочий процесс между офисом, площадкой, ПТО,
-                снабжением и руководителем без разрозненных таблиц, чатов и ручного свода.
+              <p className="mt-6 max-w-[700px] text-[1.35rem] font-medium leading-[1.55] text-white/88 lg:text-[1.5rem]">
+                Объекты, заявки, снабжение, финансы и документы связаны в одном рабочем контуре
+                для офиса, площадки и руководителя.
+              </p>
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/68">
+                Вместо разрозненных таблиц, чатов и ручных сводок команда получает понятный
+                процесс от события на объекте до управленческого решения.
               </p>
 
-              <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+              <div className="mt-9 flex flex-col gap-4 sm:flex-row">
                 <Link
                   to={`${marketingPaths.home}#contact`}
                   onClick={() => trackButtonClick('hero_demo', 'marketing_home')}
@@ -116,79 +143,114 @@ const HomePage = () => {
                 </Link>
               </div>
 
-              <div className="mt-10 grid gap-3 sm:grid-cols-3">
-                {marketingHeroFacts.map((fact) => (
+              <div className="mt-9 flex flex-wrap gap-3">
+                {heroAudienceTags.map((item) => (
                   <div
-                    key={fact.label}
-                    className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5 backdrop-blur"
+                    key={item}
+                    className="rounded-full border border-white/12 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/72"
                   >
-                    <div className="text-2xl font-bold text-white">{fact.value}</div>
-                    <div className="mt-2 text-xs font-semibold uppercase tracking-[0.22em] text-construction-200">
-                      {fact.label}
-                    </div>
-                    <p className="mt-3 text-sm leading-7 text-white/70">{fact.detail}</p>
+                    {item}
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="relative">
-              <div className="absolute -inset-6 rounded-[2.5rem] bg-construction-400/10 blur-3xl" />
-              <div className="relative rounded-[2.25rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-                <div className="rounded-[1.75rem] border border-white/10 bg-steel-900/85 p-6">
+            <div className="relative xl:pl-2">
+              <div className="absolute -inset-10 rounded-[3rem] bg-construction-400/12 blur-3xl" />
+              <div className="relative rounded-[3rem] border border-white/10 bg-white/[0.06] p-6 backdrop-blur-xl lg:p-8">
+                <div className="rounded-[2.3rem] border border-white/10 bg-steel-900/88 p-7 lg:p-8">
                   <div className="text-xs font-semibold uppercase tracking-[0.24em] text-construction-200">
                     Как выглядит рабочий контур
                   </div>
-                  <h2 className="mt-4 text-3xl font-bold leading-tight text-white">
-                    Не набор функций, а единый маршрут от заявки до управленческого решения.
+                  <h2 className="mt-4 max-w-2xl text-[2rem] font-bold leading-tight text-white lg:text-[2.35rem]">
+                    Не набор разрозненных функций, а единый маршрут работы от объекта до решения.
                   </h2>
-                  <div className="mt-6 grid gap-4">
+                  <p className="mt-4 max-w-2xl text-base leading-8 text-white/68">
+                    Внутри одного процесса остаются заявки, материалы, платежи, документы и
+                    контроль по объектам. Это и есть основной эффект продукта для команды.
+                  </p>
+
+                  <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {heroSignals.map((signal) => {
                       const Icon = signal.icon;
 
                       return (
-                        <div
+                        <article
                           key={signal.title}
-                          className="flex items-start gap-4 rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-5"
+                          className="rounded-[1.9rem] border border-white/10 bg-white/[0.04] p-6"
                         >
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-construction-200">
-                            <Icon className="h-5 w-5" />
+                          <div className="flex items-center gap-4">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-construction-200">
+                              <Icon className="h-6 w-6" />
+                            </div>
+                            <div>
+                              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-200">
+                                {signal.title}
+                              </div>
+                              <div className="mt-2 text-lg font-bold leading-tight text-white">
+                                {signal.label}
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="text-base font-semibold text-white">{signal.title}</div>
-                            <p className="mt-2 text-sm leading-6 text-white/70">{signal.text}</p>
+                          <p className="mt-5 text-sm leading-7 text-white/70">{signal.text}</p>
+                          <div className="mt-6 flex flex-wrap gap-2.5">
+                            {signal.accent.map((item) => (
+                              <div
+                                key={item}
+                                className="rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/78"
+                              >
+                                {item}
+                              </div>
+                            ))}
                           </div>
-                        </div>
+                        </article>
                       );
                     })}
                   </div>
-                </div>
 
-                <div className="mt-5 grid gap-4 md:grid-cols-2">
-                  <div className="rounded-[1.75rem] bg-white px-5 py-5 text-steel-950">
-                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-construction-700">
-                      Для кого
+                  <div className="mt-6 grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
+                    <div className="rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(251,146,60,0.10))] p-6">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 text-construction-200">
+                        <ChartBarSquareIcon className="h-6 w-6" />
+                      </div>
+                      <div className="mt-5 text-xl font-bold text-white">{heroCommandCard.title}</div>
+                      <p className="mt-3 text-sm leading-7 text-white/72">{heroCommandCard.text}</p>
                     </div>
-                    <div className="mt-3 text-sm leading-7 text-steel-700">
-                      Подрядчик, генподрядчик, девелопер, ПТО и управляющая команда.
-                    </div>
-                  </div>
-                  <div className="rounded-[1.75rem] bg-construction-50 px-5 py-5 text-steel-950">
-                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-construction-700">
-                      Как запускаем
-                    </div>
-                    <div className="mt-3 text-sm leading-7 text-steel-700">
-                      Начинаем с ключевого процесса и расширяем систему по мере роста команды.
+
+                    <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                      {heroCommandCard.accent.map((item) => (
+                        <div
+                          key={item}
+                          className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-5 py-5 text-sm font-semibold leading-7 text-white/78"
+                        >
+                          {item}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <div className="mt-16 grid gap-4 lg:grid-cols-3">
+            {marketingHeroFacts.map((fact) => (
+              <div
+                key={fact.label}
+                className="rounded-[2.1rem] border border-white/10 bg-white/[0.04] p-8 backdrop-blur"
+              >
+                <div className="text-4xl font-bold leading-none text-white">{fact.value}</div>
+                <div className="mt-3 text-xs font-semibold uppercase tracking-[0.24em] text-construction-200">
+                  {fact.label}
+                </div>
+                <p className="mt-5 max-w-md text-base leading-8 text-white/70">{fact.detail}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="py-16 lg:py-24">
+      <section className="py-20 lg:py-28">
         <div className="container-custom">
           <SectionHeader
             eyebrow="Кому подходит"
@@ -196,7 +258,7 @@ const HomePage = () => {
             description="Каждый сценарий собран вокруг реальной рабочей боли, а не вокруг случайного списка экранов."
             align="center"
           />
-          <div className="mt-12 grid gap-5 xl:grid-cols-2">
+          <div className="mt-14 grid gap-6 xl:grid-cols-2">
             {marketingSolutionSegments.map((segment) => (
               <SegmentPreviewCard
                 key={segment.id}
@@ -208,15 +270,15 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="bg-concrete-50 py-16 lg:py-24">
+      <section className="bg-concrete-50 py-20 lg:py-28">
         <div className="container-custom">
           <SectionHeader
             eyebrow="Возможности"
-            title="Что помогает держать процесс под контролем"
+            title="Что помогает держать строительный процесс под контролем"
             description="Показываем только те контуры, которые уже имеют понятный рабочий сценарий в продукте."
           />
 
-          <div className="mt-12 grid gap-5 xl:grid-cols-12">
+          <div className="mt-14 grid gap-6 xl:grid-cols-12">
             {featuredCapabilities.map((capability, index) => (
               <div
                 key={capability.id}
@@ -229,23 +291,23 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="py-16 lg:py-24">
+      <section className="py-20 lg:py-28">
         <div className="container-custom">
           <SectionHeader
             eyebrow="Пакеты"
             title="Стартуйте с нужного контура, а не с перегруженного внедрения"
-            description="Пакеты помогают выбрать точку входа: объект, снабжение, финансы, аналитика или корпоративный контур."
+            description="Пакеты помогают выбрать понятную точку входа: объект, снабжение, финансы, отчетность или корпоративный контур."
           />
-          <div className="mt-12 grid gap-5 xl:grid-cols-2">
+          <div className="mt-14 grid gap-6 xl:grid-cols-2">
             {marketingPackages.slice(0, 4).map((item) => (
               <PackageFamilyCard key={item.slug} item={item} compact />
             ))}
           </div>
-          <div className="mt-8">
+          <div className="mt-10">
             <CtaBand
               eyebrow="Как выбрать пакет"
               title="Поможем собрать минимально достаточный состав решения под ваш этап"
-              description="На созвоне разложим текущий процесс по ролям и покажем, с какого контура лучше стартовать сейчас."
+              description="На созвоне разложим текущий процесс по ролям и покажем, с какого контура лучше стартовать именно сейчас."
               actions={[
                 { label: 'Перейти к пакетам', href: marketingPaths.pricing, primary: true },
                 { label: 'Связаться с нами', href: marketingPaths.contact },
@@ -256,9 +318,9 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="bg-concrete-50 py-16 lg:py-24">
-        <div className="container-custom grid gap-8 xl:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm">
+      <section className="bg-concrete-50 py-20 lg:py-28">
+        <div className="container-custom grid gap-8 xl:grid-cols-[0.92fr_1.08fr]">
+          <div className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm lg:p-9">
             <SectionHeader
               eyebrow="Запуск"
               title="Как проходит внедрение"
@@ -268,7 +330,7 @@ const HomePage = () => {
               {marketingLaunchSteps.map((step, index) => (
                 <div
                   key={step.title}
-                  className="flex gap-4 rounded-[1.5rem] bg-concrete-50 px-5 py-5"
+                  className="flex gap-4 rounded-[1.75rem] bg-concrete-50 px-5 py-5"
                 >
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-steel-950 text-sm font-bold text-construction-200">
                     {index + 1}
@@ -282,11 +344,11 @@ const HomePage = () => {
             </div>
           </div>
 
-          <div className="rounded-[2.25rem] border border-steel-900 bg-steel-950 p-8">
+          <div className="rounded-[2.25rem] border border-steel-900 bg-steel-950 p-8 lg:p-9">
             <SectionHeader
               eyebrow="Доверие"
-              title="Безопасность и прозрачность без лишнего технарского шума"
-              description="На сайте показываем то, что важно клиенту: разграничение доступа, понятную работу с документами и прозрачность процессов."
+              title="То, что важно клиенту еще до старта"
+              description="Показываем безопасность и прозрачность человеческим языком: разграничение доступа, работа с документами и понятный процесс запуска."
               tone="dark"
             />
             <div className="mt-8">
@@ -296,16 +358,16 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="py-16 lg:py-24">
+      <section className="py-20 lg:py-28">
         <div className="container-custom">
           <SectionHeader eyebrow="FAQ" title="Частые вопросы" align="center" />
-          <div className="mx-auto mt-12 max-w-4xl">
+          <div className="mx-auto mt-14 max-w-4xl">
             <FaqAccordion items={marketingFaqs} />
           </div>
         </div>
       </section>
 
-      <section id="contact" className="bg-steel-950 py-16 lg:py-24">
+      <section id="contact" className="bg-steel-950 py-20 lg:py-28">
         <div className="container-custom grid gap-10 xl:grid-cols-[0.95fr_0.85fr] xl:items-start">
           <div>
             <SectionHeader
@@ -315,12 +377,7 @@ const HomePage = () => {
               tone="dark"
             />
             <div className="mt-8 grid gap-4 md:grid-cols-2">
-              {[
-                'Разбор текущего процесса до показа системы.',
-                'Фокус на той зоне, где команда теряет больше всего времени.',
-                'Понятный маршрут запуска без лишних модулей.',
-                'Отдельное обсуждение безопасности и юридических документов.',
-              ].map((item) => (
+              {contactHighlights.map((item) => (
                 <div
                   key={item}
                   className="rounded-[1.75rem] border border-white/10 bg-white/5 px-5 py-5 text-sm leading-7 text-white/80"

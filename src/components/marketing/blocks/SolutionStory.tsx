@@ -26,9 +26,9 @@ const SolutionStory = ({
   const leadTextClass = inverted ? 'text-white/75' : 'text-steel-600';
 
   return (
-    <article className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
+    <article className="grid gap-8 xl:grid-cols-[0.82fr_1.18fr]">
       <div
-        className={`rounded-[2rem] border border-steel-200 p-8 shadow-sm ${leadClass} ${
+        className={`rounded-[2.25rem] border border-steel-200 p-8 shadow-sm lg:p-9 ${leadClass} ${
           inverted ? 'xl:order-2' : ''
         }`}
       >
@@ -39,13 +39,13 @@ const SolutionStory = ({
         >
           {segment.title}
         </div>
-        <h2 className="mt-5 text-3xl font-bold leading-tight">{segment.audience}</h2>
-        <p className={`mt-5 text-sm leading-7 ${leadTextClass}`}>{segment.challenge}</p>
-        <div className="mt-5">
+        <h2 className="mt-6 text-[2.2rem] font-bold leading-tight">{segment.audience}</h2>
+        <p className={`mt-6 text-base leading-8 ${leadTextClass}`}>{segment.challenge}</p>
+        <div className="mt-6">
           <SurfaceBadges surfaces={segment.surfaces} />
         </div>
         <div
-          className={`mt-6 rounded-[1.5rem] p-5 text-sm leading-7 ${
+          className={`mt-7 rounded-[1.75rem] p-6 text-base leading-8 ${
             inverted ? 'border border-white/10 bg-white/5 text-white/80' : 'bg-white text-steel-700'
           }`}
         >
@@ -54,15 +54,15 @@ const SolutionStory = ({
       </div>
 
       <div className={`space-y-5 ${inverted ? 'xl:order-1' : ''}`}>
-        <div className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm">
+        <div className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm lg:p-9">
           <div className="text-xs font-semibold uppercase tracking-[0.24em] text-steel-500">
             Что получает команда
           </div>
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
             {segment.workflows.map((workflow) => (
               <div
                 key={workflow}
-                className="flex items-start gap-3 rounded-2xl bg-concrete-50 px-4 py-4 text-sm leading-6 text-steel-700"
+                className="flex items-start gap-3 rounded-[1.5rem] bg-concrete-50 px-5 py-5 text-sm leading-7 text-steel-700"
               >
                 <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-construction-600" />
                 {workflow}
@@ -77,15 +77,15 @@ const SolutionStory = ({
           ))}
         </div>
 
-        <div className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm">
+        <div className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm lg:p-9">
           <div className="text-xs font-semibold uppercase tracking-[0.24em] text-steel-500">
             Рекомендуемые пакеты
           </div>
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
             {packages.map((item) => (
-              <div key={item.slug} className="rounded-[1.5rem] bg-concrete-50 p-5">
+              <div key={item.slug} className="rounded-[1.75rem] bg-concrete-50 p-5">
                 <div className="text-sm font-semibold text-steel-950">{item.name}</div>
-                <p className="mt-2 text-sm leading-6 text-steel-600">{item.bestFor}</p>
+                <p className="mt-3 text-sm leading-7 text-steel-600">{item.bestFor}</p>
                 <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-construction-700">
                   {item.tiers[0]?.label}
                 </div>

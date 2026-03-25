@@ -19,7 +19,7 @@ const AboutPage = () => {
   return (
     <div className="bg-white pt-28">
       <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
-        <div className="container-custom py-16 lg:py-20">
+        <div className="container-custom py-20 lg:py-24">
           <SectionHeader
             eyebrow="О продукте"
             title="ProHelper помогает строительным командам работать как одна система"
@@ -28,13 +28,13 @@ const AboutPage = () => {
         </div>
       </section>
 
-      <section className="py-16 lg:py-20">
+      <section className="py-20 lg:py-24">
         <div className="container-custom grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-6">
             {marketingAboutSections.map((section) => (
               <article
                 key={section.title}
-                className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm"
+                className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm"
               >
                 <h2 className="text-2xl font-bold text-steel-950">{section.title}</h2>
                 <p className="mt-4 text-sm leading-7 text-steel-600">{section.description}</p>
@@ -53,7 +53,7 @@ const AboutPage = () => {
           </div>
 
           <div className="space-y-6">
-            <article className="rounded-[2rem] border border-steel-900 bg-steel-950 p-8">
+            <article className="rounded-[2.25rem] border border-steel-900 bg-steel-950 p-8 lg:p-9">
               <SectionHeader
                 eyebrow="Как работаем"
                 title="Показываем сценарий запуска, а не перегруженную демонстрацию"
@@ -70,7 +70,7 @@ const AboutPage = () => {
               </div>
             </article>
 
-            <article className="rounded-[2rem] border border-steel-200 bg-white p-8 shadow-sm">
+            <article className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm lg:p-9">
               <SectionHeader
                 eyebrow="Почему это удобно"
                 title="То, что особенно важно заказчику на этапе выбора"
@@ -84,7 +84,7 @@ const AboutPage = () => {
         </div>
       </section>
 
-      <section className="pb-16 lg:pb-20">
+      <section className="pb-20 lg:pb-24">
         <div className="container-custom">
           <CtaBand
             eyebrow="Следующий шаг"

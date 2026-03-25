@@ -30,7 +30,7 @@ const PricingPage = () => {
   return (
     <div className="bg-white pt-28">
       <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.16),_transparent_24%),linear-gradient(180deg,#fff7ed_0%,#ffffff_100%)]">
-        <div className="container-custom py-16 lg:py-20">
+        <div className="container-custom py-20 lg:py-24">
           <SectionHeader
             eyebrow="Пакеты"
             title="Выбирайте не тариф ради галочки, а рабочий контур под ваш этап роста"
@@ -39,7 +39,7 @@ const PricingPage = () => {
         </div>
       </section>
 
-      <section className="py-16 lg:py-20">
+      <section className="py-20 lg:py-24">
         <div className="container-custom grid gap-5">
           {marketingPackages.map((item) => (
             <PackageFamilyCard key={item.slug} item={item} />
@@ -47,20 +47,20 @@ const PricingPage = () => {
         </div>
       </section>
 
-      <section className="bg-concrete-50 py-16 lg:py-20">
+      <section className="bg-concrete-50 py-20 lg:py-24">
         <div className="container-custom grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
           <div className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm">
-            <SectionHeader
-              eyebrow="Проектные расширения"
-              title="Если базового пакета недостаточно, подключаем дополнительные сценарии по согласованию"
-              description="Пилотные возможности и индивидуальные расширения обсуждаются только после того, как понятен основной рабочий контур."
-            />
-            <div className="mt-8 grid gap-4">
-              {marketingAdvancedOffers.map((offer) => (
-                <article
-                  key={offer.id}
-                  className="rounded-[1.5rem] bg-concrete-50 px-5 py-5"
-                >
+              <SectionHeader
+                eyebrow="Проектные расширения"
+                title="Если базового пакета недостаточно, подключаем дополнительные сценарии по согласованию"
+                description="Пилотные возможности и индивидуальные расширения обсуждаются только после того, как понятен основной рабочий контур."
+              />
+              <div className="mt-8 grid gap-4">
+                {marketingAdvancedOffers.map((offer) => (
+                  <article
+                    key={offer.id}
+                    className="rounded-[1.75rem] bg-concrete-50 px-6 py-6"
+                  >
                   <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-700">
                     {offer.cta}
                   </div>
@@ -109,7 +109,7 @@ const PricingPage = () => {
         </div>
       </section>
 
-      <section id="pricing-contact" className="py-16 lg:py-20">
+      <section id="pricing-contact" className="py-20 lg:py-24">
         <div className="container-custom grid gap-8 xl:grid-cols-[1fr_420px] xl:items-start">
           <CtaBand
             eyebrow="Подбор решения"

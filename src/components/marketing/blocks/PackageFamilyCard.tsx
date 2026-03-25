@@ -13,33 +13,33 @@ const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) =>
   const tiers = compact ? item.tiers.slice(0, 1) : item.tiers;
 
   return (
-    <article className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm">
-      <div className="flex items-start gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.5rem] bg-construction-50 text-construction-700">
+    <article className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm lg:p-9">
+      <div className="flex items-start gap-5">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[1.75rem] bg-construction-50 text-construction-700">
           <PackageIcon slug={item.slug} className="h-7 w-7" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-steel-950">{item.name}</h3>
-          <p className="mt-2 text-sm leading-7 text-steel-600">{item.description}</p>
-          <p className="mt-3 text-sm font-semibold text-construction-700">{item.bestFor}</p>
+          <h3 className="text-[2rem] font-bold leading-tight text-steel-950">{item.name}</h3>
+          <p className="mt-3 max-w-3xl text-base leading-8 text-steel-600">{item.description}</p>
+          <p className="mt-4 text-sm font-semibold text-construction-700">{item.bestFor}</p>
         </div>
       </div>
 
-      <div className={`mt-6 grid gap-4 ${compact ? '' : 'lg:grid-cols-3'}`}>
+      <div className={`mt-8 grid gap-5 ${compact ? '' : 'xl:grid-cols-3'}`}>
         {tiers.map((tier) => (
-          <div key={`${item.slug}-${tier.key}`} className="rounded-[1.5rem] bg-concrete-50 p-5">
+          <div key={`${item.slug}-${tier.key}`} className="rounded-[1.75rem] bg-concrete-50 p-6">
             <div className="text-xs font-semibold uppercase tracking-[0.22em] text-steel-500">
               {tier.label}
             </div>
-            <div className="mt-3 text-xl font-bold text-steel-950">
+            <div className="mt-4 text-2xl font-bold leading-tight text-steel-950">
               {tier.priceLabel ?? tier.label}
             </div>
-            <p className="mt-3 text-sm leading-6 text-steel-600">{tier.description}</p>
-            <div className="mt-4 grid gap-3">
+            <p className="mt-3 text-sm leading-7 text-steel-600">{tier.description}</p>
+            <div className="mt-5 grid gap-3">
               {tier.highlights.map((highlight) => (
                 <div
                   key={highlight}
-                  className="rounded-2xl bg-white px-4 py-3 text-sm leading-6 text-steel-700"
+                  className="rounded-[1.25rem] bg-white px-4 py-4 text-sm leading-6 text-steel-700"
                 >
                   {highlight}
                 </div>

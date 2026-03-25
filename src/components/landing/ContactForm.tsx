@@ -6,7 +6,6 @@ import {
   ChatBubbleLeftRightIcon,
   EnvelopeIcon,
   PaperAirplaneIcon,
-  PhoneIcon,
   ShieldCheckIcon,
   UserIcon,
 } from '@heroicons/react/24/outline';
@@ -19,10 +18,7 @@ import { COOKIE_CONSENT_VERSION } from '@/utils/marketingConsent';
 interface ContactFormData {
   name: string;
   email: string;
-  phone: string;
   company: string;
-  companyRole: string;
-  companySize: string;
   subject: string;
   message: string;
   consentToPersonalData: boolean;
@@ -35,25 +31,9 @@ interface ContactFormProps {
 
 const subjectOptions = [
   { value: 'demo', label: 'Запрос демонстрации' },
-  { value: 'pricing', label: 'Вопрос по пакетам и модулям' },
+  { value: 'pricing', label: 'Пакеты и состав решения' },
   { value: 'launch', label: 'Внедрение и запуск' },
   { value: 'security', label: 'Безопасность и юридические вопросы' },
-  { value: 'support', label: 'Поддержка и сопровождение' },
-  { value: 'other', label: 'Другое обращение' },
-];
-
-const companyRoleOptions = [
-  { value: 'contractor', label: 'Подрядчик' },
-  { value: 'general_contractor', label: 'Генподрядчик' },
-  { value: 'developer', label: 'Девелопер / холдинг' },
-  { value: 'engineering', label: 'Инженерный блок / ПТО' },
-];
-
-const companySizeOptions = [
-  { value: '1_3', label: '1-3 активных объекта' },
-  { value: '4_10', label: '4-10 активных объектов' },
-  { value: '10_plus', label: '10+ активных объектов' },
-  { value: 'holding', label: 'Группа компаний' },
 ];
 
 const getPublicApiBase = () => {
@@ -96,10 +76,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
-    phone: '',
     company: '',
-    companyRole: '',
-    companySize: '',
     subject: variant === 'compact' ? 'demo' : '',
     message: '',
     consentToPersonalData: false,
@@ -122,21 +99,23 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     }));
   };
 
+  const handleSubjectChange = (subject: string) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      subject,
+    }));
+  };
+
   const validateForm = () => {
     const errors: string[] = [];
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^[\d+\-\s()]+$/;
 
     if (formData.name.trim().length < 2) {
       errors.push('Укажите имя не короче 2 символов.');
     }
 
     if (!emailRegex.test(formData.email.trim())) {
-      errors.push('Введите корректный email.');
-    }
-
-    if (formData.phone.trim() && !phoneRegex.test(formData.phone.trim())) {
-      errors.push('Телефон может содержать только цифры, пробелы, скобки, дефис и плюс.');
+      errors.push('Введите корректную рабочую почту.');
     }
 
     if (formData.message.trim().length < 10) {
@@ -172,22 +151,10 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     const selectedSubject =
       subjectOptions.find((option) => option.value === formData.subject) ??
       subjectOptions[0];
-    const selectedCompanyRole = companyRoleOptions.find(
-      (option) => option.value === formData.companyRole,
-    );
-    const selectedCompanySize = companySizeOptions.find(
-      (option) => option.value === formData.companySize,
-    );
-
     const payload = {
       name: formData.name.trim(),
       email: formData.email.trim(),
-      phone: normalizeOptional(formData.phone),
       company: normalizeOptional(formData.company),
-      company_role:
-        variant === 'full' ? selectedCompanyRole?.label : undefined,
-      company_size:
-        variant === 'full' ? selectedCompanySize?.label : undefined,
       subject: selectedSubject.label,
       message: formData.message.trim(),
       consent_to_personal_data: formData.consentToPersonalData,
@@ -206,7 +173,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
         subject: selectedSubject.value,
         page_source: preparedPayload.page_source,
         has_company: Boolean(preparedPayload.company),
-        has_phone: Boolean(preparedPayload.phone),
+        has_phone: false,
       });
 
       const response = await fetch(`${getPublicApiBase()}/api/public/contact`, {
@@ -247,10 +214,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       setFormData({
         name: '',
         email: '',
-        phone: '',
         company: '',
-        companyRole: '',
-        companySize: '',
         subject: variant === 'compact' ? 'demo' : '',
         message: '',
         consentToPersonalData: false,
@@ -268,8 +232,8 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
 
   const wrapperClass =
     variant === 'compact'
-      ? `rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-xl ${className}`
-      : `rounded-[2rem] border border-steel-200 bg-white p-8 shadow-xl ${className}`;
+      ? `rounded-[2rem] border border-steel-200 bg-white p-6 shadow-xl ${className}`
+      : `rounded-[2.25rem] border border-steel-200 bg-white p-7 shadow-xl lg:p-8 ${className}`;
 
   return (
     <>
@@ -283,18 +247,18 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-construction-50 text-construction-700">
             <ChatBubbleLeftRightIcon className="h-7 w-7" />
           </div>
-          <h2 className="mt-5 text-2xl font-bold text-steel-950">
-            {variant === 'compact' ? 'Оставить заявку' : 'Запросить демонстрацию или консультацию'}
+          <h2 className="mt-5 text-2xl font-bold text-steel-950 lg:text-[2rem]">
+            {variant === 'compact' ? 'Оставить заявку' : 'Запросить демонстрацию'}
           </h2>
           <p className="mt-3 text-sm leading-7 text-steel-600">
             {variant === 'compact'
               ? 'Короткая форма для первичного контакта и назначения созвона.'
-              : 'Форма сохраняет только те данные, которые нужны для обратной связи и корректной обработки запроса.'}
+              : 'Три обязательных поля и короткое описание задачи. Остальное разберем уже на созвоне.'}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <label className="block">
               <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
                 <UserIcon className="h-4 w-4" />
@@ -313,8 +277,23 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
 
             <label className="block">
               <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
+                <BuildingOffice2Icon className="h-4 w-4" />
+                Компания
+              </span>
+              <input
+                type="text"
+                name="company"
+                value={formData.company}
+                onChange={handleInputChange}
+                placeholder="Название компании"
+                className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+              />
+            </label>
+
+            <label className="block md:col-span-2 xl:col-span-1">
+              <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
                 <EnvelopeIcon className="h-4 w-4" />
-                Email
+                Рабочая почта
               </span>
               <input
                 type="email"
@@ -328,100 +307,32 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
             </label>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
-            <label className="block">
-              <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
-                <PhoneIcon className="h-4 w-4" />
-                Телефон
-              </span>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="+7 (900) 000-00-00"
-                className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
-                <BuildingOffice2Icon className="h-4 w-4" />
-                Компания
-              </span>
-              <input
-                type="text"
-                name="company"
-                value={formData.company}
-                onChange={handleInputChange}
-                placeholder="Название компании"
-                className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
-              />
-            </label>
-          </div>
-
           {variant === 'full' ? (
-            <>
-              <div className="grid gap-5 md:grid-cols-2">
-                <label className="block">
-                  <span className="mb-2 block text-sm font-semibold text-steel-700">
-                    Роль компании
-                  </span>
-                  <select
-                    name="companyRole"
-                    value={formData.companyRole}
-                    onChange={handleInputChange}
-                    className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
-                  >
-                    <option value="">Выберите роль</option>
-                    {companyRoleOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+            <div className="rounded-[1.75rem] border border-steel-200 bg-concrete-50 p-5">
+              <span className="mb-3 block text-sm font-semibold text-steel-700">
+                Что хотите обсудить
+              </span>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {subjectOptions.map((option) => {
+                  const active = formData.subject === option.value;
 
-                <label className="block">
-                  <span className="mb-2 block text-sm font-semibold text-steel-700">
-                    Масштаб
-                  </span>
-                  <select
-                    name="companySize"
-                    value={formData.companySize}
-                    onChange={handleInputChange}
-                    className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
-                  >
-                    <option value="">Выберите масштаб</option>
-                    {companySizeOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-steel-700">
-                  Тема обращения
-                </span>
-                <select
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleInputChange}
-                  className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
-                  required
-                >
-                  <option value="">Выберите тему</option>
-                  {subjectOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleSubjectChange(option.value)}
+                      className={`rounded-[1.25rem] border px-4 py-3 text-left text-sm font-semibold transition ${
+                        active
+                          ? 'border-steel-950 bg-steel-950 text-white'
+                          : 'border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
+                      }`}
+                    >
                       {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           ) : (
             <input type="hidden" name="subject" value="demo" />
           )}
@@ -435,13 +346,13 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
               value={formData.message}
               onChange={handleInputChange}
               placeholder="Опишите ваш процесс, текущую проблему или тип нужной демонстрации"
-              rows={variant === 'compact' ? 4 : 5}
+              rows={variant === 'compact' ? 4 : 3}
               className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
               required
             />
           </label>
 
-          <div className="rounded-[1.5rem] border border-steel-200 bg-concrete-50 p-5">
+          <div className="rounded-[1.75rem] border border-steel-200 bg-concrete-50 p-5">
             <label className="flex items-start gap-3">
               <input
                 type="checkbox"
@@ -455,7 +366,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
                   <ShieldCheckIcon className="h-4 w-4 text-construction-700" />
                   Согласие на обработку персональных данных
                 </div>
-                <p className="mt-2 text-sm leading-7 text-steel-600">
+                <p className="mt-2 text-sm leading-6 text-steel-600">
                   Подтверждаю согласие на обработку персональных данных в рамках{' '}
                   <Link
                     to={marketingPaths.privacy}
@@ -500,7 +411,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
             ) : (
               <>
                 <PaperAirplaneIcon className="h-5 w-5" />
-                Отправить заявку
+                {variant === 'compact' ? 'Отправить заявку' : 'Запросить демонстрацию'}
               </>
             )}
           </button>

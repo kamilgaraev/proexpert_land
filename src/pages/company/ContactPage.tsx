@@ -52,7 +52,7 @@ const ContactPage = () => {
   return (
     <div className="bg-white pt-28">
       <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
-        <div className="container-custom py-16 lg:py-20">
+        <div className="container-custom py-20 lg:py-24">
           <SectionHeader
             eyebrow="Контакты"
             title="Свяжитесь с командой ProHelper и разберите свой сценарий внедрения"
@@ -61,16 +61,16 @@ const ContactPage = () => {
         </div>
       </section>
 
-      <section className="py-16 lg:py-20">
+      <section className="py-20 lg:py-24">
         <div className="container-custom grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {contactCards.map((item) => {
             const Icon = item.icon;
 
             return (
-              <article
-                key={item.title}
-                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
-              >
+                <article
+                  key={item.title}
+                  className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm"
+                >
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-construction-50 text-construction-700">
                   <Icon className="h-6 w-6" />
                 </div>
@@ -93,7 +93,7 @@ const ContactPage = () => {
         </div>
       </section>
 
-      <section className="bg-concrete-50 py-16 lg:py-20">
+      <section className="bg-concrete-50 py-20 lg:py-24">
         <div className="container-custom grid gap-8 xl:grid-cols-[0.95fr_1.05fr] xl:items-start">
           <div className="space-y-6">
             <article className="rounded-[2rem] border border-steel-200 bg-white p-8 shadow-sm">
@@ -117,7 +117,7 @@ const ContactPage = () => {
                   href={marketingCompany.emailHref}
                   className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
                 >
-                  Написать на email
+                  Написать на почту
                 </a>
                 <Link
                   to={marketingPaths.privacy}

@@ -15,27 +15,27 @@ const CapabilityCard = ({
 }: CapabilityCardProps) => {
   const isDark = tone === 'dark';
   const wrapperClass = isDark
-    ? 'rounded-[1.75rem] border border-white/10 bg-white/5 p-6 text-white'
-    : 'rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm';
+    ? 'h-full rounded-[2rem] border border-white/10 bg-white/5 p-7 text-white lg:p-8'
+    : 'h-full rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm lg:p-8';
   const summaryClass = isDark ? 'text-white/70' : 'text-steel-600';
   const outcomeClass = isDark
-    ? 'rounded-2xl bg-white/5 px-4 py-3 text-sm leading-6 text-white/80'
-    : 'rounded-2xl bg-concrete-50 px-4 py-3 text-sm leading-6 text-steel-700';
+    ? 'rounded-[1.5rem] bg-white/5 px-5 py-4 text-sm leading-7 text-white/80'
+    : 'rounded-[1.5rem] bg-concrete-50 px-5 py-4 text-sm leading-7 text-steel-700';
 
   return (
     <article className={wrapperClass}>
       <div className="flex flex-wrap items-center gap-3">
-        <div className={`text-xl font-bold ${isDark ? 'text-white' : 'text-steel-950'}`}>
+        <div className={`text-2xl font-bold leading-tight ${isDark ? 'text-white' : 'text-steel-950'}`}>
           {capability.title}
         </div>
         <MaturityBadge maturity={capability.maturity} />
       </div>
-      <p className={`mt-4 text-sm leading-7 ${summaryClass}`}>{capability.publicClaim}</p>
-      <div className="mt-4">
+      <p className={`mt-5 text-base leading-8 ${summaryClass}`}>{capability.publicClaim}</p>
+      <div className="mt-5">
         <SurfaceBadges surfaces={capability.surfaces} />
       </div>
       {compact ? null : (
-        <div className="mt-5 grid gap-3">
+        <div className="mt-7 grid gap-3">
           {capability.outcomes.map((outcome) => (
             <div key={outcome} className="flex items-start gap-3">
               <CheckIcon

@@ -39,7 +39,7 @@ const FeaturesPage = () => {
   return (
     <div className="bg-white pt-28">
       <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(96,165,250,0.12),_transparent_22%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
-        <div className="container-custom py-16 lg:py-20">
+        <div className="container-custom py-20 lg:py-24">
           <SectionHeader
             eyebrow="Возможности"
             title="Ключевые процессы собраны в единую систему, а не разбросаны по отдельным инструментам"
@@ -48,12 +48,12 @@ const FeaturesPage = () => {
         </div>
       </section>
 
-      <section className="py-16 lg:py-20">
-        <div className="container-custom space-y-10">
+      <section className="py-20 lg:py-24">
+        <div className="container-custom space-y-12">
           {Object.entries(groupedCapabilities).map(([contour, capabilities], index) => (
             <section
               key={contour}
-              className={`rounded-[2.25rem] border p-8 shadow-sm ${
+              className={`rounded-[2.5rem] border p-8 shadow-sm lg:p-10 ${
                 index % 2 === 0
                   ? 'border-steel-200 bg-white'
                   : 'border-steel-900 bg-steel-950 text-white'
@@ -96,7 +96,7 @@ const FeaturesPage = () => {
         </div>
       </section>
 
-      <section className="bg-concrete-50 py-16 lg:py-20">
+      <section className="bg-concrete-50 py-20 lg:py-24">
         <div className="container-custom grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
           <div>
             <SectionHeader
@@ -108,7 +108,7 @@ const FeaturesPage = () => {
               {marketingAdvancedOffers.map((offer) => (
                 <article
                   key={offer.id}
-                  className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
+                  className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm"
                 >
                   <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-700">
                     {offer.cta}
@@ -142,7 +142,7 @@ const FeaturesPage = () => {
         </div>
       </section>
 
-      <section className="py-16 lg:py-20">
+      <section className="py-20 lg:py-24">
         <div className="container-custom">
           <CtaBand
             eyebrow="Следующий шаг"

@@ -1,19 +1,20 @@
 import { Link } from 'react-router-dom';
 import {
+  ArrowUpRightIcon,
   BuildingOfficeIcon,
+  ClockIcon,
   EnvelopeIcon,
   MapPinIcon,
 } from '@heroicons/react/24/outline';
 import {
   marketingCompany,
   marketingNavigation,
-  marketingPackages,
   marketingPaths,
 } from '@/data/marketingRegistry';
 
 const footerGroups = [
   {
-    title: 'Продукт',
+    title: 'Навигация',
     links: marketingNavigation,
   },
   {
@@ -21,8 +22,17 @@ const footerGroups = [
     links: [
       { label: 'Подрядчик', href: marketingPaths.solutions },
       { label: 'Генподрядчик', href: marketingPaths.solutions },
-      { label: 'Группа компаний', href: marketingPaths.solutions },
+      { label: 'Девелопер и управляющая компания', href: marketingPaths.solutions },
       { label: 'ПТО и документы', href: marketingPaths.solutions },
+    ],
+  },
+  {
+    title: 'Контуры',
+    links: [
+      { label: 'Объекты и исполнение', href: marketingPaths.features },
+      { label: 'Снабжение и материалы', href: marketingPaths.features },
+      { label: 'Финансы и документы', href: marketingPaths.features },
+      { label: 'Отчетность и контроль', href: marketingPaths.features },
     ],
   },
   {
@@ -44,84 +54,114 @@ const footerGroups = [
   },
 ];
 
+const footerHighlights = [
+  'Демонстрация под ваш процесс, а не по шаблонной витрине.',
+  'Старт с одного рабочего контура без перегруженного внедрения.',
+  'Материалы по безопасности и документам предоставляем по запросу.',
+];
+
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
     <footer className="bg-steel-950 text-white">
-      <div className="container-custom py-16">
-        <div className="rounded-[2.25rem] border border-white/10 bg-white/5 p-8 md:p-10">
-          <div className="grid gap-8 xl:grid-cols-[1.05fr_0.95fr] xl:items-end">
+      <div className="container-custom py-16 lg:py-20">
+        <div className="rounded-[2.75rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(251,146,60,0.08))] p-8 md:p-10 xl:p-12">
+          <div className="grid gap-8 xl:grid-cols-[1.08fr_0.92fr] xl:items-end">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-construction-200">
-                Запросить демонстрацию
+                Готовы показать продукт
               </div>
-              <h2 className="mt-4 max-w-3xl text-3xl font-bold leading-tight sm:text-4xl">
-                Покажем ProHelper на вашем процессе и подскажем, с какого контура лучше стартовать
+              <h2 className="mt-5 max-w-4xl text-[clamp(2.3rem,4.2vw,4.2rem)] font-bold leading-[1.02]">
+                Разберем ваш процесс, покажем релевантный сценарий и подскажем, с чего лучше стартовать.
               </h2>
-              <p className="mt-4 max-w-2xl text-base leading-8 text-white/70">
-                Разберем роли команды, текущую нагрузку на процессы и подготовим демонстрацию без лишних экранов и ненужной теории.
+              <p className="mt-5 max-w-3xl text-base leading-8 text-white/72">
+                Помогаем собрать публичную демонстрацию без лишнего шума: только ваш контур, роли
+                команды, приоритетный этап запуска и понятный следующий шаг.
               </p>
             </div>
+
             <div className="flex flex-wrap gap-3 xl:justify-end">
               <Link
-                to={marketingPaths.contact}
-                className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-steel-950 transition hover:bg-construction-100"
+                to={`${marketingPaths.home}#contact`}
+                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-steel-950 transition hover:bg-construction-100"
               >
-                Связаться с нами
+                Запросить демо
+                <ArrowUpRightIcon className="h-4 w-4" />
               </Link>
               <Link
-                to={marketingPaths.pricing}
+                to={marketingPaths.contact}
                 className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                Посмотреть пакеты
+                Связаться с нами
               </Link>
             </div>
           </div>
         </div>
 
-        <div className="mt-14 grid gap-10 lg:grid-cols-[1.2fr_1fr]">
+        <div className="mt-16 grid gap-12 xl:grid-cols-[1.02fr_1.18fr]">
           <div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-construction-200">
-                <BuildingOfficeIcon className="h-6 w-6" />
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-[1.75rem] bg-white/10 text-construction-200">
+                <BuildingOfficeIcon className="h-7 w-7" />
               </div>
               <div>
-                <div className="text-xl font-bold">{marketingCompany.brand}</div>
-                <div className="text-xs uppercase tracking-[0.22em] text-white/45">
+                <div className="text-2xl font-bold">{marketingCompany.brand}</div>
+                <div className="text-xs uppercase tracking-[0.24em] text-white/45">
                   {marketingCompany.tagline}
                 </div>
               </div>
             </div>
 
-            <p className="mt-6 max-w-xl text-sm leading-7 text-white/70">
-              ProHelper помогает собрать в одной системе проект, снабжение, финансовый контур,
-              документы и управленческую картину по объектам и группе компаний.
+            <p className="mt-6 max-w-xl text-base leading-8 text-white/70">
+              ProHelper помогает строительной компании держать под контролем объекты, снабжение,
+              финансы, документы и управленческую картину в одной системе.
             </p>
 
-            <div className="mt-6 space-y-3 text-sm text-white/70">
-              <a href={marketingCompany.emailHref} className="flex items-center gap-3 transition hover:text-construction-200">
-                <EnvelopeIcon className="h-5 w-5" />
-                {marketingCompany.email}
+            <div className="mt-8 grid gap-4">
+              <a
+                href={marketingCompany.emailHref}
+                className="flex items-start gap-3 rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-4 transition hover:bg-white/10"
+              >
+                <EnvelopeIcon className="mt-0.5 h-5 w-5 shrink-0 text-construction-200" />
+                <div>
+                  <div className="text-sm font-semibold text-white">Электронная почта</div>
+                  <div className="mt-1 text-sm text-white/68">{marketingCompany.email}</div>
+                </div>
               </a>
-              <div className="flex items-center gap-3">
-                <MapPinIcon className="h-5 w-5" />
-                {marketingCompany.location}
+
+              <div className="flex items-start gap-3 rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-4">
+                <ClockIcon className="mt-0.5 h-5 w-5 shrink-0 text-construction-200" />
+                <div>
+                  <div className="text-sm font-semibold text-white">Когда отвечаем</div>
+                  <div className="mt-1 text-sm text-white/68">
+                    {marketingCompany.responseTime}. {marketingCompany.hours}
+                  </div>
+                </div>
               </div>
-              <div>{marketingCompany.responseTime}</div>
+
+              <div className="flex items-start gap-3 rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-4">
+                <MapPinIcon className="mt-0.5 h-5 w-5 shrink-0 text-construction-200" />
+                <div>
+                  <div className="text-sm font-semibold text-white">Формат работы</div>
+                  <div className="mt-1 text-sm text-white/68">{marketingCompany.location}</div>
+                </div>
+              </div>
             </div>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              {marketingPackages.slice(0, 4).map((item) => (
-                <div key={item.slug} className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4">
-                  <div className="text-sm font-semibold text-white">{item.name}</div>
-                  <div className="mt-2 text-sm leading-6 text-white/62">{item.bestFor}</div>
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              {footerHighlights.map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-white/72"
+                >
+                  {item}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-2">
+          <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-5">
             {footerGroups.map((group) => (
               <div key={group.title}>
                 <div className="text-sm font-semibold uppercase tracking-[0.2em] text-construction-200">
@@ -132,7 +172,7 @@ const Footer = () => {
                     <Link
                       key={`${group.title}-${item.href}-${item.label}`}
                       to={item.href}
-                      className="block text-sm text-white/70 transition hover:text-white"
+                      className="block text-sm leading-7 text-white/70 transition hover:text-white"
                     >
                       {item.label}
                     </Link>

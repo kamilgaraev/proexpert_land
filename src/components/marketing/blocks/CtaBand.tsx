@@ -26,13 +26,13 @@ const CtaBand = ({
 
   return (
     <section
-      className={`rounded-[2.25rem] border p-8 md:p-10 ${
+      className={`rounded-[2.5rem] border p-8 md:p-10 xl:p-12 ${
         isDark
           ? 'border-steel-900 bg-steel-950 text-white'
           : 'border-steel-200 bg-white text-steel-950 shadow-sm'
       }`}
     >
-      <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+      <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
         <div>
           <div
             className={`text-xs font-semibold uppercase tracking-[0.24em] ${
@@ -41,10 +41,10 @@ const CtaBand = ({
           >
             {eyebrow}
           </div>
-          <h2 className="mt-4 max-w-3xl text-3xl font-bold leading-tight sm:text-4xl">
+          <h2 className="mt-5 max-w-4xl text-[clamp(2.2rem,4vw,4rem)] font-bold leading-[1.02]">
             {title}
           </h2>
-          <p className={`mt-4 max-w-2xl text-base leading-8 ${isDark ? 'text-white/70' : 'text-steel-600'}`}>
+          <p className={`mt-5 max-w-3xl text-base leading-8 ${isDark ? 'text-white/70' : 'text-steel-600'}`}>
             {description}
           </p>
         </div>
