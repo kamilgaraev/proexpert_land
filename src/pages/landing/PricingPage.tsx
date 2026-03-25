@@ -1,170 +1,182 @@
-import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
-import ContactForm from '@components/landing/ContactForm';
-import { useSEO } from '@hooks/useSEO';
-import useAnalytics from '@hooks/useAnalytics';
-import { moduleHighlights, packageItems } from '../../data/marketingContent';
+import { Link } from 'react-router-dom';
+import { ArrowUpRightIcon } from '@heroicons/react/24/outline';
+import ContactForm from '@/components/landing/ContactForm';
+import {
+  MaturityBadge,
+  PackageIcon,
+  SectionHeader,
+  SurfaceBadges,
+  formatPackageTierPrice,
+} from '@/components/marketing/MarketingPrimitives';
+import {
+  marketingAdvancedOffers,
+  marketingPackages,
+  marketingPaths,
+  marketingSeo,
+  marketingTrustFacts,
+} from '@/data/marketingRegistry';
+import useAnalytics from '@/hooks/useAnalytics';
+import { useSEO } from '@/hooks/useSEO';
+import { generatePricingSchema } from '@/utils/seo';
 
 const PricingPage = () => {
   useSEO({
-    title: 'Тарифы ProHelper - пакеты внедрения для строительных компаний',
-    description:
-      'Пакеты ProHelper построены вокруг зрелости строительной компании: Start для быстрого запуска, Business для управляемого роста, Enterprise для сложных контуров.',
-    keywords:
-      'тарифы ProHelper, цены строительная ERP, внедрение стройка, Start Business Enterprise, модули ProHelper',
+    ...marketingSeo.pricing,
     type: 'website',
+    structuredData: generatePricingSchema(),
   });
-  const { trackButtonClick, trackPricingView, trackPageView } = useAnalytics();
+
+  const { trackButtonClick, trackPageView, trackPricingView } = useAnalytics();
 
   useEffect(() => {
-    trackPricingView('pricing_page');
     trackPageView('marketing_pricing');
+    trackPricingView('package_families');
   }, [trackPageView, trackPricingView]);
 
   return (
     <div className="bg-white pt-20">
-      <section className="border-b border-construction-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.18),_transparent_28%),linear-gradient(180deg,#fff7ed_0%,#ffffff_68%)]">
+      <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.16),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#fff7ed_100%)]">
         <div className="container-custom py-16 lg:py-20">
-          <div className="max-w-4xl">
-            <span className="badge-construction">Тарифы и пакеты</span>
-            <h1 className="mt-5 text-4xl font-bold text-steel-950 sm:text-5xl">
-              Продаём не «ещё один тариф», а понятный маршрут роста для строительной компании.
-            </h1>
-            <p className="mt-6 max-w-3xl text-lg leading-8 text-steel-700">
-              На этой странице клиент должен быстро понять, с чего стартовать, когда переходить на более
-              сильный пакет и как подключать модули без ощущения, что ему навязывают сложный конструктор.
-            </p>
-          </div>
+          <SectionHeader
+            eyebrow="Pricing"
+            title="Пакетные семейства ProHelper из действующей модели личного кабинета"
+            description="Не отдельная маркетинговая сетка, а тот же package layer, который уже живёт в LK и масштабируется за счёт модулей и enterprise-контуров."
+          />
         </div>
       </section>
 
       <section className="py-16 lg:py-20">
         <div className="container-custom">
-          <div className="grid gap-5 xl:grid-cols-3">
-            {packageItems.map((item) => {
-              const accentClass =
-                item.accent === 'primary'
-                  ? 'border-construction-300 bg-steel-950 text-white'
-                  : item.accent === 'dark'
-                    ? 'border-steel-950 bg-steel-900 text-white'
-                    : 'border-steel-200 bg-white text-steel-950';
-
-              const chipClass =
-                item.accent === 'secondary'
-                  ? 'bg-construction-50 text-construction-700'
-                  : 'bg-white/10 text-construction-200';
-
-              const summaryClass = item.accent === 'secondary' ? 'text-steel-600' : 'text-white/75';
-              const bulletClass = item.accent === 'secondary' ? 'bg-concrete-50 text-steel-700' : 'bg-white/5 text-white/80';
-              const buttonClass =
-                item.accent === 'secondary'
-                  ? 'bg-construction-600 text-white hover:bg-construction-700'
-                  : 'bg-white text-steel-950 hover:bg-construction-100';
-
-              return (
-                <div key={item.name} className={`rounded-[2rem] border p-7 shadow-sm ${accentClass}`}>
-                  <div className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${chipClass}`}>
-                    {item.audience}
+          <div className="grid gap-6 xl:grid-cols-2">
+            {marketingPackages.map((item) => (
+              <article
+                key={item.slug}
+                className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.25rem] bg-construction-50 text-construction-700">
+                    <PackageIcon slug={item.slug} className="h-7 w-7" />
                   </div>
-                  <div className="mt-5 text-3xl font-bold">{item.name}</div>
-                  <div className="mt-3 text-lg font-semibold text-construction-300">{item.price}</div>
-                  <div className={`mt-4 text-sm leading-7 ${summaryClass}`}>{item.summary}</div>
-                  <div className="mt-6 space-y-3">
-                    {item.features.map((feature) => (
-                      <div key={feature} className={`rounded-2xl px-4 py-4 text-sm leading-6 ${bulletClass}`}>
-                        {feature}
-                      </div>
-                    ))}
+                  <div>
+                    <h2 className="text-2xl font-bold text-steel-950">{item.name}</h2>
+                    <p className="mt-2 text-sm leading-7 text-steel-600">
+                      {item.description}
+                    </p>
+                    <p className="mt-3 text-sm font-semibold text-construction-700">
+                      {item.bestFor}
+                    </p>
                   </div>
-                  <a
-                    href="#pricing-contact"
-                    onClick={() => trackButtonClick(`pricing_${item.name.toLowerCase()}`, 'marketing_pricing')}
-                    className={`mt-7 inline-flex w-full items-center justify-center rounded-2xl px-6 py-4 text-base font-semibold transition hover:-translate-y-0.5 ${buttonClass}`}
-                  >
-                    {item.cta}
-                  </a>
                 </div>
-              );
-            })}
+
+                <div className="mt-6 grid gap-4 lg:grid-cols-3">
+                  {item.tiers.map((tier) => (
+                    <div
+                      key={`${item.slug}-${tier.key}`}
+                      className="rounded-[1.5rem] border border-steel-200 bg-concrete-50 p-5"
+                    >
+                      <div className="text-xs font-semibold uppercase tracking-[0.22em] text-steel-500">
+                        {tier.label}
+                      </div>
+                      <div className="mt-3 text-2xl font-bold text-steel-950">
+                        {formatPackageTierPrice(tier)}
+                      </div>
+                      <p className="mt-3 text-sm leading-7 text-steel-600">
+                        {tier.description}
+                      </p>
+                      <div className="mt-4 grid gap-3">
+                        {tier.highlights.map((highlight) => (
+                          <div
+                            key={highlight}
+                            className="rounded-2xl bg-white px-4 py-4 text-sm leading-6 text-steel-700 shadow-sm"
+                          >
+                            {highlight}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
       <section className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom">
-          <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-            <div>
-              <span className="badge-safety">Как читать эту страницу</span>
-              <h2 className="mt-5 text-3xl font-bold text-steel-950 sm:text-4xl">
-                Клиент должен быстро увидеть себя в пакете, а не тонуть в деталях конфигурации.
-              </h2>
-              <div className="mt-6 space-y-4 text-base leading-8 text-steel-700">
-                <p>
-                  <span className="font-semibold text-steel-950">Start</span> нужен, когда компания только
-                  собирает единый процесс и хочет навести порядок по объектам, ролям и базовой отчётности.
-                </p>
-                <p>
-                  <span className="font-semibold text-steel-950">Business</span> нужен, когда без снабжения,
-                  складского контура, аналитики и управленческой прозрачности компания уже начинает терять скорость.
-                </p>
-                <p>
-                  <span className="font-semibold text-steel-950">Enterprise</span> нужен там, где важны
-                  архитектура, масштаб, несколько уровней управления и более сложная организационная структура.
-                </p>
-              </div>
-              <Link
-                to="/solutions"
-                onClick={() => trackButtonClick('pricing_to_solutions', 'marketing_pricing')}
-                className="mt-8 inline-flex items-center justify-center rounded-2xl border border-steel-300 bg-white px-6 py-4 text-base font-semibold text-steel-900 transition hover:-translate-y-0.5 hover:border-steel-500"
-              >
-                Посмотреть сценарии по типам компаний
-              </Link>
-            </div>
+        <div className="container-custom grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+          <div>
+            <SectionHeader
+              eyebrow="Advanced modules"
+              title="Дополнительные контуры включаются как расширение"
+              description="AI и enterprise-модули не ломают пакетную логику: они подключаются по мере зрелости процесса и уровня квалификации команды."
+            />
 
-            <div className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm">
-              <div className="text-2xl font-bold text-steel-950">Модули, которые масштабируют систему дальше</div>
-              <div className="mt-3 text-sm leading-7 text-steel-700">
-                Модульный слой важен как инструмент апсейла и кастомизации. Но для конверсии мы показываем его
-                после пакетов, чтобы не ломать выбор на первом касании.
-              </div>
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
-                {moduleHighlights.map((item) => {
-                  const Icon = item.icon;
-
-                  return (
-                    <div key={item.title} className="rounded-[1.5rem] bg-concrete-50 p-5">
-                      <div className="w-fit rounded-2xl bg-white p-3 text-construction-700 shadow-sm">
-                        <Icon className="h-6 w-6" />
-                      </div>
-                      <div className="mt-4 text-lg font-bold text-steel-950">{item.title}</div>
-                      <div className="mt-2 text-sm leading-6 text-steel-700">{item.text}</div>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="mt-8 space-y-4">
+              {marketingAdvancedOffers.map((offer) => (
+                <article
+                  key={offer.id}
+                  className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
+                >
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="text-lg font-bold text-steel-950">{offer.title}</div>
+                    <MaturityBadge maturity={offer.maturity} />
+                  </div>
+                  <p className="mt-3 text-sm leading-7 text-steel-600">{offer.summary}</p>
+                  <div className="mt-4">
+                    <SurfaceBadges surfaces={offer.surfaces} />
+                  </div>
+                </article>
+              ))}
             </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-steel-200 bg-steel-950 p-8 text-white">
+            <SectionHeader
+              eyebrow="Почему так"
+              title="Pricing объясняет рост, а не только цену"
+              description="Главная задача страницы — быстро показать, с какого контура стартовать и когда подключать соседние семейства пакетов."
+            />
+            <div className="mt-8 space-y-4">
+              {marketingTrustFacts.slice(0, 4).map((fact) => (
+                <div
+                  key={fact.title}
+                  className="rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-5"
+                >
+                  <div className="text-lg font-bold">{fact.title}</div>
+                  <p className="mt-2 text-sm leading-7 text-white/75">{fact.text}</p>
+                </div>
+              ))}
+            </div>
+            <Link
+              to={marketingPaths.solutions}
+              onClick={() => trackButtonClick('pricing_to_solutions', 'marketing_pricing')}
+              className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-white px-6 py-4 text-sm font-semibold text-steel-950 transition hover:-translate-y-0.5 hover:bg-construction-100"
+            >
+              Посмотреть решения
+              <ArrowUpRightIcon className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>
 
-      <section id="pricing-contact" className="bg-steel-950 py-16 text-white lg:py-20">
-        <div className="container-custom">
-          <div className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-start">
-            <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-8">
-              <div className="inline-flex rounded-full border border-construction-400/30 bg-construction-500/10 px-4 py-2 text-sm font-semibold text-construction-200">
-                Выбор тарифа без перегруза
-              </div>
-              <h2 className="mt-5 text-3xl font-bold sm:text-4xl">
-                Не уверены, какой пакет подойдёт именно вашему процессу?
-              </h2>
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-white/75">
-                Оставьте заявку. Мы разложим текущий процесс по ролям, покажем релевантный пакет и подскажем,
-                какие модули действительно нужны на первом этапе, а какие лучше подключать позже.
-              </p>
+      <section id="pricing-contact" className="py-16 lg:py-20">
+        <div className="container-custom grid gap-8 lg:grid-cols-[1fr_420px] lg:items-start">
+          <div className="rounded-[2rem] border border-steel-200 bg-white p-8 shadow-sm">
+            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-700">
+              Подбор пакета
             </div>
-
-            <ContactForm variant="compact" className="border-white/10 bg-white/95 shadow-none" />
+            <h2 className="mt-5 text-3xl font-bold text-steel-950 sm:text-4xl">
+              Поможем собрать минимально достаточный контур под ваш текущий этап.
+            </h2>
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-steel-600">
+              На созвоне разложим текущий процесс по ролям, покажем релевантные
+              пакетные семейства и сразу пометим, где уместны advanced-модули, а где
+              лучше начать с базового ядра.
+            </p>
           </div>
+
+          <ContactForm variant="compact" className="shadow-none" />
         </div>
       </section>
     </div>

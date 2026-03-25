@@ -1,228 +1,126 @@
-import PageLayout from '../../components/shared/PageLayout';
-import { 
-  BuildingOfficeIcon,
-  UsersIcon,
-  TrophyIcon,
-  GlobeAltIcon,
-  HeartIcon,
-  LightBulbIcon,
-  ShieldCheckIcon,
-  RocketLaunchIcon
-} from '@heroicons/react/24/outline';
+import { Link } from 'react-router-dom';
+import { ArrowUpRightIcon } from '@heroicons/react/24/outline';
+import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import {
+  marketingAboutSections,
+  marketingCompany,
+  marketingPaths,
+  marketingSeo,
+  marketingTrustFacts,
+} from '@/data/marketingRegistry';
+import { useSEO } from '@/hooks/useSEO';
 
 const AboutPage = () => {
-  const stats = [
-    { value: '2019', label: 'Год основания', icon: BuildingOfficeIcon },
-    { value: '5000+', label: 'Активных пользователей', icon: UsersIcon },
-    { value: '500+', label: 'Реализованных проектов', icon: TrophyIcon },
-    { value: '15', label: 'Городов присутствия', icon: GlobeAltIcon }
-  ];
-
-  const values = [
-    {
-      icon: HeartIcon,
-      title: 'Клиентоориентированность',
-      description: 'Мы создаем продукт, который действительно решает проблемы наших клиентов'
-    },
-    {
-      icon: LightBulbIcon,
-      title: 'Инновации',
-      description: 'Используем передовые технологии для создания лучших решений'
-    },
-    {
-      icon: ShieldCheckIcon,
-      title: 'Надежность',
-      description: 'Гарантируем безопасность данных и стабильность работы системы'
-    },
-    {
-      icon: RocketLaunchIcon,
-      title: 'Развитие',
-      description: 'Постоянно улучшаем продукт на основе обратной связи пользователей'
-    }
-  ];
-
-  const timeline = [
-    {
-      year: '2019',
-      title: 'Основание компании',
-      description: 'Команда опытных разработчиков и строителей объединилась для создания ProHelper'
-    },
-    {
-      year: '2020',
-      title: 'Первые клиенты',
-      description: 'Запуск MVP и привлечение первых 100 пользователей из строительной отрасли'
-    },
-    {
-      year: '2021',
-      title: 'Расширение функционала',
-      description: 'Добавление модулей финансового учета и управления документооборотом'
-    },
-    {
-      year: '2022',
-      title: 'Мобильное приложение',
-      description: 'Запуск мобильных приложений для iOS и Android'
-    },
-    {
-      year: '2023',
-      title: 'Корпоративные клиенты',
-      description: 'Привлечение крупных застройщиков и строительных холдингов'
-    },
-    {
-      year: '2024',
-      title: 'Международная экспансия',
-      description: 'Выход на рынки СНГ и планы расширения в Европу'
-    }
-  ];
-
-  const team = [
-    {
-      name: 'Алексей Петров',
-      position: 'Генеральный директор',
-      experience: '15 лет в строительстве',
-      description: 'Бывший директор крупной строительной компании, эксперт в области управления проектами'
-    },
-    {
-      name: 'Мария Сидорова',
-      position: 'Технический директор',
-      experience: '12 лет в разработке',
-      description: 'Ведущий архитектор в крупных ИТ-компаниях, эксперт по корпоративным системам'
-    },
-    {
-      name: 'Дмитрий Козлов',
-      position: 'Директор по продукту',
-      experience: '10 лет в продуктовой разработке',
-      description: 'Опыт создания B2B SaaS продуктов для различных отраслей'
-    },
-    {
-      name: 'Елена Волкова',
-      position: 'Директор по развитию',
-      experience: '8 лет в продажах',
-      description: 'Эксперт по работе с корпоративными клиентами в строительной отрасли'
-    }
-  ];
+  useSEO({
+    ...marketingSeo.about,
+    type: 'website',
+  });
 
   return (
-    <PageLayout 
-      title="О компании ProHelper" 
-      subtitle="Мы создаем будущее управления строительными проектами"
-    >
-      <div className="mb-16">
-        <div className="bg-white rounded-2xl p-8 shadow-lg border border-concrete-100 mb-16">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-steel-900 mb-6">Наша миссия</h2>
-            <p className="text-xl text-steel-600 leading-relaxed mb-8">
-              Мы стремимся революционизировать строительную отрасль, предоставляя инновационные 
-              цифровые решения, которые делают управление проектами простым, эффективным и прозрачным. 
-              Наша цель — помочь строительным компаниям любого размера достигать лучших результатов 
-              при меньших затратах времени и ресурсов.
-            </p>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat, index) => {
-                const IconComponent = stat.icon;
-                return (
-                  <div key={index} className="text-center">
-                    <div className="w-16 h-16 bg-construction-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <IconComponent className="w-8 h-8 text-construction-600" />
+    <div className="bg-white pt-20">
+      <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.14),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
+        <div className="container-custom py-16 lg:py-20">
+          <SectionHeader
+            eyebrow="About"
+            title="Публичный сайт ProHelper строится на реальном продукте, а не на витринных цифрах"
+            description="В этой версии мы сознательно убрали вымышленные статистики, офисы и истории успеха. В доверительном контуре остаются только подтверждённые продуктовые и архитектурные факты."
+          />
+        </div>
+      </section>
+
+      <section className="py-16 lg:py-20">
+        <div className="container-custom grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="space-y-6">
+            {marketingAboutSections.map((section) => (
+              <article
+                key={section.title}
+                className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm"
+              >
+                <h2 className="text-2xl font-bold text-steel-950">{section.title}</h2>
+                <p className="mt-4 text-sm leading-7 text-steel-600">
+                  {section.description}
+                </p>
+                <div className="mt-5 grid gap-3">
+                  {section.bullets.map((bullet) => (
+                    <div
+                      key={bullet}
+                      className="rounded-2xl bg-concrete-50 px-4 py-4 text-sm leading-6 text-steel-700"
+                    >
+                      {bullet}
                     </div>
-                    <div className="text-3xl font-bold text-construction-600 mb-2">{stat.value}</div>
-                    <div className="text-steel-600">{stat.label}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-steel-900 mb-4">Наши ценности</h2>
-            <p className="text-xl text-steel-600">Принципы, которые определяют нашу работу</p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            {values.map((value, index) => {
-              const IconComponent = value.icon;
-              return (
-                <div key={index} className="bg-white rounded-xl p-8 shadow-lg border border-concrete-100">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-construction-100 rounded-xl flex items-center justify-center">
-                      <IconComponent className="w-6 h-6 text-construction-600" />
-                    </div>
-                    <h3 className="text-xl font-bold text-steel-900">{value.title}</h3>
-                  </div>
-                  <p className="text-steel-600">{value.description}</p>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="mb-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-steel-900 mb-4">История развития</h2>
-            <p className="text-xl text-steel-600">Путь от идеи до лидера рынка</p>
-          </div>
-
-          <div className="relative">
-            <div className="absolute left-8 top-0 h-full w-0.5 bg-construction-200"></div>
-            <div className="space-y-8">
-              {timeline.map((item, index) => (
-                <div key={index} className="relative flex items-start gap-8">
-                  <div className="w-16 h-16 bg-construction-500 rounded-full flex items-center justify-center text-white font-bold text-lg z-10">
-                    {item.year}
-                  </div>
-                  <div className="flex-1 bg-white rounded-xl p-6 shadow-lg border border-concrete-100">
-                    <h3 className="text-xl font-bold text-steel-900 mb-2">{item.title}</h3>
-                    <p className="text-steel-600">{item.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-steel-900 mb-4">Команда ProHelper</h2>
-            <p className="text-xl text-steel-600">Профессионалы, которые создают будущее</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {team.map((member, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-lg border border-concrete-100">
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-construction-100 rounded-full flex items-center justify-center">
-                    <UsersIcon className="w-8 h-8 text-construction-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-steel-900">{member.name}</h3>
-                    <div className="text-construction-600 font-medium mb-1">{member.position}</div>
-                    <div className="text-sm text-steel-500 mb-3">{member.experience}</div>
-                    <p className="text-steel-600 text-sm">{member.description}</p>
-                  </div>
-                </div>
-              </div>
+              </article>
             ))}
           </div>
-        </div>
 
-        <div className="bg-gradient-to-r from-construction-600 to-safety-600 rounded-2xl p-8 text-center text-white">
-          <h3 className="text-3xl font-bold mb-4">Присоединяйтесь к нам</h3>
-          <p className="text-xl mb-8 opacity-90">
-            Станьте частью революции в строительной отрасли
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-3 bg-white text-construction-600 font-semibold rounded-lg hover:shadow-lg transition-all">
-              Открытые вакансии
-            </button>
-            <button className="px-8 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-construction-600 transition-all">
-              Связаться с нами
-            </button>
+          <div className="space-y-6">
+            <article className="rounded-[2rem] border border-steel-200 bg-steel-950 p-7 text-white">
+              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-200">
+                Как мы работаем
+              </div>
+              <div className="mt-5 space-y-4 text-sm leading-7 text-white/80">
+                <p>{marketingCompany.location}</p>
+                <p>{marketingCompany.responseTime}</p>
+                <p>{marketingCompany.hours}</p>
+              </div>
+              <a
+                href={marketingCompany.emailHref}
+                className="mt-6 inline-flex items-center gap-2 text-base font-semibold text-construction-200"
+              >
+                {marketingCompany.email}
+              </a>
+              <p className="mt-4 text-sm leading-7 text-white/70">
+                {marketingCompany.legalStatusNote}
+              </p>
+            </article>
+
+            <article className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm">
+              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-steel-500">
+                Trust contour
+              </div>
+              <div className="mt-5 space-y-4">
+                {marketingTrustFacts.map((fact) => (
+                  <div
+                    key={fact.title}
+                    className="rounded-[1.5rem] bg-concrete-50 px-4 py-4"
+                  >
+                    <div className="text-base font-bold text-steel-950">{fact.title}</div>
+                    <p className="mt-2 text-sm leading-7 text-steel-600">{fact.text}</p>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <div className="rounded-[2rem] border border-steel-200 bg-construction-50 p-7">
+              <div className="text-2xl font-bold text-steel-950">
+                Нужен walkthrough по продуктовым контурам и security-слою?
+              </div>
+              <p className="mt-4 text-sm leading-7 text-steel-700">
+                Покажем, как capability matrix связывается с пакетами, legal-страницами
+                и фактическими surface-ами продукта.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  to={marketingPaths.contact}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-steel-950 px-6 py-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-steel-900"
+                >
+                  Связаться с нами
+                  <ArrowUpRightIcon className="h-4 w-4" />
+                </Link>
+                <Link
+                  to={marketingPaths.security}
+                  className="inline-flex items-center justify-center rounded-2xl border border-steel-300 bg-white px-6 py-4 text-sm font-semibold text-steel-900 transition hover:border-steel-500"
+                >
+                  Страница безопасности
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </PageLayout>
+      </section>
+    </div>
   );
 };
 
-export default AboutPage; 
+export default AboutPage;

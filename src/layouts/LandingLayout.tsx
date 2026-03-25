@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from '../components/landing/Navbar';
 import Footer from '../components/landing/Footer';
+import CookieBanner from '@/components/marketing/CookieBanner';
 
 const LandingLayout = () => {
   return (
@@ -10,9 +11,9 @@ const LandingLayout = () => {
         <Outlet />
       </main>
       <Footer />
+      <CookieBanner />
     </div>
   );
 };
 
 export default LandingLayout;
-

@@ -76,13 +76,12 @@ const MyProjectsPage = lazy(() => import('@pages/dashboard/projects').then(m => 
 const ProjectDetailsPage = lazy(() => import('@pages/dashboard/projects/ProjectDetailsPage'));
 
 // Lazy loading для Resources
-const DocsPage = lazy(() => import('@pages/resources/DocsPage'));
-
-// Lazy loading для Company
 const AboutPage = lazy(() => import('@pages/company/AboutPage'));
-const PressPage = lazy(() => import('@pages/company/PressPage'));
-const PartnersPage = lazy(() => import('@pages/company/PartnersPage'));
 const ContactPage = lazy(() => import('@pages/company/ContactPage'));
+const SecurityPage = lazy(() => import('@pages/company/SecurityPage'));
+const PrivacyPage = lazy(() => import('@pages/legal/PrivacyPage'));
+const OfferPage = lazy(() => import('@pages/legal/OfferPage'));
+const CookiesPage = lazy(() => import('@pages/legal/CookiesPage'));
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -182,6 +181,12 @@ function App() {
           <Route path="/solutions" element={<SolutionsPage />} />
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/security" element={<SecurityPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/offer" element={<OfferPage />} />
+          <Route path="/cookies" element={<CookiesPage />} />
         </Route>
         
         <Route path="/login" element={<LoginPage />} />
@@ -196,8 +201,9 @@ function App() {
         {/* Страницы решений - Moved to LandingLayout /solutions */}
         
         {/* Ресурсы */}
-        <Route path="/docs" element={<DocsPage />} />
-        <Route path="/help" element={<DocsPage />} />
+        <Route path="/docs" element={<Navigate to="/features" replace />} />
+        <Route path="/help" element={<Navigate to="/contact" replace />} />
+        <Route path="/terms" element={<Navigate to="/offer" replace />} />
         <Route path="/blog" element={<BlogPublicPage />} />
         <Route path="/blog/category/:slug" element={<BlogCategoryPage />} />
         <Route path="/blog/tag/:slug" element={<BlogTagPage />} />
@@ -205,11 +211,9 @@ function App() {
         {/* <Route path="/webinars" element={<WebinarsPage />} /> */}
         
         {/* Компания */}
-        <Route path="/about" element={<AboutPage />} />
         {/* <Route path="/careers" element={<CareersPage />} /> */}
-        <Route path="/press" element={<PressPage />} />
-        <Route path="/partners" element={<PartnersPage />} />
-        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/press" element={<Navigate to="/about" replace />} />
+        <Route path="/partners" element={<Navigate to="/contact" replace />} />
         
         {/* Защищенные маршруты внутри личного кабинета */}
         <Route path="/dashboard" element={

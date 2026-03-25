@@ -3,12 +3,16 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  ArrowUpRightIcon,
   Bars3Icon,
   BuildingOfficeIcon,
-  PhoneIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { marketingContacts, marketingNavLinks } from '../../data/marketingContent';
+import {
+  marketingCompany,
+  marketingNavigation,
+  marketingPaths,
+} from '@/data/marketingRegistry';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,34 +59,24 @@ const Navbar = () => {
     <nav className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${navSurfaceClass}`}>
       <div className="container-custom">
         <div className="flex h-20 items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to={marketingPaths.home} className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-steel-950 text-construction-300">
               <BuildingOfficeIcon className="h-6 w-6" />
             </div>
             <div>
-              <div className="text-xl font-bold text-steel-950">ProHelper</div>
-              <div className="text-xs uppercase tracking-[0.22em] text-steel-500">construction operating system</div>
+              <div className="text-xl font-bold text-steel-950">{marketingCompany.brand}</div>
+              <div className="text-xs uppercase tracking-[0.22em] text-steel-500">
+                {marketingCompany.tagline}
+              </div>
             </div>
           </Link>
 
           <div className="hidden xl:flex items-center gap-2 rounded-full border border-steel-200 bg-white px-3 py-2 shadow-sm">
-            {marketingNavLinks.map((item) => {
+            {marketingNavigation.map((item) => {
               const active = isActiveLink(item.href, item.exact);
               const className = active
                 ? 'bg-construction-50 text-construction-700'
                 : 'text-steel-700 hover:bg-steel-50 hover:text-steel-950';
-
-              if (item.href.startsWith('/#')) {
-                return (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${className}`}
-                  >
-                    {item.label}
-                  </a>
-                );
-              }
 
               return (
                 <Link
@@ -98,24 +92,24 @@ const Navbar = () => {
 
           <div className="hidden lg:flex items-center gap-3">
             <a
-              href={marketingContacts.phoneHref}
+              href={marketingCompany.emailHref}
               className="inline-flex items-center gap-2 rounded-full border border-steel-200 bg-white px-4 py-3 text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700"
             >
-              <PhoneIcon className="h-4 w-4" />
-              {marketingContacts.phone}
+              {marketingCompany.email}
             </a>
             <Link
-              to="/login"
+              to={marketingPaths.contact}
               className="rounded-full px-5 py-3 text-sm font-semibold text-steel-700 transition hover:bg-steel-100 hover:text-steel-950"
             >
-              Войти
+              Контакты
             </Link>
-            <a
-              href="/#contact"
-              className="rounded-full bg-steel-950 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-steel-900"
+            <Link
+              to={`${marketingPaths.home}#contact`}
+              className="inline-flex items-center gap-2 rounded-full bg-steel-950 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-steel-900"
             >
-              Получить демо
-            </a>
+              Запросить демо
+              <ArrowUpRightIcon className="h-4 w-4" />
+            </Link>
           </div>
 
           <button
@@ -137,23 +131,11 @@ const Navbar = () => {
               className="mb-4 rounded-[1.75rem] border border-steel-200 bg-white p-5 shadow-xl lg:hidden"
             >
               <div className="space-y-2">
-                {marketingNavLinks.map((item) => {
+                {marketingNavigation.map((item) => {
                   const active = isActiveLink(item.href, item.exact);
                   const className = active
                     ? 'bg-construction-50 text-construction-700'
                     : 'text-steel-700 hover:bg-steel-50 hover:text-steel-950';
-
-                  if (item.href.startsWith('/#')) {
-                    return (
-                      <a
-                        key={item.href}
-                        href={item.href}
-                        className={`block rounded-2xl px-4 py-3 text-sm font-semibold transition ${className}`}
-                      >
-                        {item.label}
-                      </a>
-                    );
-                  }
 
                   return (
                     <Link
@@ -169,25 +151,24 @@ const Navbar = () => {
 
               <div className="mt-5 border-t border-steel-100 pt-5">
                 <a
-                  href={marketingContacts.phoneHref}
+                  href={marketingCompany.emailHref}
                   className="flex items-center gap-3 rounded-2xl bg-concrete-50 px-4 py-3 text-sm font-semibold text-steel-700"
                 >
-                  <PhoneIcon className="h-5 w-5" />
-                  {marketingContacts.phone}
+                  {marketingCompany.email}
                 </a>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <Link
-                    to="/login"
+                    to={marketingPaths.contact}
                     className="inline-flex items-center justify-center rounded-2xl border border-steel-200 px-4 py-3 text-sm font-semibold text-steel-700"
                   >
-                    Войти
+                    Контакты
                   </Link>
-                  <a
-                    href="/#contact"
+                  <Link
+                    to={`${marketingPaths.home}#contact`}
                     className="inline-flex items-center justify-center rounded-2xl bg-steel-950 px-4 py-3 text-sm font-semibold text-white"
                   >
-                    Получить демо
-                  </a>
+                    Запросить демо
+                  </Link>
                 </div>
               </div>
             </motion.div>

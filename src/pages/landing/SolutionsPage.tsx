@@ -1,109 +1,190 @@
 import { useEffect } from 'react';
-import ContactForm from '@components/landing/ContactForm';
-import { useSEO } from '@hooks/useSEO';
-import useAnalytics from '@hooks/useAnalytics';
-import { solutionStories } from '../../data/marketingContent';
+import { Link } from 'react-router-dom';
+import { CheckIcon } from '@heroicons/react/24/outline';
+import ContactForm from '@/components/landing/ContactForm';
+import {
+  MaturityBadge,
+  PackageIcon,
+  SectionHeader,
+  SurfaceBadges,
+  formatPackageTierPrice,
+} from '@/components/marketing/MarketingPrimitives';
+import {
+  marketingCapabilityMatrix,
+  marketingPackages,
+  marketingPaths,
+  marketingSeo,
+  marketingSolutionSegments,
+} from '@/data/marketingRegistry';
+import useAnalytics from '@/hooks/useAnalytics';
+import { useSEO } from '@/hooks/useSEO';
 
 const SolutionsPage = () => {
   useSEO({
-    title: 'Решения ProHelper - сценарии для подрядчиков, генподрядчиков и девелоперов',
-    description:
-      'ProHelper помогает разным типам строительных компаний собирать свой контур управления: подрядчикам, генподрядчикам, девелоперам и инженерным блокам.',
-    keywords:
-      'решения ProHelper, подрядчик, генподрядчик, девелопер, ПТО, строительная система управления',
+    ...marketingSeo.solutions,
     type: 'website',
   });
-  const { trackPageView } = useAnalytics();
+
+  const { trackButtonClick, trackPageView } = useAnalytics();
 
   useEffect(() => {
     trackPageView('marketing_solutions');
   }, [trackPageView]);
 
+  const capabilityMap = new Map(
+    marketingCapabilityMatrix.map((capability) => [capability.id, capability]),
+  );
+  const packageMap = new Map(marketingPackages.map((item) => [item.slug, item]));
+
   return (
     <div className="bg-white pt-20">
-      <section className="border-b border-construction-100 bg-[radial-gradient(circle_at_top_right,_rgba(234,179,8,0.22),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#fff7ed_100%)]">
+      <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.16),_transparent_28%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
         <div className="container-custom py-16 lg:py-20">
-          <div className="max-w-4xl">
-            <span className="badge-construction">Решения по сегментам</span>
-            <h1 className="mt-5 text-4xl font-bold text-steel-950 sm:text-5xl">
-              Страница решений должна показывать клиенту его сценарий, а не заставлять его самому собирать картину.
-            </h1>
-            <p className="mt-6 max-w-3xl text-lg leading-8 text-steel-700">
-              Ниже мы разложили ProHelper по типам строительных компаний и ролей. Каждый блок отвечает на
-              три вопроса: где болит, что меняется после внедрения и какой пакет логичнее всего рассматривать.
-            </p>
-          </div>
+          <SectionHeader
+            eyebrow="Solutions"
+            title="Сценарии ProHelper по сегментам строительного бизнеса"
+            description="Для каждого сегмента показываем боль, подтверждённые workflow, доступные surface-ы и релевантные пакетные семейства."
+          />
         </div>
       </section>
 
       <section className="py-16 lg:py-20">
         <div className="container-custom space-y-6">
-          {solutionStories.map((item) => {
-            const Icon = item.icon;
+          {marketingSolutionSegments.map((segment) => {
+            const capabilities = segment.capabilityIds
+              .map((capabilityId) => capabilityMap.get(capabilityId))
+              .filter((item): item is NonNullable<typeof item> => Boolean(item));
+            const packages = segment.recommendedPackageSlugs
+              .map((packageSlug) => packageMap.get(packageSlug))
+              .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
             return (
-              <div
-                key={item.title}
-                className="grid gap-6 rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm lg:grid-cols-[0.8fr_1.2fr]"
+              <article
+                key={segment.id}
+                className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm"
               >
-                <div className="rounded-[1.75rem] bg-steel-950 p-7 text-white">
-                  <div className="w-fit rounded-2xl bg-white/10 p-3 text-construction-300">
-                    <Icon className="h-7 w-7" />
-                  </div>
-                  <div className="mt-5 text-3xl font-bold">{item.title}</div>
-                  <div className="mt-3 text-base leading-7 text-white/75">{item.subtitle}</div>
-                  <div className="mt-6 rounded-[1.5rem] bg-white/5 p-5">
-                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-construction-200">
-                      Подходящий пакет
+                <div className="grid gap-8 xl:grid-cols-[0.7fr_1.3fr]">
+                  <div className="rounded-[1.75rem] bg-steel-950 p-7 text-white">
+                    <div className="text-xs font-semibold uppercase tracking-[0.24em] text-construction-200">
+                      {segment.title}
                     </div>
-                    <div className="mt-3 text-xl font-bold">{item.package}</div>
+                    <h1 className="mt-4 text-3xl font-bold">{segment.audience}</h1>
+                    <p className="mt-4 text-sm leading-7 text-white/75">
+                      {segment.challenge}
+                    </p>
+                    <div className="mt-5">
+                      <SurfaceBadges surfaces={segment.surfaces} />
+                    </div>
+                    <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
+                      <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-200">
+                        После внедрения
+                      </div>
+                      <p className="mt-3 text-sm leading-7 text-white/80">
+                        {segment.transformation}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="grid gap-4">
-                  <div className="rounded-[1.5rem] bg-rose-50 p-5">
-                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-rose-700">Боль</div>
-                    <div className="mt-3 text-sm leading-7 text-steel-700">{item.pain}</div>
-                  </div>
-                  <div className="rounded-[1.5rem] bg-emerald-50 p-5">
-                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Результат</div>
-                    <div className="mt-3 text-sm leading-7 text-steel-700">{item.result}</div>
-                  </div>
-                  <div className="rounded-[1.5rem] bg-concrete-50 p-5">
-                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-steel-700">Ключевые контуры</div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                      {item.modules.map((module) => (
-                        <div key={module} className="rounded-2xl bg-white px-4 py-3 text-sm font-medium text-steel-700 shadow-sm">
-                          {module}
-                        </div>
+                  <div className="space-y-5">
+                    <div className="rounded-[1.75rem] bg-concrete-50 p-6">
+                      <div className="text-xs font-semibold uppercase tracking-[0.22em] text-steel-500">
+                        Подтверждённые workflow
+                      </div>
+                      <div className="mt-4 grid gap-3 md:grid-cols-2">
+                        {segment.workflows.map((workflow) => (
+                          <div
+                            key={workflow}
+                            className="flex items-start gap-3 rounded-2xl bg-white px-4 py-4 text-sm leading-6 text-steel-700 shadow-sm"
+                          >
+                            <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-construction-600" />
+                            {workflow}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      {capabilities.map((capability) => (
+                        <article
+                          key={capability.id}
+                          className="rounded-[1.75rem] border border-steel-200 bg-white p-5"
+                        >
+                          <div className="flex flex-wrap items-center gap-3">
+                            <div className="text-lg font-bold text-steel-950">
+                              {capability.title}
+                            </div>
+                            <MaturityBadge maturity={capability.maturity} />
+                          </div>
+                          <p className="mt-3 text-sm leading-7 text-steel-600">
+                            {capability.publicClaim}
+                          </p>
+                          <div className="mt-4">
+                            <SurfaceBadges surfaces={capability.surfaces} />
+                          </div>
+                        </article>
                       ))}
                     </div>
+
+                    <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6">
+                      <div className="text-xs font-semibold uppercase tracking-[0.22em] text-steel-500">
+                        Релевантные пакетные семейства
+                      </div>
+                      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                        {packages.map((item) => (
+                          <div
+                            key={item.slug}
+                            className="rounded-[1.5rem] bg-concrete-50 p-5"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-construction-700 shadow-sm">
+                                <PackageIcon slug={item.slug} className="h-5 w-5" />
+                              </div>
+                              <div>
+                                <div className="font-semibold text-steel-950">{item.name}</div>
+                                <div className="text-sm text-steel-500">
+                                  {formatPackageTierPrice(item.tiers[0])}
+                                </div>
+                              </div>
+                            </div>
+                            <p className="mt-3 text-sm leading-7 text-steel-600">
+                              {item.bestFor}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
       </section>
 
       <section className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom">
-          <div className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-start">
-            <div className="rounded-[2rem] border border-steel-200 bg-white p-8 shadow-sm">
-              <div className="inline-flex rounded-full bg-construction-50 px-4 py-2 text-sm font-semibold text-construction-700">
-                Нужен кастомный сценарий?
-              </div>
-              <h2 className="mt-5 text-3xl font-bold text-steel-950 sm:text-4xl">
-                Покажем, как собрать ваш контур управления без лишних модулей и лишнего бюджета.
-              </h2>
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-steel-700">
-                Если у вас смешанный сценарий, несколько направлений бизнеса или сложная организационная структура,
-                на созвоне соберём под вас целевой маршрут внедрения и приоритеты первого этапа.
-              </p>
+        <div className="container-custom grid gap-8 lg:grid-cols-[1fr_420px] lg:items-start">
+          <div className="rounded-[2rem] border border-steel-200 bg-white p-8 shadow-sm">
+            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-700">
+              Нужен кастомный сценарий
             </div>
-
-            <ContactForm variant="compact" className="shadow-none" />
+            <h2 className="mt-5 text-3xl font-bold text-steel-950 sm:text-4xl">
+              Соберём rollout-маршрут без лишних модулей и лишнего шума.
+            </h2>
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-steel-600">
+              Если у вас смешанный контур, несколько ролей или переход к holding-модели,
+              на созвоне выделим приоритетный поток внедрения и покажем, что имеет смысл
+              запускать сразу, а что оставить на следующий этап.
+            </p>
+            <Link
+              to={marketingPaths.pricing}
+              onClick={() => trackButtonClick('solutions_to_pricing', 'marketing_solutions')}
+              className="mt-8 inline-flex items-center justify-center rounded-2xl border border-steel-300 bg-white px-6 py-4 text-sm font-semibold text-steel-900 transition hover:border-steel-500"
+            >
+              Перейти к пакетам
+            </Link>
           </div>
+
+          <ContactForm variant="compact" className="shadow-none" />
         </div>
       </section>
     </div>

@@ -1,33 +1,31 @@
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  EnvelopeIcon,
-  PhoneIcon,
-  UserIcon,
+import {
+  BuildingOffice2Icon,
   ChatBubbleLeftRightIcon,
+  EnvelopeIcon,
   PaperAirplaneIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  QuestionMarkCircleIcon,
-  PlayCircleIcon,
-  CurrencyDollarIcon,
-  WrenchScrewdriverIcon,
-  LifebuoyIcon,
-  UsersIcon,
-  DocumentTextIcon
+  PhoneIcon,
+  ShieldCheckIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline';
-import NotificationService from '@components/shared/NotificationService';
-import CustomSelect from '@components/shared/CustomSelect';
-import SuccessModal from '@components/shared/SuccessModal';
-import useAnalytics from '@hooks/useAnalytics';
+import NotificationService from '@/components/shared/NotificationService';
+import SuccessModal from '@/components/shared/SuccessModal';
+import { marketingPaths } from '@/data/marketingRegistry';
+import useAnalytics from '@/hooks/useAnalytics';
+import { COOKIE_CONSENT_VERSION } from '@/utils/marketingConsent';
 
 interface ContactFormData {
   name: string;
   email: string;
   phone: string;
   company: string;
-  message: string;
+  companyRole: string;
+  companySize: string;
   subject: string;
+  message: string;
+  consentToPersonalData: boolean;
 }
 
 interface ContactFormProps {
@@ -35,456 +33,488 @@ interface ContactFormProps {
   className?: string;
 }
 
+const subjectOptions = [
+  { value: 'demo', label: 'Запрос демонстрации' },
+  { value: 'pricing', label: 'Вопрос по пакетам и модулям' },
+  { value: 'rollout', label: 'Внедрение и rollout' },
+  { value: 'security', label: 'Безопасность и compliance' },
+  { value: 'support', label: 'Поддержка и сопровождение' },
+  { value: 'other', label: 'Другое обращение' },
+];
+
+const companyRoleOptions = [
+  { value: 'contractor', label: 'Подрядчик' },
+  { value: 'general_contractor', label: 'Генподрядчик' },
+  { value: 'developer', label: 'Девелопер / холдинг' },
+  { value: 'engineering', label: 'Инженерный блок / ПТО' },
+];
+
+const companySizeOptions = [
+  { value: '1_3', label: '1-3 активных объекта' },
+  { value: '4_10', label: '4-10 активных объектов' },
+  { value: '10_plus', label: '10+ активных объектов' },
+  { value: 'holding', label: 'Группа компаний / multi-org' },
+];
+
+const getPublicApiBase = () => {
+  const rawBase = (import.meta.env.VITE_API_URL as string | undefined) ?? 'https://api.prohelper.pro';
+
+  return rawBase.replace(/\/api\/v1\/landing\/?$/, '');
+};
+
+const getUtmPayload = () => {
+  if (typeof window === 'undefined') {
+    return {
+      utm_source: undefined,
+      utm_medium: undefined,
+      utm_campaign: undefined,
+      utm_term: undefined,
+      utm_content: undefined,
+    };
+  }
+
+  const searchParams = new URLSearchParams(window.location.search);
+
+  return {
+    utm_source: searchParams.get('utm_source') ?? undefined,
+    utm_medium: searchParams.get('utm_medium') ?? undefined,
+    utm_campaign: searchParams.get('utm_campaign') ?? undefined,
+    utm_term: searchParams.get('utm_term') ?? undefined,
+    utm_content: searchParams.get('utm_content') ?? undefined,
+  };
+};
+
+const normalizeOptional = (value: string) => {
+  const trimmedValue = value.trim();
+
+  return trimmedValue.length > 0 ? trimmedValue : undefined;
+};
+
 const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => {
+  const location = useLocation();
+  const { trackButtonClick, trackContactForm } = useAnalytics();
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
     phone: '',
     company: '',
+    companyRole: '',
+    companySize: '',
+    subject: variant === 'compact' ? 'demo' : '',
     message: '',
-    subject: 'consultation'
+    consentToPersonalData: false,
   });
-  
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const { trackContactForm, trackButtonClick } = useAnalytics();
 
-  const subjects = [
-    { value: 'consultation', label: 'Консультация по продукту', icon: QuestionMarkCircleIcon },
-    { value: 'demo', label: 'Заказать демонстрацию', icon: PlayCircleIcon },
-    { value: 'pricing', label: 'Вопросы по тарифам', icon: CurrencyDollarIcon },
-    { value: 'integration', label: 'Интеграция с 1С/ERP', icon: WrenchScrewdriverIcon },
-    { value: 'support', label: 'Техническая поддержка', icon: LifebuoyIcon },
-    { value: 'partnership', label: 'Партнерство', icon: UsersIcon },
-    { value: 'other', label: 'Другое', icon: DocumentTextIcon }
-  ];
+  const handleInputChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
+    const { name, value, type } = event.target;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]:
+        type === 'checkbox'
+          ? (event.target as HTMLInputElement).checked
+          : value,
+    }));
   };
 
-  const handleSelectChange = (value: string) => {
-    setFormData(prev => ({ ...prev, subject: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Не обрабатываем форму на сервере
-    if (typeof window === 'undefined') {
-      return;
-    }
-    
-    setIsSubmitting(true);
-
-    // Валидация на клиенте
+  const validateForm = () => {
     const errors: string[] = [];
-
-    // Обязательные поля
-    if (!formData.name.trim() || formData.name.length < 2 || formData.name.length > 255) {
-      errors.push('Имя должно содержать от 2 до 255 символов');
-    }
-
-    if (!formData.email.trim() || formData.email.length > 255) {
-      errors.push('Email обязателен и не должен превышать 255 символов');
-    }
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (formData.email && !emailRegex.test(formData.email)) {
-      errors.push('Введите корректный email адрес');
+    const phoneRegex = /^[\d+\-\s()]+$/;
+
+    if (formData.name.trim().length < 2) {
+      errors.push('Укажите имя не короче 2 символов.');
     }
 
-    if (!formData.message.trim() || formData.message.length < 10 || formData.message.length > 5000) {
-      errors.push('Сообщение должно содержать от 10 до 5000 символов');
+    if (!emailRegex.test(formData.email.trim())) {
+      errors.push('Введите корректный email.');
     }
 
-    // Проверка subject для полной формы
-    if (variant === 'full') {
-      const selectedSubject = subjects.find(s => s.value === formData.subject);
-      const subjectLabel = selectedSubject ? selectedSubject.label : formData.subject;
-      if (!subjectLabel || subjectLabel.length < 5 || subjectLabel.length > 255) {
-        errors.push('Выберите тему обращения');
-      }
+    if (formData.phone.trim() && !phoneRegex.test(formData.phone.trim())) {
+      errors.push('Телефон может содержать только цифры, пробелы, скобки, дефис и плюс.');
     }
 
-    // Необязательные поля
-    if (formData.phone && (formData.phone.length > 20 || !/^[\d\s\-\+\(\)]+$/.test(formData.phone))) {
-      errors.push('Телефон должен содержать только цифры, скобки, пробелы, дефисы и плюс (до 20 символов)');
+    if (formData.message.trim().length < 10) {
+      errors.push('Опишите запрос минимум в 10 символах.');
     }
 
-    if (formData.company && formData.company.length > 255) {
-      errors.push('Название компании не должно превышать 255 символов');
+    if (variant === 'full' && !formData.subject) {
+      errors.push('Выберите тему обращения.');
     }
 
+    if (!formData.consentToPersonalData) {
+      errors.push('Подтвердите согласие на обработку персональных данных.');
+    }
+
+    return errors;
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const errors = validateForm();
     if (errors.length > 0) {
       NotificationService.show({
         type: 'error',
-        title: 'Ошибка валидации',
-        message: errors.join('; ')
+        title: 'Форма заполнена не полностью',
+        message: errors.join(' '),
       });
-      setIsSubmitting(false);
       return;
     }
 
+    setIsSubmitting(true);
+
+    const selectedSubject =
+      subjectOptions.find((option) => option.value === formData.subject) ??
+      subjectOptions[0];
+    const selectedCompanyRole = companyRoleOptions.find(
+      (option) => option.value === formData.companyRole,
+    );
+    const selectedCompanySize = companySizeOptions.find(
+      (option) => option.value === formData.companySize,
+    );
+
+    const payload = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: normalizeOptional(formData.phone),
+      company: normalizeOptional(formData.company),
+      company_role:
+        variant === 'full' ? selectedCompanyRole?.label : undefined,
+      company_size:
+        variant === 'full' ? selectedCompanySize?.label : undefined,
+      subject: selectedSubject.label,
+      message: formData.message.trim(),
+      consent_to_personal_data: formData.consentToPersonalData,
+      consent_version: COOKIE_CONSENT_VERSION,
+      page_source: `${location.pathname}${location.hash}`,
+      ...getUtmPayload(),
+    };
+
+    const preparedPayload = Object.fromEntries(
+      Object.entries(payload).filter(([, value]) => value !== undefined && value !== ''),
+    );
+
     try {
-      // Трекинг аналитики (только на клиенте)
-      if (typeof window !== 'undefined') {
-        trackButtonClick('contact_form_submit', `contact_form_${variant}`);
-        trackContactForm(variant, {
-          subject: formData.subject,
-          has_company: !!formData.company,
-          has_phone: !!formData.phone,
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      // Найти название темы для отправки
-      const selectedSubject = subjects.find(s => s.value === formData.subject);
-      const subjectLabel = selectedSubject ? selectedSubject.label : (variant === 'compact' ? 'Общий вопрос' : formData.subject);
-
-      // Подготовка данных для API
-      const apiData = {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim() || undefined,
-        company: formData.company.trim() || undefined,
-        subject: subjectLabel,
-        message: formData.message.trim()
-      };
-
-      // Удаляем undefined поля
-      Object.keys(apiData).forEach(key => {
-        if (apiData[key as keyof typeof apiData] === undefined) {
-          delete apiData[key as keyof typeof apiData];
-        }
+      trackButtonClick('public_contact_submit', `contact_form_${variant}`);
+      trackContactForm(variant, {
+        subject: selectedSubject.value,
+        page_source: preparedPayload.page_source,
+        has_company: Boolean(preparedPayload.company),
+        has_phone: Boolean(preparedPayload.phone),
       });
 
-      // Отправка на API
-      const response = await fetch('https://api.prohelper.pro/api/public/contact', {
+      const response = await fetch(`${getPublicApiBase()}/api/public/contact`, {
         method: 'POST',
         headers: {
+          Accept: 'application/json',
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
-        body: JSON.stringify(apiData)
+        body: JSON.stringify(preparedPayload),
       });
 
-      const result = await response.json();
+      const result = (await response.json().catch(() => null)) as
+        | {
+            success?: boolean;
+            message?: string;
+            errors?: Record<string, string[]>;
+          }
+        | null;
 
-       if (result.success) {
-         setIsSubmitted(true);
-         setSuccessMessage(result.message || 'Мы свяжемся с вами в ближайшее время');
-         setShowSuccessModal(true);
+      if (!response.ok || !result?.success) {
+        const validationMessage =
+          response.status === 422 && result?.errors
+            ? Object.values(result.errors).flat().join(' ')
+            : result?.message ?? 'Не удалось отправить заявку. Попробуйте позже.';
 
-         // Сброс формы
-         setFormData({
-           name: '',
-           email: '',
-           phone: '',
-           company: '',
-           message: '',
-           subject: 'consultation'
-         });
-
-         // Убираем состояние "отправлено" через 3 секунды
-         setTimeout(() => setIsSubmitted(false), 3000);
-      } else {
-        // Обработка ошибок валидации
-        if (response.status === 422 && result.errors) {
-          const errorMessages = Object.values(result.errors)
-            .flat()
-            .join('; ');
-          
-          NotificationService.show({
-            type: 'error',
-            title: 'Ошибка валидации',
-            message: errorMessages
-          });
-        } else {
-          NotificationService.show({
-            type: 'error',
-            title: 'Ошибка отправки',
-            message: result.message || 'Произошла ошибка при отправке заявки'
-          });
-        }
+        NotificationService.show({
+          type: 'error',
+          title: 'Ошибка отправки',
+          message: validationMessage,
+        });
+        return;
       }
-      
-    } catch (error) {
+
+      setSuccessMessage(
+        result.message ?? 'Заявка принята. Мы свяжемся с вами в течение рабочего дня.',
+      );
+      setShowSuccessModal(true);
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        company: '',
+        companyRole: '',
+        companySize: '',
+        subject: variant === 'compact' ? 'demo' : '',
+        message: '',
+        consentToPersonalData: false,
+      });
+    } catch {
       NotificationService.show({
         type: 'error',
         title: 'Ошибка соединения',
-        message: 'Не удалось отправить заявку. Проверьте интернет-соединение или попробуйте позже'
+        message: 'Не удалось отправить заявку. Проверьте соединение и попробуйте ещё раз.',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (variant === 'compact') {
-    return (
+  const wrapperClass =
+    variant === 'compact'
+      ? `rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-xl ${className}`
+      : `rounded-[2rem] border border-steel-200 bg-white p-8 shadow-xl ${className}`;
+
+  return (
+    <>
       <motion.div
-        className={`bg-white/90 border-2 border-construction-200 rounded-xl p-6 backdrop-blur-sm shadow-construction ${className}`}
-        initial={{ opacity: 0, y: 20 }}
+        className={wrapperClass}
+        initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.35 }}
       >
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-construction-500 to-construction-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-            <ChatBubbleLeftRightIcon className="w-6 h-6 text-white" />
+        <div className="text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-construction-50 text-construction-700">
+            <ChatBubbleLeftRightIcon className="h-7 w-7" />
           </div>
-          <h3 className="text-xl font-bold text-steel-900 mb-2">Остались вопросы?</h3>
-          <p className="text-steel-600">Оставьте заявку и мы свяжемся с вами</p>
+          <h2 className="mt-5 text-2xl font-bold text-steel-950">
+            {variant === 'compact' ? 'Оставить заявку' : 'Запросить demo или консультацию'}
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-steel-600">
+            {variant === 'compact'
+              ? 'Короткая форма для первичного контакта и назначения созвона.'
+              : 'Форма сохраняет только необходимые данные обращения и metadata для корректной обработки заявки.'}
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Скрытое поле для темы в компактной форме */}
-          <input type="hidden" name="subject" value="consultation" />
-          <div>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Ваше имя *"
-              className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-              required
-            />
-          </div>
-          
-          <div>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="Email *"
-              className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-              required
-            />
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          <div className="grid gap-5 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
+                <UserIcon className="h-4 w-4" />
+                Имя
+              </span>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Как к вам обращаться"
+                className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+                required
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
+                <EnvelopeIcon className="h-4 w-4" />
+                Email
+              </span>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="you@company.ru"
+                className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+                required
+              />
+            </label>
           </div>
 
-           <div>
-             <textarea
-               name="message"
-               value={formData.message}
-               onChange={handleInputChange}
-               placeholder="Ваш вопрос (минимум 10 символов) *"
-               rows={3}
-               className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors resize-vertical text-steel-900 placeholder-steel-500"
-               required
-             />
-             <div className="mt-1 text-xs text-steel-500">
-               Минимум 10 символов {formData.message.length > 0 && `(введено: ${formData.message.length})`}
-             </div>
-           </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
+                <PhoneIcon className="h-4 w-4" />
+                Телефон
+              </span>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="+7 (900) 000-00-00"
+                className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
+                <BuildingOffice2Icon className="h-4 w-4" />
+                Компания
+              </span>
+              <input
+                type="text"
+                name="company"
+                value={formData.company}
+                onChange={handleInputChange}
+                placeholder="Название компании"
+                className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+              />
+            </label>
+          </div>
+
+          {variant === 'full' ? (
+            <>
+              <div className="grid gap-5 md:grid-cols-2">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-steel-700">
+                    Роль компании
+                  </span>
+                  <select
+                    name="companyRole"
+                    value={formData.companyRole}
+                    onChange={handleInputChange}
+                    className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+                  >
+                    <option value="">Выберите роль</option>
+                    {companyRoleOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-steel-700">
+                    Масштаб
+                  </span>
+                  <select
+                    name="companySize"
+                    value={formData.companySize}
+                    onChange={handleInputChange}
+                    className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+                  >
+                    <option value="">Выберите масштаб</option>
+                    {companySizeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-steel-700">
+                  Тема обращения
+                </span>
+                <select
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleInputChange}
+                  className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+                  required
+                >
+                  <option value="">Выберите тему</option>
+                  {subjectOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          ) : (
+            <input type="hidden" name="subject" value="demo" />
+          )}
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-steel-700">
+              Сообщение
+            </span>
+            <textarea
+              name="message"
+              value={formData.message}
+              onChange={handleInputChange}
+              placeholder="Опишите ваш процесс, текущую проблему или тип нужной демонстрации"
+              rows={variant === 'compact' ? 4 : 5}
+              className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+              required
+            />
+          </label>
+
+          <div className="rounded-[1.5rem] border border-steel-200 bg-concrete-50 p-5">
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                name="consentToPersonalData"
+                checked={formData.consentToPersonalData}
+                onChange={handleInputChange}
+                className="mt-1 h-4 w-4 rounded border-steel-300 text-construction-600 focus:ring-construction-500"
+              />
+              <div>
+                <div className="inline-flex items-center gap-2 text-sm font-semibold text-steel-900">
+                  <ShieldCheckIcon className="h-4 w-4 text-construction-700" />
+                  Согласие на обработку персональных данных
+                </div>
+                <p className="mt-2 text-sm leading-7 text-steel-600">
+                  Подтверждаю согласие на обработку персональных данных в рамках{' '}
+                  <Link
+                    to={marketingPaths.privacy}
+                    className="font-semibold text-construction-700"
+                  >
+                    политики конфиденциальности
+                  </Link>{' '}
+                  и принимаю условия{' '}
+                  <Link
+                    to={marketingPaths.offer}
+                    className="font-semibold text-construction-700"
+                  >
+                    публичной оферты
+                  </Link>
+                  . Настройки аналитики описаны в{' '}
+                  <Link
+                    to={marketingPaths.cookies}
+                    className="font-semibold text-construction-700"
+                  >
+                    cookies policy
+                  </Link>
+                  .
+                </p>
+              </div>
+            </label>
+          </div>
 
           <button
             type="submit"
-            disabled={isSubmitting || isSubmitted}
-            className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
-              isSubmitted
-                ? 'bg-green-500 text-white cursor-default'
-                : isSubmitting
-                ? 'bg-steel-400 text-white cursor-not-allowed'
-                : 'bg-gradient-to-r from-construction-600 to-construction-500 text-white hover:shadow-construction transform hover:scale-105'
+            disabled={isSubmitting || !formData.consentToPersonalData}
+            className={`inline-flex w-full items-center justify-center gap-3 rounded-2xl px-6 py-4 text-base font-semibold transition ${
+              isSubmitting || !formData.consentToPersonalData
+                ? 'cursor-not-allowed bg-steel-300 text-white'
+                : 'bg-steel-950 text-white hover:-translate-y-0.5 hover:bg-steel-900'
             }`}
           >
-            {isSubmitted ? (
+            {isSubmitting ? (
               <>
-                <CheckCircleIcon className="w-5 h-5" />
-                Отправлено!
-              </>
-            ) : isSubmitting ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Отправляем...
+                <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                Отправляем заявку
               </>
             ) : (
               <>
-                <PaperAirplaneIcon className="w-5 h-5" />
-                Отправить
+                <PaperAirplaneIcon className="h-5 w-5" />
+                Отправить заявку
               </>
             )}
-           </button>
-         </form>
-         
-         <SuccessModal
-           isOpen={showSuccessModal}
-           onClose={() => setShowSuccessModal(false)}
-           title="Спасибо за обращение!"
-           message={successMessage}
-         />
-       </motion.div>
-     );
-   }
+          </button>
+        </form>
+      </motion.div>
 
-  return (
-    <motion.div
-      className={`bg-white/90 border-2 border-construction-200 rounded-2xl p-8 backdrop-blur-sm shadow-construction ${className}`}
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
-    >
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-construction-500 to-construction-600 rounded-xl flex items-center justify-center mx-auto mb-6">
-          <ChatBubbleLeftRightIcon className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-2xl lg:text-3xl font-bold text-steel-900 mb-4">Свяжитесь с нами</h2>
-        <p className="text-steel-600 text-lg">
-          Получите персональную консультацию и ответы на все вопросы о ProHelper
-        </p>
-      </div>
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Заявка отправлена"
+        message={successMessage}
+      />
+    </>
+  );
+};
 
-       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-steel-700 font-medium mb-2">
-              <UserIcon className="w-4 h-4 inline mr-2" />
-              Имя *
-            </label>
-             <input
-               type="text"
-               name="name"
-               value={formData.name}
-               onChange={handleInputChange}
-               placeholder="Введите ваше имя"
-               className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-               required
-             />
-             <div className="mt-1 text-xs text-steel-500">
-               Минимум 2 символа {formData.name.length > 0 && `(введено: ${formData.name.length})`}
-             </div>
-          </div>
-          
-          <div>
-            <label className="block text-steel-700 font-medium mb-2">
-              <EnvelopeIcon className="w-4 h-4 inline mr-2" />
-              Email *
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="your@email.com"
-              className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-              required
-            />
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-steel-700 font-medium mb-2">
-              <PhoneIcon className="w-4 h-4 inline mr-2" />
-              Телефон
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              placeholder="+7 (900) 123-45-67"
-              className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-steel-700 font-medium mb-2">
-              Компания
-            </label>
-            <input
-              type="text"
-              name="company"
-              value={formData.company}
-              onChange={handleInputChange}
-              placeholder="Название компании"
-              className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-steel-700 font-medium mb-2">
-            Тема обращения
-          </label>
-          <CustomSelect
-            name="subject"
-            value={formData.subject}
-            onChange={handleSelectChange}
-            options={subjects}
-            placeholder="Выберите тему обращения"
-          />
-        </div>
-
-        <div>
-          <label className="block text-steel-700 font-medium mb-2">
-            Сообщение *
-          </label>
-           <textarea
-             name="message"
-             value={formData.message}
-             onChange={handleInputChange}
-             placeholder="Расскажите подробнее о ваших потребностях и вопросах..."
-             rows={5}
-             className="w-full px-4 py-3 border border-steel-300 rounded-lg focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors resize-vertical text-steel-900 placeholder-steel-500"
-             required
-           />
-           <div className="mt-1 text-xs text-steel-500">
-             Минимум 10 символов, максимум 5000 {formData.message.length > 0 && `(введено: ${formData.message.length})`}
-           </div>
-        </div>
-
-        <div className="bg-steel-50 rounded-lg p-4 border border-steel-200">
-          <div className="flex items-start gap-3">
-            <ExclamationTriangleIcon className="w-5 h-5 text-steel-500 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-steel-600">
-              <p>Отправляя форму, вы соглашаетесь на обработку персональных данных в соответствии с нашей политикой конфиденциальности.</p>
-            </div>
-          </div>
-        </div>
-
-         <button
-           type="submit"
-           disabled={isSubmitting || isSubmitted}
-           className={`w-full flex items-center justify-center gap-3 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 ${
-             isSubmitted
-               ? 'bg-green-500 text-white cursor-default'
-               : isSubmitting
-               ? 'bg-steel-400 text-white cursor-not-allowed'
-               : 'bg-gradient-to-r from-construction-600 to-construction-500 text-white hover:shadow-construction transform hover:scale-105'
-           }`}
-         >
-          {isSubmitted ? (
-            <>
-              <CheckCircleIcon className="w-6 h-6" />
-              Заявка отправлена!
-            </>
-          ) : isSubmitting ? (
-            <>
-              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Отправляем заявку...
-            </>
-          ) : (
-            <>
-              <PaperAirplaneIcon className="w-6 h-6" />
-              Отправить заявку
-            </>
-          )}
-         </button>
-       </form>
-       
-       <SuccessModal
-         isOpen={showSuccessModal}
-         onClose={() => setShowSuccessModal(false)}
-         title="Спасибо за обращение!"
-         message={successMessage}
-       />
-     </motion.div>
-   );
- };
- 
- export default ContactForm;
+export default ContactForm;

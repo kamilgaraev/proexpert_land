@@ -1,9 +1,14 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getPageSEOData, generateSoftwareSchema, generateOrganizationSchema } from '../utils/seo';
+import {
+  generateOrganizationSchema,
+  generateSoftwareSchema,
+  generateWebPageSchema,
+  getPageSEOData,
+} from '@/utils/seo';
 
-// Определяем, доступен ли DOM (браузерный контекст).
 const isBrowser = typeof document !== 'undefined';
+const BASE_URL = 'https://prohelper.pro';
 
 interface UseSEOProps {
   title?: string;
@@ -14,14 +19,14 @@ interface UseSEOProps {
   author?: string;
   publishedTime?: string;
   modifiedTime?: string;
-  structuredData?: any;
+  structuredData?: unknown;
   noIndex?: boolean;
 }
 
 export const useSEO = (props: UseSEOProps = {}) => {
-  // Если мы на сервере (SSR), возвращаем no-op API, чтобы избежать ошибок.
   if (!isBrowser) {
     const noop = () => {};
+
     return {
       updateSEO: noop,
       addBreadcrumbSchema: noop,
@@ -34,74 +39,72 @@ export const useSEO = (props: UseSEOProps = {}) => {
   }
 
   const location = useLocation();
-  
+
   const setMetaTag = useCallback((name: string, content: string, property = false) => {
     const attribute = property ? 'property' : 'name';
     let meta = document.querySelector(`meta[${attribute}="${name}"]`);
-    
+
     if (!meta) {
       meta = document.createElement('meta');
       meta.setAttribute(attribute, name);
       document.head.appendChild(meta);
     }
-    
+
     meta.setAttribute('content', content);
   }, []);
 
   const setLinkTag = useCallback((rel: string, href: string) => {
     let link = document.querySelector(`link[rel="${rel}"]`);
-    
+
     if (!link) {
       link = document.createElement('link');
       link.setAttribute('rel', rel);
       document.head.appendChild(link);
     }
-    
+
     link.setAttribute('href', href);
   }, []);
 
-  const setStructuredData = useCallback((data: any, id = 'seo-structured-data') => {
+  const setStructuredData = useCallback((data: unknown, id = 'seo-structured-data') => {
     let script = document.querySelector(`script[type="application/ld+json"]#${id}`);
-    
+
     if (!script) {
       script = document.createElement('script');
       script.setAttribute('type', 'application/ld+json');
       script.setAttribute('id', id);
       document.head.appendChild(script);
     }
-    
+
     script.textContent = JSON.stringify(data);
   }, []);
 
   const updateSEO = useCallback(() => {
-    const pageName = location.pathname.slice(1) || 'home';
-    const pageData = getPageSEOData(pageName);
-    
+    const pageData = getPageSEOData(location.pathname);
+
     const finalData = {
-      title: props.title || pageData.title,
-      description: props.description || pageData.description,
-      keywords: props.keywords || pageData.keywords,
-      ogImage: props.ogImage || 'https://prohelper.pro/logo.svg',
-      type: props.type || 'website',
-      author: props.author || 'ProHelper Team',
+      title: props.title ?? pageData.title,
+      description: props.description ?? pageData.description,
+      keywords: props.keywords ?? pageData.keywords,
+      ogImage: props.ogImage ?? pageData.ogImage ?? `${BASE_URL}/logo.svg`,
+      type: props.type ?? 'website',
+      author: props.author ?? 'ProHelper',
       publishedTime: props.publishedTime,
       modifiedTime: props.modifiedTime,
-      noIndex: props.noIndex || false
+      noIndex: props.noIndex ?? pageData.noIndex ?? false,
     };
 
-    const currentUrl = `https://prohelper.pro${location.pathname}`;
+    const currentUrl = `${BASE_URL}${location.pathname}`;
 
     document.title = finalData.title;
-    
+
     setMetaTag('description', finalData.description);
     setMetaTag('keywords', finalData.keywords);
     setMetaTag('author', finalData.author);
-    setMetaTag('robots', finalData.noIndex ? 'noindex, nofollow' : 'index, follow');
-    setMetaTag('geo.region', 'RU');
-    setMetaTag('geo.placename', 'Россия');
-    setMetaTag('geo.position', '55.751244;37.618423');
-    setMetaTag('ICBM', '55.751244, 37.618423');
-    
+    setMetaTag(
+      'robots',
+      finalData.noIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large',
+    );
+
     setMetaTag('og:title', finalData.title, true);
     setMetaTag('og:description', finalData.description, true);
     setMetaTag('og:image', finalData.ogImage, true);
@@ -109,66 +112,90 @@ export const useSEO = (props: UseSEOProps = {}) => {
     setMetaTag('og:type', finalData.type, true);
     setMetaTag('og:site_name', 'ProHelper', true);
     setMetaTag('og:locale', 'ru_RU', true);
-    
-    setMetaTag('twitter:card', 'summary_large_image', true);
-    setMetaTag('twitter:title', finalData.title, true);
-    setMetaTag('twitter:description', finalData.description, true);
-    setMetaTag('twitter:image', finalData.ogImage, true);
-    setMetaTag('twitter:url', currentUrl, true);
+
+    setMetaTag('twitter:card', 'summary_large_image');
+    setMetaTag('twitter:title', finalData.title);
+    setMetaTag('twitter:description', finalData.description);
+    setMetaTag('twitter:image', finalData.ogImage);
+    setMetaTag('twitter:url', currentUrl);
 
     if (finalData.publishedTime) {
       setMetaTag('article:published_time', finalData.publishedTime, true);
     }
-    
+
     if (finalData.modifiedTime) {
       setMetaTag('article:modified_time', finalData.modifiedTime, true);
     }
 
     setLinkTag('canonical', currentUrl);
 
-    if (props.structuredData) {
-      setStructuredData(props.structuredData, 'custom-structured-data');
-    }
-
+    setStructuredData(
+      generateWebPageSchema({
+        name: finalData.title,
+        description: finalData.description,
+        url: currentUrl,
+      }),
+      'webpage-schema',
+    );
     setStructuredData(generateSoftwareSchema(), 'software-schema');
     setStructuredData(generateOrganizationSchema(), 'organization-schema');
 
-  }, [location.pathname, props, setMetaTag, setLinkTag, setStructuredData]);
+    if (props.structuredData) {
+      setStructuredData(props.structuredData, 'custom-structured-data');
+    }
+  }, [
+    location.pathname,
+    props.author,
+    props.description,
+    props.keywords,
+    props.modifiedTime,
+    props.noIndex,
+    props.ogImage,
+    props.publishedTime,
+    props.structuredData,
+    props.title,
+    props.type,
+    setLinkTag,
+    setMetaTag,
+    setStructuredData,
+  ]);
 
   useEffect(() => {
     updateSEO();
   }, [updateSEO]);
 
-  const addBreadcrumbSchema = useCallback((items: Array<{name: string, url: string}>) => {
-    const breadcrumbSchema = {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": items.map((item, index) => ({
-        "@type": "ListItem",
-        "position": index + 1,
-        "name": item.name,
-        "item": item.url
-      }))
-    };
-    
-    setStructuredData(breadcrumbSchema, 'breadcrumb-schema');
+  const addBreadcrumbSchema = useCallback((items: Array<{ name: string; url: string }>) => {
+    setStructuredData(
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: items.map((item, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: item.name,
+          item: item.url,
+        })),
+      },
+      'breadcrumb-schema',
+    );
   }, [setStructuredData]);
 
-  const addFAQSchema = useCallback((faqs: Array<{question: string, answer: string}>) => {
-    const faqSchema = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": faqs.map(faq => ({
-        "@type": "Question",
-        "name": faq.question,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": faq.answer
-        }
-      }))
-    };
-    
-    setStructuredData(faqSchema, 'faq-schema');
+  const addFAQSchema = useCallback((faqs: Array<{ question: string; answer: string }>) => {
+    setStructuredData(
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+      },
+      'faq-schema',
+    );
   }, [setStructuredData]);
 
   const addProductSchema = useCallback((product: {
@@ -179,28 +206,25 @@ export const useSEO = (props: UseSEOProps = {}) => {
     availability: string;
     brand: string;
   }) => {
-    const productSchema = {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      "name": product.name,
-      "description": product.description,
-      "brand": {
-        "@type": "Brand",
-        "name": product.brand
+    setStructuredData(
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.name,
+        description: product.description,
+        brand: {
+          '@type': 'Brand',
+          name: product.brand,
+        },
+        offers: {
+          '@type': 'Offer',
+          price: product.price,
+          priceCurrency: product.currency,
+          availability: `https://schema.org/${product.availability}`,
+        },
       },
-      "offers": {
-        "@type": "Offer",
-        "price": product.price,
-        "priceCurrency": product.currency,
-        "availability": `https://schema.org/${product.availability}`,
-        "seller": {
-          "@type": "Organization",
-          "name": "ProHelper"
-        }
-      }
-    };
-    
-    setStructuredData(productSchema, 'product-schema');
+      'product-schema',
+    );
   }, [setStructuredData]);
 
   return {
@@ -210,15 +234,14 @@ export const useSEO = (props: UseSEOProps = {}) => {
     addProductSchema,
     setMetaTag,
     setLinkTag,
-    setStructuredData
+    setStructuredData,
   };
 };
 
-// Хук для установки заголовка страницы
 export const usePageTitle = (title: string) => {
   useEffect(() => {
     if (isBrowser) {
       document.title = title;
     }
   }, [title]);
-}; 
+};
