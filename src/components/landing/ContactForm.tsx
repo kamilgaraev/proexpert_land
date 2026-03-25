@@ -36,8 +36,8 @@ interface ContactFormProps {
 const subjectOptions = [
   { value: 'demo', label: 'Запрос демонстрации' },
   { value: 'pricing', label: 'Вопрос по пакетам и модулям' },
-  { value: 'rollout', label: 'Внедрение и rollout' },
-  { value: 'security', label: 'Безопасность и compliance' },
+  { value: 'launch', label: 'Внедрение и запуск' },
+  { value: 'security', label: 'Безопасность и юридические вопросы' },
   { value: 'support', label: 'Поддержка и сопровождение' },
   { value: 'other', label: 'Другое обращение' },
 ];
@@ -53,7 +53,7 @@ const companySizeOptions = [
   { value: '1_3', label: '1-3 активных объекта' },
   { value: '4_10', label: '4-10 активных объектов' },
   { value: '10_plus', label: '10+ активных объектов' },
-  { value: 'holding', label: 'Группа компаний / multi-org' },
+  { value: 'holding', label: 'Группа компаний' },
 ];
 
 const getPublicApiBase = () => {
@@ -284,12 +284,12 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
             <ChatBubbleLeftRightIcon className="h-7 w-7" />
           </div>
           <h2 className="mt-5 text-2xl font-bold text-steel-950">
-            {variant === 'compact' ? 'Оставить заявку' : 'Запросить demo или консультацию'}
+            {variant === 'compact' ? 'Оставить заявку' : 'Запросить демонстрацию или консультацию'}
           </h2>
           <p className="mt-3 text-sm leading-7 text-steel-600">
             {variant === 'compact'
               ? 'Короткая форма для первичного контакта и назначения созвона.'
-              : 'Форма сохраняет только необходимые данные обращения и metadata для корректной обработки заявки.'}
+              : 'Форма сохраняет только те данные, которые нужны для обратной связи и корректной обработки запроса.'}
           </p>
         </div>
 
@@ -475,7 +475,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
                     to={marketingPaths.cookies}
                     className="font-semibold text-construction-700"
                   >
-                    cookies policy
+                    политике файлов cookie
                   </Link>
                   .
                 </p>

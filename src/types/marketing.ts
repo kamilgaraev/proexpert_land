@@ -58,6 +58,7 @@ export interface MarketingPackageTier {
   label: string;
   description: string;
   price: number;
+  priceLabel?: string;
   billingModel: 'free' | 'subscription';
   durationDays?: number;
   moduleSlugs: string[];

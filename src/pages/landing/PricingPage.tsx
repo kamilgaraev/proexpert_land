@@ -1,18 +1,11 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowUpRightIcon } from '@heroicons/react/24/outline';
 import ContactForm from '@/components/landing/ContactForm';
-import {
-  MaturityBadge,
-  PackageIcon,
-  SectionHeader,
-  SurfaceBadges,
-  formatPackageTierPrice,
-} from '@/components/marketing/MarketingPrimitives';
+import CtaBand from '@/components/marketing/blocks/CtaBand';
+import PackageFamilyCard from '@/components/marketing/blocks/PackageFamilyCard';
+import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import {
   marketingAdvancedOffers,
   marketingPackages,
-  marketingPaths,
   marketingSeo,
   marketingTrustFacts,
 } from '@/data/marketingRegistry';
@@ -27,7 +20,7 @@ const PricingPage = () => {
     structuredData: generatePricingSchema(),
   });
 
-  const { trackButtonClick, trackPageView, trackPricingView } = useAnalytics();
+  const { trackPageView, trackPricingView } = useAnalytics();
 
   useEffect(() => {
     trackPageView('marketing_pricing');
@@ -35,147 +28,96 @@ const PricingPage = () => {
   }, [trackPageView, trackPricingView]);
 
   return (
-    <div className="bg-white pt-20">
-      <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.16),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#fff7ed_100%)]">
+    <div className="bg-white pt-28">
+      <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.16),_transparent_24%),linear-gradient(180deg,#fff7ed_0%,#ffffff_100%)]">
         <div className="container-custom py-16 lg:py-20">
           <SectionHeader
-            eyebrow="Pricing"
-            title="Пакетные семейства ProHelper из действующей модели личного кабинета"
-            description="Не отдельная маркетинговая сетка, а тот же package layer, который уже живёт в LK и масштабируется за счёт модулей и enterprise-контуров."
+            eyebrow="Пакеты"
+            title="Выбирайте не тариф ради галочки, а рабочий контур под ваш этап роста"
+            description="Пакеты помогают понять, с какого процесса лучше стартовать сейчас и как расширять систему по мере роста команды и числа объектов."
           />
         </div>
       </section>
 
       <section className="py-16 lg:py-20">
-        <div className="container-custom">
-          <div className="grid gap-6 xl:grid-cols-2">
-            {marketingPackages.map((item) => (
-              <article
-                key={item.slug}
-                className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.25rem] bg-construction-50 text-construction-700">
-                    <PackageIcon slug={item.slug} className="h-7 w-7" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-steel-950">{item.name}</h2>
-                    <p className="mt-2 text-sm leading-7 text-steel-600">
-                      {item.description}
-                    </p>
-                    <p className="mt-3 text-sm font-semibold text-construction-700">
-                      {item.bestFor}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-6 grid gap-4 lg:grid-cols-3">
-                  {item.tiers.map((tier) => (
-                    <div
-                      key={`${item.slug}-${tier.key}`}
-                      className="rounded-[1.5rem] border border-steel-200 bg-concrete-50 p-5"
-                    >
-                      <div className="text-xs font-semibold uppercase tracking-[0.22em] text-steel-500">
-                        {tier.label}
-                      </div>
-                      <div className="mt-3 text-2xl font-bold text-steel-950">
-                        {formatPackageTierPrice(tier)}
-                      </div>
-                      <p className="mt-3 text-sm leading-7 text-steel-600">
-                        {tier.description}
-                      </p>
-                      <div className="mt-4 grid gap-3">
-                        {tier.highlights.map((highlight) => (
-                          <div
-                            key={highlight}
-                            className="rounded-2xl bg-white px-4 py-4 text-sm leading-6 text-steel-700 shadow-sm"
-                          >
-                            {highlight}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </div>
+        <div className="container-custom grid gap-5">
+          {marketingPackages.map((item) => (
+            <PackageFamilyCard key={item.slug} item={item} />
+          ))}
         </div>
       </section>
 
       <section className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-          <div>
+        <div className="container-custom grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
+          <div className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm">
             <SectionHeader
-              eyebrow="Advanced modules"
-              title="Дополнительные контуры включаются как расширение"
-              description="AI и enterprise-модули не ломают пакетную логику: они подключаются по мере зрелости процесса и уровня квалификации команды."
+              eyebrow="Проектные расширения"
+              title="Если базового пакета недостаточно, подключаем дополнительные сценарии по согласованию"
+              description="Пилотные возможности и индивидуальные расширения обсуждаются только после того, как понятен основной рабочий контур."
             />
-
-            <div className="mt-8 space-y-4">
+            <div className="mt-8 grid gap-4">
               {marketingAdvancedOffers.map((offer) => (
                 <article
                   key={offer.id}
-                  className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
+                  className="rounded-[1.5rem] bg-concrete-50 px-5 py-5"
                 >
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="text-lg font-bold text-steel-950">{offer.title}</div>
-                    <MaturityBadge maturity={offer.maturity} />
+                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-700">
+                    {offer.cta}
                   </div>
+                  <h2 className="mt-4 text-2xl font-bold text-steel-950">{offer.title}</h2>
                   <p className="mt-3 text-sm leading-7 text-steel-600">{offer.summary}</p>
-                  <div className="mt-4">
-                    <SurfaceBadges surfaces={offer.surfaces} />
-                  </div>
                 </article>
               ))}
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-steel-200 bg-steel-950 p-8 text-white">
+          <div className="rounded-[2.25rem] border border-steel-900 bg-steel-950 p-8">
             <SectionHeader
-              eyebrow="Почему так"
-              title="Pricing объясняет рост, а не только цену"
-              description="Главная задача страницы — быстро показать, с какого контура стартовать и когда подключать соседние семейства пакетов."
+              eyebrow="Как выбрать"
+              title="На что опираемся при подборе пакета"
+              description="Выбор состава решения зависит не только от размера компании, но и от того, какой процесс сейчас важнее всего собрать в единую систему."
+              tone="dark"
             />
             <div className="mt-8 space-y-4">
-              {marketingTrustFacts.slice(0, 4).map((fact) => (
+              {[
+                'Сколько объектов и ролей нужно связать между собой уже на первом этапе.',
+                'Нужно ли сразу подключать снабжение, финансовый блок или только объектный контур.',
+                'Есть ли требования к корпоративному управлению и работе нескольких организаций.',
+                'Нужны ли пилотные или индивидуальные расширения поверх базового пакета.',
+              ].map((item) => (
                 <div
-                  key={fact.title}
-                  className="rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-5"
+                  key={item}
+                  className="rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-5 text-sm leading-7 text-white/75"
                 >
-                  <div className="text-lg font-bold">{fact.title}</div>
-                  <p className="mt-2 text-sm leading-7 text-white/75">{fact.text}</p>
+                  {item}
                 </div>
               ))}
             </div>
-            <Link
-              to={marketingPaths.solutions}
-              onClick={() => trackButtonClick('pricing_to_solutions', 'marketing_pricing')}
-              className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-white px-6 py-4 text-sm font-semibold text-steel-950 transition hover:-translate-y-0.5 hover:bg-construction-100"
-            >
-              Посмотреть решения
-              <ArrowUpRightIcon className="h-4 w-4" />
-            </Link>
+            <div className="mt-8 rounded-[1.75rem] bg-white px-5 py-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-700">
+                Что получает заказчик
+              </div>
+              <div className="mt-3 grid gap-3">
+                {marketingTrustFacts.slice(0, 3).map((fact) => (
+                  <div key={fact.title} className="text-sm leading-7 text-steel-700">
+                    <span className="font-semibold text-steel-950">{fact.title}.</span> {fact.text}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       <section id="pricing-contact" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 lg:grid-cols-[1fr_420px] lg:items-start">
-          <div className="rounded-[2rem] border border-steel-200 bg-white p-8 shadow-sm">
-            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Подбор пакета
-            </div>
-            <h2 className="mt-5 text-3xl font-bold text-steel-950 sm:text-4xl">
-              Поможем собрать минимально достаточный контур под ваш текущий этап.
-            </h2>
-            <p className="mt-5 max-w-3xl text-lg leading-8 text-steel-600">
-              На созвоне разложим текущий процесс по ролям, покажем релевантные
-              пакетные семейства и сразу пометим, где уместны advanced-модули, а где
-              лучше начать с базового ядра.
-            </p>
-          </div>
-
+        <div className="container-custom grid gap-8 xl:grid-cols-[1fr_420px] xl:items-start">
+          <CtaBand
+            eyebrow="Подбор решения"
+            title="Разложим ваш текущий процесс и подскажем минимально достаточный состав решения"
+            description="На встрече покажем, где лучше стартовать, а какие модули стоит подключать уже после первого рабочего результата."
+            actions={[]}
+            tone="light"
+          />
           <ContactForm variant="compact" className="shadow-none" />
         </div>
       </section>

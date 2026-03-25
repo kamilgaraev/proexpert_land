@@ -1,22 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowUpRightIcon,
-  CheckIcon,
-  ChevronDownIcon,
-  ShieldCheckIcon,
-  SparklesIcon,
+  BuildingOffice2Icon,
+  ChartBarSquareIcon,
+  ClipboardDocumentListIcon,
+  CubeIcon,
 } from '@heroicons/react/24/outline';
 import ContactForm from '@/components/landing/ContactForm';
+import CapabilityCard from '@/components/marketing/blocks/CapabilityCard';
+import CtaBand from '@/components/marketing/blocks/CtaBand';
+import FaqAccordion from '@/components/marketing/blocks/FaqAccordion';
+import PackageFamilyCard from '@/components/marketing/blocks/PackageFamilyCard';
+import SegmentPreviewCard from '@/components/marketing/blocks/SegmentPreviewCard';
+import TrustFactList from '@/components/marketing/blocks/TrustFactList';
+import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import {
-  MaturityBadge,
-  PackageIcon,
-  SectionHeader,
-  SurfaceBadges,
-  formatPackageTierPrice,
-} from '@/components/marketing/MarketingPrimitives';
-import {
-  marketingAdvancedOffers,
   marketingCapabilityMatrix,
   marketingFaqs,
   marketingHeroFacts,
@@ -30,13 +29,42 @@ import {
 import useAnalytics from '@/hooks/useAnalytics';
 import { useSEO } from '@/hooks/useSEO';
 
+const heroSignals = [
+  {
+    title: 'Объект под контролем',
+    text: 'Задачи, статусы и рабочие договоренности остаются в одном контуре.',
+    icon: BuildingOffice2Icon,
+  },
+  {
+    title: 'Снабжение без потерь',
+    text: 'Потребности с площадки быстрее доходят до закупки и учета материалов.',
+    icon: CubeIcon,
+  },
+  {
+    title: 'Финансы и документы связаны',
+    text: 'Платежи, акты и проектный контекст видны руководителю в одной логике.',
+    icon: ClipboardDocumentListIcon,
+  },
+  {
+    title: 'Руководитель видит картину',
+    text: 'Отчетность и контроль собираются без ручного свода в конце периода.',
+    icon: ChartBarSquareIcon,
+  },
+];
+
+const featuredCapabilityIds = [
+  'project-control',
+  'supply-chain',
+  'finance-control',
+  'multi-org',
+];
+
 const HomePage = () => {
   const { addFAQSchema } = useSEO({
     ...marketingSeo.home,
     type: 'website',
   });
   const { trackButtonClick, trackPageView } = useAnalytics();
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
     addFAQSchema(marketingFaqs);
@@ -46,104 +74,116 @@ const HomePage = () => {
     trackPageView('marketing_home');
   }, [trackPageView]);
 
-  const capabilityPreview = marketingCapabilityMatrix.slice(0, 6);
-  const packagePreview = marketingPackages.slice(0, 4);
+  const featuredCapabilities = featuredCapabilityIds
+    .map((id) => marketingCapabilityMatrix.find((capability) => capability.id === id))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
   return (
     <div className="overflow-hidden bg-white">
-      <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.2),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.16),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] pt-24">
-        <div className="container-custom py-16 lg:py-24">
-          <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+      <section className="relative overflow-hidden bg-steel-950 pt-28 text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.22),_transparent_24%),radial-gradient(circle_at_80%_20%,_rgba(125,211,252,0.16),_transparent_24%),linear-gradient(180deg,rgba(2,6,23,0.92)_0%,rgba(2,6,23,1)_100%)]" />
+        <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-blueprint opacity-20 lg:block" />
+
+        <div className="container-custom relative pb-20">
+          <div className="grid gap-12 xl:grid-cols-[1.05fr_0.95fr] xl:items-center">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-construction-200 bg-construction-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-construction-700">
-                <SparklesIcon className="h-4 w-4" />
-                Corporate product site
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-construction-200">
+                ProHelper для строительных компаний
               </div>
-              <h1 className="mt-6 max-w-4xl text-5xl font-bold tracking-tight text-steel-950 sm:text-6xl">
-                Единый operating system для стройки: объекты, снабжение, финансы,
-                документы, mobile и holding.
+              <h1 className="mt-6 max-w-5xl text-5xl font-bold leading-[0.95] tracking-tight sm:text-6xl xl:text-7xl">
+                Управляйте стройкой в одной системе: объект, снабжение, финансы и документы.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-steel-600">
-                ProHelper показывает только подтверждённые сценарии продукта:
-                существующие модули backend, admin, mobile, LK и enterprise-контуров
-                без вымышленных кейсов и неподтверждённых обещаний.
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/70">
+                ProHelper помогает собрать рабочий процесс между офисом, площадкой, ПТО,
+                снабжением и руководителем без разрозненных таблиц, чатов и ручного свода.
               </p>
 
               <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                 <Link
                   to={`${marketingPaths.home}#contact`}
                   onClick={() => trackButtonClick('hero_demo', 'marketing_home')}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-steel-950 px-6 py-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-steel-900"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-4 text-sm font-semibold text-steel-950 transition hover:bg-construction-100"
                 >
-                  Запросить demo
+                  Запросить демонстрацию
                   <ArrowUpRightIcon className="h-4 w-4" />
                 </Link>
                 <Link
-                  to={marketingPaths.pricing}
-                  onClick={() => trackButtonClick('hero_pricing', 'marketing_home')}
-                  className="inline-flex items-center justify-center rounded-2xl border border-steel-300 bg-white px-6 py-4 text-sm font-semibold text-steel-900 transition hover:border-steel-500"
+                  to={marketingPaths.solutions}
+                  onClick={() => trackButtonClick('hero_solutions', 'marketing_home')}
+                  className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-4 text-sm font-semibold text-white transition hover:bg-white/10"
                 >
-                  Посмотреть пакеты
+                  Посмотреть сценарии
                 </Link>
               </div>
 
-              <div className="mt-10 grid gap-3 sm:grid-cols-2">
-                {[
-                  'Пакетная модель синхронизирована с личным кабинетом.',
-                  'Mobile, admin, LK и holding живут на одном backend-контуре.',
-                  'AI-возможности показаны только с честной маркировкой зрелости.',
-                  'Внедрение стартует с рабочего процесса, а не с витринной презентации.',
-                ].map((item) => (
+              <div className="mt-10 grid gap-3 sm:grid-cols-3">
+                {marketingHeroFacts.map((fact) => (
                   <div
-                    key={item}
-                    className="flex items-start gap-3 rounded-2xl border border-steel-200 bg-white px-4 py-4 text-sm leading-6 text-steel-700 shadow-sm"
+                    key={fact.label}
+                    className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5 backdrop-blur"
                   >
-                    <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-construction-600" />
-                    {item}
+                    <div className="text-2xl font-bold text-white">{fact.value}</div>
+                    <div className="mt-2 text-xs font-semibold uppercase tracking-[0.22em] text-construction-200">
+                      {fact.label}
+                    </div>
+                    <p className="mt-3 text-sm leading-7 text-white/70">{fact.detail}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-steel-200 bg-steel-950 p-7 text-white shadow-[0_30px_80px_-40px_rgba(15,23,42,0.7)]">
-              <div className="text-sm font-semibold uppercase tracking-[0.22em] text-construction-200">
-                Что уже автоматизировано
-              </div>
-              <div className="mt-6 space-y-4">
-                {capabilityPreview.map((capability) => (
-                  <div
-                    key={capability.id}
-                    className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5"
-                  >
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="text-lg font-semibold">{capability.title}</div>
-                      <MaturityBadge maturity={capability.maturity} />
-                    </div>
-                    <p className="mt-3 text-sm leading-7 text-white/75">
-                      {capability.publicClaim}
-                    </p>
-                    <div className="mt-4">
-                      <SurfaceBadges surfaces={capability.surfaces} />
-                    </div>
+            <div className="relative">
+              <div className="absolute -inset-6 rounded-[2.5rem] bg-construction-400/10 blur-3xl" />
+              <div className="relative rounded-[2.25rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                <div className="rounded-[1.75rem] border border-white/10 bg-steel-900/85 p-6">
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-construction-200">
+                    Как выглядит рабочий контур
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
+                  <h2 className="mt-4 text-3xl font-bold leading-tight text-white">
+                    Не набор функций, а единый маршрут от заявки до управленческого решения.
+                  </h2>
+                  <div className="mt-6 grid gap-4">
+                    {heroSignals.map((signal) => {
+                      const Icon = signal.icon;
 
-          <div className="mt-12 grid gap-4 md:grid-cols-3">
-            {marketingHeroFacts.map((fact) => (
-              <div
-                key={fact.label}
-                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
-              >
-                <div className="text-3xl font-bold text-steel-950">{fact.value}</div>
-                <div className="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-construction-700">
-                  {fact.label}
+                      return (
+                        <div
+                          key={signal.title}
+                          className="flex items-start gap-4 rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-5"
+                        >
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-construction-200">
+                            <Icon className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <div className="text-base font-semibold text-white">{signal.title}</div>
+                            <p className="mt-2 text-sm leading-6 text-white/70">{signal.text}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">{fact.detail}</p>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <div className="rounded-[1.75rem] bg-white px-5 py-5 text-steel-950">
+                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-construction-700">
+                      Для кого
+                    </div>
+                    <div className="mt-3 text-sm leading-7 text-steel-700">
+                      Подрядчик, генподрядчик, девелопер, ПТО и управляющая команда.
+                    </div>
+                  </div>
+                  <div className="rounded-[1.75rem] bg-construction-50 px-5 py-5 text-steel-950">
+                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-construction-700">
+                      Как запускаем
+                    </div>
+                    <div className="mt-3 text-sm leading-7 text-steel-700">
+                      Начинаем с ключевого процесса и расширяем систему по мере роста команды.
+                    </div>
+                  </div>
+                </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
@@ -151,42 +191,18 @@ const HomePage = () => {
       <section className="py-16 lg:py-24">
         <div className="container-custom">
           <SectionHeader
-            eyebrow="Для кого"
-            title="Сценарии от подрядчика до холдинга"
-            description="Показываем продукт через роли и контуры управления, а не через разрозненный каталог фич."
+            eyebrow="Кому подходит"
+            title="Сценарии для подрядчика, генподрядчика, девелопера и инженерной команды"
+            description="Каждый сценарий собран вокруг реальной рабочей боли, а не вокруг случайного списка экранов."
             align="center"
           />
-
-          <div className="mt-12 grid gap-5 xl:grid-cols-4">
+          <div className="mt-12 grid gap-5 xl:grid-cols-2">
             {marketingSolutionSegments.map((segment) => (
-              <article
+              <SegmentPreviewCard
                 key={segment.id}
-                className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm"
-              >
-                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-700">
-                  {segment.title}
-                </div>
-                <h2 className="mt-4 text-2xl font-bold text-steel-950">
-                  {segment.audience}
-                </h2>
-                <p className="mt-4 text-sm leading-7 text-steel-600">
-                  {segment.challenge}
-                </p>
-                <div className="mt-5 rounded-[1.5rem] bg-concrete-50 p-4 text-sm leading-7 text-steel-700">
-                  {segment.transformation}
-                </div>
-                <div className="mt-5 space-y-2">
-                  {segment.workflows.map((workflow) => (
-                    <div
-                      key={workflow}
-                      className="flex items-start gap-3 text-sm leading-6 text-steel-700"
-                    >
-                      <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-construction-600" />
-                      {workflow}
-                    </div>
-                  ))}
-                </div>
-              </article>
+                segment={segment}
+                linkTo={marketingPaths.solutions}
+              />
             ))}
           </div>
         </div>
@@ -196,46 +212,18 @@ const HomePage = () => {
         <div className="container-custom">
           <SectionHeader
             eyebrow="Возможности"
-            title="Подтверждённые capability matrix для публичных claims"
-            description="Каждый блок ниже связан с реальными module slug, surface-ами и ролями внутри ProHelper."
+            title="Что помогает держать процесс под контролем"
+            description="Показываем только те контуры, которые уже имеют понятный рабочий сценарий в продукте."
           />
 
-          <div className="mt-12 grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
-            {marketingCapabilityMatrix.map((capability) => (
-              <article
+          <div className="mt-12 grid gap-5 xl:grid-cols-12">
+            {featuredCapabilities.map((capability, index) => (
+              <div
                 key={capability.id}
-                className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm"
+                className={index === 0 || index === 3 ? 'xl:col-span-7' : 'xl:col-span-5'}
               >
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="text-sm font-semibold uppercase tracking-[0.2em] text-steel-500">
-                    {capability.businessContour}
-                  </div>
-                  <MaturityBadge maturity={capability.maturity} />
-                </div>
-                <h3 className="mt-4 text-2xl font-bold text-steel-950">
-                  {capability.title}
-                </h3>
-                <p className="mt-4 text-sm leading-7 text-steel-600">
-                  {capability.summary}
-                </p>
-                <p className="mt-4 rounded-[1.5rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700">
-                  {capability.publicClaim}
-                </p>
-                <div className="mt-4">
-                  <SurfaceBadges surfaces={capability.surfaces} />
-                </div>
-                <div className="mt-5 space-y-2">
-                  {capability.outcomes.map((outcome) => (
-                    <div
-                      key={outcome}
-                      className="flex items-start gap-3 text-sm leading-6 text-steel-700"
-                    >
-                      <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-construction-600" />
-                      {outcome}
-                    </div>
-                  ))}
-                </div>
-              </article>
+                <CapabilityCard capability={capability} />
+              </div>
             ))}
           </div>
         </div>
@@ -245,176 +233,93 @@ const HomePage = () => {
         <div className="container-custom">
           <SectionHeader
             eyebrow="Пакеты"
-            title="Коммерческая модель строится от реальных package family"
-            description="Pricing синхронизирована с текущей пакетной моделью LK: base, pro и enterprise-tier в существующих семействах."
+            title="Стартуйте с нужного контура, а не с перегруженного внедрения"
+            description="Пакеты помогают выбрать точку входа: объект, снабжение, финансы, аналитика или корпоративный контур."
           />
-
-          <div className="mt-12 grid gap-5 xl:grid-cols-4">
-            {packagePreview.map((item) => (
-              <article
-                key={item.slug}
-                className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-construction-50 text-construction-700">
-                    <PackageIcon slug={item.slug} className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-steel-950">{item.name}</h3>
-                    <p className="mt-1 text-sm text-steel-500">{item.bestFor}</p>
-                  </div>
-                </div>
-                <div className="mt-5 text-3xl font-bold text-steel-950">
-                  {formatPackageTierPrice(item.tiers[0])}
-                </div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">
-                  {item.description}
-                </p>
-                <div className="mt-5 space-y-2">
-                  {item.tiers[0].highlights.map((highlight) => (
-                    <div
-                      key={highlight}
-                      className="rounded-2xl bg-concrete-50 px-4 py-4 text-sm leading-6 text-steel-700"
-                    >
-                      {highlight}
-                    </div>
-                  ))}
-                </div>
-              </article>
+          <div className="mt-12 grid gap-5 xl:grid-cols-2">
+            {marketingPackages.slice(0, 4).map((item) => (
+              <PackageFamilyCard key={item.slug} item={item} compact />
             ))}
           </div>
-
-          <div className="mt-8 grid gap-5 lg:grid-cols-2">
-            {marketingAdvancedOffers.map((offer) => (
-              <article
-                key={offer.id}
-                className="rounded-[2rem] border border-steel-200 bg-steel-950 p-7 text-white"
-              >
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="text-sm font-semibold uppercase tracking-[0.2em] text-construction-200">
-                    Advanced offer
-                  </div>
-                  <MaturityBadge maturity={offer.maturity} />
-                </div>
-                <h3 className="mt-4 text-2xl font-bold">{offer.title}</h3>
-                <p className="mt-4 text-sm leading-7 text-white/75">{offer.summary}</p>
-                <div className="mt-4">
-                  <SurfaceBadges surfaces={offer.surfaces} />
-                </div>
-                <div className="mt-5 text-sm font-semibold text-construction-200">
-                  {offer.cta}
-                </div>
-              </article>
-            ))}
+          <div className="mt-8">
+            <CtaBand
+              eyebrow="Как выбрать пакет"
+              title="Поможем собрать минимально достаточный состав решения под ваш этап"
+              description="На созвоне разложим текущий процесс по ролям и покажем, с какого контура лучше стартовать сейчас."
+              actions={[
+                { label: 'Перейти к пакетам', href: marketingPaths.pricing, primary: true },
+                { label: 'Связаться с нами', href: marketingPaths.contact },
+              ]}
+              tone="light"
+            />
           </div>
         </div>
       </section>
 
       <section className="bg-concrete-50 py-16 lg:py-24">
-        <div className="container-custom grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-          <div>
+        <div className="container-custom grid gap-8 xl:grid-cols-[0.9fr_1.1fr]">
+          <div className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm">
             <SectionHeader
               eyebrow="Запуск"
               title="Как проходит внедрение"
-              description="Стартуем с контура, который уже приносит управляемый результат в текущем масштабе компании."
+              description="Начинаем с процесса, который быстрее всего даст управляемый результат, и только потом наращиваем систему."
             />
             <div className="mt-8 space-y-4">
               {marketingLaunchSteps.map((step, index) => (
                 <div
                   key={step.title}
-                  className="flex gap-4 rounded-[1.75rem] border border-steel-200 bg-white p-5 shadow-sm"
+                  className="flex gap-4 rounded-[1.5rem] bg-concrete-50 px-5 py-5"
                 >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-steel-950 text-lg font-bold text-construction-300">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-steel-950 text-sm font-bold text-construction-200">
                     {index + 1}
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-steel-950">{step.title}</h3>
-                    <p className="mt-2 text-sm leading-7 text-steel-600">
-                      {step.description}
-                    </p>
+                    <div className="text-base font-semibold text-steel-950">{step.title}</div>
+                    <p className="mt-2 text-sm leading-7 text-steel-600">{step.description}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div>
+          <div className="rounded-[2.25rem] border border-steel-900 bg-steel-950 p-8">
             <SectionHeader
               eyebrow="Доверие"
-              title="Доказательства зрелости"
-              description="Trust-контур сайта опирается на архитектурные факты и реальные продуктовые ограничения."
+              title="Безопасность и прозрачность без лишнего технарского шума"
+              description="На сайте показываем то, что важно клиенту: разграничение доступа, понятную работу с документами и прозрачность процессов."
+              tone="dark"
             />
-            <div className="mt-8 grid gap-4">
-              {marketingTrustFacts.map((fact) => (
-                <article
-                  key={fact.title}
-                  className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <ShieldCheckIcon className="h-5 w-5 text-construction-700" />
-                    <h3 className="text-lg font-bold text-steel-950">{fact.title}</h3>
-                  </div>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">{fact.text}</p>
-                </article>
-              ))}
+            <div className="mt-8">
+              <TrustFactList items={marketingTrustFacts} tone="dark" />
             </div>
           </div>
         </div>
       </section>
 
-      <section id="faq" className="py-16 lg:py-24">
+      <section className="py-16 lg:py-24">
         <div className="container-custom">
-          <SectionHeader
-            eyebrow="FAQ"
-            title="Частые вопросы по публичному сайту и rollout-модели"
-            align="center"
-          />
-
-          <div className="mx-auto mt-12 max-w-4xl space-y-3">
-            {marketingFaqs.map((item, index) => (
-              <div
-                key={item.question}
-                className="overflow-hidden rounded-[1.75rem] border border-steel-200 bg-white shadow-sm"
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpenFaq((current) => (current === index ? null : index))}
-                  className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
-                >
-                  <span className="text-base font-semibold text-steel-950">
-                    {item.question}
-                  </span>
-                  <ChevronDownIcon
-                    className={`h-5 w-5 shrink-0 text-steel-400 transition-transform ${
-                      openFaq === index ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-                {openFaq === index ? (
-                  <div className="border-t border-steel-100 px-6 py-5 text-sm leading-7 text-steel-600">
-                    {item.answer}
-                  </div>
-                ) : null}
-              </div>
-            ))}
+          <SectionHeader eyebrow="FAQ" title="Частые вопросы" align="center" />
+          <div className="mx-auto mt-12 max-w-4xl">
+            <FaqAccordion items={marketingFaqs} />
           </div>
         </div>
       </section>
 
       <section id="contact" className="bg-steel-950 py-16 lg:py-24">
-        <div className="container-custom grid gap-10 lg:grid-cols-[0.95fr_0.85fr] lg:items-start">
+        <div className="container-custom grid gap-10 xl:grid-cols-[0.95fr_0.85fr] xl:items-start">
           <div>
             <SectionHeader
-              eyebrow="Demo и контакт"
-              title="Покажем релевантный контур, а не перегруженную витрину"
-              description="Соберём пакет, surface-ы и advanced-модули под ваш текущий процесс: объект, снабжение, финансы, документы или multi-org контур."
+              eyebrow="Демонстрация"
+              title="Покажем ProHelper на вашем сценарии, а не на абстрактной витрине"
+              description="Разберем роли команды, текущий процесс и подберем маршрут запуска: от первого объекта до корпоративного контура."
+              tone="dark"
             />
             <div className="mt-8 grid gap-4 md:grid-cols-2">
               {[
-                'Диагностика ролей, бизнес-потерь и текущих систем.',
-                'Сборка минимального пакета без лишних модулей.',
-                'Честная маркировка beta/alpha-возможностей.',
-                'Дальнейшее масштабирование после первого рабочего сценария.',
+                'Разбор текущего процесса до показа системы.',
+                'Фокус на той зоне, где команда теряет больше всего времени.',
+                'Понятный маршрут запуска без лишних модулей.',
+                'Отдельное обсуждение безопасности и юридических документов.',
               ].map((item) => (
                 <div
                   key={item}

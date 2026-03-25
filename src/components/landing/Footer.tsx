@@ -10,19 +10,80 @@ import {
   marketingPackages,
   marketingPaths,
 } from '@/data/marketingRegistry';
-import { formatPackageTierPrice } from '@/components/marketing/MarketingPrimitives';
+
+const footerGroups = [
+  {
+    title: 'Продукт',
+    links: marketingNavigation,
+  },
+  {
+    title: 'Сценарии',
+    links: [
+      { label: 'Подрядчик', href: marketingPaths.solutions },
+      { label: 'Генподрядчик', href: marketingPaths.solutions },
+      { label: 'Группа компаний', href: marketingPaths.solutions },
+      { label: 'ПТО и документы', href: marketingPaths.solutions },
+    ],
+  },
+  {
+    title: 'Компания',
+    links: [
+      { label: 'О продукте', href: marketingPaths.about },
+      { label: 'Контакты', href: marketingPaths.contact },
+      { label: 'Безопасность', href: marketingPaths.security },
+      { label: 'Войти в кабинет', href: '/login' },
+    ],
+  },
+  {
+    title: 'Документы',
+    links: [
+      { label: 'Политика конфиденциальности', href: marketingPaths.privacy },
+      { label: 'Публичная оферта', href: marketingPaths.offer },
+      { label: 'Политика файлов cookie', href: marketingPaths.cookies },
+    ],
+  },
+];
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  const packagePreview = marketingPackages.slice(0, 4);
 
   return (
-    <footer className="border-t border-steel-800 bg-steel-950 text-white">
-      <div className="container-custom py-14">
-        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.8fr_0.8fr_0.8fr]">
+    <footer className="bg-steel-950 text-white">
+      <div className="container-custom py-16">
+        <div className="rounded-[2.25rem] border border-white/10 bg-white/5 p-8 md:p-10">
+          <div className="grid gap-8 xl:grid-cols-[1.05fr_0.95fr] xl:items-end">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-construction-200">
+                Запросить демонстрацию
+              </div>
+              <h2 className="mt-4 max-w-3xl text-3xl font-bold leading-tight sm:text-4xl">
+                Покажем ProHelper на вашем процессе и подскажем, с какого контура лучше стартовать
+              </h2>
+              <p className="mt-4 max-w-2xl text-base leading-8 text-white/70">
+                Разберем роли команды, текущую нагрузку на процессы и подготовим демонстрацию без лишних экранов и ненужной теории.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3 xl:justify-end">
+              <Link
+                to={marketingPaths.contact}
+                className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-steel-950 transition hover:bg-construction-100"
+              >
+                Связаться с нами
+              </Link>
+              <Link
+                to={marketingPaths.pricing}
+                className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Посмотреть пакеты
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-14 grid gap-10 lg:grid-cols-[1.2fr_1fr]">
           <div>
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-construction-300">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-construction-200">
                 <BuildingOfficeIcon className="h-6 w-6" />
               </div>
               <div>
@@ -34,11 +95,11 @@ const Footer = () => {
             </div>
 
             <p className="mt-6 max-w-xl text-sm leading-7 text-white/70">
-              Корпоративный сайт ProHelper описывает только подтвержденные контуры продукта:
-              проекты, снабжение, финансы, документы, mobile, AI и multi-org сценарии.
+              ProHelper помогает собрать в одной системе проект, снабжение, финансовый контур,
+              документы и управленческую картину по объектам и группе компаний.
             </p>
 
-            <div className="mt-6 space-y-3 text-sm text-white/75">
+            <div className="mt-6 space-y-3 text-sm text-white/70">
               <a href={marketingCompany.emailHref} className="flex items-center gap-3 transition hover:text-construction-200">
                 <EnvelopeIcon className="h-5 w-5" />
                 {marketingCompany.email}
@@ -49,59 +110,40 @@ const Footer = () => {
               </div>
               <div>{marketingCompany.responseTime}</div>
             </div>
-          </div>
 
-          <div>
-            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-construction-200">Навигация</div>
-            <div className="mt-5 space-y-3">
-              {marketingNavigation.map((item) => (
-                <Link key={item.href} to={item.href} className="block text-sm text-white/70 transition hover:text-white">
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-construction-200">Пакеты</div>
-            <div className="mt-5 space-y-3">
-              {packagePreview.map((item) => (
-                <div key={item.slug} className="text-sm text-white/70">
-                  <div className="font-semibold text-white">{item.name}</div>
-                  <div className="mt-1 text-white/55">
-                    {formatPackageTierPrice(item.tiers[0])}
-                  </div>
+            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              {marketingPackages.slice(0, 4).map((item) => (
+                <div key={item.slug} className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4">
+                  <div className="text-sm font-semibold text-white">{item.name}</div>
+                  <div className="mt-2 text-sm leading-6 text-white/62">{item.bestFor}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div>
-            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-construction-200">Legal</div>
-            <div className="mt-5 space-y-3">
-              <Link to={marketingPaths.security} className="block text-sm text-white/70 transition hover:text-white">
-                Безопасность
-              </Link>
-              <Link to={marketingPaths.privacy} className="block text-sm text-white/70 transition hover:text-white">
-                Конфиденциальность
-              </Link>
-              <Link to={marketingPaths.offer} className="block text-sm text-white/70 transition hover:text-white">
-                Оферта
-              </Link>
-              <Link to={marketingPaths.cookies} className="block text-sm text-white/70 transition hover:text-white">
-                Cookies
-              </Link>
-            </div>
-            <Link
-              to={marketingPaths.contact}
-              className="mt-6 inline-flex items-center justify-center rounded-2xl bg-white px-6 py-4 text-sm font-semibold text-steel-950 transition hover:-translate-y-0.5 hover:bg-construction-100"
-            >
-              Обсудить внедрение
-            </Link>
+          <div className="grid gap-8 sm:grid-cols-2">
+            {footerGroups.map((group) => (
+              <div key={group.title}>
+                <div className="text-sm font-semibold uppercase tracking-[0.2em] text-construction-200">
+                  {group.title}
+                </div>
+                <div className="mt-5 space-y-3">
+                  {group.links.map((item) => (
+                    <Link
+                      key={`${group.title}-${item.href}-${item.label}`}
+                      to={item.href}
+                      className="block text-sm text-white/70 transition hover:text-white"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-6 text-sm text-white/45 md:flex-row md:items-center md:justify-between">
+        <div className="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 text-sm text-white/45 md:flex-row md:items-center md:justify-between">
           <div>© {currentYear} ProHelper. Все права защищены.</div>
           <div className="flex flex-wrap gap-5">
             <Link to={marketingPaths.privacy} className="transition hover:text-white">
@@ -111,7 +153,7 @@ const Footer = () => {
               Оферта
             </Link>
             <Link to={marketingPaths.cookies} className="transition hover:text-white">
-              Cookies
+              Файлы cookie
             </Link>
           </div>
         </div>

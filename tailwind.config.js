@@ -18,9 +18,9 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        construction: ['Roboto Slab', 'serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['Manrope', 'sans-serif'],
+        construction: ['IBM Plex Serif', 'serif'],
+        mono: ['IBM Plex Mono', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",

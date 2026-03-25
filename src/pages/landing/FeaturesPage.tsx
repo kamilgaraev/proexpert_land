@@ -1,11 +1,8 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowUpRightIcon } from '@heroicons/react/24/outline';
-import {
-  MaturityBadge,
-  SectionHeader,
-  SurfaceBadges,
-} from '@/components/marketing/MarketingPrimitives';
+import CapabilityCard from '@/components/marketing/blocks/CapabilityCard';
+import CtaBand from '@/components/marketing/blocks/CtaBand';
+import TrustFactList from '@/components/marketing/blocks/TrustFactList';
+import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import {
   marketingAdvancedOffers,
   marketingCapabilityMatrix,
@@ -18,17 +15,14 @@ import useAnalytics from '@/hooks/useAnalytics';
 import { useSEO } from '@/hooks/useSEO';
 import type { MarketingCapability } from '@/types/marketing';
 
-const groupCapabilitiesByContour = () => {
-  return marketingCapabilityMatrix.reduce<Record<string, MarketingCapability[]>>(
-    (accumulator, capability) => {
-      const contour = capability.businessContour;
-      accumulator[contour] ??= [];
-      accumulator[contour].push(capability);
-      return accumulator;
-    },
-    {},
-  );
-};
+const groupedCapabilities = marketingCapabilityMatrix.reduce<Record<string, MarketingCapability[]>>(
+  (accumulator, capability) => {
+    accumulator[capability.businessContour] ??= [];
+    accumulator[capability.businessContour].push(capability);
+    return accumulator;
+  },
+  {},
+);
 
 const FeaturesPage = () => {
   useSEO({
@@ -36,69 +30,66 @@ const FeaturesPage = () => {
     type: 'website',
   });
 
-  const { trackButtonClick, trackPageView } = useAnalytics();
+  const { trackPageView } = useAnalytics();
 
   useEffect(() => {
     trackPageView('marketing_features');
   }, [trackPageView]);
 
-  const groupedCapabilities = groupCapabilitiesByContour();
-
   return (
-    <div className="bg-white pt-20">
-      <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.14),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.14),_transparent_20%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
+    <div className="bg-white pt-28">
+      <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_24%),radial-gradient(circle_at_top_right,_rgba(96,165,250,0.12),_transparent_22%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
         <div className="container-custom py-16 lg:py-20">
           <SectionHeader
-            eyebrow="Features"
-            title="Возможности ProHelper по бизнес-контурам"
-            description="Не список фич ради списка, а рабочие capability с surface-ами, зрелостью и подтверждённым местом в продукте."
+            eyebrow="Возможности"
+            title="Ключевые процессы собраны в единую систему, а не разбросаны по отдельным инструментам"
+            description="Каждый контур ниже связан с конкретной рабочей задачей: объект, снабжение, финансы, документы, отчетность или корпоративное управление."
           />
         </div>
       </section>
 
       <section className="py-16 lg:py-20">
-        <div className="container-custom space-y-8">
-          {Object.entries(groupedCapabilities).map(([contour, capabilities]) => (
-            <section key={contour} className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm">
-              <div className="max-w-3xl">
-                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-700">
-                  {contour}
-                </div>
-                <h2 className="mt-4 text-3xl font-bold text-steel-950">
-                  {capabilities[0]?.summary}
-                </h2>
-              </div>
-
-              <div className="mt-8 grid gap-5 lg:grid-cols-2">
-                {capabilities.map((capability) => (
-                  <article
-                    key={capability.id}
-                    className="rounded-[1.75rem] bg-concrete-50 p-6"
+        <div className="container-custom space-y-10">
+          {Object.entries(groupedCapabilities).map(([contour, capabilities], index) => (
+            <section
+              key={contour}
+              className={`rounded-[2.25rem] border p-8 shadow-sm ${
+                index % 2 === 0
+                  ? 'border-steel-200 bg-white'
+                  : 'border-steel-900 bg-steel-950 text-white'
+              }`}
+            >
+              <div className="grid gap-8 xl:grid-cols-[0.8fr_1.2fr]">
+                <div>
+                  <div
+                    className={`text-xs font-semibold uppercase tracking-[0.24em] ${
+                      index % 2 === 0 ? 'text-construction-700' : 'text-construction-200'
+                    }`}
                   >
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="text-xl font-bold text-steel-950">
-                        {capability.title}
-                      </h3>
-                      <MaturityBadge maturity={capability.maturity} />
-                    </div>
-                    <p className="mt-4 text-sm leading-7 text-steel-600">
-                      {capability.publicClaim}
-                    </p>
-                    <div className="mt-4">
-                      <SurfaceBadges surfaces={capability.surfaces} />
-                    </div>
-                    <div className="mt-5 grid gap-3">
-                      {capability.outcomes.map((outcome) => (
-                        <div
-                          key={outcome}
-                          className="rounded-2xl bg-white px-4 py-4 text-sm leading-6 text-steel-700 shadow-sm"
-                        >
-                          {outcome}
-                        </div>
-                      ))}
-                    </div>
-                  </article>
-                ))}
+                    {contour}
+                  </div>
+                  <h2 className="mt-5 text-3xl font-bold leading-tight">
+                    {capabilities[0]?.summary}
+                  </h2>
+                  <p
+                    className={`mt-5 text-sm leading-7 ${
+                      index % 2 === 0 ? 'text-steel-600' : 'text-white/70'
+                    }`}
+                  >
+                    Контур собирает несколько связанных сценариев и помогает команде работать
+                    в одном процессе без лишних переключений между инструментами.
+                  </p>
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {capabilities.map((capability) => (
+                    <CapabilityCard
+                      key={capability.id}
+                      capability={capability}
+                      tone={index % 2 === 0 ? 'light' : 'dark'}
+                    />
+                  ))}
+                </div>
               </div>
             </section>
           ))}
@@ -106,100 +97,71 @@ const FeaturesPage = () => {
       </section>
 
       <section className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Advanced"
-            title="Отдельно маркируем beta, alpha и early access"
-            description="Advanced-модули показываем только как расширения к базовым контурам, а не как mass-market ready promises."
-          />
-
-          <div className="mt-10 grid gap-5 lg:grid-cols-2">
-            {marketingAdvancedOffers.map((offer) => (
-              <article
-                key={offer.id}
-                className="rounded-[2rem] border border-steel-200 bg-white p-7 shadow-sm"
-              >
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-steel-500">
-                    Advanced module
-                  </div>
-                  <MaturityBadge maturity={offer.maturity} />
-                </div>
-                <h2 className="mt-4 text-2xl font-bold text-steel-950">
-                  {offer.title}
-                </h2>
-                <p className="mt-4 text-sm leading-7 text-steel-600">{offer.summary}</p>
-                <div className="mt-4">
-                  <SurfaceBadges surfaces={offer.surfaces} />
-                </div>
-                <div className="mt-5 text-sm font-semibold text-construction-700">
-                  {offer.cta}
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="container-custom grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
           <div>
             <SectionHeader
-              eyebrow="Security"
-              title="Поверхности и доступ разделены архитектурно"
-              description="Security-контур опирается на JWT, role definitions, response-контракты и S3-ориентированное файловое хранение."
+              eyebrow="Пилотные сценарии"
+              title="Отдельные расширения подключаются только там, где для них уже созрел процесс"
+              description="Пилотные и проектные функции не продаются как базовая часть продукта. Мы обсуждаем их только в релевантном сценарии."
             />
             <div className="mt-8 grid gap-4">
-              {marketingSecuritySections.map((section) => (
+              {marketingAdvancedOffers.map((offer) => (
                 <article
-                  key={section.title}
+                  key={offer.id}
                   className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
                 >
-                  <h3 className="text-xl font-bold text-steel-950">{section.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">
-                    {section.description}
-                  </p>
-                  <div className="mt-5 grid gap-3">
-                    {section.bullets.map((bullet) => (
-                      <div
-                        key={bullet}
-                        className="rounded-2xl bg-concrete-50 px-4 py-4 text-sm leading-6 text-steel-700"
-                      >
-                        {bullet}
-                      </div>
-                    ))}
+                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-700">
+                    {offer.cta}
                   </div>
+                  <h3 className="mt-4 text-2xl font-bold text-steel-950">{offer.title}</h3>
+                  <p className="mt-4 text-sm leading-7 text-steel-600">{offer.summary}</p>
                 </article>
               ))}
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-steel-200 bg-steel-950 p-8 text-white">
+          <div className="rounded-[2.25rem] border border-steel-900 bg-steel-950 p-8">
             <SectionHeader
-              eyebrow="Trust"
-              title="Почему это важно для корпоративной продажи"
-              description="Публичный сайт должен не только перечислять возможности, но и показывать, что платформа технически зрелая."
+              eyebrow="Безопасность"
+              title="Техническая зрелость важна, но на сайте мы говорим о ней человеческим языком"
+              description="Ниже собраны основные принципы, которые важны заказчику на этапе оценки продукта."
+              tone="dark"
             />
-            <div className="mt-8 space-y-4">
-              {marketingTrustFacts.map((fact) => (
-                <div
-                  key={fact.title}
+            <div className="mt-8 grid gap-4">
+              {marketingSecuritySections.slice(0, 3).map((section) => (
+                <article
+                  key={section.title}
                   className="rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-5"
                 >
-                  <div className="text-lg font-bold">{fact.title}</div>
-                  <p className="mt-2 text-sm leading-7 text-white/75">{fact.text}</p>
-                </div>
+                  <div className="text-lg font-bold text-white">{section.title}</div>
+                  <p className="mt-3 text-sm leading-7 text-white/75">{section.description}</p>
+                </article>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
 
-            <Link
-              to={marketingPaths.security}
-              onClick={() => trackButtonClick('features_to_security', 'marketing_features')}
-              className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-white px-6 py-4 text-sm font-semibold text-steel-950 transition hover:-translate-y-0.5 hover:bg-construction-100"
-            >
-              Открыть security-страницу
-              <ArrowUpRightIcon className="h-4 w-4" />
-            </Link>
+      <section className="py-16 lg:py-20">
+        <div className="container-custom">
+          <CtaBand
+            eyebrow="Следующий шаг"
+            title="Если нужна подробная оценка, покажем релевантный контур и материалы по безопасности"
+            description="На встрече разберем ваш текущий процесс, покажем рабочий сценарий и отдельно обсудим вопросы доступа, документов и запуска."
+            actions={[
+              { label: 'Запросить демонстрацию', href: marketingPaths.contact, primary: true },
+              { label: 'Страница безопасности', href: marketingPaths.security },
+            ]}
+          />
+          <div className="mt-8 grid gap-8 xl:grid-cols-[0.9fr_1.1fr]">
+            <div>
+              <SectionHeader
+                eyebrow="Почему нам доверяют"
+                title="То, что важно клиенту еще до запуска"
+                description="Понятные роли, прозрачный процесс, централизованная работа с документами и сводная картина по объектам."
+              />
+            </div>
+            <TrustFactList items={marketingTrustFacts} />
           </div>
         </div>
       </section>

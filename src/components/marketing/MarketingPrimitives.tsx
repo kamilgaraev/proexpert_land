@@ -35,24 +35,34 @@ export const SectionHeader = ({
   title,
   description,
   align = 'left',
+  tone = 'light',
 }: {
   eyebrow: string;
   title: string;
   description?: string;
   align?: 'left' | 'center';
+  tone?: 'light' | 'dark';
 }) => {
   const alignmentClass = align === 'center' ? 'mx-auto text-center' : '';
+  const eyebrowClass =
+    tone === 'dark'
+      ? 'border-white/15 bg-white/5 text-construction-200'
+      : 'border-construction-200 bg-construction-50 text-construction-700';
+  const titleClass = tone === 'dark' ? 'text-white' : 'text-steel-950';
+  const descriptionClass = tone === 'dark' ? 'text-white/70' : 'text-steel-600';
 
   return (
     <div className={`max-w-3xl ${alignmentClass}`}>
-      <div className="inline-flex rounded-full border border-construction-200 bg-construction-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-construction-700">
+      <div
+        className={`inline-flex rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] ${eyebrowClass}`}
+      >
         {eyebrow}
       </div>
-      <h2 className="mt-5 text-4xl font-bold tracking-tight text-steel-950 sm:text-5xl">
+      <h2 className={`mt-5 text-4xl font-bold tracking-tight sm:text-5xl ${titleClass}`}>
         {title}
       </h2>
       {description ? (
-        <p className="mt-5 text-lg leading-8 text-steel-600">{description}</p>
+        <p className={`mt-5 text-lg leading-8 ${descriptionClass}`}>{description}</p>
       ) : null}
     </div>
   );
@@ -102,13 +112,19 @@ export const PackageIcon = ({
 
 export const formatPackageTierPrice = ({
   price,
+  priceLabel,
   billingModel,
   durationDays,
 }: {
   price: number;
+  priceLabel?: string;
   billingModel: 'free' | 'subscription';
   durationDays?: number;
 }) => {
+  if (priceLabel) {
+    return priceLabel;
+  }
+
   if (billingModel === 'free' && durationDays) {
     return `${durationDays} дней`;
   }
@@ -140,7 +156,7 @@ export const LegalDocumentView = ({
   });
 
   return (
-    <div className="bg-white pt-20">
+    <div className="bg-white pt-28">
       <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.15),_transparent_28%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
         <div className="container-custom py-16 lg:py-20">
           <div className="max-w-4xl">
@@ -179,7 +195,7 @@ export const LegalDocumentView = ({
             </div>
 
             <div className="rounded-2xl bg-steel-950 p-5 text-white">
-              <div className="text-sm font-semibold">Контакты по legal-вопросам</div>
+              <div className="text-sm font-semibold">Контакты по юридическим вопросам</div>
               <a
                 href={marketingCompany.emailHref}
                 className="mt-3 block text-lg font-bold text-construction-300"
@@ -241,7 +257,7 @@ export const LegalDocumentView = ({
               to={marketingPaths.cookies}
               className="inline-flex items-center justify-center rounded-2xl border border-steel-300 bg-white px-6 py-3 text-sm font-semibold text-steel-900 transition hover:border-steel-500"
             >
-              Настройки cookies
+              Настройки cookie
             </Link>
           </div>
         </div>
