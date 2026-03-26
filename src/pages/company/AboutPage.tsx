@@ -10,6 +10,12 @@ import {
 } from '@/data/marketingRegistry';
 import { useSEO } from '@/hooks/useSEO';
 
+const valueHighlights = [
+  'Единый рабочий контур без разрыва между офисом, объектом и руководителем.',
+  'Поэтапный запуск: сначала ключевой сценарий, затем расширение по мере зрелости процесса.',
+  'Понятная модель внедрения, доступа и работы с документами для корпоративной команды.',
+];
+
 const AboutPage = () => {
   useSEO({
     ...marketingSeo.about,
@@ -86,14 +92,10 @@ const AboutPage = () => {
           </div>
           <div className="rounded-[1.75rem] border border-steel-900 bg-steel-950 p-6 text-white">
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
-              Что изменилось в подаче
+              Что получает команда
             </div>
             <div className="mt-4 grid gap-3">
-              {[
-                'Смысловые блоки стали компактнее и быстрее считываются.',
-                'Верхнеуровневый narrative теперь поддерживает SEO-структуру и перелинковку.',
-                'Страница яснее связывает маркетинг, внедрение и доверительный слой.',
-              ].map((item) => (
+              {valueHighlights.map((item) => (
                 <div
                   key={item}
                   className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-white/76"

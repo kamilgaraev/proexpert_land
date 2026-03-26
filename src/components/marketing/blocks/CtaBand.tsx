@@ -32,7 +32,7 @@ const CtaBand = ({
           : 'border-steel-200 bg-white text-steel-950'
       }`}
     >
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+      <div className="grid gap-8">
         <div>
           <div
             className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${
