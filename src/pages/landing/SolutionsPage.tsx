@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import ContactForm from '@/components/landing/ContactForm';
 import CtaBand from '@/components/marketing/blocks/CtaBand';
-import SolutionStory from '@/components/marketing/blocks/SolutionStory';
-import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import {
+  PageHero,
+  SectionHeader,
+  SurfaceBadges,
+} from '@/components/marketing/MarketingPrimitives';
 import {
   marketingCapabilityMatrix,
   marketingPackages,
@@ -12,6 +15,11 @@ import {
 } from '@/data/marketingRegistry';
 import useAnalytics from '@/hooks/useAnalytics';
 import { useSEO } from '@/hooks/useSEO';
+
+const solutionNav = marketingSolutionSegments.map((segment) => ({
+  label: segment.title,
+  href: `#${segment.id}`,
+}));
 
 const SolutionsPage = () => {
   useSEO({
@@ -32,19 +40,41 @@ const SolutionsPage = () => {
 
   return (
     <div className="bg-white pt-28">
-      <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.16),_transparent_24%),linear-gradient(180deg,#fff7ed_0%,#ffffff_100%)]">
-        <div className="container-custom py-20 lg:py-24">
-          <SectionHeader
-            eyebrow="Решения"
-            title="Показываем продукт через задачи команды, а не через абстрактный каталог функций"
-            description="Ниже собраны типовые сценарии для строительного бизнеса: от подрядчика с несколькими объектами до группы компаний."
-          />
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Решения"
+        title="Показываем ProHelper через роли и рабочие сценарии, а не через список экранов."
+        description="Для каждого сегмента ниже собран отдельный маршрут: где сегодня ломается управление, какой контур нужен компании и какие пакеты логично рассматривать на старте."
+        actions={[
+          { label: 'Подобрать сценарий запуска', href: '#solutions', primary: true },
+          { label: 'Открыть пакеты', href: marketingPaths.pricing },
+        ]}
+        nav={[...solutionNav, { label: 'Контакт', href: '#contact' }]}
+        aside={
+          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+              Логика страницы
+            </div>
+            <div className="mt-4 space-y-3">
+              {[
+                'Каждый блок начинается с боли конкретной команды.',
+                'Далее показываем целевое состояние и рабочие потоки.',
+                'В конце даем связанный пакет и следующий шаг.',
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        }
+      />
 
-      <section className="py-20 lg:py-24">
-        <div className="container-custom space-y-10">
-          {marketingSolutionSegments.map((segment, index) => {
+      <section id="solutions" className="py-16 lg:py-20">
+        <div className="container-custom space-y-6">
+          {marketingSolutionSegments.map((segment) => {
             const capabilities = segment.capabilityIds
               .map((capabilityId) => capabilityMap.get(capabilityId))
               .filter((item): item is NonNullable<typeof item> => Boolean(item));
@@ -53,30 +83,135 @@ const SolutionsPage = () => {
               .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
             return (
-              <SolutionStory
+              <section
+                id={segment.id}
                 key={segment.id}
-                segment={segment}
-                capabilities={capabilities}
-                packages={packages}
-                inverted={index % 2 === 1}
-              />
+                className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7"
+              >
+                <div className="grid gap-8 xl:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+                      {segment.audience}
+                    </div>
+                    <h2 className="mt-3 text-[2rem] font-bold leading-tight text-steel-950">
+                      {segment.title}
+                    </h2>
+                    <p className="mt-5 text-sm leading-7 text-steel-600">
+                      <span className="font-semibold text-steel-950">Текущая проблема:</span>{' '}
+                      {segment.challenge}
+                    </p>
+                    <p className="mt-3 text-sm leading-7 text-steel-600">
+                      <span className="font-semibold text-steel-950">Целевой сценарий:</span>{' '}
+                      {segment.transformation}
+                    </p>
+
+                    <div className="mt-6">
+                      <SurfaceBadges surfaces={segment.surfaces} />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6">
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+                        Рабочие потоки
+                      </div>
+                      <div className="mt-4 grid gap-3 md:grid-cols-2">
+                        {segment.workflows.map((workflow) => (
+                          <div
+                            key={workflow}
+                            className="rounded-[1.2rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                          >
+                            {workflow}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-6 lg:grid-cols-2">
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+                          Связанные контуры
+                        </div>
+                        <div className="mt-4 grid gap-3">
+                          {capabilities.map((capability) => (
+                            <div
+                              key={capability.id}
+                              className="rounded-[1.2rem] border border-steel-200 px-4 py-4"
+                            >
+                              <div className="text-base font-semibold text-steel-950">
+                                {capability.title}
+                              </div>
+                              <p className="mt-2 text-sm leading-7 text-steel-600">
+                                {capability.publicClaim}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+                          Рекомендуемые пакеты
+                        </div>
+                        <div className="mt-4 grid gap-3">
+                          {packages.map((item) => (
+                            <div key={item.slug} className="rounded-[1.2rem] bg-concrete-50 px-4 py-4">
+                              <div className="text-base font-semibold text-steel-950">{item.name}</div>
+                              <p className="mt-2 text-sm leading-7 text-steel-600">
+                                {item.bestFor}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
             );
           })}
         </div>
       </section>
 
-      <section className="bg-concrete-50 py-20 lg:py-24">
-        <div className="container-custom grid gap-8 xl:grid-cols-[1fr_420px] xl:items-start">
+      <section className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom">
           <CtaBand
             eyebrow="Следующий шаг"
-            title="Соберем демонстрацию под ваш формат работы и текущий масштаб компании"
-            description="Если у вас смешанный сценарий, несколько ролей или переход к группе компаний, покажем оптимальный маршрут запуска и выделим приоритетный контур."
+            title="Если ваш сценарий смешанный, соберем демонстрацию под структуру команды и текущий масштаб."
+            description="Разберем роли, процессы и приоритетные точки контроля, после чего покажем релевантный маршрут запуска без перегруженного экскурса по всему продукту."
             actions={[
               { label: 'Перейти к пакетам', href: marketingPaths.pricing, primary: true },
               { label: 'О продукте', href: marketingPaths.about },
             ]}
             tone="light"
           />
+        </div>
+      </section>
+
+      <section id="contact" className="py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.92fr)] xl:items-start">
+          <div>
+            <SectionHeader
+              eyebrow="Контакт"
+              title="Завершаем страницу понятным переходом к созвону по вашему сценарию."
+              description="Нам не нужен длинный бриф. Достаточно нескольких вводных о компании, роли и процессе, чтобы подготовить содержательную демонстрацию."
+            />
+            <div className="mt-8 grid gap-3">
+              {[
+                'Уточняем роли команды и текущий этап компании.',
+                'Выбираем приоритетный контур для первого запуска.',
+                'При необходимости отдельно подключаем блок безопасности и документов.',
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.2rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
           <ContactForm variant="compact" className="shadow-none" />
         </div>
       </section>

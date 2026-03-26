@@ -1,6 +1,7 @@
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  ArrowUpRightIcon,
   BanknotesIcon,
   BuildingOfficeIcon,
   ChartBarIcon,
@@ -30,6 +31,40 @@ const packageIcons: Record<string, ComponentType<{ className?: string }>> = {
   enterprise: ShieldCheckIcon,
 };
 
+const isExternalHref = (href: string) => href.startsWith('mailto:') || href.startsWith('http');
+
+export const MarketingLink = ({
+  href,
+  className,
+  children,
+}: {
+  href: string;
+  className: string;
+  children: ReactNode;
+}) => {
+  if (isExternalHref(href)) {
+    return (
+      <a href={href} className={className}>
+        {children}
+      </a>
+    );
+  }
+
+  if (href.startsWith('#')) {
+    return (
+      <a href={href} className={className}>
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link to={href} className={className}>
+      {children}
+    </Link>
+  );
+};
+
 export const SectionHeader = ({
   eyebrow,
   title,
@@ -43,39 +78,116 @@ export const SectionHeader = ({
   align?: 'left' | 'center';
   tone?: 'light' | 'dark';
 }) => {
-  const alignmentClass = align === 'center' ? 'mx-auto text-center' : '';
+  const wrapperClass = align === 'center' ? 'mx-auto text-center' : '';
   const eyebrowClass =
     tone === 'dark'
       ? 'border-white/15 bg-white/5 text-construction-200'
       : 'border-construction-200 bg-construction-50 text-construction-700';
   const titleClass = tone === 'dark' ? 'text-white' : 'text-steel-950';
-  const descriptionClass = tone === 'dark' ? 'text-white/70' : 'text-steel-600';
+  const descriptionClass = tone === 'dark' ? 'text-white/72' : 'text-steel-600';
 
   return (
-    <div className={`max-w-4xl ${alignmentClass}`}>
+    <div className={`max-w-4xl ${wrapperClass}`}>
       <div
-        className={`inline-flex rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] ${eyebrowClass}`}
+        className={`inline-flex items-center rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] ${eyebrowClass}`}
       >
         {eyebrow}
       </div>
       <h2
-        className={`mt-6 text-[clamp(2.35rem,4.8vw,4.7rem)] font-bold tracking-tight leading-[0.98] ${titleClass}`}
+        className={`mt-5 text-[clamp(2.2rem,4.6vw,4rem)] font-bold leading-[1.02] tracking-tight ${titleClass}`}
       >
         {title}
       </h2>
       {description ? (
-        <p className={`mt-6 max-w-3xl text-lg leading-8 ${descriptionClass}`}>{description}</p>
+        <p className={`mt-5 max-w-3xl text-base leading-8 ${descriptionClass}`}>{description}</p>
       ) : null}
     </div>
   );
 };
+
+export const PageSectionNav = ({
+  items,
+  className = '',
+}: {
+  items: { label: string; href: string }[];
+  className?: string;
+}) => (
+  <div className={`overflow-x-auto pb-2 ${className}`}>
+    <div className="flex min-w-max flex-wrap gap-3">
+      {items.map((item) => (
+        <MarketingLink
+          key={`${item.href}-${item.label}`}
+          href={item.href}
+          className="inline-flex items-center rounded-full border border-steel-200 bg-white px-4 py-2 text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700"
+        >
+          {item.label}
+        </MarketingLink>
+      ))}
+    </div>
+  </div>
+);
+
+export const PageHero = ({
+  eyebrow,
+  title,
+  description,
+  actions = [],
+  nav = [],
+  aside,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  actions?: { label: string; href: string; primary?: boolean }[];
+  nav?: { label: string; href: string }[];
+  aside?: ReactNode;
+}) => (
+  <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.16),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(148,163,184,0.16),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
+    <div className="container-custom py-16 lg:py-20">
+      <div className={`grid gap-8 ${aside ? 'xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)] xl:items-start' : ''}`}>
+        <div className="max-w-4xl">
+          <div className="inline-flex items-center rounded-full border border-construction-200 bg-construction-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-construction-700">
+            {eyebrow}
+          </div>
+          <h1 className="mt-5 text-[clamp(2.8rem,5.6vw,5.4rem)] font-bold leading-[0.96] tracking-tight text-steel-950">
+            {title}
+          </h1>
+          <p className="mt-6 max-w-3xl text-lg leading-8 text-steel-600">{description}</p>
+
+          {actions.length > 0 ? (
+            <div className="mt-8 flex flex-wrap gap-3">
+              {actions.map((action) => (
+                <MarketingLink
+                  key={`${action.href}-${action.label}`}
+                  href={action.href}
+                  className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition ${
+                    action.primary
+                      ? 'bg-steel-950 text-white hover:-translate-y-0.5 hover:bg-steel-900'
+                      : 'border border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
+                  }`}
+                >
+                  {action.label}
+                  {action.primary ? <ArrowUpRightIcon className="h-4 w-4" /> : null}
+                </MarketingLink>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        {aside ? <div>{aside}</div> : null}
+      </div>
+
+      {nav.length > 0 ? <PageSectionNav items={nav} className="mt-10" /> : null}
+    </div>
+  </section>
+);
 
 export const MaturityBadge = ({ maturity }: { maturity: MarketingMaturity }) => {
   const meta = marketingMaturityMeta[maturity];
 
   return (
     <span
-      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${meta.tone}`}
+      className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${meta.tone}`}
       title={meta.description}
     >
       {meta.label}
@@ -91,7 +203,7 @@ export const SurfaceBadges = ({ surfaces }: { surfaces: MarketingSurface[] }) =>
       return (
         <span
           key={surface}
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${meta.tone}`}
+          className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${meta.tone}`}
         >
           {meta.label}
         </span>
@@ -159,62 +271,58 @@ export const LegalDocumentView = ({
 
   return (
     <div className="bg-white pt-28">
-      <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.15),_transparent_28%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
-        <div className="container-custom py-20 lg:py-24">
-          <div className="max-w-4xl">
-            <div className="inline-flex rounded-full border border-steel-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-steel-700">
-              {document.shortTitle}
+      <PageHero
+        eyebrow={document.shortTitle}
+        title={document.title}
+        description={document.intro}
+        aside={
+          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+              Версия документа
             </div>
-            <h1 className="mt-5 text-4xl font-bold tracking-tight text-steel-950 sm:text-5xl">
-              {document.title}
-            </h1>
-            <p className="mt-5 text-lg leading-8 text-steel-600">{document.intro}</p>
-            <div className="mt-8 flex flex-wrap gap-4 text-sm text-steel-500">
-              <span>Версия {document.version}</span>
-              <span>Обновлено: {document.updatedAt}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 lg:py-24">
-        <div className="container-custom grid gap-10 xl:grid-cols-[0.72fr_1.28fr]">
-          <aside className="space-y-6 rounded-[2.25rem] border border-steel-200 bg-concrete-50 p-7 lg:p-8">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-steel-500">
-                Ключевые положения
+            <div className="mt-3 text-lg font-bold text-steel-950">{document.version}</div>
+            <div className="mt-2 text-sm text-steel-600">Обновлено: {document.updatedAt}</div>
+            <div className="mt-6 border-t border-steel-100 pt-6">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+                Контакт по вопросам
               </div>
-              <div className="mt-4 space-y-3">
-                {document.highlights.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-[1.5rem] border border-white bg-white px-5 py-5 text-sm leading-7 text-steel-700"
-                  >
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-[1.75rem] bg-steel-950 p-6 text-white">
-              <div className="text-sm font-semibold">Контакты по юридическим вопросам</div>
               <a
                 href={marketingCompany.emailHref}
-                className="mt-3 block text-lg font-bold text-construction-300"
+                className="mt-3 block text-base font-semibold text-construction-700"
               >
                 {marketingCompany.email}
               </a>
-              <p className="mt-3 text-sm leading-6 text-white/75">
+              <p className="mt-3 text-sm leading-7 text-steel-600">
                 {marketingCompany.legalStatusNote}
               </p>
             </div>
+          </div>
+        }
+      />
+
+      <section className="py-16 lg:py-20">
+        <div className="container-custom grid gap-10 xl:grid-cols-[340px_minmax(0,1fr)]">
+          <aside className="rounded-[1.75rem] border border-steel-200 bg-concrete-50 p-6">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+              Ключевые положения
+            </div>
+            <div className="mt-5 space-y-3">
+              {document.highlights.map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.25rem] border border-white bg-white px-4 py-4 text-sm leading-7 text-steel-700"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
           </aside>
 
-          <div className="space-y-6">
+          <div className="space-y-5">
             {document.sections.map((section) => (
               <article
                 key={section.title}
-                className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm"
+                className="rounded-[1.75rem] border border-steel-200 bg-white p-7 shadow-sm"
               >
                 <h2 className="text-2xl font-bold text-steel-950">{section.title}</h2>
                 <div className="mt-4 space-y-4 text-sm leading-7 text-steel-700">
@@ -227,7 +335,7 @@ export const LegalDocumentView = ({
                     {section.bullets.map((bullet) => (
                       <div
                         key={bullet}
-                        className="rounded-[1.5rem] bg-concrete-50 px-5 py-5 text-sm leading-7 text-steel-700"
+                        className="rounded-[1.25rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
                       >
                         {bullet}
                       </div>
@@ -240,26 +348,27 @@ export const LegalDocumentView = ({
         </div>
       </section>
 
-      <section className="border-t border-steel-100 bg-concrete-50 py-20">
+      <section className="border-t border-steel-100 bg-concrete-50 py-16">
         <div className="container-custom flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-xl font-bold text-steel-950">Нужна дополнительная информация?</div>
             <p className="mt-2 text-sm text-steel-600">
-              Оставьте запрос через форму или перейдите на страницу контактов.
+              Напишите нам или перейдите на страницу контактов, если нужно обсудить документы
+              детальнее.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
               to={marketingPaths.contact}
-              className="inline-flex items-center justify-center rounded-2xl bg-steel-950 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-steel-900"
+              className="inline-flex items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-900"
             >
               Перейти к контактам
             </Link>
             <Link
               to={marketingPaths.cookies}
-              className="inline-flex items-center justify-center rounded-2xl border border-steel-300 bg-white px-6 py-3 text-sm font-semibold text-steel-900 transition hover:border-steel-500"
+              className="inline-flex items-center justify-center rounded-full border border-steel-300 bg-white px-5 py-3 text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700"
             >
-              Настройки cookie
+              Политика cookie
             </Link>
           </div>
         </div>

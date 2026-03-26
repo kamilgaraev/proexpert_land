@@ -1,20 +1,16 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  ArrowUpRightIcon,
-  BuildingOffice2Icon,
-  ChartBarSquareIcon,
-  ClipboardDocumentListIcon,
-  CubeIcon,
-} from '@heroicons/react/24/outline';
 import ContactForm from '@/components/landing/ContactForm';
 import CapabilityCard from '@/components/marketing/blocks/CapabilityCard';
 import CtaBand from '@/components/marketing/blocks/CtaBand';
 import FaqAccordion from '@/components/marketing/blocks/FaqAccordion';
 import PackageFamilyCard from '@/components/marketing/blocks/PackageFamilyCard';
-import SegmentPreviewCard from '@/components/marketing/blocks/SegmentPreviewCard';
 import TrustFactList from '@/components/marketing/blocks/TrustFactList';
-import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import {
+  PageHero,
+  PageSectionNav,
+  SectionHeader,
+} from '@/components/marketing/MarketingPrimitives';
 import {
   marketingCapabilityMatrix,
   marketingFaqs,
@@ -29,43 +25,15 @@ import {
 import useAnalytics from '@/hooks/useAnalytics';
 import { useSEO } from '@/hooks/useSEO';
 
-const heroAudienceTags = [
-  'Подрядчик',
-  'Генподрядчик',
-  'Девелопер',
-  'ПТО',
-  'Управляющая компания',
+const homeSections = [
+  { label: 'Для кого', href: '#audiences' },
+  { label: 'Контуры', href: '#product' },
+  { label: 'Доверие', href: '#proof' },
+  { label: 'Пакеты', href: '#packages' },
+  { label: 'Запуск', href: '#launch' },
+  { label: 'FAQ', href: '#faq' },
+  { label: 'Контакт', href: '#contact' },
 ];
-
-const heroSignals = [
-  {
-    title: 'Объект',
-    label: 'Заявки, задачи и исполнение',
-    text: 'Площадка, офис и ПТО работают в одном рабочем контуре без потерь в статусах и сроках.',
-    icon: BuildingOffice2Icon,
-    accent: ['Задачи и сроки', 'Ответственные и статусы'],
-  },
-  {
-    title: 'Снабжение',
-    label: 'Материалы, закупка и остатки',
-    text: 'Потребности с объекта быстрее доходят до закупки, склада и контроля движения материалов.',
-    icon: CubeIcon,
-    accent: ['Потребности с площадки', 'Закупка и склад'],
-  },
-  {
-    title: 'Финансы',
-    label: 'Платежи, акты и документы',
-    text: 'Финансовый блок и проектный контекст остаются связаны, поэтому решение принимается быстрее.',
-    icon: ClipboardDocumentListIcon,
-    accent: ['Платежи и акты', 'Документы в контексте'],
-  },
-];
-
-const heroCommandCard = {
-  title: 'Руководитель видит картину без ручного свода',
-  text: 'Вместо разрозненных таблиц команда получает понятный свод по объектам, снабжению, платежам и исполнению.',
-  accent: ['Свод по объектам', 'Контроль отклонений', 'Понятный следующий шаг'],
-};
 
 const featuredCapabilityIds = [
   'project-control',
@@ -76,9 +44,8 @@ const featuredCapabilityIds = [
 
 const contactHighlights = [
   'Разберем текущий процесс до показа системы.',
-  'Сфокусируемся на самом болезненном участке работы.',
-  'Предложим маршрут запуска без лишних модулей.',
-  'Отдельно обсудим безопасность и документы, если это важно на старте.',
+  'Покажем релевантный контур, а не весь каталог модулей.',
+  'Сразу обсудим этап запуска, роли и возможные ограничения.',
 ];
 
 const HomePage = () => {
@@ -86,7 +53,7 @@ const HomePage = () => {
     ...marketingSeo.home,
     type: 'website',
   });
-  const { trackButtonClick, trackPageView } = useAnalytics();
+  const { trackPageView } = useAnalytics();
 
   useEffect(() => {
     addFAQSchema(marketingFaqs);
@@ -102,52 +69,30 @@ const HomePage = () => {
 
   return (
     <div className="overflow-hidden bg-white">
-      <section className="relative overflow-hidden bg-steel-950 pt-[9rem] text-white lg:pt-[10.5rem]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.22),_transparent_24%),radial-gradient(circle_at_80%_20%,_rgba(125,211,252,0.16),_transparent_24%),linear-gradient(180deg,rgba(2,6,23,0.92)_0%,rgba(2,6,23,1)_100%)]" />
-        <div className="absolute inset-y-0 right-0 hidden w-[48%] bg-blueprint opacity-20 xl:block" />
-        <div className="absolute left-[8%] top-[18%] h-72 w-72 rounded-full bg-construction-500/10 blur-3xl" />
-
-        <div className="container-custom relative pb-28 lg:pb-32">
-          <div className="grid gap-14 xl:grid-cols-[minmax(0,1.02fr)_minmax(620px,0.98fr)] xl:items-center">
-            <div className="max-w-[720px]">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-construction-200">
-                ProHelper для строительных компаний
+      <PageHero
+        eyebrow="Платформа управления строительством"
+        title="Соберите объект, снабжение, финансы и документы в одной системе."
+        description="ProHelper помогает подрядчику, генподрядчику, девелоперу и инженерной команде работать в едином цифровом процессе без разрыва между офисом, площадкой и руководителем."
+        actions={[
+          { label: 'Запросить демонстрацию', href: '#contact', primary: true },
+          { label: 'Посмотреть решения', href: marketingPaths.solutions },
+        ]}
+        nav={homeSections}
+        aside={
+          <div className="space-y-4">
+            <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+                Что получает команда
               </div>
-              <h1 className="mt-7 max-w-[700px] text-[clamp(3.35rem,6.6vw,6.2rem)] font-bold leading-[0.93] tracking-[-0.04em]">
-                Управляйте строительством в одной системе.
-              </h1>
-              <p className="mt-6 max-w-[700px] text-[1.35rem] font-medium leading-[1.55] text-white/88 lg:text-[1.5rem]">
-                Объекты, заявки, снабжение, финансы и документы связаны в одном рабочем контуре
-                для офиса, площадки и руководителя.
-              </p>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/68">
-                Вместо разрозненных таблиц, чатов и ручных сводок команда получает понятный
-                процесс от события на объекте до управленческого решения.
-              </p>
-
-              <div className="mt-9 flex flex-col gap-4 sm:flex-row">
-                <Link
-                  to={`${marketingPaths.home}#contact`}
-                  onClick={() => trackButtonClick('hero_demo', 'marketing_home')}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-4 text-sm font-semibold text-steel-950 transition hover:bg-construction-100"
-                >
-                  Запросить демонстрацию
-                  <ArrowUpRightIcon className="h-4 w-4" />
-                </Link>
-                <Link
-                  to={marketingPaths.solutions}
-                  onClick={() => trackButtonClick('hero_solutions', 'marketing_home')}
-                  className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-4 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  Посмотреть сценарии
-                </Link>
-              </div>
-
-              <div className="mt-9 flex flex-wrap gap-3">
-                {heroAudienceTags.map((item) => (
+              <div className="mt-4 space-y-3">
+                {[
+                  'Единый рабочий контур по объекту, снабжению и финансам.',
+                  'Пошаговый запуск без перегруженного внедрения.',
+                  'Масштабирование от одного процесса до группы компаний.',
+                ].map((item) => (
                   <div
                     key={item}
-                    className="rounded-full border border-white/12 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/72"
+                    className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
                   >
                     {item}
                   </div>
@@ -155,184 +100,158 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="relative xl:pl-2">
-              <div className="absolute -inset-10 rounded-[3rem] bg-construction-400/12 blur-3xl" />
-              <div className="relative rounded-[3rem] border border-white/10 bg-white/[0.06] p-6 backdrop-blur-xl lg:p-8">
-                <div className="rounded-[2.3rem] border border-white/10 bg-steel-900/88 p-7 lg:p-8">
-                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-construction-200">
-                    Как выглядит рабочий контур
+            <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
+              {marketingHeroFacts.map((fact) => (
+                <div key={fact.label} className="rounded-[1.5rem] border border-steel-200 bg-white p-5 shadow-sm">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+                    {fact.label}
                   </div>
-                  <h2 className="mt-4 max-w-2xl text-[2rem] font-bold leading-tight text-white lg:text-[2.35rem]">
-                    Не набор разрозненных функций, а единый маршрут работы от объекта до решения.
-                  </h2>
-                  <p className="mt-4 max-w-2xl text-base leading-8 text-white/68">
-                    Внутри одного процесса остаются заявки, материалы, платежи, документы и
-                    контроль по объектам. Это и есть основной эффект продукта для команды.
-                  </p>
-
-                  <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {heroSignals.map((signal) => {
-                      const Icon = signal.icon;
-
-                      return (
-                        <article
-                          key={signal.title}
-                          className="rounded-[1.9rem] border border-white/10 bg-white/[0.04] p-6"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-construction-200">
-                              <Icon className="h-6 w-6" />
-                            </div>
-                            <div>
-                              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-200">
-                                {signal.title}
-                              </div>
-                              <div className="mt-2 text-lg font-bold leading-tight text-white">
-                                {signal.label}
-                              </div>
-                            </div>
-                          </div>
-                          <p className="mt-5 text-sm leading-7 text-white/70">{signal.text}</p>
-                          <div className="mt-6 flex flex-wrap gap-2.5">
-                            {signal.accent.map((item) => (
-                              <div
-                                key={item}
-                                className="rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/78"
-                              >
-                                {item}
-                              </div>
-                            ))}
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-6 grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
-                    <div className="rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(251,146,60,0.10))] p-6">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 text-construction-200">
-                        <ChartBarSquareIcon className="h-6 w-6" />
-                      </div>
-                      <div className="mt-5 text-xl font-bold text-white">{heroCommandCard.title}</div>
-                      <p className="mt-3 text-sm leading-7 text-white/72">{heroCommandCard.text}</p>
-                    </div>
-
-                    <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-                      {heroCommandCard.accent.map((item) => (
-                        <div
-                          key={item}
-                          className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-5 py-5 text-sm font-semibold leading-7 text-white/78"
-                        >
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <div className="mt-3 text-2xl font-bold text-steel-950">{fact.value}</div>
+                  <p className="mt-3 text-sm leading-7 text-steel-600">{fact.detail}</p>
                 </div>
-              </div>
+              ))}
+            </div>
+          </div>
+        }
+      />
+
+      <section id="audiences" className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Для кого"
+            title="Сайт говорит не про абстрактный SaaS, а про реальные роли и сценарии."
+            description="Каждый сценарий ниже собран вокруг рабочего запроса компании: где теряется управление, как выглядит целевой контур и с какого этапа запускать систему."
+          />
+
+          <div className="mt-10 grid gap-5 xl:grid-cols-2">
+            {marketingSolutionSegments.map((segment) => (
+              <article
+                key={segment.id}
+                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
+              >
+                <div className="flex flex-col gap-4 border-b border-steel-100 pb-5 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+                      {segment.audience}
+                    </div>
+                    <h3 className="mt-2 text-2xl font-bold text-steel-950">{segment.title}</h3>
+                  </div>
+                  <Link
+                    to={marketingPaths.solutions}
+                    className="text-sm font-semibold text-steel-500 transition hover:text-construction-700"
+                  >
+                    Полный сценарий
+                  </Link>
+                </div>
+                <p className="mt-5 text-sm leading-7 text-steel-600">
+                  <span className="font-semibold text-steel-950">Проблема:</span> {segment.challenge}
+                </p>
+                <p className="mt-3 text-sm leading-7 text-steel-600">
+                  <span className="font-semibold text-steel-950">Что меняется:</span>{' '}
+                  {segment.transformation}
+                </p>
+                <div className="mt-5 grid gap-3">
+                  {segment.workflows.map((workflow) => (
+                    <div
+                      key={workflow}
+                      className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-6 text-steel-700"
+                    >
+                      {workflow}
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="product" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Контуры"
+            title="Ключевые процессы собраны в понятные бизнес-контуры, а не разбросаны по экранным фичам."
+            description="На главной оставили только те контуры, которые быстрее всего объясняют ценность ProHelper: объект, снабжение, финансы и корпоративный слой."
+          />
+
+          <div className="mt-10 grid gap-5 xl:grid-cols-2">
+            {featuredCapabilities.map((capability) => (
+              <CapabilityCard key={capability.id} capability={capability} />
+            ))}
+          </div>
+
+          <div className="mt-8">
+            <PageSectionNav
+              items={[
+                { label: 'Смотреть все возможности', href: marketingPaths.features },
+                { label: 'Сценарии по ролям', href: marketingPaths.solutions },
+                { label: 'Безопасность и доступ', href: marketingPaths.security },
+              ]}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section id="proof" className="py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+          <div>
+            <SectionHeader
+              eyebrow="Доверие"
+              title="Публичный сайт теперь сразу отвечает на корпоративные вопросы клиента."
+              description="Роли, прозрачность процессов, централизованная работа с документами и понятная модель запуска вынесены в отдельный доверительный слой."
+            />
+
+            <div className="mt-8 grid gap-4">
+              {marketingHeroFacts.map((fact) => (
+                <article key={fact.label} className="rounded-[1.5rem] bg-concrete-50 px-5 py-5">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+                    {fact.label}
+                  </div>
+                  <div className="mt-2 text-3xl font-bold text-steel-950">{fact.value}</div>
+                  <p className="mt-3 text-sm leading-7 text-steel-600">{fact.detail}</p>
+                </article>
+              ))}
             </div>
           </div>
 
-          <div className="mt-16 grid gap-4 lg:grid-cols-3">
-            {marketingHeroFacts.map((fact) => (
-              <div
-                key={fact.label}
-                className="rounded-[2.1rem] border border-white/10 bg-white/[0.04] p-8 backdrop-blur"
-              >
-                <div className="text-4xl font-bold leading-none text-white">{fact.value}</div>
-                <div className="mt-3 text-xs font-semibold uppercase tracking-[0.24em] text-construction-200">
-                  {fact.label}
-                </div>
-                <p className="mt-5 max-w-md text-base leading-8 text-white/70">{fact.detail}</p>
-              </div>
-            ))}
+          <div>
+            <TrustFactList items={marketingTrustFacts} />
           </div>
         </div>
       </section>
 
-      <section className="py-20 lg:py-28">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Кому подходит"
-            title="Сценарии для подрядчика, генподрядчика, девелопера и инженерной команды"
-            description="Каждый сценарий собран вокруг реальной рабочей боли, а не вокруг случайного списка экранов."
-            align="center"
-          />
-          <div className="mt-14 grid gap-6 xl:grid-cols-2">
-            {marketingSolutionSegments.map((segment) => (
-              <SegmentPreviewCard
-                key={segment.id}
-                segment={segment}
-                linkTo={marketingPaths.solutions}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-concrete-50 py-20 lg:py-28">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Возможности"
-            title="Что помогает держать строительный процесс под контролем"
-            description="Показываем только те контуры, которые уже имеют понятный рабочий сценарий в продукте."
-          />
-
-          <div className="mt-14 grid gap-6 xl:grid-cols-12">
-            {featuredCapabilities.map((capability, index) => (
-              <div
-                key={capability.id}
-                className={index === 0 || index === 3 ? 'xl:col-span-7' : 'xl:col-span-5'}
-              >
-                <CapabilityCard capability={capability} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 lg:py-28">
+      <section id="packages" className="bg-concrete-50 py-16 lg:py-20">
         <div className="container-custom">
           <SectionHeader
             eyebrow="Пакеты"
-            title="Стартуйте с нужного контура, а не с перегруженного внедрения"
-            description="Пакеты помогают выбрать понятную точку входа: объект, снабжение, финансы, отчетность или корпоративный контур."
+            title="Вместо абстрактных тарифов сайт показывает рабочие точки входа в продукт."
+            description="Пакетная логика помогает начать с нужного контура, а затем расширять систему по мере роста команды и числа объектов."
           />
-          <div className="mt-14 grid gap-6 xl:grid-cols-2">
+
+          <div className="mt-10 grid gap-5 xl:grid-cols-2">
             {marketingPackages.slice(0, 4).map((item) => (
               <PackageFamilyCard key={item.slug} item={item} compact />
             ))}
           </div>
-          <div className="mt-10">
-            <CtaBand
-              eyebrow="Как выбрать пакет"
-              title="Поможем собрать минимально достаточный состав решения под ваш этап"
-              description="На созвоне разложим текущий процесс по ролям и покажем, с какого контура лучше стартовать именно сейчас."
-              actions={[
-                { label: 'Перейти к пакетам', href: marketingPaths.pricing, primary: true },
-                { label: 'Связаться с нами', href: marketingPaths.contact },
-              ]}
-              tone="light"
-            />
-          </div>
         </div>
       </section>
 
-      <section className="bg-concrete-50 py-20 lg:py-28">
-        <div className="container-custom grid gap-8 xl:grid-cols-[0.92fr_1.08fr]">
-          <div className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm lg:p-9">
+      <section id="launch" className="py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
+          <div className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
             <SectionHeader
               eyebrow="Запуск"
-              title="Как проходит внедрение"
-              description="Начинаем с процесса, который быстрее всего даст управляемый результат, и только потом наращиваем систему."
+              title="Внедрение разбито на понятные шаги, без обещаний «включить все сразу»."
+              description="Это важный сдвиг для маркетинга: мы продаем не перегруженный редизайн, а ясный маршрут внедрения."
             />
+
             <div className="mt-8 space-y-4">
               {marketingLaunchSteps.map((step, index) => (
                 <div
                   key={step.title}
-                  className="flex gap-4 rounded-[1.75rem] bg-concrete-50 px-5 py-5"
+                  className="flex gap-4 rounded-[1.25rem] bg-concrete-50 px-4 py-4"
                 >
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-steel-950 text-sm font-bold text-construction-200">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-steel-950 text-sm font-bold text-construction-200">
                     {index + 1}
                   </div>
                   <div>
@@ -344,43 +263,45 @@ const HomePage = () => {
             </div>
           </div>
 
-          <div className="rounded-[2.25rem] border border-steel-900 bg-steel-950 p-8 lg:p-9">
-            <SectionHeader
-              eyebrow="Доверие"
-              title="То, что важно клиенту еще до старта"
-              description="Показываем безопасность и прозрачность человеческим языком: разграничение доступа, работа с документами и понятный процесс запуска."
-              tone="dark"
-            />
-            <div className="mt-8">
-              <TrustFactList items={marketingTrustFacts} tone="dark" />
-            </div>
-          </div>
+          <CtaBand
+            eyebrow="Маршрут запуска"
+            title="Поможем выбрать минимально достаточный состав решения под ваш текущий этап."
+            description="На встрече разложим роли, процессы и ограничения, после чего предложим стартовый контур без лишних модулей и перегруза."
+            actions={[
+              { label: 'Перейти к пакетам', href: marketingPaths.pricing, primary: true },
+              { label: 'Связаться с нами', href: '#contact' },
+            ]}
+            tone="dark"
+          />
         </div>
       </section>
 
-      <section className="py-20 lg:py-28">
-        <div className="container-custom">
-          <SectionHeader eyebrow="FAQ" title="Частые вопросы" align="center" />
-          <div className="mx-auto mt-14 max-w-4xl">
-            <FaqAccordion items={marketingFaqs} />
-          </div>
-        </div>
-      </section>
-
-      <section id="contact" className="bg-steel-950 py-20 lg:py-28">
-        <div className="container-custom grid gap-10 xl:grid-cols-[0.95fr_0.85fr] xl:items-start">
+      <section id="faq" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
           <div>
             <SectionHeader
-              eyebrow="Демонстрация"
-              title="Покажем ProHelper на вашем сценарии, а не на абстрактной витрине"
-              description="Разберем роли команды, текущий процесс и подберем маршрут запуска: от первого объекта до корпоративного контура."
-              tone="dark"
+              eyebrow="FAQ"
+              title="Частые вопросы теперь встроены в структуру сайта, а не прячутся внизу страницы."
+              description="Это помогает и SEO, и продажам: пользователь быстрее считывает ограничения, формат запуска и логику демонстрации."
             />
-            <div className="mt-8 grid gap-4 md:grid-cols-2">
+          </div>
+          <FaqAccordion items={marketingFaqs} />
+        </div>
+      </section>
+
+      <section id="contact" className="py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.88fr)_minmax(420px,0.92fr)] xl:items-start">
+          <div>
+            <SectionHeader
+              eyebrow="Контакт"
+              title="Сайт завершает маршрут не абстрактным CTA, а нормальным B2B-контактом."
+              description="Форма собрана проще и строже: она помогает быстро перейти от маркетинга к содержательному созвону по вашему сценарию."
+            />
+            <div className="mt-8 grid gap-3">
               {contactHighlights.map((item) => (
                 <div
                   key={item}
-                  className="rounded-[1.75rem] border border-white/10 bg-white/5 px-5 py-5 text-sm leading-7 text-white/80"
+                  className="rounded-[1.25rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
                 >
                   {item}
                 </div>
@@ -388,7 +309,7 @@ const HomePage = () => {
             </div>
           </div>
 
-          <ContactForm variant="full" className="border-white/10 bg-white shadow-none" />
+          <ContactForm variant="full" className="shadow-none" />
         </div>
       </section>
     </div>

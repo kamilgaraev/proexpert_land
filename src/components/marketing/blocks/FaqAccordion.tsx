@@ -14,12 +14,12 @@ const FaqAccordion = ({ items }: FaqAccordionProps) => {
       {items.map((item, index) => (
         <div
           key={item.question}
-          className="overflow-hidden rounded-[1.75rem] border border-steel-200 bg-white shadow-sm"
+          className="overflow-hidden rounded-[1.4rem] border border-steel-200 bg-white"
         >
           <button
             type="button"
             onClick={() => setOpenIndex((current) => (current === index ? -1 : index))}
-            className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
+            className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left"
           >
             <span className="text-base font-semibold text-steel-950">{item.question}</span>
             <ChevronDownIcon
@@ -29,7 +29,7 @@ const FaqAccordion = ({ items }: FaqAccordionProps) => {
             />
           </button>
           {openIndex === index ? (
-            <div className="border-t border-steel-100 px-6 py-5 text-sm leading-7 text-steel-600">
+            <div className="border-t border-steel-100 px-5 py-5 text-sm leading-7 text-steel-600">
               {item.answer}
             </div>
           ) : null}

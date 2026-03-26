@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   BuildingOffice2Icon,
-  ChatBubbleLeftRightIcon,
   EnvelopeIcon,
   PaperAirplaneIcon,
   ShieldCheckIcon,
@@ -149,8 +148,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     setIsSubmitting(true);
 
     const selectedSubject =
-      subjectOptions.find((option) => option.value === formData.subject) ??
-      subjectOptions[0];
+      subjectOptions.find((option) => option.value === formData.subject) ?? subjectOptions[0];
     const payload = {
       name: formData.name.trim(),
       email: formData.email.trim(),
@@ -223,7 +221,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       NotificationService.show({
         type: 'error',
         title: 'Ошибка соединения',
-        message: 'Не удалось отправить заявку. Проверьте соединение и попробуйте ещё раз.',
+        message: 'Не удалось отправить заявку. Проверьте соединение и попробуйте еще раз.',
       });
     } finally {
       setIsSubmitting(false);
@@ -232,8 +230,8 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
 
   const wrapperClass =
     variant === 'compact'
-      ? `rounded-[2rem] border border-steel-200 bg-white p-6 shadow-xl ${className}`
-      : `rounded-[2.25rem] border border-steel-200 bg-white p-7 shadow-xl lg:p-8 ${className}`;
+      ? `rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm ${className}`
+      : `rounded-[2rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7 ${className}`;
 
   return (
     <>
@@ -243,21 +241,21 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
       >
-        <div className="text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-construction-50 text-construction-700">
-            <ChatBubbleLeftRightIcon className="h-7 w-7" />
+        <div className="flex flex-col gap-3 border-b border-steel-100 pb-5">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+            {variant === 'compact' ? 'Первичный контакт' : 'Форма заявки'}
           </div>
-          <h2 className="mt-5 text-2xl font-bold text-steel-950 lg:text-[2rem]">
-            {variant === 'compact' ? 'Оставить заявку' : 'Запросить демонстрацию'}
+          <h2 className="text-2xl font-bold text-steel-950 lg:text-[1.9rem]">
+            {variant === 'compact' ? 'Оставить заявку' : 'Запросить демонстрацию ProHelper'}
           </h2>
-          <p className="mt-3 text-sm leading-7 text-steel-600">
+          <p className="max-w-2xl text-sm leading-7 text-steel-600">
             {variant === 'compact'
-              ? 'Короткая форма для первичного контакта и назначения созвона.'
-              : 'Три обязательных поля и короткое описание задачи. Остальное разберем уже на созвоне.'}
+              ? 'Короткая форма для первичного созвона. Достаточно контактов и краткого описания вашей задачи.'
+              : 'Опишите текущий процесс, проблемную зону или формат интересующей демонстрации. Остальное разберем уже на встрече.'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <label className="block">
               <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
@@ -270,7 +268,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="Как к вам обращаться"
-                className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+                className="w-full rounded-[1.1rem] border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
                 required
               />
             </label>
@@ -286,7 +284,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
                 value={formData.company}
                 onChange={handleInputChange}
                 placeholder="Название компании"
-                className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+                className="w-full rounded-[1.1rem] border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
               />
             </label>
 
@@ -301,14 +299,14 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="you@company.ru"
-                className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+                className="w-full rounded-[1.1rem] border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
                 required
               />
             </label>
           </div>
 
           {variant === 'full' ? (
-            <div className="rounded-[1.75rem] border border-steel-200 bg-concrete-50 p-5">
+            <div>
               <span className="mb-3 block text-sm font-semibold text-steel-700">
                 Что хотите обсудить
               </span>
@@ -321,7 +319,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
                       key={option.value}
                       type="button"
                       onClick={() => handleSubjectChange(option.value)}
-                      className={`rounded-[1.25rem] border px-4 py-3 text-left text-sm font-semibold transition ${
+                      className={`rounded-[1.1rem] border px-4 py-3 text-left text-sm font-semibold transition ${
                         active
                           ? 'border-steel-950 bg-steel-950 text-white'
                           : 'border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
@@ -338,21 +336,19 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
           )}
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-steel-700">
-              Сообщение
-            </span>
+            <span className="mb-2 block text-sm font-semibold text-steel-700">Сообщение</span>
             <textarea
               name="message"
               value={formData.message}
               onChange={handleInputChange}
               placeholder="Опишите ваш процесс, текущую проблему или тип нужной демонстрации"
-              rows={variant === 'compact' ? 4 : 3}
-              className="w-full rounded-2xl border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+              rows={variant === 'compact' ? 4 : 5}
+              className="w-full rounded-[1.1rem] border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
               required
             />
           </label>
 
-          <div className="rounded-[1.75rem] border border-steel-200 bg-concrete-50 p-5">
+          <div className="rounded-[1.25rem] bg-concrete-50 p-4">
             <label className="flex items-start gap-3">
               <input
                 type="checkbox"
@@ -367,26 +363,17 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
                   Согласие на обработку персональных данных
                 </div>
                 <p className="mt-2 text-sm leading-6 text-steel-600">
-                  Подтверждаю согласие на обработку персональных данных в рамках{' '}
-                  <Link
-                    to={marketingPaths.privacy}
-                    className="font-semibold text-construction-700"
-                  >
+                  Подтверждаю согласие в рамках{' '}
+                  <Link to={marketingPaths.privacy} className="font-semibold text-construction-700">
                     политики конфиденциальности
                   </Link>{' '}
                   и принимаю условия{' '}
-                  <Link
-                    to={marketingPaths.offer}
-                    className="font-semibold text-construction-700"
-                  >
+                  <Link to={marketingPaths.offer} className="font-semibold text-construction-700">
                     публичной оферты
                   </Link>
                   . Настройки аналитики описаны в{' '}
-                  <Link
-                    to={marketingPaths.cookies}
-                    className="font-semibold text-construction-700"
-                  >
-                    политике файлов cookie
+                  <Link to={marketingPaths.cookies} className="font-semibold text-construction-700">
+                    политике cookie
                   </Link>
                   .
                 </p>
@@ -397,7 +384,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
           <button
             type="submit"
             disabled={isSubmitting || !formData.consentToPersonalData}
-            className={`inline-flex w-full items-center justify-center gap-3 rounded-2xl px-6 py-4 text-base font-semibold transition ${
+            className={`inline-flex w-full items-center justify-center gap-3 rounded-full px-6 py-4 text-base font-semibold transition ${
               isSubmitting || !formData.consentToPersonalData
                 ? 'cursor-not-allowed bg-steel-300 text-white'
                 : 'bg-steel-950 text-white hover:-translate-y-0.5 hover:bg-steel-900'
@@ -405,7 +392,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
           >
             {isSubmitting ? (
               <>
-                <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 Отправляем заявку
               </>
             ) : (

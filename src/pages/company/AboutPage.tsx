@@ -1,6 +1,6 @@
 import CtaBand from '@/components/marketing/blocks/CtaBand';
 import TrustFactList from '@/components/marketing/blocks/TrustFactList';
-import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import { PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import {
   marketingAboutSections,
   marketingCompany,
@@ -18,82 +18,118 @@ const AboutPage = () => {
 
   return (
     <div className="bg-white pt-28">
-      <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.14),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
-        <div className="container-custom py-20 lg:py-24">
-          <SectionHeader
-            eyebrow="О продукте"
-            title="ProHelper помогает строительным командам работать как одна система"
-            description="Мы показываем продукт через реальный рабочий процесс: объект, снабжение, финансовый блок, документы и управленческий контроль."
-          />
+      <PageHero
+        eyebrow="О продукте"
+        title="ProHelper помогает строительной команде работать как одна система."
+        description="В центре продукта не абстрактная автоматизация, а единый рабочий процесс между офисом, площадкой, снабжением, финансовым блоком и руководителем."
+        actions={[
+          { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
+          { label: 'Посмотреть возможности', href: marketingPaths.features },
+        ]}
+        nav={[
+          { label: 'Подход', href: '#approach' },
+          { label: 'Принципы', href: '#principles' },
+          { label: 'Доверие', href: '#trust' },
+        ]}
+        aside={
+          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+              Как работаем
+            </div>
+            <div className="mt-4 space-y-3 text-sm leading-7 text-steel-600">
+              <p>{marketingCompany.location}</p>
+              <p>{marketingCompany.responseTime}</p>
+              <p>{marketingCompany.hours}</p>
+              <a href={marketingCompany.emailHref} className="block font-semibold text-construction-700">
+                {marketingCompany.email}
+              </a>
+            </div>
+          </div>
+        }
+      />
+
+      <section id="approach" className="py-16 lg:py-20">
+        <div className="container-custom grid gap-5 xl:grid-cols-3">
+          {marketingAboutSections.map((section) => (
+            <article
+              key={section.title}
+              className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
+            >
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+                Подход
+              </div>
+              <h2 className="mt-3 text-2xl font-bold text-steel-950">{section.title}</h2>
+              <p className="mt-4 text-sm leading-7 text-steel-600">{section.description}</p>
+              <div className="mt-5 grid gap-3">
+                {section.bullets.map((bullet) => (
+                  <div
+                    key={bullet}
+                    className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                  >
+                    {bullet}
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section className="py-20 lg:py-24">
-        <div className="container-custom grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-6">
-            {marketingAboutSections.map((section) => (
-              <article
-                key={section.title}
-                className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm"
-              >
-                <h2 className="text-2xl font-bold text-steel-950">{section.title}</h2>
-                <p className="mt-4 text-sm leading-7 text-steel-600">{section.description}</p>
-                <div className="mt-5 grid gap-3">
-                  {section.bullets.map((bullet) => (
-                    <div
-                      key={bullet}
-                      className="rounded-2xl bg-concrete-50 px-4 py-4 text-sm leading-6 text-steel-700"
-                    >
-                      {bullet}
-                    </div>
-                  ))}
+      <section id="principles" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div>
+            <SectionHeader
+              eyebrow="Принципы"
+              title="После переработки страница о продукте стала ближе к корпоративному narrative, а не к обычному лендингу."
+              description="Теперь здесь лучше читается позиционирование: ProHelper продается как управленческий контур для стройки с понятным маршрутом запуска."
+            />
+          </div>
+          <div className="rounded-[1.75rem] border border-steel-900 bg-steel-950 p-6 text-white">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
+              Что изменилось в подаче
+            </div>
+            <div className="mt-4 grid gap-3">
+              {[
+                'Смысловые блоки стали компактнее и быстрее считываются.',
+                'Верхнеуровневый narrative теперь поддерживает SEO-структуру и перелинковку.',
+                'Страница яснее связывает маркетинг, внедрение и доверительный слой.',
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-white/76"
+                >
+                  {item}
                 </div>
-              </article>
-            ))}
-          </div>
-
-          <div className="space-y-6">
-            <article className="rounded-[2.25rem] border border-steel-900 bg-steel-950 p-8 lg:p-9">
-              <SectionHeader
-                eyebrow="Как работаем"
-                title="Показываем сценарий запуска, а не перегруженную демонстрацию"
-                description="Перед показом уточняем роли команды, масштаб компании и тот участок процесса, где сейчас больше всего ручной нагрузки."
-                tone="dark"
-              />
-              <div className="mt-8 space-y-4 text-sm leading-7 text-white/75">
-                <p>{marketingCompany.location}</p>
-                <p>{marketingCompany.responseTime}</p>
-                <p>{marketingCompany.hours}</p>
-                <a href={marketingCompany.emailHref} className="block text-construction-200">
-                  {marketingCompany.email}
-                </a>
-              </div>
-            </article>
-
-            <article className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm lg:p-9">
-              <SectionHeader
-                eyebrow="Почему это удобно"
-                title="То, что особенно важно заказчику на этапе выбора"
-                description="Понятная модель доступа, прозрачный процесс и единая рабочая логика для офиса и объекта."
-              />
-              <div className="mt-8">
-                <TrustFactList items={marketingTrustFacts} />
-              </div>
-            </article>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="pb-20 lg:pb-24">
+      <section id="trust" className="py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
+          <div>
+            <SectionHeader
+              eyebrow="Доверие"
+              title="Для корпоративного клиента важны не только возможности, но и управляемость взаимодействия."
+              description="Поэтому на публичной части усилен отдельный слой про роли, процессы, прозрачность и формат запуска."
+            />
+          </div>
+          <TrustFactList items={marketingTrustFacts} />
+        </div>
+      </section>
+
+      <section className="pb-16 lg:pb-20">
         <div className="container-custom">
           <CtaBand
             eyebrow="Следующий шаг"
-            title="Если хотите увидеть продукт на своем процессе, проведем прицельную демонстрацию"
+            title="Если хотите увидеть ProHelper на своем процессе, проведем прицельную демонстрацию."
             description="Покажем релевантный контур, обсудим этап внедрения и отдельно ответим на вопросы по безопасности и документам."
             actions={[
               { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
               { label: 'Безопасность', href: marketingPaths.security },
             ]}
+            tone="light"
           />
         </div>
       </section>

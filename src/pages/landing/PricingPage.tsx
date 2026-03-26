@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import ContactForm from '@/components/landing/ContactForm';
 import CtaBand from '@/components/marketing/blocks/CtaBand';
 import PackageFamilyCard from '@/components/marketing/blocks/PackageFamilyCard';
-import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import { PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import {
   marketingAdvancedOffers,
   marketingPackages,
@@ -12,6 +12,12 @@ import {
 import useAnalytics from '@/hooks/useAnalytics';
 import { useSEO } from '@/hooks/useSEO';
 import { generatePricingSchema } from '@/utils/seo';
+
+const pricingPrinciples = [
+  'Стартуем с того контура, где сейчас выше всего ручная нагрузка и потери.',
+  'Не включаем все модули одновременно, если команда еще не готова к этому процессно.',
+  'Расширяем систему по мере роста числа объектов, ролей и юридических лиц.',
+];
 
 const PricingPage = () => {
   useSEO({
@@ -29,17 +35,44 @@ const PricingPage = () => {
 
   return (
     <div className="bg-white pt-28">
-      <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.16),_transparent_24%),linear-gradient(180deg,#fff7ed_0%,#ffffff_100%)]">
-        <div className="container-custom py-20 lg:py-24">
-          <SectionHeader
-            eyebrow="Пакеты"
-            title="Выбирайте не тариф ради галочки, а рабочий контур под ваш этап роста"
-            description="Пакеты помогают понять, с какого процесса лучше стартовать сейчас и как расширять систему по мере роста команды и числа объектов."
-          />
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Пакеты"
+        title="Пакетная модель стала проще: не тарифы ради галочек, а рабочие контуры под этап компании."
+        description="На странице ниже пакетная логика привязана к реальным сценариям внедрения. Это помогает быстро понять, с чего стартовать и как расширять систему дальше."
+        actions={[
+          { label: 'Подобрать пакет', href: '#contact', primary: true },
+          { label: 'Посмотреть решения', href: '/solutions' },
+        ]}
+        nav={[
+          { label: 'Пакеты', href: '#packages' },
+          { label: 'Как выбираем', href: '#principles' },
+          { label: 'Расширения', href: '#addons' },
+          { label: 'Контакт', href: '#contact' },
+        ]}
+        aside={
+          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+              Что изменилось
+            </div>
+            <div className="mt-4 grid gap-3">
+              {[
+                'Пакеты объясняются через точку входа в продукт.',
+                'Отдельно вынесены проектные расширения и пилотные функции.',
+                'Страница быстрее проводит к обсуждению бюджета и состава решения.',
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        }
+      />
 
-      <section className="py-20 lg:py-24">
+      <section id="packages" className="py-16 lg:py-20">
         <div className="container-custom grid gap-5">
           {marketingPackages.map((item) => (
             <PackageFamilyCard key={item.slug} item={item} />
@@ -47,60 +80,30 @@ const PricingPage = () => {
         </div>
       </section>
 
-      <section className="bg-concrete-50 py-20 lg:py-24">
-        <div className="container-custom grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-[2.25rem] border border-steel-200 bg-white p-8 shadow-sm">
-              <SectionHeader
-                eyebrow="Проектные расширения"
-                title="Если базового пакета недостаточно, подключаем дополнительные сценарии по согласованию"
-                description="Пилотные возможности и индивидуальные расширения обсуждаются только после того, как понятен основной рабочий контур."
-              />
-              <div className="mt-8 grid gap-4">
-                {marketingAdvancedOffers.map((offer) => (
-                  <article
-                    key={offer.id}
-                    className="rounded-[1.75rem] bg-concrete-50 px-6 py-6"
-                  >
-                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-700">
-                    {offer.cta}
-                  </div>
-                  <h2 className="mt-4 text-2xl font-bold text-steel-950">{offer.title}</h2>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">{offer.summary}</p>
-                </article>
-              ))}
-            </div>
+      <section id="principles" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+          <div>
+            <SectionHeader
+              eyebrow="Как выбираем"
+              title="Подбор пакета теперь описан человеческим языком, без ощущения запутанной тарифной сетки."
+              description="Это важно для enterprise-клиента: цена сама по себе мало что говорит, если не видно логики запуска и состава базового контура."
+            />
           </div>
 
-          <div className="rounded-[2.25rem] border border-steel-900 bg-steel-950 p-8">
-            <SectionHeader
-              eyebrow="Как выбрать"
-              title="На что опираемся при подборе пакета"
-              description="Выбор состава решения зависит не только от размера компании, но и от того, какой процесс сейчас важнее всего собрать в единую систему."
-              tone="dark"
-            />
-            <div className="mt-8 space-y-4">
-              {[
-                'Сколько объектов и ролей нужно связать между собой уже на первом этапе.',
-                'Нужно ли сразу подключать снабжение, финансовый блок или только объектный контур.',
-                'Есть ли требования к корпоративному управлению и работе нескольких организаций.',
-                'Нужны ли пилотные или индивидуальные расширения поверх базового пакета.',
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.5rem] border border-white/10 bg-white/5 px-5 py-5 text-sm leading-7 text-white/75"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 rounded-[1.75rem] bg-white px-5 py-5">
-              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-construction-700">
+          <div className="grid gap-4">
+            {pricingPrinciples.map((item) => (
+              <div key={item} className="rounded-[1.5rem] border border-steel-200 bg-white px-5 py-5 shadow-sm">
+                <div className="text-sm leading-7 text-steel-700">{item}</div>
+              </div>
+            ))}
+            <div className="rounded-[1.5rem] border border-steel-900 bg-steel-950 px-5 py-5 text-white">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
                 Что получает заказчик
               </div>
-              <div className="mt-3 grid gap-3">
+              <div className="mt-4 grid gap-3">
                 {marketingTrustFacts.slice(0, 3).map((fact) => (
-                  <div key={fact.title} className="text-sm leading-7 text-steel-700">
-                    <span className="font-semibold text-steel-950">{fact.title}.</span> {fact.text}
+                  <div key={fact.title} className="text-sm leading-7 text-white/76">
+                    <span className="font-semibold text-white">{fact.title}.</span> {fact.text}
                   </div>
                 ))}
               </div>
@@ -109,15 +112,49 @@ const PricingPage = () => {
         </div>
       </section>
 
-      <section id="pricing-contact" className="py-20 lg:py-24">
-        <div className="container-custom grid gap-8 xl:grid-cols-[1fr_420px] xl:items-start">
+      <section id="addons" className="py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
+          <div>
+            <SectionHeader
+              eyebrow="Расширения"
+              title="Проектные расширения и пилоты отделены от базовых пакетов, чтобы не перегружать выбор."
+              description="Сначала определяется основной рабочий контур, а уже затем обсуждаются AI-сценарии, интеграции и кастомные надстройки."
+            />
+            <div className="mt-8 grid gap-4">
+              {marketingAdvancedOffers.map((offer) => (
+                <article
+                  key={offer.id}
+                  className="rounded-[1.5rem] border border-steel-200 bg-white p-5 shadow-sm"
+                >
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+                    {offer.cta}
+                  </div>
+                  <h2 className="mt-3 text-xl font-bold text-steel-950">{offer.title}</h2>
+                  <p className="mt-3 text-sm leading-7 text-steel-600">{offer.summary}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+
           <CtaBand
             eyebrow="Подбор решения"
-            title="Разложим ваш текущий процесс и подскажем минимально достаточный состав решения"
-            description="На встрече покажем, где лучше стартовать, а какие модули стоит подключать уже после первого рабочего результата."
-            actions={[]}
+            title="Разложим ваш процесс и предложим минимально достаточный состав решения."
+            description="На встрече покажем, где лучше стартовать, а какие блоки стоит подключать уже после первого рабочего результата."
+            actions={[{ label: 'Оставить заявку', href: '#contact', primary: true }]}
             tone="light"
           />
+        </div>
+      </section>
+
+      <section id="contact" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.92fr)] xl:items-start">
+          <div>
+            <SectionHeader
+              eyebrow="Контакт"
+              title="Финальный блок страницы ведет не в тупик, а к нормальному обсуждению бюджета и сценария."
+              description="Оставьте короткую заявку, и мы предложим стартовый состав решения под ваш процесс, команду и организационную структуру."
+            />
+          </div>
           <ContactForm variant="compact" className="shadow-none" />
         </div>
       </section>
