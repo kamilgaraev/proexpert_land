@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ContactForm from '@/components/landing/ContactForm';
 import CapabilityCard from '@/components/marketing/blocks/CapabilityCard';
@@ -11,6 +11,7 @@ import {
   PageSectionNav,
   SectionHeader,
 } from '@/components/marketing/MarketingPrimitives';
+import ganttScreenshot from '@/assets/marketing/gantt-schedule-30.png';
 import {
   marketingCapabilityMatrix,
   marketingFaqs,
@@ -46,6 +47,12 @@ const contactHighlights = [
   'Покажем релевантный сценарий под ваш тип компании.',
   'Разберем, с какого контура лучше стартовать.',
   'Сразу обсудим сроки запуска и состав команды.',
+];
+
+const proofHighlights = [
+  'Реальный интерфейс с графиком работ, сроками и статусами задач.',
+  'Видно, как команда контролирует путь, отклонения и зависимости.',
+  'Демо можно показывать на живом сценарии клиента, а не на абстрактной витрине.',
 ];
 
 const HomePage = () => {
@@ -192,29 +199,58 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section id="proof" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-          <div>
-          <SectionHeader
-            eyebrow="Доверие"
-            title="Почему строительные компании выбирают ProHelper."
-            description="Прозрачные роли, единый контур данных и понятная модель запуска без лишней сложности."
-          />
+            <section id="proof" className="py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.84fr)_minmax(0,1.16fr)]">
+          <div className="flex flex-col justify-between">
+            <div>
+              <SectionHeader
+                eyebrow="Доверие"
+                title="Показываем не обещания, а реальный экран из ProHelper."
+                description="На демонстрации клиент видит рабочие данные: задачи, сроки, критический путь и таймлайн по объекту."
+              />
 
-            <div className="mt-8 grid gap-4">
+              <div className="mt-8 grid gap-3">
+                {proofHighlights.map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-[1.25rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-8 rounded-[1.5rem] border border-construction-200 bg-construction-50/70 px-5 py-4 text-sm leading-7 text-steel-700">
+              Ниже встроен реальный скрин из админки ProHelper с диаграммой Ганта.
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-steel-200 bg-white p-3 shadow-[0_30px_70px_rgba(15,23,42,0.08)] lg:p-4">
+            <div className="rounded-[1.5rem] border border-steel-100 bg-concrete-50 p-2">
+              <img
+                src={ganttScreenshot}
+                alt="Диаграмма Ганта в ProHelper"
+                className="h-auto w-full rounded-[1rem] border border-steel-200 object-cover"
+              />
+            </div>
+
+            <div className="grid gap-4 px-2 pb-2 pt-5 md:grid-cols-3">
               {marketingHeroFacts.map((fact) => (
-                <article key={fact.label} className="rounded-[1.5rem] bg-concrete-50 px-5 py-5">
+                <article key={fact.label} className="rounded-[1.25rem] bg-concrete-50 px-4 py-4">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
                     {fact.label}
                   </div>
-                  <div className="mt-2 text-3xl font-bold text-steel-950">{fact.value}</div>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">{fact.detail}</p>
+                  <div className="mt-2 text-2xl font-bold text-steel-950">{fact.value}</div>
+                  <p className="mt-2 text-sm leading-6 text-steel-600">{fact.detail}</p>
                 </article>
               ))}
             </div>
           </div>
+        </div>
 
-          <div>
+        <div className="container-custom mt-8">
+          <div className="rounded-[2rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
             <TrustFactList items={marketingTrustFacts} />
           </div>
         </div>
