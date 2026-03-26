@@ -46,8 +46,8 @@ const FeaturesPage = () => {
     <div className="bg-white pt-28">
       <PageHero
         eyebrow="Продукт"
-        title="Продуктовая часть сайта теперь объясняет не фичи, а управляемые бизнес-контуры."
-        description="Ниже собраны ключевые процессы ProHelper: объект, снабжение, финансы, документы, отчетность и корпоративное управление. Для каждого контура показываем рабочую пользу и состав сценариев."
+        title="Ключевые возможности ProHelper для строительной компании."
+        description="Объект, снабжение, финансы, документы, отчетность и корпоративное управление в одном продукте."
         actions={[
           { label: 'Запросить демонстрацию', href: marketingPaths.contact, primary: true },
           { label: 'Посмотреть решения', href: marketingPaths.solutions },
@@ -60,7 +60,7 @@ const FeaturesPage = () => {
         aside={
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Важное для клиента
+              Что важно на старте
             </div>
             <div className="mt-4 grid gap-3">
               {marketingSecuritySections.slice(0, 3).map((section) => (
@@ -132,8 +132,8 @@ const FeaturesPage = () => {
           <div>
             <SectionHeader
               eyebrow="Расширения"
-              title="Пилотные и проектные расширения вынесены отдельно, чтобы не мешать базовому восприятию продукта."
-              description="Это важный шаг в переработке UI: сначала базовый продуктовый слой, затем аккуратное объяснение пилотов, AI и интеграций."
+              title="Пилотные расширения и интеграции."
+              description="Дополнительные сценарии подключаются отдельно, когда базовый контур уже определен."
             />
             <div className="mt-8 grid gap-4">
               {marketingAdvancedOffers.map((offer) => (
@@ -169,8 +169,8 @@ const FeaturesPage = () => {
           <div>
             <SectionHeader
               eyebrow="Доверие"
-              title="Маркетинговый продуктовый слой теперь напрямую связан с вопросами прозрачности и доступа."
-              description="Это делает страницу сильнее для корпоративного клиента: видно, что заявленные контуры соотносятся с управляемостью, безопасностью и понятной моделью ролей."
+              title="Прозрачность процессов, ролей и доступа."
+              description="Показываем, как ProHelper поддерживает управляемость и корпоративные требования."
             />
           </div>
           <TrustFactList items={marketingTrustFacts} />

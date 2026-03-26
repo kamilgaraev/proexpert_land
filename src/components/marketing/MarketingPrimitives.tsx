@@ -94,7 +94,7 @@ export const SectionHeader = ({
         {eyebrow}
       </div>
       <h2
-        className={`mt-5 text-[clamp(2.2rem,4.6vw,4rem)] font-bold leading-[1.02] tracking-tight ${titleClass}`}
+        className={`mt-5 max-w-4xl font-sans text-[clamp(1.9rem,3.6vw,3.2rem)] font-bold leading-[1.04] tracking-tight ${titleClass}`}
       >
         {title}
       </h2>
@@ -149,7 +149,7 @@ export const PageHero = ({
           <div className="inline-flex items-center rounded-full border border-construction-200 bg-construction-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-construction-700">
             {eyebrow}
           </div>
-          <h1 className="mt-5 text-[clamp(2.8rem,5.6vw,5.4rem)] font-bold leading-[0.96] tracking-tight text-steel-950">
+          <h1 className="mt-5 max-w-4xl font-sans text-[clamp(2.4rem,4.8vw,4.4rem)] font-bold leading-[0.98] tracking-tight text-steel-950">
             {title}
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-steel-600">{description}</p>

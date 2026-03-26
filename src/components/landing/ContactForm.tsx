@@ -245,7 +245,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
           <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
             {variant === 'compact' ? 'Первичный контакт' : 'Форма заявки'}
           </div>
-          <h2 className="text-2xl font-bold text-steel-950 lg:text-[1.9rem]">
+          <h2 className="font-sans text-2xl font-bold text-steel-950 lg:text-[1.85rem]">
             {variant === 'compact' ? 'Оставить заявку' : 'Запросить демонстрацию ProHelper'}
           </h2>
           <p className="max-w-2xl text-sm leading-7 text-steel-600">

@@ -20,8 +20,8 @@ const AboutPage = () => {
     <div className="bg-white pt-28">
       <PageHero
         eyebrow="О продукте"
-        title="ProHelper помогает строительной команде работать как одна система."
-        description="В центре продукта не абстрактная автоматизация, а единый рабочий процесс между офисом, площадкой, снабжением, финансовым блоком и руководителем."
+        title="ProHelper для управления строительной компанией."
+        description="Единый рабочий контур для офиса, площадки, снабжения, финансового блока и руководителя."
         actions={[
           { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
           { label: 'Посмотреть возможности', href: marketingPaths.features },
@@ -34,7 +34,7 @@ const AboutPage = () => {
         aside={
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Как работаем
+              Формат работы
             </div>
             <div className="mt-4 space-y-3 text-sm leading-7 text-steel-600">
               <p>{marketingCompany.location}</p>
@@ -80,8 +80,8 @@ const AboutPage = () => {
           <div>
             <SectionHeader
               eyebrow="Принципы"
-              title="После переработки страница о продукте стала ближе к корпоративному narrative, а не к обычному лендингу."
-              description="Теперь здесь лучше читается позиционирование: ProHelper продается как управленческий контур для стройки с понятным маршрутом запуска."
+              title="Как мы подходим к внедрению и развитию продукта."
+              description="ProHelper запускается поэтапно и масштабируется вместе с компанией."
             />
           </div>
           <div className="rounded-[1.75rem] border border-steel-900 bg-steel-950 p-6 text-white">
@@ -111,8 +111,8 @@ const AboutPage = () => {
           <div>
             <SectionHeader
               eyebrow="Доверие"
-              title="Для корпоративного клиента важны не только возможности, но и управляемость взаимодействия."
-              description="Поэтому на публичной части усилен отдельный слой про роли, процессы, прозрачность и формат запуска."
+              title="Почему ProHelper удобен для корпоративного клиента."
+              description="Понятные роли, прозрачные процессы и управляемый формат запуска."
             />
           </div>
           <TrustFactList items={marketingTrustFacts} />
