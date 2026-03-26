@@ -41,28 +41,30 @@ const CtaBand = ({
           >
             {eyebrow}
           </div>
-          <h2 className="mt-4 max-w-4xl text-[clamp(2rem,3.8vw,3.6rem)] font-bold leading-[1.02]">
+          <h2 className="mt-4 max-w-4xl text-[clamp(1.15rem,10vw,3.6rem)] font-bold leading-[1.04] [overflow-wrap:anywhere] [text-wrap:balance] sm:text-[clamp(1.75rem,6vw,3.6rem)]">
             {title}
           </h2>
-          <p className={`mt-5 max-w-3xl text-base leading-8 ${isDark ? 'text-white/72' : 'text-steel-600'}`}>
+          <p
+            className={`mt-5 max-w-3xl text-sm leading-7 sm:text-base sm:leading-8 ${isDark ? 'text-white/72' : 'text-steel-600'}`}
+          >
             {description}
           </p>
         </div>
 
         {actions.length > 0 ? (
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             {actions.map((action) => (
               <MarketingLink
                 key={`${action.href}-${action.label}`}
                 href={action.href}
-                className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition ${
+                className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition sm:w-auto ${
                   action.primary
-                    ? isDark
+                    ? `w-full ${isDark
                       ? 'bg-white text-steel-950 hover:bg-construction-100'
-                      : 'bg-steel-950 text-white hover:bg-steel-900'
-                    : isDark
+                      : 'bg-steel-950 text-white hover:bg-steel-900'}`
+                    : `w-full ${isDark
                       ? 'border border-white/15 bg-white/5 text-white hover:bg-white/10'
-                      : 'border border-steel-300 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
+                      : 'border border-steel-300 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'}`
                 }`}
               >
                 {action.label}
