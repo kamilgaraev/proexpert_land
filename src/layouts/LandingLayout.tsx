@@ -1,18 +1,11 @@
 import { Outlet } from 'react-router-dom';
-import Navbar from '../components/landing/Navbar';
-import Footer from '../components/landing/Footer';
-import CookieBanner from '@/components/marketing/CookieBanner';
+import MarketingShell from '@/components/landing/MarketingShell';
 
 const LandingLayout = () => {
   return (
-    <div className="min-h-[100svh] bg-white flex flex-col font-sans">
-      <Navbar />
-      <main className="flex-grow">
+    <MarketingShell>
         <Outlet />
-      </main>
-      <Footer />
-      <CookieBanner />
-    </div>
+    </MarketingShell>
   );
 };
 

@@ -11,20 +11,15 @@ interface PageShellProps {
 }
 
 export function PageShell({ children }: PageShellProps) {
-  const isBrowser = typeof window !== 'undefined';
   return (
     <React.StrictMode>
-      {isBrowser ? (
-        <AdminAuthProvider>
-          <AuthProvider>
-            <PermissionsProvider autoLoad={true} interfaceType="lk" refreshInterval={900000}>
-              {children}
-            </PermissionsProvider>
-          </AuthProvider>
-        </AdminAuthProvider>
-      ) : (
-        <>{children}</>
-      )}
+      <AdminAuthProvider>
+        <AuthProvider>
+          <PermissionsProvider autoLoad={true} interfaceType="lk" refreshInterval={900000}>
+            {children}
+          </PermissionsProvider>
+        </AuthProvider>
+      </AdminAuthProvider>
     </React.StrictMode>
   );
 } 
