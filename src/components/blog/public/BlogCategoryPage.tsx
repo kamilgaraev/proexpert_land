@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import BlogPublicLayout from './BlogPublicLayout';
 import BlogArticleCard from './BlogArticleCard';
 import BlogSidebar from './BlogSidebar';
+import { useSEO } from '@/hooks/useSEO';
 import { blogPublicApi } from '../../../utils/blogPublicApi';
 import type { BlogArticle, BlogCategory } from '../../../types/blog';
 
@@ -16,6 +17,22 @@ const BlogCategoryPage: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
+
+  useSEO(
+    category
+      ? {
+          title: category.meta_title || `${category.name} - блог ProHelper`,
+          description:
+            category.meta_description ||
+            category.description ||
+            `Подборка материалов ProHelper по теме "${category.name}".`,
+          keywords: `${category.name}, блог ProHelper, строительство`,
+        }
+      : {
+          title: 'Категория блога ProHelper',
+          description: 'Подборка материалов ProHelper по категории блога.',
+        },
+  );
 
   useEffect(() => {
     if (slug) {

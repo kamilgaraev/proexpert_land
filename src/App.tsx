@@ -82,6 +82,10 @@ const SecurityPage = lazy(() => import('@pages/company/SecurityPage'));
 const PrivacyPage = lazy(() => import('@pages/legal/PrivacyPage'));
 const OfferPage = lazy(() => import('@pages/legal/OfferPage'));
 const CookiesPage = lazy(() => import('@pages/legal/CookiesPage'));
+const IntegrationsPage = lazy(() => import('@pages/product/IntegrationsPage'));
+const ContractorsPage = lazy(() => import('@pages/solutions/ContractorsPage'));
+const DevelopersPage = lazy(() => import('@pages/solutions/DevelopersPage'));
+const EnterprisePage = lazy(() => import('@pages/solutions/EnterprisePage'));
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -181,6 +185,10 @@ function App() {
           <Route path="/solutions" element={<SolutionsPage />} />
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/integrations" element={<IntegrationsPage />} />
+          <Route path="/contractors" element={<ContractorsPage />} />
+          <Route path="/developers" element={<DevelopersPage />} />
+          <Route path="/enterprise" element={<EnterprisePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/security" element={<SecurityPage />} />

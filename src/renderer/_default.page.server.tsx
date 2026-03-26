@@ -11,6 +11,7 @@ import {
   generateOrganizationSchema,
   generateSoftwareSchema,
   generateBreadcrumbSchema,
+  generateWebPageSchema,
   type PageSEOData
 } from '@utils/seo';
 
@@ -25,8 +26,8 @@ export async function render(pageContext: PageContextServer) {
     </StaticRouter>,
   );
 
-  const slug = (pageContext.urlPathname || '/').replace(/^\/+|\/+$/g, '') || 'home';
-  const baseSeo: PageSEOData = getPageSEOData(slug);
+  const pathname = pageContext.urlPathname || '/';
+  const baseSeo: PageSEOData = getPageSEOData(pathname);
   
   const httpResponse = (pageContext as any).httpResponse;
   const statusCode = httpResponse?.statusCode || 200;
@@ -37,13 +38,23 @@ export async function render(pageContext: PageContextServer) {
     keywords = baseSeo.keywords,
     canonicalUrl = baseSeo.canonicalUrl,
     ogImage = baseSeo.ogImage || 'https://prohelper.pro/logo.svg',
+    noIndex = baseSeo.noIndex,
     type: ogType = 'website',
     structuredData
   } = (documentProps as Partial<PageSEOData & {
     ogImage?: string;
+    noIndex?: boolean;
     type?: string;
     structuredData?: unknown;
   }>) || {};
+
+  const robotsContent = noIndex
+    ? 'noindex, nofollow, noarchive'
+    : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1';
+
+  const googlebotContent = noIndex
+    ? 'noindex, nofollow'
+    : 'index, follow, max-snippet:-1, max-image-preview:large';
 
   const allMeta = [
     `<meta name="description" content="${description}" />`,
@@ -52,8 +63,8 @@ export async function render(pageContext: PageContextServer) {
     `<meta name="document-state" content="dynamic" />`,
     `<meta name="revisit-after" content="7 days" />`,
     `<meta name="referrer" content="strict-origin-when-cross-origin" />`,
-    `<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />`,
-    `<meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large" />`,
+    `<meta name="robots" content="${robotsContent}" />`,
+    `<meta name="googlebot" content="${googlebotContent}" />`,
     `<meta name="geo.region" content="RU" />`,
     `<meta name="geo.placename" content="Россия" />`,
     `<meta name="geo.position" content="55.751244;37.618423" />`,
@@ -75,7 +86,7 @@ export async function render(pageContext: PageContextServer) {
   const breadcrumbItems = [
     { name: 'Главная', url: 'https://prohelper.pro/' }
   ];
-  if (slug !== 'home') {
+  if (pathname !== '/') {
     breadcrumbItems.push({ name: title, url: canonicalUrl });
   }
 
@@ -84,6 +95,12 @@ export async function render(pageContext: PageContextServer) {
       generateOrganizationSchema(),
       generateSoftwareSchema(),
       generateBreadcrumbSchema(breadcrumbItems),
+      generateWebPageSchema({
+        name: title,
+        description,
+        url: canonicalUrl,
+        breadcrumbs: breadcrumbItems,
+      }),
       structuredData || null
     ].filter(Boolean)
   });

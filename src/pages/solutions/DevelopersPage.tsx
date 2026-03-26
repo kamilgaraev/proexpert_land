@@ -83,6 +83,7 @@ const DevelopersPage = () => {
       title="ProHelper для девелоперов"
       subtitle="Комплексное управление портфелем строительных проектов"
       seoPage="developers"
+      showFooter={false}
     >
       <div className="bg-gradient-to-b from-slate-50 to-white">
         {/* Hero Benefits */}

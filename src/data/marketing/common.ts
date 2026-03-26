@@ -10,9 +10,14 @@ export const marketingPaths = {
   solutions: '/solutions',
   features: '/features',
   pricing: '/pricing',
+  integrations: '/integrations',
+  contractors: '/contractors',
+  developers: '/developers',
+  enterprise: '/enterprise',
   about: '/about',
   contact: '/contact',
   security: '/security',
+  blog: '/blog',
   privacy: '/privacy',
   offer: '/offer',
   cookies: '/cookies',
@@ -47,6 +52,34 @@ export const marketingSeo: Record<string, MarketingSeoMeta> = {
     keywords:
       'пакеты ProHelper, внедрение ProHelper, стоимость ProHelper, строительная платформа',
   },
+  integrations: {
+    title: 'Интеграции ProHelper с 1С, ERP и строительными системами',
+    description:
+      'Подключайте ProHelper к 1С, ERP, BI и корпоративным сервисам, чтобы связать строительный контур, документы, финансы и аналитику в одной системе.',
+    keywords:
+      'интеграции ProHelper, 1С и строительство, ERP для стройки, интеграция строительной системы, API ProHelper',
+  },
+  contractors: {
+    title: 'ProHelper для подрядчика и управления строительными работами',
+    description:
+      'ProHelper помогает подрядчику контролировать график работ, задачи, снабжение, документы и исполнительскую дисциплину в одном рабочем контуре.',
+    keywords:
+      'программа для подрядчика, управление строительными работами, график работ в строительстве, подрядчик и снабжение, ProHelper подрядчик',
+  },
+  developers: {
+    title: 'ProHelper для девелопера и контроля строительных проектов',
+    description:
+      'Цифровой контур для девелопера: контроль сроков, подрядчиков, бюджета, документооборота и управленческой отчетности по объектам.',
+    keywords:
+      'система для девелопера, управление строительными проектами, контроль подрядчиков, девелопер и стройка, ProHelper для девелопера',
+  },
+  enterprise: {
+    title: 'Enterprise-решение ProHelper для холдингов и крупных строительных компаний',
+    description:
+      'Корпоративный контур ProHelper для групп компаний, холдингов и крупных девелоперов: единые стандарты, контроль доступа, аналитика и масштабируемый запуск.',
+    keywords:
+      'enterprise для строительства, система для строительного холдинга, управление группой компаний, корпоративная платформа для стройки, ProHelper enterprise',
+  },
   about: {
     title: 'О продукте ProHelper',
     description:
@@ -67,6 +100,13 @@ export const marketingSeo: Record<string, MarketingSeoMeta> = {
       'Разграничение доступа, централизованная работа с документами, контроль действий и поддержка запуска в ProHelper.',
     keywords:
       'безопасность ProHelper, доступ по ролям, хранение документов, аудит действий',
+  },
+  blog: {
+    title: 'Блог ProHelper о цифровизации строительства',
+    description:
+      'Публикуем материалы о строительных процессах, графиках работ, снабжении, документах, финансах и цифровой организации строительной команды.',
+    keywords:
+      'блог о строительстве, цифровизация строительства, график работ, снабжение стройки, статьи ProHelper',
   },
   privacy: {
     title: 'Политика конфиденциальности ProHelper',

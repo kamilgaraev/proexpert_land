@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import BlogPublicLayout from './BlogPublicLayout';
 import BlogArticleCard from './BlogArticleCard';
 import BlogSidebar from './BlogSidebar';
+import { useSEO } from '@/hooks/useSEO';
 import { blogPublicApi } from '../../../utils/blogPublicApi';
 import type { BlogArticle } from '../../../types/blog';
 
@@ -14,6 +15,15 @@ const BlogTagPage: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
+
+  useSEO({
+    title: slug ? `Тег #${slug} - блог ProHelper` : 'Теги блога ProHelper',
+    description: slug
+      ? `Статьи ProHelper по тегу #${slug}.`
+      : 'Подборка статей ProHelper по тегам.',
+    keywords: slug ? `${slug}, блог ProHelper, строительство` : 'теги блога ProHelper',
+    noIndex: true,
+  });
 
   useEffect(() => {
     if (slug) {

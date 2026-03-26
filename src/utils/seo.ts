@@ -1,8 +1,12 @@
 import {
+  isMarketingNoIndexPath,
   marketingCapabilityMatrix,
   marketingCompany,
   marketingPackages,
+  marketingPaths,
   marketingSeo,
+  normalizeMarketingPath,
+  resolveMarketingSeoKey,
 } from '@/data/marketingRegistry';
 
 export interface PageSEOData {
@@ -17,20 +21,12 @@ export interface PageSEOData {
 const BASE_URL = 'https://prohelper.pro';
 const DEFAULT_OG_IMAGE = `${BASE_URL}/logo.svg`;
 
-const normalizePageKey = (page: string) => {
-  const normalizedPath = page.replace(/^\/+|\/+$/g, '');
-
-  if (!normalizedPath) {
-    return 'home';
-  }
-
-  return normalizedPath.split('/')[0];
-};
-
 export const getPageSEOData = (page: string): PageSEOData => {
-  const pageKey = normalizePageKey(page);
+  const normalizedPath = normalizeMarketingPath(page);
+  const pageKey = resolveMarketingSeoKey(normalizedPath);
   const pageMeta = marketingSeo[pageKey] ?? marketingSeo.home;
-  const canonicalPath = pageKey === 'home' ? '' : `/${pageKey}`;
+  const canonicalPath = normalizedPath === marketingPaths.home ? '' : normalizedPath;
+  const noIndex = pageMeta.noIndex ?? isMarketingNoIndexPath(normalizedPath);
 
   return {
     title: pageMeta.title,
@@ -38,7 +34,7 @@ export const getPageSEOData = (page: string): PageSEOData => {
     keywords: pageMeta.keywords ?? '',
     canonicalUrl: `${BASE_URL}${canonicalPath}`,
     ogImage: DEFAULT_OG_IMAGE,
-    noIndex: pageMeta.noIndex,
+    noIndex,
   };
 };
 

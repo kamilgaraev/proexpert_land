@@ -133,6 +133,8 @@ const EnterprisePage = () => {
     <PageLayout 
       title="Корпоративные решения" 
       subtitle="Масштабируемая платформа для крупных строительных компаний"
+      seoPage="enterprise"
+      showFooter={false}
     >
       <div className="mb-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">

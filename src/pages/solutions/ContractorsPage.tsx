@@ -99,6 +99,8 @@ const ContractorsPage = () => {
     <PageLayout 
       title="Решения для подрядчиков" 
       subtitle="Эффективные инструменты управления строительными работами"
+      seoPage="contractors"
+      showFooter={false}
     >
       <div className="mb-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">

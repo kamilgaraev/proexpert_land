@@ -15,7 +15,17 @@ const sitemapGroups = [
       { label: 'Главная', href: marketingPaths.home },
       { label: 'Решения', href: marketingPaths.solutions },
       { label: 'Продукт', href: marketingPaths.features },
+      { label: 'Интеграции', href: marketingPaths.integrations },
       { label: 'Пакеты', href: marketingPaths.pricing },
+    ],
+  },
+  {
+    title: 'Сценарии',
+    links: [
+      { label: 'Для подрядчика', href: marketingPaths.contractors },
+      { label: 'Для девелопера', href: marketingPaths.developers },
+      { label: 'Enterprise', href: marketingPaths.enterprise },
+      { label: 'Блог', href: marketingPaths.blog },
     ],
   },
   {
@@ -59,8 +69,8 @@ const Footer = () => {
                 Разберем ваш сценарий и покажем, с какого контура ProHelper лучше стартовать.
               </h2>
               <p className="mt-5 max-w-3xl text-base leading-8 text-white/72">
-                На созвоне раскладываем роли команды, текущий процесс и приоритет запуска. Без
-                лишнего визуального шума и без попытки продать все сразу.
+                На созвоне раскладываем роли команды, текущий процесс и приоритет запуска.
+                Без лишнего визуального шума и попытки продавать весь каталог сразу.
               </p>
             </div>
 
@@ -97,8 +107,8 @@ const Footer = () => {
             </div>
 
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/70">
-              ProHelper помогает собрать объект, снабжение, финансы, документы и управленческую
-              картину в одной системе для офиса, площадки и руководителя.
+              ProHelper помогает собрать объект, снабжение, финансы, документы и
+              управленческую картину в одной системе для офиса, площадки и руководителя.
             </p>
 
             <div className="mt-8 grid gap-3 lg:grid-cols-3">
@@ -144,7 +154,7 @@ const Footer = () => {
             </div>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-3 xl:grid-cols-1">
+          <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-1">
             {sitemapGroups.map((group) => (
               <div
                 key={group.title}

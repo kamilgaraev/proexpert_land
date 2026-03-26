@@ -13,8 +13,8 @@ import { marketingCompany, marketingPaths } from '@/data/marketingRegistry';
 const navigationItems = [
   { label: 'Решения', href: marketingPaths.solutions },
   { label: 'Продукт', href: marketingPaths.features },
+  { label: 'Интеграции', href: marketingPaths.integrations },
   { label: 'Пакеты', href: marketingPaths.pricing },
-  { label: 'О продукте', href: marketingPaths.about },
   { label: 'Безопасность', href: marketingPaths.security },
   { label: 'Контакты', href: marketingPaths.contact },
 ];
@@ -34,7 +34,7 @@ const Navbar = () => {
     <nav className="fixed inset-x-0 top-0 z-50 px-3 py-3 md:px-4">
       <div className="container-custom">
         <div className="overflow-hidden rounded-[1.75rem] border border-steel-200/80 bg-white/95 shadow-[0_24px_70px_-45px_rgba(15,23,42,0.45)] backdrop-blur-xl">
-          <div className="hidden xl:flex items-center justify-between border-b border-steel-100 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-steel-500">
+          <div className="hidden items-center justify-between border-b border-steel-100 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-steel-500 xl:flex">
             <div className="flex items-center gap-3">
               <span>Платформа для подрядчика, генподрядчика и девелопера</span>
               <span className="h-1 w-1 rounded-full bg-steel-300" />

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import BlogPublicLayout from './BlogPublicLayout';
 import BlogSidebar from './BlogSidebar';
+import { useSEO } from '@/hooks/useSEO';
+import { generateArticleSchema } from '@/utils/seo';
 import { blogPublicApi } from '../../../utils/blogPublicApi';
 import type { BlogArticle } from '../../../types/blog';
 
@@ -11,6 +13,38 @@ const BlogArticlePage: React.FC = () => {
   const [relatedArticles, setRelatedArticles] = useState<BlogArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useSEO(
+    article
+      ? {
+          title: article.meta_title || article.og_title || article.title,
+          description:
+            article.meta_description || article.og_description || article.excerpt || 'Статья ProHelper',
+          keywords: article.meta_keywords?.join(', ') || article.tags.map((tag) => tag.name).join(', '),
+          ogImage: article.og_image || article.featured_image,
+          type: 'article',
+          author: article.author.name,
+          publishedTime: article.published_at || article.created_at,
+          modifiedTime: article.updated_at,
+          noIndex: article.noindex,
+          structuredData: generateArticleSchema({
+            title: article.title,
+            description:
+              article.meta_description || article.og_description || article.excerpt || article.title,
+            author: article.author.name,
+            publishedTime: article.published_at || article.created_at,
+            modifiedTime: article.updated_at,
+            image: article.og_image || article.featured_image,
+            category: article.category.name,
+            tags: article.tags.map((tag) => tag.name),
+            url: `https://prohelper.pro/blog/${article.slug}`,
+          }),
+        }
+      : {
+          title: 'Блог ProHelper',
+          description: 'Материалы ProHelper о строительных процессах и цифровизации стройки.',
+        },
+  );
 
   useEffect(() => {
     if (slug) {

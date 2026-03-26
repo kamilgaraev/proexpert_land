@@ -10,6 +10,7 @@ import {
 import BlogPublicLayout from './BlogPublicLayout';
 import BlogArticleCard from './BlogArticleCard';
 import BlogSidebar from './BlogSidebar';
+import { useSEO } from '@/hooks/useSEO';
 import { blogPublicApi } from '../../../utils/blogPublicApi';
 import type { BlogArticle, BlogCategory } from '../../../types/blog';
 
@@ -21,6 +22,14 @@ const BlogPublicPage: React.FC = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useSEO({
+    title: 'Блог ProHelper о цифровизации строительства',
+    description:
+      'Материалы о графиках работ, снабжении, финансах, документообороте и управлении строительными процессами.',
+    keywords:
+      'блог ProHelper, цифровизация строительства, график работ, снабжение стройки, статьи о строительстве',
+  });
   
   const currentPage = parseInt(searchParams.get('page') || '1');
   const selectedCategory = searchParams.get('category');
