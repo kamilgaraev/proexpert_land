@@ -7,6 +7,20 @@ import HomePage from '@pages/landing/HomePage';
 import SolutionsPage from '@pages/landing/SolutionsPage';
 import FeaturesPage from '@pages/landing/FeaturesPage';
 import PricingPage from '@pages/landing/PricingPage';
+import AboutPage from '@pages/company/AboutPage';
+import ContactPage from '@pages/company/ContactPage';
+import SecurityPage from '@pages/company/SecurityPage';
+import PrivacyPage from '@pages/legal/PrivacyPage';
+import OfferPage from '@pages/legal/OfferPage';
+import CookiesPage from '@pages/legal/CookiesPage';
+import IntegrationsPage from '@pages/product/IntegrationsPage';
+import ContractorsPage from '@pages/solutions/ContractorsPage';
+import DevelopersPage from '@pages/solutions/DevelopersPage';
+import EnterprisePage from '@pages/solutions/EnterprisePage';
+import BlogPublicPage from '@components/blog/public/BlogPublicPage';
+import BlogArticlePage from '@components/blog/public/BlogArticlePage';
+import BlogCategoryPage from '@components/blog/public/BlogCategoryPage';
+import BlogTagPage from '@components/blog/public/BlogTagPage';
 
 import LoginPage from '@pages/dashboard/LoginPage';
 import RegisterPage from '@pages/dashboard/RegisterPage';
@@ -52,10 +66,6 @@ const BlogArticleEditorPage = lazy(() => import('@pages/admin/blog').then(m => (
 const BlogCategoriesPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogCategoriesPage })));
 const BlogCommentsPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogCommentsPage })));
 const BlogSEOPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogSEOPage })));
-const BlogPublicPage = lazy(() => import('@components/blog/public/BlogPublicPage'));
-const BlogArticlePage = lazy(() => import('@components/blog/public/BlogArticlePage'));
-const BlogCategoryPage = lazy(() => import('@components/blog/public/BlogCategoryPage'));
-const BlogTagPage = lazy(() => import('@components/blog/public/BlogTagPage'));
 
 // Lazy loading для Multi-Organization / Holding
 const HoldingRouter = lazy(() => import('@/HoldingRouter'));
@@ -76,16 +86,6 @@ const MyProjectsPage = lazy(() => import('@pages/dashboard/projects').then(m => 
 const ProjectDetailsPage = lazy(() => import('@pages/dashboard/projects/ProjectDetailsPage'));
 
 // Lazy loading для Resources
-const AboutPage = lazy(() => import('@pages/company/AboutPage'));
-const ContactPage = lazy(() => import('@pages/company/ContactPage'));
-const SecurityPage = lazy(() => import('@pages/company/SecurityPage'));
-const PrivacyPage = lazy(() => import('@pages/legal/PrivacyPage'));
-const OfferPage = lazy(() => import('@pages/legal/OfferPage'));
-const CookiesPage = lazy(() => import('@pages/legal/CookiesPage'));
-const IntegrationsPage = lazy(() => import('@pages/product/IntegrationsPage'));
-const ContractorsPage = lazy(() => import('@pages/solutions/ContractorsPage'));
-const DevelopersPage = lazy(() => import('@pages/solutions/DevelopersPage'));
-const EnterprisePage = lazy(() => import('@pages/solutions/EnterprisePage'));
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
