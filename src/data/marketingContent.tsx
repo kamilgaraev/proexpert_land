@@ -525,8 +525,8 @@ export const featureGroups: FeatureGroup[] = [
 export const marketingContacts = {
   phone: '+7 (999) 123-45-67',
   phoneHref: 'tel:+79991234567',
-  email: 'info@prohelper.ru',
-  emailHref: 'mailto:info@prohelper.ru',
+  email: 'info@prohelper.pro',
+  emailHref: 'mailto:info@prohelper.pro',
   location: 'Москва, работа по всей России',
 };
 
