@@ -138,6 +138,7 @@ const BlogSidebar = () => {
             { label: 'О продукте', href: marketingPaths.about },
           ]}
           tone="dark"
+          size="compact"
         />
       </section>
     </aside>
