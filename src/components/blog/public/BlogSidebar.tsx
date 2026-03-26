@@ -1,312 +1,147 @@
-import React, { useState, useEffect } from 'react';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { 
-  MagnifyingGlassIcon,
-  TagIcon,
-  FireIcon,
-  EnvelopeIcon,
-  PhoneIcon,
-  WrenchScrewdriverIcon
-} from '@heroicons/react/24/outline';
-import { blogPublicApi } from '../../../utils/blogPublicApi';
-import type { BlogCategory, BlogArticle } from '../../../types/blog';
+import CtaBand from '@/components/marketing/blocks/CtaBand';
+import { marketingPaths } from '@/data/marketing/common';
+import { blogPublicApi } from '@/utils/blogPublicApi';
+import type { BlogArticle, BlogCategory, BlogTag } from '@/types/blog';
+import { formatBlogDate } from './blogPresentation';
 
-const BlogSidebar: React.FC = () => {
+const BlogSidebar = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [popularArticles, setPopularArticles] = useState<BlogArticle[]>([]);
-  const [email, setEmail] = useState('');
+  const [tags, setTags] = useState<BlogTag[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSubscribing, setIsSubscribing] = useState(false);
-  const [subscriptionMessage, setSubscriptionMessage] = useState('');
 
   useEffect(() => {
-    fetchData();
+    const fetchSidebarData = async () => {
+      try {
+        const [categoriesResponse, popularResponse, tagsResponse] = await Promise.all([
+          blogPublicApi.getCategories(),
+          blogPublicApi.getPopularArticles(4),
+          blogPublicApi.getTags(),
+        ]);
+
+        setCategories((categoriesResponse.data as { data: BlogCategory[] }).data);
+        setPopularArticles((popularResponse.data as { data: BlogArticle[] }).data);
+        setTags((tagsResponse.data as { data: BlogTag[] }).data.slice(0, 12));
+      } catch (error) {
+        console.error('Error fetching sidebar data:', error);
+      }
+    };
+
+    fetchSidebarData();
   }, []);
 
-  const fetchData = async () => {
-    try {
-      const [categoriesResponse, popularResponse] = await Promise.all([
-        blogPublicApi.getCategories(),
-        blogPublicApi.getPopularArticles(5)
-      ]);
+  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-      setCategories((categoriesResponse.data as any).data);
-      setPopularArticles((popularResponse.data as any).data);
-    } catch (err) {
-      console.error('Error fetching sidebar data:', err);
+    if (!searchQuery.trim()) {
+      return;
     }
-  };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-    
-    const params = new URLSearchParams();
-    params.set('search', searchQuery.trim());
-    navigate(`/blog?${params.toString()}`);
-  };
-
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) return;
-
-    setIsSubscribing(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setSubscriptionMessage('Спасибо за подписку! Проверьте почту для подтверждения.');
-      setEmail('');
-    } catch (err) {
-      setSubscriptionMessage('Ошибка подписки. Попробуйте позже.');
-    } finally {
-      setIsSubscribing(false);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
+    navigate(`/blog?search=${encodeURIComponent(searchQuery.trim())}`);
   };
 
   return (
-    <motion.aside 
-      className="space-y-8"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.6 }}
-    >
-      {/* Поиск */}
-      <motion.div 
-        className="bg-white/90 border-2 border-steel-200 rounded-2xl p-6 backdrop-blur-sm hover:border-construction-300 transition-all duration-300"
-        whileHover={{ scale: 1.02 }}
-      >
-        <div className="flex items-center gap-2 mb-4">
-          <MagnifyingGlassIcon className="w-5 h-5 text-construction-500" />
-          <h3 className="text-lg font-semibold text-steel-900 font-construction">Поиск по блогу</h3>
+    <aside className="space-y-5">
+      <section className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+          Поиск по блогу
         </div>
-        <form onSubmit={handleSearch} className="relative">
+        <form onSubmit={handleSearch} className="relative mt-4">
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Введите ключевые слова..."
-            className="w-full pl-12 pr-4 py-3 border-2 border-steel-200 rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 bg-white/80 backdrop-blur-sm transition-all duration-300"
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Например, график работ"
+            className="w-full rounded-[1.1rem] border border-steel-300 px-4 py-3 pl-11 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
           />
-          <button
-            type="submit"
-            className="absolute inset-y-0 left-0 pl-4 flex items-center group"
-          >
-            <MagnifyingGlassIcon className="h-5 w-5 text-steel-400 group-hover:text-construction-600 transition-colors" />
-          </button>
+          <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-steel-400" />
         </form>
-      </motion.div>
+      </section>
 
-      {/* Категории */}
-      {categories.length > 0 && (
-        <motion.div 
-          className="bg-white/90 border-2 border-steel-200 rounded-2xl p-6 backdrop-blur-sm hover:border-safety-300 transition-all duration-300"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <TagIcon className="w-5 h-5 text-safety-500" />
-            <h3 className="text-lg font-semibold text-steel-900 font-construction">Категории</h3>
+      {categories.length ? (
+        <section id="blog-categories" className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+            Категории
           </div>
-          <div className="space-y-2">
+          <div className="mt-4 grid gap-3">
             {categories.map((category) => (
               <Link
                 key={category.id}
                 to={`/blog/category/${category.slug}`}
-                className="group flex items-center justify-between py-3 px-4 rounded-xl hover:bg-gradient-to-r hover:from-steel-50 hover:to-construction-50 transition-all duration-300"
+                className="flex items-center justify-between rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm text-steel-700 transition hover:bg-construction-50 hover:text-construction-700"
               >
-                <div className="flex items-center">
-                  <div 
-                    className="w-3 h-3 rounded-full mr-3 group-hover:scale-110 transition-transform"
-                    style={{ backgroundColor: category.color }}
-                  />
-                  <span className="text-steel-700 group-hover:text-construction-700 font-medium">{category.name}</span>
-                </div>
-                <span className="text-sm text-steel-500 bg-steel-100 px-2 py-1 rounded-full group-hover:bg-construction-100 group-hover:text-construction-600 transition-all duration-300">
-                  {category.published_articles_count || 0}
+                <span className="inline-flex items-center gap-3 font-semibold">
+                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: category.color }} />
+                  {category.name}
+                </span>
+                <span className="text-steel-500">
+                  {category.published_articles_count || category.articles_count || 0}
                 </span>
               </Link>
             ))}
           </div>
-        </motion.div>
-      )}
+        </section>
+      ) : null}
 
-      {/* Популярные статьи */}
-      {popularArticles.length > 0 && (
-        <motion.div 
-          className="bg-white/90 border-2 border-steel-200 rounded-2xl p-6 backdrop-blur-sm hover:border-construction-300 transition-all duration-300"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <FireIcon className="w-5 h-5 text-construction-500" />
-            <h3 className="text-lg font-semibold text-steel-900 font-construction">Популярные статьи</h3>
+      {popularArticles.length ? (
+        <section className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+            Популярные материалы
           </div>
-          <div className="space-y-4">
-            {popularArticles.map((article, index) => (
-              <motion.article 
-                key={article.id} 
-                className="group flex space-x-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-steel-50 hover:to-construction-50 transition-all duration-300"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + index * 0.1 }}
-              >
-                {article.featured_image && (
-                  <div className="flex-shrink-0">
-                    <Link to={`/blog/${article.slug}`}>
-                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-concrete-100 to-steel-100">
-                        <img
-                          src={article.featured_image}
-                          alt={article.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                      </div>
-                    </Link>
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold text-steel-900 line-clamp-2 mb-2 group-hover:text-construction-700 transition-colors">
-                    <Link to={`/blog/${article.slug}`}>
-                      {article.title}
-                    </Link>
-                  </h4>
-                  <div className="flex items-center text-xs text-steel-500 space-x-2">
-                    <span>{formatDate(article.published_at || article.created_at)}</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                        <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
-                      </svg>
-                      {article.views_count?.toLocaleString() || 0}
-                    </span>
-                  </div>
+          <div className="mt-4 grid gap-4">
+            {popularArticles.map((article) => (
+              <article key={article.id} className="rounded-[1.15rem] bg-concrete-50 p-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-steel-500">
+                  {formatBlogDate(article.published_at || article.created_at)}
                 </div>
-              </motion.article>
+                <h3 className="mt-2 text-base font-bold leading-6 text-steel-950">
+                  <Link to={`/blog/${article.slug}`} className="transition hover:text-construction-700">
+                    {article.title}
+                  </Link>
+                </h3>
+              </article>
             ))}
           </div>
-        </motion.div>
-      )}
+        </section>
+      ) : null}
 
-      {/* Подписка на рассылку */}
-      <motion.div 
-        className="bg-gradient-to-br from-construction-600 via-safety-600 to-steel-600 rounded-2xl p-6 text-white relative overflow-hidden"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <div className="absolute inset-0 bg-construction-grid opacity-20"></div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-3">
-            <EnvelopeIcon className="w-5 h-5" />
-            <h3 className="text-lg font-semibold font-construction">Подписка на блог</h3>
+      {tags.length ? (
+        <section className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+            Теги
           </div>
-          <p className="text-white/90 text-sm mb-4 leading-relaxed">
-            Получайте лучшие статьи о строительстве и управлении проектами первыми
-          </p>
-          
-          {subscriptionMessage ? (
-            <motion.div 
-              className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-sm border border-white/30"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              {subscriptionMessage}
-            </motion.div>
-          ) : (
-            <form onSubmit={handleSubscribe} className="space-y-3">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Ваш email"
-                className="w-full px-4 py-3 rounded-xl text-steel-900 placeholder-steel-500 bg-white/90 backdrop-blur-sm focus:ring-2 focus:ring-white focus:ring-opacity-50 outline-none transition-all duration-300"
-                required
-              />
-              <button
-                type="submit"
-                disabled={isSubscribing}
-                className="w-full bg-white text-construction-600 font-semibold py-3 rounded-xl hover:bg-white/90 hover:scale-105 transition-all duration-300 disabled:opacity-50"
-              >
-                {isSubscribing ? 'Подписываем...' : 'Подписаться'}
-              </button>
-            </form>
-          )}
-        </div>
-      </motion.div>
-
-      {/* Теги облако */}
-      <motion.div 
-        className="bg-white/90 border-2 border-steel-200 rounded-2xl p-6 backdrop-blur-sm hover:border-steel-300 transition-all duration-300"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <div className="flex items-center gap-2 mb-4">
-          <TagIcon className="w-5 h-5 text-steel-500" />
-          <h3 className="text-lg font-semibold text-steel-900 font-construction">Популярные теги</h3>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {[
-            'строительство', 'управление', 'проекты', 'команда', 'планирование',
-            'бюджет', 'качество', 'безопасность', 'инновации', 'технологии'
-          ].map((tag, index) => (
-            <motion.div
-              key={tag}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 + index * 0.05 }}
-            >
+          <div className="mt-4 flex flex-wrap gap-2">
+            {tags.map((tag) => (
               <Link
-                to={`/blog/tag/${tag}`}
-                className="px-3 py-1.5 bg-gradient-to-r from-steel-100 to-construction-100 hover:from-construction-100 hover:to-safety-100 text-steel-700 hover:text-construction-700 text-sm rounded-full transition-all duration-300 hover:scale-105 font-medium"
+                key={tag.id}
+                to={`/blog/tag/${tag.slug}`}
+                className="rounded-full bg-concrete-50 px-3 py-2 text-xs font-semibold text-steel-600 transition hover:bg-construction-50 hover:text-construction-700"
               >
-                #{tag}
+                #{tag.name}
               </Link>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-      {/* Контакты / CTA */}
-      <motion.div 
-        className="bg-gradient-to-br from-steel-800 to-steel-900 rounded-2xl p-6 text-white relative overflow-hidden"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <div className="absolute inset-0 bg-construction-grid opacity-10"></div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-3">
-            <WrenchScrewdriverIcon className="w-5 h-5 text-construction-400" />
-            <h3 className="text-lg font-semibold font-construction">Нужна помощь?</h3>
-          </div>
-          <p className="text-steel-200 text-sm mb-4 leading-relaxed">
-            Наши эксперты готовы помочь с внедрением ProHelper в ваш проект
-          </p>
-          <div className="space-y-3">
-            <Link
-              to="/contact"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-construction-500 to-construction-600 hover:from-construction-600 hover:to-construction-700 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-construction"
-            >
-              <PhoneIcon className="w-4 h-4" />
-              Связаться с нами
-            </Link>
-          </div>
-        </div>
-      </motion.div>
-    </motion.aside>
+      <section id="blog-cta">
+        <CtaBand
+          eyebrow="Следующий шаг"
+          title="Если нужен разбор вашего процесса, покажем релевантный сценарий ProHelper."
+          description="На встрече свяжем материалы блога с вашим типом компании, текущими ролями и задачами запуска."
+          actions={[
+            { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
+            { label: 'О продукте', href: marketingPaths.about },
+          ]}
+          tone="dark"
+        />
+      </section>
+    </aside>
   );
 };
 
-export default BlogSidebar; 
+export default BlogSidebar;

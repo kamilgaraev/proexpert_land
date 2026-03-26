@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import BlogPublicLayout from './BlogPublicLayout';
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import BlogArticleCard from './BlogArticleCard';
+import BlogPublicLayout from './BlogPublicLayout';
 import BlogSidebar from './BlogSidebar';
+import { getBlogListMeta } from './blogPresentation';
+import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import { useSEO } from '@/hooks/useSEO';
-import { blogPublicApi } from '../../../utils/blogPublicApi';
-import type { BlogArticle, BlogCategory } from '../../../types/blog';
+import type { BlogArticle, BlogCategory } from '@/types/blog';
+import { blogPublicApi } from '@/utils/blogPublicApi';
 
-const BlogCategoryPage: React.FC = () => {
+const BlogCategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [articles, setArticles] = useState<BlogArticle[]>([]);
   const [category, setCategory] = useState<BlogCategory | null>(null);
@@ -27,255 +29,217 @@ const BlogCategoryPage: React.FC = () => {
             category.description ||
             `Подборка материалов ProHelper по теме "${category.name}".`,
           keywords: `${category.name}, блог ProHelper, строительство`,
+          type: 'website',
         }
       : {
           title: 'Категория блога ProHelper',
-          description: 'Подборка материалов ProHelper по категории блога.',
+          description: 'Подборка материалов ProHelper по категориям блога.',
+          type: 'website',
         },
   );
 
   useEffect(() => {
-    if (slug) {
-      fetchData();
-    }
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const categoriesResponse = await blogPublicApi.getCategories();
+        const categoriesData = (categoriesResponse.data as { data: BlogCategory[] }).data;
+        const resolvedCategory = categoriesData.find((item) => item.slug === slug) || null;
+
+        setCategories(categoriesData);
+        setCategory(resolvedCategory);
+
+        if (!resolvedCategory) {
+          setError('Категория не найдена.');
+          return;
+        }
+
+        const articlesResponse = await blogPublicApi.getArticles({
+          page: 1,
+          per_page: 12,
+          category_id: resolvedCategory.id,
+        });
+
+        const payload = articlesResponse.data as {
+          data: BlogArticle[];
+          meta: { current_page: number; last_page: number };
+        };
+
+        setArticles(payload.data);
+        setCurrentPage(1);
+        setHasMore(payload.meta.current_page < payload.meta.last_page);
+      } catch (fetchError) {
+        console.error('Error fetching category page data:', fetchError);
+        setError('Не удалось загрузить материалы этой категории.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitialData();
   }, [slug]);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [categoriesResponse] = await Promise.all([
-        blogPublicApi.getCategories()
-      ]);
-
-      const categoriesData = (categoriesResponse.data as any).data;
-      setCategories(categoriesData);
-      
-      const foundCategory = categoriesData.find((cat: BlogCategory) => cat.slug === slug);
-      if (foundCategory) {
-        setCategory(foundCategory);
-        await fetchArticles(foundCategory.id, true);
-      } else {
-        setError('Категория не найдена');
-      }
-    } catch (err) {
-      setError('Ошибка загрузки данных');
-      console.error('Error fetching category data:', err);
-    } finally {
-      setLoading(false);
+  const handleLoadMore = async () => {
+    if (!category) {
+      return;
     }
-  };
 
-  const fetchArticles = async (categoryId: number, reset = false) => {
     try {
-      if (!reset) {
-        setLoadingMore(true);
-      }
-
-      const page = reset ? 1 : currentPage + 1;
+      setLoadingMore(true);
+      const nextPage = currentPage + 1;
       const response = await blogPublicApi.getArticles({
-        page,
+        page: nextPage,
         per_page: 12,
-        category_id: categoryId,
+        category_id: category.id,
       });
 
-      const data = (response.data as any);
-      
-      if (reset) {
-        setArticles(data.data);
-        setCurrentPage(1);
-      } else {
-        setArticles(prev => [...prev, ...data.data]);
-        setCurrentPage(page);
-      }
+      const payload = response.data as {
+        data: BlogArticle[];
+        meta: { current_page: number; last_page: number };
+      };
 
-      setHasMore(data.meta.current_page < data.meta.last_page);
-    } catch (err) {
-      setError('Ошибка загрузки статей');
-      console.error('Error fetching articles:', err);
+      setArticles((prev) => [...prev, ...payload.data]);
+      setCurrentPage(nextPage);
+      setHasMore(payload.meta.current_page < payload.meta.last_page);
+    } catch (fetchError) {
+      console.error('Error loading more category articles:', fetchError);
+      setError('Не удалось загрузить следующую страницу статей.');
     } finally {
       setLoadingMore(false);
     }
   };
 
-  if (loading) {
-    return (
-      <BlogPublicLayout>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3">
-            <div className="animate-pulse space-y-6">
-              <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl shadow-sm border">
-                    <div className="h-48 bg-gray-200 rounded-t-xl"></div>
-                    <div className="p-6 space-y-3">
-                      <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                      <div className="h-6 bg-gray-200 rounded"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 bg-gray-200 rounded"></div>
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      </div>
-                    </div>
+  return (
+    <BlogPublicLayout
+      eyebrow="Категория блога"
+      title={category ? category.name : 'Материалы по категории'}
+      description={
+        category?.description ||
+        'Собираем материалы по выбранной теме, чтобы быстрее найти релевантные статьи перед запуском или демонстрацией.'
+      }
+      nav={[
+        { label: 'Лента категории', href: '#blog-feed' },
+        { label: 'Все категории', href: '#blog-category-switcher' },
+        { label: 'Контакты', href: '#blog-cta' },
+      ]}
+      aside={
+        <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+            Что можно сделать дальше
+          </div>
+          <div className="mt-4 grid gap-3">
+            {[
+              'Открыть полную ленту и сравнить соседние темы.',
+              'Перейти к разбору похожих статей в сайдбаре.',
+              'Связать тему категории с вашим сценарием на демонстрации.',
+            ].map((item) => (
+              <div key={item} className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700">
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      }
+    >
+      <section id="blog-category-switcher" className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Категории"
+            title="Переключайтесь между темами без выхода из блога."
+            description="Категории помогают собрать материалы под конкретный рабочий контур или роль в строительной команде."
+          />
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              to="/blog"
+              className="rounded-full border border-steel-200 bg-white px-4 py-2 text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700"
+            >
+              Все статьи
+            </Link>
+            {categories.map((item) => (
+              <Link
+                key={item.id}
+                to={`/blog/category/${item.slug}`}
+                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  item.slug === slug
+                    ? 'border-transparent text-white'
+                    : 'border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
+                }`}
+                style={item.slug === slug ? { backgroundColor: item.color } : undefined}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="blog-feed" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
+          <div>
+            <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+                Лента категории
+              </div>
+              <h2 className="mt-2 text-3xl font-bold text-steel-950">
+                {category ? category.name : 'Категория'}
+              </h2>
+              <p className="mt-4 text-sm leading-7 text-steel-600">
+                {error ? error : getBlogListMeta(articles.length)}
+              </p>
+            </div>
+
+            {loading ? (
+              <div className="mt-6 grid gap-5 md:grid-cols-2">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="rounded-[1.75rem] border border-steel-200 bg-white p-5 shadow-sm">
+                    <div className="aspect-[16/10] animate-pulse rounded-[1.35rem] bg-concrete-100" />
+                    <div className="mt-5 h-4 w-32 animate-pulse rounded bg-concrete-100" />
+                    <div className="mt-4 h-8 w-4/5 animate-pulse rounded bg-concrete-100" />
+                    <div className="mt-3 h-20 animate-pulse rounded bg-concrete-100" />
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-          <div className="lg:col-span-1">
-            <div className="animate-pulse space-y-6">
-              <div className="h-48 bg-gray-200 rounded-xl"></div>
-              <div className="h-32 bg-gray-200 rounded-xl"></div>
-            </div>
-          </div>
-        </div>
-      </BlogPublicLayout>
-    );
-  }
-
-  if (error || !category) {
-    return (
-      <BlogPublicLayout>
-        <div className="text-center py-12">
-          <div className="text-gray-400 text-6xl mb-4">📂</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Категория не найдена</h1>
-          <p className="text-gray-600 mb-6">
-            Возможно, категория была удалена или перемещена
-          </p>
-          <Link
-            to="/blog"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Вернуться к блогу
-          </Link>
-        </div>
-      </BlogPublicLayout>
-    );
-  }
-
-  return (
-    <BlogPublicLayout>
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-3">
-          {/* Breadcrumbs */}
-          <nav className="mb-6 text-sm text-gray-600">
-            <Link to="/" className="hover:text-blue-600">Главная</Link>
-            <span className="mx-2">→</span>
-            <Link to="/blog" className="hover:text-blue-600">Блог</Link>
-            <span className="mx-2">→</span>
-            <span className="text-gray-900">{category.name}</span>
-          </nav>
-
-          {/* Category Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-4 mb-4">
-              <div 
-                className="w-6 h-6 rounded-full"
-                style={{ backgroundColor: category.color }}
-              />
-              <h1 className="text-4xl font-bold text-gray-900">{category.name}</h1>
-            </div>
-            
-            {category.description && (
-              <p className="text-xl text-gray-600 leading-relaxed mb-4">
-                {category.description}
-              </p>
-            )}
-
-            <div className="flex items-center text-sm text-gray-500 space-x-4">
-              <span>
-                📄 {category.published_articles_count || articles.length} статей в категории
-              </span>
-            </div>
-          </div>
-
-          {/* Category Filter Pills */}
-          <div className="bg-white rounded-xl shadow-sm border p-6 mb-8">
-            <div className="flex flex-wrap gap-2">
-              <Link
-                to="/blog"
-                className="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-              >
-                Все статьи
-              </Link>
-              {categories.map((cat) => (
-                <Link
-                  key={cat.id}
-                  to={`/blog/category/${cat.slug}`}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    cat.slug === slug
-                      ? 'text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  style={{
-                    backgroundColor: cat.slug === slug ? cat.color : undefined
-                  }}
-                >
-                  {cat.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Articles Grid */}
-          {articles.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-400 text-6xl mb-4">📝</div>
-              <h3 className="text-xl font-medium text-gray-900 mb-2">
-                В этой категории пока нет статей
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Скоро здесь появятся интересные материалы по теме "{category.name}"
-              </p>
-              <Link
-                to="/blog"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Посмотреть все статьи
-              </Link>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {articles.map((article) => (
-                  <BlogArticleCard key={article.id} article={article} />
-                ))}
-              </div>
-
-              {/* Load More Button */}
-              {hasMore && (
-                <div className="text-center">
-                  <button
-                    onClick={() => fetchArticles(category.id, false)}
-                    disabled={loadingMore}
-                    className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loadingMore ? (
-                      <span className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Загружаем...
-                      </span>
-                    ) : (
-                      'Загрузить еще статьи'
-                    )}
-                  </button>
+            ) : articles.length ? (
+              <>
+                <div className="mt-6 grid gap-5 md:grid-cols-2">
+                  {articles.map((article) => (
+                    <BlogArticleCard key={article.id} article={article} />
+                  ))}
                 </div>
-              )}
-            </>
-          )}
-        </div>
+                {hasMore ? (
+                  <div className="mt-8">
+                    <button
+                      type="button"
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      className={`inline-flex rounded-full px-5 py-3 text-sm font-semibold transition ${
+                        loadingMore
+                          ? 'cursor-not-allowed bg-steel-300 text-white'
+                          : 'bg-steel-950 text-white hover:bg-steel-900'
+                      }`}
+                    >
+                      {loadingMore ? 'Загружаем статьи' : 'Показать еще'}
+                    </button>
+                  </div>
+                ) : null}
+              </>
+            ) : !loading ? (
+              <div className="mt-6 rounded-[1.75rem] border border-steel-200 bg-white p-8 shadow-sm">
+                <h3 className="text-2xl font-bold text-steel-950">В этой категории пока нет статей</h3>
+                <p className="mt-4 text-sm leading-7 text-steel-600">
+                  Вернитесь к общей ленте или выберите соседнюю тему в списке категорий.
+                </p>
+              </div>
+            ) : null}
+          </div>
 
-        {/* Sidebar */}
-        <div className="lg:col-span-1">
           <BlogSidebar />
         </div>
-      </div>
+      </section>
     </BlogPublicLayout>
   );
 };
 
-export default BlogCategoryPage; 
+export default BlogCategoryPage;

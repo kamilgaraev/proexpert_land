@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import BlogPublicLayout from './BlogPublicLayout';
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import BlogArticleCard from './BlogArticleCard';
+import BlogPublicLayout from './BlogPublicLayout';
 import BlogSidebar from './BlogSidebar';
+import { getBlogListMeta } from './blogPresentation';
+import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import { useSEO } from '@/hooks/useSEO';
-import { blogPublicApi } from '../../../utils/blogPublicApi';
-import type { BlogArticle } from '../../../types/blog';
+import type { BlogArticle } from '@/types/blog';
+import { blogPublicApi } from '@/utils/blogPublicApi';
 
-const BlogTagPage: React.FC = () => {
+const BlogTagPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [articles, setArticles] = useState<BlogArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,203 +20,168 @@ const BlogTagPage: React.FC = () => {
 
   useSEO({
     title: slug ? `Тег #${slug} - блог ProHelper` : 'Теги блога ProHelper',
-    description: slug
-      ? `Статьи ProHelper по тегу #${slug}.`
-      : 'Подборка статей ProHelper по тегам.',
+    description: slug ? `Подборка статей ProHelper по тегу #${slug}.` : 'Подборка статей ProHelper по тегам.',
     keywords: slug ? `${slug}, блог ProHelper, строительство` : 'теги блога ProHelper',
     noIndex: true,
+    type: 'website',
   });
 
   useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await blogPublicApi.searchArticles(`#${slug}`, 12);
+        const payload = response.data as { data?: BlogArticle[] };
+        const nextArticles = payload.data || [];
+
+        setArticles(nextArticles);
+        setCurrentPage(1);
+        setHasMore(nextArticles.length === 12);
+      } catch (fetchError) {
+        console.error('Error fetching articles by tag:', fetchError);
+        setError('Не удалось загрузить подборку по тегу.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (slug) {
-      fetchArticles(true);
+      fetchArticles();
     }
   }, [slug]);
 
-  const fetchArticles = async (reset = false) => {
+  const handleLoadMore = async () => {
     try {
-      if (reset) {
-        setLoading(true);
-      } else {
-        setLoadingMore(true);
-      }
+      setLoadingMore(true);
 
-      const page = reset ? 1 : currentPage + 1;
-      const response = await blogPublicApi.searchArticles(`#${slug}`, page * 12);
+      const nextPage = currentPage + 1;
+      const response = await blogPublicApi.searchArticles(`#${slug}`, nextPage * 12);
+      const payload = response.data as { data?: BlogArticle[] };
+      const nextArticles = payload.data || [];
 
-      const data = (response.data as any);
-      
-      if (reset) {
-        setArticles(data.data || []);
-        setCurrentPage(1);
-      } else {
-        setArticles(prev => [...prev, ...(data.data || [])]);
-        setCurrentPage(page);
-      }
-
-      setHasMore((data.data || []).length === 12);
-    } catch (err) {
-      setError('Ошибка загрузки статей');
-      console.error('Error fetching articles by tag:', err);
+      setArticles(nextArticles);
+      setCurrentPage(nextPage);
+      setHasMore(nextArticles.length === nextPage * 12);
+    } catch (fetchError) {
+      console.error('Error loading more tag articles:', fetchError);
+      setError('Не удалось загрузить дополнительные статьи по тегу.');
     } finally {
-      setLoading(false);
       setLoadingMore(false);
     }
   };
 
-  if (loading) {
-    return (
-      <BlogPublicLayout>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3">
-            <div className="animate-pulse space-y-6">
-              <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl shadow-sm border">
-                    <div className="h-48 bg-gray-200 rounded-t-xl"></div>
-                    <div className="p-6 space-y-3">
-                      <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                      <div className="h-6 bg-gray-200 rounded"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 bg-gray-200 rounded"></div>
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      </div>
-                    </div>
+  return (
+    <BlogPublicLayout
+      eyebrow="Тег блога"
+      title={slug ? `Материалы по тегу #${slug}` : 'Материалы по тегу'}
+      description="Теги помогают быстро собрать статьи по одной узкой теме без лишних переходов по категориям."
+      nav={[
+        { label: 'Лента тега', href: '#blog-feed' },
+        { label: 'Все статьи', href: '#blog-tag-actions' },
+        { label: 'Контакты', href: '#blog-cta' },
+      ]}
+      aside={
+        <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+            Как использовать тег
+          </div>
+          <div className="mt-4 grid gap-3">
+            {[
+              'Собрать подборку по одной теме для внутренней команды.',
+              'Перейти из статьи к соседним материалам по тому же вопросу.',
+              'Использовать тег как быстрый маршрут перед демонстрацией.',
+            ].map((item) => (
+              <div key={item} className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700">
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      }
+    >
+      <section id="blog-tag-actions" className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Маршрут"
+            title="Используйте тег как короткий срез по теме."
+            description="Если нужно расширить выборку, переходите к общей ленте блога или к категориям через сайдбар."
+          />
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              to="/blog"
+              className="rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-900"
+            >
+              Открыть все статьи
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section id="blog-feed" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
+          <div>
+            <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+                Лента тега
+              </div>
+              <h2 className="mt-2 text-3xl font-bold text-steel-950">#{slug}</h2>
+              <p className="mt-4 text-sm leading-7 text-steel-600">
+                {error ? error : getBlogListMeta(articles.length)}
+              </p>
+            </div>
+
+            {loading ? (
+              <div className="mt-6 grid gap-5 md:grid-cols-2">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="rounded-[1.75rem] border border-steel-200 bg-white p-5 shadow-sm">
+                    <div className="aspect-[16/10] animate-pulse rounded-[1.35rem] bg-concrete-100" />
+                    <div className="mt-5 h-4 w-32 animate-pulse rounded bg-concrete-100" />
+                    <div className="mt-4 h-8 w-4/5 animate-pulse rounded bg-concrete-100" />
+                    <div className="mt-3 h-20 animate-pulse rounded bg-concrete-100" />
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-          <div className="lg:col-span-1">
-            <div className="animate-pulse space-y-6">
-              <div className="h-48 bg-gray-200 rounded-xl"></div>
-              <div className="h-32 bg-gray-200 rounded-xl"></div>
-            </div>
-          </div>
-        </div>
-      </BlogPublicLayout>
-    );
-  }
-
-  return (
-    <BlogPublicLayout>
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-3">
-          {/* Breadcrumbs */}
-          <nav className="mb-6 text-sm text-gray-600">
-            <Link to="/" className="hover:text-blue-600">Главная</Link>
-            <span className="mx-2">→</span>
-            <Link to="/blog" className="hover:text-blue-600">Блог</Link>
-            <span className="mx-2">→</span>
-            <span className="text-gray-900">Тег: #{slug}</span>
-          </nav>
-
-          {/* Tag Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">#</span>
-              </div>
-              <h1 className="text-4xl font-bold text-gray-900">#{slug}</h1>
-            </div>
-            
-            <p className="text-xl text-gray-600 leading-relaxed mb-4">
-              Статьи по теме "{slug}"
-            </p>
-
-            <div className="flex items-center text-sm text-gray-500 space-x-4">
-              <span>
-                📄 {articles.length} статей найдено
-              </span>
-            </div>
-          </div>
-
-          {/* Back to Blog */}
-          <div className="bg-white rounded-xl shadow-sm border p-6 mb-8">
-            <Link
-              to="/blog"
-              className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Вернуться ко всем статьям
-            </Link>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-8">
-              <div className="flex">
-                <span className="text-red-400 text-xl">⚠️</span>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Ошибка</h3>
-                  <p className="mt-1 text-sm text-red-700">{error}</p>
+            ) : articles.length ? (
+              <>
+                <div className="mt-6 grid gap-5 md:grid-cols-2">
+                  {articles.map((article) => (
+                    <BlogArticleCard key={article.id} article={article} />
+                  ))}
                 </div>
+                {hasMore ? (
+                  <div className="mt-8">
+                    <button
+                      type="button"
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      className={`inline-flex rounded-full px-5 py-3 text-sm font-semibold transition ${
+                        loadingMore
+                          ? 'cursor-not-allowed bg-steel-300 text-white'
+                          : 'bg-steel-950 text-white hover:bg-steel-900'
+                      }`}
+                    >
+                      {loadingMore ? 'Загружаем статьи' : 'Показать еще'}
+                    </button>
+                  </div>
+                ) : null}
+              </>
+            ) : !loading ? (
+              <div className="mt-6 rounded-[1.75rem] border border-steel-200 bg-white p-8 shadow-sm">
+                <h3 className="text-2xl font-bold text-steel-950">По этому тегу пока нет материалов</h3>
+                <p className="mt-4 text-sm leading-7 text-steel-600">
+                  Вернитесь к общей ленте или воспользуйтесь поиском и категориями в правой колонке.
+                </p>
               </div>
-            </div>
-          )}
+            ) : null}
+          </div>
 
-          {/* Articles Grid */}
-          {articles.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-400 text-6xl mb-4">🏷️</div>
-              <h3 className="text-xl font-medium text-gray-900 mb-2">
-                Статей с этим тегом не найдено
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Попробуйте поискать статьи по другим тегам или вернитесь к общему списку
-              </p>
-              <Link
-                to="/blog"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Посмотреть все статьи
-              </Link>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {articles.map((article) => (
-                  <BlogArticleCard key={article.id} article={article} />
-                ))}
-              </div>
-
-              {/* Load More Button */}
-              {hasMore && (
-                <div className="text-center">
-                  <button
-                    onClick={() => fetchArticles(false)}
-                    disabled={loadingMore}
-                    className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loadingMore ? (
-                      <span className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Загружаем...
-                      </span>
-                    ) : (
-                      'Загрузить еще статьи'
-                    )}
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="lg:col-span-1">
           <BlogSidebar />
         </div>
-      </div>
+      </section>
     </BlogPublicLayout>
   );
 };
 
-export default BlogTagPage; 
+export default BlogTagPage;
