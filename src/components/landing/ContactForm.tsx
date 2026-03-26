@@ -72,6 +72,7 @@ const normalizeOptional = (value: string) => {
 const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => {
   const location = useLocation();
   const { trackButtonClick, trackContactForm } = useAnalytics();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
@@ -107,7 +108,6 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
 
   const validateForm = () => {
     const errors: string[] = [];
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (formData.name.trim().length < 2) {
       errors.push('Укажите имя не короче 2 символов.');
@@ -131,6 +131,18 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
 
     return errors;
   };
+
+  const isNameValid = formData.name.trim().length >= 2;
+  const isEmailValid = emailRegex.test(formData.email.trim());
+  const isMessageValid = formData.message.trim().length >= 10;
+  const isSubjectValid = variant === 'compact' || Boolean(formData.subject);
+  const canSubmit =
+    !isSubmitting &&
+    formData.consentToPersonalData &&
+    isNameValid &&
+    isEmailValid &&
+    isMessageValid &&
+    isSubjectValid;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -267,6 +279,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
+                minLength={2}
                 placeholder="Как к вам обращаться"
                 className="w-full rounded-[1.1rem] border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
                 required
@@ -341,11 +354,17 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
               name="message"
               value={formData.message}
               onChange={handleInputChange}
+              minLength={10}
               placeholder="Опишите ваш процесс, текущую проблему или тип нужной демонстрации"
               rows={variant === 'compact' ? 4 : 5}
               className="w-full rounded-[1.1rem] border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
               required
             />
+            {formData.message.trim().length > 0 && !isMessageValid ? (
+              <span className="mt-2 block text-sm text-rose-600">
+                Опишите запрос минимум в 10 символах.
+              </span>
+            ) : null}
           </label>
 
           <div className="rounded-[1.25rem] bg-concrete-50 p-4">
@@ -383,9 +402,9 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
 
           <button
             type="submit"
-            disabled={isSubmitting || !formData.consentToPersonalData}
+            disabled={!canSubmit}
             className={`inline-flex w-full items-center justify-center gap-3 rounded-full px-6 py-4 text-base font-semibold transition ${
-              isSubmitting || !formData.consentToPersonalData
+              !canSubmit
                 ? 'cursor-not-allowed bg-steel-300 text-white'
                 : 'bg-steel-950 text-white hover:-translate-y-0.5 hover:bg-steel-900'
             }`}
