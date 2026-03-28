@@ -10,6 +10,8 @@ import {
   ShieldCheckIcon,
   UsersIcon,
 } from '@heroicons/react/24/outline';
+import { MarketingLink } from '@/components/marketing/MarketingPrimitives';
+import { marketingPaths } from '@/data/marketingRegistry';
 
 const features = [
   {
@@ -77,11 +79,34 @@ const integrations = [
   'Оценка релевантного обмена до старта внедрения.',
 ];
 
+const relatedScenarios = [
+  {
+    label: 'ERP для строительства',
+    href: marketingPaths.constructionErp,
+    description: 'Когда нужен единый управленческий контур по объектам, финансам, документам и исполнительской дисциплине.',
+  },
+  {
+    label: 'Контроль бюджета стройки',
+    href: marketingPaths.constructionBudgetControl,
+    description: 'Для девелоперских команд, которым важно видеть лимиты, платежи и отклонения без ручной сборки отчетов.',
+  },
+  {
+    label: 'Контроль подрядчиков',
+    href: marketingPaths.contractorControl,
+    description: 'Помогает держать в поле зрения сроки, объемы, договорные обязательства и проблемные участки по внешним командам.',
+  },
+  {
+    label: 'Исполнительная документация',
+    href: marketingPaths.constructionDocuments,
+    description: 'Подходит, если узкое место находится в актах, комплектности, замечаниях и передаче документов между сторонами.',
+  },
+];
+
 const DevelopersPage = () => {
   return (
     <PageLayout
       title="ProHelper для девелоперов"
-      subtitle="Комплексное управление портфелем строительных проектов"
+      subtitle="Единый управленческий контур по объектам, подрядчикам, документам и бюджету"
       seoPage="developers"
       showFooter={false}
     >
@@ -203,6 +228,30 @@ const DevelopersPage = () => {
           </div>
         </section>
 
+        <section className="py-24 bg-slate-50">
+          <div className="container-custom">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-slate-900 mb-4">Сценарии, которые обычно идут рядом</h2>
+              <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+                Если девелоперскому контуру нужен более точный вход по боли или роли, отсюда можно сразу перейти в профильный сценарий.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {relatedScenarios.map((item) => (
+                <MarketingLink
+                  key={item.href}
+                  href={item.href}
+                  className="rounded-2xl border border-concrete-200 bg-white p-8 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
+                >
+                  <div className="text-2xl font-semibold text-slate-900">{item.label}</div>
+                  <p className="mt-4 text-slate-600">{item.description}</p>
+                </MarketingLink>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section className="py-24 bg-slate-900 text-white">
           <div className="container-custom text-center">
             <h2 className="text-4xl font-bold mb-6">
@@ -213,17 +262,17 @@ const DevelopersPage = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="/demo?type=developer"
+                href={marketingPaths.contact}
                 className="btn-primary inline-flex items-center justify-center px-8 py-4 text-lg"
               >
-                Заказать демо
+                Заказать демонстрацию
                 <ArrowRightIcon className="w-5 h-5 ml-2" />
               </a>
               <a
-                href="/contact?type=developer"
+                href={marketingPaths.constructionErp}
                 className="btn-secondary inline-flex items-center justify-center px-8 py-4 text-lg border-slate-600 text-slate-300 hover:border-slate-500"
               >
-                Обсудить проект
+                Посмотреть ERP-сценарий
               </a>
             </div>
           </div>

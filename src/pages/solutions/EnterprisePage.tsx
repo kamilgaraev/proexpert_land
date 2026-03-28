@@ -1,5 +1,6 @@
 import CtaBand from '@/components/marketing/blocks/CtaBand';
 import {
+  MarketingLink,
   PageHero,
   SectionHeader,
   SurfaceBadges,
@@ -51,6 +52,29 @@ const featuredCapabilities = marketingCapabilityMatrix.filter((capability) =>
   ['multi-org', 'finance-control', 'project-control', 'document-control'].includes(capability.id),
 );
 
+const enterpriseRelatedLinks = [
+  {
+    label: 'ERP для строительства',
+    href: marketingPaths.constructionErp,
+    description: 'Если нужен единый слой по объектам, финансам и документам для нескольких команд и юридических контуров.',
+  },
+  {
+    label: 'Интеграции и расширения',
+    href: marketingPaths.integrations,
+    description: 'Подходит, когда корпоративный запуск требует внешнего обмена данными, пилотов или согласованных сценариев интеграции.',
+  },
+  {
+    label: 'Контроль бюджета стройки',
+    href: marketingPaths.constructionBudgetControl,
+    description: 'Для компаний, которым важно вынести в отдельный контур лимиты, платежный календарь и управленческую аналитику.',
+  },
+  {
+    label: 'Безопасность и доступ',
+    href: marketingPaths.security,
+    description: 'Если в обсуждении на первом месте роли, разграничение доступа, журнал действий и требования корпоративной безопасности.',
+  },
+];
+
 const EnterprisePage = () => {
   useSEO({
     ...marketingSeo.enterprise,
@@ -60,9 +84,9 @@ const EnterprisePage = () => {
   return (
     <div className="bg-white pt-28">
       <PageHero
-        eyebrow="Enterprise"
-        title="ProHelper для группы компаний, корпоративного контроля и масштабируемого запуска."
-        description="Страница для команд, которым нужен единый рабочий контур между объектами, офисом и управленческим уровнем без ручной склейки процессов."
+        eyebrow="Корпоративный контур"
+        title="ProHelper для группы компаний, корпоративного контроля и поэтапного запуска."
+        description="Подходит командам, которым нужен единый рабочий контур между объектами, офисом и управленческим уровнем без ручной склейки процессов и отчетов."
         actions={[
           { label: 'Обсудить корпоративный сценарий', href: marketingPaths.contact, primary: true },
           { label: 'Безопасность и доступ', href: marketingPaths.security },
@@ -159,8 +183,8 @@ const EnterprisePage = () => {
           <div>
             <SectionHeader
               eyebrow="Как мы это обсуждаем"
-              title="Разговор про enterprise начинается не с лицензий, а с модели управления."
-              description="На первой встрече разбираем роли, уровень стандартизации, структуру команд и последовательность запуска."
+              title="Разговор о корпоративном запуске начинается не с лицензий, а с модели управления."
+              description="На первой встрече разбираем роли, уровень стандартизации, структуру команд и последовательность запуска, чтобы показать рабочий, а не витринный сценарий."
             />
             <div className="mt-8 grid gap-3">
               {enterpriseTrustLayer.map((item) => (
@@ -173,7 +197,7 @@ const EnterprisePage = () => {
 
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-              Дополнительный слой доверия
+              Почему этому сценарию доверяют
             </div>
             <div className="mt-5 grid gap-3">
               {marketingTrustFacts.slice(0, 4).map((fact) => (
@@ -183,6 +207,29 @@ const EnterprisePage = () => {
                 </article>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Смежные сценарии"
+            title="Если корпоративный контур нужно уточнить, переходите в профильную страницу"
+            description="Эти направления чаще всего идут рядом с enterprise-запуском и помогают быстрее сузить предмет разговора."
+          />
+
+          <div className="mt-10 grid gap-5 xl:grid-cols-2">
+            {enterpriseRelatedLinks.map((item) => (
+              <MarketingLink
+                key={item.href}
+                href={item.href}
+                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
+              >
+                <div className="text-xl font-bold text-steel-950">{item.label}</div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+              </MarketingLink>
+            ))}
           </div>
         </div>
       </section>

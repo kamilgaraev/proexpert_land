@@ -145,6 +145,44 @@ export const generateCommercialPageSchema = (page: {
   serviceType: page.keywords.join(', '),
 });
 
+export const generateItemListSchema = (list: {
+  name: string;
+  url: string;
+  items: Array<{ name: string; url: string; description?: string }>;
+}) => ({
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: list.name,
+  url: list.url,
+  itemListElement: list.items.map((item, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    url: item.url,
+    name: item.name,
+    description: item.description,
+  })),
+});
+
+export const generateHowToSchema = (guide: {
+  name: string;
+  description: string;
+  url: string;
+  steps: string[];
+}) => ({
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: guide.name,
+  description: guide.description,
+  url: guide.url,
+  inLanguage: 'ru-RU',
+  step: guide.steps.map((step, index) => ({
+    '@type': 'HowToStep',
+    position: index + 1,
+    name: `Шаг ${index + 1}`,
+    text: step,
+  })),
+});
+
 export const generateArticleSchema = (article: {
   title: string;
   description: string;

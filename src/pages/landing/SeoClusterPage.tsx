@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import ContactForm from '@/components/landing/ContactForm';
 import FaqAccordion from '@/components/marketing/blocks/FaqAccordion';
+import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import {
   MarketingLink,
   PageHero,
@@ -9,7 +10,7 @@ import {
 } from '@/components/marketing/MarketingPrimitives';
 import { marketingSeoLandingPages, marketingSeo, marketingPaths } from '@/data/marketingRegistry';
 import { useSEO } from '@/hooks/useSEO';
-import { generateCommercialPageSchema } from '@/utils/seo';
+import { generateCommercialPageSchema, generateHowToSchema, generateItemListSchema } from '@/utils/seo';
 
 type SeoClusterPageProps = {
   pageKey: keyof typeof marketingSeoLandingPages;
@@ -18,16 +19,44 @@ type SeoClusterPageProps = {
 const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
   const page = marketingSeoLandingPages[pageKey];
   const canonicalUrl = `https://prohelper.pro${page.path}`;
+  const trustProfile = page.trust ?? {
+    title: 'Когда этот сценарий дает лучший результат',
+    description:
+      'Собрали ориентиры, которые помогают быстро понять, подходит ли этот контур вашей команде и с чего разумно начать запуск.',
+    fitForTitle: 'Подходит, если',
+    fitFor: page.audiences.slice(0, 3),
+    cautionTitle: 'Важно обсудить заранее',
+    caution: page.problems.slice(0, 3),
+    firstStepTitle: 'С чего обычно начинают',
+    firstStep: page.contactHighlights.slice(0, 3),
+  };
   const { addBreadcrumbSchema, addFAQSchema } = useSEO({
     ...marketingSeo[pageKey],
     type: 'website',
-    structuredData: generateCommercialPageSchema({
-      name: page.title,
-      description: page.description,
-      url: canonicalUrl,
-      audience: page.audiences,
-      keywords: page.supportingQueries,
-    }),
+    structuredData: [
+      generateCommercialPageSchema({
+        name: page.title,
+        description: page.description,
+        url: canonicalUrl,
+        audience: page.audiences,
+        keywords: page.supportingQueries,
+      }),
+      generateItemListSchema({
+        name: `Связанные решения ${page.title}`,
+        url: canonicalUrl,
+        items: page.relatedLinks.map((link) => ({
+          name: link.label,
+          url: `https://prohelper.pro${link.href}`,
+          description: link.description,
+        })),
+      }),
+      generateHowToSchema({
+        name: `Как запускают ${page.title}`,
+        description: trustProfile.description,
+        url: canonicalUrl,
+        steps: trustProfile.firstStep,
+      }),
+    ],
   });
 
   useEffect(() => {
@@ -52,6 +81,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
         nav={[
           { label: 'Для кого', href: '#audience' },
           { label: 'Задачи', href: '#problems' },
+          { label: 'Когда подходит', href: '#trust' },
           { label: 'Схема изменений', href: '#proof' },
           { label: 'Автоматизация', href: '#automation' },
           { label: 'FAQ', href: '#faq' },
@@ -121,6 +151,67 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
         </div>
       </section>
 
+      <section id="trust" className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Когда подходит"
+            title={trustProfile.title}
+            description={trustProfile.description}
+          />
+
+          <div className="mt-10 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <article className="rounded-[1.9rem] border border-emerald-200 bg-emerald-50/70 p-6 shadow-sm lg:p-7">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700">
+                {trustProfile.fitForTitle}
+              </div>
+              <div className="mt-6 grid gap-3">
+                {trustProfile.fitFor.map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-[1.15rem] border border-emerald-200 bg-white px-4 py-4 text-sm leading-7 text-steel-700"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className="rounded-[1.9rem] border border-amber-200 bg-amber-50/80 p-6 shadow-sm lg:p-7">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-700">
+                {trustProfile.cautionTitle}
+              </div>
+              <div className="mt-6 grid gap-3">
+                {trustProfile.caution.map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-[1.15rem] border border-amber-200 bg-white px-4 py-4 text-sm leading-7 text-steel-700"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </article>
+          </div>
+
+          <article className="mt-6 rounded-[1.9rem] border border-steel-200 bg-steel-950 p-6 text-white shadow-sm lg:p-7">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
+              {trustProfile.firstStepTitle}
+            </div>
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              {trustProfile.firstStep.map((item, index) => (
+                <div
+                  key={item}
+                  className="rounded-[1.3rem] border border-white/10 bg-white/5 px-4 py-4"
+                >
+                  <div className="text-sm font-semibold text-white">Шаг {index + 1}</div>
+                  <div className="mt-2 text-sm leading-7 text-white/76">{item}</div>
+                </div>
+              ))}
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section id="proof" className="py-16 lg:py-20">
         <div className="container-custom">
           <SectionHeader
@@ -167,7 +258,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
 
                 <div className="flex items-center justify-center">
                   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-steel-950 text-lg font-bold text-white">
-                    →
+                    <ArrowRightIcon className="h-6 w-6" />
                   </div>
                 </div>
 
@@ -226,7 +317,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
 
           <div className="rounded-[1.9rem] border border-steel-900 bg-steel-950 p-6 text-white shadow-sm lg:p-7">
             <SectionHeader
-              eyebrow="Роли и обзор"
+              eyebrow="Что увидит команда"
               title={page.visibilityTitle}
               description={page.visibilityDescription}
               tone="dark"
@@ -267,9 +358,9 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
 
           <div className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
             <SectionHeader
-              eyebrow="Контент"
-              title="Полезные материалы по теме"
-              description="Здесь собраны статьи и разборы, которые помогают глубже понять сценарий перед демонстрацией."
+              eyebrow="Что еще изучить"
+              title="Материалы, которые помогают подготовиться к демонстрации"
+              description="Если хотите заранее посмотреть смежные разборы и практические сценарии, отсюда удобно перейти в тематические материалы."
             />
             <div className="mt-8 grid gap-4">
               {page.blogLinks.map((link) => (

@@ -48,6 +48,17 @@ export interface MarketingProofBlock {
   metrics: MarketingProofMetric[];
 }
 
+export interface MarketingTrustProfile {
+  title: string;
+  description: string;
+  fitForTitle: string;
+  fitFor: string[];
+  cautionTitle: string;
+  caution: string[];
+  firstStepTitle: string;
+  firstStep: string[];
+}
+
 export interface MarketingMaturityMeta {
   label: string;
   tone: string;
@@ -149,6 +160,7 @@ export interface MarketingSeoLandingPage {
   description: string;
   supportingQueries: string[];
   proof: MarketingProofBlock;
+  trust?: MarketingTrustProfile;
   audienceTitle: string;
   audienceDescription: string;
   audiences: string[];

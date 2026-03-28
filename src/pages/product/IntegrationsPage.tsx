@@ -5,6 +5,8 @@ import {
   CogIcon,
   DevicePhoneMobileIcon,
 } from '@heroicons/react/24/outline';
+import { MarketingLink } from '@/components/marketing/MarketingPrimitives';
+import { marketingPaths } from '@/data/marketingRegistry';
 
 type IntegrationStatus = 'Базовый контур' | 'Базовый этап' | 'По запросу';
 
@@ -107,6 +109,29 @@ const integrationCategories: IntegrationCategory[] = [
   },
 ];
 
+const relatedIntegrationScenarios = [
+  {
+    label: 'ERP для строительства',
+    href: marketingPaths.constructionErp,
+    description: 'Когда интеграции обсуждаются как часть общего управленческого контура по объектам, финансам и документам.',
+  },
+  {
+    label: 'CRM для строительной компании',
+    href: marketingPaths.constructionCrm,
+    description: 'Если сначала нужно собрать единый рабочий процесс по объектам, задачам, статусам и коммуникации, а уже затем подключать внешние связи.',
+  },
+  {
+    label: 'Enterprise',
+    href: marketingPaths.enterprise,
+    description: 'Для корпоративных сценариев, где нужно заранее обсудить модель доступа, пилот, масштабирование и требования внутренней инфраструктуры.',
+  },
+  {
+    label: 'Обсудить ваш сценарий',
+    href: marketingPaths.contact,
+    description: 'Подходит, если важно быстро сверить, что реально можно запустить сейчас, а что лучше вынести в отдельный этап.',
+  },
+];
+
 const getStatusColor = (status: IntegrationStatus) => {
   switch (status) {
     case 'Базовый контур':
@@ -124,7 +149,7 @@ const IntegrationsPage = () => {
   return (
     <PageLayout
       title="Интеграции и расширения"
-      subtitle="Не обещаем каталог несуществующих коннекторов: обсуждаем только реальный сценарий обмена."
+      subtitle="Внешние связи, пилоты и расширения под реальный рабочий контур команды"
       seoPage="integrations"
       showFooter={false}
     >
@@ -192,6 +217,28 @@ const IntegrationsPage = () => {
             </div>
           );
         })}
+
+        <div className="bg-slate-50 rounded-2xl p-8 border border-concrete-100 mt-16">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-steel-900 mb-4">Куда перейти дальше</h2>
+            <p className="text-xl text-steel-600">
+              Если вопрос интеграции связан с более широкой задачей, удобнее перейти сразу в профильный сценарий.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {relatedIntegrationScenarios.map((item) => (
+              <MarketingLink
+                key={item.href}
+                href={item.href}
+                className="rounded-xl border border-concrete-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
+              >
+                <div className="text-lg font-bold text-steel-900">{item.label}</div>
+                <div className="mt-3 text-steel-600">{item.description}</div>
+              </MarketingLink>
+            ))}
+          </div>
+        </div>
 
         <div className="bg-gradient-to-r from-construction-600 to-safety-600 rounded-2xl p-8 text-center text-white mt-16">
           <h3 className="text-2xl font-bold mb-4">Нужен нетиповой сценарий?</h3>

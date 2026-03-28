@@ -1,5 +1,6 @@
 import PageLayout from '../../components/shared/PageLayout';
 import { 
+  ArrowRightIcon,
   WrenchScrewdriverIcon,
   TruckIcon,
   UsersIcon,
@@ -8,8 +9,33 @@ import {
   CheckCircleIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
+import { MarketingLink } from '@/components/marketing/MarketingPrimitives';
+import { marketingPaths } from '@/data/marketingRegistry';
 
 const ContractorsPage = () => {
+  const relatedSolutions = [
+    {
+      label: 'Программа для прораба',
+      href: marketingPaths.foremanSoftware,
+      description: 'Если нужно держать в одном контуре задачи, замечания, фотофиксацию и ежедневную работу на площадке.',
+    },
+    {
+      label: 'Контроль подрядчиков',
+      href: marketingPaths.contractorControl,
+      description: 'Когда важно видеть сроки, объемы, ответственность и просадки по субподрядчикам без ручных сводок.',
+    },
+    {
+      label: 'Учет материалов',
+      href: marketingPaths.materialAccounting,
+      description: 'Для команд, которым нужен путь от заявки до поставки и приемки материалов по объектам.',
+    },
+    {
+      label: 'Исполнительная документация',
+      href: marketingPaths.constructionDocuments,
+      description: 'Подходит, если подрядный контур упирается в акты, комплектность, замечания и передачу документов.',
+    },
+  ];
+
   const challenges = [
     {
       icon: ClockIcon,
@@ -97,8 +123,8 @@ const ContractorsPage = () => {
 
   return (
     <PageLayout 
-      title="Решения для подрядчиков" 
-      subtitle="Эффективные инструменты управления строительными работами"
+      title="ProHelper для подрядчиков" 
+      subtitle="Контроль бригад, сроков, документов и качества работ в одном рабочем контуре"
       seoPage="contractors"
       showFooter={false}
     >
@@ -208,18 +234,47 @@ const ContractorsPage = () => {
           </div>
         </div>
 
+        <div className="bg-slate-50 rounded-2xl p-8 border border-concrete-100 mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-steel-900 mb-4">Что еще посмотреть подрядной команде</h2>
+            <p className="text-xl text-steel-600">
+              Эти страницы помогут быстро перейти в соседний рабочий сценарий, если задача выходит за рамки одной роли.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {relatedSolutions.map((item) => (
+              <MarketingLink
+                key={item.href}
+                href={item.href}
+                className="rounded-xl border border-concrete-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
+              >
+                <div className="text-lg font-bold text-steel-900">{item.label}</div>
+                <div className="mt-3 text-steel-600">{item.description}</div>
+              </MarketingLink>
+            ))}
+          </div>
+        </div>
+
         <div className="text-center">
-          <h3 className="text-3xl font-bold text-steel-900 mb-4">Готовы оптимизировать свои процессы?</h3>
+          <h3 className="text-3xl font-bold text-steel-900 mb-4">Готовы собрать подрядный контур без лишней ручной работы?</h3>
           <p className="text-xl text-steel-600 mb-8">
-            Получите персональную консультацию и демонстрацию системы
+            Покажем, как связать площадку, офис и подрядные команды в одном сценарии запуска под ваш объект.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-3 bg-construction-600 text-white font-semibold rounded-lg hover:bg-construction-700 transition-colors">
-              Заказать демо
-            </button>
-            <button className="px-8 py-3 border-2 border-construction-600 text-construction-600 font-semibold rounded-lg hover:bg-construction-50 transition-colors">
-              Попробовать бесплатно
-            </button>
+            <MarketingLink
+              href={marketingPaths.contact}
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-construction-600 text-white font-semibold rounded-lg hover:bg-construction-700 transition-colors"
+            >
+              Заказать демонстрацию
+              <ArrowRightIcon className="w-5 h-5" />
+            </MarketingLink>
+            <MarketingLink
+              href={marketingPaths.contractorControl}
+              className="inline-flex items-center justify-center px-8 py-3 border-2 border-construction-600 text-construction-600 font-semibold rounded-lg hover:bg-construction-50 transition-colors"
+            >
+              Посмотреть сценарий контроля подрядчиков
+            </MarketingLink>
           </div>
         </div>
       </div>
