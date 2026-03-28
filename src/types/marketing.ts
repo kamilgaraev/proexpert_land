@@ -31,6 +31,23 @@ export interface MarketingRoleView {
   description: string;
 }
 
+export interface MarketingProofMetric {
+  label: string;
+  value: string;
+  detail: string;
+}
+
+export interface MarketingProofBlock {
+  title: string;
+  description: string;
+  signals: string[];
+  beforeLabel: string;
+  beforeState: string[];
+  afterLabel: string;
+  afterState: string[];
+  metrics: MarketingProofMetric[];
+}
+
 export interface MarketingMaturityMeta {
   label: string;
   tone: string;
@@ -131,6 +148,7 @@ export interface MarketingSeoLandingPage {
   title: string;
   description: string;
   supportingQueries: string[];
+  proof: MarketingProofBlock;
   audienceTitle: string;
   audienceDescription: string;
   audiences: string[];

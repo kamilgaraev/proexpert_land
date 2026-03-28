@@ -52,6 +52,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
         nav={[
           { label: 'Для кого', href: '#audience' },
           { label: 'Задачи', href: '#problems' },
+          { label: 'Схема изменений', href: '#proof' },
           { label: 'Автоматизация', href: '#automation' },
           { label: 'FAQ', href: '#faq' },
           { label: 'Контакт', href: '#contact' },
@@ -116,6 +117,92 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
                 <div className="text-sm leading-7 text-steel-700">{item}</div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="proof" className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Схема изменений"
+            title={page.proof.title}
+            description={page.proof.description}
+          />
+
+          <div className="mt-10 grid gap-6 xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)]">
+            <div className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+                Типовые сигналы проблемы
+              </div>
+              <div className="mt-6 grid gap-3">
+                {page.proof.signals.map((item, index) => (
+                  <div
+                    key={item}
+                    className="rounded-[1.2rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                  >
+                    <span className="mr-2 font-semibold text-steel-950">0{index + 1}</span>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-6">
+              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_72px_minmax(0,1fr)] xl:items-center">
+                <div className="rounded-[1.9rem] border border-rose-200 bg-rose-50/70 p-6 shadow-sm">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rose-700">
+                    {page.proof.beforeLabel}
+                  </div>
+                  <div className="mt-6 grid gap-3">
+                    {page.proof.beforeState.map((item) => (
+                      <div
+                        key={item}
+                        className="rounded-[1.15rem] border border-rose-200 bg-white px-4 py-4 text-sm leading-7 text-steel-700"
+                      >
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-steel-950 text-lg font-bold text-white">
+                    →
+                  </div>
+                </div>
+
+                <div className="rounded-[1.9rem] border border-emerald-200 bg-emerald-50/70 p-6 shadow-sm">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700">
+                    {page.proof.afterLabel}
+                  </div>
+                  <div className="mt-6 grid gap-3">
+                    {page.proof.afterState.map((item) => (
+                      <div
+                        key={item}
+                        className="rounded-[1.15rem] border border-emerald-200 bg-white px-4 py-4 text-sm leading-7 text-steel-700"
+                      >
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                {page.proof.metrics.map((metric) => (
+                  <div
+                    key={metric.label}
+                    className="rounded-[1.6rem] border border-steel-200 bg-white px-5 py-5 shadow-sm"
+                  >
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
+                      {metric.label}
+                    </div>
+                    <div className="mt-3 text-2xl font-bold text-steel-950">{metric.value}</div>
+                    <div className="mt-3 text-sm leading-7 text-steel-600">{metric.detail}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
