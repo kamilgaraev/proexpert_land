@@ -169,8 +169,8 @@ const FeaturesPage = () => {
         <div className="container-custom">
           <SectionHeader
             eyebrow="Модульные страницы"
-            title="Кластеры по материалам, документам, мобильному контуру и AI."
-            description="Разделяем общий обзор возможностей и посадочные под конкретные module-based запросы, чтобы не смешивать search intent."
+            title="Отдельные страницы по материалам, документам, мобильному контуру и AI."
+            description="Если вам нужен конкретный рабочий блок, можно сразу перейти в профильный сценарий и посмотреть его без лишнего перегруза."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">

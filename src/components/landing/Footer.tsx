@@ -35,7 +35,7 @@ const sitemapGroups = [
     ],
   },
   {
-    title: 'Коммерческие кластеры',
+    title: 'Решения',
     links: [
       { label: 'CRM для строительной компании', href: marketingPaths.constructionCrm },
       { label: 'ERP для строительства', href: marketingPaths.constructionErp },
@@ -172,7 +172,7 @@ const Footer = () => {
 
             <div className="mt-8 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
-                Популярные role-based страницы
+                Популярные сценарии
               </div>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 {marketingRoleLandingLinks.slice(0, 4).map((item) => (
@@ -215,7 +215,7 @@ const Footer = () => {
 
         <div className="mt-10 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
           <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
-            Коммерческие SEO-маршруты
+            Популярные решения
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {marketingCommercialLandingLinks.map((item) => (

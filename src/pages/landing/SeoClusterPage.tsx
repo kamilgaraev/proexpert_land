@@ -60,7 +60,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
           <div className="space-y-4">
             <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                Ключевой кластер
+                Основной сценарий
               </div>
               <div className="mt-4 rounded-[1.2rem] bg-concrete-50 px-4 py-4 text-sm font-semibold leading-7 text-steel-950">
                 {page.supportingQueries[0]}
@@ -161,8 +161,8 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
           <div className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
             <SectionHeader
               eyebrow="Связанные решения"
-              title="Соседние коммерческие маршруты"
-              description="Помогаем закрыть смежные роли, боли и модули без каннибализации intent."
+              title="Соседние сценарии и решения"
+              description="Если ваша задача затрагивает несколько ролей или процессов, здесь можно быстро перейти в смежный контур."
             />
             <div className="mt-8 grid gap-4">
               {page.relatedLinks.map((link) => (
@@ -181,8 +181,8 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
           <div className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
             <SectionHeader
               eyebrow="Контент"
-              title="Материалы для информационного спроса"
-              description="Статьи поддерживают кластер длинных запросов и ведут к демонстрации через полезный контент."
+              title="Полезные материалы по теме"
+              description="Здесь собраны статьи и разборы, которые помогают глубже понять сценарий перед демонстрацией."
             />
             <div className="mt-8 grid gap-4">
               {page.blogLinks.map((link) => (
