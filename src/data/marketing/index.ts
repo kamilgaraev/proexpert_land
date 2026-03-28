@@ -11,6 +11,13 @@ export { marketingFaqs, marketingHeroFacts, marketingLaunchSteps } from './home'
 export { legalDocuments } from './legal';
 export { marketingAdvancedOffers, marketingPackages } from './packages';
 export {
+  marketingBlogEditorialSeries,
+  marketingCommercialLandingLinks,
+  marketingModuleLandingLinks,
+  marketingRoleLandingLinks,
+  marketingSeoLandingPages,
+} from './seoPages';
+export {
   marketingNoIndexExactPaths,
   marketingNoIndexPaths,
   marketingNoIndexPrefixes,

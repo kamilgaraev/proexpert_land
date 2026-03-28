@@ -2,9 +2,10 @@ import { useEffect } from 'react';
 import ContactForm from '@/components/landing/ContactForm';
 import CtaBand from '@/components/marketing/blocks/CtaBand';
 import PackageFamilyCard from '@/components/marketing/blocks/PackageFamilyCard';
-import { PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import { MarketingLink, PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import {
   marketingAdvancedOffers,
+  marketingCommercialLandingLinks,
   marketingPackages,
   marketingSeo,
   marketingTrustFacts,
@@ -143,6 +144,29 @@ const PricingPage = () => {
             actions={[{ label: 'Оставить заявку', href: '#contact', primary: true }]}
             tone="light"
           />
+        </div>
+      </section>
+
+      <section className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Подбор по сценарию"
+            title="Стоимость проще обсуждать через конкретную роль, боль или контур запуска."
+            description="Поэтому из пакетов ведем в отдельные посадочные: так пользователь сразу понимает, какой сценарий и какой объем внедрения ему нужен."
+          />
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {marketingCommercialLandingLinks.slice(0, 6).map((item) => (
+              <MarketingLink
+                key={item.href}
+                href={item.href}
+                className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-construction-300"
+              >
+                <div className="text-lg font-bold text-steel-950">{item.label}</div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+              </MarketingLink>
+            ))}
+          </div>
         </div>
       </section>
 

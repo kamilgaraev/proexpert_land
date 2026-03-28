@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import ContactForm from '@/components/landing/ContactForm';
 import CtaBand from '@/components/marketing/blocks/CtaBand';
 import {
+  MarketingLink,
   PageHero,
   SectionHeader,
   SurfaceBadges,
@@ -10,6 +11,7 @@ import {
   marketingCapabilityMatrix,
   marketingPackages,
   marketingPaths,
+  marketingRoleLandingLinks,
   marketingSeo,
   marketingSolutionSegments,
 } from '@/data/marketingRegistry';
@@ -170,6 +172,29 @@ const SolutionsPage = () => {
               </section>
             );
           })}
+        </div>
+      </section>
+
+      <section className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Роли"
+            title="Отдельные страницы под прораба, ПТО, снабжение и руководство стройкой."
+            description="Эти посадочные снимают конкретный поисковый intent и ведут в нужный сценарий без смешения ролей на одной странице."
+          />
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {marketingRoleLandingLinks.map((item) => (
+              <MarketingLink
+                key={item.href}
+                href={item.href}
+                className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-construction-300"
+              >
+                <div className="text-lg font-bold text-steel-950">{item.label}</div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+              </MarketingLink>
+            ))}
+          </div>
         </div>
       </section>
 

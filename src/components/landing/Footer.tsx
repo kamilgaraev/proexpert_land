@@ -6,7 +6,12 @@ import {
   EnvelopeIcon,
   MapPinIcon,
 } from '@heroicons/react/24/outline';
-import { marketingCompany, marketingPaths } from '@/data/marketingRegistry';
+import {
+  marketingCommercialLandingLinks,
+  marketingCompany,
+  marketingPaths,
+  marketingRoleLandingLinks,
+} from '@/data/marketingRegistry';
 
 const sitemapGroups = [
   {
@@ -20,12 +25,23 @@ const sitemapGroups = [
     ],
   },
   {
-    title: 'Сценарии',
+    title: 'Роли и сценарии',
     links: [
-      { label: 'Для подрядчика', href: marketingPaths.contractors },
-      { label: 'Для девелопера', href: marketingPaths.developers },
-      { label: 'Enterprise', href: marketingPaths.enterprise },
-      { label: 'Блог', href: marketingPaths.blog },
+      { label: 'Программа для прораба', href: marketingPaths.foremanSoftware },
+      { label: 'Система для ПТО', href: marketingPaths.ptoSoftware },
+      { label: 'Учет материалов', href: marketingPaths.materialAccounting },
+      { label: 'Контроль подрядчиков', href: marketingPaths.contractorControl },
+      { label: 'Контроль бюджета стройки', href: marketingPaths.constructionBudgetControl },
+    ],
+  },
+  {
+    title: 'Коммерческие кластеры',
+    links: [
+      { label: 'CRM для строительной компании', href: marketingPaths.constructionCrm },
+      { label: 'ERP для строительства', href: marketingPaths.constructionErp },
+      { label: 'Исполнительная документация', href: marketingPaths.constructionDocuments },
+      { label: 'Мобильное приложение', href: marketingPaths.mobileApp },
+      { label: 'AI сметы по чертежам', href: marketingPaths.aiEstimates },
     ],
   },
   {
@@ -34,6 +50,7 @@ const sitemapGroups = [
       { label: 'О продукте', href: marketingPaths.about },
       { label: 'Безопасность', href: marketingPaths.security },
       { label: 'Контакты', href: marketingPaths.contact },
+      { label: 'Блог', href: marketingPaths.blog },
       { label: 'Войти в кабинет', href: '/login' },
     ],
   },
@@ -49,7 +66,7 @@ const sitemapGroups = [
 
 const footerNotes = [
   'Показываем продукт через рабочий сценарий, а не через витрину экранов.',
-  'Запуск можно начать с одного контура и расширять по мере роста процесса.',
+  'Запуск можно начать с одного контура и расширять по мере роста процессов.',
   'Материалы по безопасности и юридическому блоку предоставляем по запросу.',
 ];
 
@@ -92,7 +109,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-12 grid gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(340px,360px)]">
+        <div className="mt-12 grid gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(420px,520px)]">
           <div>
             <div className="flex items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-[1.5rem] bg-white/10 text-construction-200">
@@ -107,8 +124,8 @@ const Footer = () => {
             </div>
 
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/70">
-              ProHelper помогает собрать объект, снабжение, финансы, документы и
-              управленческую картину в одной системе для офиса, площадки и руководителя.
+              ProHelper помогает собрать объект, снабжение, финансы, документы и управленческую картину
+              в одной системе для офиса, площадки и руководителя.
             </p>
 
             <div className="mt-8 grid gap-3 lg:grid-cols-3">
@@ -152,9 +169,26 @@ const Footer = () => {
                 </div>
               </div>
             </div>
+
+            <div className="mt-8 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
+                Популярные role-based страницы
+              </div>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {marketingRoleLandingLinks.slice(0, 4).map((item) => (
+                  <Link
+                    key={item.href + item.label}
+                    to={item.href}
+                    className="rounded-[1.1rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-white/72 transition hover:bg-white/10 hover:text-white"
+                  >
+                    <span className="font-semibold text-white">{item.label}.</span> {item.description}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-1">
+          <div className="grid gap-8 sm:grid-cols-2">
             {sitemapGroups.map((group) => (
               <div
                 key={group.title}
@@ -175,6 +209,23 @@ const Footer = () => {
                   ))}
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-10 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
+            Коммерческие SEO-маршруты
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {marketingCommercialLandingLinks.map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                className="rounded-[1.1rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-white/72 transition hover:bg-white/10 hover:text-white"
+              >
+                <span className="font-semibold text-white">{item.label}.</span> {item.description}
+              </Link>
             ))}
           </div>
         </div>

@@ -18,6 +18,16 @@ export const marketingSitemapRoutes: MarketingSitemapRoute[] = [
   { path: '/security', pageKey: 'security', priority: 0.66, changefreq: 'monthly' },
   { path: '/contact', pageKey: 'contact', priority: 0.78, changefreq: 'monthly' },
   { path: '/blog', pageKey: 'blog', priority: 0.72, changefreq: 'weekly' },
+  { path: '/foreman-software', pageKey: 'foreman-software', priority: 0.9, changefreq: 'weekly' },
+  { path: '/construction-crm', pageKey: 'construction-crm', priority: 0.9, changefreq: 'weekly' },
+  { path: '/construction-erp', pageKey: 'construction-erp', priority: 0.9, changefreq: 'weekly' },
+  { path: '/material-accounting', pageKey: 'material-accounting', priority: 0.89, changefreq: 'weekly' },
+  { path: '/pto-software', pageKey: 'pto-software', priority: 0.88, changefreq: 'weekly' },
+  { path: '/contractor-control', pageKey: 'contractor-control', priority: 0.88, changefreq: 'weekly' },
+  { path: '/construction-documents', pageKey: 'construction-documents', priority: 0.87, changefreq: 'weekly' },
+  { path: '/construction-budget-control', pageKey: 'construction-budget-control', priority: 0.89, changefreq: 'weekly' },
+  { path: '/mobile-app', pageKey: 'mobile-app', priority: 0.87, changefreq: 'weekly' },
+  { path: '/ai-estimates', pageKey: 'ai-estimates', priority: 0.84, changefreq: 'weekly' },
 ];
 
 export const marketingNoIndexPaths = new Set(['/privacy', '/offer', '/cookies']);

@@ -6,8 +6,13 @@ import {
   ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 import ContactForm from '@/components/landing/ContactForm';
-import { PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
-import { marketingCompany, marketingPaths, marketingSeo } from '@/data/marketingRegistry';
+import { MarketingLink, PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import {
+  marketingCommercialLandingLinks,
+  marketingCompany,
+  marketingPaths,
+  marketingSeo,
+} from '@/data/marketingRegistry';
 import { useSEO } from '@/hooks/useSEO';
 
 const contactCards = [
@@ -15,7 +20,8 @@ const contactCards = [
     title: 'Демонстрация и консультация',
     value: marketingCompany.email,
     href: marketingCompany.emailHref,
-    description: 'Напишите, если хотите разобрать свой сценарий, состав решения и этап запуска.',
+    description:
+      'Напишите, если хотите разобрать свой сценарий, состав решения и этап запуска.',
     icon: EnvelopeIcon,
   },
   {
@@ -34,7 +40,8 @@ const contactCards = [
     title: 'Безопасность и документы',
     value: 'Отдельно по запросу',
     href: marketingPaths.security,
-    description: 'При необходимости подключаем обсуждение юридических документов и базовых материалов по безопасности.',
+    description:
+      'При необходимости подключаем обсуждение юридических документов и базовых материалов по безопасности.',
     icon: ShieldCheckIcon,
   },
 ];
@@ -49,10 +56,11 @@ const ContactPage = () => {
     <div className="bg-white pt-28">
       <PageHero
         eyebrow="Контакты"
-        title="Свяжитесь с командой ProHelper."
-        description="Запросите демонстрацию, обсудите запуск, пакеты или вопросы по безопасности и документам."
+        title="Запросите демонстрацию ProHelper под ваш строительный процесс."
+        description="Обсудим роли команды, текущий контур работы, пакет запуска и соседние сценарии, которые стоит показать на встрече."
         nav={[
           { label: 'Формат работы', href: '#contact-cards' },
+          { label: 'Связанные маршруты', href: '#related-routes' },
           { label: 'Что дальше', href: '#next-step' },
           { label: 'Форма', href: '#contact-form' },
         ]}
@@ -63,9 +71,9 @@ const ContactPage = () => {
             </div>
             <div className="mt-4 grid gap-3">
               {[
-                'Сначала коротко уточняем ваш сценарий.',
-                'Потом показываем релевантный контур системы.',
-                'При необходимости подключаем блок безопасности и документов.',
+                'Сначала коротко уточняем роль, процесс и текущую проблему.',
+                'Затем показываем только релевантный контур: объект, снабжение, документы, бюджет или AI-сценарий.',
+                'При необходимости отдельно подключаем блок безопасности, интеграций и договорных материалов.',
               ].map((item) => (
                 <div
                   key={item}
@@ -111,19 +119,40 @@ const ContactPage = () => {
         </div>
       </section>
 
-      <section id="next-step" className="bg-concrete-50 py-16 lg:py-20">
+      <section id="related-routes" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Связанные маршруты"
+            title="Популярные страницы, с которых чаще всего приходят на демонстрацию."
+            description="Если вы уже понимаете свою роль или ключевую боль, можно сразу открыть профильную посадочную и затем вернуться к заявке."
+          />
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {marketingCommercialLandingLinks.slice(0, 6).map((item) => (
+              <MarketingLink
+                key={item.href}
+                href={item.href}
+                className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-construction-300"
+              >
+                <div className="text-lg font-bold text-steel-950">{item.label}</div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+              </MarketingLink>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="next-step" className="py-16 lg:py-20">
         <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)]">
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
             <h2 className="text-3xl font-bold text-steel-950">Что происходит после отправки формы</h2>
             <div className="mt-6 space-y-4 text-sm leading-7 text-steel-600">
               <p>Сначала уточняем роли команды, текущий процесс и желаемый контур запуска.</p>
               <p>
-                Затем готовим демонстрацию или рабочий созвон под ваш сценарий, а не по шаблонной
-                экскурсии по интерфейсу.
+                Затем готовим демонстрацию или рабочий созвон под ваш сценарий, а не по шаблонной экскурсии по всему интерфейсу.
               </p>
               <p>
-                Если нужно, отдельно подключаем обсуждение безопасности, пакетов и юридических
-                материалов.
+                Если нужно, отдельно подключаем обсуждение безопасности, пакетов, интеграций и юридических материалов.
               </p>
             </div>
           </div>
@@ -131,7 +160,7 @@ const ContactPage = () => {
           <div className="rounded-[1.75rem] border border-steel-900 bg-steel-950 p-6 text-white">
             <SectionHeader
               eyebrow="Данные и согласие"
-              title="Прозрачная работа с данными и запросами."
+              title="Прозрачная работа с запросами, данными и документами."
               description="Для отправки формы требуется согласие на обработку персональных данных. Настройки аналитики регулируются cookie-consent."
               tone="dark"
             />
@@ -153,13 +182,13 @@ const ContactPage = () => {
         </div>
       </section>
 
-      <section id="contact-form" className="py-16 lg:py-20">
+      <section id="contact-form" className="bg-concrete-50 py-16 lg:py-20">
         <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.86fr)_minmax(460px,0.94fr)] xl:items-start">
           <div>
             <SectionHeader
               eyebrow="Форма"
-              title="Запросите демонстрацию или консультацию."
-              description="Нам достаточно контактов и краткого описания задачи, чтобы подготовить предметный созвон."
+              title="Оставьте заявку на демонстрацию или консультацию."
+              description="Достаточно контактов и краткого описания задачи, чтобы мы подготовили предметный созвон под вашу строительную команду."
             />
           </div>
           <ContactForm variant="full" className="shadow-none" />

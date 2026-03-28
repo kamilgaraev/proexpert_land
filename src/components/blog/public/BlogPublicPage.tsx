@@ -5,8 +5,8 @@ import BlogArticleCard from './BlogArticleCard';
 import BlogPublicLayout from './BlogPublicLayout';
 import BlogSidebar from './BlogSidebar';
 import { getBlogListMeta } from './blogPresentation';
-import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
-import { marketingPaths, marketingSeo } from '@/data/marketing/common';
+import { MarketingLink, SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import { marketingBlogEditorialSeries, marketingPaths, marketingSeo } from '@/data/marketingRegistry';
 import { useSEO } from '@/hooks/useSEO';
 import type { BlogArticle, BlogCategory } from '@/types/blog';
 import { blogPublicApi } from '@/utils/blogPublicApi';
@@ -242,6 +242,42 @@ const BlogPublicPage = () => {
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Редакционный план"
+            title="Три серии SEO-материалов под роли, боли и процессы стройки."
+            description="Блог теперь работает как информационный слой: каждая статья поддерживает свой кластер запроса и ведет в профильную коммерческую посадочную."
+          />
+
+          <div className="mt-10 grid gap-5 xl:grid-cols-3">
+            {marketingBlogEditorialSeries.map((series) => (
+              <article
+                key={series.id}
+                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
+              >
+                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+                  {series.title}
+                </div>
+                <p className="mt-4 text-sm leading-7 text-steel-600">{series.description}</p>
+                <div className="mt-6 grid gap-3">
+                  {series.articles.map((article) => (
+                    <MarketingLink
+                      key={article.title}
+                      href={article.relatedPath}
+                      className="rounded-[1.2rem] bg-concrete-50 px-4 py-4 transition hover:bg-construction-50/70"
+                    >
+                      <div className="text-sm font-semibold text-steel-950">{article.title}</div>
+                      <div className="mt-2 text-sm leading-7 text-steel-600">{article.summary}</div>
+                    </MarketingLink>
+                  ))}
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>

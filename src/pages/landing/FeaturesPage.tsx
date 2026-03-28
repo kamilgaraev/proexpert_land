@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import CapabilityCard from '@/components/marketing/blocks/CapabilityCard';
 import CtaBand from '@/components/marketing/blocks/CtaBand';
 import TrustFactList from '@/components/marketing/blocks/TrustFactList';
-import { PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import { MarketingLink, PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import {
   marketingAdvancedOffers,
   marketingCapabilityMatrix,
+  marketingModuleLandingLinks,
   marketingPaths,
   marketingSecuritySections,
   marketingSeo,
@@ -161,6 +162,29 @@ const FeaturesPage = () => {
             ]}
             tone="dark"
           />
+        </div>
+      </section>
+
+      <section className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Модульные страницы"
+            title="Кластеры по материалам, документам, мобильному контуру и AI."
+            description="Разделяем общий обзор возможностей и посадочные под конкретные module-based запросы, чтобы не смешивать search intent."
+          />
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {marketingModuleLandingLinks.map((item) => (
+              <MarketingLink
+                key={item.href + item.label}
+                href={item.href}
+                className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-construction-300"
+              >
+                <div className="text-lg font-bold text-steel-950">{item.label}</div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+              </MarketingLink>
+            ))}
+          </div>
         </div>
       </section>
 

@@ -14,6 +14,7 @@ import {
 import ganttScreenshot from '@/assets/marketing/gantt-schedule-30.png';
 import {
   marketingCapabilityMatrix,
+  marketingCommercialLandingLinks,
   marketingFaqs,
   marketingHeroFacts,
   marketingLaunchSteps,
@@ -193,6 +194,40 @@ const HomePage = () => {
                 { label: 'Смотреть все возможности', href: marketingPaths.features },
                 { label: 'Сценарии по ролям', href: marketingPaths.solutions },
                 { label: 'Безопасность и доступ', href: marketingPaths.security },
+              ]}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Поисковые маршруты"
+            title="Отдельные посадочные под роли, боли и ключевые строительные запросы."
+            description="Собрали коммерческие страницы так, чтобы клиент сразу попадал в релевантный сценарий, а не блуждал по общему описанию продукта."
+          />
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {marketingCommercialLandingLinks.slice(0, 6).map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-construction-300"
+              >
+                <div className="text-lg font-bold text-steel-950">{item.label}</div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-8">
+            <PageSectionNav
+              items={[
+                { label: 'CRM для строительной компании', href: marketingPaths.constructionCrm },
+                { label: 'ERP для строительства', href: marketingPaths.constructionErp },
+                { label: 'Учет материалов', href: marketingPaths.materialAccounting },
+                { label: 'Исполнительная документация', href: marketingPaths.constructionDocuments },
               ]}
             />
           </div>

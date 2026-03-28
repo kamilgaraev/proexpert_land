@@ -7,6 +7,7 @@ import HomePage from '@pages/landing/HomePage';
 import SolutionsPage from '@pages/landing/SolutionsPage';
 import FeaturesPage from '@pages/landing/FeaturesPage';
 import PricingPage from '@pages/landing/PricingPage';
+import SeoClusterPage from '@pages/landing/SeoClusterPage';
 import AboutPage from '@pages/company/AboutPage';
 import ContactPage from '@pages/company/ContactPage';
 import SecurityPage from '@pages/company/SecurityPage';
@@ -189,6 +190,16 @@ function App() {
           <Route path="/contractors" element={<ContractorsPage />} />
           <Route path="/developers" element={<DevelopersPage />} />
           <Route path="/enterprise" element={<EnterprisePage />} />
+          <Route path="/foreman-software" element={<SeoClusterPage pageKey="foreman-software" />} />
+          <Route path="/construction-crm" element={<SeoClusterPage pageKey="construction-crm" />} />
+          <Route path="/construction-erp" element={<SeoClusterPage pageKey="construction-erp" />} />
+          <Route path="/material-accounting" element={<SeoClusterPage pageKey="material-accounting" />} />
+          <Route path="/pto-software" element={<SeoClusterPage pageKey="pto-software" />} />
+          <Route path="/contractor-control" element={<SeoClusterPage pageKey="contractor-control" />} />
+          <Route path="/construction-documents" element={<SeoClusterPage pageKey="construction-documents" />} />
+          <Route path="/construction-budget-control" element={<SeoClusterPage pageKey="construction-budget-control" />} />
+          <Route path="/mobile-app" element={<SeoClusterPage pageKey="mobile-app" />} />
+          <Route path="/ai-estimates" element={<SeoClusterPage pageKey="ai-estimates" />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/security" element={<SecurityPage />} />

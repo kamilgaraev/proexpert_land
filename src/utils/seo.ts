@@ -120,6 +120,31 @@ export const generatePricingSchema = () => ({
   offers: buildPackageOffers(),
 });
 
+export const generateCommercialPageSchema = (page: {
+  name: string;
+  description: string;
+  url: string;
+  audience: string[];
+  keywords: string[];
+}) => ({
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: page.name,
+  description: page.description,
+  url: page.url,
+  areaServed: 'RU',
+  provider: {
+    '@type': 'Organization',
+    name: marketingCompany.brand,
+    url: BASE_URL,
+  },
+  audience: page.audience.map((item) => ({
+    '@type': 'Audience',
+    audienceType: item,
+  })),
+  serviceType: page.keywords.join(', '),
+});
+
 export const generateArticleSchema = (article: {
   title: string;
   description: string;

@@ -20,6 +20,17 @@ export interface MarketingRouteLink {
   exact?: boolean;
 }
 
+export interface MarketingContentLink {
+  label: string;
+  href: string;
+  description: string;
+}
+
+export interface MarketingRoleView {
+  role: string;
+  description: string;
+}
+
 export interface MarketingMaturityMeta {
   label: string;
   tone: string;
@@ -112,6 +123,45 @@ export interface MarketingTrustFact {
 export interface MarketingFaqItem {
   question: string;
   answer: string;
+}
+
+export interface MarketingSeoLandingPage {
+  path: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  supportingQueries: string[];
+  audienceTitle: string;
+  audienceDescription: string;
+  audiences: string[];
+  problemTitle: string;
+  problemDescription: string;
+  problems: string[];
+  automationTitle: string;
+  automationDescription: string;
+  automations: string[];
+  visibilityTitle: string;
+  visibilityDescription: string;
+  roleViews: MarketingRoleView[];
+  relatedLinks: MarketingContentLink[];
+  blogLinks: MarketingContentLink[];
+  contactHighlights: string[];
+  faq: MarketingFaqItem[];
+}
+
+export interface MarketingEditorialArticle {
+  title: string;
+  cluster: string;
+  intent: 'commercial' | 'informational' | 'navigational';
+  relatedPath: string;
+  summary: string;
+}
+
+export interface MarketingEditorialSeries {
+  id: string;
+  title: string;
+  description: string;
+  articles: MarketingEditorialArticle[];
 }
 
 export interface MarketingSecuritySection {
