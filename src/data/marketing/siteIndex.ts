@@ -34,7 +34,6 @@ export const marketingNoIndexPaths = new Set(['/privacy', '/offer', '/cookies'])
 
 export const marketingNoIndexPrefixes = [
   '/dashboard',
-  '/admin',
   '/landing/multi-organization',
   '/blog/tag',
 ];

@@ -1,6 +1,5 @@
 const INTERNAL_PREFIXES = [
   '/dashboard',
-  '/admin',
   '/landing/multi-organization',
 ];
 

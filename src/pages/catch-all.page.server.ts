@@ -15,12 +15,10 @@ export function onBeforeRender(pageContext: any) {
     '/press',
     '/partners',
     '/contact',
-    '/admin/login',
   ];
 
   const validPrefixes = [
     '/dashboard',
-    '/admin',
     '/blog',
     '/landing',
   ];

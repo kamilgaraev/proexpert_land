@@ -1,6 +1,5 @@
 import React from 'react';
 import { AuthProvider } from '@contexts/AuthContext';
-import { AdminAuthProvider } from '@contexts/AdminAuthContext';
 import { PermissionsProvider } from '@/contexts/PermissionsContext';
 import { isMarketingPublicPath } from '@/utils/publicSite';
 import '../index.css';
@@ -33,13 +32,11 @@ export function PageShell({ children, pageContext }: PageShellProps) {
 
   return (
     <React.StrictMode>
-      <AdminAuthProvider>
-        <AuthProvider>
-          <PermissionsProvider autoLoad={true} interfaceType="lk" refreshInterval={900000}>
-            {children}
-          </PermissionsProvider>
-        </AuthProvider>
-      </AdminAuthProvider>
+      <AuthProvider>
+        <PermissionsProvider autoLoad={true} interfaceType="lk" refreshInterval={900000}>
+          {children}
+        </PermissionsProvider>
+      </AuthProvider>
     </React.StrictMode>
   );
 }

@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from '@contexts/AuthContext';
-import { AdminAuthProvider } from '@contexts/AdminAuthContext';
 import { PermissionsProvider } from '@/contexts/PermissionsContext';
 import './index.css';
 
@@ -20,13 +19,11 @@ handleSpaRedirect();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <AdminAuthProvider>
-        <AuthProvider>
-          <PermissionsProvider autoLoad={true} interfaceType="lk" refreshInterval={900000}>
-            <App />
-          </PermissionsProvider>
-        </AuthProvider>
-      </AdminAuthProvider>
+      <AuthProvider>
+        <PermissionsProvider autoLoad={true} interfaceType="lk" refreshInterval={900000}>
+          <App />
+        </PermissionsProvider>
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
