@@ -31,12 +31,10 @@ import NotFoundPage from '@pages/NotFoundPage';
 const VerifyEmailPage = lazy(() => import('@pages/dashboard/VerifyEmailPage'));
 const EmailSentPage = lazy(() => import('@pages/dashboard/EmailSentPage'));
 import DashboardProtectedRoute from '@components/DashboardProtectedRoute';
-import AdminProtectedRoute from '@components/AdminProtectedRoute';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 
 // Layouts - загружаем статически (нужны для структуры)
 import DashboardLayout from '@layouts/DashboardLayout';
-import AdminLayout from '@layouts/AdminLayout';
 
 // Lazy loading для dashboard страниц (тяжелые компоненты)
 const DashboardPage = lazy(() => import('@pages/dashboard/DashboardPage'));
@@ -55,18 +53,8 @@ const MultiOrganizationPage = lazy(() => import('@pages/dashboard/MultiOrganizat
 const NotificationsPage = lazy(() => import('@pages/dashboard/NotificationsPage').then(m => ({ default: m.Page })));
 
 // Lazy loading для admin панели
-const UsersList = lazy(() => import('@pages/admin/users/UsersList'));
-const ProjectsList = lazy(() => import('@pages/admin/projects/ProjectsList'));
-const AdminLoginPage = lazy(() => import('@pages/admin/AdminLoginPage'));
-const AdminDashboardPage = lazy(() => import('@pages/admin/AdminDashboardPage'));
 
 // Lazy loading для blog модуля (очень тяжелый)
-const BlogDashboardPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogDashboardPage })));
-const BlogArticlesPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogArticlesPage })));
-const BlogArticleEditorPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogArticleEditorPage })));
-const BlogCategoriesPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogCategoriesPage })));
-const BlogCommentsPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogCommentsPage })));
-const BlogSEOPage = lazy(() => import('@pages/admin/blog').then(m => ({ default: m.BlogSEOPage })));
 
 // Lazy loading для Multi-Organization / Holding
 const HoldingRouter = lazy(() => import('@/HoldingRouter'));
@@ -211,7 +199,6 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         {/* Админка: страница логина */}
-        <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/email-sent" element={<EmailSentPage />} />
@@ -224,6 +211,7 @@ function App() {
         <Route path="/help" element={<Navigate to="/contact" replace />} />
         <Route path="/terms" element={<Navigate to="/offer" replace />} />
         <Route path="/blog" element={<BlogPublicPage />} />
+        <Route path="/blog/preview/:articleId" element={<BlogArticlePage />} />
         <Route path="/blog/category/:slug" element={<BlogCategoryPage />} />
         <Route path="/blog/tag/:slug" element={<BlogTagPage />} />
         <Route path="/blog/:slug" element={<BlogArticlePage />} />
@@ -355,29 +343,6 @@ function App() {
           <Route path="projects" element={<HoldingProjectsList />} />
           <Route path="projects/:id" element={<HoldingProjectDetail />} />
           <Route path="contracts" element={<HoldingContractsList />} />
-        </Route>
-        
-        {/* Административные маршруты */}
-        <Route path="/admin" element={
-          <AdminProtectedRoute>
-            <AdminLayout />
-          </AdminProtectedRoute>
-        }>
-          {/* Здесь добавляются страницы админки */}
-          <Route index element={<AdminDashboardPage />} />
-          <Route path="users" element={<UsersList />} />
-          <Route path="projects" element={<ProjectsList />} />
-          {/* Блог админка */}
-          <Route path="blog" element={<BlogDashboardPage />} />
-          <Route path="blog/articles" element={<BlogArticlesPage />} />
-          <Route path="blog/articles/create" element={<BlogArticleEditorPage />} />
-          <Route path="blog/articles/:id/edit" element={<BlogArticleEditorPage />} />
-          <Route path="blog/articles/:id" element={<BlogArticleEditorPage />} />
-          <Route path="blog/categories" element={<BlogCategoriesPage />} />
-          <Route path="blog/comments" element={<BlogCommentsPage />} />
-          <Route path="blog/seo" element={<BlogSEOPage />} />
-          {/* Плейсхолдеры для будущих страниц */}
-          <Route path="vacancies" element={<div>Вакансии админка (скоро)</div>} />
         </Route>
         
         {/* Страница 404 для несуществующих маршрутов */}

@@ -1,6 +1,6 @@
 import { ClockIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import BlogArticleCard from './BlogArticleCard';
 import BlogPublicLayout from './BlogPublicLayout';
 import BlogSidebar from './BlogSidebar';
@@ -12,36 +12,36 @@ import { generateArticleSchema } from '@/utils/seo';
 import { blogPublicApi } from '@/utils/blogPublicApi';
 
 const BlogArticlePage = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug, articleId } = useParams<{ slug?: string; articleId?: string }>();
+  const [searchParams] = useSearchParams();
   const [article, setArticle] = useState<BlogArticle | null>(null);
   const [relatedArticles, setRelatedArticles] = useState<BlogArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isPreview = Boolean(articleId);
 
   useSEO(
     article
       ? {
           title: article.meta_title || article.og_title || article.title,
-          description:
-            article.meta_description || article.og_description || article.excerpt || 'Статья ProHelper',
+          description: article.meta_description || article.og_description || article.excerpt || 'Статья ProHelper',
           keywords: article.meta_keywords?.join(', ') || article.tags.map((tag) => tag.name).join(', '),
           ogImage: article.og_image || article.featured_image,
           type: 'article',
           author: article.author.name,
           publishedTime: article.published_at || article.created_at,
           modifiedTime: article.updated_at,
-          noIndex: article.noindex,
+          noIndex: isPreview || article.noindex,
           structuredData: generateArticleSchema({
             title: article.title,
-            description:
-              article.meta_description || article.og_description || article.excerpt || article.title,
+            description: article.meta_description || article.og_description || article.excerpt || article.title,
             author: article.author.name,
             publishedTime: article.published_at || article.created_at,
             modifiedTime: article.updated_at,
             image: article.og_image || article.featured_image,
             category: article.category.name,
             tags: article.tags.map((tag) => tag.name),
-            url: `https://prohelper.pro/blog/${article.slug}`,
+            url: isPreview ? `https://prohelper.pro/blog/preview/${article.id}` : `https://prohelper.pro/blog/${article.slug}`,
           }),
         }
       : {
@@ -57,13 +57,17 @@ const BlogArticlePage = () => {
         setLoading(true);
         setError(null);
 
-        const response = await blogPublicApi.getArticle(slug!);
+        const response = isPreview
+          ? await blogPublicApi.getPreviewArticle(articleId!, searchParams)
+          : await blogPublicApi.getArticle(slug!);
         const articleData = (response.data as { data: BlogArticle }).data;
         setArticle(articleData);
 
-        if (articleData.id) {
+        if (!isPreview && articleData.id) {
           const relatedResponse = await blogPublicApi.getRelatedArticles(articleData.id, 3);
           setRelatedArticles((relatedResponse.data as { data: BlogArticle[] }).data);
+        } else {
+          setRelatedArticles([]);
         }
       } catch (fetchError) {
         console.error('Error fetching article:', fetchError);
@@ -73,10 +77,10 @@ const BlogArticlePage = () => {
       }
     };
 
-    if (slug) {
+    if ((isPreview && articleId) || (!isPreview && slug)) {
       fetchArticle();
     }
-  }, [slug]);
+  }, [articleId, isPreview, searchParams, slug]);
 
   if (loading) {
     return (
@@ -128,12 +132,12 @@ const BlogArticlePage = () => {
 
   return (
     <BlogPublicLayout
-      eyebrow={article.category.name}
+      eyebrow={isPreview ? 'Preview' : article.category.name}
       title={article.title}
       description={article.excerpt || 'Материал ProHelper о строительных процессах, ролях и цифровом контуре.'}
       nav={[
         { label: 'Содержание', href: '#article-content' },
-        { label: 'Похожие материалы', href: '#related-articles' },
+        { label: isPreview ? 'Предпросмотр' : 'Похожие материалы', href: isPreview ? '#article-content' : '#related-articles' },
         { label: 'Контакты', href: '#blog-cta' },
       ]}
       aside={
@@ -165,23 +169,27 @@ const BlogArticlePage = () => {
                 </Link>
                 <span>/</span>
                 <Link to="/blog" className="transition hover:text-construction-700">
-                  Блог
+                  {isPreview ? 'Preview' : 'Блог'}
                 </Link>
                 <span>/</span>
-                <Link
-                  to={`/blog/category/${article.category.slug}`}
-                  className="transition hover:text-construction-700"
-                >
-                  {article.category.name}
-                </Link>
+                {isPreview ? (
+                  <span>Черновик</span>
+                ) : (
+                  <Link
+                    to={`/blog/category/${article.category.slug}`}
+                    className="transition hover:text-construction-700"
+                  >
+                    {article.category.name}
+                  </Link>
+                )}
               </nav>
 
               <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-steel-500">
                 <span
                   className="inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white"
-                  style={{ backgroundColor: article.category.color }}
+                  style={{ backgroundColor: isPreview ? '#0f172a' : article.category.color }}
                 >
-                  {article.category.name}
+                  {isPreview ? 'Preview' : article.category.name}
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <ClockIcon className="h-4 w-4" />
@@ -232,7 +240,7 @@ const BlogArticlePage = () => {
               ) : null}
             </div>
 
-            {relatedArticles.length ? (
+            {relatedArticles.length && !isPreview ? (
               <section id="related-articles" className="mt-8">
                 <SectionHeader
                   eyebrow="Похожие материалы"
