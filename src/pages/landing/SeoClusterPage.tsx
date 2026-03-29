@@ -69,7 +69,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
   }, [addBreadcrumbSchema, addFAQSchema, canonicalUrl, page.faq, page.title]);
 
   return (
-    <div className="bg-white pt-28">
+    <div className="marketing-page-shell">
       <PageHero
         eyebrow={page.eyebrow}
         title={page.title}

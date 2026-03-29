@@ -23,7 +23,7 @@ const AboutPage = () => {
   });
 
   return (
-    <div className="bg-white pt-28">
+    <div className="marketing-page-shell">
       <PageHero
         eyebrow="О продукте"
         title="ProHelper для управления строительной компанией."

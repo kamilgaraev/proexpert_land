@@ -203,9 +203,18 @@ body::selection {
   padding: 0 1.25rem;
 }
 
+.marketing-page-shell {
+  background: white;
+  padding-top: 6.5rem;
+}
+
 @media (min-width: 640px) {
   .container-custom {
     padding: 0 1.75rem;
+  }
+
+  .marketing-page-shell {
+    padding-top: 7rem;
   }
 }
 
@@ -370,6 +379,10 @@ body::selection {
 @media (max-width: 640px) {
   .container-custom {
     padding: 0 1.25rem;
+  }
+
+  html {
+    scroll-padding-top: 6.5rem;
   }
   
   .section-title {

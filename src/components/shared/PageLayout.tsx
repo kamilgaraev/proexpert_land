@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BuildingOfficeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { SEOHead } from './SEOHead';
 import { getPageSEOData, generateOrganizationSchema } from '../../utils/seo';
 import Footer from '@components/landing/Footer';
@@ -16,22 +16,22 @@ interface PageLayoutProps {
   showFooter?: boolean;
 }
 
-const PageLayout: React.FC<PageLayoutProps> = ({ 
-  title, 
-  subtitle, 
-  children, 
-  showBackButton = true, 
+const PageLayout: React.FC<PageLayoutProps> = ({
+  title,
+  subtitle,
+  children,
+  showBackButton = true,
   backTo = '/',
   hero = true,
   seoPage,
-  showFooter = true
+  showFooter = false,
 }) => {
   const seoData = seoPage ? getPageSEOData(seoPage) : null;
   const organizationSchema = generateOrganizationSchema();
 
   return (
     <>
-      {seoData && (
+      {seoData ? (
         <SEOHead
           title={seoData.title}
           description={seoData.description}
@@ -39,48 +39,44 @@ const PageLayout: React.FC<PageLayoutProps> = ({
           canonicalUrl={seoData.canonicalUrl}
           structuredData={organizationSchema}
         />
-      )}
-      <div className="min-h-screen bg-gradient-to-b from-concrete-50 to-white">
-      {hero && (
-        <div className="bg-gradient-to-r from-construction-600 via-construction-500 to-safety-500 relative overflow-hidden">
-          <div className="absolute inset-0 bg-construction-grid opacity-20"></div>
-          <div className="container-custom relative z-10 py-16 md:py-24">
-            {showBackButton && (
-              <Link 
-                to={backTo}
-                className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-8 transition-colors group"
-              >
-                <ArrowLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                Вернуться назад
-              </Link>
-            )}
-            
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                <BuildingOfficeIcon className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+      ) : null}
+
+      <div className="marketing-page-shell min-h-screen">
+        {hero ? (
+          <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.16),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(148,163,184,0.16),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
+            <div className="container-custom py-12 sm:py-14 lg:py-20">
+              {showBackButton ? (
+                <Link
+                  to={backTo}
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-steel-500 transition-colors hover:text-construction-700"
+                >
+                  <ArrowLeftIcon className="h-5 w-5 transition-transform hover:-translate-x-1" />
+                  Вернуться назад
+                </Link>
+              ) : null}
+
+              <div className="mt-5 max-w-4xl">
+                <div className="inline-flex items-center rounded-full border border-construction-200 bg-construction-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-construction-700">
+                  ProHelper
+                </div>
+                <h1 className="mt-4 font-sans text-[clamp(2rem,5.4vw,4.1rem)] font-bold leading-[0.98] tracking-tight text-steel-950">
                   {title}
                 </h1>
-                {subtitle && (
-                  <p className="text-xl text-white/90">
+                {subtitle ? (
+                  <p className="mt-5 max-w-3xl text-base leading-7 text-steel-600 sm:text-lg sm:leading-8">
                     {subtitle}
                   </p>
-                )}
+                ) : null}
               </div>
             </div>
-          </div>
-        </div>
-      )}
-      
-      <div className="container-custom py-16">
-        {children}
+          </section>
+        ) : null}
+
+        <div className="container-custom py-12 sm:py-14 lg:py-16">{children}</div>
+        {showFooter ? <Footer /> : null}
       </div>
-      {showFooter && <Footer />}
-    </div>
     </>
   );
 };
 
-export default PageLayout; 
+export default PageLayout;

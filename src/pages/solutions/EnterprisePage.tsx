@@ -82,7 +82,7 @@ const EnterprisePage = () => {
   });
 
   return (
-    <div className="bg-white pt-28">
+    <div className="marketing-page-shell">
       <PageHero
         eyebrow="Корпоративный контур"
         title="ProHelper для группы компаний, корпоративного контроля и поэтапного запуска."

@@ -1,8 +1,5 @@
-import PageLayout from '../../components/shared/PageLayout';
 import {
-  ArrowRightIcon,
   BanknotesIcon,
-  BuildingOffice2Icon,
   BuildingStorefrontIcon,
   ChartBarIcon,
   CheckCircleIcon,
@@ -10,275 +7,264 @@ import {
   ShieldCheckIcon,
   UsersIcon,
 } from '@heroicons/react/24/outline';
-import { MarketingLink } from '@/components/marketing/MarketingPrimitives';
-import { marketingPaths } from '@/data/marketingRegistry';
+import CtaBand from '@/components/marketing/blocks/CtaBand';
+import { MarketingLink, PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import { marketingPaths, marketingSeo } from '@/data/marketingRegistry';
+import { useSEO } from '@/hooks/useSEO';
 
-const features = [
+const capabilityCards = [
   {
+    title: 'Управленческая картина по портфелю',
+    description:
+      'Руководство видит стадии проектов, проблемные зоны и приоритеты по объектам без отдельной ручной сводки.',
     icon: ChartBarIcon,
-    title: 'Управление портфелем проектов',
-    description: 'Централизованный контроль строительных проектов девелопера с прозрачной управленческой картиной.',
   },
   {
+    title: 'Бюджет и финансовый контур',
+    description:
+      'Бюджеты, обязательства и платежная дисциплина обсуждаются в контексте объекта, а не в отрыве от хода работ.',
     icon: BanknotesIcon,
-    title: 'Финансовое планирование',
-    description: 'Планирование бюджетов, контроль инвестиций и рабочая отчетность по проектам.',
   },
   {
+    title: 'Подрядчики и исполнительская дисциплина',
+    description:
+      'Контроль сроков, статусов и договорных обязательств по внешним исполнителям собирается в одном рабочем сценарии.',
     icon: UsersIcon,
-    title: 'Координация подрядчиков',
-    description: 'Контроль задач, сроков и статусов по внешним командам и внутреннему офису.',
   },
   {
+    title: 'Готовность объекта',
+    description:
+      'Документы, замечания и фактический прогресс привязываются к этапу реализации и подготовке к следующему шагу.',
     icon: BuildingStorefrontIcon,
-    title: 'Контроль готовности к продаже',
-    description: 'Единый контур по этапам проекта, документам и фактическому прогрессу объекта.',
   },
   {
+    title: 'Проектные расширения',
+    description:
+      'Дополнительные интеграции и корпоративные сценарии подключаются только после согласования базового контура.',
     icon: CogIcon,
-    title: 'Автоматизация процессов',
-    description: 'Регламентные уведомления, маршрут согласования и проектные расширения по фактическому запросу.',
   },
   {
+    title: 'Корпоративные правила доступа',
+    description:
+      'Роли, зоны ответственности и управленческий уровень контроля не смешиваются в один неуправляемый слой.',
     icon: ShieldCheckIcon,
-    title: 'Корпоративный контроль',
-    description: 'Разделение доступа, прозрачность действий и управляемый запуск по корпоративным правилам.',
   },
 ];
 
-const benefits = [
-  'Сокращение времени на управление проектами и согласования.',
-  'Повышение прозрачности для руководства и инвесторов.',
-  'Контроль подрядчиков, документов и сроков в одном контуре.',
-  'Снижение ручной нагрузки на офис и проектные команды.',
-  'Более понятная картина по бюджету и ходу работ.',
-  'Поэтапное внедрение без перегруза всей структуры сразу.',
-];
-
-const caseStudies = [
+const operatingModel = [
   {
-    company: 'Девелоперский контур',
-    project: 'Пилотный запуск на ключевом объекте',
-    result: 'Сначала собираем базовый рабочий сценарий, затем расширяем систему на соседние процессы.',
-    description: 'Такой подход помогает не тащить в запуск лишние роли и интеграции, а быстро довести до результата приоритетный участок работы.',
+    title: 'Сначала приоритетный сценарий',
+    bullets: [
+      'На старте определяем, какой блок сейчас критичнее: объект, подрядчики, документы или бюджет.',
+      'Не перегружаем запуск всем каталогом возможностей сразу.',
+      'Доводим базовый контур до рабочего состояния, а затем масштабируем.',
+    ],
   },
   {
-    company: 'Корпоративная команда',
-    project: 'Управленческий и проектный слои',
-    result: 'Руководство получает более прозрачную картину по объектам, срокам, документам и финансовому контуру.',
-    description: 'После стабилизации базового процесса можно подключать дополнительные роли, аналитику и проектные расширения.',
+    title: 'Разделяем проектный и управленческий слой',
+    bullets: [
+      'Офис, объект и руководство видят одну систему, но в разных управляемых разрезах.',
+      'Руководитель получает прозрачность без необходимости вручную собирать статусы.',
+      'Проектная команда работает с операционным контуром без лишнего визуального шума.',
+    ],
   },
 ];
 
-const integrations = [
-  'Выгрузки в Excel/CSV для финансового и операционного контура.',
-  'Обмен данными через API и webhooks по согласованному сценарию.',
-  'Подключение соседних корпоративных сервисов при реальном бизнес-запросе.',
-  'Обмен документами и отчетами без публичного каталога несуществующих коннекторов.',
-  'Пилотные расширения под внутренний контур девелопера.',
-  'Оценка релевантного обмена до старта внедрения.',
+const trustList = [
+  'Портфель проектов, документы и подрядчики обсуждаются в одном управленческом сценарии.',
+  'Финансовый и проектный контуры увязываются с реальным ходом работ.',
+  'Интеграции и дополнительные расширения не обещаются вслепую, а проектируются под ваш ландшафт.',
 ];
 
 const relatedScenarios = [
   {
     label: 'ERP для строительства',
     href: marketingPaths.constructionErp,
-    description: 'Когда нужен единый управленческий контур по объектам, финансам, документам и исполнительской дисциплине.',
+    description: 'Если нужен сквозной сценарий по объектам, документам, снабжению и финансовому управлению.',
   },
   {
     label: 'Контроль бюджета стройки',
     href: marketingPaths.constructionBudgetControl,
-    description: 'Для девелоперских команд, которым важно видеть лимиты, платежи и отклонения без ручной сборки отчетов.',
+    description: 'Подходит, когда главный вопрос сейчас в лимитах, платежах и отклонениях по бюджету.',
   },
   {
     label: 'Контроль подрядчиков',
     href: marketingPaths.contractorControl,
-    description: 'Помогает держать в поле зрения сроки, объемы, договорные обязательства и проблемные участки по внешним командам.',
+    description: 'Когда узкое место сосредоточено в сроках, дисциплине исполнения и договорных обязательствах.',
   },
   {
-    label: 'Исполнительная документация',
-    href: marketingPaths.constructionDocuments,
-    description: 'Подходит, если узкое место находится в актах, комплектности, замечаниях и передаче документов между сторонами.',
+    label: 'Интеграции и расширения',
+    href: marketingPaths.integrations,
+    description: 'Если сразу важно обсудить обмен данными с корпоративным ландшафтом и проектные расширения.',
   },
 ];
 
 const DevelopersPage = () => {
+  useSEO({
+    ...marketingSeo.developers,
+    type: 'website',
+  });
+
   return (
-    <PageLayout
-      title="ProHelper для девелоперов"
-      subtitle="Единый управленческий контур по объектам, подрядчикам, документам и бюджету"
-      seoPage="developers"
-      showFooter={false}
-    >
-      <div className="bg-gradient-to-b from-slate-50 to-white">
-        <section className="py-16">
-          <div className="container-custom">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-construction-600 mb-2">Портфель</div>
-                <p className="text-slate-600">Единая картина по объектам и стадиям работ</p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-construction-600 mb-2">Контроль</div>
-                <p className="text-slate-600">Роли, сроки, документы и бюджет в одном контуре</p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-construction-600 mb-2">Поэтапно</div>
-                <p className="text-slate-600">Запуск от приоритетного сценария к масштабированию</p>
-              </div>
+    <div className="marketing-page-shell">
+      <PageHero
+        eyebrow="Контур девелопера"
+        title="ProHelper для девелопера: объекты, подрядчики, документы и бюджет под единым контролем."
+        description="Маршрут для девелоперской команды, которой нужна управляемая картина по проектам, срокам, бюджету и исполнителям без разрыва между офисом и объектом."
+        actions={[
+          { label: 'Обсудить сценарий', href: marketingPaths.contact, primary: true },
+          { label: 'Корпоративный контур', href: marketingPaths.enterprise },
+        ]}
+        nav={[
+          { label: 'Контуры', href: '#capabilities' },
+          { label: 'Модель запуска', href: '#model' },
+          { label: 'Доверительный слой', href: '#trust' },
+          { label: 'Смежные маршруты', href: '#related' },
+        ]}
+        aside={
+          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+              Что важно девелоперу
             </div>
-          </div>
-        </section>
-
-        <section className="py-24 bg-white">
-          <div className="container-custom">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-slate-900 mb-4">
-                Возможности для девелопера
-              </h2>
-              <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-                ProHelper помогает собрать рабочий контур между руководством, офисом, объектом и подрядчиками.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {features.map((feature) => (
-                <div key={feature.title} className="bg-slate-50 rounded-2xl p-6 hover:shadow-md transition-shadow">
-                  <div className="w-12 h-12 bg-construction-500 rounded-xl flex items-center justify-center mb-4">
-                    <feature.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-900 mb-3">{feature.title}</h3>
-                  <p className="text-slate-600">{feature.description}</p>
+            <div className="mt-4 grid gap-3">
+              {[
+                'Держать сроки, подрядчиков и документы в одном управленческом контуре.',
+                'Понимать фактическую картину по портфелю, а не собирать ее вручную.',
+                'Запускать систему поэтапно, не ломая текущую структуру работы команды.',
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                >
+                  {item}
                 </div>
               ))}
             </div>
           </div>
-        </section>
+        }
+      />
 
-        <section className="py-24 bg-gradient-to-r from-construction-600 to-safety-600 text-white">
-          <div className="container-custom">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-4xl font-bold text-center mb-12">
-                Что получает девелоперская команда
-              </h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                {benefits.map((benefit) => (
-                  <div key={benefit} className="flex items-start">
-                    <CheckCircleIcon className="w-6 h-6 text-construction-200 mr-4 mt-1 flex-shrink-0" />
-                    <span className="text-lg">{benefit}</span>
+      <section id="capabilities" className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Контуры"
+            title="Какие блоки чаще всего нужны девелоперской команде."
+            description="Здесь собраны не абстрактные функции, а рабочие участки, через которые девелопер обычно выстраивает контроль по объектам."
+          />
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {capabilityCards.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <article
+                  key={item.title}
+                  className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-construction-50 text-construction-700">
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <h2 className="mt-5 text-xl font-bold text-steel-950">{item.title}</h2>
+                  <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section id="model" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom grid gap-5 xl:grid-cols-2">
+          {operatingModel.map((item) => (
+            <article
+              key={item.title}
+              className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
+            >
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+                {item.title}
+              </div>
+              <div className="mt-5 grid gap-3">
+                {item.bullets.map((bullet) => (
+                  <div
+                    key={bullet}
+                    className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                  >
+                    {bullet}
                   </div>
                 ))}
               </div>
-            </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="trust" className="py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div>
+            <SectionHeader
+              eyebrow="Доверительный слой"
+              title="Как обсуждаем запуск с девелопером без витринных обещаний."
+              description="На встрече разбираем структуру команды, уровень управленческого контроля и приоритетный сценарий запуска, а не просто перечисляем функции."
+            />
           </div>
-        </section>
 
-        <section className="py-24 bg-slate-50">
-          <div className="container-custom">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-slate-900 mb-4">
-                Формат внедрения
-              </h2>
-              <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-                Не обещаем мгновенную магию: сначала разбираем реальный процесс и показываем релевантный маршрут запуска.
-              </p>
+          <div className="rounded-[1.9rem] border border-steel-900 bg-steel-950 p-6 text-white lg:p-7">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
+              Что важно на первом разговоре
             </div>
-
-            <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-              {caseStudies.map((study) => (
-                <div key={study.project} className="bg-white rounded-2xl p-8 shadow-sm">
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-construction-500 rounded-xl flex items-center justify-center mr-4">
-                      <BuildingOffice2Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-slate-900">{study.company}</h3>
-                      <p className="text-slate-600">{study.project}</p>
-                    </div>
-                  </div>
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
-                    <p className="text-emerald-800 font-semibold">{study.result}</p>
-                  </div>
-                  <p className="text-slate-600">{study.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="py-24 bg-white">
-          <div className="container-custom">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-slate-900 mb-4">
-                Интеграции и внешние связи
-              </h2>
-              <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-                Для девелоперского контура обсуждаем только те внешние связи, которые нужны по фактическому сценарию команды.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {integrations.map((integration) => (
-                <div key={integration} className="flex items-center p-4 bg-slate-50 rounded-xl">
-                  <CheckCircleIcon className="w-5 h-5 text-emerald-500 mr-3" />
-                  <span className="text-slate-700">{integration}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="py-24 bg-slate-50">
-          <div className="container-custom">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-slate-900 mb-4">Сценарии, которые обычно идут рядом</h2>
-              <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-                Если девелоперскому контуру нужен более точный вход по боли или роли, отсюда можно сразу перейти в профильный сценарий.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              {relatedScenarios.map((item) => (
-                <MarketingLink
-                  key={item.href}
-                  href={item.href}
-                  className="rounded-2xl border border-concrete-200 bg-white p-8 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
+            <div className="mt-5 grid gap-3">
+              {trustList.map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-white/76"
                 >
-                  <div className="text-2xl font-semibold text-slate-900">{item.label}</div>
-                  <p className="mt-4 text-slate-600">{item.description}</p>
-                </MarketingLink>
+                  <CheckCircleIcon className="mr-2 inline h-4 w-4 text-construction-200" />
+                  {item}
+                </div>
               ))}
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="py-24 bg-slate-900 text-white">
-          <div className="container-custom text-center">
-            <h2 className="text-4xl font-bold mb-6">
-              Готовы оптимизировать управление проектами?
-            </h2>
-            <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-              Получите персональную демонстрацию ProHelper для девелоперской компании.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href={marketingPaths.contact}
-                className="btn-primary inline-flex items-center justify-center px-8 py-4 text-lg"
+      <section id="related" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Смежные маршруты"
+            title="Если хотите сразу перейти в более узкий сценарий."
+            description="Из девелоперского контура можно быстро перейти туда, где сейчас находится основная операционная боль."
+          />
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2">
+            {relatedScenarios.map((item) => (
+              <MarketingLink
+                key={item.href}
+                href={item.href}
+                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
               >
-                Заказать демонстрацию
-                <ArrowRightIcon className="w-5 h-5 ml-2" />
-              </a>
-              <a
-                href={marketingPaths.constructionErp}
-                className="btn-secondary inline-flex items-center justify-center px-8 py-4 text-lg border-slate-600 text-slate-300 hover:border-slate-500"
-              >
-                Посмотреть ERP-сценарий
-              </a>
-            </div>
+                <div className="text-xl font-bold text-steel-950">{item.label}</div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+              </MarketingLink>
+            ))}
           </div>
-        </section>
-      </div>
-    </PageLayout>
+        </div>
+      </section>
+
+      <section className="pb-16 pt-16 lg:pb-20 lg:pt-20">
+        <div className="container-custom">
+          <CtaBand
+            eyebrow="Следующий шаг"
+            title="Если нужен управляемый запуск для девелоперской команды, соберем релевантный контур под ваш портфель и структуру."
+            description="Покажем, с какого блока лучше стартовать, как разделить управленческий и проектный слой и какие расширения действительно стоит обсуждать отдельно."
+            actions={[
+              { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
+              { label: 'ERP для строительства', href: marketingPaths.constructionErp },
+            ]}
+            tone="dark"
+          />
+        </div>
+      </section>
+    </div>
   );
 };
 

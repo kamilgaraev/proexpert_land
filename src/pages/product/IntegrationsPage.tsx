@@ -1,12 +1,13 @@
-import PageLayout from '../../components/shared/PageLayout';
 import {
   BuildingOfficeIcon,
   CloudIcon,
   CogIcon,
   DevicePhoneMobileIcon,
 } from '@heroicons/react/24/outline';
-import { MarketingLink } from '@/components/marketing/MarketingPrimitives';
-import { marketingPaths } from '@/data/marketingRegistry';
+import CtaBand from '@/components/marketing/blocks/CtaBand';
+import { MarketingLink, PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import { marketingPaths, marketingSeo } from '@/data/marketingRegistry';
+import { useSEO } from '@/hooks/useSEO';
 
 type IntegrationStatus = 'Базовый контур' | 'Базовый этап' | 'По запросу';
 
@@ -22,6 +23,27 @@ interface IntegrationCategory {
   items: IntegrationItem[];
 }
 
+const principles = [
+  {
+    title: 'Честный контур',
+    description:
+      'Публично показываем только те сценарии интеграции и расширений, которые действительно обсуждаем в проектной работе.',
+    icon: CogIcon,
+  },
+  {
+    title: 'Проектная проработка',
+    description:
+      'Сначала проверяем реальный бизнес-сценарий, и только потом определяем формат обмена данными, пилота или расширения.',
+    icon: CloudIcon,
+  },
+  {
+    title: 'Запуск без лишнего шума',
+    description:
+      'Не тащим в стартовый контур все внешние системы сразу. Оставляем только то, что поддерживает рабочий процесс.',
+    icon: DevicePhoneMobileIcon,
+  },
+];
+
 const integrationCategories: IntegrationCategory[] = [
   {
     category: 'Обмен данными',
@@ -29,17 +51,17 @@ const integrationCategories: IntegrationCategory[] = [
     items: [
       {
         name: 'API и webhooks',
-        description: 'Обсуждаем обмен событиями и данными по согласованному сценарию.',
+        description: 'Проектируем обмен событиями и данными по согласованному сценарию работы команды.',
         status: 'По запросу',
       },
       {
         name: 'Выгрузки и загрузки',
-        description: 'CSV, Excel и другие форматы для операционного обмена данными.',
+        description: 'Используем CSV, Excel и другие форматы там, где они реально закрывают операционный обмен.',
         status: 'По запросу',
       },
       {
-        name: 'Проектный контур',
-        description: 'Подбираем маршрут обмена под ваш процесс и набор систем.',
+        name: 'Контур под текущий ландшафт',
+        description: 'Подбираем формат обмена под вашу структуру процессов и состав систем.',
         status: 'По запросу',
       },
     ],
@@ -50,17 +72,17 @@ const integrationCategories: IntegrationCategory[] = [
     items: [
       {
         name: 'Чертежи и вложения',
-        description: 'Работаем с файлами в контексте проекта, а не через разрозненные переписки.',
+        description: 'Работаем с файлами в контексте проекта, а не через разрозненные переписки и папки.',
         status: 'Базовый контур',
       },
       {
         name: 'Версионирование',
-        description: 'Фиксируем актуальность документов и маршрут их согласования.',
+        description: 'Фиксируем актуальность документов и маршрут согласования внутри рабочего процесса.',
         status: 'Базовый контур',
       },
       {
-        name: 'Подключение внешних источников',
-        description: 'Если нужен обмен со сторонним архивом или хранилищем, проектируем его отдельно.',
+        name: 'Внешние источники',
+        description: 'Если нужен обмен со сторонним архивом или хранилищем, проектируем его как отдельный этап.',
         status: 'По запросу',
       },
     ],
@@ -70,18 +92,18 @@ const integrationCategories: IntegrationCategory[] = [
     icon: CloudIcon,
     items: [
       {
-        name: 'Почта и нотификации',
-        description: 'Сценарии оповещений и служебных уведомлений обсуждаем на этапе настройки.',
+        name: 'Почта и уведомления',
+        description: 'Настраиваем служебные уведомления в составе целевого рабочего сценария.',
         status: 'По запросу',
       },
       {
         name: 'Мессенджеры и боты',
-        description: 'Если нужен отдельный канал оповещений, оцениваем его как пилотное расширение.',
+        description: 'Отдельно оцениваем, нужен ли внешний канал уведомлений или лучше оставить сценарий внутри продукта.',
         status: 'По запросу',
       },
       {
         name: 'Проектные автоматизации',
-        description: 'Не публикуем каталог готовых коннекторов: расширения делаем под реальный запрос команды.',
+        description: 'Нет публичного каталога «магических коннекторов»: расширения делаем под согласованный запрос.',
         status: 'По запросу',
       },
     ],
@@ -92,176 +114,209 @@ const integrationCategories: IntegrationCategory[] = [
     items: [
       {
         name: 'Оценка текущего процесса',
-        description: 'На старте сверяем, где нужен реальный обмен, а где достаточно внутреннего контура ProHelper.',
+        description: 'На старте определяем, где нужен реальный обмен данными, а где достаточно внутреннего контура ProHelper.',
         status: 'Базовый этап',
       },
       {
         name: 'Пилот для расширений',
-        description: 'Если нужен нетиповой сценарий, выносим его в отдельный пилот.',
+        description: 'Если нужен нетиповой сценарий, выносим его в отдельный пилот, а не смешиваем с базовым запуском.',
         status: 'По запросу',
       },
       {
-        name: 'Корпоративное расширение',
-        description: 'Для сложной схемы обмена договариваемся об объеме и ответственном сценарии внедрения.',
+        name: 'Корпоративный сценарий',
+        description: 'Для сложной схемы обмена согласуем объем, границы и ответственный маршрут внедрения.',
         status: 'По запросу',
       },
     ],
   },
 ];
 
-const relatedIntegrationScenarios = [
+const relatedScenarios = [
   {
     label: 'ERP для строительства',
     href: marketingPaths.constructionErp,
-    description: 'Когда интеграции обсуждаются как часть общего управленческого контура по объектам, финансам и документам.',
+    description: 'Когда интеграции обсуждаются как часть общего управленческого контура по объектам, документам и финансам.',
   },
   {
     label: 'CRM для строительной компании',
     href: marketingPaths.constructionCrm,
-    description: 'Если сначала нужно собрать единый рабочий процесс по объектам, задачам, статусам и коммуникации, а уже затем подключать внешние связи.',
+    description: 'Если сначала нужно собрать единый рабочий процесс, а уже затем подключать внешние связи.',
   },
   {
     label: 'Enterprise',
     href: marketingPaths.enterprise,
-    description: 'Для корпоративных сценариев, где нужно заранее обсудить модель доступа, пилот, масштабирование и требования внутренней инфраструктуры.',
+    description: 'Подходит, если важно заранее обсудить корпоративные правила доступа, пилоты и архитектуру запуска.',
   },
   {
-    label: 'Обсудить ваш сценарий',
+    label: 'Связаться с нами',
     href: marketingPaths.contact,
-    description: 'Подходит, если важно быстро сверить, что реально можно запустить сейчас, а что лучше вынести в отдельный этап.',
+    description: 'Если хотите быстро сверить, что можно запускать уже сейчас, а что лучше вынести в отдельный этап.',
   },
 ];
 
-const getStatusColor = (status: IntegrationStatus) => {
+const getStatusTone = (status: IntegrationStatus) => {
   switch (status) {
     case 'Базовый контур':
-      return 'bg-green-100 text-green-800';
+      return 'bg-emerald-100 text-emerald-800';
     case 'Базовый этап':
-      return 'bg-blue-100 text-blue-800';
-    case 'По запросу':
-      return 'bg-amber-100 text-amber-800';
+      return 'bg-sky-100 text-sky-800';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-amber-100 text-amber-800';
   }
 };
 
 const IntegrationsPage = () => {
+  useSEO({
+    ...marketingSeo.integrations,
+    type: 'website',
+  });
+
   return (
-    <PageLayout
-      title="Интеграции и расширения"
-      subtitle="Внешние связи, пилоты и расширения под реальный рабочий контур команды"
-      seoPage="integrations"
-      showFooter={false}
-    >
-      <div className="mb-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-concrete-100">
-            <div className="w-12 h-12 bg-construction-100 rounded-xl flex items-center justify-center mb-6">
-              <CogIcon className="w-6 h-6 text-construction-600" />
+    <div className="marketing-page-shell">
+      <PageHero
+        eyebrow="Интеграции и расширения"
+        title="Интеграции ProHelper: только те внешние связи, которые поддерживают реальный процесс."
+        description="Страница для команд, которым важно понять, как ProHelper стыкуется с текущим ландшафтом, документным контуром и проектными расширениями без избыточных обещаний."
+        actions={[
+          { label: 'Обсудить сценарий', href: marketingPaths.contact, primary: true },
+          { label: 'Страница безопасности', href: marketingPaths.security },
+        ]}
+        nav={[
+          { label: 'Принципы', href: '#principles' },
+          { label: 'Категории', href: '#categories' },
+          { label: 'Куда идти дальше', href: '#related' },
+        ]}
+        aside={
+          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+              Что обсуждаем на старте
             </div>
-            <h3 className="text-xl font-bold text-steel-900 mb-4">Честный контур</h3>
-            <p className="text-steel-600">
-              Публично не заявляем интеграции, которых у нас нет в продукте или в подтвержденном плане.
-            </p>
+            <div className="mt-4 grid gap-3">
+              {[
+                'Где действительно нужен внешний обмен данными, а где достаточно внутреннего контура.',
+                'Какие расширения можно считать базовым этапом, а какие требуют отдельного проекта.',
+                'Как не перегрузить запуск лишними интеграциями на первом шаге.',
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
           </div>
+        }
+      />
 
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-concrete-100">
-            <div className="w-12 h-12 bg-safety-100 rounded-xl flex items-center justify-center mb-6">
-              <CloudIcon className="w-6 h-6 text-safety-600" />
-            </div>
-            <h3 className="text-xl font-bold text-steel-900 mb-4">Проектная проработка</h3>
-            <p className="text-steel-600">
-              Сначала сверяем бизнес-сценарий, потом выбираем формат обмена или пилотного расширения.
-            </p>
-          </div>
+      <section id="principles" className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Принципы"
+            title="Как мы подходим к интеграциям и проектным расширениям."
+            description="Сначала определяем рабочий сценарий, затем формат обмена и только после этого обсуждаем архитектуру расширения."
+          />
 
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-concrete-100">
-            <div className="w-12 h-12 bg-earth-100 rounded-xl flex items-center justify-center mb-6">
-              <BuildingOfficeIcon className="w-6 h-6 text-earth-600" />
-            </div>
-            <h3 className="text-xl font-bold text-steel-900 mb-4">Запуск без мусора</h3>
-            <p className="text-steel-600">
-              Не натягиваем на продукт все внешние системы сразу: оставляем только то, что дает пользу процессу.
-            </p>
+          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {principles.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <article
+                  key={item.title}
+                  className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-construction-50 text-construction-700">
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <h2 className="mt-5 text-xl font-bold text-steel-950">{item.title}</h2>
+                  <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                </article>
+              );
+            })}
           </div>
         </div>
+      </section>
 
-        {integrationCategories.map((category) => {
-          const IconComponent = category.icon;
+      <section id="categories" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom space-y-6">
+          {integrationCategories.map((category) => {
+            const Icon = category.icon;
 
-          return (
-            <div key={category.category} className="mb-12">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-gradient-to-br from-construction-500 to-construction-600 rounded-lg flex items-center justify-center">
-                  <IconComponent className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-2xl font-bold text-steel-900">{category.category}</h2>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                {category.items.map((item) => (
-                  <div
-                    key={`${category.category}-${item.name}`}
-                    className="bg-white rounded-xl p-6 shadow-md border border-concrete-100 hover:shadow-lg transition-shadow"
-                  >
-                    <div className="flex justify-between items-start mb-4 gap-4">
-                      <h3 className="text-lg font-semibold text-steel-900">{item.name}</h3>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(item.status)}`}>
-                        {item.status}
-                      </span>
-                    </div>
-                    <p className="text-steel-600">{item.description}</p>
+            return (
+              <section
+                key={category.category}
+                className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-[1rem] bg-steel-950 text-construction-200">
+                    <Icon className="h-5 w-5" />
                   </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
+                  <h2 className="text-2xl font-bold text-steel-950">{category.category}</h2>
+                </div>
 
-        <div className="bg-slate-50 rounded-2xl p-8 border border-concrete-100 mt-16">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-steel-900 mb-4">Куда перейти дальше</h2>
-            <p className="text-xl text-steel-600">
-              Если вопрос интеграции связан с более широкой задачей, удобнее перейти сразу в профильный сценарий.
-            </p>
-          </div>
+                <div className="mt-6 grid gap-5 xl:grid-cols-3">
+                  {category.items.map((item) => (
+                    <article
+                      key={`${category.category}-${item.name}`}
+                      className="rounded-[1.5rem] border border-steel-200 bg-concrete-50 px-5 py-5"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <h3 className="text-lg font-bold text-steel-950">{item.name}</h3>
+                        <span
+                          className={`inline-flex w-fit rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${getStatusTone(item.status)}`}
+                        >
+                          {item.status}
+                        </span>
+                      </div>
+                      <p className="mt-4 text-sm leading-7 text-steel-600">{item.description}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      </section>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {relatedIntegrationScenarios.map((item) => (
+      <section id="related" className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Куда идти дальше"
+            title="Если вопрос интеграций связан с более широким сценарием запуска."
+            description="Из этой страницы удобно перейти в связанный маршрут по ERP, корпоративному контуру или первичному контакту."
+          />
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2">
+            {relatedScenarios.map((item) => (
               <MarketingLink
                 key={item.href}
                 href={item.href}
-                className="rounded-xl border border-concrete-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
+                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
               >
-                <div className="text-lg font-bold text-steel-900">{item.label}</div>
-                <div className="mt-3 text-steel-600">{item.description}</div>
+                <div className="text-xl font-bold text-steel-950">{item.label}</div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
               </MarketingLink>
             ))}
           </div>
         </div>
+      </section>
 
-        <div className="bg-gradient-to-r from-construction-600 to-safety-600 rounded-2xl p-8 text-center text-white mt-16">
-          <h3 className="text-2xl font-bold mb-4">Нужен нетиповой сценарий?</h3>
-          <p className="text-lg mb-6 opacity-90">
-            Разберем текущий процесс, честно скажем, что можно запустить сейчас, а что требует отдельной проработки.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="/contact"
-              className="px-8 py-3 bg-white text-construction-600 font-semibold rounded-lg hover:shadow-lg transition-all"
-            >
-              Обсудить сценарий
-            </a>
-            <a
-              href="/security"
-              className="px-8 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-construction-600 transition-all"
-            >
-              Безопасность и доступ
-            </a>
-          </div>
+      <section className="pb-16 pt-16 lg:pb-20 lg:pt-20">
+        <div className="container-custom">
+          <CtaBand
+            eyebrow="Следующий шаг"
+            title="Если нужен нетиповой сценарий, разберем текущий ландшафт и честно скажем, что стоит запускать сейчас."
+            description="На встрече отделим базовый контур от проектных расширений, оценим приоритеты и соберем реалистичный маршрут запуска без лишнего архитектурного шума."
+            actions={[
+              { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
+              { label: 'Enterprise', href: marketingPaths.enterprise },
+            ]}
+            tone="dark"
+          />
         </div>
-      </div>
-    </PageLayout>
+      </section>
+    </div>
   );
 };
 

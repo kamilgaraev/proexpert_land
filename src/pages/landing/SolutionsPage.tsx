@@ -41,7 +41,7 @@ const SolutionsPage = () => {
   const packageMap = new Map(marketingPackages.map((item) => [item.slug, item]));
 
   return (
-    <div className="bg-white pt-28">
+    <div className="marketing-page-shell">
       <PageHero
         eyebrow="Решения"
         title="Решения ProHelper для подрядчика, генподрядчика, девелопера и ПТО."

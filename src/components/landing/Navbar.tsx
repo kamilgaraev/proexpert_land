@@ -27,6 +27,22 @@ const Navbar = () => {
     setIsOpen(false);
   }, [location.pathname, location.hash]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
   const isActiveLink = (href: string) =>
     location.pathname === href || location.pathname.startsWith(`${href}/`);
 
@@ -48,7 +64,7 @@ const Navbar = () => {
             </a>
           </div>
 
-          <div className="flex min-h-[80px] items-center justify-between gap-4 px-4 sm:px-6">
+          <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 sm:min-h-[80px] sm:px-6">
             <Link to={marketingPaths.home} className="flex min-w-0 items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.25rem] bg-steel-950 text-construction-200">
                 <BuildingOfficeIcon className="h-6 w-6" />
@@ -57,7 +73,7 @@ const Navbar = () => {
                 <div className="truncate text-lg font-bold text-steel-950">
                   {marketingCompany.brand}
                 </div>
-                <div className="truncate text-[11px] uppercase tracking-[0.2em] text-steel-500">
+                <div className="hidden truncate text-[11px] uppercase tracking-[0.2em] text-steel-500 sm:block">
                   {marketingCompany.tagline}
                 </div>
               </div>
@@ -123,7 +139,7 @@ const Navbar = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.2 }}
-                className="mx-4 mb-4 rounded-[1.5rem] border border-steel-200 bg-white p-5 shadow-xl lg:hidden"
+                className="mx-4 mb-4 max-h-[calc(100svh-6.75rem)] overflow-y-auto rounded-[1.5rem] border border-steel-200 bg-white p-5 shadow-xl lg:hidden"
               >
                 <div className="grid gap-2">
                   {navigationItems.map((item) => {

@@ -44,7 +44,7 @@ const FeaturesPage = () => {
   }, [trackPageView]);
 
   return (
-    <div className="bg-white pt-28">
+    <div className="marketing-page-shell">
       <PageHero
         eyebrow="Продукт"
         title="Ключевые возможности ProHelper для строительной компании."

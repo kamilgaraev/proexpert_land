@@ -1,285 +1,299 @@
-import PageLayout from '../../components/shared/PageLayout';
-import { 
-  ArrowRightIcon,
-  WrenchScrewdriverIcon,
-  TruckIcon,
-  UsersIcon,
-  DocumentTextIcon,
+import {
   ClockIcon,
-  CheckCircleIcon,
-  ShieldCheckIcon
+  DocumentTextIcon,
+  ShieldCheckIcon,
+  UsersIcon,
+  WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline';
-import { MarketingLink } from '@/components/marketing/MarketingPrimitives';
-import { marketingPaths } from '@/data/marketingRegistry';
+import CtaBand from '@/components/marketing/blocks/CtaBand';
+import { MarketingLink, PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import { marketingPaths, marketingSeo } from '@/data/marketingRegistry';
+import { useSEO } from '@/hooks/useSEO';
+
+const focusAreas = [
+  {
+    title: 'Сроки и этапы',
+    description:
+      'Видно, где работа идет по плану, а где подрядный контур начинает проседать по срокам и зависимостям.',
+    icon: ClockIcon,
+  },
+  {
+    title: 'Бригады и роли',
+    description:
+      'Руководитель видит распределение задач, ответственных и текущую загрузку без ручной сборки отчетов.',
+    icon: UsersIcon,
+  },
+  {
+    title: 'Акты и документы',
+    description:
+      'Исполнение, замечания и комплектность документов держатся в одном рабочем сценарии.',
+    icon: DocumentTextIcon,
+  },
+  {
+    title: 'Качество работ',
+    description:
+      'Замечания, проверки и корректирующие действия остаются привязанными к реальному этапу работ.',
+    icon: ShieldCheckIcon,
+  },
+];
+
+const workflowTracks = [
+  {
+    title: 'Планирование подрядного контура',
+    bullets: [
+      'Формируем этапы и зоны ответственности по объекту.',
+      'Раздаем задачи по бригадам и подрядным ролям.',
+      'Держим сроки и факт исполнения в одной логике.',
+    ],
+  },
+  {
+    title: 'Работа с площадкой',
+    bullets: [
+      'Фиксируем статусы и замечания прямо по ходу работ.',
+      'Подтягиваем документы и вложения к конкретному этапу.',
+      'Убираем разрыв между офисом, площадкой и руководителем.',
+    ],
+  },
+  {
+    title: 'Материалы и снабжение',
+    bullets: [
+      'Связываем заявки, поставки и приемку с фактическим ходом работ.',
+      'Показываем, где снабжение тормозит подрядный сценарий.',
+      'Убираем хаос из переписок и разрозненных таблиц.',
+    ],
+  },
+  {
+    title: 'Исполнение и приемка',
+    bullets: [
+      'Собираем замечания, исправления и документы по месту возникновения.',
+      'Ускоряем переход от выполнения к закрытию этапа.',
+      'Даем руководителю прозрачную картину по готовности подрядчика.',
+    ],
+  },
+];
+
+const resultOutcomes = [
+  'Оперативный контроль по бригадам, срокам и замечаниям.',
+  'Меньше ручных созвонов и сборки статусов из мессенджеров.',
+  'Понятный путь от задачи до документа и приемки.',
+  'Единый сценарий для объекта, подрядчика и офиса.',
+];
+
+const relatedSolutions = [
+  {
+    label: 'Программа для прораба',
+    href: marketingPaths.foremanSoftware,
+    description: 'Если ключевая точка управления находится на площадке и нужна полная картина по задачам и факту.',
+  },
+  {
+    label: 'Контроль подрядчиков',
+    href: marketingPaths.contractorControl,
+    description: 'Когда нужно отдельно разобрать сроки, объемы, ответственность и исполнительскую дисциплину.',
+  },
+  {
+    label: 'Учет материалов',
+    href: marketingPaths.materialAccounting,
+    description: 'Если подрядный процесс упирается в заявки, поставки, приемку и остатки материалов.',
+  },
+  {
+    label: 'Исполнительная документация',
+    href: marketingPaths.constructionDocuments,
+    description: 'Подходит, если узкое место сейчас в актах, замечаниях и комплектности документов.',
+  },
+];
 
 const ContractorsPage = () => {
-  const relatedSolutions = [
-    {
-      label: 'Программа для прораба',
-      href: marketingPaths.foremanSoftware,
-      description: 'Если нужно держать в одном контуре задачи, замечания, фотофиксацию и ежедневную работу на площадке.',
-    },
-    {
-      label: 'Контроль подрядчиков',
-      href: marketingPaths.contractorControl,
-      description: 'Когда важно видеть сроки, объемы, ответственность и просадки по субподрядчикам без ручных сводок.',
-    },
-    {
-      label: 'Учет материалов',
-      href: marketingPaths.materialAccounting,
-      description: 'Для команд, которым нужен путь от заявки до поставки и приемки материалов по объектам.',
-    },
-    {
-      label: 'Исполнительная документация',
-      href: marketingPaths.constructionDocuments,
-      description: 'Подходит, если подрядный контур упирается в акты, комплектность, замечания и передачу документов.',
-    },
-  ];
-
-  const challenges = [
-    {
-      icon: ClockIcon,
-      title: 'Сроки выполнения',
-      description: 'Четкое планирование и контроль сроков каждого этапа работ'
-    },
-    {
-      icon: UsersIcon,
-      title: 'Координация бригад',
-      description: 'Эффективное управление несколькими рабочими группами'
-    },
-    {
-      icon: DocumentTextIcon,
-      title: 'Документооборот',
-      description: 'Ведение актов, отчетов и согласований в одном месте'
-    },
-    {
-      icon: ShieldCheckIcon,
-      title: 'Контроль качества',
-      description: 'Систематический контроль качества выполняемых работ'
-    }
-  ];
-
-  const solutions = [
-    {
-      title: 'Планирование работ',
-      features: [
-        'Создание детального календарного плана',
-        'Распределение задач по бригадам',
-        'Контроль загрузки специалистов',
-        'Учет материалов и оборудования'
-      ]
-    },
-    {
-      title: 'Мобильное приложение',
-      features: [
-        'Получение задач прямо на объекте',
-        'Фотоотчеты о выполненных работах',
-        'Быстрая связь с прорабом',
-        'Отметка о начале и завершении работ'
-      ]
-    },
-    {
-      title: 'Контроль качества',
-      features: [
-        'Чек-листы для проверки работ',
-        'Фиксация замечаний и недостатков',
-        'Планирование исправлений',
-        'История всех проверок'
-      ]
-    },
-    {
-      title: 'Отчетность',
-      features: [
-        'Ежедневные отчеты о проделанной работе',
-        'Автоматические сводки по объектам',
-        'Учет расхода материалов',
-        'Финансовые отчеты по проектам'
-      ]
-    }
-  ];
-
-  const benefits = [
-    {
-      metric: '35%',
-      title: 'Сокращение времени',
-      description: 'на планирование и координацию работ'
-    },
-    {
-      metric: '50%',
-      title: 'Уменьшение ошибок',
-      description: 'благодаря четкому планированию'
-    },
-    {
-      metric: '25%',
-      title: 'Экономия бюджета',
-      description: 'за счет оптимизации ресурсов'
-    },
-    {
-      metric: '90%',
-      title: 'Соблюдение сроков',
-      description: 'выполнения работ'
-    }
-  ];
+  useSEO({
+    ...marketingSeo.contractors,
+    type: 'website',
+  });
 
   return (
-    <PageLayout 
-      title="ProHelper для подрядчиков" 
-      subtitle="Контроль бригад, сроков, документов и качества работ в одном рабочем контуре"
-      seoPage="contractors"
-      showFooter={false}
-    >
-      <div className="mb-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {challenges.map((challenge, index) => {
-            const IconComponent = challenge.icon;
-            return (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-lg border border-concrete-100 text-center">
-                <div className="w-16 h-16 bg-construction-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <IconComponent className="w-8 h-8 text-construction-600" />
+    <div className="marketing-page-shell">
+      <PageHero
+        eyebrow="Подрядный контур"
+        title="ProHelper для подрядчика: сроки, бригады, документы и качество в одном сценарии."
+        description="Страница для подрядных команд, которым нужно связать объект, исполнителей, замечания, снабжение и закрывающие документы без ручной сборки статусов."
+        actions={[
+          { label: 'Запросить демонстрацию', href: marketingPaths.contact, primary: true },
+          { label: 'Открыть все решения', href: marketingPaths.solutions },
+        ]}
+        nav={[
+          { label: 'Фокус', href: '#focus' },
+          { label: 'Сценарий работы', href: '#workflow' },
+          { label: 'Результат', href: '#result' },
+          { label: 'Смежные страницы', href: '#related' },
+        ]}
+        aside={
+          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+              Что важно подрядной команде
+            </div>
+            <div className="mt-4 grid gap-3">
+              {[
+                'Понимать, где тормозит объект и кто отвечает за следующий шаг.',
+                'Держать замечания, документы и статус работ в одном контуре.',
+                'Показывать руководителю факт исполнения без ручной сводки.',
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                >
+                  {item}
                 </div>
-                <h3 className="text-lg font-bold text-steel-900 mb-2">{challenge.title}</h3>
-                <p className="text-steel-600 text-sm">{challenge.description}</p>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mb-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-steel-900 mb-4">Комплексное решение для подрядчиков</h2>
-            <p className="text-xl text-steel-600">Все инструменты для эффективной работы в одной системе</p>
+              ))}
+            </div>
           </div>
+        }
+      />
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {solutions.map((solution, index) => (
-              <div key={index} className="bg-white rounded-xl p-8 shadow-lg border border-concrete-100">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-construction-500 to-construction-600 rounded-lg flex items-center justify-center">
-                    <WrenchScrewdriverIcon className="w-5 h-5 text-white" />
+      <section id="focus" className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Фокус"
+            title="Какие зоны подрядный контур держит под контролем."
+            description="Не витрина возможностей, а те участки, где подрядная команда чаще всего теряет управляемость."
+          />
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {focusAreas.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <article
+                  key={item.title}
+                  className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-construction-50 text-construction-700">
+                    <Icon className="h-6 w-6" />
                   </div>
-                  <h3 className="text-xl font-bold text-steel-900">{solution.title}</h3>
+                  <h2 className="mt-5 text-xl font-bold text-steel-950">{item.title}</h2>
+                  <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section id="workflow" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Сценарий работы"
+            title="Как подрядный маршрут собирается в один рабочий контур."
+            description="На демонстрации показываем не абстрактные фичи, а реальный путь подрядной команды от планирования до закрытия этапа."
+          />
+
+          <div className="mt-10 grid gap-5 xl:grid-cols-2">
+            {workflowTracks.map((item) => (
+              <article
+                key={item.title}
+                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-steel-950 text-construction-200">
+                    <WrenchScrewdriverIcon className="h-5 w-5" />
+                  </div>
+                  <h2 className="text-xl font-bold text-steel-950">{item.title}</h2>
                 </div>
-                <ul className="space-y-3">
-                  {solution.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-start gap-2">
-                      <CheckCircleIcon className="w-5 h-5 text-construction-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-steel-600">{feature}</span>
-                    </li>
+
+                <div className="mt-5 grid gap-3">
+                  {item.bullets.map((bullet) => (
+                    <div
+                      key={bullet}
+                      className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                    >
+                      {bullet}
+                    </div>
                   ))}
-                </ul>
-              </div>
+                </div>
+              </article>
             ))}
           </div>
         </div>
+      </section>
 
-        <div className="bg-gradient-to-r from-construction-600 to-safety-600 rounded-2xl p-8 mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-4">Результаты наших клиентов</h2>
-            <p className="text-xl text-white/90">Реальные показатели улучшения эффективности</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {benefits.map((benefit, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl font-bold text-white mb-2">{benefit.metric}</div>
-                <div className="text-lg font-semibold text-white mb-1">{benefit.title}</div>
-                <div className="text-white/80 text-sm">{benefit.description}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-8 shadow-lg border border-concrete-100 mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-steel-900 mb-4">Кейс: ООО "СтройМастер"</h2>
-            <p className="text-xl text-steel-600">Как подрядчик оптимизировал работу на 15 объектах</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-red-600 font-bold text-lg">До</span>
-              </div>
-              <ul className="text-steel-600 text-sm space-y-2">
-                <li>• Планирование на бумаге</li>
-                <li>• Постоянные простои бригад</li>
-                <li>• Превышение бюджета на 20%</li>
-                <li>• Срывы сроков в 40% проектов</li>
-              </ul>
+      <section id="result" className="py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+          <div>
+            <SectionHeader
+              eyebrow="Результат"
+              title="Что получает подрядчик после запуска рабочего контура."
+              description="Главная ценность здесь не в отдельных экранах, а в том, что команда перестает жить между мессенджерами, файлами и разрозненными статусами."
+            />
+            <div className="mt-8 grid gap-3">
+              {resultOutcomes.map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.25rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                >
+                  {item}
+                </div>
+              ))}
             </div>
+          </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TruckIcon className="w-8 h-8 text-blue-600" />
-              </div>
-              <div className="text-steel-900 font-semibold mb-2">Внедрение ProHelper</div>
-              <ul className="text-steel-600 text-sm space-y-2">
-                <li>• Обучение команды - 1 неделя</li>
-                <li>• Настройка процессов - 2 недели</li>
-                <li>• Полный переход - 1 месяц</li>
-              </ul>
+          <div className="rounded-[1.9rem] border border-steel-900 bg-steel-950 p-6 text-white lg:p-7">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
+              Что показываем на встрече
             </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-green-600 font-bold text-lg">После</span>
-              </div>
-              <ul className="text-steel-600 text-sm space-y-2">
-                <li>• Цифровое планирование</li>
-                <li>• Сокращение простоев на 60%</li>
-                <li>• Экономия бюджета 15%</li>
-                <li>• Сроки соблюдаются в 95% случаев</li>
-              </ul>
+            <div className="mt-5 grid gap-3">
+              {[
+                'Как подрядная команда видит план, факт, замечания и документы без лишних переключений.',
+                'Как связать площадку, снабжение и приемку в одной логике исполнения.',
+                'Какой минимальный стартовый контур нужен именно вашему объекту и роли команды.',
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-white/76"
+                >
+                  {item}
+                </div>
+              ))}
             </div>
           </div>
         </div>
+      </section>
 
-        <div className="bg-slate-50 rounded-2xl p-8 border border-concrete-100 mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-steel-900 mb-4">Что еще посмотреть подрядной команде</h2>
-            <p className="text-xl text-steel-600">
-              Эти страницы помогут быстро перейти в соседний рабочий сценарий, если задача выходит за рамки одной роли.
-            </p>
-          </div>
+      <section id="related" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Смежные страницы"
+            title="Куда перейти, если задача выходит за рамки подрядного контура."
+            description="Из этой страницы удобно перейти в профильный сценарий по роли, материалам или документам."
+          />
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="mt-10 grid gap-5 md:grid-cols-2">
             {relatedSolutions.map((item) => (
               <MarketingLink
                 key={item.href}
                 href={item.href}
-                className="rounded-xl border border-concrete-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
+                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
               >
-                <div className="text-lg font-bold text-steel-900">{item.label}</div>
-                <div className="mt-3 text-steel-600">{item.description}</div>
+                <div className="text-xl font-bold text-steel-950">{item.label}</div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
               </MarketingLink>
             ))}
           </div>
         </div>
+      </section>
 
-        <div className="text-center">
-          <h3 className="text-3xl font-bold text-steel-900 mb-4">Готовы собрать подрядный контур без лишней ручной работы?</h3>
-          <p className="text-xl text-steel-600 mb-8">
-            Покажем, как связать площадку, офис и подрядные команды в одном сценарии запуска под ваш объект.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <MarketingLink
-              href={marketingPaths.contact}
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-construction-600 text-white font-semibold rounded-lg hover:bg-construction-700 transition-colors"
-            >
-              Заказать демонстрацию
-              <ArrowRightIcon className="w-5 h-5" />
-            </MarketingLink>
-            <MarketingLink
-              href={marketingPaths.contractorControl}
-              className="inline-flex items-center justify-center px-8 py-3 border-2 border-construction-600 text-construction-600 font-semibold rounded-lg hover:bg-construction-50 transition-colors"
-            >
-              Посмотреть сценарий контроля подрядчиков
-            </MarketingLink>
-          </div>
+      <section className="pb-16 pt-16 lg:pb-20 lg:pt-20">
+        <div className="container-custom">
+          <CtaBand
+            eyebrow="Следующий шаг"
+            title="Если хотите собрать подрядный контур без лишней ручной работы, покажем релевантный сценарий на вашем процессе."
+            description="Разберем роль команды, структуру объекта и текущие узкие места, после чего покажем только тот маршрут запуска, который реально имеет смысл на старте."
+            actions={[
+              { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
+              { label: 'Контроль подрядчиков', href: marketingPaths.contractorControl },
+            ]}
+            tone="dark"
+          />
         </div>
-      </div>
-    </PageLayout>
+      </section>
+    </div>
   );
 };
 
-export default ContractorsPage; 
+export default ContractorsPage;

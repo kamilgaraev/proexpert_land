@@ -94,12 +94,12 @@ export const SectionHeader = ({
         {eyebrow}
       </div>
       <h2
-        className={`mt-5 max-w-4xl font-sans text-[clamp(1.9rem,3.6vw,3.2rem)] font-bold leading-[1.04] tracking-tight ${titleClass}`}
+        className={`mt-4 max-w-4xl font-sans text-[clamp(1.85rem,3.6vw,3.2rem)] font-bold leading-[1.04] tracking-tight sm:mt-5 ${titleClass}`}
       >
         {title}
       </h2>
       {description ? (
-        <p className={`mt-5 max-w-3xl text-base leading-8 ${descriptionClass}`}>{description}</p>
+        <p className={`mt-4 max-w-3xl text-sm leading-7 sm:mt-5 sm:text-base sm:leading-8 ${descriptionClass}`}>{description}</p>
       ) : null}
     </div>
   );
@@ -113,12 +113,12 @@ export const PageSectionNav = ({
   className?: string;
 }) => (
   <div className={`overflow-x-auto pb-2 ${className}`}>
-    <div className="flex min-w-max flex-wrap gap-3">
+    <div className="flex min-w-max gap-3 sm:min-w-0 sm:flex-wrap">
       {items.map((item) => (
         <MarketingLink
           key={`${item.href}-${item.label}`}
           href={item.href}
-          className="inline-flex items-center rounded-full border border-steel-200 bg-white px-4 py-2 text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700"
+          className="inline-flex items-center whitespace-nowrap rounded-full border border-steel-200 bg-white px-4 py-2 text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700"
         >
           {item.label}
         </MarketingLink>
@@ -143,24 +143,24 @@ export const PageHero = ({
   aside?: ReactNode;
 }) => (
   <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.16),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(148,163,184,0.16),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
-    <div className="container-custom py-16 lg:py-20">
+    <div className="container-custom py-12 sm:py-14 lg:py-20">
       <div className={`grid gap-8 ${aside ? 'xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)] xl:items-start' : ''}`}>
         <div className="max-w-4xl">
           <div className="inline-flex items-center rounded-full border border-construction-200 bg-construction-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-construction-700">
             {eyebrow}
           </div>
-          <h1 className="mt-5 max-w-4xl font-sans text-[clamp(2.4rem,4.8vw,4.4rem)] font-bold leading-[0.98] tracking-tight text-steel-950">
+          <h1 className="mt-4 max-w-4xl font-sans text-[clamp(2rem,5.4vw,4.4rem)] font-bold leading-[0.98] tracking-tight text-steel-950 sm:mt-5">
             {title}
           </h1>
-          <p className="mt-6 max-w-3xl text-lg leading-8 text-steel-600">{description}</p>
+          <p className="mt-5 max-w-3xl text-base leading-7 text-steel-600 sm:mt-6 sm:text-lg sm:leading-8">{description}</p>
 
           {actions.length > 0 ? (
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
               {actions.map((action) => (
                 <MarketingLink
                   key={`${action.href}-${action.label}`}
                   href={action.href}
-                  className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition ${
+                  className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition sm:w-auto ${
                     action.primary
                       ? 'bg-steel-950 text-white hover:-translate-y-0.5 hover:bg-steel-900'
                       : 'border border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
@@ -177,7 +177,7 @@ export const PageHero = ({
         {aside ? <div>{aside}</div> : null}
       </div>
 
-      {nav.length > 0 ? <PageSectionNav items={nav} className="mt-10" /> : null}
+      {nav.length > 0 ? <PageSectionNav items={nav} className="mt-8 sm:mt-10" /> : null}
     </div>
   </section>
 );
@@ -270,7 +270,7 @@ export const LegalDocumentView = ({
   });
 
   return (
-    <div className="bg-white pt-28">
+    <div className="marketing-page-shell">
       <PageHero
         eyebrow={document.shortTitle}
         title={document.title}
