@@ -98,7 +98,7 @@
 
 /* Blog content styles */
 .blog-content {
-  @apply max-w-none;
+  @apply max-w-none break-words;
 }
 
 .blog-content h1,
@@ -131,7 +131,7 @@
 }
 
 .blog-content img {
-  @apply rounded-lg shadow-sm mx-auto;
+  @apply mx-auto block max-w-full rounded-lg shadow-sm;
 }
 
 .blog-content blockquote {
@@ -160,12 +160,17 @@
 }
 
 .blog-content table {
-  @apply w-full border-collapse border border-gray-300 mb-4;
+  @apply mb-4 w-full border-collapse border border-gray-300;
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .blog-content th,
 .blog-content td {
   @apply border border-gray-300 px-4 py-2;
+  min-width: 10rem;
 }
 
 .blog-content th {

@@ -327,7 +327,7 @@ const BlogPublicPage = () => {
                 </p>
                 <a
                   href={marketingPaths.blog}
-                  className="mt-5 inline-flex rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-900"
+                  className="mt-5 inline-flex w-full justify-center rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-900 sm:w-auto"
                 >
                   Открыть все статьи
                 </a>
@@ -346,7 +346,7 @@ const BlogPublicPage = () => {
                       type="button"
                       onClick={handleLoadMore}
                       disabled={loadingMore}
-                      className={`inline-flex rounded-full px-5 py-3 text-sm font-semibold transition ${
+                      className={`inline-flex w-full justify-center rounded-full px-5 py-3 text-sm font-semibold transition sm:w-auto ${
                         loadingMore
                           ? 'cursor-not-allowed bg-steel-300 text-white'
                           : 'bg-steel-950 text-white hover:bg-steel-900'

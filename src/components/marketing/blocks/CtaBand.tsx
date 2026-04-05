@@ -49,7 +49,7 @@ const CtaBand = ({
           <h2
             className={`mt-4 font-bold [overflow-wrap:anywhere] [text-wrap:balance] ${
               isCompact
-                ? 'max-w-none text-[clamp(2.1rem,3vw,3.1rem)] leading-[0.98]'
+                ? 'max-w-none text-[clamp(1.7rem,7vw,3.1rem)] leading-[1.02] sm:text-[clamp(2rem,4vw,3.1rem)]'
                 : 'max-w-4xl text-[clamp(1.15rem,10vw,3.6rem)] leading-[1.04] sm:text-[clamp(1.75rem,6vw,3.6rem)]'
             }`}
           >
@@ -57,7 +57,7 @@ const CtaBand = ({
           </h2>
           <p
             className={`mt-5 ${
-              isCompact ? 'max-w-none text-base leading-8' : 'max-w-3xl text-sm leading-7 sm:text-base sm:leading-8'
+              isCompact ? 'max-w-none text-sm leading-7 sm:text-base sm:leading-8' : 'max-w-3xl text-sm leading-7 sm:text-base sm:leading-8'
             } ${isDark ? 'text-white/72' : 'text-steel-600'}`}
           >
             {description}

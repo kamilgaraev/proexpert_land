@@ -197,7 +197,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
               {trustProfile.firstStepTitle}
             </div>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {trustProfile.firstStep.map((item, index) => (
                 <div
                   key={item}
@@ -279,7 +279,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {page.proof.metrics.map((metric) => (
                   <div
                     key={metric.label}

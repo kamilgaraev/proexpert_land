@@ -108,7 +108,7 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-1">
               {marketingHeroFacts.map((fact) => (
                 <div key={fact.label} className="rounded-[1.5rem] border border-steel-200 bg-white p-5 shadow-sm">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
@@ -270,7 +270,7 @@ const HomePage = () => {
               />
             </div>
 
-            <div className="grid gap-4 px-2 pb-2 pt-5 md:grid-cols-3">
+            <div className="grid gap-4 px-2 pb-2 pt-5 sm:grid-cols-2 xl:grid-cols-3">
               {marketingHeroFacts.map((fact) => (
                 <article key={fact.label} className="rounded-[1.25rem] bg-concrete-50 px-4 py-4">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">

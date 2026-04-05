@@ -72,13 +72,13 @@ const BlogSidebar = () => {
               <Link
                 key={category.id}
                 to={`/blog/category/${category.slug}`}
-                className="flex items-center justify-between rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm text-steel-700 transition hover:bg-construction-50 hover:text-construction-700"
+                className="flex items-start justify-between gap-3 rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm text-steel-700 transition hover:bg-construction-50 hover:text-construction-700"
               >
-                <span className="inline-flex items-center gap-3 font-semibold">
+                <span className="inline-flex min-w-0 items-center gap-3 font-semibold">
                   <span className="h-3 w-3 rounded-full" style={{ backgroundColor: category.color }} />
-                  {category.name}
+                  <span className="break-words">{category.name}</span>
                 </span>
-                <span className="text-steel-500">
+                <span className="shrink-0 text-steel-500">
                   {category.published_articles_count || category.articles_count || 0}
                 </span>
               </Link>

@@ -184,7 +184,7 @@ const BlogArticlePage = () => {
                 )}
               </nav>
 
-              <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-steel-500">
+              <div className="mt-5 grid gap-3 text-sm text-steel-500 sm:flex sm:flex-wrap sm:items-center">
                 <span
                   className="inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white"
                   style={{ backgroundColor: isPreview ? '#0f172a' : article.category.color }}
@@ -240,8 +240,8 @@ const BlogArticlePage = () => {
               ) : null}
             </div>
 
-            {relatedArticles.length && !isPreview ? (
-              <section id="related-articles" className="mt-8">
+                {relatedArticles.length > 0 && !isPreview ? (
+                  <section id="related-articles" className="mt-8">
                 <SectionHeader
                   eyebrow="Похожие материалы"
                   title="Что еще посмотреть по этой теме."
