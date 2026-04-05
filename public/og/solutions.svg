@@ -9,48 +9,37 @@
       <stop stop-color="#F97316" stop-opacity="0.35" />
       <stop offset="1" stop-color="#F97316" stop-opacity="0" />
     </radialGradient>
+    <linearGradient id="line-solutions" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#F97316" />
+      <stop offset="1" stop-color="#FED7AA" />
+    </linearGradient>
     <style>
-      .brand { font: 600 18px 'Segoe UI', 'Arial', sans-serif; letter-spacing: 0.14em; }
-      .brand-secondary { font: 500 14px 'Segoe UI', 'Arial', sans-serif; letter-spacing: 0.24em; fill: #CBD5E1; }
-      .title { font: 700 40px 'Segoe UI', 'Arial', sans-serif; fill: #F8FAFC; }
-      .subtitle { font: 500 18px 'Segoe UI', 'Arial', sans-serif; fill: #E5E7EB; }
-      .meta { font: 500 16px 'Segoe UI', 'Arial', sans-serif; fill: #CBD5E1; letter-spacing: 0.02em; }
-      .preview { font: 600 18px 'Segoe UI', 'Arial', sans-serif; fill: #E5E7EB; letter-spacing: 0.1em; }
-      .preview-meta { font: 500 18px 'Segoe UI', 'Arial', sans-serif; fill: #CBD5E1; }
+      .eyebrow { font: 700 18px 'Segoe UI', 'Arial', sans-serif; letter-spacing: 0.16em; fill: #F8FAFC; }
+      .brand-secondary { font: 600 14px 'Segoe UI', 'Arial', sans-serif; letter-spacing: 0.24em; fill: #CBD5E1; }
+      .title { font: 700 54px 'Segoe UI', 'Arial', sans-serif; fill: #F8FAFC; }
+      .subtitle { font: 500 24px 'Segoe UI', 'Arial', sans-serif; fill: #E5E7EB; }
+      .meta { font: 600 18px 'Segoe UI', 'Arial', sans-serif; fill: #CBD5E1; letter-spacing: 0.03em; }
+      .mark { font-family: 'Segoe UI', 'Arial', sans-serif; font-weight: 800; fill: #FED7AA; opacity: 0.14; }
+      .mark-caption { font: 700 16px 'Segoe UI', 'Arial', sans-serif; fill: #E2E8F0; letter-spacing: 0.18em; }
+      .mark-support { font: 500 18px 'Segoe UI', 'Arial', sans-serif; fill: #CBD5E1; }
     </style>
   </defs>
   <rect width="1200" height="630" fill="url(#bg-solutions)" />
   <circle cx="1015" cy="102" r="236" fill="url(#glow-solutions)" />
-  <circle cx="1030" cy="468" r="155" fill="#F97316" fill-opacity="0.08" />
-  <rect x="70" y="72" width="650" height="486" rx="34" fill="#1E293B" fill-opacity="0.94" stroke="#FED7AA" stroke-opacity="0.35" stroke-width="1.5" />
-  <rect x="110" y="112" width="184" height="46" rx="23" fill="#F97316" />
-  <text x="130" y="142" class="brand" fill="#F8FAFC">РЕШЕНИЯ</text>
-  <text x="320" y="141" class="brand-secondary">PROHELPER.PRO</text>
-  <text x="110" y="240" class="title">Сценарии для подрядчика,</text>
-<text x="110" y="296" class="title">генподрядчика и девелопера</text>
-  <text x="110" y="382" class="subtitle">Контур запуска под роли, процессы и структуру</text>
-<text x="110" y="412" class="subtitle">компании</text>
-  <rect x="110" y="486" width="220" height="6" rx="3" fill="#F97316" />
-  <text x="110" y="522" class="meta">Единый маркетинговый SEO-контур</text>
-  <rect x="790" y="94" width="320" height="442" rx="32" fill="#0B1220" fill-opacity="0.82" stroke="#FED7AA" stroke-opacity="0.35" stroke-width="1.5" />
-  <g>
-    <rect x="830" y="132" width="240" height="86" rx="24" fill="#111C2F" fill-opacity="0.92" stroke="#FED7AA" stroke-opacity="0.26" />
-    <rect x="856" y="154" width="110" height="8" rx="4" fill="#F97316" />
-    <rect x="856" y="174" width="180" height="6" rx="3" fill="#FED7AA" fill-opacity="0.8" />
-    <rect x="856" y="190" width="144" height="5" rx="2.5" fill="#94A3B8" fill-opacity="0.72" />
-  </g>
-  <g>
-    <rect x="830" y="248" width="240" height="86" rx="24" fill="#111C2F" fill-opacity="0.92" stroke="#FED7AA" stroke-opacity="0.26" />
-    <rect x="856" y="270" width="144" height="8" rx="4" fill="#F97316" />
-    <rect x="856" y="290" width="162" height="6" rx="3" fill="#FED7AA" fill-opacity="0.8" />
-    <rect x="856" y="306" width="154" height="5" rx="2.5" fill="#94A3B8" fill-opacity="0.72" />
-  </g>
-  <g>
-    <rect x="830" y="364" width="240" height="86" rx="24" fill="#111C2F" fill-opacity="0.92" stroke="#FED7AA" stroke-opacity="0.26" />
-    <rect x="856" y="386" width="178" height="8" rx="4" fill="#F97316" />
-    <rect x="856" y="406" width="146" height="6" rx="3" fill="#FED7AA" fill-opacity="0.8" />
-    <rect x="856" y="422" width="164" height="5" rx="2.5" fill="#94A3B8" fill-opacity="0.72" />
-  </g>
-  <text x="830" y="478" class="preview">OG PREVIEW</text>
-  <text x="830" y="507" class="preview-meta">1200 × 630</text>
+  <circle cx="1038" cy="484" r="172" fill="#F97316" fill-opacity="0.07" />
+  <rect x="76" y="74" width="676" height="482" rx="36" fill="#1E293B" fill-opacity="0.9" stroke="#FED7AA" stroke-opacity="0.24" stroke-width="1.5" />
+  <rect x="108" y="116" width="208" height="48" rx="24" fill="#F97316" />
+  <text x="132" y="147" class="eyebrow">РЕШЕНИЯ</text>
+  <text x="340" y="147" class="brand-secondary">PROHELPER.PRO</text>
+  <text x="108" y="250" class="title">Сценарии для подрядчика,</text>
+<text x="108" y="318" class="title">генподрядчика и девелопера</text>
+  <text x="108" y="420" class="subtitle">Контур запуска под роли, процессы и структуру</text>
+<text x="108" y="456" class="subtitle">компании</text>
+  <rect x="108" y="494" width="248" height="6" rx="3" fill="url(#line-solutions)" />
+  <text x="108" y="536" class="meta">Единая система для стройки, документов и финансов</text>
+  <text x="808" y="222" class="mark" font-size="126" letter-spacing="0.04em">РЕШЕНИЯ</text>
+  <rect x="808" y="258" width="212" height="2" rx="1" fill="#FED7AA" fill-opacity="0.36" />
+  <text x="808" y="306" class="mark-caption">СТРОИТЕЛЬНЫЙ СОФТ</text>
+  <text x="808" y="346" class="mark-support">Контроль объектов, процессов и команды</text>
+  <text x="808" y="382" class="mark-support">prohelper.pro</text>
 </svg>
