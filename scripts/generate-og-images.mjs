@@ -157,8 +157,8 @@ const items = [
   {
     key: 'construction-crm',
     theme: 'operations',
-    badge: 'CRM',
-    title: 'CRM для строительной компании',
+    badge: 'ERP',
+    title: 'ERP для строительной компании',
     subtitle: 'Объекты, статусы, договорной контур и исполнение без Excel',
   },
   {

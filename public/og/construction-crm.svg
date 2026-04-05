@@ -29,15 +29,15 @@
   <circle cx="1038" cy="484" r="172" fill="#0EA5E9" fill-opacity="0.07" />
   <rect x="76" y="74" width="676" height="482" rx="36" fill="#17314F" fill-opacity="0.9" stroke="#BAE6FD" stroke-opacity="0.24" stroke-width="1.5" />
   <rect x="108" y="116" width="208" height="48" rx="24" fill="#0EA5E9" />
-  <text x="132" y="147" class="eyebrow">CRM</text>
+  <text x="132" y="147" class="eyebrow">ERP</text>
   <text x="340" y="147" class="brand-secondary">PROHELPER.PRO</text>
-  <text x="108" y="250" class="title">CRM для строительной</text>
+  <text x="108" y="250" class="title">ERP для строительной</text>
 <text x="108" y="318" class="title">компании</text>
   <text x="108" y="420" class="subtitle">Объекты, статусы, договорной контур и</text>
 <text x="108" y="456" class="subtitle">исполнение без Excel</text>
   <rect x="108" y="494" width="248" height="6" rx="3" fill="url(#line-construction-crm)" />
   <text x="108" y="536" class="meta">Единая система для стройки, документов и финансов</text>
-  <text x="808" y="222" class="mark" font-size="168" letter-spacing="0.02em">CRM</text>
+  <text x="808" y="222" class="mark" font-size="168" letter-spacing="0.02em">ERP</text>
   <rect x="808" y="258" width="212" height="2" rx="1" fill="#BAE6FD" fill-opacity="0.36" />
   <text x="808" y="306" class="mark-caption">СТРОИТЕЛЬНЫЙ СОФТ</text>
   <text x="808" y="346" class="mark-support">Контроль объектов, процессов и команды</text>
