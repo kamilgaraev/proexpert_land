@@ -32,5 +32,5 @@ export const isPrimaryMarketingHost = (hostname: string): boolean => {
     return false;
   }
 
-  return hostname === 'prohelper.pro' || hostname === 'www.prohelper.pro';
+  return hostname === 'prohelper.pro';
 };

@@ -9,6 +9,7 @@ Disallow: /forgot-password
 Disallow: /verify-email
 Disallow: /email-sent
 Disallow: /landing/multi-organization/
+Disallow: /blog/preview/
 Disallow: /blog/tag/
 Disallow: /api/
 Disallow: /src/

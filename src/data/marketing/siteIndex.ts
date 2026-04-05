@@ -5,6 +5,11 @@ export interface MarketingSitemapRoute {
   changefreq: 'daily' | 'weekly' | 'monthly';
 }
 
+export interface MarketingRedirectRoute {
+  path: string;
+  target: string;
+}
+
 export const marketingSitemapRoutes: MarketingSitemapRoute[] = [
   { path: '/', pageKey: 'home', priority: 1, changefreq: 'weekly' },
   { path: '/solutions', pageKey: 'solutions', priority: 0.95, changefreq: 'weekly' },
@@ -36,6 +41,7 @@ export const marketingNoIndexPrefixes = [
   '/dashboard',
   '/landing/multi-organization',
   '/blog/tag',
+  '/blog/preview',
 ];
 
 export const marketingNoIndexExactPaths = new Set([
@@ -45,6 +51,28 @@ export const marketingNoIndexExactPaths = new Set([
   '/verify-email',
   '/email-sent',
 ]);
+
+export const marketingRedirectRoutes: MarketingRedirectRoute[] = [
+  { path: '/docs', target: '/features' },
+  { path: '/help', target: '/contact' },
+  { path: '/terms', target: '/offer' },
+  { path: '/press', target: '/about' },
+  { path: '/partners', target: '/contact' },
+];
+
+const marketingSitemapRouteMap = new Map(
+  marketingSitemapRoutes.map((route) => [route.path, route]),
+);
+
+const marketingRedirectRouteMap = new Map(
+  marketingRedirectRoutes.map((route) => [route.path, route.target]),
+);
+
+const marketingDynamicPublicPrefixes = [
+  '/blog/',
+  '/dashboard/',
+  '/landing/multi-organization/',
+];
 
 export const normalizeMarketingPath = (pathname: string) => {
   const [rawPath] = pathname.split('?');
@@ -66,6 +94,33 @@ export const resolveMarketingSeoKey = (pathname: string) => {
   }
 
   return normalizedPath.slice(1);
+};
+
+export const findMarketingSitemapRoute = (pathname: string) => {
+  const normalizedPath = normalizeMarketingPath(pathname);
+
+  return marketingSitemapRouteMap.get(normalizedPath);
+};
+
+export const resolveMarketingRedirectTarget = (pathname: string) => {
+  const normalizedPath = normalizeMarketingPath(pathname);
+
+  return marketingRedirectRouteMap.get(normalizedPath);
+};
+
+export const isKnownMarketingPath = (pathname: string) => {
+  const normalizedPath = normalizeMarketingPath(pathname);
+
+  if (
+    marketingSitemapRouteMap.has(normalizedPath) ||
+    marketingNoIndexPaths.has(normalizedPath) ||
+    marketingNoIndexExactPaths.has(normalizedPath) ||
+    marketingRedirectRouteMap.has(normalizedPath)
+  ) {
+    return true;
+  }
+
+  return marketingDynamicPublicPrefixes.some((prefix) => normalizedPath.startsWith(prefix));
 };
 
 export const isMarketingNoIndexPath = (pathname: string) => {

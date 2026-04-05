@@ -2,74 +2,134 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://prohelper.pro/</loc>
-    <lastmod>2026-03-26</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://prohelper.pro/solutions</loc>
-    <lastmod>2026-03-26</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
     <loc>https://prohelper.pro/features</loc>
-    <lastmod>2026-03-26</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.92</priority>
   </url>
   <url>
+    <loc>https://prohelper.pro/foreman-software</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://prohelper.pro/construction-crm</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://prohelper.pro/construction-erp</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://prohelper.pro/material-accounting</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.89</priority>
+  </url>
+  <url>
+    <loc>https://prohelper.pro/construction-budget-control</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.89</priority>
+  </url>
+  <url>
+    <loc>https://prohelper.pro/pto-software</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+  <url>
+    <loc>https://prohelper.pro/contractor-control</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+  <url>
+    <loc>https://prohelper.pro/mobile-app</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.87</priority>
+  </url>
+  <url>
+    <loc>https://prohelper.pro/construction-documents</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.87</priority>
+  </url>
+  <url>
     <loc>https://prohelper.pro/pricing</loc>
-    <lastmod>2026-03-26</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.86</priority>
   </url>
   <url>
-    <loc>https://prohelper.pro/integrations</loc>
-    <lastmod>2026-03-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://prohelper.pro/contractors</loc>
-    <lastmod>2026-03-26</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.84</priority>
   </url>
   <url>
-    <loc>https://prohelper.pro/developers</loc>
-    <lastmod>2026-03-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.82</priority>
+    <loc>https://prohelper.pro/ai-estimates</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.84</priority>
   </url>
   <url>
     <loc>https://prohelper.pro/enterprise</loc>
-    <lastmod>2026-03-26</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.83</priority>
   </url>
   <url>
-    <loc>https://prohelper.pro/about</loc>
-    <lastmod>2026-03-26</lastmod>
+    <loc>https://prohelper.pro/developers</loc>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.62</priority>
+    <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://prohelper.pro/security</loc>
-    <lastmod>2026-03-26</lastmod>
+    <loc>https://prohelper.pro/integrations</loc>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.66</priority>
+    <priority>0.80</priority>
   </url>
   <url>
     <loc>https://prohelper.pro/contact</loc>
-    <lastmod>2026-03-26</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.78</priority>
   </url>
   <url>
     <loc>https://prohelper.pro/blog</loc>
-    <lastmod>2026-03-26</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
+  </url>
+  <url>
+    <loc>https://prohelper.pro/security</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.66</priority>
+  </url>
+  <url>
+    <loc>https://prohelper.pro/about</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.62</priority>
   </url>
 </urlset>

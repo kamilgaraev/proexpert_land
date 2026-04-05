@@ -1,40 +1,213 @@
 import {
+  findMarketingSitemapRoute,
+  isKnownMarketingPath,
   isMarketingNoIndexPath,
   marketingCapabilityMatrix,
   marketingCompany,
+  marketingFaqs,
   marketingPackages,
   marketingPaths,
   marketingSeo,
+  marketingSeoLandingPages,
   normalizeMarketingPath,
   resolveMarketingSeoKey,
 } from '@/data/marketingRegistry';
 
 export interface PageSEOData {
+  pageKey: string;
+  pathname: string;
   title: string;
   description: string;
   keywords: string;
   canonicalUrl: string;
-  ogImage?: string;
-  noIndex?: boolean;
+  ogImage: string;
+  noIndex: boolean;
+  lang: string;
+  statusCode: number;
+  type: 'website' | 'article' | 'product';
+  structuredData: unknown[];
 }
 
 const BASE_URL = 'https://prohelper.pro';
-const DEFAULT_OG_IMAGE = `${BASE_URL}/logo.svg`;
+const OG_BASE_PATH = `${BASE_URL}/og`;
+
+const notFoundSeo = {
+  title: 'Страница не найдена | ProHelper',
+  description:
+    'Запрошенная страница не найдена. Перейдите к решениям ProHelper для управления строительством, снабжением и финансами.',
+  keywords: 'страница не найдена, 404, ProHelper',
+};
+
+const internalPageSeoByExactPath: Record<
+  string,
+  { title: string; description: string; keywords?: string }
+> = {
+  '/login': {
+    title: 'Вход в ProHelper',
+    description: 'Страница входа в личный кабинет ProHelper.',
+    keywords: 'вход ProHelper, личный кабинет',
+  },
+  '/register': {
+    title: 'Регистрация в ProHelper',
+    description: 'Страница регистрации в ProHelper.',
+    keywords: 'регистрация ProHelper',
+  },
+  '/forgot-password': {
+    title: 'Восстановление доступа | ProHelper',
+    description: 'Страница восстановления доступа к ProHelper.',
+    keywords: 'восстановление пароля ProHelper',
+  },
+  '/verify-email': {
+    title: 'Подтверждение email | ProHelper',
+    description: 'Служебная страница подтверждения электронной почты в ProHelper.',
+    keywords: 'подтверждение email ProHelper',
+  },
+  '/email-sent': {
+    title: 'Письмо отправлено | ProHelper',
+    description: 'Служебная страница подтверждения отправки письма в ProHelper.',
+    keywords: 'письмо отправлено ProHelper',
+  },
+};
+
+const internalPageSeoByPrefix = [
+  {
+    prefix: '/dashboard',
+    title: 'Личный кабинет ProHelper',
+    description: 'Рабочее пространство ProHelper для управления проектами и организациями.',
+    keywords: 'личный кабинет ProHelper',
+  },
+  {
+    prefix: '/landing/multi-organization',
+    title: 'Группа компаний | ProHelper',
+    description: 'Служебный контур управления группой компаний в ProHelper.',
+    keywords: 'группа компаний ProHelper',
+  },
+  {
+    prefix: '/blog/preview',
+    title: 'Предпросмотр статьи | ProHelper',
+    description: 'Служебный предпросмотр статьи блога ProHelper.',
+    keywords: 'предпросмотр статьи ProHelper',
+  },
+];
+
+const resolveOgImageKey = (pageKey: string) => {
+  if (pageKey === '404') {
+    return '404';
+  }
+
+  if (pageKey in marketingSeo || pageKey in marketingSeoLandingPages) {
+    return pageKey;
+  }
+
+  return 'default';
+};
+
+const resolveGenericInternalSeo = (pathname: string) => {
+  const exactMatch = internalPageSeoByExactPath[pathname];
+
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  return (
+    internalPageSeoByPrefix.find((entry) => pathname.startsWith(entry.prefix)) ?? {
+      title: 'Служебная страница | ProHelper',
+      description: 'Служебная страница ProHelper.',
+      keywords: 'служебная страница ProHelper',
+    }
+  );
+};
+
+const resolveClusterStructuredData = (pageKey: string, canonicalUrl: string) => {
+  const clusterPage = marketingSeoLandingPages[pageKey];
+
+  if (!clusterPage) {
+    return [];
+  }
+
+  const trustProfile = clusterPage.trust ?? {
+    description:
+      'Собрали ориентиры, которые помогают быстро понять, подходит ли этот контур вашей команде и с чего разумно начать запуск.',
+    firstStep: clusterPage.contactHighlights.slice(0, 3),
+  };
+
+  return [
+    generateCommercialPageSchema({
+      name: clusterPage.title,
+      description: clusterPage.description,
+      url: canonicalUrl,
+      audience: clusterPage.audiences,
+      keywords: clusterPage.supportingQueries,
+    }),
+    generateItemListSchema({
+      name: `Связанные решения ${clusterPage.title}`,
+      url: canonicalUrl,
+      items: clusterPage.relatedLinks.map((link) => ({
+        name: link.label,
+        url: `${BASE_URL}${link.href}`,
+        description: link.description,
+      })),
+    }),
+    generateHowToSchema({
+      name: `Как запускают ${clusterPage.title}`,
+      description: trustProfile.description,
+      url: canonicalUrl,
+      steps: trustProfile.firstStep,
+    }),
+    generateFAQSchema(clusterPage.faq),
+  ];
+};
 
 export const getPageSEOData = (page: string): PageSEOData => {
   const normalizedPath = normalizeMarketingPath(page);
   const pageKey = resolveMarketingSeoKey(normalizedPath);
-  const pageMeta = marketingSeo[pageKey] ?? marketingSeo.home;
   const canonicalPath = normalizedPath === marketingPaths.home ? '' : normalizedPath;
-  const noIndex = pageMeta.noIndex ?? isMarketingNoIndexPath(normalizedPath);
+  const canonicalUrl = `${BASE_URL}${canonicalPath}`;
+  const hasKnownRoute = isKnownMarketingPath(normalizedPath);
+  const sitemapRoute = findMarketingSitemapRoute(normalizedPath);
+
+  if (!hasKnownRoute) {
+    return {
+      pageKey: '404',
+      pathname: normalizedPath,
+      title: notFoundSeo.title,
+      description: notFoundSeo.description,
+      keywords: notFoundSeo.keywords,
+      canonicalUrl,
+      ogImage: `${OG_BASE_PATH}/404.svg`,
+      noIndex: true,
+      lang: 'ru',
+      statusCode: 404,
+      type: 'website',
+      structuredData: [],
+    };
+  }
+
+  const noIndex = sitemapRoute ? false : isMarketingNoIndexPath(normalizedPath);
+  const pageMeta =
+    marketingSeo[pageKey] ??
+    (noIndex ? resolveGenericInternalSeo(normalizedPath) : marketingSeo.home);
+
+  const structuredData =
+    pageKey === 'home'
+      ? [generateFAQSchema(marketingFaqs)]
+      : pageKey === 'pricing'
+        ? [generatePricingSchema()]
+        : resolveClusterStructuredData(pageKey, canonicalUrl);
 
   return {
+    pageKey,
+    pathname: normalizedPath,
     title: pageMeta.title,
     description: pageMeta.description,
     keywords: pageMeta.keywords ?? '',
-    canonicalUrl: `${BASE_URL}${canonicalPath}`,
-    ogImage: DEFAULT_OG_IMAGE,
+    canonicalUrl,
+    ogImage: `${OG_BASE_PATH}/${resolveOgImageKey(pageKey)}.svg`,
     noIndex,
+    lang: 'ru',
+    statusCode: 200,
+    type: pageKey === 'pricing' ? 'product' : 'website',
+    structuredData,
   };
 };
 
@@ -60,15 +233,22 @@ export const generateOrganizationSchema = () => ({
 
 const buildPackageOffers = () => {
   return marketingPackages.flatMap((item) =>
-    item.tiers.map((tier) => ({
-      '@type': 'Offer',
-      name: `${item.name} ${tier.label}`,
-      price: `${tier.price}`,
-      priceCurrency: 'RUB',
-      availability: 'https://schema.org/InStock',
-      category: item.name,
-      description: tier.description,
-    })),
+    item.tiers.map((tier) => {
+      const offer: Record<string, string> = {
+        '@type': 'Offer',
+        name: `${item.name} ${tier.label}`,
+        availability: 'https://schema.org/InStock',
+        category: item.name,
+        description: tier.description,
+      };
+
+      if (tier.price > 0) {
+        offer.price = `${tier.price}`;
+        offer.priceCurrency = 'RUB';
+      }
+
+      return offer;
+    }),
   );
 };
 
@@ -198,7 +378,7 @@ export const generateArticleSchema = (article: {
   '@type': 'BlogPosting',
   headline: article.title,
   description: article.description,
-  image: article.image ?? DEFAULT_OG_IMAGE,
+  image: article.image ?? `${OG_BASE_PATH}/blog.svg`,
   author: {
     '@type': 'Person',
     name: article.author,
@@ -256,8 +436,7 @@ export const validateSEOLength = (title: string, description: string) => {
 };
 
 export const generateOGImage = (page: string, title?: string) => {
-  void page;
   void title;
 
-  return DEFAULT_OG_IMAGE;
+  return getPageSEOData(page).ogImage;
 };

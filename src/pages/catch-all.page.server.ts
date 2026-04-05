@@ -1,44 +1,11 @@
-export function onBeforeRender(pageContext: any) {
-  const url = pageContext.urlPathname || '/';
-  
-  const validRoutes = [
-    '/',
-    '/solutions',
-    '/features',
-    '/pricing',
-    '/login',
-    '/register',
-    '/forgot-password',
-    '/docs',
-    '/help',
-    '/about',
-    '/press',
-    '/partners',
-    '/contact',
-  ];
+import { isKnownMarketingPath, normalizeMarketingPath } from '@/data/marketingRegistry';
 
-  const validPrefixes = [
-    '/dashboard',
-    '/blog',
-    '/landing',
-  ];
-
-  const isValidRoute = validRoutes.includes(url) || 
-    validPrefixes.some(prefix => url.startsWith(prefix));
-
-  if (!isValidRoute) {
-    return {
-      pageContext: {
-        httpResponse: {
-          statusCode: 404,
-          contentType: 'text/html',
-        }
-      }
-    };
-  }
+export function onBeforeRender(pageContext: { urlPathname?: string }) {
+  const normalizedPath = normalizeMarketingPath(pageContext.urlPathname || '/');
 
   return {
-    pageContext: {}
+    pageContext: {
+      routeStatusCode: isKnownMarketingPath(normalizedPath) ? 200 : 404,
+    },
   };
 }
-

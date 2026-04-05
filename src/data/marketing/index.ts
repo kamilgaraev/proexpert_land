@@ -18,12 +18,16 @@ export {
   marketingSeoLandingPages,
 } from './seoPages';
 export {
+  findMarketingSitemapRoute,
   marketingNoIndexExactPaths,
   marketingNoIndexPaths,
   marketingNoIndexPrefixes,
+  marketingRedirectRoutes,
   marketingSitemapRoutes,
   isMarketingNoIndexPath,
+  isKnownMarketingPath,
   normalizeMarketingPath,
+  resolveMarketingRedirectTarget,
   resolveMarketingSeoKey,
 } from './siteIndex';
 export { marketingSolutionSegments } from './solutions';

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg-about" x1="600" y1="0" x2="600" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1F2937" />
+      <stop offset="1" stop-color="#111827" />
+    </linearGradient>
+    <radialGradient id="glow-about" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1015 102) rotate(123.5) scale(472 472)">
+      <stop stop-color="#F59E0B" stop-opacity="0.35" />
+      <stop offset="1" stop-color="#F59E0B" stop-opacity="0" />
+    </radialGradient>
+    <style>
+      .brand { font: 600 18px 'Segoe UI', 'Arial', sans-serif; letter-spacing: 0.14em; }
+      .brand-secondary { font: 500 14px 'Segoe UI', 'Arial', sans-serif; letter-spacing: 0.24em; fill: #CBD5E1; }
+      .title { font: 700 40px 'Segoe UI', 'Arial', sans-serif; fill: #F8FAFC; }
+      .subtitle { font: 500 18px 'Segoe UI', 'Arial', sans-serif; fill: #E5E7EB; }
+      .meta { font: 500 16px 'Segoe UI', 'Arial', sans-serif; fill: #CBD5E1; letter-spacing: 0.02em; }
+      .preview { font: 600 18px 'Segoe UI', 'Arial', sans-serif; fill: #E5E7EB; letter-spacing: 0.1em; }
+      .preview-meta { font: 500 18px 'Segoe UI', 'Arial', sans-serif; fill: #CBD5E1; }
+    </style>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg-about)" />
+  <circle cx="1015" cy="102" r="236" fill="url(#glow-about)" />
+  <circle cx="1030" cy="468" r="155" fill="#F59E0B" fill-opacity="0.08" />
+  <rect x="70" y="72" width="650" height="486" rx="34" fill="#273244" fill-opacity="0.94" stroke="#FDE68A" stroke-opacity="0.35" stroke-width="1.5" />
+  <rect x="110" y="112" width="184" height="46" rx="23" fill="#F59E0B" />
+  <text x="130" y="142" class="brand" fill="#F8FAFC">О ПРОДУКТЕ</text>
+  <text x="320" y="141" class="brand-secondary">PROHELPER.PRO</text>
+  <text x="110" y="240" class="title">Как ProHelper собирает</text>
+<text x="110" y="296" class="title">стройку в один контур</text>
+  <text x="110" y="382" class="subtitle">О продукте, подходе к запуску и роли цифрового</text>
+<text x="110" y="412" class="subtitle">процесса</text>
+  <rect x="110" y="486" width="220" height="6" rx="3" fill="#F59E0B" />
+  <text x="110" y="522" class="meta">Единый маркетинговый SEO-контур</text>
+  <rect x="790" y="94" width="320" height="442" rx="32" fill="#0B1220" fill-opacity="0.82" stroke="#FDE68A" stroke-opacity="0.35" stroke-width="1.5" />
+  <g>
+    <rect x="830" y="132" width="240" height="86" rx="24" fill="#111C2F" fill-opacity="0.92" stroke="#FDE68A" stroke-opacity="0.26" />
+    <rect x="856" y="154" width="110" height="8" rx="4" fill="#F59E0B" />
+    <rect x="856" y="174" width="180" height="6" rx="3" fill="#FDE68A" fill-opacity="0.8" />
+    <rect x="856" y="190" width="144" height="5" rx="2.5" fill="#94A3B8" fill-opacity="0.72" />
+  </g>
+  <g>
+    <rect x="830" y="248" width="240" height="86" rx="24" fill="#111C2F" fill-opacity="0.92" stroke="#FDE68A" stroke-opacity="0.26" />
+    <rect x="856" y="270" width="144" height="8" rx="4" fill="#F59E0B" />
+    <rect x="856" y="290" width="162" height="6" rx="3" fill="#FDE68A" fill-opacity="0.8" />
+    <rect x="856" y="306" width="154" height="5" rx="2.5" fill="#94A3B8" fill-opacity="0.72" />
+  </g>
+  <g>
+    <rect x="830" y="364" width="240" height="86" rx="24" fill="#111C2F" fill-opacity="0.92" stroke="#FDE68A" stroke-opacity="0.26" />
+    <rect x="856" y="386" width="178" height="8" rx="4" fill="#F59E0B" />
+    <rect x="856" y="406" width="146" height="6" rx="3" fill="#FDE68A" fill-opacity="0.8" />
+    <rect x="856" y="422" width="164" height="5" rx="2.5" fill="#94A3B8" fill-opacity="0.72" />
+  </g>
+  <text x="830" y="478" class="preview">OG PREVIEW</text>
+  <text x="830" y="507" class="preview-meta">1200 × 630</text>
+</svg>
