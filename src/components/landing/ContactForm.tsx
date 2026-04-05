@@ -403,7 +403,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
           <button
             type="submit"
             disabled={!canSubmit}
-            className={`inline-flex w-full items-center justify-center gap-3 rounded-full px-6 py-4 text-base font-semibold transition ${
+            className={`inline-flex w-full min-w-0 flex-wrap items-center justify-center gap-3 rounded-full px-6 py-4 text-center text-base font-semibold whitespace-normal [overflow-wrap:anywhere] transition ${
               !canSubmit
                 ? 'cursor-not-allowed bg-steel-300 text-white'
                 : 'bg-steel-950 text-white hover:-translate-y-0.5 hover:bg-steel-900'
@@ -416,7 +416,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
               </>
             ) : (
               <>
-                <PaperAirplaneIcon className="h-5 w-5" />
+                <PaperAirplaneIcon className="h-5 w-5 shrink-0" />
                 {variant === 'compact' ? 'Отправить заявку' : 'Запросить демонстрацию'}
               </>
             )}

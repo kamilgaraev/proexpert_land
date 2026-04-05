@@ -47,7 +47,7 @@ const Navbar = () => {
     location.pathname === href || location.pathname.startsWith(`${href}/`);
 
   return (
-    <nav className="fixed inset-x-0 top-0 z-50 px-3 py-3 md:px-4">
+    <nav className="fixed inset-x-0 top-0 z-50 overflow-x-clip px-3 py-3 md:px-4">
       <div className="container-custom">
         <div className="overflow-hidden rounded-[1.75rem] border border-steel-200/80 bg-white/95 shadow-[0_24px_70px_-45px_rgba(15,23,42,0.45)] backdrop-blur-xl">
           <div className="hidden items-center justify-between border-b border-steel-100 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-steel-500 xl:flex">
@@ -64,8 +64,8 @@ const Navbar = () => {
             </a>
           </div>
 
-          <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 sm:min-h-[80px] sm:px-6">
-            <Link to={marketingPaths.home} className="flex min-w-0 items-center gap-3">
+          <div className="flex min-h-[72px] min-w-0 items-center justify-between gap-4 px-4 sm:min-h-[80px] sm:px-6">
+            <Link to={marketingPaths.home} className="flex min-w-0 flex-1 items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.25rem] bg-steel-950 text-construction-200">
                 <BuildingOfficeIcon className="h-6 w-6" />
               </div>
@@ -125,7 +125,7 @@ const Navbar = () => {
             <button
               type="button"
               onClick={() => setIsOpen((value) => !value)}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-[1.25rem] border border-steel-200 bg-white text-steel-950 lg:hidden"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.25rem] border border-steel-200 bg-white text-steel-950 lg:hidden"
               aria-label={isOpen ? 'Закрыть меню' : 'Открыть меню'}
             >
               {isOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}

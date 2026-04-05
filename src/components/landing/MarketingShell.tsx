@@ -9,7 +9,7 @@ interface MarketingShellProps {
 
 const MarketingShell = ({ children }: MarketingShellProps) => {
   return (
-    <div className="flex min-h-[100svh] flex-col bg-white font-sans">
+    <div className="flex min-h-[100svh] flex-col overflow-x-hidden bg-white font-sans">
       <Navbar />
       <main className="flex-grow">{children}</main>
       <Footer />

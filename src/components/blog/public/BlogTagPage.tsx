@@ -111,7 +111,7 @@ const BlogTagPage = () => {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               to="/blog"
-              className="inline-flex w-full justify-center rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-900 sm:w-auto"
+              className="inline-flex w-full min-w-0 flex-wrap items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-center text-sm font-semibold text-white whitespace-normal [overflow-wrap:anywhere] transition hover:bg-steel-900 sm:w-auto"
             >
               Открыть все статьи
             </Link>
@@ -156,7 +156,7 @@ const BlogTagPage = () => {
                       type="button"
                       onClick={handleLoadMore}
                       disabled={loadingMore}
-                      className={`inline-flex w-full justify-center rounded-full px-5 py-3 text-sm font-semibold transition sm:w-auto ${
+                      className={`inline-flex w-full min-w-0 flex-wrap items-center justify-center rounded-full px-5 py-3 text-center text-sm font-semibold whitespace-normal [overflow-wrap:anywhere] transition sm:w-auto ${
                         loadingMore
                           ? 'cursor-not-allowed bg-steel-300 text-white'
                           : 'bg-steel-950 text-white hover:bg-steel-900'

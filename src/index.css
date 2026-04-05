@@ -211,6 +211,7 @@ body::selection {
 .marketing-page-shell {
   background: white;
   padding-top: 6.5rem;
+  overflow-x: clip;
 }
 
 @media (min-width: 640px) {

@@ -119,7 +119,7 @@ const BlogArticlePage = () => {
               <p className="mt-4 text-sm leading-7 text-steel-600">{error}</p>
               <Link
                 to="/blog"
-                className="mt-6 inline-flex rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-900"
+                className="mt-6 inline-flex w-full min-w-0 flex-wrap items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-center text-sm font-semibold text-white whitespace-normal [overflow-wrap:anywhere] transition hover:bg-steel-900 sm:w-auto"
               >
                 Вернуться в блог
               </Link>

@@ -70,7 +70,7 @@ const CtaBand = ({
               <MarketingLink
                 key={`${action.href}-${action.label}`}
                 href={action.href}
-                className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition ${
+                className={`inline-flex min-w-0 flex-wrap items-center justify-center gap-2 rounded-full px-5 py-3 text-center text-sm font-semibold whitespace-normal [overflow-wrap:anywhere] transition ${
                   action.primary
                     ? `${isCompact ? 'w-full' : 'w-full sm:w-auto'} ${isDark
                       ? 'bg-white text-steel-950 hover:bg-construction-100'
@@ -81,7 +81,7 @@ const CtaBand = ({
                 }`}
               >
                 {action.label}
-                {action.primary ? <ArrowUpRightIcon className="h-4 w-4" /> : null}
+                {action.primary ? <ArrowUpRightIcon className="h-4 w-4 shrink-0" /> : null}
               </MarketingLink>
             ))}
           </div>

@@ -94,7 +94,7 @@ export const SectionHeader = ({
         {eyebrow}
       </div>
       <h2
-        className={`mt-4 max-w-4xl font-sans text-[clamp(1.85rem,3.6vw,3.2rem)] font-bold leading-[1.04] tracking-tight sm:mt-5 ${titleClass}`}
+        className={`mt-4 max-w-4xl font-sans text-[clamp(1.85rem,3.6vw,3.2rem)] font-bold leading-[1.04] tracking-tight [overflow-wrap:anywhere] [text-wrap:balance] sm:mt-5 ${titleClass}`}
       >
         {title}
       </h2>
@@ -142,17 +142,17 @@ export const PageHero = ({
   nav?: { label: string; href: string }[];
   aside?: ReactNode;
 }) => (
-  <section className="border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.16),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(148,163,184,0.16),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
+  <section className="overflow-x-hidden border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.16),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(148,163,184,0.16),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
     <div className="container-custom py-12 sm:py-14 lg:py-20">
       <div className={`grid gap-8 ${aside ? 'xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)] xl:items-start' : ''}`}>
-        <div className="max-w-4xl">
+        <div className="min-w-0 max-w-4xl">
           <div className="inline-flex items-center rounded-full border border-construction-200 bg-construction-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-construction-700">
             {eyebrow}
           </div>
-          <h1 className="mt-4 max-w-4xl font-sans text-[clamp(2rem,5.4vw,4.4rem)] font-bold leading-[0.98] tracking-tight text-steel-950 sm:mt-5">
+          <h1 className="mt-4 max-w-full font-sans text-[clamp(1.9rem,8vw,4.4rem)] font-bold leading-[0.98] tracking-tight text-steel-950 [overflow-wrap:anywhere] [text-wrap:balance] sm:mt-5 sm:max-w-4xl sm:text-[clamp(2rem,5.4vw,4.4rem)]">
             {title}
           </h1>
-          <p className="mt-5 max-w-3xl text-base leading-7 text-steel-600 sm:mt-6 sm:text-lg sm:leading-8">{description}</p>
+          <p className="mt-5 max-w-3xl break-words text-base leading-7 text-steel-600 sm:mt-6 sm:text-lg sm:leading-8">{description}</p>
 
           {actions.length > 0 ? (
             <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
@@ -160,21 +160,21 @@ export const PageHero = ({
                 <MarketingLink
                   key={`${action.href}-${action.label}`}
                   href={action.href}
-                  className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition sm:w-auto ${
+                  className={`inline-flex w-full min-w-0 flex-wrap items-center justify-center gap-2 rounded-full px-5 py-3 text-center text-sm font-semibold whitespace-normal [overflow-wrap:anywhere] transition sm:w-auto ${
                     action.primary
                       ? 'bg-steel-950 text-white hover:-translate-y-0.5 hover:bg-steel-900'
                       : 'border border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
                   }`}
                 >
                   {action.label}
-                  {action.primary ? <ArrowUpRightIcon className="h-4 w-4" /> : null}
+                  {action.primary ? <ArrowUpRightIcon className="h-4 w-4 shrink-0" /> : null}
                 </MarketingLink>
               ))}
             </div>
           ) : null}
         </div>
 
-        {aside ? <div>{aside}</div> : null}
+        {aside ? <div className="min-w-0">{aside}</div> : null}
       </div>
 
       {nav.length > 0 ? <PageSectionNav items={nav} className="mt-8 sm:mt-10" /> : null}
@@ -357,16 +357,16 @@ export const LegalDocumentView = ({
               детальнее.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               to={marketingPaths.contact}
-              className="inline-flex items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-900"
+              className="inline-flex w-full items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-steel-900 sm:w-auto"
             >
               Перейти к контактам
             </Link>
             <Link
               to={marketingPaths.cookies}
-              className="inline-flex items-center justify-center rounded-full border border-steel-300 bg-white px-5 py-3 text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700"
+              className="inline-flex w-full items-center justify-center rounded-full border border-steel-300 bg-white px-5 py-3 text-center text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700 sm:w-auto"
             >
               Политика cookie
             </Link>

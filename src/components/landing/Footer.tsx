@@ -74,7 +74,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-steel-950 text-white">
+    <footer className="overflow-x-hidden bg-steel-950 text-white">
       <div className="container-custom py-14 lg:py-16">
         <div className="rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(249,115,22,0.08))] p-8 lg:p-10">
           <div className="grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_auto] xl:items-end">
@@ -91,17 +91,17 @@ const Footer = () => {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3 xl:justify-end">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap xl:justify-end">
               <Link
                 to={`${marketingPaths.home}#contact`}
-                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-steel-950 transition hover:bg-construction-100"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-center text-sm font-semibold text-steel-950 transition hover:bg-construction-100 sm:w-auto"
               >
                 Запросить демо
-                <ArrowUpRightIcon className="h-4 w-4" />
+                <ArrowUpRightIcon className="h-4 w-4 shrink-0" />
               </Link>
               <Link
                 to={marketingPaths.contact}
-                className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="inline-flex w-full items-center justify-center rounded-full border border-white/15 bg-white/5 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 sm:w-auto"
               >
                 Связаться с нами
               </Link>
