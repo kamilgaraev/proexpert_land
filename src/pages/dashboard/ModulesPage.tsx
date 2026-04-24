@@ -1,459 +1,752 @@
-import { useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { useModules } from '@hooks/useModules';
-import { usePackages } from '@hooks/usePackages';
-import { useModulesByPackage } from '@hooks/useModulesByPackage';
-import { Module } from '@utils/api';
-import PackagesView from '@components/dashboard/PackagesView';
-import ModuleCard from '@components/dashboard/ModuleCard';
 import {
-  ModuleActivationModal,
-  ModuleDetailsModal,
-  DevelopmentWarningModal,
-  ModuleDeactivationPreviewModal,
-} from '@components/dashboard/ModuleModals';
-import { getCatalogModules, getModuleAddonCount, getModuleAddonPreviews } from '@utils/moduleAddons';
-import {
-  CheckCircleIcon,
-  XCircleIcon,
-  ExclamationTriangleIcon,
   ArrowPathIcon,
+  CheckCircleIcon,
+  ChevronRightIcon,
+  EllipsisHorizontalIcon,
+  MagnifyingGlassIcon,
+  SparklesIcon,
   XMarkIcon,
-  BanknotesIcon,
-  ClockIcon,
-  Squares2X2Icon,
-  RectangleGroupIcon,
 } from '@heroicons/react/24/outline';
 import { PageLoading } from '@components/common/PageLoading';
 import NotificationService from '@components/shared/NotificationService';
+import { useModulesOverview } from '@hooks/useModulesOverview';
+import {
+  ModulesOverviewModule,
+  ModulesOverviewSolution,
+  ModulesOverviewTier,
+  ModulesOverview,
+} from '@utils/api';
+
+const formatMoney = (value: number, currency = 'RUB') => (
+  new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value)
+);
+
+const tierText = (tier: string | null) => {
+  const labels: Record<string, string> = {
+    base: 'Базовый',
+    pro: 'Профессиональный',
+    enterprise: 'Корпоративный',
+  };
+
+  return tier ? labels[tier] ?? tier : 'Не подключено';
+};
+
+const statusText = (status: string) => {
+  const labels: Record<string, string> = {
+    active: 'Активно',
+    available: 'Доступно',
+    unavailable: 'Недоступно',
+    expired: 'Истекло',
+    trial: 'Пробный период',
+  };
+
+  return labels[status] ?? status;
+};
+
+const classificationText = (module: ModulesOverviewModule) => {
+  if (module.is_system || module.classification === 'system') return 'Системный';
+  if (module.classification === 'packaged') return 'В составе решения';
+  return 'Отдельная возможность';
+};
 
 const ModulesPage = () => {
-  const [activeTab, setActiveTab] = useState<'packages' | 'modules'>('packages');
-
   const {
-    allModules,
-    expiringModules,
+    overview,
     loading,
     error,
     refresh,
+    subscribeToPackage,
+    unsubscribeFromPackage,
     activateModule,
     deactivateModule,
     renewModule,
-    isModuleActive,
-    getActivationPreview,
-    getDeactivationPreview,
-    checkTrialAvailability,
-    activateTrial,
     toggleAutoRenew,
-    bulkToggleAutoRenew,
-    hasExpiring,
-  } = useModules({
-    autoRefresh: true,
-    refreshInterval: 900000,
-    onError: (msg: string) => NotificationService.show({ type: 'error', title: 'Ошибка', message: msg }),
-  });
+  } = useModulesOverview();
 
-  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
-  const [showActivationModal, setShowActivationModal] = useState(false);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showDeactivationPreviewModal, setShowDeactivationPreviewModal] = useState(false);
-  const [showDevelopmentWarning, setShowDevelopmentWarning] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [managedSolution, setManagedSolution] = useState<ModulesOverviewSolution | null>(null);
+  const [managedModule, setManagedModule] = useState<ModulesOverviewModule | null>(null);
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [previewData, setPreviewData] = useState<any>(null);
-  const [deactivationPreviewData, setDeactivationPreviewData] = useState<any>(null);
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
 
-  const { packages } = usePackages();
-  const catalogModules = getCatalogModules(allModules);
-  const moduleGroups = useModulesByPackage({ modules: catalogModules, packages });
-
-  const toggleModuleExpanded = (slug: string) => {
-    setExpandedModules(prev => {
-      const next = new Set(prev);
-      next.has(slug) ? next.delete(slug) : next.add(slug);
-      return next;
-    });
-  };
-
-  const handleActivateClick = async (module: Module) => {
-    if (module.development_status && !module.development_status.can_be_activated) {
-      NotificationService.show({ type: 'warning', title: 'Модуль недоступен', message: `«${module.name}» недоступен для активации: ${module.development_status.description}` });
-      return;
-    }
-    setSelectedModule(module);
-    setActionLoading(`preview-${module.slug}`);
+  const runAction = async (key: string, action: () => Promise<void>, successMessage: string) => {
+    setActionLoading(key);
     try {
-      setPreviewData(await getActivationPreview(module.slug));
-    } finally {
-      setActionLoading(null);
-      module.development_status?.should_show_warning ? setShowDevelopmentWarning(true) : setShowActivationModal(true);
-    }
-  };
-
-  const handleDevelopmentWarningConfirm = () => {
-    setShowDevelopmentWarning(false);
-    setShowActivationModal(true);
-  };
-
-  const handleOpenDetails = (module: Module) => {
-    setSelectedModule(module);
-    setShowDetailsModal(true);
-  };
-
-  const handleTrialClick = async (module: Module) => {
-    if (module.development_status && !module.development_status.can_be_activated) {
-      NotificationService.show({ type: 'warning', title: 'Модуль недоступен', message: `«${module.name}» недоступен для trial: ${module.development_status.description}` });
-      return;
-    }
-    setSelectedModule(module);
-    setActionLoading(`trial-check-${module.slug}`);
-    try {
-      const availability = await checkTrialAvailability(module.slug);
-      if (!availability.can_activate_trial) {
-        const msgs: Record<string, string> = {
-          TRIAL_ALREADY_USED: 'Вы уже использовали trial. Активируйте полную версию.',
-          MODULE_ALREADY_ACTIVE: 'Модуль уже активирован',
-          TRIAL_NOT_AVAILABLE_FOR_FREE: 'Trial недоступен для бесплатных модулей',
-          MODULE_STATUS_NOT_READY: availability.development_status?.description || 'Модуль в разработке',
-        };
-        NotificationService.show({ type: 'info', title: 'Trial недоступен', message: msgs[availability.reason] || 'Trial период недоступен' });
-        setSelectedModule(null);
-        return;
-      }
-      module.development_status?.should_show_warning ? setShowDevelopmentWarning(true) : await handleTrialActivate(module.slug);
-    } catch (e: any) {
-      NotificationService.show({ type: 'error', title: 'Ошибка', message: e.message || 'Не удалось проверить доступность trial' });
+      await action();
+      NotificationService.show({ type: 'success', title: 'Готово', message: successMessage });
+    } catch (err) {
+      NotificationService.show({
+        type: 'error',
+        title: 'Не получилось выполнить действие',
+        message: err instanceof Error ? err.message : 'Попробуйте ещё раз',
+      });
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleTrialActivate = async (slug: string) => {
-    setActionLoading(`trial-activate-${slug}`);
-    try {
-      if (await activateTrial(slug)) {
-        NotificationService.show({ type: 'success', title: 'Trial активирован', message: 'Trial период успешно активирован!' });
-        setShowDevelopmentWarning(false);
-        setSelectedModule(null);
-      }
-    } catch (e: any) {
-      NotificationService.show({ type: 'error', title: 'Ошибка активации trial', message: e.message || 'Не удалось активировать trial' });
-    } finally {
-      setActionLoading(null);
-    }
-  };
+  if (loading && !overview) {
+    return <PageLoading message="Загружаем модули и пакеты..." />;
+  }
 
-  const handleAutoRenewToggle = async (module: Module, enabled: boolean) => {
-    if (module.billing_model === 'free') {
-      NotificationService.show({ type: 'info', title: 'Автопродление недоступно', message: 'Бесплатные модули не требуют продления' });
-      return;
-    }
-    if (module.activation?.is_bundled_with_plan) {
-      NotificationService.show({ type: 'info', title: 'Управление через подписку', message: 'Управляйте автопродлением через настройки подписки.' });
-      return;
-    }
-    if (!enabled) {
-      const expiresDate = module.activation?.expires_at ? new Date(module.activation.expires_at).toLocaleDateString('ru-RU') : 'истечения срока';
-      if (!window.confirm(`Отключить автопродление?\n\nМодуль будет деактивирован после ${expiresDate}`)) return;
-    }
-    setActionLoading(`auto-renew-${module.slug}`);
-    try {
-      if (await toggleAutoRenew(module.slug, enabled)) {
-        NotificationService.show({ type: 'success', title: enabled ? 'Автопродление включено' : 'Автопродление выключено', message: enabled ? 'Модуль будет продлён автоматически' : 'Модуль не будет продлён автоматически' });
-      }
-    } catch (e: any) {
-      NotificationService.show({ type: 'error', title: 'Ошибка', message: e.message || 'Не удалось изменить автопродление' });
-    } finally {
-      setActionLoading(null);
-    }
-  };
+  if (error && !overview) {
+    return (
+      <div className="min-h-screen bg-slate-50 px-6 py-10">
+        <div className="mx-auto max-w-6xl rounded-3xl border border-red-100 bg-white p-8 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-wide text-red-500">Ошибка загрузки</p>
+          <h1 className="mt-2 text-3xl font-bold text-slate-950">Модули и пакеты</h1>
+          <p className="mt-3 text-slate-600">{error}</p>
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-orange-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-700"
+          >
+            <ArrowPathIcon className="h-5 w-5" />
+            Повторить
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const handleBulkAutoRenew = async (enabled: boolean) => {
-    const count = allModules.filter(m => isModuleActive(m.slug) && m.billing_model !== 'free').length;
-    if (count === 0) { NotificationService.show({ type: 'info', title: 'Нет активных модулей', message: 'Нет модулей для изменения.' }); return; }
-    if (!window.confirm(`${enabled ? 'Включить' : 'Выключить'} автопродление для ${count} модулей?`)) return;
-    setActionLoading('bulk-auto-renew');
-    try {
-      await bulkToggleAutoRenew(enabled);
-      NotificationService.show({ type: 'success', title: 'Готово', message: `Автопродление ${enabled ? 'включено' : 'выключено'} для всех активных модулей` });
-    } catch (e: any) {
-      NotificationService.show({ type: 'error', title: 'Ошибка', message: e.message || 'Не удалось изменить настройки' });
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleActivateConfirm = async (durationDays: number) => {
-    if (!selectedModule) return;
-    setActionLoading(`activate-${selectedModule.slug}`);
-    try {
-      await activateModule(selectedModule.slug, durationDays);
-      NotificationService.show({ type: 'success', title: 'Модуль активирован', message: `«${selectedModule.name}» успешно активирован!` });
-      setShowActivationModal(false);
-      setSelectedModule(null);
-      setPreviewData(null);
-    } catch (e: any) {
-      NotificationService.show({ type: 'error', title: 'Ошибка активации', message: e.message || 'Не удалось активировать модуль' });
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleDeactivateClick = async (module: Module) => {
-    setSelectedModule(module);
-    setActionLoading(`deactivate-preview-${module.slug}`);
-    try {
-      setDeactivationPreviewData(await getDeactivationPreview(module.slug));
-      setShowDeactivationPreviewModal(true);
-    } catch {
-      setShowDeactivationPreviewModal(true);
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleDeactivatePreviewConfirm = async () => {
-    if (!selectedModule) return;
-    setActionLoading(`deactivate-${selectedModule.slug}`);
-    try {
-      await deactivateModule(selectedModule.slug);
-      NotificationService.show({ type: 'success', title: 'Модуль отключён', message: `«${selectedModule.name}» отключён. Средства возвращены на баланс.` });
-      setShowDeactivationPreviewModal(false);
-      setSelectedModule(null);
-      setDeactivationPreviewData(null);
-    } catch (e: any) {
-      NotificationService.show({ type: 'error', title: 'Ошибка отключения', message: e.message || 'Не удалось отключить модуль' });
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleRenewModule = async (module: Module) => {
-    setActionLoading(`renew-${module.slug}`);
-    try {
-      await renewModule(module.slug);
-      NotificationService.show({ type: 'success', title: 'Продлено', message: `«${module.name}» продлён на 30 дней` });
-    } catch (e: any) {
-      NotificationService.show({ type: 'error', title: 'Ошибка продления', message: e.message || 'Не удалось продлить модуль' });
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Не ограничен';
-    return new Date(dateString).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
-
-  const getModuleExpiresAt = (module: Module): string | null =>
-    module.activation?.expires_at ?? null;
-
-  const getModuleStatusText = (module: Module): { text: string } => {
-    if (isModuleActive(module.slug)) {
-      const expiresAt = getModuleExpiresAt(module);
-      if (expiresAt) {
-        const daysLeft = Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-        if (daysLeft <= 7) return { text: 'Истекает скоро' };
-      }
-      return { text: module.billing_model === 'free' ? 'Бесплатный' : 'Активен' };
-    }
-    if (module.development_status && !module.development_status.can_be_activated) return { text: module.development_status.label };
-    return { text: 'Не активен' };
-  };
-
-  const activeCount = catalogModules.filter(m => isModuleActive(m.slug)).length;
-  const monthlyTotal = allModules
-    .filter(m => isModuleActive(m.slug) && m.billing_model !== 'free')
-    .reduce((sum, m) => sum + (m.pricing_config?.base_price || m.price || 0), 0);
-  const expiringCount = catalogModules.filter(m => expiringModules.some(e => e.slug === m.slug)).length;
-
-  if (loading && activeTab === 'modules') return <PageLoading message="Загрузка модулей..." />;
+  if (!overview) {
+    return null;
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8 pb-20">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#f6f8fb] px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <header className="rounded-[32px] border border-white/80 bg-white/90 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-orange-600">Возможности организации</p>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">Модули и пакеты</h1>
+              <p className="mt-3 max-w-3xl text-base text-slate-600">
+                Управляйте решениями как бизнес-наборами, а отдельные модули подключайте только там, где они дают самостоятельную ценность.
+              </p>
+            </div>
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Модули и пакеты</h1>
-            <p className="text-slate-500 text-lg">Расширяйте возможности вашей организации</p>
+            <div className="relative flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => void refresh()}
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-orange-200 hover:text-orange-700"
+              >
+                <ArrowPathIcon className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+                Обновить
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsMoreOpen(value => !value)}
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-orange-200 hover:text-orange-700"
+              >
+                <EllipsisHorizontalIcon className="h-5 w-5" />
+                Ещё
+              </button>
+              {isMoreOpen && (
+                <div className="absolute right-0 top-14 z-20 w-64 rounded-3xl border border-slate-100 bg-white p-2 shadow-2xl">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAdvancedOpen(true);
+                      setIsMoreOpen(false);
+                    }}
+                    className="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  >
+                    Расширенное управление
+                    <ChevronRightIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <SummaryStrip overview={overview} />
+        </header>
+
+        {overview.warnings.length > 0 && (
+          <div className="rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm font-medium text-amber-900">
+            {overview.warnings.map(warning => warning.message).join('. ')}
+          </div>
+        )}
+
+        <SolutionsSection
+          solutions={overview.solutions}
+          onManage={setManagedSolution}
+        />
+
+        <StandaloneModulesSection
+          modules={overview.standalone_modules}
+          onManage={setManagedModule}
+          onActivate={(module) => void runAction(
+            `activate-${module.slug}`,
+            () => activateModule(module.slug),
+            `Возможность «${module.name}» подключена`,
+          )}
+          actionLoading={actionLoading}
+        />
+      </div>
+
+      <SolutionManageDrawer
+        solution={managedSolution}
+        actionLoading={actionLoading}
+        onClose={() => setManagedSolution(null)}
+        onSubscribe={(solution, tier) => void runAction(
+          `solution-${solution.slug}-${tier.key}`,
+          () => subscribeToPackage(solution.slug, tier.key),
+          `Решение «${solution.name}» обновлено`,
+        )}
+        onUnsubscribe={(solution) => void runAction(
+          `solution-${solution.slug}-unsubscribe`,
+          () => unsubscribeFromPackage(solution.slug),
+          `Решение «${solution.name}» отключено`,
+        )}
+      />
+
+      <StandaloneModuleDrawer
+        module={managedModule}
+        actionLoading={actionLoading}
+        onClose={() => setManagedModule(null)}
+        onActivate={(module) => void runAction(
+          `activate-${module.slug}`,
+          () => activateModule(module.slug),
+          `Возможность «${module.name}» подключена`,
+        )}
+        onDeactivate={(module) => void runAction(
+          `deactivate-${module.slug}`,
+          () => deactivateModule(module.slug),
+          `Возможность «${module.name}» отключена`,
+        )}
+      />
+
+      <AdvancedModulesDrawer
+        isOpen={isAdvancedOpen}
+        modules={overview.advanced_modules}
+        actionLoading={actionLoading}
+        onClose={() => setIsAdvancedOpen(false)}
+        onActivate={(module) => void runAction(
+          `activate-${module.slug}`,
+          () => activateModule(module.slug),
+          `Возможность «${module.name}» подключена`,
+        )}
+        onDeactivate={(module) => void runAction(
+          `deactivate-${module.slug}`,
+          () => deactivateModule(module.slug),
+          `Возможность «${module.name}» отключена`,
+        )}
+        onRenew={(module) => void runAction(
+          `renew-${module.slug}`,
+          () => renewModule(module.slug),
+          `Возможность «${module.name}» продлена`,
+        )}
+        onToggleAutoRenew={(module) => void runAction(
+          `auto-renew-${module.slug}`,
+          () => toggleAutoRenew(module.slug, !(module.activation?.is_auto_renew_enabled ?? false)),
+          `Автопродление для «${module.name}» обновлено`,
+        )}
+      />
+    </div>
+  );
+};
+
+const SummaryStrip = ({ overview }: { overview: ModulesOverview }) => {
+  const items = [
+    { label: 'Решения активны', value: `${overview.summary.active_solutions_count} из ${overview.summary.total_solutions_count}` },
+    { label: 'Отдельные возможности', value: overview.summary.active_standalone_count.toString() },
+    { label: 'Ежемесячно', value: formatMoney(overview.summary.monthly_total) },
+    { label: 'Требуют внимания', value: overview.summary.expiring_count.toString() },
+  ];
+
+  return (
+    <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {items.map((item, index) => (
+        <motion.div
+          key={item.label}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.05 }}
+          className="rounded-3xl border border-slate-100 bg-slate-50/80 px-5 py-4"
+        >
+          <p className="text-sm font-medium text-slate-500">{item.label}</p>
+          <p className="mt-2 text-2xl font-black text-slate-950">{item.value}</p>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+const SolutionsSection = ({
+  solutions,
+  onManage,
+}: {
+  solutions: ModulesOverviewSolution[];
+  onManage: (solution: ModulesOverviewSolution) => void;
+}) => (
+  <section className="space-y-4">
+    <div className="flex items-end justify-between gap-4">
+      <div>
+        <h2 className="text-2xl font-black tracking-tight text-slate-950">Решения</h2>
+        <p className="mt-1 text-sm text-slate-600">Пакеты возможностей, собранные под понятные рабочие контуры.</p>
+      </div>
+    </div>
+    <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+      {solutions.map((solution, index) => (
+        <motion.article
+          key={solution.slug}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.04 }}
+          className="flex min-h-[320px] flex-col rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl"
+        >
+          <div className="flex items-start gap-4">
+            <div
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm"
+              style={{ backgroundColor: solution.color || '#f97316' }}
+            >
+              <SparklesIcon className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-xl font-black leading-tight text-slate-950">{solution.name}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{solution.description}</p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-3 rounded-3xl bg-slate-50 p-3">
+            <InfoPill label="Текущий тариф" value={tierText(solution.current_tier)} />
+            <InfoPill label="Стоимость" value={formatMoney(solution.effective_monthly_price)} />
+            <InfoPill label="Активно" value={`${solution.active_included_modules_count}/${solution.included_modules_count}`} />
+            <InfoPill label="Изменение" value={solution.can_upgrade ? 'Есть апгрейд' : solution.can_downgrade ? 'Можно снизить' : 'Актуально'} />
+          </div>
+
+          <div className="mt-5 flex-1 space-y-2">
+            {(solution.tiers.find(tier => tier.is_current)?.highlights ?? solution.tiers[0]?.highlights ?? []).slice(0, 4).map(item => (
+              <div key={item} className="flex items-start gap-2 text-sm text-slate-600">
+                <CheckCircleIcon className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onManage(solution)}
+            className="mt-6 inline-flex items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-orange-600"
+          >
+            Управлять
+          </button>
+        </motion.article>
+      ))}
+    </div>
+  </section>
+);
+
+const StandaloneModulesSection = ({
+  modules,
+  onManage,
+  onActivate,
+  actionLoading,
+}: {
+  modules: ModulesOverviewModule[];
+  onManage: (module: ModulesOverviewModule) => void;
+  onActivate: (module: ModulesOverviewModule) => void;
+  actionLoading: string | null;
+}) => (
+  <section className="space-y-4 pb-10">
+    <div>
+      <h2 className="text-2xl font-black tracking-tight text-slate-950">Отдельные возможности</h2>
+      <p className="mt-1 text-sm text-slate-600">Модули вне пакетов, которые можно включать как самостоятельные сценарии.</p>
+    </div>
+
+    {modules.length === 0 ? (
+      <div className="rounded-[28px] border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
+        Сейчас нет отдельных возможностей для подключения.
+      </div>
+    ) : (
+      <div className="grid gap-4 lg:grid-cols-2">
+        {modules.map(module => (
+          <article key={module.slug} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                  {statusText(module.status)}
+                </div>
+                <h3 className="mt-3 text-xl font-black text-slate-950">{module.name}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{module.description}</p>
+              </div>
+              <div className="text-left sm:text-right">
+                <p className="text-sm text-slate-500">Стоимость</p>
+                <p className="text-lg font-black text-slate-950">{formatMoney(module.price, module.currency)}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {(module.features ?? []).slice(0, 3).map(feature => (
+                <span key={feature} className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                  {feature}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => onManage(module)}
+                className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:border-orange-200 hover:text-orange-700"
+              >
+                Подробнее
+              </button>
+              {module.can_activate && (
+                <button
+                  type="button"
+                  disabled={actionLoading === `activate-${module.slug}`}
+                  onClick={() => onActivate(module)}
+                  className="rounded-2xl bg-orange-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-60"
+                >
+                  Подключить
+                </button>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+  </section>
+);
+
+const InfoPill = ({ label, value }: { label: string; value: string }) => (
+  <div className="rounded-2xl bg-white px-3 py-2">
+    <p className="text-xs font-semibold text-slate-500">{label}</p>
+    <p className="mt-1 text-sm font-black text-slate-950">{value}</p>
+  </div>
+);
+
+const DrawerShell = ({
+  title,
+  isOpen,
+  onClose,
+  children,
+}: {
+  title: string;
+  isOpen: boolean;
+  onClose: () => void;
+  children: ReactNode;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-40 flex justify-end bg-slate-950/35 p-3 backdrop-blur-sm" role="presentation">
+      <motion.aside
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        initial={{ opacity: 0, x: 40 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-[32px] bg-white shadow-2xl"
+      >
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+          <h2 className="text-2xl font-black text-slate-950">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-2xl border border-slate-200 p-2 text-slate-500 transition hover:text-slate-900"
+            aria-label="Закрыть"
+          >
+            <XMarkIcon className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
+      </motion.aside>
+    </div>
+  );
+};
+
+const SolutionManageDrawer = ({
+  solution,
+  actionLoading,
+  onClose,
+  onSubscribe,
+  onUnsubscribe,
+}: {
+  solution: ModulesOverviewSolution | null;
+  actionLoading: string | null;
+  onClose: () => void;
+  onSubscribe: (solution: ModulesOverviewSolution, tier: ModulesOverviewTier) => void;
+  onUnsubscribe: (solution: ModulesOverviewSolution) => void;
+}) => (
+  <DrawerShell title={solution?.name ?? 'Управление решением'} isOpen={Boolean(solution)} onClose={onClose}>
+    {solution && (
+      <div className="space-y-5">
+        <p className="text-slate-600">{solution.description}</p>
+        <div className="rounded-3xl bg-slate-50 p-4">
+          <p className="text-sm font-semibold text-slate-500">Текущий тариф</p>
+          <p className="mt-1 text-2xl font-black text-slate-950">{tierText(solution.current_tier)}</p>
+        </div>
+        <div className="space-y-3">
+          {solution.tiers.map(tier => (
+            <div key={tier.key} className="rounded-3xl border border-slate-200 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-black text-slate-950">{tier.label}</h3>
+                    {tier.is_current && <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Активен</span>}
+                  </div>
+                  <p className="mt-1 text-sm text-slate-600">{tier.description}</p>
+                  <p className="mt-3 text-sm font-semibold text-slate-500">{tier.active_modules_count}/{tier.included_modules_count} модулей активно</p>
+                </div>
+                <div className="text-left sm:text-right">
+                  <p className="text-xl font-black text-slate-950">{formatMoney(tier.price)}</p>
+                  {!tier.is_current && (
+                    <button
+                      type="button"
+                      disabled={actionLoading === `solution-${solution.slug}-${tier.key}`}
+                      onClick={() => onSubscribe(solution, tier)}
+                      className="mt-3 rounded-2xl bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-60"
+                    >
+                      Выбрать тариф
+                    </button>
+                  )}
+                </div>
+              </div>
+              {tier.highlights.length > 0 && (
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {tier.highlights.map(item => (
+                    <div key={item} className="flex gap-2 text-sm text-slate-600">
+                      <CheckCircleIcon className="h-4 w-4 shrink-0 text-emerald-500" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {solution.current_tier && (
+          <div className="rounded-3xl border border-red-100 bg-red-50 p-4">
+            <h3 className="font-black text-red-900">Отключение решения</h3>
+            <p className="mt-1 text-sm text-red-700">Перед отключением проверьте, какие рабочие сценарии перестанут быть доступны.</p>
+            <button
+              type="button"
+              disabled={actionLoading === `solution-${solution.slug}-unsubscribe`}
+              onClick={() => onUnsubscribe(solution)}
+              className="mt-4 rounded-2xl border border-red-200 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-100 disabled:opacity-60"
+            >
+              Отключить пакет
+            </button>
+          </div>
+        )}
+      </div>
+    )}
+  </DrawerShell>
+);
+
+const StandaloneModuleDrawer = ({
+  module,
+  actionLoading,
+  onClose,
+  onActivate,
+  onDeactivate,
+}: {
+  module: ModulesOverviewModule | null;
+  actionLoading: string | null;
+  onClose: () => void;
+  onActivate: (module: ModulesOverviewModule) => void;
+  onDeactivate: (module: ModulesOverviewModule) => void;
+}) => (
+  <DrawerShell title={module?.name ?? 'Возможность'} isOpen={Boolean(module)} onClose={onClose}>
+    {module && (
+      <div className="space-y-5">
+        <p className="text-slate-600">{module.description}</p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <InfoPill label="Статус" value={statusText(module.status)} />
+          <InfoPill label="Стоимость" value={formatMoney(module.price, module.currency)} />
+          <InfoPill label="Автопродление" value={module.activation?.is_auto_renew_enabled ? 'Включено' : 'Выключено'} />
+        </div>
+        {(module.features ?? []).length > 0 && (
+          <div className="rounded-3xl bg-slate-50 p-4">
+            <h3 className="font-black text-slate-950">Что входит</h3>
+            <div className="mt-3 space-y-2">
+              {(module.features ?? []).map(feature => (
+                <div key={feature} className="flex gap-2 text-sm text-slate-600">
+                  <CheckCircleIcon className="h-4 w-4 shrink-0 text-emerald-500" />
+                  {feature}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="flex flex-wrap gap-3">
+          {module.can_activate && (
+            <button
+              type="button"
+              disabled={actionLoading === `activate-${module.slug}`}
+              onClick={() => onActivate(module)}
+              className="rounded-2xl bg-orange-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-60"
+            >
+              Подключить
+            </button>
+          )}
+          {module.status === 'active' && module.can_deactivate && (
+            <button
+              type="button"
+              disabled={actionLoading === `deactivate-${module.slug}`}
+              onClick={() => onDeactivate(module)}
+              className="rounded-2xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-700 transition hover:bg-red-50 disabled:opacity-60"
+            >
+              Отключить
+            </button>
+          )}
+        </div>
+      </div>
+    )}
+  </DrawerShell>
+);
+
+const AdvancedModulesDrawer = ({
+  isOpen,
+  modules,
+  actionLoading,
+  onClose,
+  onActivate,
+  onDeactivate,
+  onRenew,
+  onToggleAutoRenew,
+}: {
+  isOpen: boolean;
+  modules: ModulesOverviewModule[];
+  actionLoading: string | null;
+  onClose: () => void;
+  onActivate: (module: ModulesOverviewModule) => void;
+  onDeactivate: (module: ModulesOverviewModule) => void;
+  onRenew: (module: ModulesOverviewModule) => void;
+  onToggleAutoRenew: (module: ModulesOverviewModule) => void;
+}) => {
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<'all' | 'active' | 'standalone' | 'system' | 'expiring' | 'development'>('all');
+
+  const filteredModules = useMemo(() => (
+    modules.filter(module => {
+      const matchesQuery = `${module.name} ${module.slug}`.toLowerCase().includes(query.toLowerCase());
+      const expiresSoon = (module.activation?.days_until_expiration ?? 999) <= 7;
+      const inDevelopment = module.development_status?.can_be_activated === false;
+      const matchesFilter = filter === 'all'
+        || (filter === 'active' && module.status === 'active')
+        || (filter === 'standalone' && module.classification === 'standalone')
+        || (filter === 'system' && (module.is_system || module.classification === 'system'))
+        || (filter === 'expiring' && expiresSoon)
+        || (filter === 'development' && inDevelopment);
+
+      return matchesQuery && matchesFilter;
+    })
+  ), [filter, modules, query]);
+
+  const filters = [
+    ['all', 'Все'],
+    ['active', 'Активные'],
+    ['standalone', 'Отдельные'],
+    ['system', 'Системные'],
+    ['expiring', 'Истекают'],
+    ['development', 'В разработке'],
+  ] as const;
+
+  return (
+    <DrawerShell title="Расширенное управление" isOpen={isOpen} onClose={onClose}>
+      <div className="space-y-5">
+        <div className="rounded-3xl bg-slate-50 p-4">
+          <label className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
+            <MagnifyingGlassIcon className="h-5 w-5 text-slate-400" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Поиск по модулю"
+              className="w-full bg-transparent text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
+            />
+          </label>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {filters.map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFilter(key)}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                  filter === key ? 'bg-slate-950 text-white' : 'bg-white text-slate-600 hover:text-slate-950'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="bg-white inline-flex rounded-2xl border border-slate-200 shadow-sm p-1 gap-1">
-          <button
-            onClick={() => setActiveTab('packages')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'packages' ? 'bg-orange-600 text-white shadow-lg shadow-orange-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
-          >
-            <RectangleGroupIcon className="w-4 h-4" />
-            Пакеты
-          </button>
-          <button
-            onClick={() => setActiveTab('modules')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'modules' ? 'bg-orange-600 text-white shadow-lg shadow-orange-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
-          >
-            <Squares2X2Icon className="w-4 h-4" />
-            Все модули
-          </button>
-        </div>
-
-        {activeTab === 'packages' && <PackagesView />}
-
-        {activeTab === 'modules' && (
-          <>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Модули</h2>
-                  <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold border border-orange-200">{catalogModules.length} доступно</span>
-                </div>
-                <p className="text-slate-500 text-lg">Расширяйте возможности с помощью дополнительных модулей</p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <div className="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
-                  <button onClick={() => handleBulkAutoRenew(true)} disabled={loading || !!actionLoading?.startsWith('bulk-auto-renew')} className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-orange-600 hover:bg-orange-50 disabled:opacity-50 transition-colors">
-                    <ArrowPathIcon className="h-4 w-4 mr-1" />
-                    Вкл. автопродление
-                  </button>
-                  <div className="w-px h-6 bg-slate-200 mx-1" />
-                  <button onClick={() => handleBulkAutoRenew(false)} disabled={loading || !!actionLoading?.startsWith('bulk-auto-renew')} className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors">
-                    <XMarkIcon className="h-4 w-4 mr-1" />
-                    Выкл.
-                  </button>
-                </div>
-                <button onClick={refresh} disabled={loading} className="inline-flex items-center px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-orange-600 disabled:opacity-50 transition-colors shadow-sm">
-                  <ArrowPathIcon className={`h-5 w-5 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                  Обновить
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
-                <XCircleIcon className="h-6 w-6 text-red-500 mt-0.5 flex-shrink-0" />
+        <div className="space-y-3">
+          {filteredModules.map(module => (
+            <div key={module.slug} className="rounded-3xl border border-slate-200 p-4">
+              <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                 <div>
-                  <h3 className="font-bold text-red-900">Ошибка загрузки</h3>
-                  <p className="text-red-800 mt-1">{error}</p>
-                </div>
-              </motion.div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { bg: 'green', icon: <CheckCircleIcon className="w-6 h-6" />, label: 'Активные', value: activeCount, sub: 'модулей используется' },
-                { bg: 'orange', icon: <BanknotesIcon className="w-6 h-6" />, label: 'Стоимость', value: monthlyTotal.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }), sub: 'в месяц' },
-                { bg: 'yellow', icon: <ClockIcon className="w-6 h-6" />, label: 'Внимание', value: expiringCount, sub: 'истекают скоро' },
-                { bg: 'blue', icon: <Squares2X2Icon className="w-6 h-6" />, label: 'Всего', value: catalogModules.length, sub: 'доступных модулей' },
-              ].map(({ bg, icon, label, value, sub }) => (
-                <div key={label} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
-                  <div className={`absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-${bg}-50 rounded-full transition-transform group-hover:scale-150 duration-500`} />
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className={`p-3 bg-${bg}-50 rounded-2xl text-${bg}-600`}>{icon}</div>
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</span>
-                    </div>
-                    <p className="text-3xl font-bold text-slate-900">{value}</p>
-                    <p className="text-sm text-slate-500 mt-1">{sub}</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-black text-slate-950">{module.name}</h3>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">
+                      {classificationText(module)}
+                    </span>
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                      {statusText(module.status)}
+                    </span>
                   </div>
+                  <p className="mt-1 text-sm text-slate-500">{module.description}</p>
                 </div>
-              ))}
+                <div className="flex flex-wrap gap-2">
+                  {module.can_activate && (
+                    <button
+                      type="button"
+                      disabled={actionLoading === `activate-${module.slug}`}
+                      onClick={() => onActivate(module)}
+                      className="rounded-2xl bg-orange-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-orange-700 disabled:opacity-60"
+                    >
+                      Подключить
+                    </button>
+                  )}
+                  {module.status === 'active' && (
+                    <button
+                      type="button"
+                      disabled={actionLoading === `renew-${module.slug}`}
+                      onClick={() => onRenew(module)}
+                      className="rounded-2xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-orange-200 hover:text-orange-700 disabled:opacity-60"
+                    >
+                      Продлить
+                    </button>
+                  )}
+                  {module.activation && (
+                    <button
+                      type="button"
+                      disabled={actionLoading === `auto-renew-${module.slug}`}
+                      onClick={() => onToggleAutoRenew(module)}
+                      className="rounded-2xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-orange-200 hover:text-orange-700 disabled:opacity-60"
+                    >
+                      Автопродление
+                    </button>
+                  )}
+                  {module.status === 'active' && module.can_deactivate && (
+                    <button
+                      type="button"
+                      disabled={actionLoading === `deactivate-${module.slug}`}
+                      onClick={() => onDeactivate(module)}
+                      className="rounded-2xl border border-red-200 px-3 py-2 text-xs font-bold text-red-700 transition hover:bg-red-50 disabled:opacity-60"
+                    >
+                      Отключить
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-
-            {hasExpiring && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-yellow-100 rounded-xl text-yellow-600 mt-1">
-                    <ExclamationTriangleIcon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-yellow-900 text-lg">Требуется внимание</div>
-                    <div className="text-yellow-800 mt-1 mb-3">У следующих модулей истекает срок действия в ближайшие 7 дней:</div>
-                    <div className="flex flex-wrap gap-2">
-                      {expiringModules.map(m => (
-                        <div key={m.slug} className="inline-flex items-center bg-white border border-yellow-200 rounded-xl px-3 py-1.5 shadow-sm">
-                          <span className="font-bold text-yellow-900 mr-2">{m.name}</span>
-                          <span className="text-yellow-600 text-sm">до {formatDate(getModuleExpiresAt(m))}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            <div className="space-y-10">
-              {moduleGroups.map(group => (
-                <div key={group.packageSlug}>
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: group.packageColor + '20' }}>
-                      <span style={{ color: group.packageColor }} className="font-bold text-sm">
-                        {group.modules.filter(m => isModuleActive(m.slug)).length}/{group.modules.length}
-                      </span>
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-bold text-slate-900">{group.packageName}</h2>
-                      <p className="text-xs text-slate-400">
-                        {group.modules.filter(m => isModuleActive(m.slug)).length} из {group.modules.length} активно
-                        {group.activeTier && <span className="ml-2 text-green-600 font-bold">• пакет подключён</span>}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                    {group.modules.map(module => (
-                      <ModuleCard
-                        key={module.slug}
-                        module={module}
-                        isActive={isModuleActive(module.slug)}
-                        isExpanded={expandedModules.has(module.slug)}
-                        statusText={getModuleStatusText(module)}
-                        actionLoading={actionLoading}
-                        onActivate={handleActivateClick}
-                        onTrial={handleTrialClick}
-                        onDeactivate={handleDeactivateClick}
-                        onRenew={handleRenewModule}
-                        onToggleExpand={toggleModuleExpanded}
-                        onAutoRenewToggle={handleAutoRenewToggle}
-                        onOpenDetails={handleOpenDetails}
-                        addonCount={getModuleAddonCount(module.slug)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+          ))}
+        </div>
       </div>
-
-      <DevelopmentWarningModal
-        module={selectedModule}
-        isOpen={showDevelopmentWarning}
-        onClose={() => { setShowDevelopmentWarning(false); setSelectedModule(null); setPreviewData(null); }}
-        onConfirm={handleDevelopmentWarningConfirm}
-      />
-      <ModuleDetailsModal
-        module={selectedModule}
-        isOpen={showDetailsModal}
-        onClose={() => { setShowDetailsModal(false); setSelectedModule(null); }}
-        addonPreviews={selectedModule ? getModuleAddonPreviews(selectedModule.slug, allModules) : []}
-      />
-      <ModuleActivationModal
-        module={selectedModule}
-        isOpen={showActivationModal}
-        onClose={() => { setShowActivationModal(false); setSelectedModule(null); setPreviewData(null); }}
-        onConfirm={handleActivateConfirm}
-        isLoading={actionLoading?.startsWith('activate-') || false}
-        previewData={previewData}
-      />
-      <ModuleDeactivationPreviewModal
-        module={selectedModule}
-        isOpen={showDeactivationPreviewModal}
-        onClose={() => { setShowDeactivationPreviewModal(false); setSelectedModule(null); setDeactivationPreviewData(null); }}
-        onConfirm={handleDeactivatePreviewConfirm}
-        isLoading={actionLoading?.startsWith('deactivate-') || false}
-        previewData={deactivationPreviewData}
-      />
-    </div>
+    </DrawerShell>
   );
 };
 

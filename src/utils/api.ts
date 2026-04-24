@@ -2388,7 +2388,111 @@ export interface ModuleBillingResponse {
 }
 
 // Новый сервис для модулей
+export interface ModulesOverviewSummary {
+  active_solutions_count: number;
+  total_solutions_count: number;
+  active_standalone_count: number;
+  monthly_total: number;
+  expiring_count: number;
+}
+
+export interface ModulesOverviewTier {
+  key: string;
+  label: string;
+  description: string;
+  price: number;
+  modules: string[];
+  highlights: string[];
+  is_current: boolean;
+  included_modules_count: number;
+  active_modules_count: number;
+}
+
+export interface ModulesOverviewSolution {
+  slug: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  current_tier: string | null;
+  active_tier: string | null;
+  effective_monthly_price: number;
+  included_modules_count: number;
+  active_included_modules_count: number;
+  can_upgrade: boolean;
+  can_downgrade: boolean;
+  expires_at: string | null;
+  tiers: ModulesOverviewTier[];
+}
+
+export interface ModulesOverviewActivation {
+  status: string;
+  activated_at?: string | null;
+  expires_at?: string | null;
+  days_until_expiration?: number | null;
+  is_auto_renew_enabled: boolean;
+  is_bundled_with_plan: boolean;
+}
+
+export interface ModulesOverviewModule {
+  slug: string;
+  name: string;
+  description: string;
+  classification?: 'packaged' | 'standalone' | 'system';
+  package_slugs?: string[];
+  is_system?: boolean;
+  is_bundled_with_plan?: boolean;
+  billing_model: string;
+  price: number;
+  currency: string;
+  status: string;
+  activation: ModulesOverviewActivation | null;
+  development_status?: {
+    label?: string;
+    description?: string;
+    can_be_activated?: boolean;
+    should_show_warning?: boolean;
+  };
+  can_activate: boolean;
+  can_deactivate: boolean;
+  icon?: string | null;
+  category?: string | null;
+  features?: string[];
+}
+
+export interface ModulesOverviewWarning {
+  type: string;
+  message: string;
+  count?: number;
+}
+
+export interface ModulesOverview {
+  summary: ModulesOverviewSummary;
+  solutions: ModulesOverviewSolution[];
+  standalone_modules: ModulesOverviewModule[];
+  advanced_modules: ModulesOverviewModule[];
+  warnings: ModulesOverviewWarning[];
+}
+
 export const newModulesService = {
+  getOverview: async (): Promise<{ data: any, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+
+    const url = `${API_URL}/modules/overview`;
+    const options: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
   // Получение списка доступных модулей
   getModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
