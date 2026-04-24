@@ -120,14 +120,17 @@ const ModulesPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb] px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <header className="rounded-[32px] border border-white/80 bg-white/90 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-orange-600">Возможности организации</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">Модули и пакеты</h1>
-              <p className="mt-3 max-w-3xl text-base text-slate-600">
+    <div className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,#fff4e8_0,#f7fafc_28%,#eef3f8_58%,#f8fafc_100%)] px-4 py-7 text-slate-900 sm:px-6 lg:px-8">
+      <div className="pointer-events-none fixed inset-x-0 top-20 -z-10 mx-auto h-96 max-w-6xl rounded-full bg-orange-200/30 blur-3xl" />
+      <div className="mx-auto max-w-[1280px] space-y-7">
+        <header className="relative overflow-hidden rounded-[40px] border border-white/70 bg-[linear-gradient(135deg,#07111f_0%,#102236_48%,#255068_100%)] p-7 text-white shadow-[0_34px_120px_rgba(15,23,42,0.20)] md:p-8">
+          <div className="absolute -right-28 -top-28 h-72 w-72 rounded-full bg-orange-400/25 blur-3xl" />
+          <div className="absolute bottom-0 right-8 h-40 w-72 rounded-full bg-cyan-300/10 blur-2xl" />
+          <div className="relative flex flex-col gap-7 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-orange-200">Возможности организации</p>
+              <h1 className="mt-3 text-4xl font-black tracking-tight text-white md:text-5xl">Модули и пакеты</h1>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-slate-200">
                 Управляйте решениями как бизнес-наборами, а отдельные модули подключайте только там, где они дают самостоятельную ценность.
               </p>
             </div>
@@ -136,7 +139,7 @@ const ModulesPage = () => {
               <button
                 type="button"
                 onClick={() => void refresh()}
-                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-orange-200 hover:text-orange-700"
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-bold text-white shadow-sm backdrop-blur transition hover:bg-white/20"
               >
                 <ArrowPathIcon className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
                 Обновить
@@ -144,13 +147,13 @@ const ModulesPage = () => {
               <button
                 type="button"
                 onClick={() => setIsMoreOpen(value => !value)}
-                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-orange-200 hover:text-orange-700"
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-bold text-white shadow-sm backdrop-blur transition hover:bg-white/20"
               >
                 <EllipsisHorizontalIcon className="h-5 w-5" />
                 Ещё
               </button>
               {isMoreOpen && (
-                <div className="absolute right-0 top-14 z-20 w-64 rounded-3xl border border-slate-100 bg-white p-2 shadow-2xl">
+                <div className="absolute right-0 top-14 z-20 w-64 rounded-3xl border border-slate-100 bg-white p-2 text-slate-900 shadow-2xl">
                   <button
                     type="button"
                     onClick={() => {
@@ -171,7 +174,7 @@ const ModulesPage = () => {
         </header>
 
         {overview.warnings.length > 0 && (
-          <div className="rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm font-medium text-amber-900">
+          <div className="rounded-[28px] border border-amber-200/80 bg-[linear-gradient(135deg,#fff7dc,#fffdf7)] px-5 py-4 text-sm font-bold text-amber-900 shadow-[0_18px_60px_rgba(245,158,11,0.10)]">
             {overview.warnings.map(warning => warning.message).join('. ')}
           </div>
         )}
@@ -264,17 +267,17 @@ const SummaryStrip = ({ overview }: { overview: ModulesOverview }) => {
   ];
 
   return (
-    <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="relative mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {items.map((item, index) => (
         <motion.div
           key={item.label}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.05 }}
-          className="rounded-3xl border border-slate-100 bg-slate-50/80 px-5 py-4"
+          className="rounded-[26px] border border-white/15 bg-white/10 px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] backdrop-blur"
         >
-          <p className="text-sm font-medium text-slate-500">{item.label}</p>
-          <p className="mt-2 text-2xl font-black text-slate-950">{item.value}</p>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-300">{item.label}</p>
+          <p className="mt-2 text-2xl font-black text-white">{item.value}</p>
         </motion.div>
       ))}
     </div>
@@ -288,10 +291,11 @@ const SolutionsSection = ({
   solutions: ModulesOverviewSolution[];
   onManage: (solution: ModulesOverviewSolution) => void;
 }) => (
-  <section className="space-y-4">
-    <div className="flex items-end justify-between gap-4">
+  <section className="rounded-[36px] border border-white/80 bg-white/80 p-5 shadow-[0_24px_90px_rgba(15,23,42,0.08)] backdrop-blur md:p-6">
+    <div className="mb-5 flex items-end justify-between gap-4">
       <div>
-        <h2 className="text-2xl font-black tracking-tight text-slate-950">Решения</h2>
+        <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-600">Основной сценарий</p>
+        <h2 className="mt-1 text-3xl font-black tracking-tight text-slate-950">Решения</h2>
         <p className="mt-1 text-sm text-slate-600">Пакеты возможностей, собранные под понятные рабочие контуры.</p>
       </div>
     </div>
@@ -302,11 +306,13 @@ const SolutionsSection = ({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.04 }}
-          className="flex min-h-[320px] flex-col rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl"
+          className="group relative flex min-h-[330px] flex-col overflow-hidden rounded-[30px] border border-slate-200/80 bg-white p-5 shadow-[0_14px_50px_rgba(15,23,42,0.07)] transition duration-300 hover:-translate-y-1 hover:border-orange-200 hover:shadow-[0_24px_80px_rgba(15,23,42,0.13)]"
         >
+          <div className="absolute inset-x-0 top-0 h-1.5 opacity-90" style={{ backgroundColor: solution.color || '#f97316' }} />
+          <div className="absolute -right-16 -top-16 h-32 w-32 rounded-full opacity-10 blur-2xl transition group-hover:opacity-20" style={{ backgroundColor: solution.color || '#f97316' }} />
           <div className="flex items-start gap-4">
             <div
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-[0_12px_30px_rgba(15,23,42,0.16)]"
               style={{ backgroundColor: solution.color || '#f97316' }}
             >
               <SparklesIcon className="h-6 w-6" />
@@ -317,7 +323,7 @@ const SolutionsSection = ({
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3 rounded-3xl bg-slate-50 p-3">
+          <div className="mt-5 grid grid-cols-2 gap-2 rounded-[26px] border border-slate-100 bg-slate-50/80 p-2.5">
             <InfoPill label="Текущий тариф" value={tierText(solution.current_tier)} />
             <InfoPill label="Стоимость" value={formatMoney(solution.effective_monthly_price)} />
             <InfoPill label="Активно" value={`${solution.active_included_modules_count}/${solution.included_modules_count}`} />
@@ -336,7 +342,7 @@ const SolutionsSection = ({
           <button
             type="button"
             onClick={() => onManage(solution)}
-            className="mt-6 inline-flex items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-orange-600"
+            className="mt-6 inline-flex items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_30px_rgba(15,23,42,0.18)] transition hover:bg-orange-600"
           >
             Управлять
           </button>
@@ -357,9 +363,10 @@ const StandaloneModulesSection = ({
   onActivate: (module: ModulesOverviewModule) => void;
   actionLoading: string | null;
 }) => (
-  <section className="space-y-4 pb-10">
-    <div>
-      <h2 className="text-2xl font-black tracking-tight text-slate-950">Отдельные возможности</h2>
+  <section className="rounded-[36px] border border-white/80 bg-white/65 p-5 pb-6 shadow-[0_20px_70px_rgba(15,23,42,0.06)] backdrop-blur md:p-6">
+    <div className="mb-5">
+      <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-700">Точечные подключения</p>
+      <h2 className="mt-1 text-3xl font-black tracking-tight text-slate-950">Отдельные возможности</h2>
       <p className="mt-1 text-sm text-slate-600">Модули вне пакетов, которые можно включать как самостоятельные сценарии.</p>
     </div>
 
@@ -370,22 +377,23 @@ const StandaloneModulesSection = ({
     ) : (
       <div className="grid gap-4 lg:grid-cols-2">
         {modules.map(module => (
-          <article key={module.slug} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+          <article key={module.slug} className="relative overflow-hidden rounded-[30px] border border-slate-200/80 bg-white p-5 shadow-[0_14px_44px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_70px_rgba(15,23,42,0.10)]">
+            <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-l from-cyan-50 to-transparent" />
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <div className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                <div className="relative inline-flex rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-700">
                   {statusText(module.status)}
                 </div>
-                <h3 className="mt-3 text-xl font-black text-slate-950">{module.name}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{module.description}</p>
+                <h3 className="relative mt-3 text-xl font-black text-slate-950">{module.name}</h3>
+                <p className="relative mt-2 text-sm leading-6 text-slate-600">{module.description}</p>
               </div>
-              <div className="text-left sm:text-right">
+              <div className="relative text-left sm:text-right">
                 <p className="text-sm text-slate-500">Стоимость</p>
                 <p className="text-lg font-black text-slate-950">{formatMoney(module.price, module.currency)}</p>
               </div>
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="relative mt-5 flex flex-wrap gap-2">
               {(module.features ?? []).slice(0, 3).map(feature => (
                 <span key={feature} className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                   {feature}
@@ -393,7 +401,7 @@ const StandaloneModulesSection = ({
               ))}
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="relative mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => onManage(module)}
@@ -420,8 +428,8 @@ const StandaloneModulesSection = ({
 );
 
 const InfoPill = ({ label, value }: { label: string; value: string }) => (
-  <div className="rounded-2xl bg-white px-3 py-2">
-    <p className="text-xs font-semibold text-slate-500">{label}</p>
+  <div className="rounded-2xl bg-white px-3 py-2 shadow-[inset_0_0_0_1px_rgba(226,232,240,0.65)]">
+    <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{label}</p>
     <p className="mt-1 text-sm font-black text-slate-950">{value}</p>
   </div>
 );
