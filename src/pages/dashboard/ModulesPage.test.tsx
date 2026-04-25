@@ -26,6 +26,8 @@ const overview = {
       can_upgrade: false,
       can_downgrade: true,
       expires_at: null,
+      access_source: 'subscription',
+      is_bundled_with_plan: true,
       tiers: [
         {
           key: 'base',
@@ -127,6 +129,8 @@ describe('ModulesPage', () => {
     expect(screen.getByRole('heading', { name: 'Отдельные возможности' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Все модули/i })).not.toBeInTheDocument();
     expect(screen.getByText('Управление проектами')).toBeInTheDocument();
+    expect(screen.getByText('Тариф и доплаты')).toBeInTheDocument();
+    expect(screen.getAllByText('В тарифе')).toHaveLength(2);
     expect(screen.getByText('Бригады')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Отключить' })).not.toBeInTheDocument();
   });

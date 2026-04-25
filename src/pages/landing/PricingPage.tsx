@@ -54,7 +54,7 @@ const basePlans = [
     slug: 'enterprise',
     name: 'Enterprise',
     price: 49900,
-    fit: 'Корпоративные версии пакетов, внедрение, интеграции и SLA.',
+    fit: 'Корпоративные версии пакетов, внедрение и условия сопровождения по КП.',
     includedPackageSlugs: [
       'objects-execution',
       'supply-warehouse',

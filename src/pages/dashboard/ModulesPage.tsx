@@ -259,7 +259,7 @@ const SummaryStrip = ({ overview }: { overview: ModulesOverview }) => {
   const items = [
     { label: 'Решения активны', value: `${overview.summary.active_solutions_count} из ${overview.summary.total_solutions_count}` },
     { label: 'Отдельные возможности', value: overview.summary.active_standalone_count.toString() },
-    { label: 'Ежемесячно', value: formatMoney(overview.summary.monthly_total) },
+    { label: 'Тариф и доплаты', value: formatMoney(overview.summary.monthly_total) },
     { label: 'Требуют внимания', value: overview.summary.expiring_count.toString() },
   ];
 
@@ -321,7 +321,7 @@ const SolutionsSection = ({
 
           <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2.5">
             <InfoPill label="Текущий тариф" value={tierText(solution.current_tier)} />
-            <InfoPill label="Стоимость" value={formatMoney(solution.effective_monthly_price)} />
+            <InfoPill label="Стоимость" value={solution.is_bundled_with_plan ? 'В тарифе' : formatMoney(solution.effective_monthly_price)} />
             <InfoPill label="Статус" value={solution.current_tier ? 'Подключено' : 'Доступно'} />
             <InfoPill label="Источник" value={solution.is_bundled_with_plan ? 'В тарифе' : solution.current_tier ? 'Куплено' : 'Доступно'} />
           </div>

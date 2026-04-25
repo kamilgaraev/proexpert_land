@@ -189,13 +189,13 @@ export const PRICING_PLANS = [
   {
     name: 'Business',
     price: 9900,
-    description: '10 прорабов, 15 объектов, интеграции',
+    description: '10 прорабов, 15 объектов, снабжение и финансы',
     features: [
       '10 прорабов',
       '15 проектов',
       '15 пользователей',
       '5 ГБ хранилища',
-      'Интеграции'
+      'Снабжение и финансы'
     ],
     icon: BriefcaseIcon,
     isPopular: false,
@@ -204,13 +204,13 @@ export const PRICING_PLANS = [
   {
     name: 'Profi',
     price: 19900,
-    description: '30 прорабов, 50 объектов, API, BI, White Label',
+    description: '30 прорабов, 50 объектов, пакеты уровня Рост',
     features: [
       '30 прорабов',
       '50 проектов',
       '50 пользователей',
       '20 ГБ хранилища',
-      'API, BI, White Label'
+      'Пакеты уровня Рост'
     ],
     icon: StarIcon,
     isPopular: false,
@@ -223,9 +223,9 @@ export const PRICING_PLANS = [
     features: [
       'Индивидуальные условия',
       'От 49,900 руб./мес',
-      'Персональный менеджер',
-      'Кастомизация',
-      'Приоритетная поддержка 24/7'
+      'Проектное внедрение по КП',
+      'Интеграции по согласованному ТЗ',
+      'Условия поддержки в договоре'
     ],
     icon: BuildingOfficeIcon,
     isPopular: false,

@@ -21,9 +21,9 @@ const PricingPage = () => {
         { name: '1 ГБ хранилища', included: true },
         { name: '10 операций/мес', included: true },
         { name: 'Только базовые функции', included: true },
-        { name: 'Интеграции', included: false },
-        { name: 'API доступ', included: false },
-        { name: 'White Label', included: false }
+        { name: 'Расширенные пакеты', included: false },
+        { name: 'Проектные интеграции', included: false },
+        { name: 'Индивидуальные условия', included: false }
       ],
       cta: 'Выбрать',
       href: '/register'
@@ -42,8 +42,8 @@ const PricingPage = () => {
         { name: 'Базовые отчёты', included: true },
         { name: 'Мобильное приложение', included: true },
         { name: 'Email поддержка', included: true },
-        { name: 'API доступ', included: false },
-        { name: 'White Label', included: false }
+        { name: 'Пакеты уровня Рост', included: false },
+        { name: 'Индивидуальные условия', included: false }
       ],
       cta: 'Выбрать',
       href: '/register?plan=start'
@@ -52,18 +52,18 @@ const PricingPage = () => {
       name: 'Business',
       price: '9 900',
       period: '₽/мес',
-      description: '10 прорабов, 15 объектов, интеграции',
+      description: '10 прорабов, 15 объектов, снабжение и финансы',
       featured: false,
       features: [
         { name: '10 прорабов', included: true },
         { name: '15 проектов', included: true },
         { name: '15 пользователей', included: true },
         { name: '5 ГБ хранилища', included: true },
-        { name: 'Интеграции', included: true },
-        { name: 'Расширенные отчёты', included: true },
-        { name: 'Приоритетная поддержка', included: true },
-        { name: 'API доступ', included: false },
-        { name: 'White Label', included: false }
+        { name: 'Снабжение и склад', included: true },
+        { name: 'Финансы и акты', included: true },
+        { name: 'Базовая помощь при запуске', included: true },
+        { name: 'Пакеты уровня Рост', included: false },
+        { name: 'Индивидуальные условия', included: false }
       ],
       cta: 'Выбрать',
       href: '/register?plan=business'
@@ -72,18 +72,18 @@ const PricingPage = () => {
       name: 'Profi',
       price: '19 900',
       period: '₽/мес',
-      description: '30 прорабов, 50 объектов, API, BI',
+      description: '30 прорабов, 50 объектов, пакеты уровня Рост',
       featured: false,
       features: [
         { name: '30 прорабов', included: true },
         { name: '50 проектов', included: true },
         { name: '50 пользователей', included: true },
         { name: '20 ГБ хранилища', included: true },
-        { name: 'API доступ', included: true },
-        { name: 'BI аналитика', included: true },
-        { name: 'White Label', included: true },
-        { name: '24/7 поддержка', included: true },
-        { name: 'Персональный менеджер', included: true }
+        { name: 'Пакеты уровня Рост', included: true },
+        { name: 'Сметы, ПТО и снабжение', included: true },
+        { name: 'AI-пилоты для смет и сводок', included: true },
+        { name: 'Поддержка запуска контуров', included: true },
+        { name: 'Расширение через проектные услуги', included: true }
       ],
       cta: 'Выбрать',
       href: '/register?plan=profi'
@@ -97,13 +97,13 @@ const PricingPage = () => {
       features: [
         { name: 'Индивидуальные условия', included: true },
         { name: 'От 49 900 руб./мес', included: true },
-        { name: 'Персональный менеджер', included: true },
-        { name: 'Кастомизация', included: true },
-        { name: 'Приоритетная поддержка 24/7', included: true },
-        { name: 'On-premise размещение', included: true },
-        { name: 'SLA 99.9%', included: true },
+        { name: 'Проектное внедрение по КП', included: true },
+        { name: 'Настройка под структуру компании', included: true },
+        { name: 'Условия поддержки в договоре', included: true },
+        { name: 'Размещение обсуждается отдельно', included: true },
+        { name: 'SLA фиксируется в договоре', included: true },
         { name: 'Обучение команды', included: true },
-        { name: 'Неограниченные интеграции', included: true }
+        { name: 'Интеграции по согласованному ТЗ', included: true }
       ],
       cta: 'Выбрать',
       href: '/contact'
