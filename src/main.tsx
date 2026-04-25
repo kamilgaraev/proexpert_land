@@ -6,6 +6,11 @@ import { AuthProvider } from '@contexts/AuthContext';
 import { PermissionsProvider } from '@/contexts/PermissionsContext';
 import './index.css';
 
+window.addEventListener('vite:preloadError', (event) => {
+  event.preventDefault();
+  window.location.reload();
+});
+
 function handleSpaRedirect() {
   const redirect = localStorage.getItem('redirect_404');
   if (redirect) {

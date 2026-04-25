@@ -80,7 +80,7 @@ export const useDaData = () => {
   }, []);
 
   const searchCities = useCallback(async (query: string): Promise<DaDataAddress[]> => {
-    if (!query || query.length < 2) return [];
+    if (!query || query.length < 3) return [];
 
     setIsLoading(true);
     try {
@@ -112,7 +112,7 @@ export const useDaData = () => {
   }, []);
 
   const searchOrganizations = useCallback(async (query: string): Promise<DaDataOrganization[]> => {
-    if (!query || query.length < 2) return [];
+    if (!query || query.length < 3) return [];
 
     setIsLoading(true);
     try {
@@ -190,4 +190,4 @@ export const useDaData = () => {
   };
 };
 
-export default useDaData; 
+export default useDaData;

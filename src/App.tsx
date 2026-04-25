@@ -27,9 +27,9 @@ import LoginPage from '@pages/dashboard/LoginPage';
 import RegisterPage from '@pages/dashboard/RegisterPage';
 import ForgotPasswordPage from '@pages/dashboard/ForgotPasswordPage';
 import NotFoundPage from '@pages/NotFoundPage';
+import EmailSentPage from '@pages/dashboard/EmailSentPage';
 
 const VerifyEmailPage = lazy(() => import('@pages/dashboard/VerifyEmailPage'));
-const EmailSentPage = lazy(() => import('@pages/dashboard/EmailSentPage'));
 import DashboardProtectedRoute from '@components/DashboardProtectedRoute';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 

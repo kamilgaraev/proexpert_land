@@ -1,14 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
+import { useAuth } from '@/hooks/useAuth';
 import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+
+const createEmailHash = async (email: string): Promise<string> => {
+  const digest = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(email));
+
+  return Array.from(new Uint8Array(digest))
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join('');
+};
 
 export const VerifyEmailPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { verifyEmail, loading } = useEmailVerification();
+  const { user, isLoading: isAuthLoading } = useAuth();
   
   const [verificationState, setVerificationState] = useState<{
     status: 'pending' | 'success' | 'error';
@@ -20,11 +30,17 @@ export const VerifyEmailPage = () => {
 
   useEffect(() => {
     const performVerification = async () => {
-      const id = searchParams.get('id');
-      const hash = searchParams.get('hash');
+      let id = searchParams.get('id');
+      let hash = searchParams.get('hash');
       const expires = searchParams.get('expires');
+      const signature = searchParams.get('signature');
 
-      if (!id || !hash || !expires) {
+      if ((!id || !hash) && user?.id && user.email) {
+        id = String(user.id);
+        hash = await createEmailHash(user.email);
+      }
+
+      if (!id || !hash || !expires || !signature) {
         setVerificationState({
           status: 'error',
           message: 'Неверная ссылка для подтверждения. Убедитесь, что вы перешли по ссылке из письма полностью.'
@@ -32,7 +48,7 @@ export const VerifyEmailPage = () => {
         return;
       }
 
-      const result = await verifyEmail(id, hash, expires);
+      const result = await verifyEmail(id, hash, expires, signature);
       
       setVerificationState({
         status: result.success ? 'success' : 'error',
@@ -40,8 +56,10 @@ export const VerifyEmailPage = () => {
       });
     };
 
-    performVerification();
-  }, [searchParams, verifyEmail]);
+    if (!isAuthLoading) {
+      performVerification();
+    }
+  }, [isAuthLoading, searchParams, user, verifyEmail]);
 
   const handleGoToDashboard = () => {
     navigate('/dashboard');
@@ -51,7 +69,7 @@ export const VerifyEmailPage = () => {
     navigate('/login');
   };
 
-  if (loading || verificationState.status === 'pending') {
+  if (isAuthLoading || loading || verificationState.status === 'pending') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
         <Card className="w-full max-w-md">
