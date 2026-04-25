@@ -322,7 +322,7 @@ const SolutionsSection = ({
           <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2.5">
             <InfoPill label="Текущий тариф" value={tierText(solution.current_tier)} />
             <InfoPill label="Стоимость" value={formatMoney(solution.effective_monthly_price)} />
-            <InfoPill label="Активно" value={`${solution.active_included_modules_count}/${solution.included_modules_count}`} />
+            <InfoPill label="Статус" value={solution.current_tier ? 'Подключено' : 'Доступно'} />
             <InfoPill label="Источник" value={solution.is_bundled_with_plan ? 'В тарифе' : solution.current_tier ? 'Куплено' : 'Доступно'} />
           </div>
 
@@ -500,7 +500,9 @@ const SolutionManageDrawer = ({
                     {tier.is_current && <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Активен</span>}
                   </div>
                   <p className="mt-1 text-sm text-slate-600">{tier.description}</p>
-                  <p className="mt-3 text-sm font-semibold text-slate-500">{tier.active_modules_count}/{tier.included_modules_count} модулей активно</p>
+                  <p className="mt-3 text-sm font-semibold text-slate-500">
+                    {tier.is_current ? 'Текущий вариант подключен' : 'Доступно к подключению'}
+                  </p>
                 </div>
                 <div className="text-left sm:text-right">
                   <p className="text-xl font-black text-slate-950">{formatMoney(tier.price)}</p>
