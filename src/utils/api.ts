@@ -932,6 +932,7 @@ export interface SubscriptionPlan {
   max_projects?: number | null;
   max_storage_gb?: number | null;
   features: string[];
+  included_packages?: IncludedPackage[];
   display_order: number;
 }
 
@@ -1022,6 +1023,19 @@ export interface NewSubscriptionPlan {
   price: string;
   currency: string;
   features: Record<string, string[]>;
+  included_packages?: IncludedPackage[];
+}
+
+export interface IncludedPackage {
+  package_slug: string;
+  tier: string;
+  name?: string;
+  tier_label?: string;
+  description?: string | null;
+  icon?: string | null;
+  color?: string | null;
+  modules?: string[];
+  expires_at?: string | null;
 }
 
 export interface Subscription {
@@ -1035,6 +1049,8 @@ export interface Subscription {
   is_canceled: boolean;
   canceled_at: string | null;
   is_auto_payment_enabled: boolean;
+  included_packages?: IncludedPackage[];
+  included_packages_count?: number;
   bundled_modules: any[];
   bundled_modules_count: number;
 }
@@ -2423,6 +2439,8 @@ export interface ModulesOverviewSolution {
   can_upgrade: boolean;
   can_downgrade: boolean;
   expires_at: string | null;
+  access_source?: 'subscription' | 'standalone' | null;
+  is_bundled_with_plan?: boolean;
   tiers: ModulesOverviewTier[];
 }
 
@@ -3917,6 +3935,8 @@ export interface Package {
   };
   active_tier: 'base' | 'pro' | 'enterprise' | null;
   expires_at: string | null;
+  access_source?: 'subscription' | 'standalone' | null;
+  is_bundled_with_plan?: boolean;
 }
 
 export const packagesService = {

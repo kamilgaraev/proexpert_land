@@ -372,6 +372,23 @@ const PlansGrid = () => {
                 </div>
               </div>
 
+              {Array.isArray(subscription.included_packages) && subscription.included_packages.length > 0 && (
+                <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
+                  <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wider mb-4">{'\u0412 \u0442\u0430\u0440\u0438\u0444 \u0432\u0445\u043e\u0434\u0438\u0442'}</h3>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {subscription.included_packages.map((pkg: any) => (
+                      <div key={`${pkg.package_slug}-${pkg.tier}`} className="rounded-xl bg-white border border-emerald-100 p-4">
+                        <div className="font-bold text-slate-900">{pkg.name || pkg.package_slug}</div>
+                        <div className="text-sm text-emerald-700 font-semibold mt-1">{pkg.tier_label || pkg.tier}</div>
+                        {Array.isArray(pkg.modules) && (
+                          <div className="text-xs text-slate-500 mt-2">{pkg.modules.length} {'\u043c\u043e\u0434\u0443\u043b\u0435\u0439'}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Features List */}
               {subscription.plan?.features && (
                  <div className="bg-secondary/30 rounded-2xl p-6 border border-border/50">
@@ -466,6 +483,18 @@ const PlansGrid = () => {
                              </div>
                              <span><span className="font-bold">{plan.max_storage_gb || '∞'} ГБ</span> хранилище</span>
                           </div>
+                          {Array.isArray(plan.included_packages) && plan.included_packages.length > 0 && (
+                             <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
+                                <div className="text-xs font-bold text-emerald-700 uppercase mb-2">{'\u0412\u043a\u043b\u044e\u0447\u0435\u043d\u043e'}</div>
+                                <div className="space-y-1">
+                                  {plan.included_packages.map((pkg: any) => (
+                                    <div key={`${pkg.package_slug}-${pkg.tier}`} className="text-xs font-semibold text-emerald-900">
+                                      {pkg.package_slug} / {pkg.tier}
+                                    </div>
+                                  ))}
+                                </div>
+                             </div>
+                          )}
                        </div>
                     </CardContent>
 

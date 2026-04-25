@@ -323,7 +323,7 @@ const SolutionsSection = ({
             <InfoPill label="Текущий тариф" value={tierText(solution.current_tier)} />
             <InfoPill label="Стоимость" value={formatMoney(solution.effective_monthly_price)} />
             <InfoPill label="Активно" value={`${solution.active_included_modules_count}/${solution.included_modules_count}`} />
-            <InfoPill label="Изменение" value={solution.can_upgrade ? 'Есть апгрейд' : solution.can_downgrade ? 'Можно снизить' : 'Актуально'} />
+            <InfoPill label="Источник" value={solution.is_bundled_with_plan ? 'В тарифе' : solution.current_tier ? 'Куплено' : 'Доступно'} />
           </div>
 
           <div className="mt-5 flex-1 space-y-2">
@@ -507,11 +507,11 @@ const SolutionManageDrawer = ({
                   {!tier.is_current && (
                     <button
                       type="button"
-                      disabled={actionLoading === `solution-${solution.slug}-${tier.key}`}
+                      disabled={solution.is_bundled_with_plan || actionLoading === `solution-${solution.slug}-${tier.key}`}
                       onClick={() => onSubscribe(solution, tier)}
                       className="mt-3 rounded-2xl bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-60"
                     >
-                      Выбрать тариф
+                      {solution.is_bundled_with_plan ? 'Включено в подписку' : 'Выбрать тариф'}
                     </button>
                   )}
                 </div>
@@ -529,7 +529,7 @@ const SolutionManageDrawer = ({
             </div>
           ))}
         </div>
-        {solution.current_tier && (
+        {solution.current_tier && !solution.is_bundled_with_plan && (
           <div className="rounded-3xl border border-red-100 bg-red-50 p-4">
             <h3 className="font-black text-red-900">Отключение решения</h3>
             <p className="mt-1 text-sm text-red-700">Перед отключением проверьте, какие рабочие сценарии перестанут быть доступны.</p>

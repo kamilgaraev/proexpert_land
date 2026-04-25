@@ -86,4 +86,6 @@ export interface Package {
   tiers: Partial<Record<PackageTierKey, PackageTierInfo>>;
   active_tier: PackageTierKey | null;
   expires_at: string | null;
+  access_source?: 'subscription' | 'standalone' | null;
+  is_bundled_with_plan?: boolean;
 }
