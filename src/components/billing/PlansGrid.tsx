@@ -8,7 +8,8 @@ import {
   CircleStackIcon,
   StarIcon,
   ArrowRightIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  CubeTransparentIcon
 } from '@heroicons/react/24/outline';
 import { Switch } from '@/components/ui/switch';
 import ConfirmActionModal from '@/components/shared/ConfirmActionModal';
@@ -18,6 +19,70 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+
+const PACKAGE_LABELS: Record<string, string> = {
+  projects: 'Проекты и работы',
+  finance: 'Финансы',
+  supply: 'Снабжение',
+  analytics: 'Аналитика',
+  integrations: 'Интеграции',
+  ai: 'AI-помощник',
+  enterprise: 'Корпоративный пакет',
+};
+
+const TIER_LABELS: Record<string, string> = {
+  base: 'Базовый',
+  pro: 'Pro',
+  enterprise: 'Enterprise',
+};
+
+const PLAN_INCLUDED_PACKAGES: Record<string, Array<{ package_slug: string; tier: string }>> = {
+  free: [],
+  start: [],
+  business: [{ package_slug: 'projects', tier: 'base' }],
+  profi: [
+    { package_slug: 'projects', tier: 'pro' },
+    { package_slug: 'finance', tier: 'base' },
+    { package_slug: 'supply', tier: 'base' },
+    { package_slug: 'analytics', tier: 'base' },
+  ],
+  enterprise: [
+    { package_slug: 'projects', tier: 'pro' },
+    { package_slug: 'finance', tier: 'pro' },
+    { package_slug: 'supply', tier: 'pro' },
+    { package_slug: 'analytics', tier: 'pro' },
+    { package_slug: 'integrations', tier: 'pro' },
+    { package_slug: 'ai', tier: 'pro' },
+    { package_slug: 'enterprise', tier: 'enterprise' },
+  ],
+};
+
+type IncludedPackageDisplay = {
+  key: string;
+  name: string;
+  tierLabel: string;
+  modulesCount: number | null;
+};
+
+const getPlanIncludedPackages = (plan: any) => {
+  if (Array.isArray(plan.included_packages) && plan.included_packages.length > 0) {
+    return plan.included_packages;
+  }
+
+  return PLAN_INCLUDED_PACKAGES[String(plan.slug || '').toLowerCase()] || [];
+};
+
+const formatIncludedPackage = (pkg: any): IncludedPackageDisplay => {
+  const slug = pkg.package_slug || pkg.slug || '';
+  const tier = pkg.tier || '';
+
+  return {
+    key: `${slug}-${tier}`,
+    name: pkg.name || PACKAGE_LABELS[slug] || slug,
+    tierLabel: pkg.tier_label || TIER_LABELS[tier] || tier,
+    modulesCount: Array.isArray(pkg.modules) ? pkg.modules.length : null,
+  };
+};
 
 const PlansGrid = () => {
   const [subscription, setSubscription] = useState<any>(null);
@@ -432,6 +497,7 @@ const PlansGrid = () => {
                  String(currentPlan.id) === String(plan.id) ||
                  currentPlan.slug === plan.slug
               );
+              const includedPackages: IncludedPackageDisplay[] = getPlanIncludedPackages(plan).map(formatIncludedPackage);
 
               return (
                  <Card 
@@ -483,18 +549,63 @@ const PlansGrid = () => {
                              </div>
                              <span><span className="font-bold">{plan.max_storage_gb || '∞'} ГБ</span> хранилище</span>
                           </div>
-                          {Array.isArray(plan.included_packages) && plan.included_packages.length > 0 && (
-                             <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
-                                <div className="text-xs font-bold text-emerald-700 uppercase mb-2">{'\u0412\u043a\u043b\u044e\u0447\u0435\u043d\u043e'}</div>
-                                <div className="space-y-1">
-                                  {plan.included_packages.map((pkg: any) => (
-                                    <div key={`${pkg.package_slug}-${pkg.tier}`} className="text-xs font-semibold text-emerald-900">
-                                      {pkg.package_slug} / {pkg.tier}
-                                    </div>
-                                  ))}
+                          <div
+                            className={cn(
+                              'rounded-xl border p-4 mt-4',
+                              includedPackages.length > 0
+                                ? 'bg-emerald-50 border-emerald-100'
+                                : 'bg-slate-50 border-slate-200'
+                            )}
+                          >
+                            <div className="flex items-center gap-2 mb-3">
+                              <div
+                                className={cn(
+                                  'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
+                                  includedPackages.length > 0
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-white text-slate-500 border border-slate-200'
+                                )}
+                              >
+                                <CubeTransparentIcon className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <div className={cn(
+                                  'text-xs font-bold uppercase tracking-wide',
+                                  includedPackages.length > 0 ? 'text-emerald-800' : 'text-slate-700'
+                                )}>
+                                  Пакеты модулей
                                 </div>
-                             </div>
-                          )}
+                                <div className={cn(
+                                  'text-xs',
+                                  includedPackages.length > 0 ? 'text-emerald-700' : 'text-slate-500'
+                                )}>
+                                  {includedPackages.length > 0 ? 'Входят в стоимость тарифа' : 'Можно подключить отдельно'}
+                                </div>
+                              </div>
+                            </div>
+
+                            {includedPackages.length > 0 ? (
+                              <div className="space-y-2">
+                                {includedPackages.map((pkg) => (
+                                  <div key={pkg.key} className="flex items-start justify-between gap-3 rounded-lg bg-white/80 border border-emerald-100 px-3 py-2">
+                                    <div className="min-w-0">
+                                      <div className="text-sm font-semibold text-slate-950 leading-tight">{pkg.name}</div>
+                                      {pkg.modulesCount !== null && (
+                                        <div className="text-xs text-slate-500 mt-1">{pkg.modulesCount} модулей</div>
+                                      )}
+                                    </div>
+                                    <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-0 flex-shrink-0">
+                                      {pkg.tierLabel}
+                                    </Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="rounded-lg bg-white border border-slate-200 px-3 py-2 text-sm text-slate-600">
+                                В тариф входят только базовые лимиты. Пакеты проектов, финансов и снабжения докупаются на странице модулей.
+                              </div>
+                            )}
+                          </div>
                        </div>
                     </CardContent>
 
