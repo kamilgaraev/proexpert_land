@@ -11,6 +11,7 @@ import type {
   InvitationAcceptResponse,
   InvitationDeclineRequest
 } from '../types/contractor-invitations';
+import { normalizeInvitationListResponse } from './contractorInvitationResponseNormalizer';
 
 // Базовый URL для API личного кабинета
 const API_BASE_DOMAIN = 'https://api.prohelper.pro';
@@ -87,7 +88,7 @@ export const contractorInvitationsService = {
 
     const response = await contractorInvitationsApi.get(endpoint);
     
-    return (response.data as { data: InvitationListResponse }).data;
+    return normalizeInvitationListResponse(response.data);
   },
 
   /**
