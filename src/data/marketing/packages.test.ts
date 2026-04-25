@@ -37,4 +37,14 @@ describe('marketing pricing packages', () => {
     expect(marketingSalesOffers[1].planSlug).toBe('business');
     expect(marketingSalesOffers[2].isConsultative).toBe(true);
   });
+
+  it('does not publish retired internal module slugs', () => {
+    const moduleSlugs = marketingPackages.flatMap((item) =>
+      item.tiers.flatMap((tier) => tier.moduleSlugs),
+    );
+
+    expect(moduleSlugs).not.toContain('advanced-reports');
+    expect(moduleSlugs).not.toContain('advanced-dashboard');
+    expect(moduleSlugs).not.toContain('basic-reports');
+  });
 });

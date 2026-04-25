@@ -21,13 +21,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 const PACKAGE_LABELS: Record<string, string> = {
-  projects: 'Проекты и работы',
-  finance: 'Финансы',
-  supply: 'Снабжение',
-  analytics: 'Аналитика',
-  integrations: 'Интеграции',
-  ai: 'AI-помощник',
-  enterprise: 'Корпоративный пакет',
+  'objects-execution': 'Объекты и исполнение',
+  'supply-warehouse': 'Снабжение и склад',
+  'finance-acts': 'Финансы и акты',
+  'estimates-pto': 'Сметы и ПТО',
+  'holding-analytics': 'Холдинг и аналитика',
+  'ai-contour': 'AI-контур',
 };
 
 const TIER_LABELS: Record<string, string> = {
@@ -38,22 +37,27 @@ const TIER_LABELS: Record<string, string> = {
 
 const PLAN_INCLUDED_PACKAGES: Record<string, Array<{ package_slug: string; tier: string }>> = {
   free: [],
-  start: [],
-  business: [{ package_slug: 'projects', tier: 'base' }],
+  start: [{ package_slug: 'objects-execution', tier: 'base' }],
+  business: [
+    { package_slug: 'objects-execution', tier: 'base' },
+    { package_slug: 'supply-warehouse', tier: 'base' },
+    { package_slug: 'finance-acts', tier: 'base' },
+  ],
   profi: [
-    { package_slug: 'projects', tier: 'pro' },
-    { package_slug: 'finance', tier: 'base' },
-    { package_slug: 'supply', tier: 'base' },
-    { package_slug: 'analytics', tier: 'base' },
+    { package_slug: 'objects-execution', tier: 'pro' },
+    { package_slug: 'supply-warehouse', tier: 'pro' },
+    { package_slug: 'finance-acts', tier: 'pro' },
+    { package_slug: 'estimates-pto', tier: 'pro' },
+    { package_slug: 'holding-analytics', tier: 'pro' },
+    { package_slug: 'ai-contour', tier: 'pro' },
   ],
   enterprise: [
-    { package_slug: 'projects', tier: 'pro' },
-    { package_slug: 'finance', tier: 'pro' },
-    { package_slug: 'supply', tier: 'pro' },
-    { package_slug: 'analytics', tier: 'pro' },
-    { package_slug: 'integrations', tier: 'pro' },
-    { package_slug: 'ai', tier: 'pro' },
-    { package_slug: 'enterprise', tier: 'enterprise' },
+    { package_slug: 'objects-execution', tier: 'enterprise' },
+    { package_slug: 'finance-acts', tier: 'enterprise' },
+    { package_slug: 'supply-warehouse', tier: 'enterprise' },
+    { package_slug: 'holding-analytics', tier: 'enterprise' },
+    { package_slug: 'estimates-pto', tier: 'enterprise' },
+    { package_slug: 'ai-contour', tier: 'enterprise' },
   ],
 };
 
@@ -61,7 +65,6 @@ type IncludedPackageDisplay = {
   key: string;
   name: string;
   tierLabel: string;
-  modulesCount: number | null;
 };
 
 const getPlanIncludedPackages = (plan: any) => {
@@ -80,7 +83,6 @@ const formatIncludedPackage = (pkg: any): IncludedPackageDisplay => {
     key: `${slug}-${tier}`,
     name: pkg.name || PACKAGE_LABELS[slug] || slug,
     tierLabel: pkg.tier_label || TIER_LABELS[tier] || tier,
-    modulesCount: Array.isArray(pkg.modules) ? pkg.modules.length : null,
   };
 };
 
@@ -441,15 +443,16 @@ const PlansGrid = () => {
                 <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
                   <h3 className="text-sm font-bold text-emerald-900 uppercase tracking-wider mb-4">{'\u0412 \u0442\u0430\u0440\u0438\u0444 \u0432\u0445\u043e\u0434\u0438\u0442'}</h3>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {subscription.included_packages.map((pkg: any) => (
-                      <div key={`${pkg.package_slug}-${pkg.tier}`} className="rounded-xl bg-white border border-emerald-100 p-4">
-                        <div className="font-bold text-slate-900">{pkg.name || pkg.package_slug}</div>
-                        <div className="text-sm text-emerald-700 font-semibold mt-1">{pkg.tier_label || pkg.tier}</div>
-                        {Array.isArray(pkg.modules) && (
-                          <div className="text-xs text-slate-500 mt-2">{pkg.modules.length} {'\u043c\u043e\u0434\u0443\u043b\u0435\u0439'}</div>
-                        )}
-                      </div>
-                    ))}
+                    {subscription.included_packages.map((rawPackage: any) => {
+                      const pkg = formatIncludedPackage(rawPackage);
+
+                      return (
+                        <div key={pkg.key} className="rounded-xl bg-white border border-emerald-100 p-4">
+                          <div className="font-bold text-slate-900">{pkg.name}</div>
+                          <div className="text-sm text-emerald-700 font-semibold mt-1">{pkg.tierLabel}</div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -590,9 +593,6 @@ const PlansGrid = () => {
                                   <div key={pkg.key} className="flex items-start justify-between gap-3 rounded-lg bg-white/80 border border-emerald-100 px-3 py-2">
                                     <div className="min-w-0">
                                       <div className="text-sm font-semibold text-slate-950 leading-tight">{pkg.name}</div>
-                                      {pkg.modulesCount !== null && (
-                                        <div className="text-xs text-slate-500 mt-1">{pkg.modulesCount} модулей</div>
-                                      )}
                                     </div>
                                     <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-0 flex-shrink-0">
                                       {pkg.tierLabel}
@@ -602,7 +602,7 @@ const PlansGrid = () => {
                               </div>
                             ) : (
                               <div className="rounded-lg bg-white border border-slate-200 px-3 py-2 text-sm text-slate-600">
-                                В тариф входят только базовые лимиты. Пакеты проектов, финансов и снабжения докупаются на странице модулей.
+                                В тарифе нет коммерческих пакетов. Рабочие контуры можно подключить отдельно на странице модулей.
                               </div>
                             )}
                           </div>
