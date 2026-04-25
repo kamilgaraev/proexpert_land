@@ -29,6 +29,12 @@ const packageIcons: Record<string, ComponentType<{ className?: string }>> = {
   ai: CpuChipIcon,
   integrations: RectangleGroupIcon,
   enterprise: ShieldCheckIcon,
+  'objects-execution': BuildingOfficeIcon,
+  'supply-warehouse': TruckIcon,
+  'finance-acts': BanknotesIcon,
+  'estimates-pto': RectangleGroupIcon,
+  'holding-analytics': ChartBarIcon,
+  'ai-contour': CpuChipIcon,
 };
 
 const isExternalHref = (href: string) => href.startsWith('mailto:') || href.startsWith('http');

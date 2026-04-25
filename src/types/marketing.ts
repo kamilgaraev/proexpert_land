@@ -97,11 +97,14 @@ export interface MarketingPackageTier {
   label: string;
   description: string;
   price: number;
+  standalonePrice: number;
   priceLabel?: string;
   billingModel: 'free' | 'subscription';
   durationDays?: number;
   moduleSlugs: string[];
   highlights: string[];
+  businessOutcome: string;
+  maturityNote?: string;
 }
 
 export interface MarketingPackageFamily {
@@ -123,6 +126,18 @@ export interface MarketingAdvancedOffer {
   moduleSlugs: string[];
   sourceOfTruth: string[];
   cta: string;
+}
+
+export interface MarketingSalesOffer {
+  title: string;
+  planSlug: 'start' | 'business' | 'profi' | 'enterprise';
+  planName: string;
+  priceLabel: string;
+  audience: string;
+  packageSlugs: string[];
+  outcome: string;
+  comparison: string;
+  isConsultative?: boolean;
 }
 
 export interface MarketingSolutionSegment {

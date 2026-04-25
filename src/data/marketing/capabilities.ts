@@ -18,7 +18,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ['admin', 'mobile', 'lk'],
     maturity: 'stable',
     moduleSlugs: ['project-management', 'contract-management', 'schedule-management'],
-    packageSlugs: ['projects'],
+    packageSlugs: ['objects-execution'],
     sourceOfTruth: [
       'prohelper/app/BusinessModules/Features/ProjectManagement',
       'prohelper/app/BusinessModules/Features/ScheduleManagement',
@@ -44,7 +44,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ['mobile', 'admin'],
     maturity: 'stable',
     moduleSlugs: ['site-requests', 'time-tracking'],
-    packageSlugs: ['projects'],
+    packageSlugs: ['objects-execution'],
     sourceOfTruth: [
       'prohelper/app/BusinessModules/Features/SiteRequests',
       'prohelper/app/BusinessModules/Features/TimeTracking',
@@ -69,7 +69,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ['admin', 'mobile'],
     maturity: 'stable',
     moduleSlugs: ['catalog-management', 'basic-warehouse', 'procurement'],
-    packageSlugs: ['supply'],
+    packageSlugs: ['supply-warehouse'],
     sourceOfTruth: [
       'prohelper/app/BusinessModules/Features/BasicWarehouse',
       'prohelper/app/BusinessModules/Features/Procurement',
@@ -95,7 +95,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ['admin', 'lk'],
     maturity: 'stable',
     moduleSlugs: ['payments', 'acts', 'advance-requests'],
-    packageSlugs: ['finance'],
+    packageSlugs: ['finance-acts'],
     sourceOfTruth: [
       'prohelper/app/BusinessModules/Features/Payments',
       'prohelper/app/BusinessModules/Features/Acts',
@@ -120,7 +120,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ['admin'],
     maturity: 'beta',
     moduleSlugs: ['estimates', 'engineering-documents'],
-    packageSlugs: ['finance'],
+    packageSlugs: ['estimates-pto', 'finance-acts'],
     sourceOfTruth: [
       'prohelper/app/BusinessModules/Features/Estimates',
       'prohelper_admin/src/pages/Estimates',
@@ -144,7 +144,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ['admin', 'lk', 'holding'],
     maturity: 'stable',
     moduleSlugs: ['analytics', 'reporting'],
-    packageSlugs: ['analytics'],
+    packageSlugs: ['holding-analytics'],
     sourceOfTruth: [
       'prohelper/app/BusinessModules/Features/Analytics',
       'prohelper_admin/src/pages/Analytics',
@@ -169,7 +169,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ['holding', 'admin', 'lk'],
     maturity: 'stable',
     moduleSlugs: ['multi-organization', 'holding-dashboard'],
-    packageSlugs: ['enterprise'],
+    packageSlugs: ['holding-analytics'],
     sourceOfTruth: [
       'prohelper/app/BusinessModules/Features/MultiOrganization',
       'prohelper_land/src/components/multi-org',

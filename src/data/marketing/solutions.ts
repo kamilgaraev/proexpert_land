@@ -17,7 +17,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     ],
     surfaces: ['admin', 'mobile', 'lk'],
     capabilityIds: ['project-control', 'site-requests', 'supply-chain', 'finance-control'],
-    recommendedPackageSlugs: ['projects', 'supply', 'finance'],
+    recommendedPackageSlugs: ['objects-execution', 'supply-warehouse', 'finance-acts'],
     cta: 'Показать стартовый контур для подрядчика',
   },
   {
@@ -36,7 +36,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     ],
     surfaces: ['admin', 'mobile', 'lk'],
     capabilityIds: ['project-control', 'supply-chain', 'finance-control', 'analytics-control'],
-    recommendedPackageSlugs: ['projects', 'supply', 'finance', 'analytics'],
+    recommendedPackageSlugs: ['objects-execution', 'supply-warehouse', 'finance-acts', 'holding-analytics'],
     cta: 'Разобрать сценарий для генподрядчика',
   },
   {
@@ -55,7 +55,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     ],
     surfaces: ['holding', 'admin', 'lk'],
     capabilityIds: ['analytics-control', 'multi-org', 'finance-control'],
-    recommendedPackageSlugs: ['analytics', 'enterprise', 'finance'],
+    recommendedPackageSlugs: ['holding-analytics', 'finance-acts'],
     cta: 'Показать корпоративный контур',
   },
   {
@@ -74,7 +74,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     ],
     surfaces: ['admin'],
     capabilityIds: ['engineering-docs', 'finance-control', 'project-control'],
-    recommendedPackageSlugs: ['finance', 'projects'],
+    recommendedPackageSlugs: ['estimates-pto', 'finance-acts', 'objects-execution'],
     cta: 'Разобрать документный сценарий',
   },
 ];

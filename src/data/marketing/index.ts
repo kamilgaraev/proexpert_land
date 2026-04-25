@@ -9,7 +9,7 @@ export {
 export { marketingCapabilityMatrix } from './capabilities';
 export { marketingFaqs, marketingHeroFacts, marketingLaunchSteps } from './home';
 export { legalDocuments } from './legal';
-export { marketingAdvancedOffers, marketingPackages } from './packages';
+export { marketingAdvancedOffers, marketingPackages, marketingSalesOffers } from './packages';
 export {
   marketingBlogEditorialSeries,
   marketingCommercialLandingLinks,

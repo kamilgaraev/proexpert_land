@@ -24,7 +24,7 @@ const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) =>
           </div>
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-              Пакетный контур
+              Коммерческий контур
             </div>
             <h3 className="mt-2 text-[1.9rem] font-bold leading-tight text-steel-950">
               {item.name}
@@ -52,6 +52,20 @@ const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) =>
               </div>
             </div>
             <p className="mt-3 text-sm leading-7 text-steel-600">{tier.description}</p>
+            <div className="mt-4 rounded-[1rem] border border-construction-100 bg-white px-4 py-3 text-sm leading-6 text-steel-700">
+              <span className="font-semibold text-steel-950">Результат: </span>
+              {tier.businessOutcome}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-[0.16em]">
+              {tier.standalonePrice > tier.price ? (
+                <span className="rounded-full bg-construction-100 px-3 py-1 text-construction-800">
+                  выгоднее на {Math.round((1 - tier.price / tier.standalonePrice) * 100)}%
+                </span>
+              ) : null}
+              {tier.maturityNote ? (
+                <span className="rounded-full bg-steel-100 px-3 py-1 text-steel-600">{tier.maturityNote}</span>
+              ) : null}
+            </div>
             <div className="mt-4 grid gap-3">
               {tier.highlights.map((highlight) => (
                 <div
