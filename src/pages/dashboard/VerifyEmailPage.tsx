@@ -18,7 +18,7 @@ export const VerifyEmailPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { verifyEmail, loading } = useEmailVerification();
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user, isLoading: isAuthLoading, fetchUser } = useAuth();
   
   const [verificationState, setVerificationState] = useState<{
     status: 'pending' | 'success' | 'error';
@@ -49,6 +49,10 @@ export const VerifyEmailPage = () => {
       }
 
       const result = await verifyEmail(id, hash, expires, signature);
+
+      if (result.success) {
+        await Promise.resolve(fetchUser()).catch(() => undefined);
+      }
       
       setVerificationState({
         status: result.success ? 'success' : 'error',
@@ -59,7 +63,7 @@ export const VerifyEmailPage = () => {
     if (!isAuthLoading) {
       performVerification();
     }
-  }, [isAuthLoading, searchParams, user, verifyEmail]);
+  }, [fetchUser, isAuthLoading, searchParams, user, verifyEmail]);
 
   const handleGoToDashboard = () => {
     navigate('/dashboard');
