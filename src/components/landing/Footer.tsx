@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import {
   ArrowUpRightIcon,
-  BuildingOfficeIcon,
   ClockIcon,
   EnvelopeIcon,
   MapPinIcon,
@@ -112,9 +111,11 @@ const Footer = () => {
         <div className="mt-12 grid gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(420px,520px)]">
           <div>
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-[1.5rem] bg-white/10 text-construction-200">
-                <BuildingOfficeIcon className="h-7 w-7" />
-              </div>
+              <img
+                src="/logo-white.svg"
+                alt=""
+                className="h-14 w-14 shrink-0 object-contain"
+              />
               <div>
                 <div className="text-2xl font-bold">{marketingCompany.brand}</div>
                 <div className="text-[11px] uppercase tracking-[0.22em] text-white/45">

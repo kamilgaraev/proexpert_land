@@ -297,8 +297,8 @@ const RegisterPage = () => {
         <div className="bg-primary px-8 py-6">
             <div className="flex items-center justify-between mb-6">
                 <Link to="/" className="flex items-center gap-3 text-primary-foreground">
-                     <div className="h-9 w-9 rounded-lg bg-white/20 flex items-center justify-center font-bold">P</div>
-                     <span className="font-bold text-xl">ProHelper</span>
+                     <img src="/logo-white.svg" alt="" className="h-11 w-11 object-contain" />
+                     <span className="text-xl font-extrabold tracking-tight">ProHelper</span>
                 </Link>
                  <Link 
                     to="/login" 

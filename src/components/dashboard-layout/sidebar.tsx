@@ -44,9 +44,7 @@ const SidebarContent = ({
   <div className="flex h-full flex-col gap-4 py-4">
     <div className="mb-4 flex h-12 items-center px-6">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-orange-600 text-white shadow-lg shadow-primary/20">
-          <span className="text-xl font-bold">P</span>
-        </div>
+        <img src="/logo.svg" alt="" className="h-10 w-10 object-contain" />
         <div className="flex flex-col">
           <span className="text-lg font-bold leading-none tracking-tight">ProHelper</span>
           <span className="mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">

@@ -5,8 +5,7 @@ import {
   ShieldCheck, 
   User,
   LogOut,
-  Settings,
-  Building
+  Settings
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -62,7 +61,7 @@ export function Header({
         <div className="ml-4 hidden md:flex md:items-center md:gap-4 lg:gap-6">
           {/* Breadcrumbs Placeholder - can be made dynamic */}
            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Building className="h-4 w-4 text-primary" />
+                <img src="/logo.svg" alt="" className="h-5 w-5 object-contain" />
                 <span>ProHelper</span>
                 <span>/</span>
                 <span className="text-foreground font-medium">

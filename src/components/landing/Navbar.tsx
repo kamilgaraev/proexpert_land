@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowUpRightIcon,
   Bars3Icon,
-  BuildingOfficeIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { marketingCompany, marketingPaths } from '@/data/marketingRegistry';
@@ -66,9 +65,11 @@ const Navbar = () => {
 
           <div className="flex min-h-[72px] min-w-0 items-center justify-between gap-4 px-4 sm:min-h-[80px] sm:px-6">
             <Link to={marketingPaths.home} className="flex min-w-0 flex-1 items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.25rem] bg-steel-950 text-construction-200">
-                <BuildingOfficeIcon className="h-6 w-6" />
-              </div>
+              <img
+                src="/logo.svg"
+                alt=""
+                className="h-12 w-12 shrink-0 object-contain"
+              />
               <div className="min-w-0">
                 <div className="truncate text-lg font-bold text-steel-950">
                   {marketingCompany.brand}
