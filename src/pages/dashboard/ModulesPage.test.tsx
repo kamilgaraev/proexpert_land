@@ -1,7 +1,9 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import ModulesPage from './ModulesPage';
+
+const subscribeToPackage = vi.fn();
 
 const overview = {
   summary: {
@@ -118,7 +120,7 @@ vi.mock('@hooks/useModulesOverview', () => ({
     loading: false,
     error: null,
     refresh: vi.fn(),
-    subscribeToPackage: vi.fn(),
+    subscribeToPackage,
     unsubscribeFromPackage: vi.fn(),
     activateModule: vi.fn(),
     deactivateModule: vi.fn(),
@@ -132,6 +134,10 @@ vi.mock('@components/shared/NotificationService', () => ({
 }));
 
 describe('ModulesPage', () => {
+  beforeEach(() => {
+    subscribeToPackage.mockReset();
+  });
+
   it('renders solutions and standalone capabilities without the old all modules tab', () => {
     render(<ModulesPage />);
 
@@ -153,7 +159,7 @@ describe('ModulesPage', () => {
     expect(screen.queryByText('Профессиональный')).not.toBeInTheDocument();
   });
 
-  it('does not mark every non-current tier as included when the package comes from subscription', async () => {
+  it('keeps higher package tiers available for separate purchase when the current tier comes from subscription', async () => {
     render(<ModulesPage />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Управлять' }));
@@ -164,7 +170,12 @@ describe('ModulesPage', () => {
       expect(within(dialog).getByText('Подключено по подписке')).toBeInTheDocument();
       expect(within(dialog).getByText('Покрыто уровнем «Рост»')).toBeInTheDocument();
       expect(within(dialog).getByText('Не входит в текущую подписку')).toBeInTheDocument();
+      expect(within(dialog).getByRole('button', { name: 'Докупить пакет' })).toBeEnabled();
     });
+
+    fireEvent.click(within(screen.getByRole('dialog', { name: /Управление проектами/i })).getByRole('button', { name: 'Докупить пакет' }));
+
+    expect(subscribeToPackage).toHaveBeenCalledWith('projects', 'enterprise');
   });
 
   it('keeps the full module inventory hidden behind advanced management', async () => {

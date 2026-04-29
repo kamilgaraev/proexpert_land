@@ -74,7 +74,21 @@ const tierStatusText = (solution: ModulesOverviewSolution, tier: ModulesOverview
 const bundledTierActionText = (solution: ModulesOverviewSolution, tier: ModulesOverviewTier) => {
   const currentTier = solution.current_tier ?? solution.tiers.find(item => item.is_current)?.key ?? null;
 
-  return tierRank(tier.key) < tierRank(currentTier) ? 'Покрыто текущим уровнем' : 'Смена подписки';
+  return tierRank(tier.key) < tierRank(currentTier) ? 'Покрыто текущим уровнем' : 'Выше текущей подписки';
+};
+
+const canSelectTier = (solution: ModulesOverviewSolution, tier: ModulesOverviewTier) => {
+  if (tier.is_current) {
+    return false;
+  }
+
+  if (!solution.is_bundled_with_plan) {
+    return true;
+  }
+
+  const currentTier = solution.current_tier ?? solution.tiers.find(item => item.is_current)?.key ?? null;
+
+  return tierRank(tier.key) > tierRank(currentTier);
 };
 
 const statusText = (status: string) => {
@@ -547,19 +561,19 @@ const SolutionManageDrawer = ({
                 <div className="text-left sm:text-right">
                   <p className="text-xl font-black text-slate-950">{formatMoney(tier.price)}</p>
                   {!tier.is_current && (
-                    solution.is_bundled_with_plan ? (
-                      <span className="mt-3 inline-flex rounded-2xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-600">
-                        {bundledTierActionText(solution, tier)}
-                      </span>
-                    ) : (
+                    canSelectTier(solution, tier) ? (
                       <button
                         type="button"
                         disabled={actionLoading === `solution-${solution.slug}-${tier.key}`}
                         onClick={() => onSubscribe(solution, tier)}
                         className="mt-3 rounded-2xl bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-60"
                       >
-                        Выбрать тариф
+                        {solution.is_bundled_with_plan ? 'Докупить пакет' : 'Выбрать тариф'}
                       </button>
+                    ) : (
+                      <span className="mt-3 inline-flex rounded-2xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-600">
+                        {bundledTierActionText(solution, tier)}
+                      </span>
                     )
                   )}
                 </div>
