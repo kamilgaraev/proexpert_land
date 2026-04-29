@@ -42,13 +42,24 @@ const overview = {
         },
         {
           key: 'pro',
-          label: 'Профессиональный',
+          label: 'Рост',
           description: 'Полный набор',
           price: 4890,
           modules: ['project-management', 'schedule-management', 'time-tracking', 'site-requests'],
           highlights: ['График работ', 'Учёт времени', 'Заявки с объекта'],
           is_current: true,
           included_modules_count: 4,
+          active_modules_count: 4,
+        },
+        {
+          key: 'enterprise',
+          label: 'Корпоративный',
+          description: 'Расширенный набор',
+          price: 10900,
+          modules: ['project-management', 'schedule-management', 'time-tracking', 'site-requests', 'data-export'],
+          highlights: ['Контроль отклонений'],
+          is_current: false,
+          included_modules_count: 5,
           active_modules_count: 4,
         },
       ],
@@ -133,6 +144,27 @@ describe('ModulesPage', () => {
     expect(screen.getAllByText('В тарифе')).toHaveLength(2);
     expect(screen.getByText('Бригады')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Отключить' })).not.toBeInTheDocument();
+  });
+
+  it('shows the current package tier label from the backend contract', () => {
+    render(<ModulesPage />);
+
+    expect(screen.getByText('Рост')).toBeInTheDocument();
+    expect(screen.queryByText('Профессиональный')).not.toBeInTheDocument();
+  });
+
+  it('does not mark every non-current tier as included when the package comes from subscription', async () => {
+    render(<ModulesPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Управлять' }));
+
+    await waitFor(() => {
+      const dialog = screen.getByRole('dialog', { name: /Управление проектами/i });
+      expect(within(dialog).queryByText('Включено в подписку')).not.toBeInTheDocument();
+      expect(within(dialog).getByText('Подключено по подписке')).toBeInTheDocument();
+      expect(within(dialog).getByText('Покрыто уровнем «Рост»')).toBeInTheDocument();
+      expect(within(dialog).getByText('Не входит в текущую подписку')).toBeInTheDocument();
+    });
   });
 
   it('keeps the full module inventory hidden behind advanced management', async () => {

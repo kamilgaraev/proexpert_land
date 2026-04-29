@@ -27,6 +27,16 @@ const formatMoney = (value: number, currency = 'RUB') => (
   }).format(value)
 );
 
+const tierOrder = ['base', 'pro', 'enterprise'];
+
+const tierRank = (tier: string | null) => {
+  if (!tier) return -1;
+
+  const index = tierOrder.indexOf(tier);
+
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+};
+
 const tierText = (tier: string | null) => {
   const labels: Record<string, string> = {
     base: 'Базовый',
@@ -35,6 +45,36 @@ const tierText = (tier: string | null) => {
   };
 
   return tier ? labels[tier] ?? tier : 'Не подключено';
+};
+
+const currentTierText = (solution: ModulesOverviewSolution) => {
+  const currentTier = solution.tiers.find(tier => tier.key === solution.current_tier || tier.is_current);
+
+  return currentTier?.label ?? tierText(solution.current_tier);
+};
+
+const tierStatusText = (solution: ModulesOverviewSolution, tier: ModulesOverviewTier) => {
+  if (tier.is_current) {
+    return solution.is_bundled_with_plan ? 'Подключено по подписке' : 'Текущий вариант подключен';
+  }
+
+  if (!solution.is_bundled_with_plan) {
+    return 'Доступно к подключению';
+  }
+
+  const currentTier = solution.current_tier ?? solution.tiers.find(item => item.is_current)?.key ?? null;
+
+  if (tierRank(tier.key) < tierRank(currentTier)) {
+    return `Покрыто уровнем «${currentTierText(solution)}»`;
+  }
+
+  return 'Не входит в текущую подписку';
+};
+
+const bundledTierActionText = (solution: ModulesOverviewSolution, tier: ModulesOverviewTier) => {
+  const currentTier = solution.current_tier ?? solution.tiers.find(item => item.is_current)?.key ?? null;
+
+  return tierRank(tier.key) < tierRank(currentTier) ? 'Покрыто текущим уровнем' : 'Смена подписки';
 };
 
 const statusText = (status: string) => {
@@ -320,7 +360,7 @@ const SolutionsSection = ({
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2.5">
-            <InfoPill label="Текущий тариф" value={tierText(solution.current_tier)} />
+            <InfoPill label="Текущий тариф" value={currentTierText(solution)} />
             <InfoPill label="Стоимость" value={solution.is_bundled_with_plan ? 'В тарифе' : formatMoney(solution.effective_monthly_price)} />
             <InfoPill label="Статус" value={solution.current_tier ? 'Подключено' : 'Доступно'} />
             <InfoPill label="Источник" value={solution.is_bundled_with_plan ? 'В тарифе' : solution.current_tier ? 'Куплено' : 'Доступно'} />
@@ -488,7 +528,7 @@ const SolutionManageDrawer = ({
         <p className="text-slate-600">{solution.description}</p>
         <div className="rounded-3xl bg-slate-50 p-4">
           <p className="text-sm font-semibold text-slate-500">Текущий тариф</p>
-          <p className="mt-1 text-2xl font-black text-slate-950">{tierText(solution.current_tier)}</p>
+          <p className="mt-1 text-2xl font-black text-slate-950">{currentTierText(solution)}</p>
         </div>
         <div className="space-y-3">
           {solution.tiers.map(tier => (
@@ -501,20 +541,26 @@ const SolutionManageDrawer = ({
                   </div>
                   <p className="mt-1 text-sm text-slate-600">{tier.description}</p>
                   <p className="mt-3 text-sm font-semibold text-slate-500">
-                    {tier.is_current ? 'Текущий вариант подключен' : 'Доступно к подключению'}
+                    {tierStatusText(solution, tier)}
                   </p>
                 </div>
                 <div className="text-left sm:text-right">
                   <p className="text-xl font-black text-slate-950">{formatMoney(tier.price)}</p>
                   {!tier.is_current && (
-                    <button
-                      type="button"
-                      disabled={solution.is_bundled_with_plan || actionLoading === `solution-${solution.slug}-${tier.key}`}
-                      onClick={() => onSubscribe(solution, tier)}
-                      className="mt-3 rounded-2xl bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-60"
-                    >
-                      {solution.is_bundled_with_plan ? 'Включено в подписку' : 'Выбрать тариф'}
-                    </button>
+                    solution.is_bundled_with_plan ? (
+                      <span className="mt-3 inline-flex rounded-2xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-600">
+                        {bundledTierActionText(solution, tier)}
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={actionLoading === `solution-${solution.slug}-${tier.key}`}
+                        onClick={() => onSubscribe(solution, tier)}
+                        className="mt-3 rounded-2xl bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 disabled:opacity-60"
+                      >
+                        Выбрать тариф
+                      </button>
+                    )
                   )}
                 </div>
               </div>
