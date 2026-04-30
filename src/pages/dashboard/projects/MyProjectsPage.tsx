@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { ProjectCard } from '@/components/dashboard/projects/ProjectCard';
 import api from '@/utils/api';
-import { PlusIcon, FolderIcon, Search } from 'lucide-react';
+import { FolderIcon, PlusIcon, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ProjectOverview } from '@/types/projects-overview';
 
 export const MyProjectsPage = () => {
@@ -17,10 +17,7 @@ export const MyProjectsPage = () => {
     const fetchProjects = async () => {
       try {
         setIsLoading(true);
-        // Assuming the new API returns { data: { projects: [...] } } or { data: [...] }
-        // Adjusting to match likely response based on typical patterns or previous types
-        const response = await api.get('/my-projects'); 
-        // Handling potential structure variations
+        const response = await api.get('/my-projects');
         const responseData = response.data as any;
         const projectsData = responseData.data?.projects || responseData.data || [];
         setProjects(projectsData);
@@ -48,94 +45,90 @@ export const MyProjectsPage = () => {
   });
 
   const handleViewDetails = (projectId: number) => {
-    // Временно перенаправляем в админку для просмотра подробной информации
     window.location.href = `https://admin.prohelper.pro/projects/${projectId}`;
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-4 md:p-8 pb-20">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
+    <div className="min-h-screen bg-slate-50 p-4 pb-20 md:p-8">
+      <div className="mx-auto max-w-6xl space-y-7">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">Проекты</h1>
-            <p className="text-muted-foreground text-lg mt-2">
+            <h1 className="text-3xl font-bold text-foreground">Проекты</h1>
+            <p className="mt-1.5 text-base text-slate-600">
               Управляйте своими строительными объектами
             </p>
           </div>
           <Button 
-            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 rounded-xl h-12 px-6 font-bold transition-all hover:scale-[1.02]"
+            className="h-11 rounded-xl bg-primary px-5 font-semibold text-primary-foreground shadow-[0_12px_28px_rgba(249,115,22,0.22)] transition-all hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_16px_34px_rgba(249,115,22,0.28)]"
             onClick={() => {
               window.location.href = 'https://admin.prohelper.pro/projects/create';
             }}
           >
-            <PlusIcon className="w-5 h-5 mr-2" />
+            <PlusIcon className="mr-2 h-4 w-4" />
             Создать проект
           </Button>
         </div>
 
-        {/* Filters & Tabs */}
-        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
-                <TabsList className="bg-white border border-border p-1 h-12 rounded-xl w-full md:w-auto grid grid-cols-2 md:flex">
-                    <TabsTrigger 
-                        value="my_projects" 
-                        className="rounded-lg font-bold data-[state=active]:bg-primary/10 data-[state=active]:text-primary h-full px-6"
-                    >
-                        Мои проекты
-                    </TabsTrigger>
-                    <TabsTrigger 
-                        value="participating" 
-                        className="rounded-lg font-bold data-[state=active]:bg-primary/10 data-[state=active]:text-primary h-full px-6"
-                    >
-                        Я участвую
-                    </TabsTrigger>
-                </TabsList>
-            </Tabs>
+        <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center md:justify-between">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+            <TabsList className="grid h-11 w-full grid-cols-2 rounded-xl bg-slate-100 p-1 md:flex md:w-auto">
+              <TabsTrigger
+                value="my_projects"
+                className="h-full rounded-lg px-5 font-semibold text-slate-600 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm"
+              >
+                Мои проекты
+              </TabsTrigger>
+              <TabsTrigger
+                value="participating"
+                className="h-full rounded-lg px-5 font-semibold text-slate-600 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm"
+              >
+                Я участвую
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-            <div className="relative w-full md:w-72">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                    placeholder="Поиск проектов..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-12 rounded-xl border-border bg-white focus-visible:ring-primary"
-                />
-            </div>
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              placeholder="Поиск проектов..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-sm focus-visible:ring-primary"
+            />
+          </div>
         </div>
 
-        {/* Projects Grid */}
         {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-[300px] rounded-3xl bg-white/50 animate-pulse border border-border/50" />
-                ))}
-            </div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-[340px] animate-pulse rounded-2xl border border-slate-200 bg-white" />
+            ))}
+          </div>
         ) : filteredProjects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredProjects.map((project) => (
-                    <ProjectCard
-                        key={project.id}
-                        project={project}
-                        onViewDetails={handleViewDetails}
-                    />
-                ))}
-            </div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {filteredProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onViewDetails={handleViewDetails}
+              />
+            ))}
+          </div>
         ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-border border-dashed">
-                <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 text-slate-300">
-                    <FolderIcon className="w-10 h-10" />
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-2">Проекты не найдены</h3>
-                <p className="text-muted-foreground max-w-sm mx-auto">
-                    {searchTerm 
-                        ? "Попробуйте изменить параметры поиска" 
-                        : activeTab === 'my_projects' 
-                            ? "У вас пока нет созданных проектов" 
-                            : "Вы пока не участвуете ни в одном проекте"
-                    }
-                </p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center">
+            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 text-slate-300">
+              <FolderIcon className="h-10 w-10" />
             </div>
+            <h3 className="mb-2 text-xl font-bold text-foreground">Проекты не найдены</h3>
+            <p className="mx-auto max-w-sm text-muted-foreground">
+              {searchTerm
+                ? 'Попробуйте изменить параметры поиска'
+                : activeTab === 'my_projects'
+                  ? 'У вас пока нет созданных проектов'
+                  : 'Вы пока не участвуете ни в одном проекте'
+              }
+            </p>
+          </div>
         )}
       </div>
     </div>
