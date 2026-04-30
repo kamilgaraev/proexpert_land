@@ -39,7 +39,7 @@ const DashboardLayout = () => {
   const location = useLocation();
 
   const { balance: actualBalance, error: balanceError, refresh: refreshBalance } = useBalance();
-  const { shouldShowOnboarding, hideOnboarding } = useProfileOnboarding();
+  const { shouldShowOnboarding, hideOnboarding, skipOnboarding } = useProfileOnboarding();
   const { profile, fetchProfile } = useOrganizationProfile();
   const { activeModules, expiringModules, hasExpiring } = useModules({
     autoRefresh: true,
@@ -298,7 +298,7 @@ const DashboardLayout = () => {
 
       <OrganizationProfileModal
         isOpen={shouldShowOnboarding}
-        onClose={hideOnboarding}
+        onClose={skipOnboarding}
         onComplete={(defaultRoute) => {
           hideOnboarding();
           navigate(defaultRoute || '/dashboard');

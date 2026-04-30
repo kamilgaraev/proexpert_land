@@ -51,7 +51,7 @@ export const useProfileOnboarding = (): UseProfileOnboardingReturn => {
     const skipped = isOnboardingSkipped();
     const alreadyShown = wasOnboardingShown();
 
-    const isIncomplete = !profile.onboarding_completed || (profile.profile_completeness < 80);
+    const isIncomplete = !profile.onboarding_completed;
     
     const needsOnboarding = isIncomplete && !skipped && !alreadyShown;
 
