@@ -6,6 +6,7 @@
 import axios from 'axios';
 // @ts-ignore
 // import api_instance from './axiosConfig'; 
+import { attachAuthorizationHeader, clearAuthToken, getAuthToken, saveAuthToken } from './authTokenStorage';
 import type { AdminFormData as AdminFormDataExternal, AdminUsersListResponse, AdminUserDetailResponse, AdminUserDeleteResponse } from '../types/admin';
 import NotificationService from '@components/shared/NotificationService';
 
@@ -29,6 +30,7 @@ export { API_URL };
 // Этот экземпляр axios используется для старых сервисов, которые ожидают /landing в пути.
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -37,81 +39,19 @@ const api = axios.create({
 
 // Дополнительная функция для работы с токеном через разные типы хранилищ
 const saveTokenToMultipleStorages = (token: string) => {
-  // SSR-safe: проверяем window перед доступом
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  // Сохраняем в localStorage
-  try {
-    localStorage.setItem('token', token);
-  } catch (e) {
-    console.error('Ошибка сохранения в localStorage', e);
-  }
-
-  // Сохраняем в sessionStorage как запасной вариант
-  try {
-    sessionStorage.setItem('authToken', token);
-  } catch (e) {
-    console.error('Ошибка сохранения в sessionStorage', e);
-  }
-
-  // Пробуем использовать куки (работает только при определенных настройках безопасности)
-  try {
-    document.cookie = `authToken=${token}; path=/; max-age=86400`;
-  } catch (e) {
-    console.error('Ошибка сохранения в cookie', e);
-  }
+  saveAuthToken(token);
 };
 
 export const getTokenFromStorages = (): string | null => {
-  // SSR-safe: проверяем window перед доступом
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  // Пробуем сначала localStorage
-  let token = localStorage.getItem('token');
-
-  // Если не нашли, пробуем в sessionStorage
-  if (!token) {
-    token = sessionStorage.getItem('authToken');
-  }
-
-  // Если и там нет, пробуем куки
-  if (!token) {
-    const cookies = document.cookie.split('; ').reduce((acc, cookie) => {
-      const [key, value] = cookie.split('=');
-      acc[key] = value;
-      return acc;
-    }, {} as Record<string, string>);
-
-    token = cookies.authToken || null;
-  }
-
-  return token;
+  return getAuthToken();
 };
 
 const clearTokenFromStorages = () => {
-  // SSR-safe: проверяем window перед доступом
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  // Очищаем во всех хранилищах
-  localStorage.removeItem('token');
-  sessionStorage.removeItem('authToken');
-  document.cookie = 'authToken=; path=/; max-age=0';
+  clearAuthToken();
 };
 
 // Интерцептор для добавления токена аутентификации
-api.interceptors.request.use((config: any) => {
-  const token = getTokenFromStorages();
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+api.interceptors.request.use(attachAuthorizationHeader);
 
 // Интерцептор для обработки ошибок
 api.interceptors.response.use(
@@ -206,6 +146,7 @@ export const authService = {
       headers: {
         'Accept': 'application/json'
       },
+      credentials: 'include',
       body: formData
     });
 
@@ -234,6 +175,7 @@ export const authService = {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify(credentials)
     });
 
@@ -270,18 +212,19 @@ export const authService = {
   // Получение данных текущего пользователя
   getCurrentUser: async (): Promise<any> => {
     const token = getTokenFromStorages();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
 
-    if (!token) {
-      throw new Error('Токен авторизации отсутствует');
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
     }
 
     const response = await fetch(`${API_URL}/auth/me`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
+      headers,
+      credentials: 'include',
     });
 
     const data = await response.json();

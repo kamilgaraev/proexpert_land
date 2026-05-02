@@ -1,17 +1,8 @@
 import axios from 'axios';
 import type { NotificationResponse, UnreadCountResponse, NotificationFilter } from '../types/notification';
+import { getJsonAuthHeaders } from '../utils/authTokenStorage';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.prohelper.pro';
-
-const getAuthToken = () => {
-  // SSR-safe: проверяем window перед доступом
-  if (typeof window === 'undefined') {
-    return '';
-  }
-  return localStorage.getItem('token') || 
-         sessionStorage.getItem('authToken') || 
-         '';
-};
 
 export const notificationService = {
   getNotifications: async (
@@ -27,10 +18,8 @@ export const notificationService = {
 
     const response = await axios.get<NotificationResponse>(`${API_BASE_URL}/api/v1/landing/notifications`, {
       params,
-      headers: {
-        'Authorization': `Bearer ${getAuthToken()}`,
-        'Accept': 'application/json',
-      }
+      withCredentials: true,
+      headers: getJsonAuthHeaders()
     });
 
     return response.data;
@@ -40,10 +29,8 @@ export const notificationService = {
     const response = await axios.get<UnreadCountResponse>(
       `${API_BASE_URL}/api/v1/landing/notifications/unread-count`,
       {
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`,
-          'Accept': 'application/json',
-        }
+        withCredentials: true,
+      headers: getJsonAuthHeaders()
       }
     );
 
@@ -55,10 +42,8 @@ export const notificationService = {
       `${API_BASE_URL}/api/v1/landing/notifications/${notificationId}/read`,
       {},
       {
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`,
-          'Accept': 'application/json',
-        }
+        withCredentials: true,
+      headers: getJsonAuthHeaders()
       }
     );
   },
@@ -68,10 +53,8 @@ export const notificationService = {
       `${API_BASE_URL}/api/v1/landing/notifications/mark-all-read`,
       {},
       {
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`,
-          'Accept': 'application/json',
-        }
+        withCredentials: true,
+      headers: getJsonAuthHeaders()
       }
     );
   },
@@ -80,10 +63,8 @@ export const notificationService = {
     await axios.delete(
       `${API_BASE_URL}/api/v1/landing/notifications/${notificationId}`,
       {
-        headers: {
-          'Authorization': `Bearer ${getAuthToken()}`,
-          'Accept': 'application/json',
-        }
+        withCredentials: true,
+      headers: getJsonAuthHeaders()
       }
     );
   },
@@ -94,10 +75,8 @@ export const notificationService = {
     const response = await axios({
       method: method.toLowerCase(),
       url: fullUrl,
-      headers: {
-        'Authorization': `Bearer ${getAuthToken()}`,
-        'Accept': 'application/json',
-      }
+      withCredentials: true,
+      headers: getJsonAuthHeaders()
     });
 
     return response.data;

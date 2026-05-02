@@ -12,6 +12,7 @@ import type {
   InvitationDeclineRequest
 } from '../types/contractor-invitations';
 import { normalizeInvitationListResponse } from './contractorInvitationResponseNormalizer';
+import { attachAuthorizationHeader, clearAuthToken } from './authTokenStorage';
 
 // Базовый URL для API личного кабинета
 const API_BASE_DOMAIN = 'https://api.prohelper.pro';
@@ -20,6 +21,7 @@ const API_URL = `${API_BASE_DOMAIN}/api/v1/landing`;
 // Создаем экземпляр axios с базовой конфигурацией
 const contractorInvitationsApi = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -28,25 +30,11 @@ const contractorInvitationsApi = axios.create({
 
 // Добавляем интерцептор для автоматического добавления токена авторизации
 contractorInvitationsApi.interceptors.request.use(
-  (config) => {
-    // SSR-safe: проверяем window перед доступом
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('authToken');
-      if (token) {
-        if (!config.headers) {
-          config.headers = {};
-        }
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    return config;
-  },
+  attachAuthorizationHeader,
   (error) => {
     return Promise.reject(error);
   }
 );
-
-// Интерцептор для обработки ответов и ошибок
 contractorInvitationsApi.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -54,8 +42,7 @@ contractorInvitationsApi.interceptors.response.use(
     
     if (error.response?.status === 401) {
       // Токен истек или недействителен
-      localStorage.removeItem('token');
-      sessionStorage.removeItem('authToken');
+      clearAuthToken();
       window.location.href = '/login';
     }
     

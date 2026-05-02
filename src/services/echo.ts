@@ -1,5 +1,6 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import { getAuthToken } from '../utils/authTokenStorage';
 
 declare global {
   interface Window {
@@ -13,16 +14,6 @@ if (typeof window !== 'undefined') {
   window.Pusher = Pusher;
 }
 
-const getToken = () => {
-  // SSR-safe: проверяем window перед доступом
-  if (typeof window === 'undefined') {
-    return null;
-  }
-  return localStorage.getItem('token') || 
-         sessionStorage.getItem('authToken') || 
-         null;
-};
-
 let echoInstance: any = null;
 
 const getEcho = () => {
@@ -32,7 +23,7 @@ const getEcho = () => {
   }
   
   if (!echoInstance) {
-    const token = getToken();
+    const token = getAuthToken();
     
     if (!token) {
       console.warn('⚠️ Токен не найден, WebSocket не инициализирован');
