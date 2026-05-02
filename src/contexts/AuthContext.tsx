@@ -62,6 +62,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    if (window.location.pathname.includes('/login') || window.location.pathname.includes('/register')) {
+      setIsLoading(false);
+      return;
+    }
+
     const checkAuth = async () => {
       try {
         const refreshResponse = await authService.refreshToken();

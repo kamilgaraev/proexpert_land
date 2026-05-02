@@ -26,6 +26,16 @@ const BILLING_API_URL = `${API_URL}/billing`;
 export { API_URL };
 // КОНЕЦ БЛОКА
 
+const isLoginPath = (): boolean => (
+  typeof window !== 'undefined' && window.location.pathname.includes('/login')
+);
+
+const redirectToLogin = (): void => {
+  if (!isLoginPath()) {
+    window.location.replace('/login');
+  }
+};
+
 // Создаем экземпляр axios с базовым URL
 // Этот экземпляр axios используется для старых сервисов, которые ожидают /landing в пути.
 const api = axios.create({
@@ -58,18 +68,20 @@ api.interceptors.response.use(
   (response: any) => response,
   async (error: any) => {
     const originalRequest = error.config;
+    const isRefreshRequest = originalRequest?.url === '/auth/refresh';
     // Обработка ошибки 401 (Unauthorized)
     // Добавляем проверку, чтобы не попасть в цикл, если сам /auth/refresh вернул 401
-    if (error.response?.status === 401 && originalRequest.url !== '/auth/refresh') {
+    if (error.response?.status === 401 && !isRefreshRequest && !originalRequest?._retry) {
+      originalRequest._retry = true;
       // Попытка обновить токен
       try {
         const refreshResponse = await api.post('/auth/refresh'); // Предполагается, что refresh-токен обрабатывается бэкендом через httpOnly cookie или сессию
-        const token = (refreshResponse.data as any).token; // ВАЖНО: Убедитесь, что API /auth/refresh возвращает access_token в поле token
+        const token = (refreshResponse.data as any)?.token || (refreshResponse.data as any)?.data?.token;
 
         if (!token) {
           console.error('Refresh response did not contain a token.');
           clearTokenFromStorages();
-          window.location.href = '/login'; // Или другой обработчик, например, показать модальное окно
+          redirectToLogin();
           return Promise.reject(new Error('Refresh response did not contain a token.'));
         }
 
@@ -82,14 +94,13 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError: any) {
         clearTokenFromStorages();
-        window.location.href = '/login'; // Или другой обработчик
+        redirectToLogin();
         return Promise.reject(refreshError);
       }
-    } else if (error.response?.status === 401 && originalRequest.url === '/auth/refresh') {
+    } else if (error.response?.status === 401 && isRefreshRequest) {
       // Если /auth/refresh сам вернул 401, значит refresh token невалиден или истек
       console.error('Refresh token is invalid or expired. Logging out.');
       clearTokenFromStorages();
-      window.location.href = '/login'; // Или другой обработчик
       return Promise.reject(error); // Важно отклонить промис, чтобы вызывающий код мог обработать ошибку
     }
 
