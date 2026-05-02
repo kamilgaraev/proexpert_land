@@ -62,4 +62,33 @@ describe('useProfileOnboarding', () => {
     expect(result.current.shouldShowOnboarding).toBe(false);
     expect(window.sessionStorage.getItem('profile_onboarding_shown')).toBeNull();
   });
+
+  it('не открывает мастер повторно, если основной режим и направления уже заполнены', () => {
+    mockProfile(createProfile({
+      onboarding_completed: false,
+      onboarding_completed_at: null,
+      profile_completeness: 60,
+      capabilities: ['general_contracting'],
+      primary_business_type: 'general_contracting',
+    }));
+
+    const { result } = renderHook(() => useProfileOnboarding());
+
+    expect(result.current.shouldShowOnboarding).toBe(false);
+    expect(window.sessionStorage.getItem('profile_onboarding_shown')).toBeNull();
+  });
+
+  it('открывает мастер, если профиль без основного режима и направлений не завершен', () => {
+    mockProfile(createProfile({
+      onboarding_completed: false,
+      onboarding_completed_at: null,
+      capabilities: [],
+      primary_business_type: null,
+    }));
+
+    const { result } = renderHook(() => useProfileOnboarding());
+
+    expect(result.current.shouldShowOnboarding).toBe(true);
+    expect(window.sessionStorage.getItem('profile_onboarding_shown')).toBe('true');
+  });
 });

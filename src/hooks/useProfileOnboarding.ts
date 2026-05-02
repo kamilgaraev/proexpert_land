@@ -51,7 +51,10 @@ export const useProfileOnboarding = (): UseProfileOnboardingReturn => {
     const skipped = isOnboardingSkipped();
     const alreadyShown = wasOnboardingShown();
 
-    const isIncomplete = !profile.onboarding_completed;
+    const hasCoreWorkspaceProfile = Boolean(
+      profile.primary_business_type && profile.capabilities && profile.capabilities.length > 0
+    );
+    const isIncomplete = !profile.onboarding_completed && !hasCoreWorkspaceProfile;
     
     const needsOnboarding = isIncomplete && !skipped && !alreadyShown;
 
