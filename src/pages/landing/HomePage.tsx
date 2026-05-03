@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ContactForm from '@/components/landing/ContactForm';
 import CapabilityCard from '@/components/marketing/blocks/CapabilityCard';
@@ -56,10 +56,16 @@ const contactHighlights = [
 const proofHighlights = [
   'График показывает задачи, сроки, статусы и фактический прогресс по объекту.',
   'Склад, платежи и заявки остаются в той же рабочей логике проекта.',
-  'На демонстрации можно пройти живой сценарий без абстрактных макетов.',
+  'Можно пройти путь от заявки с площадки до контроля платежа.',
 ];
 
 const productScreenshots = [
+  {
+    title: 'График',
+    description: 'Задачи, зависимости и план-факт по срокам.',
+    image: ganttScreenshot,
+    alt: 'Диаграмма Ганта с задачами и сроками в ProHelper',
+  },
   {
     title: 'Склад',
     description: 'Остатки, резервы и быстрые складские сценарии.',
@@ -81,6 +87,8 @@ const productScreenshots = [
 ];
 
 const HomePage = () => {
+  const [activeScreenshot, setActiveScreenshot] = useState(productScreenshots[0]);
+
   const { addFAQSchema } = useSEO({
     ...marketingSeo.home,
     type: 'website',
@@ -102,7 +110,6 @@ const HomePage = () => {
   return (
     <div className="marketing-page-shell overflow-hidden bg-white">
       <PageHero
-        eyebrow="Платформа управления строительством"
         title="Управляйте объектами, снабжением и финансами в одной системе."
         description="ProHelper помогает подрядчику, генподрядчику и девелоперу связать офис, площадку и руководителя в одном рабочем контуре."
         actions={[
@@ -285,20 +292,32 @@ const HomePage = () => {
           <div className="rounded-[2rem] border border-steel-200 bg-white p-2 shadow-[0_30px_70px_rgba(15,23,42,0.1)] lg:p-3">
             <div className="overflow-hidden rounded-[1.5rem] border border-steel-100 bg-concrete-50">
               <img
-                src={ganttScreenshot}
-                alt="Диаграмма Ганта с задачами и сроками в ProHelper"
+                src={activeScreenshot.image}
+                alt={activeScreenshot.alt}
                 className="h-auto w-full object-cover"
               />
+            </div>
+            <div className="px-3 py-4 lg:px-4">
+              <div className="text-lg font-bold text-steel-950">{activeScreenshot.title}</div>
+              <p className="mt-2 text-sm leading-7 text-steel-600">{activeScreenshot.description}</p>
             </div>
           </div>
         </div>
 
-        <div className="container-custom mt-8">
-          <div className="grid gap-5 lg:grid-cols-3">
+        <div className="container-custom mt-16 lg:mt-20">
+          <div className="grid gap-7 md:grid-cols-2 xl:grid-cols-4 xl:gap-8">
             {productScreenshots.map((screenshot) => (
-              <article
+              <button
+                type="button"
                 key={screenshot.title}
-                className="overflow-hidden rounded-[1.75rem] border border-steel-200 bg-white shadow-[0_22px_52px_rgba(15,23,42,0.08)]"
+                onClick={() => setActiveScreenshot(screenshot)}
+                onMouseEnter={() => setActiveScreenshot(screenshot)}
+                aria-pressed={activeScreenshot.title === screenshot.title}
+                className={`overflow-hidden rounded-[1.75rem] border bg-white text-left shadow-[0_22px_52px_rgba(15,23,42,0.08)] transition hover:-translate-y-1 hover:shadow-[0_28px_64px_rgba(15,23,42,0.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-construction-400 ${
+                  activeScreenshot.title === screenshot.title
+                    ? 'border-construction-300 ring-2 ring-construction-100'
+                    : 'border-steel-200'
+                }`}
               >
                 <img
                   src={screenshot.image}
@@ -310,12 +329,12 @@ const HomePage = () => {
                   <h3 className="text-lg font-bold text-steel-950">{screenshot.title}</h3>
                   <p className="mt-2 text-sm leading-7 text-steel-600">{screenshot.description}</p>
                 </div>
-              </article>
+              </button>
             ))}
           </div>
         </div>
 
-        <div className="container-custom mt-8">
+        <div className="container-custom mt-14 lg:mt-16">
           <div className="rounded-[2rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
             <div className="grid gap-4 sm:grid-cols-3">
               {marketingHeroFacts.map((fact) => (
@@ -331,7 +350,7 @@ const HomePage = () => {
           </div>
         </div>
 
-        <div className="container-custom mt-8">
+        <div className="container-custom mt-10 lg:mt-12">
           <div className="rounded-[2rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
             <TrustFactList items={marketingTrustFacts} />
           </div>

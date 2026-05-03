@@ -85,18 +85,13 @@ export const SectionHeader = ({
   tone?: 'light' | 'dark';
 }) => {
   const wrapperClass = align === 'center' ? 'mx-auto text-center' : '';
-  const eyebrowClass =
-    tone === 'dark'
-      ? 'border-white/15 bg-white/5 text-construction-200'
-      : 'border-construction-200 bg-construction-50 text-construction-700';
+  const eyebrowClass = tone === 'dark' ? 'text-construction-200' : 'text-construction-700';
   const titleClass = tone === 'dark' ? 'text-white' : 'text-steel-950';
   const descriptionClass = tone === 'dark' ? 'text-white/72' : 'text-steel-600';
 
   return (
     <div className={`max-w-4xl ${wrapperClass}`}>
-      <div
-        className={`inline-flex items-center rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] ${eyebrowClass}`}
-      >
+      <div className={`text-sm font-semibold leading-6 ${eyebrowClass}`}>
         {eyebrow}
       </div>
       <h2
@@ -141,7 +136,7 @@ export const PageHero = ({
   nav = [],
   aside,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description: string;
   actions?: { label: string; href: string; primary?: boolean }[];
@@ -152,9 +147,7 @@ export const PageHero = ({
     <div className="container-custom py-12 sm:py-14 lg:py-20">
       <div className={`grid gap-8 ${aside ? 'xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)] xl:items-start' : ''}`}>
         <div className="min-w-0 max-w-4xl">
-          <div className="inline-flex items-center rounded-full border border-construction-200 bg-construction-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-construction-700">
-            {eyebrow}
-          </div>
+          {eyebrow ? <div className="text-sm font-semibold leading-6 text-construction-700">{eyebrow}</div> : null}
           <h1 className="mt-4 max-w-full font-sans text-[clamp(1.9rem,8vw,4.4rem)] font-bold leading-[0.98] tracking-tight text-steel-950 [overflow-wrap:anywhere] [text-wrap:balance] sm:mt-5 sm:max-w-4xl sm:text-[clamp(2rem,5.4vw,4.4rem)]">
             {title}
           </h1>
