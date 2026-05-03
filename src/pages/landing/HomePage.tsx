@@ -11,7 +11,10 @@ import {
   PageSectionNav,
   SectionHeader,
 } from '@/components/marketing/MarketingPrimitives';
-import ganttScreenshot from '@/assets/marketing/gantt-schedule-30.png';
+import ganttScreenshot from '@/assets/marketing/prohelper-gantt-showcase.jpg';
+import paymentsScreenshot from '@/assets/marketing/prohelper-payments-showcase.jpg';
+import siteRequestsScreenshot from '@/assets/marketing/prohelper-site-requests-showcase.jpg';
+import warehouseScreenshot from '@/assets/marketing/prohelper-warehouse-showcase.jpg';
 import {
   marketingCapabilityMatrix,
   marketingCommercialLandingLinks,
@@ -51,9 +54,30 @@ const contactHighlights = [
 ];
 
 const proofHighlights = [
-  'Реальный интерфейс с графиком работ, сроками и статусами задач.',
-  'Видно, как команда контролирует путь, отклонения и зависимости.',
-  'Демо можно показывать на живом сценарии клиента, а не на абстрактной витрине.',
+  'График показывает задачи, сроки, статусы и фактический прогресс по объекту.',
+  'Склад, платежи и заявки остаются в той же рабочей логике проекта.',
+  'На демонстрации можно пройти живой сценарий без абстрактных макетов.',
+];
+
+const productScreenshots = [
+  {
+    title: 'Склад',
+    description: 'Остатки, резервы и быстрые складские сценарии.',
+    image: warehouseScreenshot,
+    alt: 'Рабочий экран склада в ProHelper',
+  },
+  {
+    title: 'Платежи',
+    description: 'Реестр документов с суммами, сроками и сигналами.',
+    image: paymentsScreenshot,
+    alt: 'Реестр платежных документов в ProHelper',
+  },
+  {
+    title: 'Заявки',
+    description: 'Запросы с объекта, статусы и связь с платежами.',
+    image: siteRequestsScreenshot,
+    alt: 'Реестр заявок с объекта в ProHelper',
+  },
 ];
 
 const HomePage = () => {
@@ -257,20 +281,46 @@ const HomePage = () => {
             </div>
 
             <div className="mt-8 rounded-[1.5rem] border border-construction-200 bg-construction-50/70 px-5 py-4 text-sm leading-7 text-steel-700">
-              Ниже встроен реальный скрин из админки ProHelper с диаграммой Ганта.
+              Ниже встроены реальные рабочие зоны из демо-проекта ProHelper.
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-steel-200 bg-white p-3 shadow-[0_30px_70px_rgba(15,23,42,0.08)] lg:p-4">
-            <div className="rounded-[1.5rem] border border-steel-100 bg-concrete-50 p-2">
+          <div className="rounded-[2rem] border border-steel-200 bg-white p-2 shadow-[0_30px_70px_rgba(15,23,42,0.1)] lg:p-3">
+            <div className="overflow-hidden rounded-[1.5rem] border border-steel-100 bg-concrete-50">
               <img
                 src={ganttScreenshot}
-                alt="Диаграмма Ганта в ProHelper"
-                className="h-auto w-full rounded-[1rem] border border-steel-200 object-cover"
+                alt="Диаграмма Ганта с задачами и сроками в ProHelper"
+                className="h-auto w-full object-cover"
               />
             </div>
+          </div>
+        </div>
 
-            <div className="grid gap-4 px-2 pb-2 pt-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="container-custom mt-8">
+          <div className="grid gap-5 lg:grid-cols-3">
+            {productScreenshots.map((screenshot) => (
+              <article
+                key={screenshot.title}
+                className="overflow-hidden rounded-[1.75rem] border border-steel-200 bg-white shadow-[0_22px_52px_rgba(15,23,42,0.08)]"
+              >
+                <img
+                  src={screenshot.image}
+                  alt={screenshot.alt}
+                  className="aspect-[16/10] w-full object-cover"
+                  loading="lazy"
+                />
+                <div className="border-t border-steel-100 px-5 py-5">
+                  <h3 className="text-lg font-bold text-steel-950">{screenshot.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-steel-600">{screenshot.description}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="container-custom mt-8">
+          <div className="rounded-[2rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
+            <div className="grid gap-4 sm:grid-cols-3">
               {marketingHeroFacts.map((fact) => (
                 <article key={fact.label} className="rounded-[1.25rem] bg-concrete-50 px-4 py-4">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
