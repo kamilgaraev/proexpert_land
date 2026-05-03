@@ -264,7 +264,7 @@ const HomePage = () => {
             <div>
               <SectionHeader
                 eyebrow="Доверие"
-                title="Показываем не обещания, а реальный экран из ProHelper."
+                title="Программа для контроля сроков, заявок, склада и платежей на стройке."
                 description="На демонстрации клиент видит рабочие данные: задачи, сроки, критический путь и таймлайн по объекту."
               />
 
@@ -280,9 +280,6 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="mt-8 rounded-[1.5rem] border border-construction-200 bg-construction-50/70 px-5 py-4 text-sm leading-7 text-steel-700">
-              Ниже встроены реальные рабочие зоны из демо-проекта ProHelper.
-            </div>
           </div>
 
           <div className="rounded-[2rem] border border-steel-200 bg-white p-2 shadow-[0_30px_70px_rgba(15,23,42,0.1)] lg:p-3">
