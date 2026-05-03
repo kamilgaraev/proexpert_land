@@ -68,6 +68,7 @@ const HoldingContractsList = lazy(() => import('@components/multi-org').then(m =
 // Lazy loading для Contractor Invitations
 const ContractorInvitationsPage = lazy(() => import('@pages/dashboard/contractor-invitations/ContractorInvitationsPage'));
 const ContractorInvitationTokenPage = lazy(() => import('@pages/dashboard/contractor-invitations/ContractorInvitationTokenPage'));
+const SupplierRequestResponsePage = lazy(() => import('@pages/procurement/SupplierRequestResponsePage'));
 
 // Lazy loading для Project-Based RBAC
 const OrganizationSettingsPage = lazy(() => import('@pages/dashboard/organization').then(m => ({ default: m.OrganizationSettingsPage })));
@@ -204,6 +205,7 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/email-sent" element={<EmailSentPage />} />
         <Route path="/invitations/accept" element={<UserInvitationAcceptPage />} />
+        <Route path="/supplier-requests/:token" element={<SupplierRequestResponsePage />} />
         
         {/* Продуктовые страницы - Moved to LandingLayout */}
         {/* Страницы решений - Moved to LandingLayout /solutions */}
