@@ -100,7 +100,7 @@ const HomePage = () => {
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
   return (
-    <div className="overflow-hidden bg-white">
+    <div className="marketing-page-shell overflow-hidden bg-white">
       <PageHero
         eyebrow="Платформа управления строительством"
         title="Управляйте объектами, снабжением и финансами в одной системе."
