@@ -18,7 +18,6 @@ export const HoldingContractsList = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    console.log('HoldingContractsList: Fetching contracts...', { currentPage, status: filters.status });
     const apiFilters: any = {};
     if (filters.status) {
       apiFilters.status = filters.status;

@@ -67,17 +67,10 @@ export const useHoldingContractDetails = () => {
       setLoading(true);
       setError(null);
 
-      console.log('useHoldingContractDetails: Making API request...', {
-        url: `/contracts/${contractId}`,
-        fullUrl: `${MULTI_ORG_API_URL}/contracts/${contractId}`,
-      });
-
       const response = await api.get<{
         success: boolean;
         data: ContractDetails;
       }>(`/contracts/${contractId}`);
-
-      console.log('useHoldingContractDetails: API response received', response.data);
 
       if (response.data.success) {
         setData(response.data.data);

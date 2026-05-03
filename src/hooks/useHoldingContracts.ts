@@ -122,12 +122,6 @@ export const useHoldingContracts = () => {
           params.filters.date_to = filters.date_to;
         }
 
-        console.log('useHoldingContracts: Making API request...', {
-          url: '/contracts-v2',
-          fullUrl: `${MULTI_ORG_API_URL}/contracts-v2`,
-          params,
-        });
-
         const response = await api.get<{
           success: boolean;
           data: {
@@ -142,8 +136,6 @@ export const useHoldingContracts = () => {
         }>('/contracts-v2', {
           params,
         });
-
-        console.log('useHoldingContracts: API response received', response.data);
 
         if (response.data.success) {
           setContracts(response.data.data.data);

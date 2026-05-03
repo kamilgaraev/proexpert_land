@@ -305,9 +305,7 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       
       if (response.status === 200 && response.data?.success) {
         // Проверяем, есть ли двойная вложенность данных
-        const previewData = response.data.data || response.data;
-        console.log('Preview data received:', previewData); // Для отладки
-        return previewData;
+        return response.data.data || response.data;
       } else {
         throw new Error(response.data?.message || 'Ошибка получения предпросмотра');
       }
@@ -440,9 +438,7 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
           return sum;
         }
         
-        const monthly = price * (30 / durationDays);
-        console.log(`📊 Модуль ${m.name}: цена=${price}, дни=${durationDays}, месячная=${monthly.toFixed(2)}`);
-        return sum + monthly;
+        return sum + price * (30 / durationDays);
       }, 0);
     } catch (error) {
       console.error('Ошибка подсчета месячной стоимости:', error);

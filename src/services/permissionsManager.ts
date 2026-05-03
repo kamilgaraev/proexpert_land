@@ -9,6 +9,7 @@ import {
   AccessInterface,
   ActiveModule
 } from '@/types/permissions';
+import { debugPermissions, isPermissionsDebugEnabled } from '@/services/debugPermissions';
 import { getTokenFromStorages } from '@/utils/api';
 
 /**
@@ -45,13 +46,13 @@ export class PermissionsManager {
     // Проверяем, не слишком ли часто загружаем
     const now = Date.now();
     if (this.isLoaded && this.lastLoadTime && (now - this.lastLoadTime) < this.MIN_RELOAD_INTERVAL) {
-      console.log(`⏳ Слишком частые запросы прав. Подождите ${Math.ceil((this.MIN_RELOAD_INTERVAL - (now - this.lastLoadTime)) / 1000)}с`);
+      debugPermissions(`Permissions reload throttled. Wait ${Math.ceil((this.MIN_RELOAD_INTERVAL - (now - this.lastLoadTime)) / 1000)}s`);
       return this.isLoaded;
     }
 
     // Если уже загружается, возвращаем текущий промис
     if (this.loadPromise) {
-      console.log('⏳ Права уже загружаются, ждем...');
+      debugPermissions('Permissions are already loading');
       return this.loadPromise;
     }
 
@@ -81,7 +82,7 @@ export class PermissionsManager {
       const token = this.getToken();
 
       if (!token) {
-        console.warn('⚠️ Токен авторизации отсутствует');
+        debugPermissions('Permissions load skipped: auth token is missing');
         return false;
       }
 
@@ -91,7 +92,7 @@ export class PermissionsManager {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
 
-      console.log(`🔄 Загрузка прав с: ${endpoint}`);
+      debugPermissions(`Loading permissions from: ${endpoint}`);
 
       const response = await fetch(endpoint, {
         method: 'GET',
@@ -105,11 +106,11 @@ export class PermissionsManager {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        console.error(`❌ HTTP ошибка: ${response.status} ${response.statusText} для ${endpoint}`);
+        debugPermissions(`Permissions HTTP error: ${response.status} ${response.statusText} for ${endpoint}`);
 
         // Если 404, значит endpoint не существует - не нужно спамить
         if (response.status === 404) {
-          console.warn('⚠️ Endpoint прав не найден. Ждем появления API.');
+          debugPermissions('Permissions endpoint was not found');
           return false;
         }
 
@@ -155,7 +156,7 @@ export class PermissionsManager {
         this.organizationId = data.data.organization_id || null;
         this.isLoaded = true;
 
-        console.log('✅ Права загружены:', {
+        debugPermissions('Permissions loaded:', {
           permissions: this.permissions.length,
           roles: this.roles,
           modules: this.activeModules
@@ -163,14 +164,14 @@ export class PermissionsManager {
 
         return true;
       } else {
-        console.error('❌ Ошибка загрузки прав:', data.message || 'Неизвестная ошибка');
+        debugPermissions('Permissions load failed:', data.message || 'Unknown error');
         return false;
       }
     } catch (error: any) {
       if (error.name === 'AbortError') {
-        console.error('❌ Таймаут загрузки прав');
+        debugPermissions('Permissions load timed out');
       } else {
-        console.error('❌ Ошибка загрузки прав:', error);
+        debugPermissions('Permissions load error:', error);
       }
       return false;
     } finally {
@@ -184,7 +185,7 @@ export class PermissionsManager {
    */
   can(permission: Permission): boolean {
     if (!this.isLoaded) {
-      console.warn('⚠️ Права не загружены. Вызовите load() сначала.');
+      debugPermissions('Permission check skipped: permissions are not loaded');
       return false;
     }
 
@@ -206,7 +207,7 @@ export class PermissionsManager {
    */
   hasRole(role: SystemRole | string): boolean {
     if (!this.isLoaded) {
-      console.warn('⚠️ Права не загружены. Вызовите load() сначала.');
+      debugPermissions('Role check skipped: permissions are not loaded');
       return false;
     }
 
@@ -218,7 +219,7 @@ export class PermissionsManager {
    */
   hasModule(module: ActiveModule | string): boolean {
     if (!this.isLoaded) {
-      console.warn('⚠️ Права не загружены. Вызовите load() сначала.');
+      debugPermissions('Module check skipped: permissions are not loaded');
       return false;
     }
 
@@ -230,7 +231,7 @@ export class PermissionsManager {
    */
   canAccessInterface(interfaceName: AccessInterface): boolean {
     if (!this.isLoaded) {
-      console.warn('⚠️ Права не загружены. Вызовите load() сначала.');
+      debugPermissions('Interface access check skipped: permissions are not loaded');
       return false;
     }
 
@@ -242,7 +243,7 @@ export class PermissionsManager {
    */
   canAccess(options: CanAccessOptions): boolean {
     if (!this.isLoaded) {
-      console.warn('⚠️ Права не загружены. Вызовите load() сначала.');
+      debugPermissions('Access check skipped: permissions are not loaded');
       return false;
     }
 
@@ -313,7 +314,7 @@ export class PermissionsManager {
       const data: CheckPermissionResponse = await response.json();
       return data.success ? data.data.has_permission : false;
     } catch (error) {
-      console.error('Ошибка проверки права:', error);
+      debugPermissions('Permission API check error:', error);
       return false;
     }
   }
@@ -352,7 +353,7 @@ export class PermissionsManager {
     this.isLoaded = false;
     this.isLoading = false;
 
-    console.log('🧹 Права очищены');
+    debugPermissions('Permissions cleared');
   }
 
   /**
@@ -380,26 +381,26 @@ export class PermissionsManager {
   // Методы для отладки (только в dev режиме)
   debug = {
     show: () => {
-      if (process.env.NODE_ENV !== 'development') return;
-      console.table(this.permissions);
+      if (!isPermissionsDebugEnabled()) return;
+      debugPermissions('Permissions:', this.permissions);
     },
 
     can: (permission: Permission) => {
-      if (process.env.NODE_ENV !== 'development') return false;
+      if (!isPermissionsDebugEnabled()) return false;
       const result = this.can(permission);
-      console.log(`🔒 ${permission}: ${result ? '✅ РАЗРЕШЕНО' : '❌ ЗАПРЕЩЕНО'}`);
+      debugPermissions(`${permission}: ${result ? 'allowed' : 'denied'}`);
       return result;
     },
 
     roles: () => {
-      if (process.env.NODE_ENV !== 'development') return [];
-      console.log('👤 Роли:', this.roles);
+      if (!isPermissionsDebugEnabled()) return [];
+      debugPermissions('Roles:', this.roles);
       return this.roles;
     },
 
     modules: () => {
-      if (process.env.NODE_ENV !== 'development') return [];
-      console.log('📦 Модули:', this.activeModules);
+      if (!isPermissionsDebugEnabled()) return [];
+      debugPermissions('Modules:', this.activeModules);
       return this.activeModules;
     },
 
@@ -411,7 +412,7 @@ export class PermissionsManager {
 export const permissionsManager = new PermissionsManager();
 
 // Экспорт для window (отладка)
-if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && isPermissionsDebugEnabled()) {
   (window as any).DEBUG_PERMISSIONS = permissionsManager.debug;
-  console.log('🔧 Отладка прав доступна:', 'DEBUG_PERMISSIONS');
+  debugPermissions('Permissions debug is available:', 'DEBUG_PERMISSIONS');
 }

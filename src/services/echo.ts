@@ -1,5 +1,6 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import { debugPermissions } from './debugPermissions';
 import { getAuthToken } from '../utils/authTokenStorage';
 
 declare global {
@@ -26,11 +27,11 @@ const getEcho = () => {
     const token = getAuthToken();
     
     if (!token) {
-      console.warn('⚠️ Токен не найден, WebSocket не инициализирован');
+      debugPermissions('Echo initialization skipped: auth token is missing');
       return null;
     }
 
-    console.log('🔌 Инициализация Echo с токеном...');
+    debugPermissions('Initializing Echo with auth token');
     
     echoInstance = new Echo({
       broadcaster: 'reverb',
@@ -52,11 +53,11 @@ const getEcho = () => {
     window.Echo = echoInstance;
     
     echoInstance.connector.pusher.connection.bind('connected', () => {
-      console.log('✅ WebSocket успешно подключен к Reverb');
+      debugPermissions('WebSocket connected to Reverb');
     });
 
     echoInstance.connector.pusher.connection.bind('error', (err: any) => {
-      console.error('❌ Ошибка WebSocket подключения:', err);
+      debugPermissions('WebSocket connection error:', err);
     });
   }
   

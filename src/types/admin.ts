@@ -28,7 +28,6 @@ export interface AdminUsersListResponse {
   success: boolean;
   message?: string;
   data: AdminPanelUser[];
-  // TODO: Добавить поля для пагинации, если API их возвращает
 }
 
 export interface AdminUserDetailResponse {

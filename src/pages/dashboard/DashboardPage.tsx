@@ -71,32 +71,24 @@ const DashboardPage = () => {
       name: 'Проекты',
       value: landingData.projects?.total || 0,
       icon: Building2,
-      trend: '+12%', // Mock trend
-      trendUp: true,
       description: 'Активных объектов'
     },
     {
       name: 'Контракты',
       value: landingData.contracts?.total || 0,
       icon: FileText,
-      trend: '+5%',
-      trendUp: true,
       description: 'Подписанных договоров'
     },
     {
       name: 'Команда',
       value: landingData.team?.total || 0,
       icon: Users,
-      trend: '0%',
-      trendUp: true,
       description: 'Сотрудников в штате'
     },
     {
       name: 'Акты',
       value: landingData.acts?.total || 0,
       icon: CheckCircle,
-      trend: '+8%',
-      trendUp: true,
       description: 'Закрытых работ'
     },
   ] : [];

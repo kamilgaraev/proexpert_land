@@ -24,9 +24,7 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
 
   const refreshUnreadCount = useCallback(async () => {
     try {
-      console.log('📊 Загружаем счетчик непрочитанных...');
       const count = await notificationService.getUnreadCount();
-      console.log('✅ Счетчик загружен:', count);
       setUnreadCount(count);
     } catch (error) {
       console.error('❌ Ошибка при загрузке счетчика (игнорируем):', error);
@@ -36,10 +34,8 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
 
   const refreshNotifications = useCallback(async () => {
     try {
-      console.log('📋 Загружаем уведомления...');
       setLoading(true);
       const response = await notificationService.getNotifications(1, 5);
-      console.log('✅ Уведомления загружены:', response);
       setNotifications(response.data);
     } catch (error) {
       console.error('❌ Ошибка при загрузке уведомлений:', error);
@@ -119,11 +115,8 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
 
   useEffect(() => {
     if (!userId) {
-      console.log('⏳ Ожидание загрузки userId для WebSocket...');
       return;
     }
-
-    console.log('🔌 Подключение к WebSocket для userId:', userId);
 
     const echo = getEcho();
     
@@ -138,21 +131,16 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
           console.warn('⚠️ WebSocket авторизация не удалась (работаем без realtime):', error);
         })
         .listen('notification.new', (eventData: any) => {
-          console.log('🔔 Получено событие notification.new RAW:', eventData);
-          
           let e = eventData;
           if (typeof eventData === 'string') {
             try {
               e = JSON.parse(eventData);
-              console.log('📦 Распарсили JSON:', e);
             } catch (error) {
               console.error('❌ Ошибка парсинга JSON:', error);
               return;
             }
           }
-          
-          console.log('🔍 Финальная структура данных:', e);
-          
+
           if (e?.data?.interface === 'lk') {
             const notification: Notification = {
               id: e.id || Math.random().toString(),
@@ -161,9 +149,7 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
               read_at: e.read_at || null,
               created_at: e.created_at || new Date().toISOString()
             };
-            
-            console.log('✅ Добавляем уведомление в список:', notification);
-            
+
             setUnreadCount(prev => prev + 1);
             setNotifications(prev => [notification, ...prev.slice(0, 4)]);
             
@@ -171,8 +157,6 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
               position: 'top-right',
               autoClose: 5000
             });
-          } else {
-            console.log('⏭️ Пропускаем уведомление, interface:', e?.data?.interface);
           }
         });
       
@@ -183,7 +167,6 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
 
     return () => {
       if (channelRef.current && userId && echo) {
-        console.log('🔌 Отключение от WebSocket для userId:', userId);
         try {
           echo.leave(`App.Models.User.${userId}.lk`);
         } catch (e) {

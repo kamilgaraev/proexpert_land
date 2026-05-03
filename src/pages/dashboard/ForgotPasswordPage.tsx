@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { authService } from '@utils/api';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -35,11 +36,21 @@ const ForgotPasswordPage = () => {
     setIsLoading(true);
     
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000)); 
+      await authService.requestPasswordReset(email);
       setIsSuccess(true);
-    } catch (err: any) {
-      setError('Произошла ошибка при отправке запроса. Попробуйте позже.');
+    } catch (err: unknown) {
+      const responseMessage = typeof err === 'object' && err !== null
+        && 'response' in err
+        && typeof err.response === 'object'
+        && err.response !== null
+        && 'data' in err.response
+        && typeof err.response.data === 'object'
+        && err.response.data !== null
+        && 'message' in err.response.data
+        && typeof err.response.data.message === 'string'
+        ? err.response.data.message
+        : null;
+      setError(responseMessage || 'Произошла ошибка при отправке запроса. Попробуйте позже.');
     } finally {
       setIsLoading(false);
     }

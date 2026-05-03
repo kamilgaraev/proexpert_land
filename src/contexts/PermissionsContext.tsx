@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { debugPermissions } from '@/services/debugPermissions';
 import { permissionsManager } from '@/services/permissionsManager';
 import { getTokenFromStorages } from '@/utils/api';
 import {
@@ -90,7 +91,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
       setError(errorMessage);
-      console.error('❌ Ошибка загрузки прав:', err);
+      debugPermissions('Permissions load error:', err);
       return false;
     } finally {
       setIsLoading(false);
@@ -98,7 +99,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
   }, [interfaceType, updatePermissions]);
 
   const reload = useCallback(async (): Promise<boolean> => {
-    console.log('🔄 Перезагрузка прав...');
+    debugPermissions('Reloading permissions...');
     return await load();
   }, [load]);
 
@@ -154,7 +155,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
         hasAutoLoaded.current = true;
         load();
       } else {
-        console.log('⚠️ Токен отсутствует, пропускаем загрузку прав');
+        debugPermissions('Permissions autoload skipped: token is missing');
       }
     }
   }, [autoLoad, load]);
@@ -167,9 +168,9 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
 
     const interval = setInterval(() => {
       if (isLoaded && !isLoading && !error) {
-        console.log('🔄 Автообновление прав...');
+        debugPermissions('Auto-refreshing permissions...');
         reload().catch(err => {
-          console.warn('⚠️ Ошибка автообновления прав:', err);
+          debugPermissions('Permissions auto-refresh error:', err);
         });
       }
     }, refreshInterval);
@@ -186,25 +187,25 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'organization_id' || e.key === 'token' || e.key === 'authToken') {
-        console.log('🔄 Изменение в localStorage, перезагружаем права...');
+        debugPermissions('Storage changed, reloading permissions...');
         hasAutoLoaded.current = false;
         reload();
       }
     };
 
     const handleOrganizationChange = () => {
-      console.log('🔄 Смена организации, перезагружаем права...');
+      debugPermissions('Organization changed, reloading permissions...');
       reload();
     };
 
     const handleLogin = () => {
-      console.log('🔄 Вход в систему, загружаем права...');
+      debugPermissions('User logged in, loading permissions...');
       hasAutoLoaded.current = false;
       load();
     };
 
     const handleLogout = () => {
-      console.log('🔄 Выход из системы, очищаем права...');
+      debugPermissions('User logged out, clearing permissions...');
       clear();
     };
 

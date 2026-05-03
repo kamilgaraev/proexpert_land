@@ -1568,6 +1568,11 @@ export const userManagementService = {
     return response;
   },
 
+  getInvitationByToken: async (token: string): Promise<{ data: any, status: number, statusText: string }> => {
+    const response = await api.get(`/user-management/invitation/${token}`);
+    return response;
+  },
+
   getInvitationStats: async (): Promise<{ data: any, status: number, statusText: string }> => {
     const response = await api.get('/user-management/invitations/stats/overview');
     return response;

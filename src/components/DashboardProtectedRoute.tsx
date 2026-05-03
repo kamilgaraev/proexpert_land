@@ -16,7 +16,6 @@ const DashboardProtectedRoute = ({ children }: DashboardProtectedRouteProps) => 
   useEffect(() => {
     if (isAuthenticated && token && !permissionsLoaded && !permissionsLoading && !permissionsError) {
       const timeout = setTimeout(() => {
-        console.log('🔄 Принудительная загрузка прав через 3 секунды...');
         loadPermissions();
       }, 3000);
 

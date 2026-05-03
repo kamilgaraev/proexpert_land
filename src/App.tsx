@@ -30,6 +30,7 @@ import NotFoundPage from '@pages/NotFoundPage';
 import EmailSentPage from '@pages/dashboard/EmailSentPage';
 
 const VerifyEmailPage = lazy(() => import('@pages/dashboard/VerifyEmailPage'));
+const UserInvitationAcceptPage = lazy(() => import('@pages/dashboard/UserInvitationAcceptPage'));
 import DashboardProtectedRoute from '@components/DashboardProtectedRoute';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 
@@ -202,6 +203,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/email-sent" element={<EmailSentPage />} />
+        <Route path="/invitations/accept" element={<UserInvitationAcceptPage />} />
         
         {/* Продуктовые страницы - Moved to LandingLayout */}
         {/* Страницы решений - Moved to LandingLayout /solutions */}

@@ -1,221 +1,165 @@
-import React, { useState, useEffect } from 'react';
-import { useTheme } from '../shared/ThemeProvider';
-import { 
-  BuildingOfficeIcon, 
-  UsersIcon, 
+import React, { useEffect, useState } from 'react';
+import {
+  BuildingOfficeIcon,
   ChartBarIcon,
-  PencilIcon,
-  TrashIcon,
   EyeIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  UsersIcon,
 } from '@heroicons/react/24/outline';
+import { useTheme } from '../shared/ThemeProvider';
+import { multiOrganizationService } from '../../utils/api';
+import {
+  ChildOrganization,
+  ChildOrganizationsPagination,
+  OrganizationStats,
+  normalizeChildOrganizationsPayload,
+  normalizeOrganizationStatsPayload,
+} from './childOrganizationManagerData';
 
-interface ChildOrganization {
-  id: number;
-  name: string;
-  organization_type: string;
-  hierarchy_level: number;
-  tax_number: string;
-  registration_number: string;
-  address: string;
-  phone: string;
-  email: string;
-  users_count: number;
-  projects_count: number;
-  contracts_count: number;
-  is_active: boolean;
-  created_at: string;
-}
+type StatusFilter = 'all' | 'active' | 'inactive';
+type SortBy = 'name' | 'created_at' | 'users_count' | 'projects_count';
+type SortDirection = 'asc' | 'desc';
 
-interface OrganizationStats {
-  users: {
-    total: number;
-    active: number;
-    owners: number;
-    managers: number;
-    employees: number;
-  };
-  projects: {
-    total: number;
-    active: number;
-    completed: number;
-    cancelled: number;
-    total_budget: number;
-    completed_budget: number;
-  };
-  contracts: {
-    total: number;
-    active: number;
-    completed: number;
-    total_value: number;
-    active_value: number;
-    monthly_income: number;
-  };
-  financial: {
-    current_balance: number;
-    monthly_expenses: number;
-    profit_margin: number;
-    cash_flow: number;
-  };
-  activity: {
-    last_login: string;
-    new_projects_this_month: number;
-    completed_tasks_this_week: number;
-    active_user_sessions: number;
-  };
-}
+const defaultPagination: ChildOrganizationsPagination = {
+  current_page: 1,
+  last_page: 1,
+  per_page: 15,
+  total: 0,
+};
 
 export const ChildOrganizationManager: React.FC = () => {
   const { getThemeClasses } = useTheme();
   const theme = getThemeClasses();
   const [organizations, setOrganizations] = useState<ChildOrganization[]>([]);
+  const [pagination, setPagination] = useState<ChildOrganizationsPagination>(defaultPagination);
   const [selectedOrganization, setSelectedOrganization] = useState<ChildOrganization | null>(null);
   const [organizationStats, setOrganizationStats] = useState<OrganizationStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [statsError, setStatsError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [sortBy, setSortBy] = useState<'name' | 'created_at' | 'users_count' | 'projects_count'>('name');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sortBy, setSortBy] = useState<SortBy>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [showStatsModal, setShowStatsModal] = useState(false);
 
   useEffect(() => {
-    loadOrganizations();
+    void loadOrganizations();
   }, [searchTerm, statusFilter, sortBy, sortDirection]);
 
   const loadOrganizations = async () => {
     try {
       setLoading(true);
-      // TODO: Заменить на реальный API вызов
-      const mockData: ChildOrganization[] = [
-        {
-          id: 124,
-          name: "ООО Строитель",
-          organization_type: "child",
-          hierarchy_level: 1,
-          tax_number: "1234567890",
-          registration_number: "123456789",
-          address: "г. Москва, ул. Строительная, 1",
-          phone: "+7 (495) 123-45-67",
-          email: "info@stroitel.ru",
-          users_count: 15,
-          projects_count: 8,
-          contracts_count: 5,
-          is_active: true,
-          created_at: "2024-01-15T10:00:00Z"
-        }
-      ];
-      setOrganizations(mockData);
-    } catch (error) {
+      setError(null);
+
+      const response = await multiOrganizationService.getChildOrganizations({
+        search: searchTerm.trim() || undefined,
+        status: statusFilter,
+        sort_by: sortBy,
+        sort_direction: sortDirection,
+        per_page: 50,
+      });
+      const result = normalizeChildOrganizationsPayload(response.data);
+
+      setOrganizations(result.organizations);
+      setPagination(result.pagination);
+    } catch {
+      setOrganizations([]);
+      setPagination(defaultPagination);
+      setError('Не удалось загрузить дочерние организации');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadOrganizationStats = async () => {
+  const loadOrganizationStats = async (organizationId: number) => {
     try {
-      // TODO: Заменить на реальный API вызов
-      const mockStats: OrganizationStats = {
-        users: { total: 15, active: 13, owners: 2, managers: 4, employees: 9 },
-        projects: { total: 8, active: 5, completed: 2, cancelled: 1, total_budget: 2500000, completed_budget: 800000 },
-        contracts: { total: 5, active: 3, completed: 2, total_value: 1800000, active_value: 1200000, monthly_income: 150000 },
-        financial: { current_balance: 350000, monthly_expenses: 85000, profit_margin: 12.5, cash_flow: 65000 },
-        activity: { 
-          last_login: "2024-01-20T14:30:00Z", 
-          new_projects_this_month: 2, 
-          completed_tasks_this_week: 15, 
-          active_user_sessions: 8 
-        }
-      };
-      setOrganizationStats(mockStats);
-    } catch (error) {
+      setStatsLoading(true);
+      setStatsError(null);
+      setOrganizationStats(null);
+
+      const response = await multiOrganizationService.getChildOrganizationStats(organizationId);
+
+      setOrganizationStats(normalizeOrganizationStatsPayload(response.data));
+    } catch {
+      setStatsError('Не удалось загрузить статистику организации');
+    } finally {
+      setStatsLoading(false);
     }
   };
 
   const handleViewStats = async (org: ChildOrganization) => {
     setSelectedOrganization(org);
-    await loadOrganizationStats();
     setShowStatsModal(true);
+    await loadOrganizationStats(org.id);
   };
 
-  const handleEdit = (org: ChildOrganization) => {
-    setSelectedOrganization(org);
-  };
-
-  const handleDelete = (org: ChildOrganization) => {
-    setSelectedOrganization(org);
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ru-RU', {
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('ru-RU', {
       style: 'currency',
-      currency: 'RUB'
+      currency: 'RUB',
+      maximumFractionDigits: 0,
     }).format(amount);
-  };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-      </div>
-    );
-  }
+  const closeStatsModal = () => {
+    setShowStatsModal(false);
+    setSelectedOrganization(null);
+    setOrganizationStats(null);
+    setStatsError(null);
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Дочерние организации</h2>
-        <button className={`px-4 py-2 ${theme.primary} text-white rounded-lg ${theme.hover} transition-colors`}>
-          Добавить организацию
-        </button>
-      </div>
-      
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <p className="text-gray-600">Здесь будет список дочерних организаций с расширенным функционалом</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Дочерние организации</h2>
+          <p className="text-sm text-gray-500">
+            {pagination.total > 0
+              ? `Найдено организаций: ${pagination.total}`
+              : 'Управление организациями холдинга'}
+          </p>
+        </div>
       </div>
 
-      {/* Фильтры и поиск */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Поиск */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
           <div className="relative">
-            <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Поиск по названию или ИНН"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={(event) => setSearchTerm(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:border-transparent focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          {/* Фильтр по статусу */}
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+            className="rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">Все статусы</option>
             <option value="active">Активные</option>
             <option value="inactive">Неактивные</option>
           </select>
 
-          {/* Сортировка */}
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(event) => setSortBy(event.target.value as SortBy)}
+            className="rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
           >
             <option value="name">По названию</option>
             <option value="created_at">По дате создания</option>
-            <option value="users_count">По количеству пользователей</option>
-            <option value="projects_count">По количеству проектов</option>
+            <option value="users_count">По пользователям</option>
+            <option value="projects_count">По проектам</option>
           </select>
 
-          {/* Направление сортировки */}
           <select
             value={sortDirection}
-            onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(event) => setSortDirection(event.target.value as SortDirection)}
+            className="rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
           >
             <option value="asc">По возрастанию</option>
             <option value="desc">По убыванию</option>
@@ -223,201 +167,254 @@ export const ChildOrganizationManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Список организаций */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Организация
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Контакты
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Статистика
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Статус
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Действия
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {organizations.map((org) => (
-                <tr key={org.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className={`flex-shrink-0 h-10 w-10 ${theme.secondary} rounded-lg flex items-center justify-center`}>
-                        <BuildingOfficeIcon className={`h-6 w-6 ${theme.text}`} />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{org.name}</div>
-                        <div className="text-sm text-gray-500">ИНН: {org.tax_number}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{org.email}</div>
-                    <div className="text-sm text-gray-500">{org.phone}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <UsersIcon className="w-4 h-4" />
-                        {org.users_count}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <ChartBarIcon className="w-4 h-4" />
-                        {org.projects_count}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      org.is_active 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {org.is_active ? 'Активна' : 'Неактивна'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleViewStats(org)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Просмотр статистики"
-                      >
-                        <EyeIcon className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleEdit(org)}
-                        className="text-yellow-600 hover:text-yellow-900"
-                        title="Редактировать"
-                      >
-                        <PencilIcon className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(org)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Удалить"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
         </div>
+      )}
+
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        {loading ? (
+          <div className="flex items-center justify-center p-8">
+            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-orange-600" />
+          </div>
+        ) : organizations.length === 0 ? (
+          <div className="px-6 py-12 text-center">
+            <BuildingOfficeIcon className="mx-auto h-10 w-10 text-gray-300" />
+            <h3 className="mt-3 text-sm font-medium text-gray-900">Организации не найдены</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Измените фильтры или проверьте, что у текущей организации включен режим холдинга.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Организация
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Реквизиты
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Статистика
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Статус
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Действия
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {organizations.map((org) => (
+                  <tr key={org.id} className="hover:bg-gray-50">
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <div className="flex items-center">
+                        <div
+                          className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${theme.secondary}`}
+                        >
+                          <BuildingOfficeIcon className={`h-6 w-6 ${theme.text}`} />
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{org.name}</div>
+                          <div className="text-sm text-gray-500">
+                            Уровень: {org.hierarchy_level || 1}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">
+                        ИНН: {org.tax_number || 'не указан'}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        КПП: {org.registration_number || 'не указан'}
+                      </div>
+                      {org.address && (
+                        <div className="mt-1 max-w-xs truncate text-sm text-gray-500">
+                          {org.address}
+                        </div>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-1" title="Пользователи">
+                          <UsersIcon className="h-4 w-4" />
+                          {org.users_count}
+                        </div>
+                        <div className="flex items-center gap-1" title="Проекты">
+                          <ChartBarIcon className="h-4 w-4" />
+                          {org.projects_count}
+                        </div>
+                        <div title="Договоры">{org.contracts_count} дог.</div>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <span
+                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                          org.is_active
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {org.is_active ? 'Активна' : 'Неактивна'}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                      <button
+                        onClick={() => void handleViewStats(org)}
+                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-900"
+                        title="Посмотреть статистику"
+                      >
+                        <EyeIcon className="h-4 w-4" />
+                        Статистика
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* Модальное окно статистики */}
-      {showStatsModal && selectedOrganization && organizationStats && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
+      {showStatsModal && selectedOrganization && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white shadow-2xl">
+            <div className="border-b border-gray-200 p-6">
+              <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">
                   Статистика: {selectedOrganization.name}
                 </h3>
                 <button
-                  onClick={() => setShowStatsModal(false)}
+                  onClick={closeStatsModal}
                   className="text-gray-400 hover:text-gray-600"
+                  aria-label="Закрыть"
                 >
-                  ✕
+                  ×
                 </button>
               </div>
             </div>
-            
-            <div className="p-6 space-y-6">
-              {/* Пользователи */}
-              <div>
-                <h4 className="text-md font-medium text-gray-900 mb-3">Пользователи</h4>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="bg-blue-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{organizationStats.users.total}</div>
-                    <div className="text-sm text-blue-800">Всего</div>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{organizationStats.users.active}</div>
-                    <div className="text-sm text-green-800">Активных</div>
-                  </div>
-                  <div className="bg-purple-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">{organizationStats.users.owners}</div>
-                    <div className="text-sm text-purple-800">Владельцев</div>
-                  </div>
-                  <div className="bg-yellow-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600">{organizationStats.users.managers}</div>
-                    <div className="text-sm text-yellow-800">Менеджеров</div>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-600">{organizationStats.users.employees}</div>
-                    <div className="text-sm text-gray-800">Сотрудников</div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Проекты */}
-              <div>
-                <h4 className="text-md font-medium text-gray-900 mb-3">Проекты</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-blue-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{organizationStats.projects.total}</div>
-                    <div className="text-sm text-blue-800">Всего проектов</div>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{organizationStats.projects.active}</div>
-                    <div className="text-sm text-green-800">Активных</div>
-                  </div>
-                  <div className="bg-purple-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">{organizationStats.projects.completed}</div>
-                    <div className="text-sm text-purple-800">Завершенных</div>
-                  </div>
+            <div className="p-6">
+              {statsLoading && (
+                <div className="flex items-center justify-center p-8">
+                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-orange-600" />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <div className="text-lg font-bold text-gray-900">{formatCurrency(organizationStats.projects.total_budget)}</div>
-                    <div className="text-sm text-gray-600">Общий бюджет</div>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <div className="text-lg font-bold text-gray-900">{formatCurrency(organizationStats.projects.completed_budget)}</div>
-                    <div className="text-sm text-gray-600">Выполнено</div>
-                  </div>
-                </div>
-              </div>
+              )}
 
-              {/* Финансы */}
-              <div>
-                <h4 className="text-md font-medium text-gray-900 mb-3">Финансы</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <div className="text-lg font-bold text-green-600">{formatCurrency(organizationStats.financial.current_balance)}</div>
-                    <div className="text-sm text-green-800">Текущий баланс</div>
+              {statsError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {statsError}
+                </div>
+              )}
+
+              {organizationStats && (
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="mb-3 text-md font-medium text-gray-900">Пользователи</h4>
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                      <div className="rounded-lg bg-blue-50 p-3">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {organizationStats.users.total}
+                        </div>
+                        <div className="text-sm text-blue-800">Всего</div>
+                      </div>
+                      <div className="rounded-lg bg-green-50 p-3">
+                        <div className="text-2xl font-bold text-green-600">
+                          {organizationStats.users.active}
+                        </div>
+                        <div className="text-sm text-green-800">Активных</div>
+                      </div>
+                      <div className="rounded-lg bg-purple-50 p-3">
+                        <div className="text-2xl font-bold text-purple-600">
+                          {organizationStats.users.owners}
+                        </div>
+                        <div className="text-sm text-purple-800">Владельцев</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-red-50 p-3 rounded-lg">
-                    <div className="text-lg font-bold text-red-600">{formatCurrency(organizationStats.financial.monthly_expenses)}</div>
-                    <div className="text-sm text-red-800">Расходы в месяц</div>
+
+                  <div>
+                    <h4 className="mb-3 text-md font-medium text-gray-900">Проекты</h4>
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                      <div className="rounded-lg bg-blue-50 p-3">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {organizationStats.projects.total}
+                        </div>
+                        <div className="text-sm text-blue-800">Всего проектов</div>
+                      </div>
+                      <div className="rounded-lg bg-green-50 p-3">
+                        <div className="text-2xl font-bold text-green-600">
+                          {organizationStats.projects.active}
+                        </div>
+                        <div className="text-sm text-green-800">Активных</div>
+                      </div>
+                      <div className="rounded-lg bg-purple-50 p-3">
+                        <div className="text-2xl font-bold text-purple-600">
+                          {organizationStats.projects.completed}
+                        </div>
+                        <div className="text-sm text-purple-800">Завершенных</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-blue-50 p-3 rounded-lg">
-                    <div className="text-lg font-bold text-blue-600">{organizationStats.financial.profit_margin}%</div>
-                    <div className="text-sm text-blue-800">Прибыльность</div>
+
+                  <div>
+                    <h4 className="mb-3 text-md font-medium text-gray-900">Договоры</h4>
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                      <div className="rounded-lg bg-blue-50 p-3">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {organizationStats.contracts.total}
+                        </div>
+                        <div className="text-sm text-blue-800">Всего</div>
+                      </div>
+                      <div className="rounded-lg bg-green-50 p-3">
+                        <div className="text-2xl font-bold text-green-600">
+                          {organizationStats.contracts.active}
+                        </div>
+                        <div className="text-sm text-green-800">Активных</div>
+                      </div>
+                      <div className="rounded-lg bg-gray-50 p-3">
+                        <div className="text-lg font-bold text-gray-900">
+                          {formatCurrency(organizationStats.contracts.total_value)}
+                        </div>
+                        <div className="text-sm text-gray-600">Общая сумма</div>
+                      </div>
+                      <div className="rounded-lg bg-gray-50 p-3">
+                        <div className="text-lg font-bold text-gray-900">
+                          {formatCurrency(organizationStats.contracts.active_value)}
+                        </div>
+                        <div className="text-sm text-gray-600">Активная сумма</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-yellow-50 p-3 rounded-lg">
-                    <div className="text-lg font-bold text-yellow-600">{formatCurrency(organizationStats.financial.cash_flow)}</div>
-                    <div className="text-sm text-yellow-800">Денежный поток</div>
+
+                  <div>
+                    <h4 className="mb-3 text-md font-medium text-gray-900">Финансы</h4>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="rounded-lg bg-green-50 p-3">
+                        <div className="text-lg font-bold text-green-600">
+                          {formatCurrency(organizationStats.financial.balance)}
+                        </div>
+                        <div className="text-sm text-green-800">Текущий баланс</div>
+                      </div>
+                      <div className="rounded-lg bg-red-50 p-3">
+                        <div className="text-lg font-bold text-red-600">
+                          {formatCurrency(organizationStats.financial.monthly_expenses)}
+                        </div>
+                        <div className="text-sm text-red-800">Расходы за месяц</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
       )}
     </div>
   );
-}; 
+};
