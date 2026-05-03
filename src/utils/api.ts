@@ -60,23 +60,100 @@ const clearTokenFromStorages = () => {
   clearAuthToken();
 };
 
+export type FetchApiResponse<T> = {
+  data: T;
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  config: {
+    headers: Record<string, string>;
+  };
+};
+
+export type LegacyJsonPayload = ReturnType<typeof JSON.parse>;
+
+type RetriableRequestConfig = Axios.AxiosXHRConfig<unknown> & {
+  _retry?: boolean;
+};
+
+type ApiErrorPayload = {
+  message?: string;
+  errors?: unknown;
+};
+
+type ApiClientError = {
+  config?: RetriableRequestConfig;
+  response?: Axios.AxiosXHR<ApiErrorPayload>;
+};
+
+type ApiRequestError = Error & {
+  status?: number;
+  data?: unknown;
+  errors?: unknown;
+};
+
+type AuthPatchedWindow = Window & typeof globalThis & {
+  __authFetchPatched?: boolean;
+};
+
+type AuthPayload = Partial<AuthResponseData> & {
+  data?: Partial<AuthResponseData> & {
+    data?: Partial<AuthResponseData>;
+  };
+};
+
+type UserPayload = Partial<UserResponseData> & {
+  data?: Partial<UserResponseData>;
+};
+
+export const createFetchResponse = <T>(data: T, response: Response): FetchApiResponse<T> => {
+  const headers: Record<string, string> = {};
+
+  response.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+
+  return {
+    data,
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+    config: {
+      headers: {},
+    },
+  };
+};
+
+const extractTokenFromPayload = (payload: unknown): string | null => {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const root = payload as AuthPayload;
+
+  return root.token
+    ?? root.data?.token
+    ?? root.data?.data?.token
+    ?? null;
+};
+
 // Интерцептор для добавления токена аутентификации
 api.interceptors.request.use(attachAuthorizationHeader);
 
 // Интерцептор для обработки ошибок
 api.interceptors.response.use(
-  (response: any) => response,
-  async (error: any) => {
+  (response: Axios.AxiosXHR<unknown>) => response,
+  async (error: ApiClientError) => {
     const originalRequest = error.config;
     const isRefreshRequest = originalRequest?.url === '/auth/refresh';
     // Обработка ошибки 401 (Unauthorized)
     // Добавляем проверку, чтобы не попасть в цикл, если сам /auth/refresh вернул 401
-    if (error.response?.status === 401 && !isRefreshRequest && !originalRequest?._retry) {
+    if (error.response?.status === 401 && originalRequest && !isRefreshRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       // Попытка обновить токен
       try {
         const refreshResponse = await api.post('/auth/refresh'); // Предполагается, что refresh-токен обрабатывается бэкендом через httpOnly cookie или сессию
-        const token = (refreshResponse.data as any)?.token || (refreshResponse.data as any)?.data?.token;
+        const token = extractTokenFromPayload(refreshResponse.data);
 
         if (!token) {
           console.error('Refresh response did not contain a token.');
@@ -92,7 +169,7 @@ api.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${token}`;
         }
         return api(originalRequest);
-      } catch (refreshError: any) {
+      } catch (refreshError: unknown) {
         clearTokenFromStorages();
         redirectToLogin();
         return Promise.reject(refreshError);
@@ -151,7 +228,7 @@ export interface OrganizationsResponseData {
 // Сервисы для работы с API
 export const authService = {
   // Регистрация нового пользователя
-  register: async (formData: FormData): Promise<any> => {
+  register: async (formData: FormData): Promise<FetchApiResponse<AuthPayload>> => {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: {
@@ -161,25 +238,19 @@ export const authService = {
       body: formData
     });
 
-    const data = await response.json();
+    const data = await response.json() as AuthPayload;
 
-    if (data && data.token) {
-      saveTokenToMultipleStorages(data.token);
-    } else if (data && data.data && data.data.token) {
-      saveTokenToMultipleStorages(data.data.token);
+    const token = extractTokenFromPayload(data);
+
+    if (token) {
+      saveTokenToMultipleStorages(token);
     }
 
-    return {
-      data: data,
-      status: response.status,
-      statusText: response.statusText,
-      headers: {},
-      config: {} as any
-    };
+    return createFetchResponse(data, response);
   },
 
   // Вход в систему
-  login: async (credentials: LoginRequest): Promise<any> => {
+  login: async (credentials: LoginRequest): Promise<FetchApiResponse<AuthPayload>> => {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -190,28 +261,24 @@ export const authService = {
       body: JSON.stringify(credentials)
     });
 
-    const data = await response.json();
+    const data = await response.json() as AuthPayload & ApiErrorPayload;
 
     if (!response.ok) {
-      const error: any = new Error(data?.message || 'Ошибка входа');
+      const error: ApiRequestError = new Error(data?.message || 'Ошибка входа');
       error.status = response.status;
       error.data = data;
       throw error;
     }
 
     // Сразу сохраняем токен в хранилище
-    if (data && data.success && data.data && data.data.token) {
-      saveTokenToMultipleStorages(data.data.token);
+    const token = extractTokenFromPayload(data);
+
+    if (token) {
+      saveTokenToMultipleStorages(token);
     }
 
     // Создаем объект, имитирующий ответ Axios
-    return {
-      data: data,
-      status: response.status,
-      statusText: response.statusText,
-      headers: {},
-      config: {} as any
-    };
+    return createFetchResponse(data, response);
   },
 
   // Выход из системы
@@ -221,7 +288,7 @@ export const authService = {
   },
 
   // Получение данных текущего пользователя
-  getCurrentUser: async (): Promise<any> => {
+  getCurrentUser: async (): Promise<FetchApiResponse<UserPayload>> => {
     const token = getTokenFromStorages();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -238,14 +305,10 @@ export const authService = {
       credentials: 'include',
     });
 
-    const data = await response.json();
+    const data = await response.json() as UserPayload;
 
     // Создаем объект, имитирующий ответ Axios
-    return {
-      data: data,
-      status: response.status,
-      statusText: response.statusText
-    };
+    return createFetchResponse(data, response);
   },
 
   // Обновление токена
@@ -386,7 +449,7 @@ export const userService = {
     if (!response.ok) {
       const errorMsg = data?.message || `Ошибка обновления профиля (статус ${response.status})`;
       const validationErrors = data?.errors;
-      const errorToThrow = new Error(errorMsg) as any;
+      const errorToThrow: ApiRequestError = new Error(errorMsg);
       if (validationErrors) {
         errorToThrow.errors = validationErrors;
       }
@@ -527,7 +590,7 @@ export const userService = {
 
 export const organizationService = {
   // Создание новой организации
-  createOrganization: async (orgData: any) => {
+  createOrganization: async (orgData: object) => {
     const token = getTokenFromStorages();
 
     if (!token) {
@@ -580,7 +643,7 @@ export const organizationService = {
   },
 
   // Обновление данных организации
-  updateOrganization: async (orgId: number, orgData: any) => {
+  updateOrganization: async (orgId: number, orgData: object) => {
     const token = getTokenFromStorages();
 
     if (!token) {
@@ -621,9 +684,9 @@ export const organizationService = {
     return response.data as ApiResponse<OrganizationWithRecommendations>;
   },
 
-  requestVerification: async (): Promise<ApiResponse<{ verification_result: any; organization: Organization }>> => {
+  requestVerification: async (): Promise<ApiResponse<{ verification_result: LegacyJsonPayload; organization: Organization }>> => {
     const response = await api.post('/organization/verification/request');
-    return response.data as ApiResponse<{ verification_result: any; organization: Organization }>;
+    return response.data as ApiResponse<{ verification_result: LegacyJsonPayload; organization: Organization }>;
   },
 
   getVerificationRecommendations: async (): Promise<ApiResponse<{ recommendations: VerificationRecommendations; user_message: UserMessage }>> => {
@@ -707,7 +770,7 @@ export interface OrganizationVerification {
   verification_status: 'verified' | 'partially_verified' | 'needs_review' | 'failed' | 'pending';
   verification_status_text: string;
   verification_score: number;
-  verification_data: any;
+  verification_data: LegacyJsonPayload;
   verification_notes: string;
   can_be_verified: boolean;
 }
@@ -863,7 +926,7 @@ export const adminPanelUserService = {
       // Пробуем использовать специальный эндпоинт для админа
       const response = await api.post(`/adminPanelUsers/${userId}/resend-verification-email`);
       return response.data as { success: boolean; message?: string };
-    } catch (error: any) {
+    } catch {
       // Если такого эндпоинта нет, используем общий resend от имени админа
       // В этом случае бэкенд должен обработать запрос от имени админа
       const response = await api.post('/auth/email/resend', { user_id: userId });
@@ -1005,7 +1068,7 @@ export interface Subscription {
   is_auto_payment_enabled: boolean;
   included_packages?: IncludedPackage[];
   included_packages_count?: number;
-  bundled_modules: any[];
+  bundled_modules: unknown[];
   bundled_modules_count: number;
 }
 
@@ -1114,7 +1177,7 @@ export const billingService = {
     }
   },
 
-  getCurrentSubscription: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getCurrentSubscription: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/subscription`;
@@ -1127,7 +1190,7 @@ export const billingService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  subscribeToPlan: async (payload: { plan_slug: string; is_auto_payment_enabled?: boolean }): Promise<{ data: any, status: number, statusText: string }> => {
+  subscribeToPlan: async (payload: { plan_slug: string; is_auto_payment_enabled?: boolean }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/subscribe`;
@@ -1141,7 +1204,7 @@ export const billingService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  cancelSubscription: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  cancelSubscription: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/subscription/cancel`;
@@ -1155,7 +1218,7 @@ export const billingService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  changePlanPreview: async (payload: { plan_slug: string }): Promise<{ data: any, status: number, statusText: string }> => {
+  changePlanPreview: async (payload: { plan_slug: string }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -1171,7 +1234,7 @@ export const billingService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  changePlan: async (payload: { plan_slug: string }): Promise<{ data: any, status: number, statusText: string }> => {
+  changePlan: async (payload: { plan_slug: string }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/subscription/change-plan`;
@@ -1185,7 +1248,7 @@ export const billingService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  getSubscriptionLimits: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getSubscriptionLimits: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/subscription/limits`;
@@ -1226,7 +1289,7 @@ export const billingService = {
   },
 
   // Получить список add-on'ов и подключённых
-  getAddons: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getAddons: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/addons`;
@@ -1240,7 +1303,7 @@ export const billingService = {
   },
 
   // Подключить add-on
-  connectAddon: async (addon_id: number): Promise<{ data: any, status: number, statusText: string }> => {
+  connectAddon: async (addon_id: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/org-addon`;
@@ -1255,7 +1318,7 @@ export const billingService = {
   },
 
   // Отключить add-on
-  disconnectAddon: async (subscription_addon_id: number): Promise<{ data: any, status: number, statusText: string }> => {
+  disconnectAddon: async (subscription_addon_id: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/org-addon/${subscription_addon_id}`;
@@ -1270,7 +1333,7 @@ export const billingService = {
 
 
   // Совершить одноразовую покупку
-  oneTimePurchase: async (payload: { type: string; description: string; amount: number; currency: string }): Promise<{ data: any, status: number, statusText: string }> => {
+  oneTimePurchase: async (payload: { type: string; description: string; amount: number; currency: string }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/org-one-time-purchase`;
@@ -1285,7 +1348,7 @@ export const billingService = {
   },
 
   // Получить историю одноразовых покупок
-  getOneTimePurchases: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getOneTimePurchases: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/org-one-time-purchases`;
@@ -1299,7 +1362,7 @@ export const billingService = {
   },
 
   // Получить дашборд организации (тариф, лимиты, add-on)
-  getOrgDashboard: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getOrgDashboard: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/org-dashboard`;
@@ -1314,7 +1377,7 @@ export const billingService = {
 
 
   // Включить / выключить автоплатёж для подписки
-  updateAutoPayment: async (is_auto_payment_enabled: boolean): Promise<{ data: any, status: number, statusText: string }> => {
+  updateAutoPayment: async (is_auto_payment_enabled: boolean): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
     const url = `${BILLING_API_URL}/subscription/auto-payment`;
@@ -1342,7 +1405,7 @@ export interface CustomRole {
   };
   interface_access: string[];
   conditions?: {
-    [key: string]: any;
+    [key: string]: unknown;
   };
   is_active: boolean;
   created_by: number;
@@ -1359,7 +1422,7 @@ export interface CreateCustomRoleData {
   };
   interface_access: string[];
   conditions?: {
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -1393,49 +1456,49 @@ export interface CreateUserWithCustomRolesData {
 // Новый сервис для управления кастомными ролями
 export const customRolesService = {
   // Просмотр ролей
-  getCustomRoles: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getCustomRoles: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/user-management/custom-roles');
     return response;
   },
 
-  getCustomRole: async (roleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  getCustomRole: async (roleId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get(`/user-management/custom-roles/${roleId}`);
     return response;
   },
 
-  getCustomRoleUsers: async (roleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  getCustomRoleUsers: async (roleId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get(`/user-management/custom-roles/${roleId}/users`);
     return response;
   },
 
   // Создание и управление ролями
-  createCustomRole: async (roleData: CreateCustomRoleData): Promise<{ data: any, status: number, statusText: string }> => {
+  createCustomRole: async (roleData: CreateCustomRoleData): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post('/user-management/custom-roles', roleData);
     return response;
   },
 
-  updateCustomRole: async (roleId: number, roleData: Partial<CreateCustomRoleData>): Promise<{ data: any, status: number, statusText: string }> => {
+  updateCustomRole: async (roleId: number, roleData: Partial<CreateCustomRoleData>): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.put(`/user-management/custom-roles/${roleId}`, roleData);
     return response;
   },
 
-  deleteCustomRole: async (roleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  deleteCustomRole: async (roleId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.delete(`/user-management/custom-roles/${roleId}`);
     return response;
   },
 
-  cloneCustomRole: async (roleId: number, newName: string): Promise<{ data: any, status: number, statusText: string }> => {
+  cloneCustomRole: async (roleId: number, newName: string): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post(`/user-management/custom-roles/${roleId}/clone`, { name: newName });
     return response;
   },
 
   // Назначение ролей
-  assignRole: async (roleId: number, userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  assignRole: async (roleId: number, userId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post(`/user-management/custom-roles/${roleId}/assign`, { user_id: userId });
     return response;
   },
 
-  unassignRole: async (roleId: number, userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  unassignRole: async (roleId: number, userId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.request({
       method: 'DELETE',
       url: `/user-management/custom-roles/${roleId}/unassign`,
@@ -1445,23 +1508,23 @@ export const customRolesService = {
   },
 
   // Создание пользователя с кастомными ролями
-  createUserWithCustomRoles: async (userData: CreateUserWithCustomRolesData): Promise<{ data: any, status: number, statusText: string }> => {
+  createUserWithCustomRoles: async (userData: CreateUserWithCustomRolesData): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post('/user-management/create-user-with-custom-roles', userData);
     return response;
   },
 
   // Вспомогательные методы
-  getAvailableRoles: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getAvailableRoles: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/user-management/available-roles');
     return response;
   },
 
-  getAvailablePermissions: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getAvailablePermissions: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/user-management/available-permissions');
     return response;
   },
 
-  getCustomRolePermissions: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getCustomRolePermissions: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/user-management/custom-roles/permissions/available');
     return response;
   },
@@ -1509,7 +1572,7 @@ export const rolesComparisonService = {
 
 // Обновленный сервис управления пользователями
 export const userManagementService = {
-  getRoles: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getRoles: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/user-management/roles');
     return response;
   },
@@ -1522,23 +1585,23 @@ export const userManagementService = {
     color?: string;
     is_active?: boolean;
     display_order?: number;
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post('/user-management/roles', roleData);
     return response;
   },
 
-  getAvailablePermissions: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getAvailablePermissions: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/user-management/roles/permissions/available');
     return response;
   },
 
 
-  duplicateRole: async (roleId: number, name: string): Promise<{ data: any, status: number, statusText: string }> => {
+  duplicateRole: async (roleId: number, name: string): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post(`/user-management/roles/${roleId}/duplicate`, { name });
     return response;
   },
 
-  getInvitations: async (status?: string, email?: string): Promise<{ data: any, status: number, statusText: string }> => {
+  getInvitations: async (status?: string, email?: string): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const params = new URLSearchParams();
     if (status) params.append('status', status);
     if (email) params.append('email', email);
@@ -1551,14 +1614,17 @@ export const userManagementService = {
     email: string;
     name: string;
     role_slugs: string[];
-    metadata?: Record<string, any>;
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+    metadata?: Record<string, unknown>;
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post('/user-management/invitations', invitationData);
     return response;
   },
 
-  acceptInvitation: async (token: string, password?: string, passwordConfirmation?: string): Promise<{ data: any, status: number, statusText: string }> => {
-    const payload: any = {};
+  acceptInvitation: async (token: string, password?: string, passwordConfirmation?: string): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
+    const payload: {
+      password?: string;
+      password_confirmation?: string;
+    } = {};
     if (password) {
       payload.password = password;
       payload.password_confirmation = passwordConfirmation;
@@ -1568,28 +1634,28 @@ export const userManagementService = {
     return response;
   },
 
-  getInvitationByToken: async (token: string): Promise<{ data: any, status: number, statusText: string }> => {
+  getInvitationByToken: async (token: string): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get(`/user-management/invitation/${token}`);
     return response;
   },
 
-  getInvitationStats: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getInvitationStats: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/user-management/invitations/stats/overview');
     return response;
   },
 
-  resendInvitation: async (invitationId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  resendInvitation: async (invitationId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post(`/user-management/invitations/${invitationId}/resend`);
     return response;
   },
 
-  getOrganizationUsers: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getOrganizationUsers: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/user-management/organization-users');
     return response;
   },
 
   // Управление ролями пользователей - обновлено для кастомных ролей
-  getUserRoles: async (userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  getUserRoles: async (userId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get(`/user-management/organization-users/${userId}/roles`);
     return response;
   },
@@ -1598,27 +1664,27 @@ export const userManagementService = {
     system_roles?: string[];
     custom_roles?: number[];
     action: 'replace' | 'add' | 'remove';
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post(`/user-management/organization-users/${userId}/roles`, rolesData);
     return response;
   },
 
-  assignRoleToUser: async (userId: number, roleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  assignRoleToUser: async (userId: number, roleId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post(`/user-management/organization-users/${userId}/assign-role/${roleId}`);
     return response;
   },
 
-  unassignRoleFromUser: async (userId: number, roleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  unassignRoleFromUser: async (userId: number, roleId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.delete(`/user-management/organization-users/${userId}/unassign-role/${roleId}`);
     return response;
   },
 
-  getUserLimits: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getUserLimits: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/user-management/user-limits');
     return response;
   },
 
-  deleteUser: async (userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  deleteUser: async (userId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.delete(`/user-management/organization-users/${userId}`);
     return response;
   },
@@ -1630,23 +1696,23 @@ export const userManagementService = {
     color?: string;
     is_active?: boolean;
     display_order?: number;
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.put(`/user-management/roles/${roleId}`, roleData);
     return response;
   },
 
-  deleteRole: async (roleId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  deleteRole: async (roleId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.delete(`/user-management/roles/${roleId}`);
     return response;
   },
 
-  cancelInvitation: async (invitationId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  cancelInvitation: async (invitationId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.delete(`/user-management/invitations/${invitationId}`);
     return response;
   },
 
   // Отправка письма верификации email от имени админа для другого пользователя
-  resendVerificationEmailForUser: async (userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  resendVerificationEmailForUser: async (userId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post(`/user-management/organization-users/${userId}/resend-verification-email`);
     return response;
   },
@@ -1854,37 +1920,37 @@ export interface HoldingOrganization {
 
 
 export const multiOrganizationService = {
-  checkAvailability: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  checkAvailability: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/multi-organization/check-availability');
     return response;
   },
 
-  createHolding: async (holdingData: CreateHoldingRequest): Promise<{ data: any, status: number, statusText: string }> => {
+  createHolding: async (holdingData: CreateHoldingRequest): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post('/multi-organization/create-holding', holdingData);
     return response;
   },
 
-  addChildOrganization: async (childData: AddChildOrganizationRequest): Promise<{ data: any, status: number, statusText: string }> => {
+  addChildOrganization: async (childData: AddChildOrganizationRequest): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post('/multi-organization/add-child', childData);
     return response;
   },
 
-  getHierarchy: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getHierarchy: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/multi-organization/hierarchy');
     return response;
   },
 
-  getAccessibleOrganizations: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getAccessibleOrganizations: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/multi-organization/accessible');
     return response;
   },
 
-  getOrganizationDetails: async (organizationId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  getOrganizationDetails: async (organizationId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get(`/multi-organization/organization/${organizationId}`);
     return response;
   },
 
-  switchContext: async (contextData: SwitchContextRequest): Promise<{ data: any, status: number, statusText: string }> => {
+  switchContext: async (contextData: SwitchContextRequest): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post('/multi-organization/switch-context', contextData);
     return response;
   },
@@ -1955,7 +2021,7 @@ export const multiOrganizationService = {
     return data.data;
   },
 
-  getHoldingOrganizations: async (slug: string, token: string): Promise<any[]> => {
+  getHoldingOrganizations: async (slug: string, token: string): Promise<LegacyJsonPayload[]> => {
     const isLocalDev = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
     let url: string;
 
@@ -1996,7 +2062,7 @@ export const multiOrganizationService = {
     sort_by?: 'name' | 'created_at' | 'users_count' | 'projects_count';
     sort_direction?: 'asc' | 'desc';
     per_page?: number;
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const queryParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -2017,8 +2083,8 @@ export const multiOrganizationService = {
     phone?: string;
     email?: string;
     is_active?: boolean;
-    settings?: Record<string, any>;
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+    settings?: Record<string, unknown>;
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.put(`/multi-organization/child-organizations/${childOrgId}`, data);
     return response;
   },
@@ -2026,7 +2092,7 @@ export const multiOrganizationService = {
   deleteChildOrganization: async (childOrgId: number, data: {
     transfer_data_to?: number;
     confirm_deletion: boolean;
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     const response = await fetch(`https://api.prohelper.pro/api/v1/landing/multi-organization/child-organizations/${childOrgId}`, {
       method: 'DELETE',
@@ -2045,7 +2111,7 @@ export const multiOrganizationService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  getChildOrganizationStats: async (childOrgId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  getChildOrganizationStats: async (childOrgId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get(`/multi-organization/child-organizations/${childOrgId}/stats`);
     return response;
   },
@@ -2056,7 +2122,7 @@ export const multiOrganizationService = {
     role?: 'admin' | 'manager' | 'employee';
     status?: 'active' | 'inactive' | 'all';
     per_page?: number;
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const queryParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -2073,7 +2139,7 @@ export const multiOrganizationService = {
     role: 'admin' | 'manager' | 'employee';
     permissions?: string[];
     send_invitation?: boolean;
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post(`/multi-organization/child-organizations/${childOrgId}/users`, data);
     return response;
   },
@@ -2082,12 +2148,12 @@ export const multiOrganizationService = {
     role?: 'admin' | 'manager' | 'employee';
     permissions?: string[];
     is_active?: boolean;
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.put(`/multi-organization/child-organizations/${childOrgId}/users/${userId}`, data);
     return response;
   },
 
-  removeUserFromChildOrganization: async (childOrgId: number, userId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  removeUserFromChildOrganization: async (childOrgId: number, userId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.delete(`/multi-organization/child-organizations/${childOrgId}/users/${userId}`);
     return response;
   },
@@ -2098,9 +2164,9 @@ export const multiOrganizationService = {
     name?: string;
     description?: string;
     max_child_organizations?: number;
-    settings?: Record<string, any>;
-    permissions_config?: Record<string, any>;
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+    settings?: Record<string, unknown>;
+    permissions_config?: Record<string, unknown>;
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.put('/multi-organization/holding-settings', data);
     return response;
   },
@@ -2108,8 +2174,8 @@ export const multiOrganizationService = {
   // Массовые операции
   bulkUpdateChildOrganizations: async (data: {
     organization_ids: number[];
-    updates: Record<string, any>;
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+    updates: Record<string, unknown>;
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.patch('/multi-organization/child-organizations/bulk-update', data);
     return response;
   },
@@ -2118,7 +2184,7 @@ export const multiOrganizationService = {
     format?: 'xlsx' | 'csv' | 'pdf';
     include_stats?: boolean;
     organization_ids?: number[];
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const queryParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -2140,7 +2206,7 @@ export const multiOrganizationService = {
   getHoldingAnalytics: async (params?: {
     period?: 'week' | 'month' | 'quarter' | 'year';
     include_trends?: boolean;
-  }): Promise<{ data: any, status: number, statusText: string }> => {
+  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const queryParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -2264,7 +2330,7 @@ export interface Module {
   dependencies?: string[];
   conflicts?: string[];
   limits?: {
-    [key: string]: any;
+    [key: string]: unknown;
   };
   icon: string;
   display_order?: number;
@@ -2348,7 +2414,7 @@ export interface ModuleBillingStats {
 }
 
 export interface UpcomingBilling {
-  upcoming_billing: any[];
+  upcoming_billing: unknown[];
   summary: {
     total_upcoming: number;
     current_balance: number;
@@ -2453,7 +2519,7 @@ export interface ModulesOverview {
 }
 
 export const newModulesService = {
-  getOverview: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getOverview: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2472,7 +2538,7 @@ export const newModulesService = {
   },
 
   // Получение списка доступных модулей
-  getModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getModules: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2491,7 +2557,7 @@ export const newModulesService = {
   },
 
   // Получение активных модулей
-  getActiveModules: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getActiveModules: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2510,12 +2576,15 @@ export const newModulesService = {
   },
 
   // Проверка доступа к модулю
-  checkAccess: async (module_slug: string, permission?: string): Promise<{ data: any, status: number, statusText: string }> => {
+  checkAccess: async (module_slug: string, permission?: string): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
     const url = `${API_URL}/modules/check-access`;
-    const payload: any = { module_slug };
+    const payload: {
+      module_slug: string;
+      permission?: string;
+    } = { module_slug };
     if (permission) payload.permission = permission;
 
     const options: RequestInit = {
@@ -2533,7 +2602,7 @@ export const newModulesService = {
   },
 
   // Активация модуля
-  activateModule: async (module_slug: string, duration_days: number = 30): Promise<{ data: any, status: number, statusText: string }> => {
+  activateModule: async (module_slug: string, duration_days: number = 30): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2553,7 +2622,7 @@ export const newModulesService = {
   },
 
   // Деактивация модуля
-  deactivateModule: async (module_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
+  deactivateModule: async (module_slug: string): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2572,7 +2641,7 @@ export const newModulesService = {
   },
 
   // Предварительный просмотр деактивации модуля
-  getDeactivationPreview: async (module_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
+  getDeactivationPreview: async (module_slug: string): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2601,7 +2670,7 @@ export const newModulesService = {
   },
 
   // Предварительный просмотр активации
-  getActivationPreview: async (module_slug: string): Promise<{ data: any, status: number, statusText: string }> => {
+  getActivationPreview: async (module_slug: string): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2620,7 +2689,7 @@ export const newModulesService = {
   },
 
   // Получение модулей с истекающим сроком
-  getExpiringModules: async (days: number = 7): Promise<{ data: any, status: number, statusText: string }> => {
+  getExpiringModules: async (days: number = 7): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2639,7 +2708,7 @@ export const newModulesService = {
   },
 
   // Продление модуля
-  renewModule: async (module_slug: string, duration_days: number = 30): Promise<{ data: any, status: number, statusText: string }> => {
+  renewModule: async (module_slug: string, duration_days: number = 30): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2752,7 +2821,7 @@ export const newModulesService = {
   },
 
   // Массовая активация модулей
-  bulkActivateModules: async (modules: Array<{ slug: string; duration_days: number }>): Promise<{ data: any, status: number, statusText: string }> => {
+  bulkActivateModules: async (modules: Array<{ slug: string; duration_days: number }>): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2772,7 +2841,7 @@ export const newModulesService = {
   },
 
   // Биллинг информация
-  getBillingInfo: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getBillingInfo: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2791,7 +2860,7 @@ export const newModulesService = {
   },
 
   // История биллинга
-  getBillingHistory: async (page: number = 1, per_page: number = 20, from?: string, to?: string): Promise<{ data: any, status: number, statusText: string }> => {
+  getBillingHistory: async (page: number = 1, per_page: number = 20, from?: string, to?: string): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2817,7 +2886,7 @@ export const newModulesService = {
   },
 
   // Статистика модулей биллинга
-  getBillingStats: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getBillingStats: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2858,7 +2927,7 @@ export const landingService = {
 };
 
 export const holdingReportsService = {
-  getProjectsSummary: async (filters?: Record<string, any>): Promise<{ data: any, status: number, statusText: string }> => {
+  getProjectsSummary: async (filters?: object): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2892,7 +2961,7 @@ export const holdingReportsService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  getContractsSummary: async (filters?: Record<string, any>): Promise<{ data: any, status: number, statusText: string }> => {
+  getContractsSummary: async (filters?: object): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2926,7 +2995,7 @@ export const holdingReportsService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  exportProjectsReport: async (filters?: Record<string, any>, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
+  exportProjectsReport: async (filters?: object, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2962,7 +3031,7 @@ export const holdingReportsService = {
     return await response.blob();
   },
 
-  exportContractsReport: async (filters?: Record<string, any>, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
+  exportContractsReport: async (filters?: object, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -2998,7 +3067,7 @@ export const holdingReportsService = {
     return await response.blob();
   },
 
-  getIntraGroupReport: async (filters?: Record<string, any>): Promise<{ data: any, status: number, statusText: string }> => {
+  getIntraGroupReport: async (filters?: object): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -3032,7 +3101,7 @@ export const holdingReportsService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  exportIntraGroupReport: async (filters?: Record<string, any>, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
+  exportIntraGroupReport: async (filters?: object, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -3068,7 +3137,7 @@ export const holdingReportsService = {
     return await response.blob();
   },
 
-  getConsolidatedReport: async (filters?: Record<string, any>): Promise<{ data: any, status: number, statusText: string }> => {
+  getConsolidatedReport: async (filters?: object): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -3102,7 +3171,7 @@ export const holdingReportsService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  exportConsolidatedReport: async (filters?: Record<string, any>, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
+  exportConsolidatedReport: async (filters?: object, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -3138,7 +3207,7 @@ export const holdingReportsService = {
     return await response.blob();
   },
 
-  getDetailedContractsReport: async (filters?: Record<string, any>): Promise<{ data: any, status: number, statusText: string }> => {
+  getDetailedContractsReport: async (filters?: object): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -3172,7 +3241,7 @@ export const holdingReportsService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
-  exportDetailedContractsReport: async (filters?: Record<string, any>, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
+  exportDetailedContractsReport: async (filters?: object, format: 'csv' | 'excel' | 'xlsx' = 'excel'): Promise<Blob> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
 
@@ -3210,9 +3279,11 @@ export const holdingReportsService = {
 };
 
 // --- Глобальный перехват fetch, чтобы при любом 401/419 делать redirect на /login ---
-if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(window as any).__authFetchPatched) {
+if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+  const authWindow = window as AuthPatchedWindow;
+  if (!authWindow.__authFetchPatched) {
   const nativeFetch = window.fetch.bind(window);
-  (window as any).__authFetchPatched = true;
+  authWindow.__authFetchPatched = true;
   window.fetch = async (...args: Parameters<typeof nativeFetch>): Promise<Response> => {
     const resp = await nativeFetch(...(args as Parameters<typeof nativeFetch>));
     if (resp.status === 401 || resp.status === 419) {
@@ -3247,6 +3318,7 @@ if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(win
     }
     return resp;
   };
+  }
 }
 // --- конец перехвата ---
 
@@ -3254,7 +3326,7 @@ if (typeof window !== 'undefined' && typeof window.fetch === 'function' && !(win
 // API сервис для управления лендингами холдингов
 export const holdingLandingService = {
   // Управление лендингом холдинга
-  getLanding: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  getLanding: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
 
     const response = await fetch(`${API_URL}/holding/site`, {
@@ -3274,7 +3346,7 @@ export const holdingLandingService = {
     };
   },
 
-  updateLanding: async (landingData: any): Promise<{ data: any, status: number, statusText: string }> => {
+  updateLanding: async (landingData: object): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
 
     const response = await fetch(`${API_URL}/holding/site`, {
@@ -3295,7 +3367,7 @@ export const holdingLandingService = {
     };
   },
 
-  publishLanding: async (): Promise<{ data: any, status: number, statusText: string }> => {
+  publishLanding: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
 
     const response = await fetch(`${API_URL}/holding/site/publish`, {
@@ -3316,7 +3388,7 @@ export const holdingLandingService = {
   },
 
   // Управление блоками контента
-  getBlocks: async (filters?: any): Promise<{ data: any, status: number, statusText: string }> => {
+  getBlocks: async (filters?: object): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     const params = new URLSearchParams();
 
@@ -3347,7 +3419,7 @@ export const holdingLandingService = {
     };
   },
 
-  createBlock: async (blockData: any): Promise<{ data: any, status: number, statusText: string }> => {
+  createBlock: async (blockData: object): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
 
     const response = await fetch(`${API_URL}/holding/site/blocks`, {
@@ -3368,7 +3440,7 @@ export const holdingLandingService = {
     };
   },
 
-  updateBlock: async (blockId: number, blockData: any): Promise<{ data: any, status: number, statusText: string }> => {
+  updateBlock: async (blockId: number, blockData: object): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
 
     const response = await fetch(`${API_URL}/holding/site/blocks/${blockId}`, {
@@ -3389,7 +3461,7 @@ export const holdingLandingService = {
     };
   },
 
-  publishBlock: async (blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  publishBlock: async (blockId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
 
     const response = await fetch(`${API_URL}/holding/site/blocks/${blockId}/publish`, {
@@ -3409,7 +3481,7 @@ export const holdingLandingService = {
     };
   },
 
-  duplicateBlock: async (blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  duplicateBlock: async (blockId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
 
     const response = await fetch(`${API_URL}/holding/site/blocks/${blockId}/duplicate`, {
@@ -3429,7 +3501,7 @@ export const holdingLandingService = {
     };
   },
 
-  deleteBlock: async (blockId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  deleteBlock: async (blockId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
 
     const response = await fetch(`${API_URL}/holding/site/blocks/${blockId}`, {
@@ -3449,7 +3521,7 @@ export const holdingLandingService = {
     };
   },
 
-  reorderBlocks: async (blockOrder: { id: number; sort_order: number }[]): Promise<{ data: any, status: number, statusText: string }> => {
+  reorderBlocks: async (blockOrder: { id: number; sort_order: number }[]): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
 
     const response = await fetch(`${API_URL}/holding/site/blocks/reorder`, {
@@ -3471,7 +3543,7 @@ export const holdingLandingService = {
   },
 
   // Управление медиафайлами
-  getAssets: async (filters?: any): Promise<{ data: any, status: number, statusText: string }> => {
+  getAssets: async (filters?: object): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     const params = new URLSearchParams();
 
@@ -3502,7 +3574,7 @@ export const holdingLandingService = {
     };
   },
 
-  uploadAsset: async (file: File, usageContext?: string, metadata?: any): Promise<{ data: any, status: number, statusText: string }> => {
+  uploadAsset: async (file: File, usageContext?: string, metadata?: object): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
 
     const formData = new FormData();
@@ -3531,7 +3603,7 @@ export const holdingLandingService = {
     };
   },
 
-  updateAsset: async (assetId: number, metadata: any): Promise<{ data: any, status: number, statusText: string }> => {
+  updateAsset: async (assetId: number, metadata: object): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
 
     const response = await fetch(`${API_URL}/holding/site/assets/${assetId}`, {
@@ -3552,7 +3624,7 @@ export const holdingLandingService = {
     };
   },
 
-  deleteAsset: async (assetId: number): Promise<{ data: any, status: number, statusText: string }> => {
+  deleteAsset: async (assetId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
 
     const response = await fetch(`${API_URL}/holding/site/assets/${assetId}`, {
@@ -3848,8 +3920,8 @@ export interface LandingDashboardResponse {
     total_amount: number;
   };
   works_materials: {
-    works: Record<string, any>;
-    materials: Record<string, any>;
+    works: Record<string, unknown>;
+    materials: Record<string, unknown>;
   };
   acts: {
     total: number;
@@ -3860,7 +3932,7 @@ export interface LandingDashboardResponse {
     total: number;
     by_roles: Record<string, number>;
   };
-  team_details: any[];
+  team_details: unknown[];
   charts: {
     projects_monthly: { labels: string[]; values: number[] };
     contracts_monthly: { labels: string[]; values: number[] };
@@ -3899,7 +3971,7 @@ export interface Package {
 }
 
 export const packagesService = {
-  getPackages: async (): Promise<any> => {
+  getPackages: async (): Promise<FetchApiResponse<LegacyJsonPayload>> => {
     const token = getTokenFromStorages();
     const response = await fetch(`${API_URL}/packages`, {
       method: 'GET',
@@ -3909,11 +3981,11 @@ export const packagesService = {
         'Authorization': `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    return { data, status: response.status };
+    const data = await response.json() as LegacyJsonPayload;
+    return createFetchResponse(data, response);
   },
 
-  subscribe: async (packageSlug: string, tier: string, durationDays: number = 30): Promise<any> => {
+  subscribe: async (packageSlug: string, tier: string, durationDays: number = 30): Promise<FetchApiResponse<LegacyJsonPayload>> => {
     const token = getTokenFromStorages();
     const response = await fetch(`${API_URL}/packages/subscribe`, {
       method: 'POST',
@@ -3924,11 +3996,11 @@ export const packagesService = {
       },
       body: JSON.stringify({ package_slug: packageSlug, tier, duration_days: durationDays }),
     });
-    const data = await response.json();
-    return { data, status: response.status };
+    const data = await response.json() as LegacyJsonPayload;
+    return createFetchResponse(data, response);
   },
 
-  unsubscribe: async (packageSlug: string): Promise<any> => {
+  unsubscribe: async (packageSlug: string): Promise<FetchApiResponse<LegacyJsonPayload>> => {
     const token = getTokenFromStorages();
     const response = await fetch(`${API_URL}/packages/${packageSlug}/unsubscribe`, {
       method: 'DELETE',
@@ -3938,7 +4010,7 @@ export const packagesService = {
         'Authorization': `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    return { data, status: response.status };
+    const data = await response.json() as LegacyJsonPayload;
+    return createFetchResponse(data, response);
   },
 };
