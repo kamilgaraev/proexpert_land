@@ -144,8 +144,8 @@ const PricingPage = () => {
         title="Пакеты ProHelper под ваш этап развития."
         description="Выберите стартовый контур для объекта, снабжения, финансов, отчетности или корпоративного управления."
         actions={[
-          { label: 'Подобрать пакет', href: '#contact', primary: true },
-          { label: 'Посмотреть решения', href: '/solutions' },
+          { label: 'Начать бесплатно', href: '/register?plan=free', primary: true },
+          { label: 'Запросить демонстрацию', href: '#contact' },
         ]}
         nav={[
           { label: 'Пакеты', href: '#packages' },
@@ -204,6 +204,12 @@ const PricingPage = () => {
                   {offer.outcome}
                 </div>
                 <p className="mt-4 text-sm leading-7 text-steel-600">{offer.comparison}</p>
+                <MarketingLink
+                  href={offer.planSlug === 'enterprise' ? '#contact' : `/register?plan=${offer.planSlug}`}
+                  className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-800"
+                >
+                  {offer.planSlug === 'enterprise' ? 'Обсудить Enterprise' : `Выбрать ${offer.planName}`}
+                </MarketingLink>
               </article>
             ))}
           </div>
@@ -315,6 +321,12 @@ const PricingPage = () => {
             <div className="mt-6 rounded-[1.25rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700">
               Business отмечен как основной выбор: он дает рабочий строительный контур для компании с несколькими объектами, а пакеты расширяют его по процессам.
             </div>
+            <MarketingLink
+              href={`/register?plan=${selectedPlan.slug}`}
+              className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-construction-400 px-5 py-3 text-sm font-semibold text-steel-950 transition hover:bg-construction-300"
+            >
+              Зарегистрироваться с тарифом {selectedPlan.name}
+            </MarketingLink>
           </aside>
         </div>
       </section>
@@ -377,9 +389,9 @@ const PricingPage = () => {
 
           <CtaBand
             eyebrow="Подбор решения"
-            title="Разложим ваш процесс и предложим минимально достаточный состав решения."
+            title="Нужна помощь с выбором или внедрением?"
             description="На встрече покажем, где лучше стартовать, а какие блоки стоит подключать уже после первого рабочего результата."
-            actions={[{ label: 'Оставить заявку', href: '#contact', primary: true }]}
+            actions={[{ label: 'Запросить демонстрацию', href: '#contact', primary: true }]}
             tone="light"
           />
         </div>
@@ -413,7 +425,7 @@ const PricingPage = () => {
           <div>
             <SectionHeader
               eyebrow="Контакт"
-              title="Подберем состав решения и формат запуска."
+              title="Нужна помощь с выбором или внедрением?"
               description="Оставьте короткую заявку, и мы предложим стартовый пакет под ваш процесс и команду."
             />
           </div>
