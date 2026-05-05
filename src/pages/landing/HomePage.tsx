@@ -4,6 +4,7 @@ import ContactForm from '@/components/landing/ContactForm';
 import CapabilityCard from '@/components/marketing/blocks/CapabilityCard';
 import CtaBand from '@/components/marketing/blocks/CtaBand';
 import FaqAccordion from '@/components/marketing/blocks/FaqAccordion';
+import MarketingPricingSnapshot from '@/components/marketing/blocks/MarketingPricingSnapshot';
 import PackageFamilyCard from '@/components/marketing/blocks/PackageFamilyCard';
 import TrustFactList from '@/components/marketing/blocks/TrustFactList';
 import {
@@ -34,6 +35,7 @@ const homeSections = [
   { label: 'Для кого', href: '#audiences' },
   { label: 'Контуры', href: '#product' },
   { label: 'Доверие', href: '#proof' },
+  { label: 'Тарифы', href: '#pricing' },
   { label: 'Пакеты', href: '#packages' },
   { label: 'Запуск', href: '#launch' },
   { label: 'FAQ', href: '#faq' },
@@ -356,6 +358,8 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+      <MarketingPricingSnapshot />
 
       <section id="packages" className="bg-concrete-50 py-16 lg:py-20">
         <div className="container-custom">
