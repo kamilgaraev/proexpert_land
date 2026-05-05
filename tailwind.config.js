@@ -22,6 +22,9 @@ module.exports = {
         construction: ['Manrope', 'sans-serif'],
         mono: ['IBM Plex Mono', 'monospace'],
       },
+      fontWeight: {
+        semibold: '500',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

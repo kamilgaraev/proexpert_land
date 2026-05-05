@@ -170,23 +170,23 @@ const HomePage = () => {
               >
                 <div className="flex flex-col gap-4 border-b border-steel-100 pb-5 lg:flex-row lg:items-start lg:justify-between">
                   <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+                    <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-construction-700">
                       {segment.audience}
                     </div>
                     <h3 className="mt-2 text-2xl font-bold text-steel-950">{segment.title}</h3>
                   </div>
                   <Link
                     to={marketingPaths.solutions}
-                    className="text-sm font-semibold text-steel-500 transition hover:text-construction-700"
+                    className="text-sm font-medium text-steel-500 transition hover:text-construction-700"
                   >
                     Полный сценарий
                   </Link>
                 </div>
                 <p className="mt-5 text-sm leading-7 text-steel-600">
-                  <span className="font-semibold text-steel-950">Проблема:</span> {segment.challenge}
+                  <span className="font-medium text-steel-950">Проблема:</span> {segment.challenge}
                 </p>
                 <p className="mt-3 text-sm leading-7 text-steel-600">
-                  <span className="font-semibold text-steel-950">Что меняется:</span>{' '}
+                  <span className="font-medium text-steel-950">Что меняется:</span>{' '}
                   {segment.transformation}
                 </p>
                 <div className="mt-5 grid gap-3">
