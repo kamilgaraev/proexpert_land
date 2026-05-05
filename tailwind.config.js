@@ -18,8 +18,8 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['Manrope', 'sans-serif'],
-        construction: ['Manrope', 'sans-serif'],
+        sans: ['IBM Plex Sans', 'sans-serif'],
+        construction: ['IBM Plex Sans', 'sans-serif'],
         mono: ['IBM Plex Mono', 'monospace'],
       },
       fontWeight: {

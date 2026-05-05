@@ -312,10 +312,10 @@ export const LandingSettings: React.FC<Props> = ({ landing, onUpdate, loading, e
                   </label>
                   <input
                     type="text"
-                    value={formData.theme_config?.font_family || 'Inter, sans-serif'}
+                    value={formData.theme_config?.font_family || 'IBM Plex Sans, sans-serif'}
                     onChange={(e) => handleThemeChange('font_family', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Inter, sans-serif"
+                    placeholder="IBM Plex Sans, sans-serif"
                   />
                 </div>
 

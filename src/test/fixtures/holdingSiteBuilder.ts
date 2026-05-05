@@ -131,7 +131,7 @@ export const createWorkspaceFixture = (): BuilderWorkspaceData => {
         accent_color: '#f59e0b',
         background_color: '#ffffff',
         text_color: '#111827',
-        font_family: 'Manrope, sans-serif',
+        font_family: 'IBM Plex Sans, sans-serif',
         font_size_base: '16px',
         border_radius: '20px',
         shadow_style: 'soft',
