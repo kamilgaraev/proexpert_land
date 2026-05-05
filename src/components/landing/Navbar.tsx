@@ -115,10 +115,10 @@ const Navbar = () => {
                 Войти
               </Link>
               <Link
-                to={`${marketingPaths.home}#contact`}
+                to="/register?plan=free"
                 className="inline-flex items-center gap-2 rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-steel-900"
               >
-                Запросить демо
+                Зарегистрироваться
                 <ArrowUpRightIcon className="h-4 w-4" />
               </Link>
             </div>
@@ -164,16 +164,22 @@ const Navbar = () => {
 
                 <div className="mt-5 grid gap-3 border-t border-steel-100 pt-5">
                   <Link
-                    to={`${marketingPaths.home}#contact`}
+                    to="/register?plan=free"
                     className="inline-flex items-center justify-center rounded-[1.1rem] bg-steel-950 px-4 py-3 text-sm font-semibold text-white"
                   >
-                    Запросить демо
+                    Зарегистрироваться
                   </Link>
                   <Link
                     to="/login"
                     className="inline-flex items-center justify-center rounded-[1.1rem] border border-steel-200 px-4 py-3 text-sm font-semibold text-steel-700"
                   >
                     Войти
+                  </Link>
+                  <Link
+                    to={`${marketingPaths.home}#contact`}
+                    className="inline-flex items-center justify-center rounded-[1.1rem] px-4 py-3 text-sm font-semibold text-steel-600"
+                  >
+                    Запросить демонстрацию
                   </Link>
                 </div>
 

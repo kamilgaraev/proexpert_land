@@ -115,8 +115,9 @@ const HomePage = () => {
         title="Управляйте объектами, снабжением и финансами в одной системе."
         description="ProHelper помогает подрядчику, генподрядчику и девелоперу связать офис, площадку и руководителя в одном рабочем контуре."
         actions={[
-          { label: 'Запросить демонстрацию', href: '#contact', primary: true },
-          { label: 'Посмотреть решения', href: marketingPaths.solutions },
+          { label: 'Начать бесплатно', href: '/register?plan=free', primary: true },
+          { label: 'Посмотреть тарифы', href: '#pricing' },
+          { label: 'Запросить демонстрацию', href: '#contact' },
         ]}
         nav={homeSections}
         aside={
@@ -409,8 +410,8 @@ const HomePage = () => {
             title="Подберем состав решения под ваш процесс и масштаб компании."
             description="На встрече разложим роли, процессы и ограничения, после чего предложим стартовый контур без лишних модулей."
             actions={[
-              { label: 'Перейти к пакетам', href: marketingPaths.pricing, primary: true },
-              { label: 'Связаться с нами', href: '#contact' },
+              { label: 'Зарегистрироваться', href: '/register?plan=business', primary: true },
+              { label: 'Сравнить тарифы', href: marketingPaths.pricing },
             ]}
             tone="dark"
           />
