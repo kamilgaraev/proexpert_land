@@ -322,10 +322,10 @@ const PricingPage = () => {
               Business отмечен как основной выбор: он дает рабочий строительный контур для компании с несколькими объектами, а пакеты расширяют его по процессам.
             </div>
             <MarketingLink
-              href={`/register?plan=${selectedPlan.slug}`}
+              href={selectedPlan.slug === 'enterprise' ? '#contact' : `/register?plan=${selectedPlan.slug}`}
               className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-construction-400 px-5 py-3 text-sm font-semibold text-steel-950 transition hover:bg-construction-300"
             >
-              Зарегистрироваться с тарифом {selectedPlan.name}
+              {selectedPlan.slug === 'enterprise' ? 'Обсудить Enterprise' : `Зарегистрироваться с тарифом ${selectedPlan.name}`}
             </MarketingLink>
           </aside>
         </div>
