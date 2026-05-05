@@ -175,12 +175,12 @@ const Navbar = () => {
                   >
                     Войти
                   </Link>
-                  <Link
-                    to={`${marketingPaths.home}#contact`}
+                  <a
+                    href={`${marketingPaths.home}#contact`}
                     className="inline-flex items-center justify-center rounded-[1.1rem] px-4 py-3 text-sm font-semibold text-steel-600"
                   >
                     Запросить демонстрацию
-                  </Link>
+                  </a>
                 </div>
 
                 <div className="mt-5 rounded-[1.25rem] bg-concrete-50 px-4 py-4">

@@ -98,12 +98,12 @@ const Footer = () => {
                 Начать бесплатно
                 <ArrowUpRightIcon className="h-4 w-4 shrink-0" />
               </Link>
-              <Link
-                to={`${marketingPaths.home}#contact`}
+              <a
+                href={`${marketingPaths.home}#contact`}
                 className="inline-flex w-full items-center justify-center rounded-full border border-white/15 bg-white/5 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 sm:w-auto"
               >
                 Запросить демонстрацию
-              </Link>
+              </a>
             </div>
           </div>
         </div>
