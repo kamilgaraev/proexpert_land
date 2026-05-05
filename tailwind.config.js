@@ -19,7 +19,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['Manrope', 'sans-serif'],
-        construction: ['IBM Plex Serif', 'serif'],
+        construction: ['Manrope', 'sans-serif'],
         mono: ['IBM Plex Mono', 'monospace'],
       },
       colors: {
