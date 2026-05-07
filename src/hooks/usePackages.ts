@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { packagesService, Package } from '@utils/api';
+import { packagesService, Package, PackageTierConfig } from '@utils/api';
 
 interface UsePackagesState {
     packages: Package[];
@@ -15,6 +15,84 @@ interface UsePackagesReturn extends UsePackagesState {
     isPackageActive: (slug: string) => boolean;
     getActiveTier: (slug: string) => string | null;
 }
+
+type ApiResponseLike = {
+    data?: unknown;
+    status?: number;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> => (
+    Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+);
+
+const arrayOrEmpty = <T,>(value: unknown): T[] => (
+    Array.isArray(value) ? value as T[] : []
+);
+
+const unwrapResponsePayload = (response: ApiResponseLike): unknown => {
+    const root = response?.data;
+
+    if (isRecord(root) && isRecord(root.data) && isRecord(root.data.data)) {
+        return root.data.data;
+    }
+
+    if (isRecord(root) && root.data !== undefined) {
+        return root.data;
+    }
+
+    return root;
+};
+
+const normalizeTier = (tier: PackageTierConfig | undefined): PackageTierConfig | undefined => {
+    if (!tier) {
+        return undefined;
+    }
+
+    const modules = arrayOrEmpty<string>(tier.modules);
+    const includedModules = arrayOrEmpty<string>(tier.included_modules);
+
+    return {
+        ...tier,
+        modules,
+        included_modules: includedModules.length > 0 ? includedModules : modules,
+        highlights: arrayOrEmpty<string>(tier.highlights),
+    };
+};
+
+const normalizePackage = (item: Package): Package => ({
+    ...item,
+    foundation_modules: arrayOrEmpty<string>(item.foundation_modules),
+    integrations: arrayOrEmpty(item.integrations),
+    recommended_addons: arrayOrEmpty(item.recommended_addons),
+    business_outcomes: arrayOrEmpty<string>(item.business_outcomes),
+    data_sources: arrayOrEmpty(item.data_sources),
+    capabilities: arrayOrEmpty(item.capabilities),
+    tiers: {
+        base: normalizeTier(item.tiers?.base),
+        pro: normalizeTier(item.tiers?.pro),
+        enterprise: normalizeTier(item.tiers?.enterprise),
+    },
+});
+
+const extractPackages = (response: ApiResponseLike): Package[] => {
+    const payload = unwrapResponsePayload(response);
+
+    if (Array.isArray(payload)) {
+        return payload.map(item => normalizePackage(item as Package));
+    }
+
+    if (isRecord(payload) && Array.isArray(payload.packages)) {
+        return payload.packages.map(item => normalizePackage(item as Package));
+    }
+
+    return [];
+};
+
+const getResponseMessage = (response: ApiResponseLike, fallback: string): string => {
+    const data = isRecord(response.data) ? response.data : null;
+
+    return typeof data?.message === 'string' ? data.message : fallback;
+};
 
 export const usePackages = (): UsePackagesReturn => {
     const [state, setState] = useState<UsePackagesState>({
@@ -34,14 +112,13 @@ export const usePackages = (): UsePackagesReturn => {
 
             const response = await packagesService.getPackages();
 
-            if (response.status === 200 && response.data?.success) {
-                const data: Package[] = response.data?.data ?? [];
-                setState({ packages: data, loading: false, error: null });
+            if (response.status === 200 && response.data?.success !== false) {
+                setState({ packages: extractPackages(response), loading: false, error: null });
             } else {
                 setState(prev => ({
                     ...prev,
                     loading: false,
-                    error: response.data?.message || 'Не удалось загрузить пакеты',
+                    error: getResponseMessage(response, 'Не удалось загрузить пакеты'),
                 }));
             }
         } catch (err: any) {
@@ -70,7 +147,7 @@ export const usePackages = (): UsePackagesReturn => {
             try {
                 const response = await packagesService.subscribe(slug, tier, durationDays);
 
-                if (response.status === 200 && response.data?.success) {
+                if (response.status === 200 && response.data?.success !== false) {
                     await fetchPackages();
                     return true;
                 }
@@ -88,7 +165,7 @@ export const usePackages = (): UsePackagesReturn => {
             try {
                 const response = await packagesService.unsubscribe(slug);
 
-                if (response.status === 200 && response.data?.success) {
+                if (response.status === 200 && response.data?.success !== false) {
                     await fetchPackages();
                     return true;
                 }

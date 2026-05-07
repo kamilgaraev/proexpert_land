@@ -1,10 +1,179 @@
 import type {
   MarketingAdvancedOffer,
+  MarketingPackageCapability,
   MarketingPackageFamily,
+  MarketingPackageLinkedItem,
+  MarketingPackageTier,
   MarketingSalesOffer,
 } from '@/types/marketing';
 
-export const marketingPackages: MarketingPackageFamily[] = [
+type MarketingPackageBase = Omit<
+  MarketingPackageFamily,
+  'foundationModules' | 'integrations' | 'recommendedAddons' | 'businessOutcomes' | 'dataSources' | 'capabilities' | 'tiers'
+> & {
+  tiers: Omit<MarketingPackageTier, 'includedModules'>[];
+};
+
+type MarketingPackageV2Details = {
+  foundationModules: string[];
+  integrations: MarketingPackageLinkedItem[];
+  recommendedAddons: MarketingPackageLinkedItem[];
+  businessOutcomes: string[];
+  dataSources: MarketingPackageLinkedItem[];
+  capabilities: MarketingPackageCapability[];
+};
+
+const sharedFoundationModules = [
+  'organizations',
+  'users',
+  'project-management',
+  'contract-management',
+  'catalog-management',
+  'dashboard-widgets',
+  'data-filters',
+  'brigades',
+];
+
+const packageV2Details: Record<string, MarketingPackageV2Details> = {
+  'objects-execution': {
+    foundationModules: sharedFoundationModules,
+    integrations: [
+      { packageSlug: 'supply-warehouse', moduleSlug: 'basic-warehouse', label: 'Склад и заявки с объекта' },
+      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Платежи и акты' },
+      { packageSlug: 'ai-contour', moduleSlug: 'ai-assistant', label: 'AI-сводки по исполнению' },
+    ],
+    recommendedAddons: [
+      { moduleSlug: 'video-monitoring', label: 'Видео с площадки' },
+      { moduleSlug: 'contractor-portal', label: 'Кабинет подрядчика' },
+    ],
+    businessOutcomes: [
+      'Единый контур объектов, договоров и исполнения',
+      'Понятная связь офиса и площадки',
+      'Контроль сроков, ответственных и статусов',
+    ],
+    dataSources: [
+      { moduleSlug: 'project-management', label: 'Объекты' },
+      { moduleSlug: 'schedule-management', label: 'График работ' },
+      { moduleSlug: 'site-requests', label: 'Заявки с объекта' },
+    ],
+    capabilities: [],
+  },
+  'supply-warehouse': {
+    foundationModules: sharedFoundationModules,
+    integrations: [
+      { packageSlug: 'objects-execution', moduleSlug: 'schedule-management', label: 'График работ' },
+      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Платежи по закупкам' },
+      { packageSlug: 'estimates-pto', moduleSlug: 'budget-estimates', label: 'Материалы из смет' },
+    ],
+    recommendedAddons: [
+      { moduleSlug: 'data-export', label: 'Выгрузки для снабжения' },
+    ],
+    businessOutcomes: [
+      'Контроль заявок, закупок и остатков',
+      'Движение материалов по объектам',
+      'Прозрачный процесс снабжения',
+    ],
+    dataSources: [
+      { moduleSlug: 'site-requests', label: 'Заявки' },
+      { moduleSlug: 'basic-warehouse', label: 'Склад' },
+      { moduleSlug: 'procurement', label: 'Закупки' },
+    ],
+    capabilities: [],
+  },
+  'finance-acts': {
+    foundationModules: sharedFoundationModules,
+    integrations: [
+      { packageSlug: 'supply-warehouse', moduleSlug: 'basic-warehouse', label: 'Складские движения' },
+      { packageSlug: 'objects-execution', moduleSlug: 'site-requests', label: 'Заявки с объекта' },
+      { packageSlug: 'estimates-pto', moduleSlug: 'budget-estimates', label: 'Сметный план-факт' },
+    ],
+    recommendedAddons: [
+      { moduleSlug: 'multi-organization', label: 'Финансы группы компаний' },
+    ],
+    businessOutcomes: [
+      'Платежи и акты в одном контуре',
+      'Связь финансов с объектами и контрагентами',
+      'Контроль авансов и подотчета',
+    ],
+    dataSources: [
+      { moduleSlug: 'payments', label: 'Платежи' },
+      { moduleSlug: 'act-reporting', label: 'Акты' },
+      { moduleSlug: 'advance-accounting', label: 'Авансы и подотчет' },
+    ],
+    capabilities: [],
+  },
+  'estimates-pto': {
+    foundationModules: sharedFoundationModules,
+    integrations: [
+      { packageSlug: 'ai-contour', moduleSlug: 'ai-estimates', label: 'AI-старт сметы' },
+      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Финансовый план-факт' },
+      { packageSlug: 'supply-warehouse', moduleSlug: 'basic-warehouse', label: 'Материалы и склад' },
+    ],
+    recommendedAddons: [
+      { moduleSlug: 'file-management', label: 'Файлы объекта' },
+      { moduleSlug: 'data-export', label: 'Выгрузки ПТО' },
+    ],
+    businessOutcomes: [
+      'Сметы, расценки и шаблоны отчетов',
+      'Единая инженерная база объекта',
+      'Быстрый старт первичной сметной работы',
+    ],
+    dataSources: [
+      { moduleSlug: 'budget-estimates', label: 'Сметы' },
+      { moduleSlug: 'reports', label: 'Отчеты' },
+      { moduleSlug: 'report-templates', label: 'Шаблоны' },
+    ],
+    capabilities: [],
+  },
+  'holding-analytics': {
+    foundationModules: sharedFoundationModules,
+    integrations: [
+      { packageSlug: 'objects-execution', moduleSlug: 'schedule-management', label: 'Исполнение' },
+      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Финансы' },
+      { packageSlug: 'supply-warehouse', moduleSlug: 'basic-warehouse', label: 'Склад' },
+    ],
+    recommendedAddons: [
+      { moduleSlug: 'integrations', label: 'Внешние интеграции' },
+    ],
+    businessOutcomes: [
+      'Управленческий обзор по компаниям',
+      'Консолидация данных',
+      'Фильтры, дашборды и выгрузки',
+    ],
+    dataSources: [
+      { moduleSlug: 'dashboard-widgets', label: 'Дашборды' },
+      { moduleSlug: 'data-filters', label: 'Фильтры' },
+      { moduleSlug: 'multi-organization', label: 'Группа компаний' },
+    ],
+    capabilities: [],
+  },
+  'ai-contour': {
+    foundationModules: sharedFoundationModules,
+    integrations: [
+      { packageSlug: 'estimates-pto', moduleSlug: 'budget-estimates', label: 'Сметные сценарии' },
+      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Финансовые вопросы' },
+      { packageSlug: 'supply-warehouse', moduleSlug: 'basic-warehouse', label: 'Вопросы по складу' },
+    ],
+    recommendedAddons: [],
+    businessOutcomes: [
+      'AI-помощник по данным компании',
+      'AI-старт сметы',
+      'Проверка рисков и быстрые сводки',
+    ],
+    dataSources: [
+      { moduleSlug: 'ai-assistant', label: 'AI-помощник' },
+      { moduleSlug: 'ai-estimates', label: 'AI-сметы' },
+    ],
+    capabilities: [
+      { key: 'project_questions', label: 'Вопросы по объектам', requiresModules: ['project-management'] },
+      { key: 'estimate_start', label: 'AI-старт сметы', requiresModules: ['budget-estimates', 'ai-estimates'] },
+      { key: 'finance_questions', label: 'Вопросы по финансам', requiresModules: ['payments'] },
+      { key: 'warehouse_questions', label: 'Вопросы по складу', requiresModules: ['basic-warehouse'] },
+    ],
+  },
+};
+
+const baseMarketingPackages: MarketingPackageBase[] = [
   {
     slug: 'objects-execution',
     name: 'Объекты и исполнение',
@@ -300,6 +469,19 @@ export const marketingPackages: MarketingPackageFamily[] = [
     ],
   },
 ];
+
+export const marketingPackages: MarketingPackageFamily[] = baseMarketingPackages.map((item) => {
+  const details = packageV2Details[item.slug];
+
+  return {
+    ...item,
+    ...details,
+    tiers: item.tiers.map((tier) => ({
+      ...tier,
+      includedModules: tier.moduleSlugs,
+    })),
+  };
+});
 
 export const marketingSalesOffers: MarketingSalesOffer[] = [
   {

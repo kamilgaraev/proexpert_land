@@ -16,6 +16,24 @@ describe('marketing pricing packages', () => {
     expect(marketingPackages.flatMap((item) => item.tiers).every((tier) => tier.businessOutcome)).toBe(true);
   });
 
+  it('publishes package v2 business sections for every contour', () => {
+    for (const item of marketingPackages) {
+      expect(item.foundationModules.length).toBeGreaterThan(0);
+      expect(item.businessOutcomes.length).toBeGreaterThan(0);
+      expect(item.tiers.every((tier) => tier.includedModules.length > 0)).toBe(true);
+    }
+
+    const objectsPackage = marketingPackages.find((item) => item.slug === 'objects-execution');
+    expect(objectsPackage?.integrations.map((item) => item.label)).toContain('Склад и заявки с объекта');
+    expect(objectsPackage?.recommendedAddons.map((item) => item.label)).toContain('Видео с площадки');
+
+    const analyticsPackage = marketingPackages.find((item) => item.slug === 'holding-analytics');
+    expect(analyticsPackage?.dataSources.map((item) => item.label)).toContain('Дашборды');
+
+    const aiPackage = marketingPackages.find((item) => item.slug === 'ai-contour');
+    expect(aiPackage?.capabilities.map((item) => item.label)).toContain('Вопросы по объектам');
+  });
+
   it('keeps package tiers cheaper than buying modules separately', () => {
     const allDiscounts = marketingPackages.flatMap((item) =>
       item.tiers

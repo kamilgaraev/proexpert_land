@@ -56,6 +56,9 @@ const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) =>
               <span className="font-semibold text-steel-950">Результат: </span>
               {tier.businessOutcome}
             </div>
+            <div className="mt-4 grid gap-2 text-sm leading-6 text-steel-700">
+              <PackageDetail title="Входит в уровень" items={tier.includedModules.slice(0, 5)} />
+            </div>
             <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-[0.16em]">
               {tier.standalonePrice > tier.price ? (
                 <span className="rounded-full bg-construction-100 px-3 py-1 text-construction-800">
@@ -80,6 +83,26 @@ const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) =>
         ))}
       </div>
 
+      <div className="mt-6 grid gap-4 border-t border-steel-100 pt-5 lg:grid-cols-2">
+        <PackageDetail
+          title="Базовый слой"
+          items={[`${item.foundationModules.length} возможностей уже в основе`]}
+        />
+        <PackageDetail title="Что меняется в работе" items={item.businessOutcomes} />
+        {item.integrations.length > 0 ? (
+          <PackageDetail title="Связанные контуры" items={item.integrations.map((entry) => entry.label)} />
+        ) : null}
+        {item.recommendedAddons.length > 0 ? (
+          <PackageDetail title="Что стоит добавить" items={item.recommendedAddons.map((entry) => entry.label)} />
+        ) : null}
+        {item.dataSources.length > 0 ? (
+          <PackageDetail title="Данные для аналитики" items={item.dataSources.map((entry) => entry.label)} />
+        ) : null}
+        {item.capabilities.length > 0 ? (
+          <PackageDetail title="AI-сценарии" items={item.capabilities.map((entry) => entry.label)} />
+        ) : null}
+      </div>
+
       <div className="mt-6 flex flex-wrap gap-4 border-t border-steel-100 pt-5">
         <Link
           to={marketingPaths.contact}
@@ -100,5 +123,20 @@ const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) =>
     </article>
   );
 };
+
+const PackageDetail = ({ title, items }: { title: string; items: string[] }) => (
+  <div className="rounded-[1.25rem] bg-concrete-50 px-4 py-4">
+    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-steel-500">
+      {title}
+    </div>
+    <div className="mt-3 flex flex-wrap gap-2">
+      {items.map((item) => (
+        <span key={item} className="rounded-full bg-white px-3 py-1 text-xs font-semibold leading-5 text-steel-700">
+          {item}
+        </span>
+      ))}
+    </div>
+  </div>
+);
 
 export default PackageFamilyCard;

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   ModulesOverview,
+  ModulesOverviewSolution,
+  ModulesOverviewTier,
   newModulesService,
   packagesService,
 } from '@utils/api';
@@ -18,19 +20,79 @@ type UseModulesOverviewResult = {
   toggleAutoRenew: (moduleSlug: string, enabled: boolean) => Promise<void>;
 };
 
-const getResponsePayload = (response: any): ModulesOverview => {
-  const payload = response?.data?.data ?? response?.data;
+type ApiResponseLike = {
+  data?: unknown;
+  status?: number;
+  success?: boolean;
+  message?: string;
+};
 
-  if (!payload) {
+const isRecord = (value: unknown): value is Record<string, unknown> => (
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+);
+
+const arrayOrEmpty = <T,>(value: unknown): T[] => (
+  Array.isArray(value) ? value as T[] : []
+);
+
+const unwrapResponsePayload = (response: ApiResponseLike): unknown => {
+  const root = response?.data;
+
+  if (isRecord(root) && isRecord(root.data) && isRecord(root.data.data)) {
+    return root.data.data;
+  }
+
+  if (isRecord(root) && root.data !== undefined) {
+    return root.data;
+  }
+
+  return root;
+};
+
+const normalizeTier = (tier: ModulesOverviewTier): ModulesOverviewTier => ({
+  ...tier,
+  modules: arrayOrEmpty<string>(tier.modules),
+  included_modules: arrayOrEmpty<string>(tier.included_modules).length > 0
+    ? arrayOrEmpty<string>(tier.included_modules)
+    : arrayOrEmpty<string>(tier.modules),
+  highlights: arrayOrEmpty<string>(tier.highlights),
+});
+
+const normalizeSolution = (solution: ModulesOverviewSolution): ModulesOverviewSolution => ({
+  ...solution,
+  foundation_modules: arrayOrEmpty<string>(solution.foundation_modules),
+  integrations: arrayOrEmpty(solution.integrations),
+  recommended_addons: arrayOrEmpty(solution.recommended_addons),
+  business_outcomes: arrayOrEmpty<string>(solution.business_outcomes),
+  data_sources: arrayOrEmpty(solution.data_sources),
+  capabilities: arrayOrEmpty(solution.capabilities),
+  tiers: arrayOrEmpty<ModulesOverviewTier>(solution.tiers).map(normalizeTier),
+});
+
+const getResponsePayload = (response: ApiResponseLike): ModulesOverview => {
+  const payload = unwrapResponsePayload(response);
+
+  if (!isRecord(payload)) {
     throw new Error('Не удалось получить данные страницы модулей');
   }
 
-  return payload;
+  return {
+    ...payload,
+    summary: payload.summary,
+    solutions: arrayOrEmpty<ModulesOverviewSolution>(payload.solutions).map(normalizeSolution),
+    standalone_modules: arrayOrEmpty(payload.standalone_modules),
+    advanced_modules: arrayOrEmpty(payload.advanced_modules),
+    warnings: arrayOrEmpty(payload.warnings),
+  } as ModulesOverview;
 };
 
-const ensureSuccess = (response: any, fallbackMessage: string) => {
-  if (response?.status >= 400 || response?.data?.success === false) {
-    throw new Error(response?.data?.message || fallbackMessage);
+const ensureSuccess = (response: ApiResponseLike, fallbackMessage: string) => {
+  const data = isRecord(response?.data) ? response.data : null;
+
+  if ((response?.status ?? 0) >= 400 || data?.success === false || response?.success === false) {
+    const message = typeof data?.message === 'string' ? data.message : response?.message;
+
+    throw new Error(message || fallbackMessage);
   }
 };
 
@@ -54,7 +116,7 @@ export const useModulesOverview = (): UseModulesOverviewResult => {
     }
   }, []);
 
-  const runAction = useCallback(async (action: () => Promise<any>, fallbackMessage: string) => {
+  const runAction = useCallback(async (action: () => Promise<ApiResponseLike>, fallbackMessage: string) => {
     const response = await action();
     ensureSuccess(response, fallbackMessage);
     await refresh();

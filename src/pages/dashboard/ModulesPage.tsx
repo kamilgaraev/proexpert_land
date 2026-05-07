@@ -103,6 +103,24 @@ const statusText = (status: string) => {
   return labels[status] ?? status;
 };
 
+const pluralizeCapability = (count: number) => {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+
+  if (mod10 === 1 && mod100 !== 11) return 'возможность';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'возможности';
+  return 'возможностей';
+};
+
+const hasPackageDetails = (solution: ModulesOverviewSolution) => (
+  solution.foundation_modules.length > 0
+  || solution.integrations.length > 0
+  || solution.recommended_addons.length > 0
+  || solution.business_outcomes.length > 0
+  || solution.data_sources.length > 0
+  || solution.capabilities.length > 0
+);
+
 const classificationText = (module: ModulesOverviewModule) => {
   if (module.is_system || module.classification === 'system') return 'Системный';
   if (module.classification === 'packaged') return 'В составе решения';
@@ -380,6 +398,10 @@ const SolutionsSection = ({
             <InfoPill label="Источник" value={solution.is_bundled_with_plan ? 'В тарифе' : solution.current_tier ? 'Куплено' : 'Доступно'} />
           </div>
 
+          {hasPackageDetails(solution) && (
+            <PackageDetails solution={solution} />
+          )}
+
           <div className="mt-5 flex-1 space-y-2">
             {(solution.tiers.find(tier => tier.is_current)?.highlights ?? solution.tiers[0]?.highlights ?? []).slice(0, 4).map(item => (
               <div key={item} className="flex items-start gap-2 text-sm text-slate-600">
@@ -400,6 +422,45 @@ const SolutionsSection = ({
       ))}
     </div>
   </section>
+);
+
+const PackageDetails = ({ solution }: { solution: ModulesOverviewSolution }) => (
+  <div className="mt-5 space-y-3">
+    {solution.foundation_modules.length > 0 && (
+      <PackageDetailBlock
+        title="Базовый слой"
+        items={[`${solution.foundation_modules.length} ${pluralizeCapability(solution.foundation_modules.length)} уже входят в основу`]}
+      />
+    )}
+    {solution.business_outcomes.length > 0 && (
+      <PackageDetailBlock title="Что меняется в работе" items={solution.business_outcomes} />
+    )}
+    {solution.integrations.length > 0 && (
+      <PackageDetailBlock title="Связанные контуры" items={solution.integrations.map(item => item.label)} />
+    )}
+    {solution.recommended_addons.length > 0 && (
+      <PackageDetailBlock title="Что стоит добавить" items={solution.recommended_addons.map(item => item.label)} />
+    )}
+    {solution.data_sources.length > 0 && (
+      <PackageDetailBlock title="Данные для аналитики" items={solution.data_sources.map(item => item.label)} />
+    )}
+    {solution.capabilities.length > 0 && (
+      <PackageDetailBlock title="AI-сценарии" items={solution.capabilities.map(item => item.label)} />
+    )}
+  </div>
+);
+
+const PackageDetailBlock = ({ title, items }: { title: string; items: string[] }) => (
+  <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">{title}</p>
+    <div className="mt-2 flex flex-wrap gap-2">
+      {items.map(item => (
+        <span key={item} className="rounded-full bg-white px-3 py-1 text-xs font-semibold leading-5 text-slate-700 ring-1 ring-slate-200/70">
+          {item}
+        </span>
+      ))}
+    </div>
+  </div>
 );
 
 const StandaloneModulesSection = ({

@@ -2444,10 +2444,23 @@ export interface ModulesOverviewTier {
   description: string;
   price: number;
   modules: string[];
+  included_modules: string[];
   highlights: string[];
   is_current: boolean;
   included_modules_count: number;
   active_modules_count: number;
+}
+
+export interface PackageCatalogLinkedItem {
+  package_slug?: string;
+  module_slug: string;
+  label: string;
+}
+
+export interface PackageCatalogCapability {
+  key: string;
+  label: string;
+  requires_modules?: string[];
 }
 
 export interface ModulesOverviewSolution {
@@ -2456,6 +2469,7 @@ export interface ModulesOverviewSolution {
   description: string;
   icon: string;
   color: string;
+  schema_version?: number;
   current_tier: string | null;
   active_tier: string | null;
   effective_monthly_price: number;
@@ -2466,6 +2480,12 @@ export interface ModulesOverviewSolution {
   expires_at: string | null;
   access_source?: 'subscription' | 'standalone' | null;
   is_bundled_with_plan?: boolean;
+  foundation_modules: string[];
+  integrations: PackageCatalogLinkedItem[];
+  recommended_addons: PackageCatalogLinkedItem[];
+  business_outcomes: string[];
+  data_sources: PackageCatalogLinkedItem[];
+  capabilities: PackageCatalogCapability[];
   tiers: ModulesOverviewTier[];
 }
 
@@ -3949,6 +3969,7 @@ export interface PackageTierConfig {
   description: string;
   price: number;
   modules: string[];
+  included_modules: string[];
   highlights: string[];
 }
 
@@ -3959,6 +3980,13 @@ export interface Package {
   icon: string;
   color: string;
   sort_order: number;
+  schema_version?: number;
+  foundation_modules: string[];
+  integrations: PackageCatalogLinkedItem[];
+  recommended_addons: PackageCatalogLinkedItem[];
+  business_outcomes: string[];
+  data_sources: PackageCatalogLinkedItem[];
+  capabilities: PackageCatalogCapability[];
   tiers: {
     base?: PackageTierConfig;
     pro?: PackageTierConfig;

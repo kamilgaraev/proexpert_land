@@ -102,9 +102,22 @@ export interface MarketingPackageTier {
   billingModel: 'free' | 'subscription';
   durationDays?: number;
   moduleSlugs: string[];
+  includedModules: string[];
   highlights: string[];
   businessOutcome: string;
   maturityNote?: string;
+}
+
+export interface MarketingPackageLinkedItem {
+  packageSlug?: string;
+  moduleSlug: string;
+  label: string;
+}
+
+export interface MarketingPackageCapability {
+  key: string;
+  label: string;
+  requiresModules?: string[];
 }
 
 export interface MarketingPackageFamily {
@@ -114,6 +127,12 @@ export interface MarketingPackageFamily {
   color: string;
   icon: string;
   bestFor: string;
+  foundationModules: string[];
+  integrations: MarketingPackageLinkedItem[];
+  recommendedAddons: MarketingPackageLinkedItem[];
+  businessOutcomes: string[];
+  dataSources: MarketingPackageLinkedItem[];
+  capabilities: MarketingPackageCapability[];
   tiers: MarketingPackageTier[];
 }
 
