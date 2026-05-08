@@ -67,6 +67,7 @@ const HoldingContractsList = lazy(() => import('@components/multi-org').then(m =
 
 // Lazy loading для Contractor Invitations
 const ContractorInvitationsPage = lazy(() => import('@pages/dashboard/contractor-invitations/ContractorInvitationsPage'));
+const ContractorReferralProgramPage = lazy(() => import('@pages/dashboard/contractor-invitations/ContractorReferralProgramPage'));
 const ContractorInvitationTokenPage = lazy(() => import('@pages/dashboard/contractor-invitations/ContractorInvitationTokenPage'));
 const SupplierRequestResponsePage = lazy(() => import('@pages/procurement/SupplierRequestResponsePage'));
 
@@ -243,7 +244,7 @@ function App() {
           
           {/* Маршруты управления организацией с проверкой прав */}
           <Route path="billing" element={
-            <ProtectedComponent 
+            <ProtectedComponent
               permission="billing.view"
               role="organization_owner"
               requireAll={false}
@@ -253,7 +254,7 @@ function App() {
             </ProtectedComponent>
           } />
           <Route path="admins" element={
-            <ProtectedComponent 
+            <ProtectedComponent
               permission="users.manage"
               role="organization_owner"
               requireAll={false}
@@ -321,6 +322,16 @@ function App() {
               fallback={<Navigate to="/dashboard" replace />}
             >
               <ContractorInvitationsPage />
+            </ProtectedComponent>
+          } />
+          <Route path="contractor-referral-program" element={
+            <ProtectedComponent
+              permission="users.invite"
+              role="organization_owner"
+              requireAll={false}
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <ContractorReferralProgramPage />
             </ProtectedComponent>
           } />
           <Route path="contractor-invitations/token/:token" element={<ContractorInvitationTokenPage />} />

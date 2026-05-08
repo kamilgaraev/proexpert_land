@@ -109,7 +109,7 @@ const ContractorInvitationsPage: React.FC = () => {
 
       <div className="flex justify-center gap-4 pt-4">
         <Button variant="outline" asChild>
-            <Link to="/dashboard/help?tab=faq">Условия программы</Link>
+            <Link to="/dashboard/contractor-referral-program">Условия программы</Link>
         </Button>
         <Button asChild>
             <Link to="/dashboard/help?tab=support">Связаться с поддержкой</Link>
