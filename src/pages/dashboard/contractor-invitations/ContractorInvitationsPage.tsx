@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Mail,
@@ -108,10 +109,10 @@ const ContractorInvitationsPage: React.FC = () => {
 
       <div className="flex justify-center gap-4 pt-4">
         <Button variant="outline" asChild>
-            <a href="/help/contractor-invitations">Условия программы</a>
+            <Link to="/dashboard/help?tab=faq">Условия программы</Link>
         </Button>
         <Button asChild>
-            <a href="/support">Связаться с поддержкой</a>
+            <Link to="/dashboard/help?tab=support">Связаться с поддержкой</Link>
         </Button>
       </div>
     </div>
