@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Switch } from '@/components/ui/switch';
 import ConfirmActionModal from '@/components/shared/ConfirmActionModal';
+import EnterpriseConstructorModal from '@/components/billing/EnterpriseConstructorModal';
 import NotificationService from '@/components/shared/NotificationService';
 import LimitWidget from '@/components/dashboard/LimitWidget';
 import { cn } from '@/lib/utils';
@@ -110,6 +111,7 @@ const PlansGrid = () => {
   const [autoPayEnabled, setAutoPayEnabled] = useState<boolean | null>(null);
   const [autoPayUpdating, setAutoPayUpdating] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showEnterpriseConstructor, setShowEnterpriseConstructor] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [changePlanLoading, setChangePlanLoading] = useState<string | null>(null);
   const [changePlanModal, setChangePlanModal] = useState<{ 
@@ -190,6 +192,11 @@ const PlansGrid = () => {
 
   const handlePlanChange = async (plan: any) => {
     setError(null);
+
+    if (isEnterprisePlan(plan)) {
+      setShowEnterpriseConstructor(true);
+      return;
+    }
     
     if (!subscription) {
       setPlanAction(plan.slug);
@@ -642,7 +649,9 @@ const PlansGrid = () => {
                             </>
                          ) : (
                             <>
-                               {planAction === plan.slug || changePlanLoading === plan.slug ? 'Обработка...' : 'Выбрать тариф'}
+                               {planAction === plan.slug || changePlanLoading === plan.slug
+                                 ? 'Обработка...'
+                                 : isEnterprisePlan(plan) ? 'Открыть конструктор' : 'Выбрать тариф'}
                                {!isActive && <ArrowRightIcon className="w-4 h-4 ml-2" />}
                             </>
                          )}
@@ -664,6 +673,15 @@ const PlansGrid = () => {
         confirmLabel="Отменить подписку"
         confirmColorClass="red"
         isLoading={cancelLoading}
+      />
+
+      <EnterpriseConstructorModal
+        isOpen={showEnterpriseConstructor}
+        onClose={() => setShowEnterpriseConstructor(false)}
+        onActivated={async () => {
+          await fetchAll();
+          dispatchBalanceUpdate();
+        }}
       />
 
       {/* Change Plan Modal */}
