@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { createFetchResponse } from './api';
+import {
+  createFetchResponse,
+  getBalanceTransactionDescription,
+  normalizeBalanceTransactionsResponse,
+  normalizeOrganizationBalanceResponse,
+} from './api';
 
 describe('createFetchResponse', () => {
   it('creates a typed axios-like response for fetch payloads', () => {
@@ -27,5 +32,67 @@ describe('createFetchResponse', () => {
         headers: {},
       },
     });
+  });
+});
+
+describe('billing response normalizers', () => {
+  it('normalizes balance from Laravel resource envelope', () => {
+    expect(normalizeOrganizationBalanceResponse({
+      data: {
+        organization_id: 7,
+        balance_cents: 125000,
+        balance_formatted: '1 250.00',
+        currency: 'RUB',
+        updated_at: '2026-05-08T10:00:00+03:00',
+      },
+    })).toEqual({
+      organization_id: 7,
+      balance_cents: 125000,
+      balance_formatted: '1 250.00',
+      currency: 'RUB',
+      updated_at: '2026-05-08T10:00:00+03:00',
+    });
+  });
+
+  it('normalizes paginated transactions from Laravel collection envelope', () => {
+    const result = normalizeBalanceTransactionsResponse({
+      data: [
+        {
+          id: 10,
+          type: 'credit',
+          amount_cents: 500000,
+          amount_formatted: '5 000.00',
+          balance_before_cents: 0,
+          balance_after_cents: 500000,
+          description: null,
+          payment_id: null,
+          user_subscription_id: null,
+          meta: { type: 'contractor_referral_reward' },
+          created_at: '2026-05-08T10:00:00+03:00',
+        },
+      ],
+      links: { first: null, last: null, prev: null, next: null },
+      meta: { current_page: 1, last_page: 1, per_page: 10, total: 1 },
+    });
+
+    expect(result.data).toHaveLength(1);
+    expect(result.meta.total).toBe(1);
+    expect(result.meta.per_page).toBe(10);
+  });
+
+  it('uses business labels for referral balance transactions', () => {
+    expect(getBalanceTransactionDescription({
+      id: 10,
+      type: 'credit',
+      amount_cents: 500000,
+      amount_formatted: '5 000.00',
+      balance_before_cents: 0,
+      balance_after_cents: 500000,
+      description: null,
+      payment_id: null,
+      user_subscription_id: null,
+      meta: { type: 'contractor_referral_reward' },
+      created_at: '2026-05-08T10:00:00+03:00',
+    })).toBe('Бонус за приглашенную организацию');
   });
 });

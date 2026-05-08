@@ -108,7 +108,7 @@ const ContractorInvitationsList: React.FC<ContractorInvitationsListProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-steel-900 font-construction">
-            Приглашения к сотрудничеству
+            Входящие приглашения
           </h2>
           <p className="text-steel-600 mt-1">
             {pagination ? `Всего: ${pagination.total}` : 'Загрузка...'}
@@ -269,12 +269,12 @@ const ContractorInvitationsList: React.FC<ContractorInvitationsListProps> = ({
         <div className="text-center py-12">
           <EnvelopeIcon className="w-16 h-16 text-steel-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-steel-900 mb-2">
-            {filters.status ? 'Нет приглашений с таким статусом' : 'Нет приглашений'}
+            {filters.status ? 'Нет приглашений с таким статусом' : 'Входящих приглашений нет'}
           </h3>
           <p className="text-steel-600 mb-4">
             {filters.status
               ? 'Попробуйте изменить фильтры или обновить список'
-              : 'Когда вас пригласят к сотрудничеству, приглашения появятся здесь'
+              : 'Здесь появятся входящие запросы от организаций, которые хотят работать с вами в ProHelper'
             }
           </p>
           {filters.status && (

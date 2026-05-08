@@ -120,7 +120,7 @@ const MembersList: React.FC = () => {
             <Button variant="outline" asChild>
                 <Link to="/dashboard/contractor-invitations">
                     <Mail className="mr-2 h-4 w-4" />
-                    Приглашения
+                    Партнеры
                 </Link>
             </Button>
             <Button asChild>

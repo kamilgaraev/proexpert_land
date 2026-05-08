@@ -1,5 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { billingService, OrganizationBalance, ErrorResponse } from '@utils/api';
+import {
+  billingService,
+  OrganizationBalance,
+  ErrorResponse,
+  normalizeOrganizationBalanceResponse,
+} from '@utils/api';
 
 interface UseBalanceReturn {
   balance: OrganizationBalance | null;
@@ -27,8 +32,10 @@ export const useBalance = (): UseBalanceReturn => {
       const response = await billingService.getBalance();
       
       if (response.status === 200) {
-        if (response.data && typeof response.data === 'object' && 'data' in response.data) {
-          setBalance((response.data as any).data as OrganizationBalance);
+        const normalizedBalance = normalizeOrganizationBalanceResponse(response.data);
+
+        if (normalizedBalance) {
+          setBalance(normalizedBalance);
           setError(null);
           loadedRef.current = true;
         } else {

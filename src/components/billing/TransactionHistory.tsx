@@ -1,5 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { billingService, BalanceTransaction, PaginatedBalanceTransactions, ErrorResponse, OrganizationBalance } from '@/utils/api';
+import {
+  billingService,
+  BalanceTransaction,
+  PaginatedBalanceTransactions,
+  ErrorResponse,
+  OrganizationBalance,
+  getBalanceTransactionDescription,
+  normalizeBalanceTransactionsResponse,
+} from '@/utils/api';
 import { 
   ArrowUpIcon, 
   ArrowDownIcon, 
@@ -36,7 +44,7 @@ const TransactionHistory = ({ balance }: TransactionHistoryProps) => {
     try {
       const response = await billingService.getBalanceTransactions(page, 10);
       if (response.status === 200) {
-        const paginatedData = response.data as PaginatedBalanceTransactions;
+        const paginatedData = normalizeBalanceTransactionsResponse(response.data);
         setTransactions(paginatedData.data);
         setPagination(paginatedData.meta);
       } else {
@@ -139,7 +147,7 @@ const TransactionHistory = ({ balance }: TransactionHistoryProps) => {
                         </div>
                       </TableCell>
                       <TableCell className="font-medium">
-                        {transaction.description || 'Транзакция'}
+                        {getBalanceTransactionDescription(transaction)}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
                         {formatDate(transaction.created_at)}

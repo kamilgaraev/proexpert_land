@@ -160,10 +160,10 @@ const DashboardLayout = () => {
         visible: canManageModules,
       },
       {
-        name: 'Связи',
+        name: 'Партнеры',
         href: '/dashboard/contractor-invitations',
         icon: Mail,
-        description: 'Подрядчики, поставщики и контрагенты',
+        description: 'Приглашения подрядчиков и партнерские бонусы',
         visible: canInviteUsers,
       },
     ];

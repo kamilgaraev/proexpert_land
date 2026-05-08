@@ -974,6 +974,16 @@ export interface OrganizationBalance {
   updated_at: string; // ISO DateTime
 }
 
+export interface BalanceTransactionMeta {
+  type?: 'contractor_referral_welcome' | 'contractor_referral_reward' | string;
+  referral_reward_id?: number;
+  contractor_invitation_id?: number;
+  inviting_organization_id?: number;
+  invited_organization_id?: number;
+  eligible_at?: string;
+  [key: string]: unknown;
+}
+
 export interface BalanceTransaction {
   id: number;
   type: 'credit' | 'debit';
@@ -984,7 +994,8 @@ export interface BalanceTransaction {
   description?: string | null;
   payment_id?: number | null;
   user_subscription_id?: number | null;
-  meta?: object | null;
+  organization_subscription_id?: number | null;
+  meta?: BalanceTransactionMeta | null;
   created_at: string; // ISO DateTime
 }
 
@@ -1006,6 +1017,73 @@ export interface PaginatedBalanceTransactions {
     total: number;
   };
 }
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const numberOrDefault = (value: unknown, fallback: number): number => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+};
+
+export const normalizeOrganizationBalanceResponse = (payload: unknown): OrganizationBalance | null => {
+  const payloadRecord = isRecord(payload) ? payload : null;
+  const data = payloadRecord && 'data' in payloadRecord ? payloadRecord.data : payload;
+  const balance = isRecord(data) ? data : null;
+
+  if (!balance || !('organization_id' in balance)) {
+    return null;
+  }
+
+  return balance as unknown as OrganizationBalance;
+};
+
+export const normalizeBalanceTransactionsResponse = (payload: unknown): PaginatedBalanceTransactions => {
+  const envelope = isRecord(payload) && payload.success === true && 'data' in payload
+    ? payload.data
+    : payload;
+  const page = isRecord(envelope) ? envelope : {};
+  const rawTransactions = Array.isArray(page.data)
+    ? page.data
+    : Array.isArray(envelope)
+      ? envelope
+      : [];
+  const meta = isRecord(page.meta) ? page.meta : {};
+  const links = isRecord(page.links) ? page.links : {};
+
+  return {
+    data: rawTransactions as BalanceTransaction[],
+    links: {
+      first: typeof links.first === 'string' ? links.first : null,
+      last: typeof links.last === 'string' ? links.last : null,
+      prev: typeof links.prev === 'string' ? links.prev : null,
+      next: typeof links.next === 'string' ? links.next : null,
+    },
+    meta: {
+      current_page: numberOrDefault(meta.current_page, 1),
+      from: meta.from === null || meta.from === undefined ? null : numberOrDefault(meta.from, 1),
+      last_page: numberOrDefault(meta.last_page, 1),
+      path: typeof meta.path === 'string' ? meta.path : '',
+      per_page: numberOrDefault(meta.per_page, rawTransactions.length),
+      to: meta.to === null || meta.to === undefined ? null : numberOrDefault(meta.to, rawTransactions.length),
+      total: numberOrDefault(meta.total, rawTransactions.length),
+    },
+  };
+};
+
+export const getBalanceTransactionDescription = (transaction: BalanceTransaction): string => {
+  const metaType = transaction.meta?.type;
+
+  if (metaType === 'contractor_referral_welcome') {
+    return 'Welcome-бонус по партнерскому приглашению';
+  }
+
+  if (metaType === 'contractor_referral_reward') {
+    return 'Бонус за приглашенную организацию';
+  }
+
+  return transaction.description?.trim() || 'Операция по балансу';
+};
 
 export interface PaymentGatewayChargeResponse {
   success: boolean;

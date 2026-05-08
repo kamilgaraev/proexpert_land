@@ -102,7 +102,7 @@ const ContractorInvitationNotifications: React.FC<ContractorInvitationNotificati
             ? 'text-construction-600 hover:bg-construction-50'
             : 'text-steel-500 hover:bg-steel-50'
         }`}
-        title={showTooltip ? `Приглашения к сотрудничеству${totalCount > 0 ? ` (${totalCount})` : ''}` : undefined}
+        title={showTooltip ? `Партнерские приглашения${totalCount > 0 ? ` (${totalCount})` : ''}` : undefined}
       >
         <BellIcon className="w-6 h-6" />
         <AnimatePresence>
@@ -129,7 +129,7 @@ const ContractorInvitationNotifications: React.FC<ContractorInvitationNotificati
             <div className="p-4 border-b border-steel-200">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-steel-900">
-                  Приглашения к сотрудничеству
+                  Партнерские приглашения
                 </h3>
                 <button
                   onClick={() => setShowDropdown(false)}

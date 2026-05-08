@@ -20,7 +20,7 @@ const ContractorInvitationsPage: React.FC = () => {
   // const [activeTab, setActiveTab] = useState<TabType>('invitations');
   const [selectedInvitation, setSelectedInvitation] = useState<ContractorInvitation | null>(null);
   
-  usePageTitle('Приглашения подрядчиков');
+  usePageTitle('Партнерские приглашения');
 
   const handleInvitationSelect = (invitation: ContractorInvitation) => {
     setSelectedInvitation(invitation);
@@ -54,9 +54,9 @@ const ContractorInvitationsPage: React.FC = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Приглашения к сотрудничеству</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Партнерские приглашения</h1>
         <p className="text-muted-foreground">
-          Управляйте входящими приглашениями от потенциальных заказчиков и отслеживайте статистику сотрудничества
+          Приглашайте подрядчиков бесплатно, принимайте входящие запросы и получайте бонусы после первой оплаченной подписки партнера.
         </p>
       </div>
 
@@ -64,7 +64,7 @@ const ContractorInvitationsPage: React.FC = () => {
         <TabsList>
           <TabsTrigger value="invitations" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
-            Приглашения
+            Входящие
           </TabsTrigger>
           <TabsTrigger value="stats" className="flex items-center gap-2">
             <BarChart2 className="h-4 w-4" />
@@ -94,12 +94,12 @@ const ContractorInvitationsPage: React.FC = () => {
                     <Info className="h-5 w-5" />
                 </div>
                 <div>
-                    <h3 className="font-semibold mb-2">Как работают приглашения?</h3>
+                    <h3 className="font-semibold mb-2">Как работает партнерская программа?</h3>
                     <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
-                        <li><span className="font-medium text-foreground">Получение приглашения:</span> Потенциальные заказчики находят вашу организацию и отправляют приглашение.</li>
-                        <li><span className="font-medium text-foreground">Рассмотрение:</span> Вы изучаете детали приглашения и условия.</li>
-                        <li><span className="font-medium text-foreground">Принятие решения:</span> Принимаете или отклоняете. При принятии создается связь.</li>
-                        <li><span className="font-medium text-foreground">Сотрудничество:</span> Вы получаете доступ к совместной работе.</li>
+                        <li><span className="font-medium text-foreground">Приглашение:</span> Вы можете бесплатно пригласить подрядную организацию к работе в ProHelper.</li>
+                        <li><span className="font-medium text-foreground">Первая оплата:</span> Бонусы появляются только после первой оплаченной подписки приглашенной организации.</li>
+                        <li><span className="font-medium text-foreground">Антифрод:</span> Начисление выполняется после окончания оплаченного периода, если подписка не отменена заранее.</li>
+                        <li><span className="font-medium text-foreground">Использование бонуса:</span> Бонус остается на балансе ProHelper и может быть потрачен внутри сервиса.</li>
                     </ul>
                 </div>
             </div>
@@ -108,7 +108,7 @@ const ContractorInvitationsPage: React.FC = () => {
 
       <div className="flex justify-center gap-4 pt-4">
         <Button variant="outline" asChild>
-            <a href="/help/contractor-invitations">Справочная информация</a>
+            <a href="/help/contractor-invitations">Условия программы</a>
         </Button>
         <Button asChild>
             <a href="/support">Связаться с поддержкой</a>

@@ -11,7 +11,7 @@ describe('workspaceOrchestration', () => {
     { href: '/dashboard', name: 'Обзор' },
     { href: '/dashboard/projects', name: 'Проекты' },
     { href: '/dashboard/modules', name: 'Модули' },
-    { href: '/dashboard/contractor-invitations', name: 'Связи' },
+    { href: '/dashboard/contractor-invitations', name: 'Партнеры' },
     { href: '/dashboard/billing', name: 'Финансы' },
   ];
 

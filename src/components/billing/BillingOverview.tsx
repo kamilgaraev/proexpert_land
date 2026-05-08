@@ -3,7 +3,8 @@ import {
   OrganizationBalance, 
   Subscription, 
   ModuleBillingResponse, 
-  BalanceTransaction 
+  BalanceTransaction,
+  getBalanceTransactionDescription,
 } from '@/utils/api';
 import { 
   CreditCardIcon, 
@@ -393,7 +394,7 @@ const BillingOverview = ({
                         {getTransactionIcon(transaction.type)}
                       </div>
                       <div>
-                        <p className="font-bold text-sm text-foreground">{transaction.description || 'Транзакция'}</p>
+                        <p className="font-bold text-sm text-foreground">{getBalanceTransactionDescription(transaction)}</p>
                         <p className="text-xs text-muted-foreground font-medium">{formatDate(transaction.created_at)}</p>
                       </div>
                     </div>

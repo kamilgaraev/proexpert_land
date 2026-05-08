@@ -6,10 +6,11 @@ import {
   newModulesService, 
   OrganizationBalance, 
   BalanceTransaction, 
-  PaginatedBalanceTransactions, 
   ModuleBillingResponse, 
   SubscriptionResponse, 
-  Subscription 
+  Subscription,
+  normalizeOrganizationBalanceResponse,
+  normalizeBalanceTransactionsResponse,
 } from '@/utils/api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BillingOverview from '@/components/billing/BillingOverview';
@@ -45,16 +46,12 @@ const BillingPage = () => {
 
       // Balance
       if (balanceRes.status === 200) {
-        if (balanceRes.data && typeof balanceRes.data === 'object' && 'data' in balanceRes.data) {
-          setBalance((balanceRes.data as any).data as OrganizationBalance);
-        } else {
-          setBalance(null);
-        }
+        setBalance(normalizeOrganizationBalanceResponse(balanceRes.data));
       }
 
       // Recent Transactions
       if (transactionsRes.status === 200) {
-        const paginatedData = transactionsRes.data as PaginatedBalanceTransactions;
+        const paginatedData = normalizeBalanceTransactionsResponse(transactionsRes.data);
         setRecentTransactions(paginatedData.data);
       }
 

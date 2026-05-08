@@ -116,8 +116,8 @@ const DashboardPage = () => {
       variant: 'outline' as const
     },
     {
-      name: 'Посмотреть отчеты',
-      description: 'Сводная аналитика',
+      name: 'Партнеры и бонусы',
+      description: 'Приглашения подрядчиков',
       href: '/dashboard/contractor-invitations',
       icon: BarChart,
       variant: 'outline' as const
