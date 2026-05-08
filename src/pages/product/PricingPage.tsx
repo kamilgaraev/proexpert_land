@@ -50,14 +50,14 @@ const PricingPage = () => {
     },
     {
       name: 'Business',
-      price: '9 900',
+      price: '19 900',
       period: '₽/мес',
-      description: '10 прорабов, 15 объектов, снабжение и финансы',
+      description: '5 прорабов, 10 проектов, снабжение и финансы',
       featured: false,
       features: [
-        { name: '10 прорабов', included: true },
-        { name: '15 проектов', included: true },
-        { name: '15 пользователей', included: true },
+        { name: '5 прорабов', included: true },
+        { name: '10 проектов', included: true },
+        { name: '10 пользователей', included: true },
         { name: '5 ГБ хранилища', included: true },
         { name: 'Снабжение и склад', included: true },
         { name: 'Финансы и акты', included: true },
@@ -70,15 +70,15 @@ const PricingPage = () => {
     },
     {
       name: 'Profi',
-      price: '19 900',
+      price: '29 900',
       period: '₽/мес',
-      description: '30 прорабов, 50 объектов, пакеты уровня Рост',
+      description: '15 прорабов, 30 проектов, пакеты уровня Рост',
       featured: false,
       features: [
-        { name: '30 прорабов', included: true },
-        { name: '50 проектов', included: true },
-        { name: '50 пользователей', included: true },
-        { name: '20 ГБ хранилища', included: true },
+        { name: '15 прорабов', included: true },
+        { name: '30 проектов', included: true },
+        { name: '30 пользователей', included: true },
+        { name: '15 ГБ хранилища', included: true },
         { name: 'Пакеты уровня Рост', included: true },
         { name: 'Сметы, ПТО и снабжение', included: true },
         { name: 'AI-пилоты для смет и сводок', included: true },
@@ -89,24 +89,24 @@ const PricingPage = () => {
       href: '/register?plan=profi'
     },
     {
-      name: 'Enterprise',
-      price: '49 900',
+      name: 'Enterprise Конструктор',
+      price: '99 000',
       period: '₽/мес',
-      description: 'Индивидуальные условия для корпораций',
+      description: 'Конструктор для крупных компаний',
       featured: false,
       features: [
-        { name: 'Индивидуальные условия', included: true },
-        { name: 'От 49 900 руб./мес', included: true },
-        { name: 'Проектное внедрение по КП', included: true },
+        { name: '100 пользователей', included: true },
+        { name: '100 проектов', included: true },
+        { name: '50 ГБ хранилища', included: true },
         { name: 'Настройка под структуру компании', included: true },
         { name: 'Условия поддержки в договоре', included: true },
-        { name: 'Размещение обсуждается отдельно', included: true },
+        { name: 'Расчет конфигурации в личном кабинете', included: true },
         { name: 'SLA фиксируется в договоре', included: true },
         { name: 'Обучение команды', included: true },
         { name: 'Интеграции по согласованному ТЗ', included: true }
       ],
-      cta: 'Выбрать',
-      href: '/contact'
+      cta: 'Открыть конструктор',
+      href: '/register?plan=enterprise'
     }
   ];
 

@@ -53,7 +53,10 @@ describe('marketing pricing packages', () => {
       'Генподряд или холдинг',
     ]);
     expect(marketingSalesOffers[1].planSlug).toBe('business');
-    expect(marketingSalesOffers[2].isConsultative).toBe(true);
+    expect(marketingSalesOffers[1].priceLabel).toBe('от 19 900 ₽/мес');
+    expect(marketingSalesOffers[2].planName).toBe('Enterprise Конструктор');
+    expect(marketingSalesOffers[2].priceLabel).toBe('от 99 000 ₽/мес');
+    expect(marketingSalesOffers[2].isConsultative).toBe(false);
   });
 
   it('does not publish retired internal module slugs', () => {

@@ -561,6 +561,12 @@ const PlansGrid = () => {
                              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 text-muted-foreground">
                                 <UserGroupIcon className="w-4 h-4" />
                              </div>
+                             <span><span className="font-bold">{formatPlanLimit(plan.max_users)}</span> пользователей</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm text-foreground">
+                             <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 text-muted-foreground">
+                                <UserGroupIcon className="w-4 h-4" />
+                             </div>
                              <span><span className="font-bold">{formatPlanLimit(plan.max_foremen)}</span> прорабов</span>
                           </div>
                           <div className="flex items-center gap-3 text-sm text-foreground">

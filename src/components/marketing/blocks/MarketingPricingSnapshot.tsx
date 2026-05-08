@@ -99,6 +99,7 @@ const MarketingPricingSnapshot = () => (
                 <span className="text-3xl font-bold text-steel-950">{plan.priceLabel}</span>
                 <span className="text-sm text-steel-500">{meta.period}</span>
               </div>
+              <div className="mt-2 text-sm font-semibold text-steel-700">{plan.userLimitLabel}</div>
 
               <p className="mt-4 text-sm leading-7 text-steel-600">{meta.description}</p>
 

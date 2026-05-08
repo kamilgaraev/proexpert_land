@@ -47,6 +47,7 @@ describe('PlansGrid', () => {
           description: 'Конструктор для крупных компаний и холдингов',
           price: 99000,
           currency: 'RUB',
+          max_users: 100,
           max_foremen: 100,
           max_projects: 100,
           max_storage_gb: 50,
@@ -92,6 +93,7 @@ describe('PlansGrid', () => {
     render(<PlansGrid />);
 
     const button = await screen.findByRole('button', { name: /Открыть конструктор/ });
+    expect(screen.getAllByText((_, node) => node?.textContent === '100 пользователей').length).toBeGreaterThan(0);
     fireEvent.click(button);
 
     expect(screen.getByRole('heading', { name: 'Enterprise Конструктор' })).toBeInTheDocument();

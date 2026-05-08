@@ -32,14 +32,14 @@ const basePlans = [
   {
     slug: 'business',
     name: 'Business',
-    price: 9900,
+    price: 19900,
     fit: 'Основной выбор: объекты, снабжение и финансы уже в тарифе.',
     includedPackageSlugs: ['objects-execution', 'supply-warehouse', 'finance-acts'],
   },
   {
     slug: 'profi',
     name: 'Profi',
-    price: 19900,
+    price: 29900,
     fit: 'Все строительные контуры уровня Рост дешевле, чем собирать отдельно.',
     includedPackageSlugs: [
       'objects-execution',
@@ -52,9 +52,9 @@ const basePlans = [
   },
   {
     slug: 'enterprise',
-    name: 'Enterprise',
-    price: 49900,
-    fit: 'Корпоративные версии пакетов, внедрение и условия сопровождения по КП.',
+    name: 'Enterprise Конструктор',
+    price: 99000,
+    fit: 'Корпоративные версии пакетов, 100 пользователей и расчет конфигурации.',
     includedPackageSlugs: [
       'objects-execution',
       'supply-warehouse',
@@ -67,6 +67,20 @@ const basePlans = [
 ];
 
 const formatPrice = (value: number) => `${value.toLocaleString('ru-RU')} ₽`;
+
+const formatPlanUsers = (slug: string) => {
+  if (slug === 'enterprise') {
+    return 'от 100 пользователей';
+  }
+
+  const limits: Record<string, number> = {
+    start: 5,
+    business: 10,
+    profi: 30,
+  };
+
+  return `${limits[slug] ?? 3} пользователей`;
+};
 
 const PricingPage = () => {
   const [selectedPlanSlug, setSelectedPlanSlug] = useState('business');
@@ -205,10 +219,10 @@ const PricingPage = () => {
                 </div>
                 <p className="mt-4 text-sm leading-7 text-steel-600">{offer.comparison}</p>
                 <MarketingLink
-                  href={offer.planSlug === 'enterprise' ? '#contact' : `/register?plan=${offer.planSlug}`}
+                  href={offer.planSlug === 'enterprise' ? '#enterprise-constructor' : `/register?plan=${offer.planSlug}`}
                   className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-800"
                 >
-                  {offer.planSlug === 'enterprise' ? 'Обсудить Enterprise' : `Выбрать ${offer.planName}`}
+                  {offer.planSlug === 'enterprise' ? 'Открыть конструктор' : `Выбрать ${offer.planName}`}
                 </MarketingLink>
               </article>
             ))}
@@ -252,6 +266,7 @@ const PricingPage = () => {
                       <span className="text-sm font-semibold">{formatPrice(plan.price)}</span>
                     </div>
                     <p className="mt-2 text-sm leading-6 opacity-80">{plan.fit}</p>
+                    <p className="mt-2 text-xs font-semibold opacity-80">{formatPlanUsers(plan.slug)}</p>
                   </button>
                 ))}
               </div>
@@ -322,12 +337,43 @@ const PricingPage = () => {
               Business отмечен как основной выбор: он дает рабочий строительный контур для компании с несколькими объектами, а пакеты расширяют его по процессам.
             </div>
             <MarketingLink
-              href={selectedPlan.slug === 'enterprise' ? '#contact' : `/register?plan=${selectedPlan.slug}`}
+              href={selectedPlan.slug === 'enterprise' ? '#enterprise-constructor' : `/register?plan=${selectedPlan.slug}`}
               className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-construction-400 px-5 py-3 text-sm font-semibold text-steel-950 transition hover:bg-construction-300"
             >
-              {selectedPlan.slug === 'enterprise' ? 'Обсудить Enterprise' : `Зарегистрироваться с тарифом ${selectedPlan.name}`}
+              {selectedPlan.slug === 'enterprise' ? 'Открыть конструктор' : `Зарегистрироваться с тарифом ${selectedPlan.name}`}
             </MarketingLink>
           </aside>
+        </div>
+      </section>
+
+      <section id="enterprise-constructor" className="bg-white py-16 lg:py-20">
+        <div className="container-custom grid gap-8 rounded-[1.75rem] border border-steel-200 bg-concrete-50 p-6 shadow-sm lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:p-8">
+          <SectionHeader
+            eyebrow="Enterprise Конструктор"
+            title="Корпоративный тариф считается из выбранной конфигурации."
+            description="Базовая конфигурация от 99 000 ₽/мес включает 100 пользователей, 100 проектов, 50 ГБ хранилища и корпоративные уровни пакетов."
+          />
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              '100 пользователей в базовой конфигурации',
+              '100 проектов и 100 прорабов',
+              '50 ГБ хранилища и 2 000 AI-запросов',
+              'Дополнительные организации и хранилище',
+              'Расширенный AI и приоритетная поддержка',
+              'Проект внедрения для интеграций и переноса данных',
+            ].map((item) => (
+              <div key={item} className="rounded-[1.1rem] border border-white bg-white px-4 py-4 text-sm leading-6 text-steel-700">
+                {item}
+              </div>
+            ))}
+            <MarketingLink
+              href="/register?plan=enterprise"
+              className="inline-flex items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-800 sm:col-span-2"
+            >
+              Зарегистрироваться и открыть конструктор
+            </MarketingLink>
+          </div>
         </div>
       </section>
 

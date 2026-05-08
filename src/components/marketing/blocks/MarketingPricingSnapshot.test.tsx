@@ -24,6 +24,8 @@ describe('MarketingPricingSnapshot', () => {
       'href',
       '/register?plan=business',
     );
+    expect(screen.getByText('19 900 ₽')).toBeInTheDocument();
+    expect(screen.getByText('до 10 пользователей')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Все тарифы' })).toHaveAttribute('href', '/pricing');
   });
 });
