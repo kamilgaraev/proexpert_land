@@ -238,7 +238,7 @@ describe('ModulesPage', () => {
     expect(screen.queryByRole('button', { name: /Все модули/i })).not.toBeInTheDocument();
     expect(screen.getByText('Управление проектами')).toBeInTheDocument();
     expect(screen.getByText('Тариф и доплаты')).toBeInTheDocument();
-    expect(screen.getAllByText('В тарифе')).toHaveLength(2);
+    expect(screen.getAllByText('Входит в тариф')).toHaveLength(2);
     expect(screen.getByText('Бригады')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Отключить' })).not.toBeInTheDocument();
   });
@@ -265,6 +265,14 @@ describe('ModulesPage', () => {
     expect(screen.getByText('AI-сценарии')).toBeInTheDocument();
     expect(screen.getByText('Вопросы по объектам')).toBeInTheDocument();
     expect(screen.queryByText(/foundation_modules|recommended_addons|data_sources|capabilities/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/project-management|schedule-management|site-requests|basic-warehouse/)).not.toBeInTheDocument();
+  });
+
+  it('marks bundled packages with a Russian business status', () => {
+    render(<ModulesPage />);
+
+    expect(screen.getAllByText('Входит в тариф').length).toBeGreaterThan(0);
+    expect(screen.queryByText('В тарифе')).not.toBeInTheDocument();
   });
 
   it('keeps higher package tiers available for separate purchase when the current tier comes from subscription', async () => {

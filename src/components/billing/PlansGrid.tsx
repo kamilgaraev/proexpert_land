@@ -32,7 +32,7 @@ const PACKAGE_LABELS: Record<string, string> = {
 const TIER_LABELS: Record<string, string> = {
   base: 'Базовый',
   pro: 'Pro',
-  enterprise: 'Enterprise',
+  enterprise: 'Enterprise Конструктор',
 };
 
 const PLAN_INCLUDED_PACKAGES: Record<string, Array<{ package_slug: string; tier: string }>> = {
@@ -73,6 +73,22 @@ const getPlanIncludedPackages = (plan: any) => {
   }
 
   return PLAN_INCLUDED_PACKAGES[String(plan.slug || '').toLowerCase()] || [];
+};
+
+const isEnterprisePlan = (plan: any) => (
+  String(plan.slug || plan.name || '').toLowerCase().includes('enterprise')
+);
+
+const getPlanName = (plan: any) => (
+  isEnterprisePlan(plan) ? 'Enterprise Конструктор' : plan.name
+);
+
+const formatPlanLimit = (value: unknown, unit = '') => {
+  if (value === null || value === undefined || value === '') {
+    return 'Индивидуально';
+  }
+
+  return `${Number(value).toLocaleString('ru-RU')} ${unit}`.trim();
 };
 
 const formatIncludedPackage = (pkg: any): IncludedPackageDisplay => {
@@ -519,7 +535,7 @@ const PlansGrid = () => {
                     )}
 
                     <CardHeader>
-                       <CardTitle className="text-xl font-bold text-foreground mb-2">{plan.name}</CardTitle>
+                       <CardTitle className="text-xl font-bold text-foreground mb-2">{getPlanName(plan)}</CardTitle>
                        <div className="flex items-baseline gap-1">
                           <span className="text-3xl font-bold text-foreground">
                              {Number(plan.price).toLocaleString('ru-RU')} ₽
@@ -538,19 +554,19 @@ const PlansGrid = () => {
                              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 text-muted-foreground">
                                 <UserGroupIcon className="w-4 h-4" />
                              </div>
-                             <span><span className="font-bold">{plan.max_foremen || '∞'}</span> прорабов</span>
+                             <span><span className="font-bold">{formatPlanLimit(plan.max_foremen)}</span> прорабов</span>
                           </div>
                           <div className="flex items-center gap-3 text-sm text-foreground">
                              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 text-muted-foreground">
                                 <BuildingOfficeIcon className="w-4 h-4" />
                              </div>
-                             <span><span className="font-bold">{plan.max_projects || '∞'}</span> проектов</span>
+                             <span><span className="font-bold">{formatPlanLimit(plan.max_projects)}</span> проектов</span>
                           </div>
                           <div className="flex items-center gap-3 text-sm text-foreground">
                              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 text-muted-foreground">
                                 <CircleStackIcon className="w-4 h-4" />
                              </div>
-                             <span><span className="font-bold">{plan.max_storage_gb || '∞'} ГБ</span> хранилище</span>
+                             <span><span className="font-bold">{formatPlanLimit(plan.max_storage_gb, 'ГБ')}</span> хранилище</span>
                           </div>
                           <div
                             className={cn(

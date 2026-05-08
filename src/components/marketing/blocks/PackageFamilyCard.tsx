@@ -12,6 +12,36 @@ interface PackageFamilyCardProps {
   compact?: boolean;
 }
 
+const moduleDisplayNames: Record<string, string> = {
+  organizations: 'Организации',
+  users: 'Пользователи',
+  'project-management': 'Управление проектами',
+  'contract-management': 'Договоры',
+  'catalog-management': 'Справочники',
+  'dashboard-widgets': 'Рабочие панели',
+  'data-filters': 'Фильтры данных',
+  brigades: 'Бригады',
+  'schedule-management': 'График работ',
+  'time-tracking': 'Учет времени',
+  'site-requests': 'Заявки с объекта',
+  'basic-warehouse': 'Складской учет',
+  procurement: 'Закупки',
+  payments: 'Платежи',
+  'act-reports': 'Акты выполненных работ',
+  'budget-estimates': 'Сметы',
+  'pto-documents': 'ПТО и документация',
+  'holding-analytics': 'Холдинговая аналитика',
+  'ai-assistant': 'AI-помощник',
+  'ai-estimates': 'AI-подготовка смет',
+  'video-monitoring': 'Видео с площадки',
+  'contractor-portal': 'Кабинет подрядчика',
+  'data-export': 'Выгрузки данных',
+};
+
+export const getMarketingModuleLabel = (moduleSlug: string): string => (
+  moduleDisplayNames[moduleSlug] ?? 'Возможность ProHelper'
+);
+
 const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) => {
   const tiers = compact ? item.tiers.slice(0, 2) : item.tiers;
 
@@ -57,7 +87,10 @@ const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) =>
               {tier.businessOutcome}
             </div>
             <div className="mt-4 grid gap-2 text-sm leading-6 text-steel-700">
-              <PackageDetail title="Входит в уровень" items={tier.includedModules.slice(0, 5)} />
+              <PackageDetail
+                title="Входит в уровень"
+                items={tier.includedModules.slice(0, 5).map(getMarketingModuleLabel)}
+              />
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-[0.16em]">
               {tier.standalonePrice > tier.price ? (

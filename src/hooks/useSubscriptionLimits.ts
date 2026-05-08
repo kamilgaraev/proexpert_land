@@ -24,6 +24,74 @@ interface UseSubscriptionLimitsReturn extends UseSubscriptionLimitsState {
   normalWarnings: SubscriptionWarning[];
 }
 
+type RecordLike = Record<string, unknown>;
+
+const isRecord = (value: unknown): value is RecordLike => (
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+);
+
+const unwrapLimitsPayload = (payload: unknown): unknown => {
+  if (isRecord(payload) && isRecord(payload.data) && isRecord(payload.data.data)) {
+    return payload.data.data;
+  }
+
+  if (isRecord(payload) && payload.data !== undefined) {
+    return payload.data;
+  }
+
+  return payload;
+};
+
+const emptyLimit = {
+  limit: 0,
+  used: 0,
+  remaining: 0,
+  percentage_used: 0,
+  is_unlimited: false,
+  status: 'normal' as const,
+};
+
+const emptyStorageLimit = {
+  limit_gb: 0,
+  used_gb: 0,
+  remaining_gb: 0,
+  percentage_used: 0,
+  is_unlimited: false,
+  status: 'normal' as const,
+};
+
+const normalizeLimitItem = (value: unknown): SubscriptionLimitsResponse['limits']['users'] => ({
+  ...emptyLimit,
+  ...(isRecord(value) ? value : {}),
+} as SubscriptionLimitsResponse['limits']['users']);
+
+const normalizeStorageLimitItem = (value: unknown): SubscriptionLimitsResponse['limits']['storage'] => ({
+  ...emptyStorageLimit,
+  ...(isRecord(value) ? value : {}),
+} as SubscriptionLimitsResponse['limits']['storage']);
+
+const normalizeLimitsResponse = (value: unknown): SubscriptionLimitsResponse => {
+  const data = isRecord(value) ? value as Partial<SubscriptionLimitsResponse> : {};
+  const limits: RecordLike = isRecord(data.limits) ? data.limits : {};
+
+  return {
+    has_subscription: Boolean(data.has_subscription),
+    subscription: data.subscription ?? null,
+    limits: {
+      foremen: normalizeLimitItem(limits.foremen),
+      projects: normalizeLimitItem(limits.projects),
+      users: normalizeLimitItem(limits.users),
+      storage: normalizeStorageLimitItem(limits.storage),
+      ...(isRecord(limits.invitations) ? { invitations: normalizeLimitItem(limits.invitations) } : {}),
+      ...(isRecord(limits.ai_requests) ? { ai_requests: normalizeLimitItem(limits.ai_requests) } : {}),
+      ...(isRecord(limits.ai) ? { ai: normalizeLimitItem(limits.ai) } : {}),
+    },
+    features: Array.isArray(data.features) ? data.features : [],
+    warnings: Array.isArray(data.warnings) ? data.warnings : [],
+    upgrade_required: Boolean(data.upgrade_required),
+  };
+};
+
 export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}): UseSubscriptionLimitsReturn => {
   const {
     autoRefresh = false,
@@ -61,20 +129,7 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
       const response = await billingService.getSubscriptionLimits();
 
       if (response.status === 200) {
-        const actualData = (response.data as any)?.data || response.data;
-        const data = actualData as SubscriptionLimitsResponse;
-
-        // Добавляем базовые значения для лимитов если они отсутствуют
-        const safeData = {
-          ...data,
-          limits: data.limits || {
-            foremen: { limit: 0, used: 0, remaining: 0, percentage_used: 0, is_unlimited: false, status: 'normal' },
-            projects: { limit: 0, used: 0, remaining: 0, percentage_used: 0, is_unlimited: false, status: 'normal' },
-            users: { limit: 0, used: 0, remaining: 0, percentage_used: 0, is_unlimited: false, status: 'normal' },
-            storage: { limit_gb: 0, used_gb: 0, remaining_gb: 0, percentage_used: 0, is_unlimited: false, status: 'normal' }
-          },
-          warnings: data.warnings || []
-        };
+        const safeData = normalizeLimitsResponse(unwrapLimitsPayload(response.data));
 
         setState({
           data: safeData,
@@ -153,4 +208,4 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
     criticalWarnings,
     normalWarnings
   };
-}; 
+};

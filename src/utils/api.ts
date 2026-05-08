@@ -1104,6 +1104,9 @@ export interface SubscriptionLimits {
   projects: SubscriptionLimitItem;
   users: SubscriptionLimitItem;
   storage: StorageLimitItem;
+  invitations?: SubscriptionLimitItem;
+  ai_requests?: SubscriptionLimitItem;
+  ai?: SubscriptionLimitItem;
 }
 
 export interface SubscriptionWarning {
@@ -1131,6 +1134,60 @@ export interface SubscriptionLimitsResponse {
   features: string[];
   warnings: SubscriptionWarning[];
   upgrade_required: boolean;
+}
+
+export interface EnterpriseConstructorSelectionPayload {
+  users?: number;
+  additional_organizations?: number;
+  extra_storage_units?: number;
+  extended_ai?: boolean;
+  priority_support?: boolean;
+  needs_integrations?: boolean;
+  needs_migration?: boolean;
+  needs_sla?: boolean;
+  more_than_250_users?: boolean;
+}
+
+export interface EnterpriseConstructorPreview {
+  plan_name: string;
+  price: {
+    total: number;
+    label: string;
+    currency: 'RUB';
+    period: 'month';
+    period_label: string;
+  };
+  price_label: string;
+  limits: {
+    users: number;
+    foremen: number;
+    projects: number;
+    organizations: number;
+    storage_gb: number;
+    ai_requests: number;
+    contractor_invitations: number;
+  };
+  selected_extensions: Array<{
+    key: string;
+    name: string;
+    label: string;
+    quantity: number;
+    price: number;
+  }>;
+  can_checkout: boolean;
+  requires_implementation_project: boolean;
+  primary_cta: string;
+  message: string;
+}
+
+export interface EnterpriseConstructorCheckoutData {
+  subscription: UserSubscription | Subscription | LegacyJsonPayload;
+  preview: EnterpriseConstructorPreview;
+  balance: {
+    amount: number;
+    currency: string;
+  };
+  module_sync: LegacyJsonPayload;
 }
 
 // Вспомогательная функция для запросов
@@ -1261,6 +1318,37 @@ export const billingService = {
     return { data: responseData, status: response.status, statusText: response.statusText };
   },
 
+  previewEnterpriseConstructor: async (
+    payload: EnterpriseConstructorSelectionPayload
+  ): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/enterprise-constructor/preview`;
+    const options: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
+
+  checkoutEnterpriseConstructor: async (
+    payload: EnterpriseConstructorSelectionPayload
+  ): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
+    const token = getTokenFromStorages();
+    if (!token) throw new Error('Токен авторизации отсутствует');
+    const url = `${BILLING_API_URL}/enterprise-constructor/checkout`;
+    const options: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    };
+    const response = await fetchWithBillingLogging(url, options);
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, statusText: response.statusText };
+  },
 
   getBalance: async (): Promise<{ data: OrganizationBalance | ErrorResponse, status: number, statusText: string }> => {
     const token = getTokenFromStorages();

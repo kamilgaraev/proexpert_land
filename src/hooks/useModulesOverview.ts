@@ -27,6 +27,23 @@ type ApiResponseLike = {
   message?: string;
 };
 
+const BUSINESS_LABELS: Record<string, string> = {
+  'objects-execution': 'Объекты и исполнение',
+  'supply-warehouse': 'Снабжение и склад',
+  'finance-acts': 'Финансы и акты',
+  'estimates-pto': 'Сметы и ПТО',
+  'holding-analytics': 'Холдинг и аналитика',
+  'ai-contour': 'AI-контур',
+  'project-management': 'Управление проектами',
+  'schedule-management': 'График работ',
+  'time-tracking': 'Учёт времени',
+  'site-requests': 'Заявки с объекта',
+  'basic-warehouse': 'Складской учёт',
+  'video-monitoring': 'Видео с площадки',
+  users: 'Пользователи',
+  organizations: 'Организации',
+};
+
 const isRecord = (value: unknown): value is Record<string, unknown> => (
   Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 );
@@ -51,21 +68,39 @@ const unwrapResponsePayload = (response: ApiResponseLike): unknown => {
 
 const normalizeTier = (tier: ModulesOverviewTier): ModulesOverviewTier => ({
   ...tier,
+  label: tier.label || BUSINESS_LABELS[tier.key] || 'Уровень',
   modules: arrayOrEmpty<string>(tier.modules),
   included_modules: arrayOrEmpty<string>(tier.included_modules).length > 0
     ? arrayOrEmpty<string>(tier.included_modules)
     : arrayOrEmpty<string>(tier.modules),
-  highlights: arrayOrEmpty<string>(tier.highlights),
+  highlights: arrayOrEmpty<string>(tier.highlights).map(item => BUSINESS_LABELS[item] ?? item),
+});
+
+const normalizeLinkedItem = <T extends { label?: string; module_slug?: string; package_slug?: string; key?: string }>(item: T): T => ({
+  ...item,
+  label: item.label
+    || BUSINESS_LABELS[item.module_slug ?? '']
+    || BUSINESS_LABELS[item.package_slug ?? '']
+    || BUSINESS_LABELS[item.key ?? '']
+    || 'Возможность',
+});
+
+const normalizeModule = <T extends { slug: string; name?: string; description?: string }>(module: T): T => ({
+  ...module,
+  name: module.name || BUSINESS_LABELS[module.slug] || 'Возможность',
+  description: module.description || 'Доступная возможность организации',
 });
 
 const normalizeSolution = (solution: ModulesOverviewSolution): ModulesOverviewSolution => ({
   ...solution,
+  name: solution.name || BUSINESS_LABELS[solution.slug] || 'Решение',
+  description: solution.description || 'Набор возможностей для рабочих процессов организации',
   foundation_modules: arrayOrEmpty<string>(solution.foundation_modules),
-  integrations: arrayOrEmpty(solution.integrations),
-  recommended_addons: arrayOrEmpty(solution.recommended_addons),
+  integrations: arrayOrEmpty<ModulesOverviewSolution['integrations'][number]>(solution.integrations).map(normalizeLinkedItem),
+  recommended_addons: arrayOrEmpty<ModulesOverviewSolution['recommended_addons'][number]>(solution.recommended_addons).map(normalizeLinkedItem),
   business_outcomes: arrayOrEmpty<string>(solution.business_outcomes),
-  data_sources: arrayOrEmpty(solution.data_sources),
-  capabilities: arrayOrEmpty(solution.capabilities),
+  data_sources: arrayOrEmpty<ModulesOverviewSolution['data_sources'][number]>(solution.data_sources).map(normalizeLinkedItem),
+  capabilities: arrayOrEmpty<ModulesOverviewSolution['capabilities'][number]>(solution.capabilities).map(normalizeLinkedItem),
   tiers: arrayOrEmpty<ModulesOverviewTier>(solution.tiers).map(normalizeTier),
 });
 
@@ -80,8 +115,8 @@ const getResponsePayload = (response: ApiResponseLike): ModulesOverview => {
     ...payload,
     summary: payload.summary,
     solutions: arrayOrEmpty<ModulesOverviewSolution>(payload.solutions).map(normalizeSolution),
-    standalone_modules: arrayOrEmpty(payload.standalone_modules),
-    advanced_modules: arrayOrEmpty(payload.advanced_modules),
+    standalone_modules: arrayOrEmpty<ModulesOverview['standalone_modules'][number]>(payload.standalone_modules).map(normalizeModule),
+    advanced_modules: arrayOrEmpty<ModulesOverview['advanced_modules'][number]>(payload.advanced_modules).map(normalizeModule),
     warnings: arrayOrEmpty(payload.warnings),
   } as ModulesOverview;
 };

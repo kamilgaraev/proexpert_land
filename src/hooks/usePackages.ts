@@ -21,6 +21,23 @@ type ApiResponseLike = {
     status?: number;
 };
 
+const BUSINESS_LABELS: Record<string, string> = {
+    'objects-execution': 'Объекты и исполнение',
+    'supply-warehouse': 'Снабжение и склад',
+    'finance-acts': 'Финансы и акты',
+    'estimates-pto': 'Сметы и ПТО',
+    'holding-analytics': 'Холдинг и аналитика',
+    'ai-contour': 'AI-контур',
+    'project-management': 'Управление проектами',
+    'schedule-management': 'График работ',
+    'time-tracking': 'Учёт времени',
+    'site-requests': 'Заявки с объекта',
+    'basic-warehouse': 'Складской учёт',
+    'video-monitoring': 'Видео с площадки',
+    users: 'Пользователи',
+    organizations: 'Организации',
+};
+
 const isRecord = (value: unknown): value is Record<string, unknown> => (
     Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 );
@@ -55,18 +72,24 @@ const normalizeTier = (tier: PackageTierConfig | undefined): PackageTierConfig |
         ...tier,
         modules,
         included_modules: includedModules.length > 0 ? includedModules : modules,
-        highlights: arrayOrEmpty<string>(tier.highlights),
+        highlights: arrayOrEmpty<string>(tier.highlights).map(item => BUSINESS_LABELS[item] ?? item),
     };
 };
 
+const normalizeLinkedItem = <T extends { label?: string; module_slug?: string; package_slug?: string }>(item: T): T => ({
+    ...item,
+    label: item.label || BUSINESS_LABELS[item.module_slug ?? ''] || BUSINESS_LABELS[item.package_slug ?? ''] || 'Возможность',
+});
+
 const normalizePackage = (item: Package): Package => ({
     ...item,
+    name: item.name || BUSINESS_LABELS[item.slug] || 'Решение',
     foundation_modules: arrayOrEmpty<string>(item.foundation_modules),
-    integrations: arrayOrEmpty(item.integrations),
-    recommended_addons: arrayOrEmpty(item.recommended_addons),
+    integrations: arrayOrEmpty<Package['integrations'][number]>(item.integrations).map(normalizeLinkedItem),
+    recommended_addons: arrayOrEmpty<Package['recommended_addons'][number]>(item.recommended_addons).map(normalizeLinkedItem),
     business_outcomes: arrayOrEmpty<string>(item.business_outcomes),
-    data_sources: arrayOrEmpty(item.data_sources),
-    capabilities: arrayOrEmpty(item.capabilities),
+    data_sources: arrayOrEmpty<Package['data_sources'][number]>(item.data_sources).map(normalizeLinkedItem),
+    capabilities: arrayOrEmpty<Package['capabilities'][number]>(item.capabilities).map(normalizeLinkedItem),
     tiers: {
         base: normalizeTier(item.tiers?.base),
         pro: normalizeTier(item.tiers?.pro),

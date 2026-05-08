@@ -393,9 +393,9 @@ const SolutionsSection = ({
 
           <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-2.5">
             <InfoPill label="Текущий тариф" value={currentTierText(solution)} />
-            <InfoPill label="Стоимость" value={solution.is_bundled_with_plan ? 'В тарифе' : formatMoney(solution.effective_monthly_price)} />
+            <InfoPill label="Стоимость" value={solution.is_bundled_with_plan ? 'Входит в тариф' : formatMoney(solution.effective_monthly_price)} />
             <InfoPill label="Статус" value={solution.current_tier ? 'Подключено' : 'Доступно'} />
-            <InfoPill label="Источник" value={solution.is_bundled_with_plan ? 'В тарифе' : solution.current_tier ? 'Куплено' : 'Доступно'} />
+            <InfoPill label="Источник" value={solution.is_bundled_with_plan ? 'Входит в тариф' : solution.current_tier ? 'Куплено' : 'Доступно'} />
           </div>
 
           {hasPackageDetails(solution) && (
