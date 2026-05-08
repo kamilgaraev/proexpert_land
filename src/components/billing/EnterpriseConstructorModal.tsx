@@ -34,6 +34,8 @@ type EnterpriseConstructorModalProps = {
 
 type ConstructorStatus = 'idle' | 'loading' | 'ready' | 'project' | 'success' | 'error';
 
+const PREVIEW_RECALCULATION_DELAY_MS = 120;
+
 const formatRubles = (value: number) => (
   `${Number(value || 0).toLocaleString('ru-RU')} ₽`
 );
@@ -62,6 +64,7 @@ export default function EnterpriseConstructorModal({
   const [error, setError] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [balanceAfter, setBalanceAfter] = useState<number | null>(null);
+  const [isPreviewRefreshing, setIsPreviewRefreshing] = useState(false);
 
   const moreThan250Users = users > 250;
 
@@ -93,10 +96,11 @@ export default function EnterpriseConstructorModal({
     }
 
     let isActual = true;
-    const timer = window.setTimeout(async () => {
-      setStatus('loading');
-      setError(null);
+    setStatus('loading');
+    setIsPreviewRefreshing(true);
+    setError(null);
 
+    const timer = window.setTimeout(async () => {
       try {
         const response = await billingService.previewEnterpriseConstructor(payload);
         const responseData = response.data as any;
@@ -112,6 +116,7 @@ export default function EnterpriseConstructorModal({
         const nextPreview = responseData?.data as EnterpriseConstructorPreview;
         setPreview(nextPreview);
         setStatus(nextPreview.requires_implementation_project ? 'project' : 'ready');
+        setIsPreviewRefreshing(false);
       } catch (requestError: any) {
         if (!isActual) {
           return;
@@ -119,9 +124,10 @@ export default function EnterpriseConstructorModal({
 
         setPreview(null);
         setStatus('error');
+        setIsPreviewRefreshing(false);
         setError(requestError?.message || 'Не удалось рассчитать конфигурацию.');
       }
-    }, 250);
+    }, PREVIEW_RECALCULATION_DELAY_MS);
 
     return () => {
       isActual = false;
@@ -175,6 +181,8 @@ export default function EnterpriseConstructorModal({
 
     onClose();
   };
+
+  const isCalculating = status === 'loading' || isPreviewRefreshing;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -303,10 +311,19 @@ export default function EnterpriseConstructorModal({
                   <div>
                     <p className="text-sm font-medium text-slate-500">Стоимость</p>
                     <div className="mt-1 text-3xl font-bold text-slate-950">
-                      {status === 'loading' && !preview ? 'Расчет...' : preview?.price.label || '...'}
+                      {isCalculating ? 'Пересчитываем...' : preview?.price.label || '...'}
                     </div>
+                    {isCalculating && preview && (
+                      <p className="mt-1 text-xs font-medium text-orange-600">
+                        Обновляем итог по выбранной конфигурации
+                      </p>
+                    )}
                   </div>
-                  <SparklesIcon className="h-7 w-7 text-orange-500" />
+                  {isCalculating ? (
+                    <ArrowPathIcon className="h-7 w-7 animate-spin text-orange-500" />
+                  ) : (
+                    <SparklesIcon className="h-7 w-7 text-orange-500" />
+                  )}
                 </div>
 
                 {preview && (
@@ -368,7 +385,7 @@ export default function EnterpriseConstructorModal({
                 ) : (
                   <Button
                     className="h-12 bg-orange-600 font-bold hover:bg-orange-700"
-                    disabled={!preview || status === 'loading' || status === 'project' || checkoutLoading}
+                    disabled={!preview || isCalculating || status === 'project' || checkoutLoading}
                     onClick={handleCheckout}
                   >
                     {checkoutLoading && <ArrowPathIcon className="mr-2 h-5 w-5 animate-spin" />}
@@ -401,7 +418,7 @@ function ToggleRow({ title, description, checked, onCheckedChange }: ToggleRowPr
         <p className="text-sm font-semibold text-slate-950">{title}</p>
         <p className="mt-1 text-xs text-slate-500">{description}</p>
       </div>
-      <Switch checked={checked} onCheckedChange={onCheckedChange} />
+      <Switch aria-label={title} checked={checked} onCheckedChange={onCheckedChange} />
     </div>
   );
 }
