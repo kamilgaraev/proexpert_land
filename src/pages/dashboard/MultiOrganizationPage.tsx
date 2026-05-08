@@ -635,7 +635,6 @@ const MultiOrganizationPage = () => {
          )}
       </AnimatePresence>
       
-      {/* Modals for Create Holding / Add Child would also need updating to match theme, omitted for brevity but logic remains */}
       {showCreateHoldingModal && (
          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
@@ -644,7 +643,6 @@ const MultiOrganizationPage = () => {
                   <button onClick={() => setShowCreateHoldingModal(false)}><XMarkIcon className="w-6 h-6 text-slate-400" /></button>
                </div>
                <form onSubmit={handleCreateHolding} className="p-6 space-y-4">
-                  {/* Simplified form fields with new styling */}
                   <div>
                      <label className="block text-sm font-bold text-slate-700 mb-1">Название холдинга</label>
                      <input 

@@ -172,7 +172,7 @@ const DashboardLayout = () => {
 
     if (hasMultiOrgAccess && canManageMultiOrg) {
       const userOrg = user && 'organization' in user ? (user.organization as any) : null;
-      const isHoldingOrg = userOrg?.organization_type === 'holding';
+      const isHoldingOrg = userOrg?.organization_type === 'parent' || userOrg?.is_holding === true;
 
       baseNavigation.push({
         name: isHoldingOrg ? 'Панель холдинга' : 'Мультиорганизация',

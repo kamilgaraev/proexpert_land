@@ -2259,22 +2259,12 @@ export const multiOrganizationService = {
     transfer_data_to?: number;
     confirm_deletion: boolean;
   }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
-    const token = getTokenFromStorages();
-    const response = await fetch(`https://api.prohelper.pro/api/v1/landing/multi-organization/child-organizations/${childOrgId}`, {
+    const response = await api.request({
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
+      url: `/multi-organization/child-organizations/${childOrgId}`,
+      data,
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const responseData = await response.json();
-    return { data: responseData, status: response.status, statusText: response.statusText };
+    return response;
   },
 
   getChildOrganizationStats: async (childOrgId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
@@ -2334,53 +2324,6 @@ export const multiOrganizationService = {
     permissions_config?: Record<string, unknown>;
   }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.put('/multi-organization/holding-settings', data);
-    return response;
-  },
-
-  // Массовые операции
-  bulkUpdateChildOrganizations: async (data: {
-    organization_ids: number[];
-    updates: Record<string, unknown>;
-  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
-    const response = await api.patch('/multi-organization/child-organizations/bulk-update', data);
-    return response;
-  },
-
-  exportChildOrganizations: async (params?: {
-    format?: 'xlsx' | 'csv' | 'pdf';
-    include_stats?: boolean;
-    organization_ids?: number[];
-  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          if (Array.isArray(value)) {
-            value.forEach(item => queryParams.append(`${key}[]`, item.toString()));
-          } else {
-            queryParams.append(key, value.toString());
-          }
-        }
-      });
-    }
-
-    const response = await api.get(`/multi-organization/child-organizations/export?${queryParams}`);
-    return response;
-  },
-
-  // Аналитика
-  getHoldingAnalytics: async (params?: {
-    period?: 'week' | 'month' | 'quarter' | 'year';
-    include_trends?: boolean;
-  }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) queryParams.append(key, value.toString());
-      });
-    }
-
-    const response = await api.get(`/multi-organization/analytics/summary?${queryParams}`);
     return response;
   },
 

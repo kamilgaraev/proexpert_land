@@ -368,7 +368,7 @@ const HoldingConsolidatedReportPage: React.FC = () => {
                           <div>
                             <h4 className="text-lg font-semibold text-steel-900">{org.organization_name}</h4>
                             <p className="text-sm text-steel-600">
-                              {org.organization_type === 'holding' ? 'Головная организация' : 'Дочерняя организация'} • 
+                              {org.organization_type === 'parent' ? 'Головная организация' : 'Дочерняя организация'} •
                               Проектов: {org.projects_count}
                             </p>
                           </div>

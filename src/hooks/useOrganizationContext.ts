@@ -18,7 +18,7 @@ export const useOrganizationContext = () => {
   useEffect(() => {
     if (user && 'organization' in user && user.organization) {
       const org = user.organization as any;
-      const isHolding = org.organization_type === 'holding' || false;
+      const isHolding = org.organization_type === 'parent' || org.is_holding === true;
       
       setContext({
         id: org.id,

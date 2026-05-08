@@ -21,7 +21,7 @@ export const HoldingDashboard = () => {
 
   // Проверяем тип организации
   const userOrg = user && 'organization' in user ? (user.organization as any) : null;
-  const isHoldingOrg = userOrg?.organization_type === 'holding';
+  const isHoldingOrg = userOrg?.organization_type === 'parent' || userOrg?.is_holding === true;
 
   // Если не холдинг, показываем форму создания холдинга
   if (!isHoldingOrg) {

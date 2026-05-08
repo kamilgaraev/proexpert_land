@@ -93,7 +93,7 @@ export const HoldingPanelLayout = () => {
   }
 
   const userOrg = user && 'organization' in user ? (user.organization as any) : null;
-  const isHoldingOrg = userOrg?.organization_type === 'holding';
+  const isHoldingOrg = userOrg?.organization_type === 'parent' || userOrg?.is_holding === true;
   const isLandingEditorRoute =
     location.pathname === '/landing/editor' || location.pathname.includes('/landing/edit');
 
