@@ -21,6 +21,16 @@ describe('buildServerSeoPayload', () => {
     expect(payload.structuredDataTag).toContain('"@type":"FAQPage"');
   });
 
+  it('returns indexable metadata for known marketing pages', () => {
+    const payload = buildServerSeoPayload('/features');
+
+    expect(payload.statusCode).toBe(200);
+    expect(payload.title).toContain('Возможности ProHelper');
+    expect(payload.canonicalUrl).toBe('https://prohelper.pro/features');
+    expect(payload.allMeta).toContain('index, follow');
+    expect(payload.structuredDataTag).toContain('application/ld+json');
+  });
+
   it('renders blog payload with blog og image', () => {
     const payload = buildServerSeoPayload('/blog');
 
@@ -34,8 +44,16 @@ describe('buildServerSeoPayload', () => {
 
     expect(payload.statusCode).toBe(404);
     expect(payload.allMeta).toContain('<meta name="robots" content="noindex, nofollow, noarchive"');
-    expect(payload.canonicalUrl).toBe('https://prohelper.pro/unknown-page');
+    expect(payload.canonicalUrl).toBe('https://prohelper.pro/');
     expect(payload.title).toBe('Страница не найдена | ProHelper');
+  });
+
+  it('returns a true 404 payload for unknown paths', () => {
+    const payload = buildServerSeoPayload('/non-existing-test-codex');
+
+    expect(payload.statusCode).toBe(404);
+    expect(payload.title).toContain('Страница не найдена');
+    expect(payload.allMeta).toContain('noindex');
   });
 
   it('returns redirect payload for legacy alias routes', () => {
