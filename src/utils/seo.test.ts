@@ -11,7 +11,7 @@ describe('getPageSEOData', () => {
     expect(seoData.statusCode).toBe(404);
     expect(seoData.noIndex).toBe(true);
     expect(seoData.title).toBe('Страница не найдена | ProHelper');
-    expect(seoData.canonicalUrl).toBe('https://prohelper.pro/unknown-page');
+    expect(seoData.canonicalUrl).toBe('https://prohelper.pro/');
     expect(seoData.ogImage).toBe('https://prohelper.pro/og/404.svg');
   });
 

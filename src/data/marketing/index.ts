@@ -28,6 +28,7 @@ export {
   isMarketingNoIndexPath,
   isKnownMarketingPath,
   normalizeMarketingPath,
+  resolveMarketingCanonicalPath,
   resolveMarketingRedirectTarget,
   resolveMarketingSeoKey,
 } from './siteIndex';

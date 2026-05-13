@@ -10,6 +10,7 @@ import {
   marketingSeo,
   marketingSeoLandingPages,
   normalizeMarketingPath,
+  resolveMarketingCanonicalPath,
   resolveMarketingSeoKey,
 } from '@/data/marketingRegistry';
 
@@ -161,7 +162,8 @@ const resolveClusterStructuredData = (pageKey: string, canonicalUrl: string) => 
 export const getPageSEOData = (page: string): PageSEOData => {
   const normalizedPath = normalizeMarketingPath(page);
   const pageKey = resolveMarketingSeoKey(normalizedPath);
-  const canonicalPath = normalizedPath === marketingPaths.home ? '' : normalizedPath;
+  const resolvedCanonicalPath = resolveMarketingCanonicalPath(normalizedPath);
+  const canonicalPath = resolvedCanonicalPath === marketingPaths.home ? '' : resolvedCanonicalPath;
   const canonicalUrl = `${BASE_URL}${canonicalPath}`;
   const hasKnownRoute = isKnownMarketingPath(normalizedPath);
   const sitemapRoute = findMarketingSitemapRoute(normalizedPath);
@@ -173,7 +175,7 @@ export const getPageSEOData = (page: string): PageSEOData => {
       title: notFoundSeo.title,
       description: notFoundSeo.description,
       keywords: notFoundSeo.keywords,
-      canonicalUrl,
+      canonicalUrl: `${BASE_URL}/`,
       ogImage: `${OG_BASE_PATH}/404.svg`,
       noIndex: true,
       lang: 'ru',

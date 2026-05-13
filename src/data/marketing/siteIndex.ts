@@ -8,6 +8,7 @@ export interface MarketingSitemapRoute {
 export interface MarketingRedirectRoute {
   path: string;
   target: string;
+  canonicalAlias?: boolean;
 }
 
 export const marketingSitemapRoutes: MarketingSitemapRoute[] = [
@@ -53,7 +54,7 @@ export const marketingNoIndexExactPaths = new Set([
 ]);
 
 export const marketingRedirectRoutes: MarketingRedirectRoute[] = [
-  { path: '/docs', target: '/features' },
+  { path: '/docs', target: '/features', canonicalAlias: true },
   { path: '/help', target: '/contact' },
   { path: '/terms', target: '/offer' },
   { path: '/press', target: '/about' },
@@ -106,6 +107,17 @@ export const resolveMarketingRedirectTarget = (pathname: string) => {
   const normalizedPath = normalizeMarketingPath(pathname);
 
   return marketingRedirectRouteMap.get(normalizedPath);
+};
+
+export const resolveMarketingCanonicalPath = (pathname: string) => {
+  const normalizedPath = normalizeMarketingPath(pathname);
+  const redirectTarget = marketingRedirectRouteMap.get(normalizedPath);
+
+  if (redirectTarget) {
+    return redirectTarget;
+  }
+
+  return isKnownMarketingPath(normalizedPath) ? normalizedPath : '/';
 };
 
 export const isKnownMarketingPath = (pathname: string) => {
