@@ -115,13 +115,30 @@ const HomePage = () => {
         title="Управляйте объектами, снабжением и финансами в одной системе."
         description="ProHelper помогает подрядчику, генподрядчику и девелоперу связать офис, площадку и руководителя в одном рабочем контуре."
         actions={[
-          { label: 'Начать бесплатно', href: '/register?plan=free', primary: true },
-          { label: 'Посмотреть тарифы', href: '#pricing' },
-          { label: 'Запросить демонстрацию', href: '#contact' },
+          { label: 'Запросить демонстрацию', href: '#contact', primary: true },
+          { label: 'Посмотреть пакеты', href: '#pricing' },
+          { label: 'Начать бесплатно', href: '/register?plan=free' },
         ]}
         nav={homeSections}
         aside={
           <div className="space-y-4">
+            <div className="overflow-hidden rounded-[1.75rem] border border-steel-200 bg-white shadow-sm">
+              <img
+                src={activeScreenshot.image}
+                alt={activeScreenshot.alt}
+                className="h-auto w-full object-cover"
+                loading="eager"
+                fetchPriority="high"
+              />
+              <div className="p-5">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+                  Рабочий экран ProHelper
+                </div>
+                <div className="mt-2 text-lg font-bold text-steel-950">{activeScreenshot.title}</div>
+                <p className="mt-2 text-sm leading-7 text-steel-600">{activeScreenshot.description}</p>
+              </div>
+            </div>
+
             <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
                 Что внутри ProHelper
