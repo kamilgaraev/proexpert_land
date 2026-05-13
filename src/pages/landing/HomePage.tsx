@@ -32,13 +32,11 @@ import useAnalytics from '@/hooks/useAnalytics';
 import { useSEO } from '@/hooks/useSEO';
 
 const homeSections = [
+  { label: 'Боли', href: '#pain' },
   { label: 'Для кого', href: '#audiences' },
   { label: 'Контуры', href: '#product' },
-  { label: 'Доверие', href: '#proof' },
-  { label: 'Тарифы', href: '#pricing' },
+  { label: 'Команда', href: '#team' },
   { label: 'Пакеты', href: '#packages' },
-  { label: 'Запуск', href: '#launch' },
-  { label: 'FAQ', href: '#faq' },
   { label: 'Контакт', href: '#contact' },
 ];
 
@@ -59,6 +57,40 @@ const proofHighlights = [
   'График показывает задачи, сроки, статусы и фактический прогресс по объекту.',
   'Склад, платежи и заявки остаются в той же рабочей логике проекта.',
   'Можно пройти путь от заявки с площадки до контроля платежа.',
+];
+
+const painItems = [
+  {
+    title: 'Статусы живут в чатах',
+    text: 'Руководитель узнает реальное состояние объекта через звонки, пересланные фото и ручной свод к планерке.',
+  },
+  {
+    title: 'Снабжение отрывается от графика',
+    text: 'Заявки, остатки, закупки и платежи не связаны с этапами работ, поэтому дефицит материалов всплывает слишком поздно.',
+  },
+  {
+    title: 'Деньги не привязаны к объекту',
+    text: 'Платежи, договоры, акты и лимиты собираются в разных таблицах, а отклонения становятся видны уже после факта.',
+  },
+];
+
+const teamRoleItems = [
+  {
+    role: 'Руководитель',
+    text: 'Видит портфель объектов, деньги, риски и задержки без ручной консолидации отчетов.',
+  },
+  {
+    role: 'Прораб',
+    text: 'Ставит статусы, отправляет заявки и фиксирует работы с телефона прямо на площадке.',
+  },
+  {
+    role: 'Снабженец',
+    text: 'Понимает потребность по объектам, контролирует закупки, поставки и остатки материалов.',
+  },
+  {
+    role: 'Финансист',
+    text: 'Связывает платежи, документы, лимиты и обязательства с конкретными проектами.',
+  },
 ];
 
 const productScreenshots = [
@@ -117,62 +149,76 @@ const HomePage = () => {
         actions={[
           { label: 'Запросить демонстрацию', href: '#contact', primary: true },
           { label: 'Посмотреть пакеты', href: '#pricing' },
-          { label: 'Начать бесплатно', href: '/register?plan=free' },
         ]}
-        nav={homeSections}
         aside={
-          <div className="space-y-4">
-            <div className="overflow-hidden rounded-[1.75rem] border border-steel-200 bg-white shadow-sm">
-              <img
-                src={activeScreenshot.image}
-                alt={activeScreenshot.alt}
-                className="h-auto w-full object-cover"
-                loading="eager"
-                fetchPriority="high"
-              />
-              <div className="p-5">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                  Рабочий экран ProHelper
-                </div>
-                <div className="mt-2 text-lg font-bold text-steel-950">{activeScreenshot.title}</div>
-                <p className="mt-2 text-sm leading-7 text-steel-600">{activeScreenshot.description}</p>
-              </div>
-            </div>
-
-            <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
+          <div className="overflow-hidden rounded-[1.75rem] border border-steel-200 bg-white shadow-[0_30px_70px_rgba(15,23,42,0.1)]">
+            <img
+              src={activeScreenshot.image}
+              alt={activeScreenshot.alt}
+              className="h-auto w-full object-cover"
+              loading="eager"
+              fetchPriority="high"
+            />
+            <div className="p-5">
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                Что внутри ProHelper
+                Рабочий экран ProHelper
               </div>
-              <div className="mt-4 space-y-3">
-                {[
-                  'Объект, заявки и исполнение.',
-                  'Снабжение, материалы и склад.',
-                  'Финансы, документы и контроль.',
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                  >
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-1">
-              {marketingHeroFacts.map((fact) => (
-                <div key={fact.label} className="rounded-[1.5rem] border border-steel-200 bg-white p-5 shadow-sm">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-                    {fact.label}
-                  </div>
-                  <div className="mt-3 text-2xl font-bold text-steel-950">{fact.value}</div>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">{fact.detail}</p>
-                </div>
-              ))}
+              <div className="mt-2 text-lg font-bold text-steel-950">{activeScreenshot.title}</div>
+              <p className="mt-2 text-sm leading-7 text-steel-600">{activeScreenshot.description}</p>
             </div>
           </div>
         }
       />
+
+      <section className="border-b border-steel-100 bg-white py-8">
+        <div className="container-custom">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+            <div className="grid gap-3 sm:grid-cols-3">
+              {marketingHeroFacts.map((fact) => (
+                <article key={fact.label} className="rounded-[1.25rem] bg-concrete-50 px-4 py-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-steel-500">
+                    {fact.label}
+                  </div>
+                  <div className="mt-2 text-2xl font-bold text-steel-950">{fact.value}</div>
+                  <p className="mt-2 text-sm leading-6 text-steel-600">{fact.detail}</p>
+                </article>
+              ))}
+            </div>
+            <PageSectionNav items={homeSections} className="lg:max-w-[360px]" />
+          </div>
+        </div>
+      </section>
+
+      <section id="pain" className="py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Почему меняют таблицы"
+            title="Когда стройка живет в Excel, чатах и звонках, контроль появляется слишком поздно."
+            description="Главная ценность ProHelper — собрать операционный контур стройки так, чтобы решения принимались по актуальным данным, а не по ручному отчету."
+          />
+
+          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+            {painItems.map((item) => (
+              <article key={item.title} className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm">
+                <div className="text-xl font-bold text-steel-950">{item.title}</div>
+                <p className="mt-4 text-sm leading-7 text-steel-600">{item.text}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-8 rounded-[1.75rem] bg-steel-950 p-6 text-white lg:p-7">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
+              Что меняется
+            </div>
+            <div className="mt-3 max-w-4xl text-2xl font-bold leading-tight">
+              Объект, заявки, материалы, документы и деньги становятся частями одного маршрута.
+            </div>
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-white/72">
+              Команда видит не разрозненные файлы, а связанный процесс: что нужно сделать, кто отвечает, какие ресурсы нужны и где появляются отклонения.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <section id="audiences" className="py-16 lg:py-20">
         <div className="container-custom">
@@ -228,9 +274,9 @@ const HomePage = () => {
       <section id="product" className="bg-concrete-50 py-16 lg:py-20">
         <div className="container-custom">
           <SectionHeader
-            eyebrow="Контуры"
+            eyebrow="Что внутри"
             title="Один продукт для объекта, снабжения, финансов и корпоративного контроля."
-            description="На главной собраны основные контуры, с которых компании обычно начинают запуск."
+            description="Показываем не перечень функций, а рабочие контуры, которые связывают офис, площадку и руководителя."
           />
 
           <div className="mt-10 grid gap-5 xl:grid-cols-2">
@@ -254,7 +300,7 @@ const HomePage = () => {
       <section className="py-16 lg:py-20">
         <div className="container-custom">
           <SectionHeader
-            eyebrow="Популярные сценарии"
+            eyebrow="Сценарии"
             title="Отдельные страницы под роли, задачи и ключевые процессы стройки."
             description="Здесь можно сразу перейти к тому сценарию, который ближе всего к вашей роли, текущей задаче или формату работы компании."
           />
@@ -285,14 +331,14 @@ const HomePage = () => {
         </div>
       </section>
 
-            <section id="proof" className="py-16 lg:py-20">
+      <section id="proof" className="py-16 lg:py-20">
         <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.84fr)_minmax(0,1.16fr)]">
           <div className="flex flex-col justify-between">
             <div>
               <SectionHeader
-                eyebrow="Доверие"
-                title="Программа для контроля сроков, заявок, склада и платежей на стройке."
-                description="В одном месте видны задачи, сроки, критический путь и таймлайн по объекту."
+                eyebrow="Продукт в работе"
+                title="Сроки, заявки, склад и платежи сходятся в одной картине объекта."
+                description="Показываем на экранах, как выглядит связанный процесс: от графика и заявки до материалов и платежных документов."
               />
 
               <div className="mt-8 grid gap-3">
@@ -354,25 +400,46 @@ const HomePage = () => {
           </div>
         </div>
 
-        <div className="container-custom mt-14 lg:mt-16">
-          <div className="rounded-[2rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
-            <div className="grid gap-4 sm:grid-cols-3">
-              {marketingHeroFacts.map((fact) => (
-                <article key={fact.label} className="rounded-[1.25rem] bg-concrete-50 px-4 py-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-                    {fact.label}
-                  </div>
-                  <div className="mt-2 text-2xl font-bold text-steel-950">{fact.value}</div>
-                  <p className="mt-2 text-sm leading-6 text-steel-600">{fact.detail}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </div>
-
         <div className="container-custom mt-10 lg:mt-12">
           <div className="rounded-[2rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
             <TrustFactList items={marketingTrustFacts} />
+          </div>
+        </div>
+      </section>
+
+      <section id="team" className="bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Один сервис для команды"
+            title="Каждая роль видит свой участок, а руководитель — всю стройку целиком."
+            description="ProHelper не заменяет людей новым хаосом из экранов: он соединяет роли вокруг объекта, сроков, материалов и денег."
+          />
+
+          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {teamRoleItems.map((item) => (
+              <article key={item.role} className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+                  {item.role}
+                </div>
+                <p className="mt-4 text-sm leading-7 text-steel-700">{item.text}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-8 rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] xl:items-center">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
+                  Мобильный контур
+                </div>
+                <h2 className="mt-3 text-2xl font-bold leading-tight text-steel-950">
+                  Прораб работает на площадке, а офис сразу видит изменения.
+                </h2>
+              </div>
+              <p className="text-sm leading-7 text-steel-600">
+                Заявки, статусы, фотофиксация и замечания не теряются в мессенджерах. Полевой контур становится частью общего процесса, а не отдельным источником ручной отчетности.
+              </p>
+            </div>
           </div>
         </div>
       </section>
