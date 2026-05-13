@@ -8,7 +8,6 @@ export interface MarketingSitemapRoute {
 export interface MarketingRedirectRoute {
   path: string;
   target: string;
-  canonicalAlias?: boolean;
 }
 
 export const marketingSitemapRoutes: MarketingSitemapRoute[] = [
@@ -54,7 +53,7 @@ export const marketingNoIndexExactPaths = new Set([
 ]);
 
 export const marketingRedirectRoutes: MarketingRedirectRoute[] = [
-  { path: '/docs', target: '/features', canonicalAlias: true },
+  { path: '/docs', target: '/features' },
   { path: '/help', target: '/contact' },
   { path: '/terms', target: '/offer' },
   { path: '/press', target: '/about' },
