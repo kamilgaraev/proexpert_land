@@ -163,8 +163,10 @@ export const getPageSEOData = (page: string): PageSEOData => {
   const normalizedPath = normalizeMarketingPath(page);
   const pageKey = resolveMarketingSeoKey(normalizedPath);
   const resolvedCanonicalPath = resolveMarketingCanonicalPath(normalizedPath);
-  const canonicalPath = resolvedCanonicalPath === marketingPaths.home ? '' : resolvedCanonicalPath;
-  const canonicalUrl = `${BASE_URL}${canonicalPath}`;
+  const canonicalUrl =
+    resolvedCanonicalPath === marketingPaths.home
+      ? `${BASE_URL}/`
+      : `${BASE_URL}${resolvedCanonicalPath}`;
   const hasKnownRoute = isKnownMarketingPath(normalizedPath);
   const sitemapRoute = findMarketingSitemapRoute(normalizedPath);
 

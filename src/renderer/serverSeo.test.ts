@@ -8,7 +8,7 @@ describe('buildServerSeoPayload', () => {
     expect(payload.statusCode).toBe(200);
     expect(payload.allMeta).toContain('https://prohelper.pro/og/home.svg');
     expect(payload.structuredDataTag).toContain('"@type":"FAQPage"');
-    expect(payload.canonicalUrl).toBe('https://prohelper.pro');
+    expect(payload.canonicalUrl).toBe('https://prohelper.pro/');
   });
 
   it('renders cluster schema for commercial landing pages', () => {
