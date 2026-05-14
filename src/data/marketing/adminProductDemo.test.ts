@@ -38,7 +38,8 @@ describe('admin product demo content', () => {
   });
 
   it('makes demo data explicit to avoid misleading visitors', () => {
-    expect(adminProductDemoDisclaimer).toContain('Демо-интерфейс');
-    expect(adminProductDemoDisclaimer).toContain('Данные примерные');
+    expect(adminProductDemoDisclaimer).toContain('сокращенный пример');
+    expect(adminProductDemoDisclaimer).toContain('В личном кабинете ProHelper больше деталей');
+    expect(adminProductDemoDisclaimer).toContain('данные вашей компании');
   });
 });

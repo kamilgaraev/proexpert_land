@@ -40,7 +40,7 @@ export type AdminProductDemoFlow = {
 };
 
 export const adminProductDemoDisclaimer =
-  'Демо-интерфейс на основе админки ProHelper. Данные примерные.';
+  'На сайте показан сокращенный пример рабочего экрана. В личном кабинете ProHelper больше деталей: реальные объекты, роли команды, документы, настройки процессов и данные вашей компании.';
 
 export const adminProductDemoModules: AdminProductDemoModule[] = [
   {
