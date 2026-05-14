@@ -1,9 +1,10 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ContactForm from '@/components/landing/ContactForm';
 import CapabilityCard from '@/components/marketing/blocks/CapabilityCard';
 import CtaBand from '@/components/marketing/blocks/CtaBand';
 import FaqAccordion from '@/components/marketing/blocks/FaqAccordion';
+import AdminProductDemo from '@/components/marketing/blocks/AdminProductDemo';
 import MarketingPricingSnapshot from '@/components/marketing/blocks/MarketingPricingSnapshot';
 import PackageFamilyCard from '@/components/marketing/blocks/PackageFamilyCard';
 import TrustFactList from '@/components/marketing/blocks/TrustFactList';
@@ -33,6 +34,7 @@ import { useSEO } from '@/hooks/useSEO';
 
 const homeSections = [
   { label: 'Боли', href: '#pain' },
+  { label: 'Система', href: '#product-system' },
   { label: 'Для кого', href: '#audiences' },
   { label: 'Контуры', href: '#product' },
   { label: 'Команда', href: '#team' },
@@ -51,12 +53,6 @@ const contactHighlights = [
   'Покажем релевантный сценарий под ваш тип компании.',
   'Разберем, с какого контура лучше стартовать.',
   'Сразу обсудим сроки запуска и состав команды.',
-];
-
-const proofHighlights = [
-  'График показывает задачи, сроки, статусы и фактический прогресс по объекту.',
-  'Склад, платежи и заявки остаются в той же рабочей логике проекта.',
-  'Можно пройти путь от заявки с площадки до контроля платежа.',
 ];
 
 const painItems = [
@@ -121,8 +117,6 @@ const productScreenshots = [
 ];
 
 const HomePage = () => {
-  const [activeScreenshot, setActiveScreenshot] = useState(productScreenshots[0]);
-
   const { addFAQSchema } = useSEO({
     ...marketingSeo.home,
     type: 'website',
@@ -153,8 +147,8 @@ const HomePage = () => {
         aside={
           <div className="overflow-hidden rounded-[1.75rem] border border-steel-200 bg-white shadow-[0_30px_70px_rgba(15,23,42,0.1)]">
             <img
-              src={activeScreenshot.image}
-              alt={activeScreenshot.alt}
+              src={productScreenshots[0].image}
+              alt={productScreenshots[0].alt}
               className="h-auto w-full object-cover"
               loading="eager"
               fetchPriority="high"
@@ -163,8 +157,8 @@ const HomePage = () => {
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
                 Рабочий экран ProHelper
               </div>
-              <div className="mt-2 text-lg font-bold text-steel-950">{activeScreenshot.title}</div>
-              <p className="mt-2 text-sm leading-7 text-steel-600">{activeScreenshot.description}</p>
+              <div className="mt-2 text-lg font-bold text-steel-950">{productScreenshots[0].title}</div>
+              <p className="mt-2 text-sm leading-7 text-steel-600">{productScreenshots[0].description}</p>
             </div>
           </div>
         }
@@ -219,6 +213,8 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+      <AdminProductDemo />
 
       <section id="audiences" className="py-16 lg:py-20">
         <div className="container-custom">
@@ -294,6 +290,10 @@ const HomePage = () => {
               ]}
             />
           </div>
+
+          <div className="mt-8 rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
+            <TrustFactList items={marketingTrustFacts} />
+          </div>
         </div>
       </section>
 
@@ -327,82 +327,6 @@ const HomePage = () => {
                 { label: 'Исполнительная документация', href: marketingPaths.constructionDocuments },
               ]}
             />
-          </div>
-        </div>
-      </section>
-
-      <section id="proof" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.84fr)_minmax(0,1.16fr)]">
-          <div className="flex flex-col justify-between">
-            <div>
-              <SectionHeader
-                eyebrow="Продукт в работе"
-                title="Сроки, заявки, склад и платежи сходятся в одной картине объекта."
-                description="Показываем на экранах, как выглядит связанный процесс: от графика и заявки до материалов и платежных документов."
-              />
-
-              <div className="mt-8 grid gap-3">
-                {proofHighlights.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-[1.25rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                  >
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-          </div>
-
-          <div className="rounded-[2rem] border border-steel-200 bg-white p-2 shadow-[0_30px_70px_rgba(15,23,42,0.1)] lg:p-3">
-            <div className="overflow-hidden rounded-[1.5rem] border border-steel-100 bg-concrete-50">
-              <img
-                src={activeScreenshot.image}
-                alt={activeScreenshot.alt}
-                className="h-auto w-full object-cover"
-              />
-            </div>
-            <div className="px-3 py-4 lg:px-4">
-              <div className="text-lg font-bold text-steel-950">{activeScreenshot.title}</div>
-              <p className="mt-2 text-sm leading-7 text-steel-600">{activeScreenshot.description}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="container-custom mt-16 lg:mt-20">
-          <div className="grid gap-7 md:grid-cols-2 xl:grid-cols-4 xl:gap-8">
-            {productScreenshots.map((screenshot) => (
-              <button
-                type="button"
-                key={screenshot.title}
-                onClick={() => setActiveScreenshot(screenshot)}
-                onMouseEnter={() => setActiveScreenshot(screenshot)}
-                aria-pressed={activeScreenshot.title === screenshot.title}
-                className={`overflow-hidden rounded-[1.75rem] border bg-white text-left shadow-[0_22px_52px_rgba(15,23,42,0.08)] transition hover:-translate-y-1 hover:shadow-[0_28px_64px_rgba(15,23,42,0.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-construction-400 ${
-                  activeScreenshot.title === screenshot.title
-                    ? 'border-construction-300 ring-2 ring-construction-100'
-                    : 'border-steel-200'
-                }`}
-              >
-                <img
-                  src={screenshot.image}
-                  alt={screenshot.alt}
-                  className="aspect-[16/10] w-full object-cover"
-                  loading="lazy"
-                />
-                <div className="border-t border-steel-100 px-5 py-5">
-                  <h3 className="text-lg font-bold text-steel-950">{screenshot.title}</h3>
-                  <p className="mt-2 text-sm leading-7 text-steel-600">{screenshot.description}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="container-custom mt-10 lg:mt-12">
-          <div className="rounded-[2rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
-            <TrustFactList items={marketingTrustFacts} />
           </div>
         </div>
       </section>
