@@ -41,4 +41,12 @@ describe('AdminProductDemo', () => {
 
     expect(screen.getByRole('heading', { name: 'Сметы и версии' })).toBeInTheDocument();
   });
+
+  it('does not expose internal admin file paths in the public demo', () => {
+    const { container } = render(<AdminProductDemo />);
+
+    expect(container).not.toHaveTextContent(/prohelper_admin/i);
+    expect(container).not.toHaveTextContent(/src\/pages/i);
+    expect(container).not.toHaveTextContent(/src\/components/i);
+  });
 });
