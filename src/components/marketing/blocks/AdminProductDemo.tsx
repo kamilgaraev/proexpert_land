@@ -95,7 +95,7 @@ const AdminProductDemo = () => {
           <SectionHeader
             eyebrow="Платформа"
             title="Так выглядит рабочий контур в админке ProHelper."
-            description="Показываем не личный кабинет и не рекламный мокап, а упрощенную витрину реальной админской логики: меню, проектный контекст, статистику, фильтры, реестр и связанные действия."
+            description="Показываем не личный кабинет и не рекламную картинку, а упрощенную витрину реальной админской логики: меню, проектный контекст, статистику, фильтры, реестр и связанные действия."
           />
 
           <div className="grid gap-3 rounded-[18px] border border-steel-200 bg-[#f7f8fb] p-3 sm:grid-cols-3">
@@ -155,9 +155,9 @@ const AdminProductDemo = () => {
                 </div>
               </div>
 
-              <nav className="flex gap-2 overflow-x-auto p-3 xl:block xl:space-y-4 xl:overflow-visible xl:p-4">
+              <nav className="grid gap-3 p-3 sm:grid-cols-2 lg:grid-cols-4 xl:block xl:space-y-4 xl:p-4">
                 {moduleGroups.map((group) => (
-                  <div key={group.title} className="min-w-[240px] xl:min-w-0">
+                  <div key={group.title} className="min-w-0">
                     <div className="mb-2 px-2 text-[11px] font-bold uppercase tracking-[0.16em] text-steel-500">
                       {group.title}
                     </div>
