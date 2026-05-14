@@ -28,10 +28,8 @@ describe('admin product demo content', () => {
     }
   });
 
-  it('keeps every module grounded in admin source and business outcome', () => {
+  it('keeps every module grounded in business outcome', () => {
     for (const module of adminProductDemoModules) {
-      expect(module.adminRoute).toMatch(/^\//);
-      expect(module.adminSource).toContain('prohelper_admin/src/');
       expect(module.businessOutcome.length).toBeGreaterThan(20);
       expect(module.rows.length).toBeGreaterThanOrEqual(3);
     }

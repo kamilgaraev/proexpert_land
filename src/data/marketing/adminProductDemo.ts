@@ -17,8 +17,6 @@ export type AdminProductDemoModule = {
   title: string;
   shortTitle: string;
   contour: string;
-  adminRoute: string;
-  adminSource: string;
   businessOutcome: string;
   activeTab: string;
   notification: string;
@@ -48,8 +46,6 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Объекты',
     shortTitle: 'Объекты',
     contour: 'Портфель',
-    adminRoute: '/projects',
-    adminSource: 'prohelper_admin/src/pages/Projects',
     businessOutcome: 'Руководитель видит портфель объектов, ответственных, прогресс и зоны риска без ручного свода.',
     activeTab: 'Активные объекты',
     notification: 'На объекте ЖК "Северный" обновлен риск по срокам.',
@@ -69,8 +65,6 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'График и задачи',
     shortTitle: 'График',
     contour: 'Исполнение',
-    adminRoute: '/schedules',
-    adminSource: 'prohelper_admin/src/pages/Schedules',
     businessOutcome: 'Команда связывает сроки, зависимости, исполнителей и фактический прогресс по каждому этапу работ.',
     activeTab: 'План-факт',
     notification: 'Задача "Монтаж стояков" получила новую зависимость от поставки.',
@@ -90,8 +84,6 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Заявки с объекта',
     shortTitle: 'Заявки',
     contour: 'Поле',
-    adminRoute: '/site-requests',
-    adminSource: 'prohelper_admin/src/components/siteRequests',
     businessOutcome: 'Прораб передает потребности с площадки в офисный контур, а снабжение и финансы видят источник запроса.',
     activeTab: 'Новые и в работе',
     notification: 'Заявка на арматуру передана в закупку.',
@@ -111,8 +103,6 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Снабжение',
     shortTitle: 'Снабжение',
     contour: 'Закупки',
-    adminRoute: '/procurement/dashboard',
-    adminSource: 'prohelper_admin/src/pages/Procurement',
     businessOutcome: 'Потребность превращается в закупочную заявку, запрос поставщикам, сравнение предложений и заказ.',
     activeTab: 'Закупочный контур',
     notification: 'По заявке на арматуру выбран поставщик с поставкой за 2 дня.',
@@ -122,7 +112,7 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
       { label: 'Заказов', value: '14', tone: 'success' },
     ],
     rows: [
-      { title: 'Закупка арматуры A500C', meta: 'Источник: заявка с объекта', status: 'Сравнение КП', progress: 58, linkedTo: ['siteRequests', 'warehouse', 'payments'] },
+      { title: 'Закупка арматуры A500C', meta: 'Сформировано из заявки с объекта', status: 'Сравнение КП', progress: 58, linkedTo: ['siteRequests', 'warehouse', 'payments'] },
       { title: 'Поставка кабельной продукции', meta: 'БЦ "Меридиан", лимит согласован', status: 'Заказ поставщику', progress: 72, linkedTo: ['warehouse', 'payments'] },
       { title: 'Аренда опалубки', meta: 'Подрядчик и график привязаны', status: 'Договор поставки', progress: 49, linkedTo: ['contractors', 'schedule'] },
     ],
@@ -132,8 +122,6 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Склад и материалы',
     shortTitle: 'Склад',
     contour: 'Материалы',
-    adminRoute: '/warehouse',
-    adminSource: 'prohelper_admin/src/pages/Warehouse/WarehousePage.tsx',
     businessOutcome: 'Остатки, резервы, приемка и движение материалов остаются связанными с объектами и заявками.',
     activeTab: 'Остатки и операции',
     notification: 'Поставка арматуры принята и зарезервирована под корпус 2.',
@@ -153,8 +141,6 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Сметы и версии',
     shortTitle: 'Сметы',
     contour: 'ПТО',
-    adminRoute: '/projects/:projectId/estimates',
-    adminSource: 'prohelper_admin/src/pages/Estimates',
     businessOutcome: 'Сметные версии, позиции и аудит помогают связать плановую стоимость с графиком, работами и актами.',
     activeTab: 'Версии сметы',
     notification: 'Версия сметы В-04 передана в расчет выполненных работ.',
@@ -174,8 +160,6 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Платежи и финансы',
     shortTitle: 'Платежи',
     contour: 'Финансы',
-    adminRoute: '/payments/dashboard',
-    adminSource: 'prohelper_admin/src/components/payments',
     businessOutcome: 'Финансы видят платежи, согласования, лимиты и обязательства в связке с объектами и документами.',
     activeTab: 'Документы и контроль',
     notification: 'Платеж поставщику готов к согласованию после приемки на склад.',
@@ -195,8 +179,6 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Акты и выполненные работы',
     shortTitle: 'Акты',
     contour: 'Закрытие',
-    adminRoute: '/acts',
-    adminSource: 'prohelper_admin/src/components/acts',
     businessOutcome: 'Выполненные объемы превращаются в акты и платежные основания без разрыва со сметой и графиком.',
     activeTab: 'Акты и объемы',
     notification: 'Акт по фасадным работам связан с платежным документом.',
@@ -216,8 +198,6 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Подрядчики и бригады',
     shortTitle: 'Подрядчики',
     contour: 'Исполнители',
-    adminRoute: '/contractors',
-    adminSource: 'prohelper_admin/src/pages/Contractors',
     businessOutcome: 'Исполнители, бригады и договоренности видны в контексте объекта, графика, актов и оплат.',
     activeTab: 'Исполнители',
     notification: 'Бригада назначена на этап, график и акт обновлены.',
@@ -237,8 +217,6 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Документы и аналитика',
     shortTitle: 'Аналитика',
     contour: 'Контроль',
-    adminRoute: '/reports',
-    adminSource: 'prohelper_admin/src/pages/Reports',
     businessOutcome: 'Документы, исполнительная, отчеты и проектный пульс собирают управленческую картину по объектам.',
     activeTab: 'Отчеты и документы',
     notification: 'Проектный пульс обновил сводку по рискам и документам.',
