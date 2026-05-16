@@ -49,6 +49,18 @@ const overview = {
         'Понятная связь офиса и площадки',
       ],
       data_sources: [],
+      admin_entries: [
+        {
+          module_slug: 'machinery-operations',
+          label: 'Ресурсы → Техника',
+          path: '/machinery-operations',
+        },
+        {
+          module_slug: 'production-labor',
+          label: 'Ресурсы → Наряды и выработка',
+          path: '/production-labor',
+        },
+      ],
       capabilities: [],
       tiers: [
         {
@@ -262,6 +274,9 @@ describe('ModulesPage', () => {
     expect(screen.getByText('Единый контур объектов, договоров и исполнения')).toBeInTheDocument();
     expect(screen.getByText('Данные для аналитики')).toBeInTheDocument();
     expect(screen.getByText('Дашборды')).toBeInTheDocument();
+    expect(screen.getByText('Где искать в админке')).toBeInTheDocument();
+    expect(screen.getByText('Ресурсы → Техника')).toBeInTheDocument();
+    expect(screen.getByText('Ресурсы → Наряды и выработка')).toBeInTheDocument();
     expect(screen.getByText('AI-сценарии')).toBeInTheDocument();
     expect(screen.getByText('Вопросы по объектам')).toBeInTheDocument();
     expect(screen.queryByText(/foundation_modules|recommended_addons|data_sources|capabilities/)).not.toBeInTheDocument();

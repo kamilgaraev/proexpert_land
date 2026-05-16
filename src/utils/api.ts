@@ -2566,6 +2566,12 @@ export interface PackageCatalogLinkedItem {
   label: string;
 }
 
+export interface PackageCatalogAdminEntry {
+  module_slug: string;
+  label: string;
+  path: string;
+}
+
 export interface PackageCatalogCapability {
   key: string;
   label: string;
@@ -2594,6 +2600,7 @@ export interface ModulesOverviewSolution {
   recommended_addons: PackageCatalogLinkedItem[];
   business_outcomes: string[];
   data_sources: PackageCatalogLinkedItem[];
+  admin_entries?: PackageCatalogAdminEntry[];
   capabilities: PackageCatalogCapability[];
   tiers: ModulesOverviewTier[];
 }

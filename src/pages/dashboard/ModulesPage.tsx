@@ -118,6 +118,7 @@ const hasPackageDetails = (solution: ModulesOverviewSolution) => (
   || solution.recommended_addons.length > 0
   || solution.business_outcomes.length > 0
   || solution.data_sources.length > 0
+  || (solution.admin_entries?.length ?? 0) > 0
   || solution.capabilities.length > 0
 );
 
@@ -443,6 +444,9 @@ const PackageDetails = ({ solution }: { solution: ModulesOverviewSolution }) => 
     )}
     {solution.data_sources.length > 0 && (
       <PackageDetailBlock title="Данные для аналитики" items={solution.data_sources.map(item => item.label)} />
+    )}
+    {(solution.admin_entries?.length ?? 0) > 0 && (
+      <PackageDetailBlock title="Где искать в админке" items={(solution.admin_entries ?? []).map(item => item.label)} />
     )}
     {solution.capabilities.length > 0 && (
       <PackageDetailBlock title="AI-сценарии" items={solution.capabilities.map(item => item.label)} />
