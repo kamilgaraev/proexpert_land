@@ -4,24 +4,27 @@ import BlogArticleCard from './BlogArticleCard';
 import BlogPublicLayout from './BlogPublicLayout';
 import BlogSidebar from './BlogSidebar';
 import { getBlogListMeta } from './blogPresentation';
+import { filterBlogArticlesByTagSlug, getBlogTagDisplayName, getBlogTagSearchTerm, resolveBlogTagBySlug } from './blogTags';
 import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import { useSEO } from '@/hooks/useSEO';
-import type { BlogArticle } from '@/types/blog';
+import type { BlogArticle, BlogTag } from '@/types/blog';
 import { blogPublicApi } from '@/utils/blogPublicApi';
 
 const BlogTagPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [articles, setArticles] = useState<BlogArticle[]>([]);
+  const [tag, setTag] = useState<BlogTag | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const tagDisplayName = getBlogTagDisplayName(slug, tag);
 
   useSEO({
-    title: slug ? `Тег #${slug} - блог ProHelper` : 'Теги блога ProHelper',
-    description: slug ? `Подборка статей ProHelper по тегу #${slug}.` : 'Подборка статей ProHelper по тегам.',
-    keywords: slug ? `${slug}, блог ProHelper, строительство` : 'теги блога ProHelper',
+    title: tagDisplayName ? `Тег #${tagDisplayName} - блог ProHelper` : 'Теги блога ProHelper',
+    description: tagDisplayName ? `Подборка статей ProHelper по тегу #${tagDisplayName}.` : 'Подборка статей ProHelper по тегам.',
+    keywords: tagDisplayName ? `${tagDisplayName}, блог ProHelper, строительство` : 'теги блога ProHelper',
     noIndex: true,
     type: 'website',
   });
@@ -31,14 +34,28 @@ const BlogTagPage = () => {
       try {
         setLoading(true);
         setError(null);
+        setTag(null);
 
-        const response = await blogPublicApi.searchArticles(`#${slug}`, 12);
+        if (!slug) {
+          setArticles([]);
+          setHasMore(false);
+          setCurrentPage(1);
+          return;
+        }
+
+        const tagsResponse = await blogPublicApi.getTags(50);
+        const tagsData = (tagsResponse.data as { data: BlogTag[] }).data;
+        const resolvedTag = resolveBlogTagBySlug(tagsData, slug);
+        setTag(resolvedTag);
+
+        const response = await blogPublicApi.searchArticles(getBlogTagSearchTerm(slug, resolvedTag), 12);
         const payload = response.data as { data?: BlogArticle[] };
-        const nextArticles = payload.data || [];
+        const rawArticles = payload.data || [];
+        const nextArticles = filterBlogArticlesByTagSlug(rawArticles, slug);
 
         setArticles(nextArticles);
         setCurrentPage(1);
-        setHasMore(nextArticles.length === 12);
+        setHasMore(rawArticles.length === 12);
       } catch (fetchError) {
         console.error('Error fetching articles by tag:', fetchError);
         setError('Не удалось загрузить подборку по тегу.');
@@ -47,23 +64,28 @@ const BlogTagPage = () => {
       }
     };
 
-    if (slug) {
-      fetchArticles();
-    }
+    fetchArticles();
   }, [slug]);
 
   const handleLoadMore = async () => {
+    const searchTerm = getBlogTagSearchTerm(slug, tag);
+
+    if (!searchTerm) {
+      return;
+    }
+
     try {
       setLoadingMore(true);
 
       const nextPage = currentPage + 1;
-      const response = await blogPublicApi.searchArticles(`#${slug}`, nextPage * 12);
+      const response = await blogPublicApi.searchArticles(searchTerm, nextPage * 12);
       const payload = response.data as { data?: BlogArticle[] };
-      const nextArticles = payload.data || [];
+      const rawArticles = payload.data || [];
+      const nextArticles = filterBlogArticlesByTagSlug(rawArticles, slug);
 
       setArticles(nextArticles);
       setCurrentPage(nextPage);
-      setHasMore(nextArticles.length === nextPage * 12);
+      setHasMore(rawArticles.length === nextPage * 12);
     } catch (fetchError) {
       console.error('Error loading more tag articles:', fetchError);
       setError('Не удалось загрузить дополнительные статьи по тегу.');
@@ -75,7 +97,7 @@ const BlogTagPage = () => {
   return (
     <BlogPublicLayout
       eyebrow="Тег блога"
-      title={slug ? `Материалы по тегу #${slug}` : 'Материалы по тегу'}
+      title={tagDisplayName ? `Материалы по тегу #${tagDisplayName}` : 'Материалы по тегу'}
       description="Теги помогают быстро собрать статьи по одной узкой теме без лишних переходов по категориям."
       nav={[
         { label: 'Лента тега', href: '#blog-feed' },
@@ -126,7 +148,7 @@ const BlogTagPage = () => {
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
                 Лента тега
               </div>
-              <h2 className="mt-2 text-3xl font-bold text-steel-950">#{slug}</h2>
+              <h2 className="mt-2 text-3xl font-bold text-steel-950">#{tagDisplayName}</h2>
               <p className="mt-4 text-sm leading-7 text-steel-600">
                 {error ? error : getBlogListMeta(articles.length)}
               </p>

@@ -95,6 +95,22 @@ const server = setupServer(
       },
     }),
   ),
+  http.get('https://api.prohelper.pro/api/v1/blog/tags', ({ request }) => {
+    const url = new URL(request.url);
+
+    return HttpResponse.json({
+      success: true,
+      data: {
+        data: [
+          {
+            id: 5,
+            name: url.searchParams.get('limit') ?? 'missing-limit',
+            slug: 'pto',
+          },
+        ],
+      },
+    });
+  }),
 );
 
 beforeAll(() => {
@@ -132,5 +148,11 @@ describe('blogPublicApi', () => {
 
     expect(response.data.data).toHaveLength(1);
     expect(response.data.data[0]?.slug).toBe('operations');
+  });
+
+  it('passes tag list limit to the public tag endpoint', async () => {
+    const response = await blogPublicApi.getTags(50);
+
+    expect(response.data.data[0]?.name).toBe('50');
   });
 });

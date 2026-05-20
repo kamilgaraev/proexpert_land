@@ -75,8 +75,8 @@ export const blogPublicApi = {
     return wrapResourceCollectionPayload<BlogCategory>(response as { data: LandingEnvelope<{ data: BlogCategory[] }> });
   },
 
-  getTags: async (): Promise<ApiResult<WrappedItemPayload<BlogTag[]>>> => {
-    const response = await api.get('/tags');
+  getTags: async (limit = 20): Promise<ApiResult<WrappedItemPayload<BlogTag[]>>> => {
+    const response = await api.get(`/tags?limit=${limit}`);
 
     return wrapResourceCollectionPayload<BlogTag>(response as { data: LandingEnvelope<{ data: BlogTag[] }> });
   },
