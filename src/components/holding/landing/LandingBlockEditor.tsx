@@ -216,6 +216,8 @@ const SortableBlockItem: React.FC<SortableBlockItemProps> = ({
   setEditedContent,
   getBlockIcon,
 }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingBlock, setDeletingBlock] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: block.id,
   });
@@ -223,6 +225,18 @@ const SortableBlockItem: React.FC<SortableBlockItemProps> = ({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deletingBlock) return;
+
+    setDeletingBlock(true);
+    const success = await onDeleteBlock(block.id);
+    setDeletingBlock(false);
+
+    if (success) {
+      setDeleteDialogOpen(false);
+    }
   };
 
   return (
@@ -356,11 +370,7 @@ const SortableBlockItem: React.FC<SortableBlockItemProps> = ({
 
           {block.can_delete && (
             <button
-              onClick={() => {
-                if (confirm(`Удалить блок "${block.title}"? Это действие нельзя отменить.`)) {
-                  onDeleteBlock(block.id);
-                }
-              }}
+              onClick={() => setDeleteDialogOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors ml-auto"
             >
               <TrashIcon className="w-4 h-4" />
@@ -369,6 +379,33 @@ const SortableBlockItem: React.FC<SortableBlockItemProps> = ({
           )}
         </div>
       </div>
+
+      {deleteDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Удалить блок?</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Блок «{block.title}» будет удален из структуры лендинга. Это действие нельзя отменить.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={deletingBlock}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Отмена
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={deletingBlock}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deletingBlock ? 'Удаление...' : 'Удалить'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

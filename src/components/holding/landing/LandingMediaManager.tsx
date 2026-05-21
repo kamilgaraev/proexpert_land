@@ -45,6 +45,8 @@ export const LandingMediaManager: React.FC<Props> = ({
   const [selectedAsset, setSelectedAsset] = useState<LandingAsset | null>(null);
   const [editingAsset, setEditingAsset] = useState<LandingAsset | null>(null);
   const [editMetadata, setEditMetadata] = useState<any>({});
+  const [assetToDelete, setAssetToDelete] = useState<LandingAsset | null>(null);
+  const [deletingAsset, setDeletingAsset] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadContext, setUploadContext] = useState<AssetUsageContext>('general');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -81,6 +83,21 @@ export const LandingMediaManager: React.FC<Props> = ({
     if (success) {
       setEditingAsset(null);
       setEditMetadata({});
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!assetToDelete || deletingAsset) return;
+
+    setDeletingAsset(true);
+    const success = await onDelete(assetToDelete.id);
+    setDeletingAsset(false);
+
+    if (success) {
+      setAssetToDelete(null);
+      if (selectedAsset?.id === assetToDelete.id) {
+        setSelectedAsset(null);
+      }
     }
   };
 
@@ -262,9 +279,7 @@ export const LandingMediaManager: React.FC<Props> = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (confirm(`Удалить файл "${asset.filename}"?`)) {
-                      onDelete(asset.id);
-                    }
+                    setAssetToDelete(asset);
                   }}
                   className="p-1.5 bg-white rounded-lg shadow-lg hover:bg-red-50 transition-colors"
                   title="Удалить"
@@ -344,6 +359,33 @@ export const LandingMediaManager: React.FC<Props> = ({
                   Отмена
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {assetToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Удалить файл?</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Файл «{assetToDelete.filename}» будет удален из медиатеки лендинга.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setAssetToDelete(null)}
+                disabled={deletingAsset}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Отмена
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={deletingAsset}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deletingAsset ? 'Удаление...' : 'Удалить'}
+              </button>
             </div>
           </div>
         </div>
