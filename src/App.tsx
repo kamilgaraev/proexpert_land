@@ -32,6 +32,7 @@ import EmailSentPage from '@pages/dashboard/EmailSentPage';
 const VerifyEmailPage = lazy(() => import('@pages/dashboard/VerifyEmailPage'));
 const UserInvitationAcceptPage = lazy(() => import('@pages/dashboard/UserInvitationAcceptPage'));
 import DashboardProtectedRoute from '@components/DashboardProtectedRoute';
+import { HoldingPanelRouteGuard } from '@/components/multi-org/HoldingPanelRouteGuard';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 
 // Layouts - загружаем статически (нужны для структуры)
@@ -350,7 +351,9 @@ function App() {
         {/* Holding Panel v2.0 - Панель управления холдингом */}
         <Route path="/landing/multi-organization" element={
           <DashboardProtectedRoute>
-            <HoldingPanelLayout />
+            <HoldingPanelRouteGuard>
+              <HoldingPanelLayout />
+            </HoldingPanelRouteGuard>
           </DashboardProtectedRoute>
         }>
           <Route index element={<Navigate to="/landing/multi-organization/dashboard" replace />} />
