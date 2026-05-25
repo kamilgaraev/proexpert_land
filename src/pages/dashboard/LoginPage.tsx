@@ -16,9 +16,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EmailVerificationModal } from '@/components/dashboard/EmailVerificationModal';
 
-// We didn't create Checkbox yet, so I'll use a simple native one styled or quickly create it.
-// For now I will use a native input with tailwind classes or assume I can make a simple one.
-
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,7 +24,6 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
-  // const [showNetworkError, setShowNetworkError] = useState(false);
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -45,10 +41,9 @@ const LoginPage = () => {
     
     setError('');
     setIsLoading(true);
-    // setShowNetworkError(false);
-    
+
     try {
-      await login(email, password);
+      await login(email, password, rememberMe);
       navigate(from, { replace: true });
     } catch (err: any) {
       console.error('Ошибка входа:', err);
@@ -63,7 +58,6 @@ const LoginPage = () => {
         setShowEmailVerificationModal(true);
         setError('');
       } else if (err.message?.includes('Не удалось подключиться к серверу')) {
-        // setShowNetworkError(true);
         setError('Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.');
       } else if (err.message?.includes('Неверные учетные данные')) {
         setError('Неверный email или пароль');

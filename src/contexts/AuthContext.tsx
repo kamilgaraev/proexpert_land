@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { authService, LandingUser } from '@utils/api';
-import { clearAuthToken, clearPersistedAuthToken, getAuthToken, saveAuthToken } from '@utils/authTokenStorage';
+import { clearAuthToken, getAuthToken, saveAuthToken } from '@utils/authTokenStorage';
 
 export interface User extends Omit<LandingUser, 'email_verified_at'> {
   email_verified_at: string | null;
@@ -18,7 +18,7 @@ export interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   register: (formData: FormData) => Promise<void>;
   logout: () => void;
   fetchUser: () => Promise<void>;
@@ -40,9 +40,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(() => getAuthToken());
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    clearPersistedAuthToken();
-  }, []);
   const fetchUser = useCallback(async () => {
     if (typeof window === 'undefined') {
       return;
@@ -69,6 +66,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const checkAuth = async () => {
       try {
+        const existingToken = getAuthToken();
+
+        if (existingToken) {
+          setToken(existingToken);
+          await fetchUser();
+          return;
+        }
+
         const refreshResponse = await authService.refreshToken();
         const refreshedToken = refreshResponse.data?.data?.token;
 
@@ -89,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     void checkAuth();
   }, [fetchUser]);
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, rememberMe = false) => {
     setIsLoading(true);
 
     try {
@@ -101,7 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Токен не получен от сервера.');
       }
 
-      saveAuthToken(apiToken);
+      saveAuthToken(apiToken, rememberMe ? 'local' : 'session');
       setToken(apiToken);
 
       if (nextUser) {
@@ -136,7 +141,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Данные пользователя не получены от сервера после регистрации.');
       }
 
-      saveAuthToken(apiToken);
+      saveAuthToken(apiToken, 'session');
       setToken(apiToken);
       setUser(nextUser as unknown as User);
       window.dispatchEvent(new CustomEvent('user-login'));

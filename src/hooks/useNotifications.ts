@@ -121,7 +121,6 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
     const echo = getEcho();
     
     if (!echo) {
-      console.warn('⚠️ Echo не инициализирован (нет токена)');
       return;
     }
 

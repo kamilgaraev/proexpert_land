@@ -6,7 +6,7 @@
 import axios from 'axios';
 // @ts-ignore
 // import api_instance from './axiosConfig'; 
-import { attachAuthorizationHeader, clearAuthToken, getAuthToken, saveAuthToken } from './authTokenStorage';
+import { attachAuthorizationHeader, clearAuthToken, getAuthToken, saveAuthToken, type AuthTokenPersistence } from './authTokenStorage';
 import type { AdminFormData as AdminFormDataExternal, AdminUsersListResponse, AdminUserDetailResponse, AdminUserDeleteResponse } from '../types/admin';
 import NotificationService from '@components/shared/NotificationService';
 
@@ -48,8 +48,8 @@ const api = axios.create({
 });
 
 // Дополнительная функция для работы с токеном через разные типы хранилищ
-const saveTokenToMultipleStorages = (token: string) => {
-  saveAuthToken(token);
+const saveTokenToMultipleStorages = (token: string, persistence: AuthTokenPersistence = 'session') => {
+  saveAuthToken(token, persistence);
 };
 
 export const getTokenFromStorages = (): string | null => {

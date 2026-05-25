@@ -1,12 +1,56 @@
-let memoryToken: string | null = null;
+export type AuthTokenPersistence = 'memory' | 'session' | 'local';
 
 const legacyCookieName = 'authToken';
-const legacyStorageKeys = ['token', 'authToken'];
+const primaryStorageKey = 'authToken';
+const legacyStorageKeys = ['token', primaryStorageKey];
+
+const readPersistedAuthToken = (): string | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  for (const key of legacyStorageKeys) {
+    const sessionToken = window.sessionStorage.getItem(key);
+
+    if (sessionToken) {
+      return sessionToken;
+    }
+
+    const localToken = window.localStorage.getItem(key);
+
+    if (localToken) {
+      return localToken;
+    }
+  }
+
+  return null;
+};
+
+let memoryToken: string | null = readPersistedAuthToken();
 
 export const getAuthToken = (): string | null => memoryToken;
 
-export const saveAuthToken = (token: string | null | undefined): void => {
+export const saveAuthToken = (
+  token: string | null | undefined,
+  persistence: AuthTokenPersistence = 'session',
+): void => {
   memoryToken = token || null;
+
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  for (const key of legacyStorageKeys) {
+    window.localStorage.removeItem(key);
+    window.sessionStorage.removeItem(key);
+  }
+
+  if (!memoryToken || persistence === 'memory') {
+    return;
+  }
+
+  const storage = persistence === 'local' ? window.localStorage : window.sessionStorage;
+  storage.setItem(primaryStorageKey, memoryToken);
 };
 
 export const clearAuthToken = (): void => {
