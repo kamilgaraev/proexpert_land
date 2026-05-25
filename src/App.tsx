@@ -240,7 +240,16 @@ function App() {
           <Route path="help" element={<HelpPage />} />
           <Route path="support" element={<SupportPage />} />
           <Route path="faq" element={<FAQPage />} />
-          <Route path="limits" element={<SubscriptionLimitsPage />} />
+          <Route path="limits" element={
+            <ProtectedComponent
+              permission="billing.view"
+              role="organization_owner"
+              requireAll={false}
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <SubscriptionLimitsPage />
+            </ProtectedComponent>
+          } />
           <Route path="notifications" element={<NotificationsPage />} />
           
           {/* Маршруты управления организацией с проверкой прав */}
