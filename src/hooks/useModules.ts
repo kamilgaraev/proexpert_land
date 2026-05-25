@@ -5,6 +5,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 interface UseModulesOptions {
   autoRefresh?: boolean;
   refreshInterval?: number;
+  includeBilling?: boolean;
   onError?: (error: string) => void;
 }
 
@@ -41,6 +42,7 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
   const {
     autoRefresh = false,
     refreshInterval = 300000, // 5 минут
+    includeBilling = true,
     onError = null
   } = options;
 
@@ -118,7 +120,7 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
         newModulesService.getModules(),
         newModulesService.getActiveModules(),
         newModulesService.getExpiringModules(7),
-        newModulesService.getBillingInfo()
+        includeBilling ? newModulesService.getBillingInfo() : Promise.resolve(null)
       ]);
 
       if (modulesResponse.status === 200 && activeResponse.status === 200) {
@@ -158,7 +160,7 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
         }
 
         // Биллинг
-        const billingRaw = unwrap(billingResponse);
+        const billingRaw = includeBilling ? unwrap(billingResponse) : null;
         const billingData: ModuleBillingInfo | null = (billingRaw?.billing_info ?? billingRaw) || null;
 
         setState({
@@ -181,7 +183,7 @@ export const useModules = (options: UseModulesOptions = {}): UseModulesReturn =>
       handleError(error.message || 'Не удалось загрузить модули');
       isLoadingRef.current = false;
     }
-  }, [handleError, extractModulesFromCategories]);
+  }, [handleError, extractModulesFromCategories, includeBilling]);
 
   // Первоначальная загрузка
   useEffect(() => {

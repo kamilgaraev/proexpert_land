@@ -38,13 +38,8 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { balance: actualBalance, error: balanceError, refresh: refreshBalance } = useBalance();
   const { shouldShowOnboarding, hideOnboarding, skipOnboarding } = useProfileOnboarding();
   const { profile, fetchProfile } = useOrganizationProfile();
-  const { activeModules, expiringModules, hasExpiring } = useModules({
-    autoRefresh: true,
-    refreshInterval: 900000,
-  });
 
   useEffect(() => {
     fetchProfile();
@@ -71,6 +66,16 @@ const DashboardLayout = () => {
     useCanAccess({ permission: 'modules.manage' }) ||
     useCanAccess({ role: 'organization_owner' }) ||
     useCanAccess({ role: 'organization_admin' });
+
+  const { balance: actualBalance, error: balanceError, refresh: refreshBalance } = useBalance({
+    enabled: canViewBilling,
+  });
+
+  const { activeModules, expiringModules, hasExpiring } = useModules({
+    autoRefresh: true,
+    refreshInterval: 900000,
+    includeBilling: canViewBilling,
+  });
 
   const canInviteUsers =
     useCanAccess({ permission: 'users.invite' }) ||
@@ -281,6 +286,7 @@ const DashboardLayout = () => {
       <div className="flex flex-1 flex-col md:pl-72">
         <Header
           user={user}
+          showBalance={canViewBilling}
           balance={actualBalance}
           balanceError={balanceError}
           refreshBalance={refreshBalance}

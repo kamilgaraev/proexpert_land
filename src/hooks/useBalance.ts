@@ -6,6 +6,10 @@ import {
   normalizeOrganizationBalanceResponse,
 } from '@utils/api';
 
+interface UseBalanceOptions {
+  enabled?: boolean;
+}
+
 interface UseBalanceReturn {
   balance: OrganizationBalance | null;
   error: string | null;
@@ -14,7 +18,8 @@ interface UseBalanceReturn {
   triggerRefresh: () => void;
 }
 
-export const useBalance = (): UseBalanceReturn => {
+export const useBalance = (options: UseBalanceOptions = {}): UseBalanceReturn => {
+  const { enabled = true } = options;
   const [balance, setBalance] = useState<OrganizationBalance | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,6 +27,7 @@ export const useBalance = (): UseBalanceReturn => {
   const isLoadingRef = useRef(false);
 
   const fetchBalance = useCallback(async (force = false) => {
+    if (!enabled) return;
     if (!force && (loadedRef.current || isLoadingRef.current)) return;
 
     isLoadingRef.current = true;
@@ -56,11 +62,12 @@ export const useBalance = (): UseBalanceReturn => {
       setIsLoading(false);
       isLoadingRef.current = false;
     }
-  }, []);
+  }, [enabled]);
 
   const refresh = useCallback(async () => {
+    if (!enabled) return;
     await fetchBalance(true);
-  }, [fetchBalance]);
+  }, [enabled, fetchBalance]);
 
   const triggerRefresh = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -69,12 +76,20 @@ export const useBalance = (): UseBalanceReturn => {
   }, []);
 
   useEffect(() => {
+    if (!enabled) {
+      loadedRef.current = false;
+      setBalance(null);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
     fetchBalance();
-  }, [fetchBalance]);
+  }, [enabled, fetchBalance]);
 
   useEffect(() => {
     // Проверка на SSR
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || !enabled) {
       return;
     }
 
@@ -112,7 +127,7 @@ export const useBalance = (): UseBalanceReturn => {
       window.removeEventListener('organization-changed', handleRefreshRequest);
       window.removeEventListener('user-login', handleRefreshRequest);
     };
-  }, [refresh, fetchBalance]);
+  }, [enabled, refresh, fetchBalance]);
 
   return {
     balance,

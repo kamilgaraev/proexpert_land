@@ -4,6 +4,7 @@ import { billingService, SubscriptionLimitsResponse, SubscriptionWarning, ErrorR
 interface UseSubscriptionLimitsOptions {
   autoRefresh?: boolean;
   refreshInterval?: number;
+  enabled?: boolean;
   onWarning?: (warnings: SubscriptionWarning[]) => void;
   onCritical?: (warnings: SubscriptionWarning[]) => void;
 }
@@ -96,13 +97,14 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
   const {
     autoRefresh = false,
     refreshInterval = 300000, // 5 минут
+    enabled = true,
     onWarning = null,
     onCritical = null
   } = options;
 
   const [state, setState] = useState<UseSubscriptionLimitsState>({
     data: null,
-    loading: true,
+    loading: enabled,
     error: null,
     lastUpdated: null
   });
@@ -118,6 +120,11 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
   });
 
   const fetchLimits = useCallback(async () => {
+    if (!enabled) {
+      setState(prev => ({ ...prev, loading: false, error: null }));
+      return;
+    }
+
     if (isLoadingRef.current) {
       return; // Предотвращаем множественные запросы
     }
@@ -170,27 +177,34 @@ export const useSubscriptionLimits = (options: UseSubscriptionLimitsOptions = {}
       }));
       isLoadingRef.current = false;
     }
-  }, []);
+  }, [enabled]);
 
   // Первоначальная загрузка
   useEffect(() => {
+    if (!enabled) {
+      setState(prev => ({ ...prev, loading: false, error: null }));
+      return;
+    }
+
     fetchLimits();
-  }, [fetchLimits]);
+  }, [enabled, fetchLimits]);
 
   // Автообновление
   useEffect(() => {
-    if (autoRefresh && refreshInterval > 0) {
+    if (enabled && autoRefresh && refreshInterval > 0) {
       const interval = setInterval(fetchLimits, refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [autoRefresh, refreshInterval, fetchLimits]);
+  }, [enabled, autoRefresh, refreshInterval, fetchLimits]);
 
   const refresh = useCallback(() => {
+    if (!enabled) return;
+
     if (!isLoadingRef.current) {
       setState(prev => ({ ...prev, loading: true }));
       fetchLimits();
     }
-  }, [fetchLimits]);
+  }, [enabled, fetchLimits]);
 
   // Вспомогательные геттеры
   const hasSubscription = state.data?.has_subscription || false;

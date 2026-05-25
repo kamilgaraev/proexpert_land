@@ -24,6 +24,7 @@ import { MobileSidebar } from './sidebar';
 
 interface HeaderProps {
   user: any;
+  showBalance?: boolean;
   balance: any;
   balanceError: any;
   refreshBalance: () => void;
@@ -34,6 +35,7 @@ interface HeaderProps {
 
 export function Header({ 
   user, 
+  showBalance = true,
   balance, 
   balanceError, 
   refreshBalance, 
@@ -81,7 +83,7 @@ export function Header({
             />
           </div>
 
-          {/* Balance Widget */}
+          {showBalance && (
            <Link 
                 to="/dashboard/billing" 
                 className="hidden sm:flex items-center px-3 py-1.5 bg-gradient-to-r from-safety-500/10 to-safety-600/10 hover:from-safety-500/20 hover:to-safety-600/20 border border-safety-200 rounded-lg transition-all group"
@@ -110,6 +112,7 @@ export function Header({
                      </span>
                 </div>
             </Link>
+          )}
 
             {/* Notifications */}
             <div className="flex items-center">

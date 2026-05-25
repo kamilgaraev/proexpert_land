@@ -22,6 +22,7 @@ import type { LandingDashboardResponse } from '@utils/api';
 import LineChart from '@components/dashboard/LineChart';
 import DonutStatusChart from '@components/dashboard/DonutStatusChart';
 import { useSubscriptionLimits } from '@hooks/useSubscriptionLimits';
+import { useCanAccess, usePermissionsReady } from '@/hooks/usePermissions';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,27 +35,38 @@ const DashboardPage = () => {
   const [dashboard, setDashboard] = useState<any>(null);
   // const [dashboardLoading, setDashboardLoading] = useState(true);
   // const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const permissionsReady = usePermissionsReady();
+  const canViewBilling =
+    useCanAccess({ permission: 'billing.manage' }) ||
+    useCanAccess({ permission: 'billing.view' }) ||
+    useCanAccess({ role: 'organization_owner' }) ||
+    useCanAccess({ role: 'accountant' });
 
   const { 
     hasWarnings, 
     criticalWarnings, 
     // needsUpgrade 
   } = useSubscriptionLimits({
-    autoRefresh: true,
+    enabled: permissionsReady && canViewBilling,
+    autoRefresh: permissionsReady && canViewBilling,
     refreshInterval: 300000,
     onCritical: () => {},
     onWarning: () => {}
   });
 
   useEffect(() => {
+    if (!permissionsReady) {
+      return;
+    }
+
     (async () => {
       try {
-        const [{ data: landing }, { data: planData }] = await Promise.all([
+        const [{ data: landing }, planResponse] = await Promise.all([
           landingService.getLandingDashboard(),
-          billingService.getOrgDashboard(),
+          canViewBilling ? billingService.getOrgDashboard() : Promise.resolve(null),
         ]);
         setLandingData(landing);
-        setDashboard(planData);
+        setDashboard(planResponse?.data ?? null);
         // setDashboardError(null);
         // setDashboardLoading(false);
       } catch (e: any) {
@@ -62,7 +74,7 @@ const DashboardPage = () => {
         // setDashboardLoading(false);
       }
     })();
-  }, []);
+  }, [permissionsReady, canViewBilling]);
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(val);
 
