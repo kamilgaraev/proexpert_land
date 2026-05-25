@@ -17,6 +17,16 @@ if (typeof window !== 'undefined') {
 
 let echoInstance: any = null;
 
+export const resolveReverbAppKey = (value: unknown): string | null => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const key = value.trim();
+
+  return key.length > 0 ? key : null;
+};
+
 const getEcho = () => {
   // SSR-safe: Echo работает только на клиенте
   if (typeof window === 'undefined') {
@@ -31,11 +41,18 @@ const getEcho = () => {
       return null;
     }
 
+    const appKey = resolveReverbAppKey(import.meta.env.VITE_REVERB_APP_KEY);
+
+    if (!appKey) {
+      debugPermissions('Echo initialization skipped: Reverb app key is missing');
+      return null;
+    }
+
     debugPermissions('Initializing Echo with auth token');
     
     echoInstance = new Echo({
       broadcaster: 'reverb',
-      key: import.meta.env.VITE_REVERB_APP_KEY || '',
+      key: appKey,
       wsHost: import.meta.env.VITE_REVERB_HOST || 'api.prohelper.pro',
       wsPort: import.meta.env.VITE_REVERB_PORT || 443,
       wssPort: import.meta.env.VITE_REVERB_PORT || 443,
