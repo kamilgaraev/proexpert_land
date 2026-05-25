@@ -150,6 +150,51 @@ describe('blogPublicApi', () => {
     expect(response.data.data[0]?.slug).toBe('operations');
   });
 
+  it('unwraps direct resource arrays returned by public list endpoints', async () => {
+    server.use(
+      http.get('https://api.prohelper.pro/api/v1/blog/categories', () =>
+        HttpResponse.json({
+          success: true,
+          data: [articleFixture.category],
+        }),
+      ),
+      http.get('https://api.prohelper.pro/api/v1/blog/tags', () =>
+        HttpResponse.json({
+          success: true,
+          data: [
+            {
+              id: 5,
+              name: 'cms',
+              slug: 'cms',
+            },
+          ],
+        }),
+      ),
+      http.get('https://api.prohelper.pro/api/v1/blog/articles/popular', () =>
+        HttpResponse.json({
+          success: true,
+          data: [articleFixture],
+        }),
+      ),
+      http.get('https://api.prohelper.pro/api/v1/blog/search', () =>
+        HttpResponse.json({
+          success: true,
+          data: [articleFixture],
+        }),
+      ),
+    );
+
+    const categoriesResponse = await blogPublicApi.getCategories();
+    const tagsResponse = await blogPublicApi.getTags(50);
+    const popularResponse = await blogPublicApi.getPopularArticles(1);
+    const searchResponse = await blogPublicApi.searchArticles('cms', 1);
+
+    expect(categoriesResponse.data.data[0]?.slug).toBe('operations');
+    expect(tagsResponse.data.data[0]?.slug).toBe('cms');
+    expect(popularResponse.data.data[0]?.slug).toBe('draft-article');
+    expect(searchResponse.data.data[0]?.slug).toBe('draft-article');
+  });
+
   it('passes tag list limit to the public tag endpoint', async () => {
     const response = await blogPublicApi.getTags(50);
 

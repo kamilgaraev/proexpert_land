@@ -23,6 +23,7 @@ type BlogPaginationLinks = BlogPaginatedResponse<BlogArticle>['links'];
 type LandingEnvelope<T> = BlogApiResponse<T>;
 type WrappedCollectionPayload<T> = { data: T[]; meta?: BlogPaginationMeta; links?: BlogPaginationLinks };
 type WrappedItemPayload<T> = { data: T };
+type ResourceCollectionPayload<T> = T[] | { data?: T[] };
 type ApiResult<T> = { data: T };
 
 const unwrapCollectionPayload = <T>(response: { data: LandingEnvelope<WrappedCollectionPayload<T>> }): ApiResult<WrappedCollectionPayload<T>> => ({
@@ -33,10 +34,18 @@ const wrapItemPayload = <T>(response: { data: LandingEnvelope<T> }): ApiResult<W
   data: { data: response.data.data },
 });
 
+const toCollection = <T>(payload: ResourceCollectionPayload<T>): T[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  return Array.isArray(payload.data) ? payload.data : [];
+};
+
 const wrapResourceCollectionPayload = <T>(
-  response: { data: LandingEnvelope<{ data: T[] }> },
+  response: { data: LandingEnvelope<ResourceCollectionPayload<T>> },
 ): ApiResult<WrappedItemPayload<T[]>> => ({
-  data: { data: response.data.data.data },
+  data: { data: toCollection(response.data.data) },
 });
 
 export const blogPublicApi = {
