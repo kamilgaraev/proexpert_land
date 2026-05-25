@@ -1,11 +1,18 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  billingService,
   createFetchResponse,
   getBalanceTransactionDescription,
   normalizeBalanceTransactionsResponse,
   normalizeOrganizationBalanceResponse,
 } from './api';
+import { clearAuthToken, saveAuthToken } from './authTokenStorage';
+
+afterEach(() => {
+  clearAuthToken();
+  vi.unstubAllGlobals();
+});
 
 describe('createFetchResponse', () => {
   it('creates a typed axios-like response for fetch payloads', () => {
@@ -94,5 +101,32 @@ describe('billing response normalizers', () => {
       meta: { type: 'contractor_referral_reward' },
       created_at: '2026-05-08T10:00:00+03:00',
     })).toBe('Бонус за приглашенную организацию');
+  });
+});
+
+describe('billingService', () => {
+  it('loads organization dashboard from the landing billing dashboard endpoint', async () => {
+    saveAuthToken('test-token');
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ data: { ok: true } }), {
+      status: 200,
+      statusText: 'OK',
+      headers: {
+        'content-type': 'application/json',
+      },
+    }));
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    await billingService.getOrgDashboard();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.prohelper.pro/api/v1/landing/billing/dashboard',
+      expect.objectContaining({
+        method: 'GET',
+        headers: expect.objectContaining({
+          Authorization: 'Bearer test-token',
+        }),
+      }),
+    );
   });
 });

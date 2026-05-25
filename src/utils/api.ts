@@ -1531,7 +1531,7 @@ export const billingService = {
   getOrgDashboard: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const token = getTokenFromStorages();
     if (!token) throw new Error('Токен авторизации отсутствует');
-    const url = `${BILLING_API_URL}/org-dashboard`;
+    const url = `${BILLING_API_URL}/dashboard`;
     const options: RequestInit = {
       method: 'GET',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
