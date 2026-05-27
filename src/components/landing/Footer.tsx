@@ -113,7 +113,7 @@ const Footer = () => {
             <div className="flex items-center gap-4">
               <img
                 src="/logo-white.svg"
-                alt=""
+                alt="ProHelper"
                 className="h-14 w-14 shrink-0 object-contain"
               />
               <div>

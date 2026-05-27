@@ -85,7 +85,7 @@ export const useSEO = (props: UseSEOProps = {}) => {
       title: props.title ?? pageData.title,
       description: props.description ?? pageData.description,
       keywords: props.keywords ?? pageData.keywords,
-      ogImage: props.ogImage ?? pageData.ogImage ?? `${BASE_URL}/logo.svg`,
+      ogImage: props.ogImage ?? pageData.ogImage ?? `${BASE_URL}/og/default.png`,
       type: props.type ?? 'website',
       author: props.author ?? 'ProHelper',
       publishedTime: props.publishedTime,
@@ -108,6 +108,8 @@ export const useSEO = (props: UseSEOProps = {}) => {
     setMetaTag('og:title', finalData.title, true);
     setMetaTag('og:description', finalData.description, true);
     setMetaTag('og:image', finalData.ogImage, true);
+    setMetaTag('og:image:type', 'image/png', true);
+    setMetaTag('og:image:alt', finalData.title, true);
     setMetaTag('og:url', currentUrl, true);
     setMetaTag('og:type', finalData.type, true);
     setMetaTag('og:site_name', 'ProHelper', true);
@@ -117,6 +119,7 @@ export const useSEO = (props: UseSEOProps = {}) => {
     setMetaTag('twitter:title', finalData.title);
     setMetaTag('twitter:description', finalData.description);
     setMetaTag('twitter:image', finalData.ogImage);
+    setMetaTag('twitter:image:alt', finalData.title);
     setMetaTag('twitter:url', currentUrl);
 
     if (finalData.publishedTime) {

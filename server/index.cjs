@@ -24,6 +24,23 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (url === '/llms.txt') {
+    const llmsFilePath = path.join(distDir, 'llms.txt');
+
+    if (!fs.existsSync(llmsFilePath) || !fs.statSync(llmsFilePath).isFile()) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Not found');
+      return;
+    }
+
+    res.writeHead(200, {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600',
+    });
+    fs.createReadStream(llmsFilePath).pipe(res);
+    return;
+  }
+
   const staticFilePath = path.join(distDir, url);
   if (fs.existsSync(staticFilePath) && fs.statSync(staticFilePath).isFile()) {
     const ext = path.extname(staticFilePath).toLowerCase();
@@ -33,6 +50,7 @@ const server = http.createServer(async (req, res) => {
       '.css': 'text/css',
       '.json': 'application/json',
       '.webmanifest': 'application/manifest+json',
+      '.txt': 'text/plain; charset=utf-8',
       '.svg': 'image/svg+xml',
       '.png': 'image/png',
       '.jpg': 'image/jpeg',

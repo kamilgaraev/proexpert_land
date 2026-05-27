@@ -17,7 +17,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   title = 'ProHelper - Умная платформа для управления строительными проектами',
   description = 'Автоматизируйте строительные процессы с ProHelper: учет материалов, контроль бюджета, координация команд и отчетность в одной платформе.',
   keywords = 'строительство, управление проектами, учет материалов, строительная отчетность, SaaS для строителей, автоматизация строительства, финансовый контроль, ProHelper',
-  ogImage = 'https://prohelper.pro/logo.svg',
+  ogImage = 'https://prohelper.pro/og/default.png',
   canonicalUrl,
   type = 'website',
   author = 'ProHelper Team',
@@ -71,6 +71,8 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag('og:title', title, true);
     setMetaTag('og:description', description, true);
     setMetaTag('og:image', ogImage, true);
+    setMetaTag('og:image:type', 'image/png', true);
+    setMetaTag('og:image:alt', title, true);
     setMetaTag('og:url', currentUrl, true);
     setMetaTag('og:type', type, true);
     setMetaTag('og:site_name', 'ProHelper', true);
@@ -80,6 +82,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag('twitter:title', title, true);
     setMetaTag('twitter:description', description, true);
     setMetaTag('twitter:image', ogImage, true);
+    setMetaTag('twitter:image:alt', title, true);
     setMetaTag('twitter:url', currentUrl, true);
 
     if (publishedTime) {

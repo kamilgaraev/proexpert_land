@@ -1,44 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg-material-accounting" x1="600" y1="0" x2="600" y2="630" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#102A43" />
-      <stop offset="1" stop-color="#0B1F33" />
+    <linearGradient id="panel-material-accounting" x1="760" y1="82" x2="1128" y2="548" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#123044" />
+      <stop offset="1" stop-color="#0F172A" />
     </linearGradient>
-    <radialGradient id="glow-material-accounting" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1015 102) rotate(123.5) scale(472 472)">
-      <stop stop-color="#0EA5E9" stop-opacity="0.35" />
-      <stop offset="1" stop-color="#0EA5E9" stop-opacity="0" />
-    </radialGradient>
-    <linearGradient id="line-material-accounting" x1="0" y1="0" x2="1" y2="0">
-      <stop stop-color="#0EA5E9" />
-      <stop offset="1" stop-color="#BAE6FD" />
+    <linearGradient id="accent-material-accounting" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#0F766E" />
+      <stop offset="1" stop-color="#99F6E4" />
     </linearGradient>
     <style>
-      .eyebrow { font: 700 18px 'Segoe UI', 'Arial', sans-serif; letter-spacing: 0.16em; fill: #F8FAFC; }
-      .brand-secondary { font: 600 14px 'Segoe UI', 'Arial', sans-serif; letter-spacing: 0.24em; fill: #CBD5E1; }
-      .title { font: 700 54px 'Segoe UI', 'Arial', sans-serif; fill: #F8FAFC; }
-      .subtitle { font: 500 24px 'Segoe UI', 'Arial', sans-serif; fill: #E5E7EB; }
-      .meta { font: 600 18px 'Segoe UI', 'Arial', sans-serif; fill: #CBD5E1; letter-spacing: 0.03em; }
-      .mark { font-family: 'Segoe UI', 'Arial', sans-serif; font-weight: 800; fill: #BAE6FD; opacity: 0.14; }
-      .mark-caption { font: 700 16px 'Segoe UI', 'Arial', sans-serif; fill: #E2E8F0; letter-spacing: 0.18em; }
-      .mark-support { font: 500 18px 'Segoe UI', 'Arial', sans-serif; fill: #CBD5E1; }
+      .brand { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 0.22em; fill: #102A43; }
+      .domain { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.24em; fill: #486581; }
+      .title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 52px; font-weight: 800; fill: #102A43; }
+      .subtitle { font-family: 'Segoe UI', Arial, sans-serif; font-size: 25px; font-weight: 600; fill: #486581; }
+      .footer { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 700; fill: #102A43; }
+      .panel-title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 0.14em; fill: #F8FAFC; }
+      .panel-copy { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #CBD5E1; }
+      .capability { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 700; fill: #F8FAFC; }
+      .stamp { font-family: 'Segoe UI', Arial, sans-serif; font-size: 44px; font-weight: 900; letter-spacing: 0.04em; fill: #F8FAFC; opacity: 0.08; }
     </style>
   </defs>
-  <rect width="1200" height="630" fill="url(#bg-material-accounting)" />
-  <circle cx="1015" cy="102" r="236" fill="url(#glow-material-accounting)" />
-  <circle cx="1038" cy="484" r="172" fill="#0EA5E9" fill-opacity="0.07" />
-  <rect x="76" y="74" width="676" height="482" rx="36" fill="#17314F" fill-opacity="0.9" stroke="#BAE6FD" stroke-opacity="0.24" stroke-width="1.5" />
-  <rect x="108" y="116" width="208" height="48" rx="24" fill="#0EA5E9" />
-  <text x="132" y="147" class="eyebrow">СНАБЖЕНИЕ</text>
-  <text x="340" y="147" class="brand-secondary">PROHELPER.PRO</text>
-  <text x="108" y="250" class="title">Учет материалов в</text>
-<text x="108" y="318" class="title">строительстве</text>
-  <text x="108" y="420" class="subtitle">Заявки, поставки, остатки и склад по объектам</text>
-  <rect x="108" y="494" width="248" height="6" rx="3" fill="url(#line-material-accounting)" />
-  <text x="108" y="536" class="meta">Единая система для стройки, документов и финансов</text>
-  <text x="808" y="222" class="mark" font-size="92" letter-spacing="0.08em">СНАБЖЕНИЕ</text>
-  <rect x="808" y="258" width="212" height="2" rx="1" fill="#BAE6FD" fill-opacity="0.36" />
-  <text x="808" y="306" class="mark-caption">СТРОИТЕЛЬНЫЙ СОФТ</text>
-  <text x="808" y="346" class="mark-support">Контроль объектов, процессов и команды</text>
-  <text x="808" y="382" class="mark-support">prohelper.pro</text>
+  <rect width="1200" height="630" fill="#F8FAFC" />
+  <path d="M696 0H1200V630H620C724 496 751 334 696 0Z" fill="#EAF4FB" />
+  <path d="M82 514H602" stroke="#CBD5E1" stroke-width="1" stroke-opacity="0.6" />
+  <path d="M82 548H528" stroke="#E2E8F0" stroke-width="1" />
+  <circle cx="1046" cy="98" r="142" fill="#0F766E" fill-opacity="0.10" />
+  <circle cx="1002" cy="520" r="186" fill="#99F6E4" fill-opacity="0.18" />
+  <rect x="760" y="78" width="368" height="474" rx="34" fill="url(#panel-material-accounting)" />
+  <path d="M814 158H1080" stroke="#99F6E4" stroke-width="2" stroke-opacity="0.35" />
+  <text x="802" y="144" class="panel-title">ЕДИНЫЙ КОНТУР</text>
+  <text x="802" y="184" class="panel-copy">для строительных процессов</text>
+  <g>
+    <rect x="802" y="222" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#99F6E4" stroke-opacity="0.18" />
+    <circle cx="830" cy="246" r="5" fill="#99F6E4" />
+    <text x="850" y="253" class="capability">Заявки</text>
+  </g>
+<g>
+    <rect x="802" y="286" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#99F6E4" stroke-opacity="0.18" />
+    <circle cx="830" cy="310" r="5" fill="#99F6E4" />
+    <text x="850" y="317" class="capability">Поставки</text>
+  </g>
+<g>
+    <rect x="802" y="350" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#99F6E4" stroke-opacity="0.18" />
+    <circle cx="830" cy="374" r="5" fill="#99F6E4" />
+    <text x="850" y="381" class="capability">Остатки</text>
+  </g>
+<g>
+    <rect x="802" y="414" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#99F6E4" stroke-opacity="0.18" />
+    <circle cx="830" cy="438" r="5" fill="#99F6E4" />
+    <text x="850" y="445" class="capability">Склад</text>
+  </g>
+  <text x="798" y="520" class="stamp">PROHELPER</text>
+  <rect x="82" y="86" width="210" height="48" rx="24" fill="#0F766E" />
+  <text x="108" y="117" class="brand" fill="#FFFFFF">МАТЕРИАЛЫ</text>
+  <text x="318" y="117" class="domain">PROHELPER.PRO</text>
+  <text x="82" y="214" class="title">Учет материалов в</text>
+<text x="82" y="278" class="title">строительстве</text>
+  <text x="82" y="370" class="subtitle">Заявки, поставки, остатки и склад по объектам</text>
+  <rect x="82" y="468" width="254" height="7" rx="3.5" fill="url(#accent-material-accounting)" />
+  <text x="82" y="536" class="footer">Объекты, документы, команда и финансы в одной системе</text>
+  <text x="82" y="572" class="domain">PROHELPER.PRO</text>
 </svg>

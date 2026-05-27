@@ -22,7 +22,7 @@ describe('getPageSEOData', () => {
     expect(seoData.noIndex).toBe(true);
     expect(seoData.title).toBe('Страница не найдена | ProHelper');
     expect(seoData.canonicalUrl).toBe('https://prohelper.pro/');
-    expect(seoData.ogImage).toBe('https://prohelper.pro/og/404.svg');
+    expect(seoData.ogImage).toBe('https://prohelper.pro/og/404.png');
   });
 
   it('marks preview pages as noindex and keeps canonical path', () => {
@@ -31,7 +31,7 @@ describe('getPageSEOData', () => {
     expect(seoData.statusCode).toBe(200);
     expect(seoData.noIndex).toBe(true);
     expect(seoData.canonicalUrl).toBe('https://prohelper.pro/blog/preview/42');
-    expect(seoData.ogImage).toBe('https://prohelper.pro/og/blog.svg');
+    expect(seoData.ogImage).toBe('https://prohelper.pro/og/blog.png');
   });
 
   it('returns cluster structured data and route-specific og image', () => {
@@ -39,7 +39,7 @@ describe('getPageSEOData', () => {
 
     expect(seoData.statusCode).toBe(200);
     expect(seoData.noIndex).toBe(false);
-    expect(seoData.ogImage).toBe('https://prohelper.pro/og/construction-crm.svg');
+    expect(seoData.ogImage).toBe('https://prohelper.pro/og/construction-crm.png');
     expect(seoData.structuredData).toHaveLength(4);
   });
 });

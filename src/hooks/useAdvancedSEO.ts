@@ -164,8 +164,10 @@ const updateMetaTags = (data: {
   setMetaTag('og:title', data.title, true);
   setMetaTag('og:description', data.description, true);
   setMetaTag('og:image', data.ogImage, true);
+  setMetaTag('og:image:type', 'image/png', true);
   setMetaTag('og:image:width', '1200', true);
   setMetaTag('og:image:height', '630', true);
+  setMetaTag('og:image:alt', data.title, true);
   setMetaTag('og:url', data.url, true);
   setMetaTag('og:type', 'website', true);
   setMetaTag('og:site_name', 'ProHelper', true);
@@ -176,6 +178,7 @@ const updateMetaTags = (data: {
   setMetaTag('twitter:title', data.title, true);
   setMetaTag('twitter:description', data.description, true);
   setMetaTag('twitter:image', data.ogImage, true);
+  setMetaTag('twitter:image:alt', data.title, true);
   
   // Дополнительные SEO теги
   setMetaTag('theme-color', '#EA580C');

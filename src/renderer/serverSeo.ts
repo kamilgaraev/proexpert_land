@@ -114,8 +114,10 @@ export const buildServerSeoPayload = (
     `<meta property="og:title" content="${escapedTitle}" />`,
     `<meta property="og:description" content="${escapedDescription}" />`,
     `<meta property="og:image" content="${escapedOgImage}" />`,
+    `<meta property="og:image:type" content="image/png" />`,
     `<meta property="og:image:width" content="1200" />`,
     `<meta property="og:image:height" content="630" />`,
+    `<meta property="og:image:alt" content="${escapedTitle}" />`,
     `<meta property="og:url" content="${escapedCanonicalUrl}" />`,
     `<meta property="og:type" content="${ogType}" />`,
     `<meta property="og:site_name" content="ProHelper" />`,
@@ -124,6 +126,7 @@ export const buildServerSeoPayload = (
     `<meta name="twitter:title" content="${escapedTitle}" />`,
     `<meta name="twitter:description" content="${escapedDescription}" />`,
     `<meta name="twitter:image" content="${escapedOgImage}" />`,
+    `<meta name="twitter:image:alt" content="${escapedTitle}" />`,
   ].join('\n');
 
   const breadcrumbItems = [{ name: 'Главная', url: 'https://prohelper.pro/' }];

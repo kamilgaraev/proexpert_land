@@ -6,7 +6,8 @@ describe('buildServerSeoPayload', () => {
     const payload = buildServerSeoPayload('/');
 
     expect(payload.statusCode).toBe(200);
-    expect(payload.allMeta).toContain('https://prohelper.pro/og/home.svg');
+    expect(payload.allMeta).toContain('https://prohelper.pro/og/home.png');
+    expect(payload.allMeta).toContain('<meta property="og:image:type" content="image/png" />');
     expect(payload.structuredDataTag).toContain('"@type":"FAQPage"');
     expect(payload.canonicalUrl).toBe('https://prohelper.pro/');
     expect(payload.faviconTags).toContain('/site.webmanifest.json');
@@ -16,7 +17,7 @@ describe('buildServerSeoPayload', () => {
     const payload = buildServerSeoPayload('/construction-crm');
 
     expect(payload.statusCode).toBe(200);
-    expect(payload.allMeta).toContain('https://prohelper.pro/og/construction-crm.svg');
+    expect(payload.allMeta).toContain('https://prohelper.pro/og/construction-crm.png');
     expect(payload.structuredDataTag).toContain('"@type":"Service"');
     expect(payload.structuredDataTag).toContain('"@type":"HowTo"');
     expect(payload.structuredDataTag).toContain('"@type":"FAQPage"');
@@ -36,7 +37,7 @@ describe('buildServerSeoPayload', () => {
     const payload = buildServerSeoPayload('/blog');
 
     expect(payload.statusCode).toBe(200);
-    expect(payload.allMeta).toContain('https://prohelper.pro/og/blog.svg');
+    expect(payload.allMeta).toContain('https://prohelper.pro/og/blog.png');
     expect(payload.allMeta).toContain('<meta name="robots" content="index, follow');
   });
 

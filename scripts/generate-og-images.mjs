@@ -1,109 +1,134 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import sharp from 'sharp';
 
 const outputDir = path.resolve(process.cwd(), 'public', 'og');
 
 const themes = {
   core: {
-    bgTop: '#0F172A',
-    bgBottom: '#111827',
-    accent: '#F97316',
+    surface: '#F8FAFC',
+    surfaceAlt: '#EEF2F7',
+    text: '#111827',
+    muted: '#475569',
+    accent: '#EA580C',
     accentSoft: '#FED7AA',
-    panel: '#1E293B',
+    panel: '#172033',
+    panelText: '#F8FAFC',
   },
   operations: {
-    bgTop: '#102A43',
-    bgBottom: '#0B1F33',
-    accent: '#0EA5E9',
-    accentSoft: '#BAE6FD',
-    panel: '#17314F',
+    surface: '#F8FAFC',
+    surfaceAlt: '#EAF4FB',
+    text: '#102A43',
+    muted: '#486581',
+    accent: '#0F766E',
+    accentSoft: '#99F6E4',
+    panel: '#123044',
+    panelText: '#F8FAFC',
   },
   finance: {
-    bgTop: '#10261B',
-    bgBottom: '#0B1A14',
-    accent: '#10B981',
+    surface: '#F8FAFC',
+    surfaceAlt: '#ECFDF5',
+    text: '#10261B',
+    muted: '#3F5F50',
+    accent: '#047857',
     accentSoft: '#A7F3D0',
-    panel: '#163126',
+    panel: '#123226',
+    panelText: '#F8FAFC',
   },
   engineering: {
-    bgTop: '#311B3F',
-    bgBottom: '#1F1230',
-    accent: '#A855F7',
-    accentSoft: '#E9D5FF',
-    panel: '#38234F',
+    surface: '#F8FAFC',
+    surfaceAlt: '#F5F3FF',
+    text: '#261C3D',
+    muted: '#5B516F',
+    accent: '#6D28D9',
+    accentSoft: '#DDD6FE',
+    panel: '#251B3A',
+    panelText: '#F8FAFC',
   },
   mobile: {
-    bgTop: '#0B2431',
-    bgBottom: '#0A1720',
-    accent: '#14B8A6',
-    accentSoft: '#99F6E4',
-    panel: '#143648',
+    surface: '#F8FAFC',
+    surfaceAlt: '#ECFEFF',
+    text: '#10313A',
+    muted: '#47676F',
+    accent: '#0891B2',
+    accentSoft: '#A5F3FC',
+    panel: '#123744',
+    panelText: '#F8FAFC',
   },
   neutral: {
-    bgTop: '#1F2937',
-    bgBottom: '#111827',
-    accent: '#F59E0B',
+    surface: '#F8FAFC',
+    surfaceAlt: '#F1F5F9',
+    text: '#111827',
+    muted: '#475569',
+    accent: '#B45309',
     accentSoft: '#FDE68A',
-    panel: '#273244',
+    panel: '#1F2937',
+    panelText: '#F8FAFC',
   },
 };
+
+const defaultCapabilities = ['Объекты', 'Снабжение', 'Документы', 'Финансы'];
 
 const items = [
   {
     key: 'default',
     theme: 'core',
-    badge: 'ProHelper',
-    title: 'Платформа управления строительством',
-    subtitle: 'Маркетинговые страницы и решения для строительных компаний',
+    badge: 'Платформа',
+    title: 'Система управления строительной компанией',
+    subtitle: 'Единый контур для объектов, команды, документов и финансов',
   },
   {
     key: '404',
     theme: 'neutral',
     badge: '404',
     title: 'Страница не найдена',
-    subtitle: 'Перейдите к решениям ProHelper для объектов, снабжения и финансов',
+    subtitle: 'Перейдите к решениям ProHelper для управления строительными процессами',
+    capabilities: ['Главная', 'Решения', 'Блог', 'Контакты'],
   },
   {
     key: 'home',
     theme: 'core',
     badge: 'Платформа',
-    title: 'Программа для строительной компании',
-    subtitle: 'Объекты, снабжение, документы и финансы в одной системе',
+    title: 'Система управления строительной компанией',
+    subtitle: 'Объекты, снабжение, документы, подрядчики и финансы в едином контуре',
   },
   {
     key: 'solutions',
     theme: 'core',
     badge: 'Решения',
     title: 'Сценарии для подрядчика, генподрядчика и девелопера',
-    subtitle: 'Контур запуска под роли, процессы и структуру компании',
+    subtitle: 'Запуск под роли, процессы и структуру строительной компании',
+    titleMaxCharacters: 34,
   },
   {
     key: 'features',
     theme: 'operations',
     badge: 'Возможности',
-    title: 'Контроль стройки, материалов и документов',
-    subtitle: 'Процессы объекта, подрядчики, финансы и аналитика',
+    title: 'Контроль объектов, материалов и документов',
+    subtitle: 'Рабочие процессы строительной команды в единой системе',
   },
   {
     key: 'pricing',
     theme: 'finance',
     badge: 'Пакеты',
-    title: 'Пакеты ProHelper под ваш этап запуска',
-    subtitle: 'От стартового контура до масштабирования на несколько объектов',
+    title: 'Пакеты ProHelper под этап запуска',
+    subtitle: 'От первого управляемого контура до масштабирования компании',
+    capabilities: ['Старт', 'Команда', 'Процессы', 'Масштаб'],
   },
   {
     key: 'integrations',
     theme: 'operations',
     badge: 'Интеграции',
-    title: 'Связка с 1С, ERP и BI',
-    subtitle: 'Единый контур для стройки, отчетности и корпоративных систем',
+    title: 'Интеграции с 1С, ERP и BI',
+    subtitle: 'Связка строительных процессов с корпоративными системами',
+    capabilities: ['API', '1С', 'ERP', 'BI'],
   },
   {
     key: 'contractors',
     theme: 'operations',
     badge: 'Подрядчик',
-    title: 'Программа для подрядчика',
-    subtitle: 'Объект, задачи, снабжение и сроки в одной системе',
+    title: 'Система для подрядчика',
+    subtitle: 'Объект, задачи, снабжение и сроки работ в едином контуре',
   },
   {
     key: 'developers',
@@ -123,43 +148,47 @@ const items = [
     key: 'about',
     theme: 'neutral',
     badge: 'О продукте',
-    title: 'Как ProHelper собирает стройку в один контур',
-    subtitle: 'О продукте, подходе к запуску и роли цифрового процесса',
+    title: 'ProHelper собирает строительные процессы в один контур',
+    subtitle: 'Подход к запуску, роли продукта и управляемая цифровизация',
+    titleMaxCharacters: 34,
   },
   {
     key: 'contact',
     theme: 'core',
     badge: 'Демонстрация',
     title: 'Запросите релевантную демонстрацию',
-    subtitle: 'Покажем сценарий под вашу команду, роли и текущие задачи',
+    subtitle: 'Покажем сценарий под вашу команду, роли и текущие процессы',
   },
   {
     key: 'security',
     theme: 'engineering',
     badge: 'Безопасность',
     title: 'Роли, доступы и контроль действий',
-    subtitle: 'Практики безопасности и разграничение доступа в ProHelper',
+    subtitle: 'Разграничение доступа и управляемая работа с данными',
+    capabilities: ['Роли', 'Доступы', 'Данные', 'Аудит'],
   },
   {
     key: 'blog',
     theme: 'neutral',
     badge: 'Блог',
     title: 'Материалы о цифровизации строительства',
-    subtitle: 'Графики работ, снабжение, документы, бюджет и запуск системы',
+    subtitle: 'Процессы, документы, снабжение, бюджет и управление объектами',
   },
   {
     key: 'foreman-software',
     theme: 'operations',
     badge: 'Прораб',
     title: 'Программа для прораба',
-    subtitle: 'Задачи, замечания, график работ и мобильный контур объекта',
+    subtitle: 'Задачи, замечания, фотофиксация и график работ на объекте',
+    capabilities: ['Задачи', 'Замечания', 'Фото', 'График'],
   },
   {
     key: 'construction-crm',
     theme: 'operations',
-    badge: 'ERP',
-    title: 'ERP для строительной компании',
-    subtitle: 'Объекты, статусы, договорной контур и исполнение без Excel',
+    badge: 'CRM',
+    title: 'CRM для строительной компании',
+    subtitle: 'Объекты, задачи, договоры и статусы исполнения в едином контуре',
+    capabilities: ['Объекты', 'Задачи', 'Договоры', 'Статусы'],
   },
   {
     key: 'construction-erp',
@@ -171,9 +200,10 @@ const items = [
   {
     key: 'material-accounting',
     theme: 'operations',
-    badge: 'Снабжение',
+    badge: 'Материалы',
     title: 'Учет материалов в строительстве',
     subtitle: 'Заявки, поставки, остатки и склад по объектам',
+    capabilities: ['Заявки', 'Поставки', 'Остатки', 'Склад'],
   },
   {
     key: 'pto-software',
@@ -181,6 +211,7 @@ const items = [
     badge: 'ПТО',
     title: 'Система для ПТО',
     subtitle: 'Замечания, акты, исполнительная документация и комплектность',
+    capabilities: ['ПТО', 'Акты', 'Замечания', 'Комплекты'],
   },
   {
     key: 'contractor-control',
@@ -188,6 +219,7 @@ const items = [
     badge: 'Подрядчики',
     title: 'Контроль подрядчиков',
     subtitle: 'Сроки, объемы, акты и прозрачность исполнения по объектам',
+    capabilities: ['Сроки', 'Объемы', 'Акты', 'Риски'],
   },
   {
     key: 'construction-documents',
@@ -195,13 +227,15 @@ const items = [
     badge: 'Документы',
     title: 'Исполнительная документация',
     subtitle: 'Акты, реестры, статусы и комплектность в одном контуре',
+    capabilities: ['Акты', 'Реестры', 'Статусы', 'Комплект'],
   },
   {
     key: 'construction-budget-control',
     theme: 'finance',
     badge: 'Бюджет',
-    title: 'Контроль бюджета стройки',
+    title: 'Контроль бюджета строительства',
     subtitle: 'Лимиты, платежи, затраты и отклонения по объекту',
+    capabilities: ['Лимиты', 'Платежи', 'Затраты', 'Отклонения'],
   },
   {
     key: 'mobile-app',
@@ -209,6 +243,7 @@ const items = [
     badge: 'Мобильный контур',
     title: 'Приложение для строительной команды',
     subtitle: 'Работа прораба, снабжения и инженеров прямо на площадке',
+    capabilities: ['Поле', 'Фото', 'Заявки', 'Статусы'],
   },
   {
     key: 'ai-estimates',
@@ -216,6 +251,7 @@ const items = [
     badge: 'AI',
     title: 'AI-смета по чертежу',
     subtitle: 'Быстрый старт оценки объемов и сметного сценария',
+    capabilities: ['Чертеж', 'Объемы', 'Оценка', 'Смета'],
   },
 ];
 
@@ -258,74 +294,73 @@ const renderTextLines = ({ lines, x, y, lineHeight, className }) =>
     )
     .join('\n');
 
-const getMarkConfig = (badge) => {
-  const text = badge.trim().toUpperCase();
+const renderCapabilityRows = (capabilities, theme) =>
+  capabilities
+    .slice(0, 4)
+    .map((capability, index) => {
+      const y = 222 + index * 64;
 
-  if (text.length <= 4) {
-    return { text, fontSize: 168, letterSpacing: '0.02em' };
-  }
+      return `<g>
+    <rect x="802" y="${y}" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="${theme.accentSoft}" stroke-opacity="0.18" />
+    <circle cx="830" cy="${y + 24}" r="5" fill="${theme.accentSoft}" />
+    <text x="850" y="${y + 31}" class="capability">${escapeXml(capability)}</text>
+  </g>`;
+    })
+    .join('\n');
 
-  if (text.length <= 8) {
-    return { text, fontSize: 126, letterSpacing: '0.04em' };
-  }
-
-  return { text, fontSize: 92, letterSpacing: '0.08em' };
-};
-
-const renderImage = (item) => {
+const renderImageSvg = (item) => {
   const theme = themes[item.theme];
-  const titleLines = splitText(item.title, 28);
-  const subtitleLines = splitText(item.subtitle, 46);
-  const mark = getMarkConfig(item.badge);
+  const titleLines = splitText(item.title, item.titleMaxCharacters ?? 24).slice(0, 3);
+  const subtitleLines = splitText(item.subtitle, item.subtitleMaxCharacters ?? 50).slice(0, 3);
+  const badge = item.badge.toUpperCase();
+  const badgeWidth = Math.min(340, Math.max(170, badge.length * 18 + 48));
+  const brandX = 82 + badgeWidth + 26;
+  const subtitleY = 214 + titleLines.length * 64 + 28;
+  const capabilities = item.capabilities ?? defaultCapabilities;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg-${item.key}" x1="600" y1="0" x2="600" y2="630" gradientUnits="userSpaceOnUse">
-      <stop stop-color="${theme.bgTop}" />
-      <stop offset="1" stop-color="${theme.bgBottom}" />
+    <linearGradient id="panel-${item.key}" x1="760" y1="82" x2="1128" y2="548" gradientUnits="userSpaceOnUse">
+      <stop stop-color="${theme.panel}" />
+      <stop offset="1" stop-color="#0F172A" />
     </linearGradient>
-    <radialGradient id="glow-${item.key}" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1015 102) rotate(123.5) scale(472 472)">
-      <stop stop-color="${theme.accent}" stop-opacity="0.35" />
-      <stop offset="1" stop-color="${theme.accent}" stop-opacity="0" />
-    </radialGradient>
-    <linearGradient id="line-${item.key}" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="accent-${item.key}" x1="0" y1="0" x2="1" y2="0">
       <stop stop-color="${theme.accent}" />
       <stop offset="1" stop-color="${theme.accentSoft}" />
     </linearGradient>
     <style>
-      .eyebrow { font: 700 18px 'Segoe UI', 'Arial', sans-serif; letter-spacing: 0.16em; fill: #F8FAFC; }
-      .brand-secondary { font: 600 14px 'Segoe UI', 'Arial', sans-serif; letter-spacing: 0.24em; fill: #CBD5E1; }
-      .title { font: 700 54px 'Segoe UI', 'Arial', sans-serif; fill: #F8FAFC; }
-      .subtitle { font: 500 24px 'Segoe UI', 'Arial', sans-serif; fill: #E5E7EB; }
-      .meta { font: 600 18px 'Segoe UI', 'Arial', sans-serif; fill: #CBD5E1; letter-spacing: 0.03em; }
-      .mark { font-family: 'Segoe UI', 'Arial', sans-serif; font-weight: 800; fill: ${theme.accentSoft}; opacity: 0.14; }
-      .mark-caption { font: 700 16px 'Segoe UI', 'Arial', sans-serif; fill: #E2E8F0; letter-spacing: 0.18em; }
-      .mark-support { font: 500 18px 'Segoe UI', 'Arial', sans-serif; fill: #CBD5E1; }
+      .brand { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 0.22em; fill: ${theme.text}; }
+      .domain { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.24em; fill: ${theme.muted}; }
+      .title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 52px; font-weight: 800; fill: ${theme.text}; }
+      .subtitle { font-family: 'Segoe UI', Arial, sans-serif; font-size: 25px; font-weight: 600; fill: ${theme.muted}; }
+      .footer { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 700; fill: ${theme.text}; }
+      .panel-title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 0.14em; fill: ${theme.panelText}; }
+      .panel-copy { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #CBD5E1; }
+      .capability { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 700; fill: ${theme.panelText}; }
+      .stamp { font-family: 'Segoe UI', Arial, sans-serif; font-size: 44px; font-weight: 900; letter-spacing: 0.04em; fill: ${theme.panelText}; opacity: 0.08; }
     </style>
   </defs>
-  <rect width="1200" height="630" fill="url(#bg-${item.key})" />
-  <circle cx="1015" cy="102" r="236" fill="url(#glow-${item.key})" />
-  <circle cx="1038" cy="484" r="172" fill="${theme.accent}" fill-opacity="0.07" />
-  <rect x="76" y="74" width="676" height="482" rx="36" fill="${theme.panel}" fill-opacity="0.9" stroke="${theme.accentSoft}" stroke-opacity="0.24" stroke-width="1.5" />
-  <rect x="108" y="116" width="208" height="48" rx="24" fill="${theme.accent}" />
-  <text x="132" y="147" class="eyebrow">${escapeXml(item.badge.toUpperCase())}</text>
-  <text x="340" y="147" class="brand-secondary">PROHELPER.PRO</text>
-  ${renderTextLines({ lines: titleLines, x: 108, y: 250, lineHeight: 68, className: 'title' })}
-  ${renderTextLines({
-    lines: subtitleLines,
-    x: 108,
-    y: 250 + titleLines.length * 68 + 34,
-    lineHeight: 36,
-    className: 'subtitle',
-  })}
-  <rect x="108" y="494" width="248" height="6" rx="3" fill="url(#line-${item.key})" />
-  <text x="108" y="536" class="meta">Единая система для стройки, документов и финансов</text>
-  <text x="808" y="222" class="mark" font-size="${mark.fontSize}" letter-spacing="${mark.letterSpacing}">${escapeXml(mark.text)}</text>
-  <rect x="808" y="258" width="212" height="2" rx="1" fill="${theme.accentSoft}" fill-opacity="0.36" />
-  <text x="808" y="306" class="mark-caption">СТРОИТЕЛЬНЫЙ СОФТ</text>
-  <text x="808" y="346" class="mark-support">Контроль объектов, процессов и команды</text>
-  <text x="808" y="382" class="mark-support">prohelper.pro</text>
+  <rect width="1200" height="630" fill="${theme.surface}" />
+  <path d="M696 0H1200V630H620C724 496 751 334 696 0Z" fill="${theme.surfaceAlt}" />
+  <path d="M82 514H602" stroke="#CBD5E1" stroke-width="1" stroke-opacity="0.6" />
+  <path d="M82 548H528" stroke="#E2E8F0" stroke-width="1" />
+  <circle cx="1046" cy="98" r="142" fill="${theme.accent}" fill-opacity="0.10" />
+  <circle cx="1002" cy="520" r="186" fill="${theme.accentSoft}" fill-opacity="0.18" />
+  <rect x="760" y="78" width="368" height="474" rx="34" fill="url(#panel-${item.key})" />
+  <path d="M814 158H1080" stroke="${theme.accentSoft}" stroke-width="2" stroke-opacity="0.35" />
+  <text x="802" y="144" class="panel-title">ЕДИНЫЙ КОНТУР</text>
+  <text x="802" y="184" class="panel-copy">для строительных процессов</text>
+  ${renderCapabilityRows(capabilities, theme)}
+  <text x="798" y="520" class="stamp">PROHELPER</text>
+  <rect x="82" y="86" width="${badgeWidth}" height="48" rx="24" fill="${theme.accent}" />
+  <text x="108" y="117" class="brand" fill="#FFFFFF">${escapeXml(badge)}</text>
+  <text x="${brandX}" y="117" class="domain">PROHELPER.PRO</text>
+  ${renderTextLines({ lines: titleLines, x: 82, y: 214, lineHeight: 64, className: 'title' })}
+  ${renderTextLines({ lines: subtitleLines, x: 82, y: subtitleY, lineHeight: 38, className: 'subtitle' })}
+  <rect x="82" y="468" width="254" height="7" rx="3.5" fill="url(#accent-${item.key})" />
+  <text x="82" y="536" class="footer">Объекты, документы, команда и финансы в одной системе</text>
+  <text x="82" y="572" class="domain">PROHELPER.PRO</text>
 </svg>
 `;
 };
@@ -333,6 +368,15 @@ const renderImage = (item) => {
 await fs.mkdir(outputDir, { recursive: true });
 
 for (const item of items) {
-  const svg = renderImage(item);
-  await fs.writeFile(path.join(outputDir, `${item.key}.svg`), svg, 'utf-8');
+  const svg = renderImageSvg(item);
+  const svgPath = path.join(outputDir, `${item.key}.svg`);
+  const pngPath = path.join(outputDir, `${item.key}.png`);
+
+  await fs.writeFile(svgPath, svg, 'utf-8');
+  await sharp(Buffer.from(svg))
+    .png({
+      compressionLevel: 9,
+      adaptiveFiltering: true,
+    })
+    .toFile(pngPath);
 }
