@@ -49,6 +49,7 @@ export const buildServerSeoPayload = (
       type?: 'website' | 'article' | 'product';
       structuredData?: unknown | unknown[];
       lang?: string;
+      statusCode?: number;
     }
   >,
 ): ServerSeoPayload => {
@@ -163,7 +164,7 @@ export const buildServerSeoPayload = (
   ].join('\n');
 
   return {
-    statusCode: baseSeo.statusCode,
+    statusCode: resolvedDocumentProps.statusCode ?? baseSeo.statusCode,
     lang,
     title,
     canonicalUrl: escapedCanonicalUrl,

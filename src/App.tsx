@@ -84,8 +84,19 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import YandexMetrika from '@components/analytics/YandexMetrika';
 import { initSEOTracking } from '@utils/seoTracking';
+import type { BlogArticle } from '@/types/blog';
 
-function App() {
+interface AppProps {
+  initialBlogArticle?: BlogArticle;
+  initialBlogArticleNotFound?: boolean;
+  initialBlogArticleNotFoundSlug?: string;
+}
+
+function App({
+  initialBlogArticle,
+  initialBlogArticleNotFound = false,
+  initialBlogArticleNotFoundSlug,
+}: AppProps = {}) {
   const location = useLocation();
   const yandexMetrikaId = 102888970;
 
@@ -220,7 +231,16 @@ function App() {
         <Route path="/blog/preview/:articleId" element={<BlogArticlePage />} />
         <Route path="/blog/category/:slug" element={<BlogCategoryPage />} />
         <Route path="/blog/tag/:slug" element={<BlogTagPage />} />
-        <Route path="/blog/:slug" element={<BlogArticlePage />} />
+        <Route
+          path="/blog/:slug"
+          element={
+            <BlogArticlePage
+              initialArticle={initialBlogArticle}
+              initialArticleNotFound={initialBlogArticleNotFound}
+              initialArticleNotFoundSlug={initialBlogArticleNotFoundSlug}
+            />
+          }
+        />
         {/* <Route path="/webinars" element={<WebinarsPage />} /> */}
         
         {/* Компания */}

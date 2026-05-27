@@ -2,6 +2,7 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const { renderPage } = require('vite-plugin-ssr/server');
+const { createSitemapXml } = require('./sitemap.cjs');
 // Регистрация pageFiles и client манифеста, сгенерированных Vite
 require(path.resolve(__dirname, './importBuild.cjs'));
 
@@ -9,6 +10,20 @@ const distDir = path.resolve(__dirname, '../client');
 
 const server = http.createServer(async (req, res) => {
   const url = req.url.split('?')[0];
+
+  if (url === '/sitemap.xml') {
+    const xml = await createSitemapXml({
+      apiBase: process.env.VITE_API_BASE || process.env.API_BASE_URL,
+    });
+
+    res.writeHead(200, {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=900, stale-while-revalidate=3600',
+    });
+    res.end(xml);
+    return;
+  }
+
   const staticFilePath = path.join(distDir, url);
   if (fs.existsSync(staticFilePath) && fs.statSync(staticFilePath).isFile()) {
     const ext = path.extname(staticFilePath).toLowerCase();

@@ -1,9 +1,10 @@
 import App from '@/App';
+import type { BlogArticle } from '@/types/blog';
 
-// Основная страница, обслуживающая все URL (SSR → React Router внутри)
-export const Page = () => <App />;
+interface CatchAllPageProps {
+  initialBlogArticle?: BlogArticle;
+  initialBlogArticleNotFound?: boolean;
+  initialBlogArticleNotFoundSlug?: string;
+}
 
-// Client-side routing уже включена в _default.page.client.tsx
-
-// Поскольку SEO вычисляется в _default.page.server.tsx через slug,
-// здесь никаких documentProps не задаём — хватит fallback-логики. 
+export const Page = (props: CatchAllPageProps) => <App {...props} />;

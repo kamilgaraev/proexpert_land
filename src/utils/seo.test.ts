@@ -1,8 +1,18 @@
-import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { marketingSitemapRoutes } from '@/data/marketingRegistry';
 import { getPageSEOData } from '@/utils/seo';
+
+const require = createRequire(import.meta.url);
+const { renderSitemapXml } = require(path.resolve(process.cwd(), 'server/sitemap.cjs')) as {
+  renderSitemapXml: (articles?: Array<{
+    slug?: string;
+    url?: string;
+    published_at?: string;
+    updated_at?: string;
+  }>) => string;
+};
 
 describe('getPageSEOData', () => {
   it('returns 404 metadata for unknown routes', () => {
@@ -36,8 +46,7 @@ describe('getPageSEOData', () => {
 
 describe('sitemap sync', () => {
   it('contains every indexable marketing route from the registry', () => {
-    const sitemapPath = path.resolve(process.cwd(), 'public', 'sitemap.xml');
-    const sitemapXml = readFileSync(sitemapPath, 'utf-8');
+    const sitemapXml = renderSitemapXml();
     const sitemapUrls = Array.from(
       sitemapXml.matchAll(/<loc>(.*?)<\/loc>/g),
       (match) => match[1],
@@ -51,5 +60,17 @@ describe('sitemap sync', () => {
     expect(sitemapUrls).not.toContain('https://prohelper.pro/privacy');
     expect(sitemapUrls).not.toContain('https://prohelper.pro/offer');
     expect(sitemapUrls).not.toContain('https://prohelper.pro/cookies');
+  });
+
+  it('adds published blog article URLs supplied by the public blog sitemap API', () => {
+    const sitemapXml = renderSitemapXml([
+      {
+        slug: 'kak-kontrolirovat-podryadchikov',
+        updated_at: '2026-05-27T08:00:00.000000Z',
+      },
+    ]);
+
+    expect(sitemapXml).toContain('<loc>https://prohelper.pro/blog/kak-kontrolirovat-podryadchikov</loc>');
+    expect(sitemapXml).toContain('<lastmod>2026-05-27T08:00:00.000Z</lastmod>');
   });
 });

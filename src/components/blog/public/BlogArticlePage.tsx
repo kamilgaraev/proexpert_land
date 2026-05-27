@@ -11,14 +11,28 @@ import type { BlogArticle } from '@/types/blog';
 import { generateArticleSchema } from '@/utils/seo';
 import { blogPublicApi } from '@/utils/blogPublicApi';
 
-const BlogArticlePage = () => {
+interface BlogArticlePageProps {
+  initialArticle?: BlogArticle;
+  initialArticleNotFound?: boolean;
+  initialArticleNotFoundSlug?: string;
+}
+
+const ARTICLE_NOT_FOUND_MESSAGE = 'Статья не найдена или временно недоступна.';
+
+const BlogArticlePage = ({
+  initialArticle,
+  initialArticleNotFound = false,
+  initialArticleNotFoundSlug,
+}: BlogArticlePageProps) => {
   const { slug, articleId } = useParams<{ slug?: string; articleId?: string }>();
   const [searchParams] = useSearchParams();
-  const [article, setArticle] = useState<BlogArticle | null>(null);
-  const [relatedArticles, setRelatedArticles] = useState<BlogArticle[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const isPreview = Boolean(articleId);
+  const hasInitialArticle = !isPreview && initialArticle?.slug === slug;
+  const hasInitialNotFound = !isPreview && initialArticleNotFound && initialArticleNotFoundSlug === slug;
+  const [article, setArticle] = useState<BlogArticle | null>(() => (hasInitialArticle ? initialArticle ?? null : null));
+  const [relatedArticles, setRelatedArticles] = useState<BlogArticle[]>([]);
+  const [loading, setLoading] = useState(() => !(hasInitialArticle || hasInitialNotFound));
+  const [error, setError] = useState<string | null>(() => (hasInitialNotFound ? ARTICLE_NOT_FOUND_MESSAGE : null));
 
   useSEO(
     article
@@ -52,6 +66,15 @@ const BlogArticlePage = () => {
   );
 
   useEffect(() => {
+    const fetchRelatedArticles = async (articleData: BlogArticle) => {
+      if (!isPreview && articleData.id) {
+        const relatedResponse = await blogPublicApi.getRelatedArticles(articleData.id, 3);
+        setRelatedArticles((relatedResponse.data as { data: BlogArticle[] }).data);
+      } else {
+        setRelatedArticles([]);
+      }
+    };
+
     const fetchArticle = async () => {
       try {
         setLoading(true);
@@ -62,13 +85,7 @@ const BlogArticlePage = () => {
           : await blogPublicApi.getArticle(slug!);
         const articleData = (response.data as { data: BlogArticle }).data;
         setArticle(articleData);
-
-        if (!isPreview && articleData.id) {
-          const relatedResponse = await blogPublicApi.getRelatedArticles(articleData.id, 3);
-          setRelatedArticles((relatedResponse.data as { data: BlogArticle[] }).data);
-        } else {
-          setRelatedArticles([]);
-        }
+        await fetchRelatedArticles(articleData);
       } catch (fetchError) {
         console.error('Error fetching article:', fetchError);
         setError('Статья не найдена или временно недоступна.');
@@ -77,10 +94,26 @@ const BlogArticlePage = () => {
       }
     };
 
+    if (hasInitialArticle && initialArticle) {
+      setArticle(initialArticle);
+      setError(null);
+      setLoading(false);
+      void fetchRelatedArticles(initialArticle);
+      return;
+    }
+
+    if (hasInitialNotFound) {
+      setArticle(null);
+      setRelatedArticles([]);
+      setError(ARTICLE_NOT_FOUND_MESSAGE);
+      setLoading(false);
+      return;
+    }
+
     if ((isPreview && articleId) || (!isPreview && slug)) {
       fetchArticle();
     }
-  }, [articleId, isPreview, searchParams, slug]);
+  }, [articleId, hasInitialArticle, hasInitialNotFound, initialArticle, isPreview, searchParams, slug]);
 
   if (loading) {
     return (

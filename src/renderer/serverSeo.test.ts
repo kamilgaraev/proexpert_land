@@ -40,6 +40,27 @@ describe('buildServerSeoPayload', () => {
     expect(payload.allMeta).toContain('<meta name="robots" content="index, follow');
   });
 
+  it('uses server-provided article metadata for dynamic blog article pages', () => {
+    const payload = buildServerSeoPayload('/blog/test-article', {
+      title: 'Тестовая статья | ProHelper',
+      description: 'Описание тестовой статьи для поисковой выдачи.',
+      canonicalUrl: 'https://prohelper.pro/blog/test-article',
+      type: 'article',
+      statusCode: 200,
+      structuredData: [{
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: 'Тестовая статья',
+      }],
+    });
+
+    expect(payload.statusCode).toBe(200);
+    expect(payload.title).toBe('Тестовая статья | ProHelper');
+    expect(payload.canonicalUrl).toBe('https://prohelper.pro/blog/test-article');
+    expect(payload.allMeta).toContain('<meta property="og:type" content="article" />');
+    expect(payload.structuredDataTag).toContain('"@type":"BlogPosting"');
+  });
+
   it('returns noindex 404 metadata for unknown routes', () => {
     const payload = buildServerSeoPayload('/unknown-page');
 
