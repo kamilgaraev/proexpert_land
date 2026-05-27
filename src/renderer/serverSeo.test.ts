@@ -46,6 +46,7 @@ describe('buildServerSeoPayload', () => {
       title: 'Тестовая статья | ProHelper',
       description: 'Описание тестовой статьи для поисковой выдачи.',
       canonicalUrl: 'https://prohelper.pro/blog/test-article',
+      ogImage: 'https://prohelper.pro/og/contractor-control.svg',
       type: 'article',
       statusCode: 200,
       structuredData: [{
@@ -59,6 +60,8 @@ describe('buildServerSeoPayload', () => {
     expect(payload.title).toBe('Тестовая статья | ProHelper');
     expect(payload.canonicalUrl).toBe('https://prohelper.pro/blog/test-article');
     expect(payload.allMeta).toContain('<meta property="og:type" content="article" />');
+    expect(payload.allMeta).toContain('https://prohelper.pro/og/contractor-control.png');
+    expect(payload.allMeta).not.toContain('https://prohelper.pro/og/contractor-control.svg');
     expect(payload.structuredDataTag).toContain('"@type":"BlogPosting"');
   });
 

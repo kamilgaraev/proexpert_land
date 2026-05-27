@@ -9,7 +9,8 @@ import {
   generateOGImage,
   validateSEOLength,
   generateArticleSchema,
-  generateWebPageSchema
+  generateWebPageSchema,
+  normalizeOgImageUrl,
 } from '../utils/seo';
 
 const isBrowser = typeof document !== 'undefined';
@@ -50,7 +51,8 @@ export const useAdvancedSEO = (props: AdvancedSEOProps = {}) => {
     const finalTitle = props.title || pageData.title;
     const finalDescription = props.description || pageData.description;
     const finalKeywords = props.keywords || pageData.keywords;
-    const finalOGImage = props.ogImage || generateOGImage(pageName, finalTitle);
+    const generatedOgImage = generateOGImage(pageName, finalTitle);
+    const finalOGImage = normalizeOgImageUrl(props.ogImage || generatedOgImage) || generatedOgImage;
     
     // Валидация SEO параметров
     const warnings = validateSEOLength(finalTitle, finalDescription);

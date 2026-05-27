@@ -5,6 +5,7 @@ import {
   generateSoftwareSchema,
   generateWebPageSchema,
   getPageSEOData,
+  normalizeOgImageUrl,
 } from '@/utils/seo';
 
 const isBrowser = typeof document !== 'undefined';
@@ -85,7 +86,7 @@ export const useSEO = (props: UseSEOProps = {}) => {
       title: props.title ?? pageData.title,
       description: props.description ?? pageData.description,
       keywords: props.keywords ?? pageData.keywords,
-      ogImage: props.ogImage ?? pageData.ogImage ?? `${BASE_URL}/og/default.png`,
+      ogImage: normalizeOgImageUrl(props.ogImage ?? pageData.ogImage) ?? `${BASE_URL}/og/default.png`,
       type: props.type ?? 'website',
       author: props.author ?? 'ProHelper',
       publishedTime: props.publishedTime,

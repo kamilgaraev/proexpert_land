@@ -2,7 +2,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { marketingSitemapRoutes } from '@/data/marketingRegistry';
-import { getPageSEOData } from '@/utils/seo';
+import { getPageSEOData, normalizeOgImageUrl } from '@/utils/seo';
 
 const require = createRequire(import.meta.url);
 const { renderSitemapXml } = require(path.resolve(process.cwd(), 'server/sitemap.cjs')) as {
@@ -41,6 +41,20 @@ describe('getPageSEOData', () => {
     expect(seoData.noIndex).toBe(false);
     expect(seoData.ogImage).toBe('https://prohelper.pro/og/construction-crm.png');
     expect(seoData.structuredData).toHaveLength(4);
+  });
+});
+
+describe('normalizeOgImageUrl', () => {
+  it('converts static ProHelper OG svg images to png', () => {
+    expect(normalizeOgImageUrl('https://prohelper.pro/og/contractor-control.svg'))
+      .toBe('https://prohelper.pro/og/contractor-control.png');
+    expect(normalizeOgImageUrl('/og/contractor-control.svg')).toBe('/og/contractor-control.png');
+  });
+
+  it('keeps external or already raster images unchanged', () => {
+    expect(normalizeOgImageUrl('https://cdn.example.test/cover.svg')).toBe('https://cdn.example.test/cover.svg');
+    expect(normalizeOgImageUrl('https://prohelper.pro/og/contractor-control.png'))
+      .toBe('https://prohelper.pro/og/contractor-control.png');
   });
 });
 

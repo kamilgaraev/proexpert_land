@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { normalizeOgImageUrl } from '@/utils/seo';
 
 interface SEOHeadProps {
   title?: string;
@@ -30,6 +31,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     (typeof window !== 'undefined'
       ? `https://prohelper.pro${window.location.pathname}`
       : 'https://prohelper.pro');
+  const normalizedOgImage = normalizeOgImageUrl(ogImage) ?? 'https://prohelper.pro/og/default.png';
 
   useEffect(() => {
     document.title = title;
@@ -70,7 +72,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     
     setMetaTag('og:title', title, true);
     setMetaTag('og:description', description, true);
-    setMetaTag('og:image', ogImage, true);
+    setMetaTag('og:image', normalizedOgImage, true);
     setMetaTag('og:image:type', 'image/png', true);
     setMetaTag('og:image:alt', title, true);
     setMetaTag('og:url', currentUrl, true);
@@ -81,7 +83,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag('twitter:card', 'summary_large_image', true);
     setMetaTag('twitter:title', title, true);
     setMetaTag('twitter:description', description, true);
-    setMetaTag('twitter:image', ogImage, true);
+    setMetaTag('twitter:image', normalizedOgImage, true);
     setMetaTag('twitter:image:alt', title, true);
     setMetaTag('twitter:url', currentUrl, true);
 
@@ -114,7 +116,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
         dynamicScript.remove();
       }
     };
-  }, [title, description, keywords, ogImage, currentUrl, type, author, publishedTime, modifiedTime, structuredData]);
+  }, [title, description, keywords, normalizedOgImage, currentUrl, type, author, publishedTime, modifiedTime, structuredData]);
 
   return null;
 }; 

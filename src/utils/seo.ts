@@ -31,6 +31,15 @@ export interface PageSEOData {
 
 const BASE_URL = 'https://prohelper.pro';
 const OG_BASE_PATH = `${BASE_URL}/og`;
+const MARKETING_OG_IMAGE_PATTERN = /^(https?:\/\/(?:www\.)?prohelper\.pro)?\/og\/([^?#]+)\.svg([?#].*)?$/i;
+
+export const normalizeOgImageUrl = (image?: string | null) => {
+  if (!image) {
+    return undefined;
+  }
+
+  return image.replace(MARKETING_OG_IMAGE_PATTERN, '$1/og/$2.png$3');
+};
 
 const notFoundSeo = {
   title: 'Страница не найдена | ProHelper',
@@ -382,7 +391,7 @@ export const generateArticleSchema = (article: {
   '@type': 'BlogPosting',
   headline: article.title,
   description: article.description,
-  image: article.image ?? `${OG_BASE_PATH}/blog.png`,
+  image: normalizeOgImageUrl(article.image) ?? `${OG_BASE_PATH}/blog.png`,
   author: {
     '@type': 'Person',
     name: article.author,

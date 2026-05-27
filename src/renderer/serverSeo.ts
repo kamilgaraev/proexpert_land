@@ -5,6 +5,7 @@ import {
   generateSoftwareSchema,
   generateWebPageSchema,
   getPageSEOData,
+  normalizeOgImageUrl,
   type PageSEOData,
 } from '@utils/seo';
 
@@ -75,7 +76,7 @@ export const buildServerSeoPayload = (
   const description = resolvedDocumentProps.description ?? baseSeo.description;
   const keywords = resolvedDocumentProps.keywords ?? baseSeo.keywords;
   const canonicalUrl = resolvedDocumentProps.canonicalUrl ?? baseSeo.canonicalUrl;
-  const ogImage = resolvedDocumentProps.ogImage ?? baseSeo.ogImage;
+  const ogImage = normalizeOgImageUrl(resolvedDocumentProps.ogImage ?? baseSeo.ogImage) ?? baseSeo.ogImage;
   const noIndex = resolvedDocumentProps.noIndex ?? baseSeo.noIndex;
   const ogType = resolvedDocumentProps.type ?? baseSeo.type;
   const lang = resolvedDocumentProps.lang ?? baseSeo.lang;
