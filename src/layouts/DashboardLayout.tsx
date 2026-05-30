@@ -6,6 +6,7 @@ import {
   Building2,
   CreditCard,
   HelpCircle,
+  Handshake,
   LayoutDashboard,
   Mail,
   Puzzle,
@@ -79,6 +80,12 @@ const DashboardLayout = () => {
 
   const canInviteUsers =
     useCanAccess({ permission: 'users.invite' }) ||
+    useCanAccess({ role: 'organization_owner' }) ||
+    useCanAccess({ role: 'organization_admin' });
+
+  const canViewContractorMarketplace =
+    useCanAccess({ permission: 'contractor_marketplace.profile.view' }) ||
+    useCanAccess({ permission: 'contractor_marketplace.offers.view' }) ||
     useCanAccess({ role: 'organization_owner' }) ||
     useCanAccess({ role: 'organization_admin' });
 
@@ -171,6 +178,13 @@ const DashboardLayout = () => {
         description: 'Приглашения подрядчиков и партнерские бонусы',
         visible: canInviteUsers,
       },
+      {
+        name: 'Маркетплейс',
+        href: '/dashboard/contractor-marketplace',
+        icon: Handshake,
+        description: 'Закрытый каталог и оферы найма',
+        visible: canViewContractorMarketplace,
+      },
     ];
 
     const baseNavigation = allNavigationItems.filter((item) => item.visible);
@@ -212,6 +226,7 @@ const DashboardLayout = () => {
     canManageMultiOrg,
     canManageUsers,
     canViewBilling,
+    canViewContractorMarketplace,
     canViewOrganization,
     expiringModules.length,
     hasExpiring,

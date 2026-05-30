@@ -70,6 +70,7 @@ const HoldingContractsList = lazy(() => import('@components/multi-org').then(m =
 const ContractorInvitationsPage = lazy(() => import('@pages/dashboard/contractor-invitations/ContractorInvitationsPage'));
 const ContractorReferralProgramPage = lazy(() => import('@pages/dashboard/contractor-invitations/ContractorReferralProgramPage'));
 const ContractorInvitationTokenPage = lazy(() => import('@pages/dashboard/contractor-invitations/ContractorInvitationTokenPage'));
+const ContractorMarketplacePage = lazy(() => import('@pages/dashboard/contractor-marketplace/ContractorMarketplacePage'));
 const SupplierRequestResponsePage = lazy(() => import('@pages/procurement/SupplierRequestResponsePage'));
 
 // Lazy loading для Project-Based RBAC
@@ -362,6 +363,16 @@ function App({
               fallback={<Navigate to="/dashboard" replace />}
             >
               <ContractorReferralProgramPage />
+            </ProtectedComponent>
+          } />
+          <Route path="contractor-marketplace" element={
+            <ProtectedComponent
+              permission="contractor_marketplace.profile.view"
+              role="organization_owner"
+              requireAll={false}
+              fallback={<Navigate to="/dashboard" replace />}
+            >
+              <ContractorMarketplacePage />
             </ProtectedComponent>
           } />
           <Route path="contractor-invitations/token/:token" element={<ContractorInvitationTokenPage />} />
