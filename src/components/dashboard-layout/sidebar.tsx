@@ -28,6 +28,14 @@ interface SidebarProps {
   workspaceSummary?: WorkspaceSummary | null;
 }
 
+const isNavigationMatch = (pathname: string, href: string) =>
+  pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`));
+
+const getActiveNavigationHref = (pathname: string, navigation: NavigationItem[]) =>
+  navigation
+    .filter((item) => isNavigationMatch(pathname, item.href))
+    .sort((first, second) => second.href.length - first.href.length)[0]?.href;
+
 const SidebarContent = ({
   navigation,
   supportNavigation,
@@ -40,7 +48,10 @@ const SidebarContent = ({
   onLogout: () => void;
   pathname: string;
   workspaceSummary?: WorkspaceSummary | null;
-}) => (
+}) => {
+  const activeNavigationHref = getActiveNavigationHref(pathname, navigation);
+
+  return (
   <div className="flex h-full flex-col gap-4 py-4">
     <div className="mb-4 flex h-12 items-center px-6">
       <div className="flex items-center gap-3">
@@ -82,9 +93,7 @@ const SidebarContent = ({
     <ScrollArea className="flex-1 px-4">
       <div className="flex flex-col gap-1.5 py-2">
         {navigation.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== '/dashboard' && pathname.startsWith(`${item.href}/`));
+          const isActive = activeNavigationHref === item.href;
 
           return (
             <Link
@@ -177,7 +186,8 @@ const SidebarContent = ({
       </Button>
     </div>
   </div>
-);
+  );
+};
 
 export function Sidebar({
   navigation,
