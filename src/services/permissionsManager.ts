@@ -27,6 +27,11 @@ export class PermissionsManager {
   private isLoading = false;
   private lastLoadTime = 0;
   private loadPromise: Promise<boolean> | null = null;
+  private readonly moduleAliases: Record<string, string[]> = {
+    'contractor-portal': ['contractor_marketplace', 'contractor-marketplace'],
+    contractor_marketplace: ['contractor-portal', 'contractor-marketplace'],
+    'contractor-marketplace': ['contractor-portal', 'contractor_marketplace'],
+  };
 
   // Настройки дебаунса
   private readonly MIN_RELOAD_INTERVAL = 300000; // 5 минут между загрузками (увеличено для защиты от 429)
@@ -122,7 +127,9 @@ export class PermissionsManager {
       if (data.success && data.data) {
         // Нормализуем права (защита от объектов с числовыми ключами из PHP)
         const rawPerms = data.data.permissions_flat || [];
-        this.permissions = Array.isArray(rawPerms) ? rawPerms : Object.values(rawPerms);
+        const flatPermissions = this.normalizeStringList(rawPerms);
+        const structuredPermissions = this.expandStructuredPermissions(data.data.permissions);
+        this.permissions = Array.from(new Set([...flatPermissions, ...structuredPermissions]));
 
         const rawRoles = data.data.roles || [];
         this.roles = Array.isArray(rawRoles) ? rawRoles : Object.values(rawRoles);
@@ -147,9 +154,7 @@ export class PermissionsManager {
         // Добавляем синонимы c дефисом/подчеркиванием для надежной проверки
         const withSynonyms = new Set<string>();
         normalized.forEach((s) => {
-          withSynonyms.add(s);
-          if (s.includes('-')) withSynonyms.add(s.replace(/-/g, '_'));
-          if (s.includes('_')) withSynonyms.add(s.replace(/_/g, '-'));
+          this.moduleVariants(s).forEach((variant) => withSynonyms.add(variant));
         });
         this.activeModules = Array.from(withSynonyms);
         this.userId = data.data.user_id || null;
@@ -200,6 +205,62 @@ export class PermissionsManager {
     }
 
     return this.permissions.includes(permission);
+  }
+
+  private normalizeStringList(value: unknown): string[] {
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === 'string');
+    }
+
+    if (value && typeof value === 'object') {
+      return Object.values(value).filter((item): item is string => typeof item === 'string');
+    }
+
+    return [];
+  }
+
+  private moduleVariants(module: string): string[] {
+    const hyphenated = module.replace(/_/g, '-');
+    const underscored = module.replace(/-/g, '_');
+
+    return Array.from(new Set([
+      module,
+      hyphenated,
+      underscored,
+      ...(this.moduleAliases[module] ?? []),
+      ...(this.moduleAliases[hyphenated] ?? []),
+      ...(this.moduleAliases[underscored] ?? []),
+    ]));
+  }
+
+  private expandStructuredPermissions(permissions?: PermissionsData['permissions']): string[] {
+    if (!permissions) {
+      return [];
+    }
+
+    const expanded = [...this.normalizeStringList(permissions.system ?? [])];
+
+    Object.entries(permissions.modules ?? {}).forEach(([module, modulePermissions]) => {
+      this.normalizeStringList(modulePermissions).forEach((permission) => {
+        expanded.push(...this.expandModulePermission(module, permission));
+      });
+    });
+
+    return expanded;
+  }
+
+  private expandModulePermission(module: string, permission: string): string[] {
+    const variants = this.moduleVariants(module);
+
+    if (permission === '*') {
+      return variants.map((variant) => `${variant}.*`);
+    }
+
+    if (permission.includes('.')) {
+      return [permission];
+    }
+
+    return variants.map((variant) => `${variant}.${permission}`);
   }
 
   /**

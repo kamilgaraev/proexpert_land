@@ -3,6 +3,10 @@
 export interface PermissionsData {
   user_id: number;
   organization_id: number | null;
+  permissions?: {
+    system?: string[];
+    modules?: Record<string, string[]>;
+  };
   permissions_flat: string[];
   roles: string[];
   interfaces: string[];
