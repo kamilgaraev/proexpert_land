@@ -105,7 +105,7 @@ const AdminProductDemo = () => {
               className="rounded-xl border border-steel-200 bg-white px-4 py-3 text-left shadow-sm transition hover:border-construction-300"
             >
               <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-steel-500">
-                Модулей в меню
+                Разделов в меню
               </div>
               <div className="mt-2 text-3xl font-bold leading-none text-steel-950">
                 {adminProductDemoModules.length}
@@ -175,7 +175,7 @@ const AdminProductDemo = () => {
                           <button
                             key={module.id}
                             type="button"
-                            aria-label={`Открыть модуль ${module.title}`}
+                            aria-label={`Открыть раздел ${module.title}`}
                             aria-pressed={isActive}
                             onClick={() => activateModule(module.id)}
                             className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition ${

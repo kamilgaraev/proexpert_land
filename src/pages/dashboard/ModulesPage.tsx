@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ArrowPathIcon,
@@ -244,8 +245,15 @@ const ModulesPage = () => {
         </header>
 
         {overview.warnings.length > 0 && (
-          <div className="rounded-2xl border border-amber-200 bg-white px-5 py-4 text-sm font-semibold text-amber-900">
-            {overview.warnings.map(warning => warning.message).join('. ')}
+          <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-white px-5 py-4 text-sm font-semibold text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+            <span>{overview.warnings.map(warning => warning.message).join('. ')}</span>
+            <Link
+              to="/dashboard/billing?tab=plans"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-orange-700 sm:w-auto"
+            >
+              Перейти и оплатить
+              <ChevronRightIcon className="h-4 w-4" />
+            </Link>
           </div>
         )}
 

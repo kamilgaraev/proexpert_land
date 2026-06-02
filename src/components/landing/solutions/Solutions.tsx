@@ -90,7 +90,7 @@ const Solutions = () => {
                     {/* Recommended Stack */}
                     <div className="pt-8 border-t border-slate-100">
                       <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">
-                        Рекомендуемый стек модулей
+                        Рекомендуемый состав
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {solution.recommendedModules.map((module) => (

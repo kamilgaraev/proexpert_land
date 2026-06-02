@@ -17,7 +17,7 @@ import { generatePricingSchema } from '@/utils/seo';
 
 const pricingPrinciples = [
   'Стартуем с того контура, где сейчас выше всего ручная нагрузка и потери.',
-  'Не включаем все модули одновременно, если команда еще не готова к этому процессно.',
+  'Не подключаем все направления одновременно, если команда еще не готова к этому процессно.',
   'Расширяем систему по мере роста числа объектов, ролей и юридических лиц.',
 ];
 
@@ -25,22 +25,22 @@ const basePlans = [
   {
     slug: 'start',
     name: 'Start',
-    price: 4900,
-    fit: 'Первый объектный контур для небольшой команды.',
+    price: 9900,
+    fit: 'Первый рабочий контур для небольшой команды.',
     includedPackageSlugs: ['objects-execution'],
   },
   {
     slug: 'business',
     name: 'Business',
-    price: 19900,
+    price: 24900,
     fit: 'Основной выбор: объекты, снабжение и финансы уже в тарифе.',
     includedPackageSlugs: ['objects-execution', 'supply-warehouse', 'finance-acts'],
   },
   {
     slug: 'profi',
     name: 'Profi',
-    price: 29900,
-    fit: 'Все строительные контуры уровня Рост дешевле, чем собирать отдельно.',
+    price: 39900,
+    fit: 'Портфель объектов, ПТО, аналитика и AI-возможности в одном тарифе.',
     includedPackageSlugs: [
       'objects-execution',
       'supply-warehouse',
@@ -54,7 +54,7 @@ const basePlans = [
     slug: 'enterprise',
     name: 'Enterprise Конструктор',
     price: 99000,
-    fit: 'Корпоративные версии пакетов, 100 пользователей и расчет конфигурации.',
+    fit: 'Все корпоративные направления, 100 пользователей и расчет конфигурации.',
     includedPackageSlugs: [
       'objects-execution',
       'supply-warehouse',
@@ -62,6 +62,11 @@ const basePlans = [
       'estimates-pto',
       'holding-analytics',
       'ai-contour',
+      'site-quality-handover',
+      'construction-safety',
+      'machinery-and-labor',
+      'workforce-management',
+      'change-control',
     ],
   },
 ];
@@ -74,9 +79,9 @@ const formatPlanUsers = (slug: string) => {
   }
 
   const limits: Record<string, number> = {
-    start: 5,
-    business: 10,
-    profi: 30,
+    start: 7,
+    business: 15,
+    profi: 40,
   };
 
   return `${limits[slug] ?? 3} пользователей`;
@@ -175,7 +180,7 @@ const PricingPage = () => {
             <div className="mt-4 grid gap-3">
               {[
                 'Опираемся на ваш приоритетный процесс.',
-                'Не перегружаем старт лишними модулями.',
+                'Не перегружаем старт лишними направлениями.',
                 'Расширяем систему по мере роста компании.',
               ].map((item) => (
                 <div
@@ -244,7 +249,7 @@ const PricingPage = () => {
             <SectionHeader
               eyebrow="Калькулятор"
               title="Соберите тариф и пакеты без покупки лишнего."
-              description="Пакеты показывают бизнес-результат. Отдельные модули остаются для точной донастройки после выбора основного сценария."
+              description="Пакеты показывают бизнес-результат. Точные дополнения остаются для донастройки после выбора основного сценария."
               tone="dark"
             />
 
@@ -334,7 +339,7 @@ const PricingPage = () => {
             </div>
 
             <div className="mt-6 rounded-[1.25rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700">
-              Business отмечен как основной выбор: он дает рабочий строительный контур для компании с несколькими объектами, а пакеты расширяют его по процессам.
+              Business отмечен как основной выбор: он дает рабочий строительный контур для компании с несколькими объектами, а дополнительные направления расширяют его по процессам.
             </div>
             <MarketingLink
               href={selectedPlan.slug === 'enterprise' ? '#enterprise-constructor' : `/register?plan=${selectedPlan.slug}`}
@@ -351,7 +356,7 @@ const PricingPage = () => {
           <SectionHeader
             eyebrow="Enterprise Конструктор"
             title="Корпоративный тариф считается из выбранной конфигурации."
-            description="Базовая конфигурация от 99 000 ₽/мес включает 100 пользователей, 100 проектов, 50 ГБ хранилища и корпоративные уровни пакетов."
+            description="Базовая конфигурация от 99 000 ₽/мес включает 100 пользователей, 100 проектов, 50 ГБ хранилища и корпоративные направления."
           />
 
           <div className="grid gap-3 sm:grid-cols-2">

@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import ModulesPage from './ModulesPage';
@@ -236,17 +237,25 @@ vi.mock('@components/shared/NotificationService', () => ({
   default: { show: vi.fn() },
 }));
 
+const renderModulesPage = () => render(
+  <MemoryRouter>
+    <ModulesPage />
+  </MemoryRouter>
+);
+
 describe('ModulesPage', () => {
   beforeEach(() => {
     subscribeToPackage.mockReset();
   });
 
   it('renders solutions and standalone capabilities without the old all modules tab', () => {
-    render(<ModulesPage />);
+    renderModulesPage();
 
     expect(screen.getByRole('heading', { name: 'Модули и пакеты' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Решения' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Отдельные возможности' })).toBeInTheDocument();
+    expect(screen.getByText('1 возможность скоро истекает')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Перейти и оплатить/i })).toHaveAttribute('href', '/dashboard/billing?tab=plans');
     expect(screen.queryByRole('button', { name: /Все модули/i })).not.toBeInTheDocument();
     expect(screen.getByText('Управление проектами')).toBeInTheDocument();
     expect(screen.getByText('Тариф и доплаты')).toBeInTheDocument();
@@ -256,14 +265,14 @@ describe('ModulesPage', () => {
   });
 
   it('shows the current package tier label from the backend contract', () => {
-    render(<ModulesPage />);
+    renderModulesPage();
 
     expect(screen.getByText('Рост')).toBeInTheDocument();
     expect(screen.queryByText('Профессиональный')).not.toBeInTheDocument();
   });
 
   it('shows package v2 details as business-readable sections', () => {
-    render(<ModulesPage />);
+    renderModulesPage();
 
     expect(screen.getAllByText('Базовый слой').length).toBeGreaterThan(0);
     expect(screen.getByText('3 возможности уже входят в основу')).toBeInTheDocument();
@@ -284,14 +293,14 @@ describe('ModulesPage', () => {
   });
 
   it('marks bundled packages with a Russian business status', () => {
-    render(<ModulesPage />);
+    renderModulesPage();
 
     expect(screen.getAllByText('Входит в тариф').length).toBeGreaterThan(0);
     expect(screen.queryByText('В тарифе')).not.toBeInTheDocument();
   });
 
   it('keeps higher package tiers available for separate purchase when the current tier comes from subscription', async () => {
-    render(<ModulesPage />);
+    renderModulesPage();
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Управлять' })[0]);
 
@@ -310,7 +319,7 @@ describe('ModulesPage', () => {
   });
 
   it('keeps the full module inventory hidden behind advanced management', async () => {
-    render(<ModulesPage />);
+    renderModulesPage();
 
     expect(screen.queryByText('Пользователи')).not.toBeInTheDocument();
 

@@ -8,7 +8,7 @@ const Calculator = () => {
   ));
 
   const toggleModule = (id: string, type: string) => {
-    if (type === 'core') return; // Core modules cannot be deselected
+    if (type === 'core') return;
 
     const newSelected = new Set(selectedModules);
     if (newSelected.has(id)) {
@@ -37,10 +37,10 @@ const Calculator = () => {
   }, [selectedModules]);
 
   const categories = [
-    { id: 'core', title: 'CORE (База)', description: 'Бесплатно для всех. Всегда.' },
-    { id: 'feature', title: 'FEATURE (Модули)', description: 'Расширьте возможности вашей ERP.' },
-    { id: 'addon', title: 'ADDONS (Дополнения)', description: 'Специализированные инструменты.' },
-    { id: 'service', title: 'SERVICES (Услуги)', description: 'Разовые услуги и настройки.' },
+    { id: 'core', title: 'База', description: 'Входит во все тарифы.' },
+    { id: 'feature', title: 'Рабочие направления', description: 'Расширяют систему под процессы компании.' },
+    { id: 'addon', title: 'Дополнения', description: 'Подключаются под отдельные задачи.' },
+    { id: 'service', title: 'Услуги', description: 'Разовые работы и настройки.' },
   ];
 
   return (
@@ -134,7 +134,7 @@ const Calculator = () => {
               <div className="p-6 bg-gradient-to-br from-slate-800 to-slate-900 border-b border-slate-700">
                 <h3 className="text-xl font-bold mb-1">Ваша конфигурация</h3>
                 <div className="text-slate-400 text-sm">
-                  {selectedModules.size} {selectedModules.size === 1 ? 'модуль' : 'модуля'} выбрано
+                  {selectedModules.size} {selectedModules.size === 1 ? 'возможность' : 'возможностей'} выбрано
                 </div>
               </div>
               
@@ -152,7 +152,7 @@ const Calculator = () => {
                     );
                   })}
                   {totals.monthly === 0 && totals.oneTime === 0 && (
-                     <div className="text-slate-500 text-sm italic">Только бесплатные модули</div>
+                     <div className="text-slate-500 text-sm italic">Только базовые возможности</div>
                   )}
                 </div>
 
@@ -174,7 +174,7 @@ const Calculator = () => {
                 </button>
                 
                 <p className="text-xs text-center text-slate-500">
-                  7 дней бесплатного периода для всех платных модулей
+                  7 дней бесплатного периода для всех платных возможностей
                 </p>
               </div>
             </div>

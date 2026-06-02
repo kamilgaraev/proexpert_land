@@ -28,12 +28,17 @@ const PACKAGE_LABELS: Record<string, string> = {
   'estimates-pto': 'Сметы и ПТО',
   'holding-analytics': 'Холдинг и аналитика',
   'ai-contour': 'AI-контур',
+  'site-quality-handover': 'Качество и сдача',
+  'construction-safety': 'Безопасность на объекте',
+  'machinery-and-labor': 'Техника и трудозатраты',
+  'workforce-management': 'Бригады и персонал',
+  'change-control': 'Изменения и допработы',
 };
 
 const TIER_LABELS: Record<string, string> = {
-  base: 'Базовый',
-  pro: 'Pro',
-  enterprise: 'Enterprise Конструктор',
+  base: 'Старт',
+  pro: 'Рост',
+  enterprise: 'Корпоративный',
 };
 
 const PLAN_INCLUDED_PACKAGES: Record<string, Array<{ package_slug: string; tier: string }>> = {
@@ -59,6 +64,11 @@ const PLAN_INCLUDED_PACKAGES: Record<string, Array<{ package_slug: string; tier:
     { package_slug: 'holding-analytics', tier: 'enterprise' },
     { package_slug: 'estimates-pto', tier: 'enterprise' },
     { package_slug: 'ai-contour', tier: 'enterprise' },
+    { package_slug: 'site-quality-handover', tier: 'enterprise' },
+    { package_slug: 'construction-safety', tier: 'enterprise' },
+    { package_slug: 'machinery-and-labor', tier: 'enterprise' },
+    { package_slug: 'workforce-management', tier: 'enterprise' },
+    { package_slug: 'change-control', tier: 'enterprise' },
   ],
 };
 
@@ -605,7 +615,7 @@ const PlansGrid = () => {
                                   'text-xs font-bold uppercase tracking-wide',
                                   includedPackages.length > 0 ? 'text-emerald-800' : 'text-slate-700'
                                 )}>
-                                  Пакеты модулей
+                                  Включенные направления
                                 </div>
                                 <div className={cn(
                                   'text-xs',
@@ -631,7 +641,7 @@ const PlansGrid = () => {
                               </div>
                             ) : (
                               <div className="rounded-lg bg-white border border-slate-200 px-3 py-2 text-sm text-slate-600">
-                                В тарифе нет коммерческих пакетов. Рабочие контуры можно подключить отдельно на странице модулей.
+                                В тарифе нет дополнительных направлений. Рабочие контуры можно подключить отдельно в разделе возможностей.
                               </div>
                             )}
                           </div>

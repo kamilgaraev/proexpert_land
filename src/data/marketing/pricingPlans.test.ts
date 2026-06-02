@@ -23,9 +23,9 @@ describe('publicPricingPlans', () => {
   it('matches the market-ready pricing model', () => {
     expect(publicPricingPlans.map((plan) => [plan.slug, plan.priceLabel, plan.userLimitLabel])).toEqual([
       ['free', '0 ₽', 'до 3 пользователей'],
-      ['start', '4 900 ₽', 'до 5 пользователей'],
-      ['business', '19 900 ₽', 'до 10 пользователей'],
-      ['profi', '29 900 ₽', 'до 30 пользователей'],
+      ['start', '9 900 ₽', 'до 7 пользователей'],
+      ['business', '24 900 ₽', 'до 15 пользователей'],
+      ['profi', '39 900 ₽', 'до 40 пользователей'],
       ['enterprise', 'от 99 000 ₽', 'от 100 пользователей'],
     ]);
   });

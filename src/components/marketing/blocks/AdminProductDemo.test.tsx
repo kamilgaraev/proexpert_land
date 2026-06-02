@@ -9,7 +9,7 @@ describe('AdminProductDemo', () => {
 
     expect(screen.getAllByRole('button', { pressed: false }).length).toBeGreaterThan(10);
     for (const module of adminProductDemoModules) {
-      expect(screen.getByRole('button', { name: `Открыть модуль ${module.title}` })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: `Открыть раздел ${module.title}` })).toBeInTheDocument();
     }
 
     expect(screen.getByText(/Демонстрационная версия/i)).toBeInTheDocument();
@@ -19,7 +19,7 @@ describe('AdminProductDemo', () => {
   it('changes the active admin workspace when a module is clicked', () => {
     render(<AdminProductDemo />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Открыть модуль Склад и материалы' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Открыть раздел Склад и материалы' }));
 
     expect(screen.getByRole('heading', { name: 'Склад и материалы' })).toBeInTheDocument();
     expect(screen.getByText('Поставка арматуры принята и зарезервирована под корпус 2.')).toBeInTheDocument();

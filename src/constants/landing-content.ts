@@ -29,7 +29,7 @@ export const HERO_CONTENT = {
     highlight: "Управляйте гибко.",
     sub: "ERP-конструктор для строительного бизнеса"
   },
-  description: "Подключайте модули под задачи вашей компании. От сметы до сдачи объекта с AI-ядром.",
+  description: "Подключайте возможности под задачи вашей компании. От сметы до сдачи объекта с AI-помощником.",
   cta: {
     primary: "Собрать конфигурацию",
     secondary: "Попробовать бесплатно"
@@ -45,7 +45,7 @@ export const SOLUTIONS = [
     icon: BuildingOffice2Icon,
     problem: "Сложно контролировать десятки субподрядчиков и сводить бюджет холдинга.",
     solution: "Единая среда для всех филиалов. Портал для субподрядчиков, где они сами сдают отчеты. Консолидированная финансовая аналитика.",
-    recommendedModules: ['MultiOrganization', 'ContractorPortal', 'BudgetEstimates', 'AdvancedDashboard']
+    recommendedModules: ['Группа компаний', 'Кабинет подрядчика', 'Сметы и бюджеты', 'Управленческая аналитика']
   },
   {
     id: 'subcontracting' as SolutionId,
@@ -53,15 +53,15 @@ export const SOLUTIONS = [
     icon: WrenchScrewdriverIcon,
     problem: "Кассовые разрывы, долгое подписание КС-2, потери материалов.",
     solution: "Генерация актов в 1 клик. Заказ материалов с телефона прораба. Точный учет рабочего времени бригад.",
-    recommendedModules: ['ActReporting', 'BasicWarehouse', 'TimeTracking', 'ScheduleManagement']
+    recommendedModules: ['Акты выполненных работ', 'Склад и материалы', 'Учет времени', 'График работ']
   },
   {
     id: 'design_supervision' as SolutionId,
     title: "Проектирование и Стройконтроль",
     icon: ClipboardDocumentCheckIcon,
     problem: "Потеря версий чертежей, долгие согласования изменений.",
-    solution: "Единое хранилище документации с версионностью. Маршруты согласования (Workflow) для технадзора.",
-    recommendedModules: ['WorkflowManagement', 'FileManagement', 'ProjectManagement', 'ReportTemplates']
+    solution: "Единое хранилище документации с версионностью. Маршруты согласования для технадзора.",
+    recommendedModules: ['Рабочие процессы', 'Файлы объекта', 'Объекты', 'Шаблоны отчетов']
   },
   {
     id: 'supply_rental' as SolutionId,
@@ -69,7 +69,7 @@ export const SOLUTIONS = [
     icon: TruckIcon,
     problem: "Непонятно, где находится техника, пересорт материалов.",
     solution: "QR-учет материалов. Трекинг перемещения техники. Управление каталогом номенклатуры и интеграция с 1С.",
-    recommendedModules: ['AdvancedWarehouse', 'CatalogManagement', 'ContractManagement', 'Integrations']
+    recommendedModules: ['Склад и материалы', 'Справочники', 'Договоры', 'Интеграции']
   }
 ];
 
@@ -116,7 +116,6 @@ export interface PricingModule {
 }
 
 export const PRICING_MODULES: PricingModule[] = [
-  // CORE
   { id: 'Organizations', name: 'Управление организациями', price: 0, type: 'core' },
   { id: 'Users', name: 'Управление пользователями', price: 0, type: 'core' },
   { id: 'Payments', name: 'Платежи и взаиморасчеты', price: 0, type: 'core' },
@@ -128,28 +127,25 @@ export const PRICING_MODULES: PricingModule[] = [
   { id: 'DashboardWidgets', name: 'Виджеты', price: 0, type: 'core' },
   { id: 'DataFilters', name: 'Фильтры', price: 0, type: 'core' },
 
-  // FEATURE
   { id: 'MultiOrganization', name: 'Мультиорганизация', price: 5900, type: 'feature' },
   { id: 'BudgetEstimates', name: 'Сметное дело', price: 5000, type: 'feature', status: 'Beta' },
   { id: 'AdvancedWarehouse', name: 'Продвинутый склад', price: 3990, type: 'feature', status: 'Dev' },
   { id: 'ScheduleManagement', name: 'Расписание', price: 1990, type: 'feature', status: 'Beta' },
-  { id: 'WorkflowManagement', name: 'Рабочие процессы', price: 1990, type: 'feature' },
+  { id: 'WorkflowManagement', name: 'Рабочие процессы', price: 0, type: 'core' },
   { id: 'AdvancedReports', name: 'Продвинутые отчеты', price: 2900, type: 'feature' },
   { id: 'TimeTracking', name: 'Учет времени', price: 1490, type: 'feature', status: 'Alpha' },
   { id: 'AdvancedDashboard', name: 'Продвинутый дашборд', price: 4990, type: 'feature', status: 'Скоро' },
 
-  // ADDONS
-  { id: 'AIAssistant', name: 'AI Ассистент', price: 3990, type: 'addon', status: 'Dev' },
+  { id: 'AIAssistant', name: 'AI-помощник', price: 3990, type: 'addon', status: 'Dev' },
   { id: 'ContractorPortal', name: 'Портал подрядчиков', price: 3490, type: 'addon', status: 'Dev' },
   { id: 'MaterialAnalytics', name: 'Аналитика материалов', price: 2990, type: 'addon' },
   { id: 'Integrations', name: 'Интеграции 1С/CRM', price: 2900, type: 'addon', status: 'Скоро' },
   { id: 'AdvanceAccounting', name: 'Подотчетные средства', price: 2490, type: 'addon', status: 'Dev' },
   { id: 'RateManagement', name: 'Расценки', price: 2490, type: 'addon', status: 'Dev' },
   { id: 'SystemLogs', name: 'Системные логи', price: 1990, type: 'addon', status: 'Скоро' },
-  { id: 'ActReporting', name: 'Управление актами', price: 1990, type: 'addon' },
+  { id: 'ActReporting', name: 'Управление актами', price: 0, type: 'core' },
   { id: 'FileManagement', name: 'Файлы', price: 990, type: 'addon' },
 
-  // SERVICES
   { id: 'ReportTemplates', name: 'Шаблоны отчетов', price: 5900, type: 'service', period: 'one_time', status: 'Alpha' },
   { id: 'DataExport', name: 'Экспорт данных безлимит', price: 500, type: 'service', period: 'one_time' },
 ];
@@ -164,8 +160,8 @@ export const PRICING_PLANS = [
       '1 объект',
       '3 пользователя',
       '1 ГБ хранилища',
-      '10 операций/мес',
-      'Только базовые функции'
+      'Объекты, договоры и справочники',
+      'Работы, акты и платежи'
     ],
     icon: WrenchScrewdriverIcon,
     isPopular: false,
@@ -173,14 +169,14 @@ export const PRICING_PLANS = [
   },
   {
     name: 'Start',
-    price: 4900,
-    description: '2 прораба, 3 объекта, 5 пользователей',
+    price: 9900,
+    description: '3 прораба, 5 объектов, 7 пользователей',
     features: [
-      '2 прораба',
-      '3 проекта',
-      '5 пользователей',
-      '1 ГБ хранилища',
-      'Базовые отчеты'
+      '3 прораба',
+      '5 проектов',
+      '7 пользователей',
+      '3 ГБ хранилища',
+      'График и заявки с объекта'
     ],
     icon: RocketLaunchIcon,
     isPopular: true,
@@ -188,13 +184,13 @@ export const PRICING_PLANS = [
   },
   {
     name: 'Business',
-    price: 9900,
-    description: '10 прорабов, 15 объектов, снабжение и финансы',
+    price: 24900,
+    description: '8 прорабов, 20 объектов, снабжение и финансы',
     features: [
-      '10 прорабов',
-      '15 проектов',
+      '8 прорабов',
+      '20 проектов',
       '15 пользователей',
-      '5 ГБ хранилища',
+      '10 ГБ хранилища',
       'Снабжение и финансы'
     ],
     icon: BriefcaseIcon,
@@ -203,14 +199,14 @@ export const PRICING_PLANS = [
   },
   {
     name: 'Profi',
-    price: 19900,
-    description: '30 прорабов, 50 объектов, пакеты уровня Рост',
+    price: 39900,
+    description: '20 прорабов, 50 объектов, ПТО и аналитика',
     features: [
-      '30 прорабов',
+      '20 прорабов',
       '50 проектов',
-      '50 пользователей',
-      '20 ГБ хранилища',
-      'Пакеты уровня Рост'
+      '40 пользователей',
+      '25 ГБ хранилища',
+      'ПТО, аналитика и AI-возможности'
     ],
     icon: StarIcon,
     isPopular: false,
@@ -218,13 +214,13 @@ export const PRICING_PLANS = [
   },
   {
     name: 'Enterprise',
-    price: 49900,
+    price: 99000,
     description: 'Индивидуальные условия для крупных компаний',
     features: [
       'Индивидуальные условия',
-      'От 49,900 руб./мес',
+      'От 99 000 руб./мес',
       'Проектное внедрение по КП',
-      'Интеграции по согласованному ТЗ',
+      'Интеграции по согласованному плану',
       'Условия поддержки в договоре'
     ],
     icon: BuildingOfficeIcon,
@@ -234,7 +230,7 @@ export const PRICING_PLANS = [
 ];
 
 export const FEATURES_CONTENT = {
-  title: "Модульная система",
+  title: "Система возможностей",
   subtitle: "Все необходимые инструменты в одной платформе",
   groups: [
     {
@@ -242,7 +238,7 @@ export const FEATURES_CONTENT = {
       icon: ChartBarIcon,
       items: [
         "Управление проектами и задачами",
-        "Рабочие процессы (Workflow)",
+        "Рабочие процессы",
         "Сетевой график и расписание",
         "Учет рабочего времени"
       ]
@@ -271,7 +267,7 @@ export const FEATURES_CONTENT = {
       title: "AI и Аналитика",
       icon: CpuChipIcon,
       items: [
-        "AI Ассистент",
+        "AI-помощник",
         "Предиктивная аналитика",
         "Дашборды руководителя",
         "Консолидированные отчеты"
