@@ -199,9 +199,14 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
               <div className="text-xs font-semibold text-gray-600 mb-2">Системные роли</div>
               <div className="space-y-1 max-h-44 overflow-y-auto">
                 {filteredSystemRoles.map((r: any) => (
-                  <label key={r.slug} className="flex items-center gap-2 text-sm">
+                  <label key={r.slug} className="flex items-start gap-2 text-sm">
                     <input type="checkbox" checked={form.role_slugs.includes(r.slug)} onChange={() => toggleSystemRole(r.slug)} />
-                    <span>{r.name}</span>
+                    <span>
+                      <span className="block font-medium text-gray-800">{r.name}</span>
+                      {r.permission_preview?.length ? (
+                        <span className="block text-xs text-gray-500">{r.permission_preview.slice(0, 3).join(', ')}</span>
+                      ) : null}
+                    </span>
                   </label>
                 ))}
                 {filteredSystemRoles.length === 0 && <div className="text-xs text-gray-400">Ничего не найдено</div>}

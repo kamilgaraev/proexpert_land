@@ -46,6 +46,8 @@ const RoleDetailsModal: React.FC<RoleDetailsModalProps> = ({ isOpen, role, onClo
     return parts.join(', ') || null;
   };
 
+  const permissionGroups = role.permission_groups || [];
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -176,21 +178,45 @@ const RoleDetailsModal: React.FC<RoleDetailsModalProps> = ({ isOpen, role, onClo
                       </span>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-sm text-gray-600">Системные права: </span>
-                        <span className="text-sm font-medium">{role.system_permissions_count}</span>
+                    <div>
+                      <div className="grid grid-cols-3 gap-3 mb-4">
+                        <div className="rounded-lg border border-gray-200 p-3">
+                          <span className="block text-xs text-gray-500">Системные</span>
+                          <span className="text-sm font-semibold">{role.system_permissions_count}</span>
+                        </div>
+                        <div className="rounded-lg border border-gray-200 p-3">
+                          <span className="block text-xs text-gray-500">Модули</span>
+                          <span className="text-sm font-semibold">{role.module_permissions_count}</span>
+                        </div>
+                        <div className="rounded-lg border border-gray-200 p-3">
+                          <span className="block text-xs text-gray-500">Всего</span>
+                          <span className="text-sm font-semibold">
+                            {role.system_permissions_count + role.module_permissions_count}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-sm text-gray-600">Права модулей: </span>
-                        <span className="text-sm font-medium">{role.module_permissions_count}</span>
-                      </div>
-                      <div className="col-span-2">
-                        <span className="text-sm text-gray-600">Всего: </span>
-                        <span className="text-sm font-bold">
-                          {role.system_permissions_count + role.module_permissions_count}
-                        </span>
-                      </div>
+
+                      {permissionGroups.length > 0 ? (
+                        <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                          {permissionGroups.map((group) => (
+                            <div key={group.slug} className="rounded-lg border border-gray-200 p-3">
+                              <div className="flex items-center justify-between gap-3 mb-2">
+                                <h5 className="text-sm font-semibold text-gray-900">{group.name}</h5>
+                                <span className="text-xs text-gray-500">{group.permissions.length}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {group.permissions.map((permission) => (
+                                  <span key={`${group.slug}:${permission.slug}`} className="inline-flex px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs">
+                                    {permission.name}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-600">Нет детализированных прав</p>
+                      )}
                     </div>
                   )}
                   {role.has_all_modules && (

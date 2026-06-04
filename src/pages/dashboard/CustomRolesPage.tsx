@@ -25,6 +25,14 @@ interface CustomRoleFormModalProps {
   availablePermissions: any;
 }
 
+const INTERFACE_SYSTEM_PERMISSIONS: Record<string, string[]> = {
+  admin: ['admin.access', 'admin.view', 'dashboard.view'],
+};
+
+const INTERFACE_GATE_PERMISSIONS: Record<string, string[]> = {
+  admin: ['admin.access', 'admin.view'],
+};
+
 const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissions }: CustomRoleFormModalProps) => {
   const [formData, setFormData] = useState<CreateCustomRoleData>({
     name: role?.name || '',
@@ -129,7 +137,13 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
       ...prev,
       interface_access: prev.interface_access.includes(interfaceName)
         ? prev.interface_access.filter(i => i !== interfaceName)
-        : [...prev.interface_access, interfaceName]
+        : [...prev.interface_access, interfaceName],
+      system_permissions: prev.interface_access.includes(interfaceName)
+        ? prev.system_permissions.filter(permission => !(INTERFACE_GATE_PERMISSIONS[interfaceName] || []).includes(permission))
+        : Array.from(new Set([
+            ...prev.system_permissions,
+            ...(INTERFACE_SYSTEM_PERMISSIONS[interfaceName] || []),
+          ])),
     }));
   };
 

@@ -14,6 +14,7 @@ import {
   SparklesIcon
 } from '@heroicons/react/24/outline';
 import { adminPanelUserService, customRolesService } from '@utils/api';
+import type { AvailableRole } from '@utils/api';
 import { AdminPanelUser, AdminFormData } from '@/types/admin';
 import { toast } from 'react-toastify';
 import { useAuth } from '@hooks/useAuth';
@@ -24,6 +25,75 @@ interface AdminFormModalProps {
   onFormSubmit: () => void;
   adminToEdit?: AdminPanelUser | null;
 }
+
+type RoleOption = {
+  slug: string;
+  name: string;
+  type: 'system' | 'custom';
+  description?: string;
+  permission_preview?: string[];
+  system_permissions_count?: number;
+  module_permissions_count?: number;
+  interface_access?: string[];
+};
+
+const ROLE_FALLBACK_NAMES: Record<string, string> = {
+  super_admin: 'Суперадминистратор',
+  support: 'Поддержка',
+  system_admin: 'Системный администратор',
+  accountant: 'Бухгалтер',
+  organization_admin: 'Администратор организации',
+  organization_owner: 'Владелец организации',
+  viewer: 'Наблюдатель',
+  supplier: 'Снабженец',
+  brigade_manager: 'Менеджер бригады',
+  brigade_representative: 'Представитель бригады',
+  admin_viewer: 'Наблюдатель админ-панели',
+  brigade_catalog_moderator: 'Модератор каталога бригад',
+  finance_admin: 'Финансовый администратор',
+  web_admin: 'Веб-администратор',
+  foreman: 'Прораб',
+  observer: 'Наблюдатель проекта',
+  worker: 'Рабочий',
+  contractor: 'Подрядчик',
+  project_manager: 'Руководитель проекта',
+  project_viewer: 'Наблюдатель проекта',
+  site_engineer: 'Инженер ПТО',
+  parent_administrator: 'Администратор холдинга',
+};
+
+const INTERFACE_LABELS: Record<string, string> = {
+  admin: 'Админ-панель',
+  lk: 'Личный кабинет',
+  mobile: 'Мобильное приложение',
+  customer: 'Кабинет заказчика',
+};
+
+const fallbackRoleName = (slug: string): string => ROLE_FALLBACK_NAMES[slug] ?? slug
+  .split('_')
+  .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+  .join(' ');
+
+const normalizeRoleOption = (role: string | AvailableRole, defaultType: 'system' | 'custom'): RoleOption => {
+  if (typeof role === 'string') {
+    return {
+      slug: role,
+      name: fallbackRoleName(role),
+      type: defaultType,
+    };
+  }
+
+  return {
+    slug: String(role.slug),
+    name: String(role.name ?? fallbackRoleName(role.slug)),
+    type: role.type ?? defaultType,
+    description: role.description,
+    permission_preview: role.permission_preview,
+    system_permissions_count: role.system_permissions_count,
+    module_permissions_count: role.module_permissions_count,
+    interface_access: role.interface_access,
+  };
+};
 
 const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onFormSubmit, adminToEdit }) => {
   const isEditing = !!adminToEdit;
@@ -41,7 +111,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
   const [formData, setFormData] = useState<AdminFormData>(initialFormState);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [roleOptions, setRoleOptions] = useState<Array<{ slug: string; name: string; type: 'system' | 'custom' }>>([]);
+  const [roleOptions, setRoleOptions] = useState<RoleOption[]>([]);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
@@ -73,42 +143,19 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
 
   useEffect(() => {
     if (!isOpen) return;
-    const mapSlugToRu = (slug: string) => {
-      const dict: Record<string, string> = {
-        super_admin: 'Суперадминистратор',
-        support: 'Поддержка',
-        system_admin: 'Системный администратор',
-        accountant: 'Бухгалтер',
-        organization_admin: 'Администратор организации',
-        organization_owner: 'Владелец организации',
-        viewer: 'Просмотр (только чтение)',
-        foreman: 'Прораб',
-        observer: 'Наблюдатель',
-        worker: 'Рабочий',
-        contractor: 'Подрядчик',
-        project_manager: 'Руководитель проекта',
-        site_engineer: 'Инженер ПТО',
-      };
-      if (dict[slug]) return dict[slug];
-      return slug
-        .split('_')
-        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-        .join(' ');
-    };
-
     const loadRoles = async () => {
       try {
         setRolesLoading(true);
         const resp = await customRolesService.getAvailableRoles();
         const payload = resp?.data;
         const data = payload?.data ?? payload;
-        const system: string[] = Array.isArray(data?.system_roles) ? data.system_roles : [];
-        const custom: any[] = Array.isArray(data?.custom_roles) ? data.custom_roles : [];
+        const system: Array<string | AvailableRole> = Array.isArray(data?.system_roles) ? data.system_roles : [];
+        const custom: AvailableRole[] = Array.isArray(data?.custom_roles) ? data.custom_roles : [];
 
-        const systemOpts = system.map((slug: string) => ({ slug, name: mapSlugToRu(slug), type: 'system' as const }));
+        const systemOpts = system.map((role) => normalizeRoleOption(role, 'system'));
         const customOpts = custom
           .filter((r) => r && r.slug && (r.is_active === undefined || r.is_active))
-          .map((r) => ({ slug: String(r.slug), name: String(r.name ?? r.slug), type: 'custom' as const }));
+          .map((role) => normalizeRoleOption({ ...role, type: 'custom' }, 'custom'));
 
         const opts = [...systemOpts, ...customOpts];
         setRoleOptions(opts);
@@ -124,6 +171,11 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
 
     loadRoles();
   }, [isOpen, isEditing]);
+
+  const selectedRoleOption = roleOptions.find((role) => role.slug === formData.role_slug);
+  const selectedRolePermissionsCount = selectedRoleOption
+    ? (selectedRoleOption.system_permissions_count ?? 0) + (selectedRoleOption.module_permissions_count ?? 0)
+    : 0;
 
   const getPasswordStrength = (password: string) => {
     if (password.length === 0) return 0;
@@ -437,6 +489,27 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                             </optgroup>
                           )}
                         </select>
+                        {selectedRoleOption && (
+                          <div className="mt-3 rounded-xl border border-steel-200 bg-white/70 px-4 py-3">
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-steel-600">
+                              <span className="font-semibold text-steel-800">{selectedRoleOption.type === 'system' ? 'Системная роль' : 'Кастомная роль'}</span>
+                              {selectedRolePermissionsCount > 0 && (
+                                <span>{selectedRolePermissionsCount} прав</span>
+                              )}
+                              {selectedRoleOption.interface_access?.length ? (
+                                <span>{selectedRoleOption.interface_access.map((slug) => INTERFACE_LABELS[slug] ?? slug).join(', ')}</span>
+                              ) : null}
+                            </div>
+                            {selectedRoleOption.description && (
+                              <p className="mt-2 text-sm text-steel-700">{selectedRoleOption.description}</p>
+                            )}
+                            {selectedRoleOption.permission_preview?.length ? (
+                              <p className="mt-2 text-xs text-steel-600">
+                                {selectedRoleOption.permission_preview.slice(0, 4).join(', ')}
+                              </p>
+                            ) : null}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

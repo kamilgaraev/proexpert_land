@@ -33,7 +33,7 @@ const RolesComparisonTable: React.FC<RolesComparisonTableProps> = ({ onRoleClick
   const [billingFilter, setBillingFilter] = useState<'all' | 'yes' | 'no'>('all');
   
   // Кеширование
-  const CACHE_KEY = 'roles_comparison_cache';
+  const CACHE_KEY = 'roles_comparison_cache_v2';
   const CACHE_DURATION = 5 * 60 * 1000; // 5 минут
 
   useEffect(() => {
@@ -128,6 +128,16 @@ const RolesComparisonTable: React.FC<RolesComparisonTableProps> = ({ onRoleClick
     if (restrictions.working_hours) parts.push(restrictions.working_hours);
     if (restrictions.working_days) parts.push(restrictions.working_days);
     return parts.join(', ') || null;
+  };
+
+  const permissionSummary = (role: RoleComparison): string => {
+    if (role.has_all_permissions) return 'Все права';
+    const preview = role.permission_preview || [];
+    if (preview.length > 0) {
+      const suffix = role.system_permissions_count + role.module_permissions_count > preview.length ? '...' : '';
+      return `${preview.slice(0, 3).join(', ')}${suffix}`;
+    }
+    return `${role.system_permissions_count + role.module_permissions_count}`;
   };
 
   const filteredAndGroupedRoles = useMemo(() => {
@@ -410,9 +420,12 @@ const RolesComparisonTable: React.FC<RolesComparisonTableProps> = ({ onRoleClick
                               Все права
                             </span>
                           ) : (
-                            <span className="text-muted-foreground">
-                              {role.system_permissions_count + role.module_permissions_count}
-                            </span>
+                            <div className="max-w-xs">
+                              <div className="text-foreground line-clamp-2">{permissionSummary(role)}</div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {role.system_permissions_count + role.module_permissions_count} прав
+                              </div>
+                            </div>
                           )}
                           {role.has_all_modules && (
                             <span className="ml-2 inline-flex px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-medium">
@@ -506,9 +519,7 @@ const RolesComparisonTable: React.FC<RolesComparisonTableProps> = ({ onRoleClick
                           Все права
                         </span>
                       ) : (
-                        <span className="text-foreground">
-                          {role.system_permissions_count + role.module_permissions_count}
-                        </span>
+                        <span className="text-foreground">{permissionSummary(role)}</span>
                       )}
                       {role.has_all_modules && (
                         <span className="ml-2 inline-flex px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-medium">
@@ -543,4 +554,3 @@ const RolesComparisonTable: React.FC<RolesComparisonTableProps> = ({ onRoleClick
 };
 
 export default RolesComparisonTable;
-

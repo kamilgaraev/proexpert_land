@@ -98,14 +98,19 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ user, isOpen, onClose, on
                 <h4 className="text-sm font-medium text-gray-900 mb-2">Системные роли</h4>
                 <div className="space-y-2">
                   {systemRoles.map((role) => (
-                    <label key={role.slug} className="flex items-center">
+                    <label key={role.slug} className="flex items-start">
                       <input
                         type="checkbox"
                         checked={selectedSystemRoles.includes(role.slug)}
                         onChange={(e) => handleSystemRoleChange(role.slug, e.target.checked)}
                         className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
-                      <span className="ml-2 text-sm text-gray-700">{role.name}</span>
+                      <span className="ml-2">
+                        <span className="block text-sm text-gray-700">{role.name}</span>
+                        {role.permission_preview?.length ? (
+                          <span className="block text-xs text-gray-500">{role.permission_preview.slice(0, 3).join(', ')}</span>
+                        ) : null}
+                      </span>
                     </label>
                   ))}
                 </div>

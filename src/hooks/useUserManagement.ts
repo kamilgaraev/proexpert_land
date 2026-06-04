@@ -1,5 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
-import { userManagementService, customRolesService, CreateUserWithCustomRolesData } from '@utils/api';
+import {
+  userManagementService,
+  customRolesService,
+  CreateUserWithCustomRolesData,
+  AvailableRole,
+  RolePermissionGroup,
+  RolePermissionsPayload,
+} from '@utils/api';
 
 export interface OrganizationRole {
   id: number;
@@ -16,9 +23,132 @@ export interface OrganizationRole {
     name: string;
     granted: boolean;
   }>>;
+  permission_groups?: RolePermissionGroup[];
+  permission_preview?: string[];
+  system_permissions_count?: number;
+  module_permissions_count?: number;
+  interface_access?: string[];
+  context?: string;
+  interface?: string | null;
   users_count: number;
   created_at: string;
 }
+
+const SYSTEM_ROLE_NAME_MAP: Record<string, string> = {
+  super_admin: 'Суперадминистратор',
+  support: 'Поддержка',
+  system_admin: 'Системный администратор',
+  accountant: 'Бухгалтер',
+  organization_admin: 'Администратор организации',
+  organization_owner: 'Владелец организации',
+  viewer: 'Наблюдатель',
+  supplier: 'Снабженец',
+  brigade_manager: 'Менеджер бригады',
+  brigade_representative: 'Представитель бригады',
+  admin_viewer: 'Наблюдатель админ-панели',
+  brigade_catalog_moderator: 'Модератор каталога бригад',
+  finance_admin: 'Финансовый администратор',
+  web_admin: 'Веб-администратор',
+  foreman: 'Прораб',
+  observer: 'Наблюдатель проекта',
+  worker: 'Рабочий',
+  contractor: 'Подрядчик',
+  project_manager: 'Руководитель проекта',
+  project_viewer: 'Наблюдатель проекта',
+  site_engineer: 'Инженер ПТО',
+  parent_administrator: 'Администратор холдинга',
+};
+
+const humanizeRoleSlug = (slug: string) => SYSTEM_ROLE_NAME_MAP[slug] ?? slug
+  .split('_')
+  .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+  .join(' ');
+
+const normalizePermissionGroups = (
+  permissionGroups?: RolePermissionGroup[],
+  permissions?: RolePermissionsPayload,
+): Record<string, Array<{ slug: string; name: string; granted: boolean }>> => {
+  if (Array.isArray(permissionGroups) && permissionGroups.length > 0) {
+    return permissionGroups.reduce((acc, group) => {
+      acc[group.slug] = (group.permissions || []).map(permission => ({
+        slug: permission.slug,
+        name: permission.name,
+        granted: true,
+      }));
+      return acc;
+    }, {} as Record<string, Array<{ slug: string; name: string; granted: boolean }>>);
+  }
+
+  const formatted: Record<string, Array<{ slug: string; name: string; granted: boolean }>> = {};
+
+  if (permissions?.interface_access) {
+    formatted.interfaces = Object.entries(permissions.interface_access).map(([slug, name]) => ({
+      slug,
+      name,
+      granted: true,
+    }));
+  }
+
+  if (permissions?.system_permissions) {
+    formatted.system = Object.entries(permissions.system_permissions).map(([slug, name]) => ({
+      slug,
+      name,
+      granted: true,
+    }));
+  }
+
+  Object.entries(permissions?.module_permissions || {}).forEach(([module, modulePermissions]) => {
+    formatted[module] = Object.entries(modulePermissions).map(([slug, name]) => ({
+      slug,
+      name,
+      granted: true,
+    }));
+  });
+
+  return formatted;
+};
+
+const permissionSlugs = (
+  permissionsFormatted: Record<string, Array<{ slug: string; name: string; granted: boolean }>>,
+): string[] => Object.values(permissionsFormatted)
+  .flat()
+  .filter(permission => permission.granted)
+  .map(permission => permission.slug);
+
+const normalizeAvailableRole = (item: string | AvailableRole, idx: number): OrganizationRole => {
+  const role: AvailableRole = typeof item === 'string'
+    ? {
+        slug: item,
+        name: humanizeRoleSlug(item),
+        type: 'system',
+        is_active: true,
+      }
+    : item;
+
+  const permissionsFormatted = normalizePermissionGroups(role.permission_groups, role.permissions);
+
+  return {
+    id: typeof role.id === 'number' ? role.id : -1000 - idx,
+    name: role.name ?? humanizeRoleSlug(role.slug),
+    slug: role.slug,
+    description: role.description ?? '',
+    color: role.type === 'custom' ? '#f97316' : '#64748b',
+    is_active: role.is_active ?? true,
+    is_system: role.type !== 'custom',
+    display_order: idx,
+    permissions: permissionSlugs(permissionsFormatted),
+    permissions_formatted: permissionsFormatted,
+    permission_groups: role.permission_groups,
+    permission_preview: role.permission_preview,
+    system_permissions_count: role.system_permissions_count,
+    module_permissions_count: role.module_permissions_count,
+    interface_access: role.interface_access,
+    context: role.context,
+    interface: role.interface,
+    users_count: 0,
+    created_at: '',
+  };
+};
 
 export interface UserInvitation {
   id: number;
@@ -106,59 +236,21 @@ export const useUserManagement = () => {
       const payload = response?.data;
       const data = payload?.data ?? payload;
 
-      const systemSlugs: string[] = Array.isArray(data?.system_roles) ? data.system_roles : [];
-      const customRolesRaw: any[] = Array.isArray(data?.custom_roles) ? data.custom_roles : [];
+      const systemRolesRaw: Array<string | AvailableRole> = Array.isArray(data?.system_roles) ? data.system_roles : [];
+      const customRolesRaw: AvailableRole[] = Array.isArray(data?.custom_roles) ? data.custom_roles : [];
 
-      const SYSTEM_ROLE_NAME_MAP: Record<string, string> = {
-        super_admin: 'Суперадминистратор',
-        support: 'Поддержка',
-        system_admin: 'Системный администратор',
-        accountant: 'Бухгалтер',
-        organization_admin: 'Администратор организации',
-        organization_owner: 'Владелец организации',
-        viewer: 'Просмотр (только чтение)',
-        foreman: 'Прораб',
-        observer: 'Наблюдатель',
-        worker: 'Рабочий',
-        contractor: 'Подрядчик',
-        project_manager: 'Руководитель проекта',
-        site_engineer: 'Инженер ПТО',
-      };
+      const normalizedSystemRoles: OrganizationRole[] = systemRolesRaw.map((role, idx) => normalizeAvailableRole(role, idx));
 
-      const humanize = (slug: string) => SYSTEM_ROLE_NAME_MAP[slug] ?? slug
-        .split('_')
-        .map(s => s.charAt(0).toUpperCase() + s.slice(1))
-        .join(' ');
-
-      const normalizedSystemRoles: OrganizationRole[] = systemSlugs.map((slug, idx) => ({
-        id: -1000 - idx,
-        name: humanize(slug),
-        slug,
-        description: '',
-        color: '#64748b',
-        is_active: true,
-        is_system: true,
-        display_order: idx,
-        permissions: [],
-        permissions_formatted: {},
-        users_count: 0,
-        created_at: ''
-      }));
-
-      const normalizedCustomRoles: OrganizationRole[] = customRolesRaw.map((r: any, idx: number) => ({
-        id: typeof r.id === 'number' ? r.id : (-2000 - idx),
-        name: r.name ?? r.slug,
-        slug: r.slug,
-        description: r.description ?? '',
-        color: r.color ?? '#f97316',
-        is_active: r.is_active ?? true,
-        is_system: false,
-        display_order: typeof r.display_order === 'number' ? r.display_order : idx,
-        permissions: Array.isArray(r.permissions) ? r.permissions : [],
-        permissions_formatted: {},
-        users_count: typeof r.users_count === 'number' ? r.users_count : 0,
-        created_at: r.created_at ?? ''
-      }));
+      const normalizedCustomRoles: OrganizationRole[] = customRolesRaw.map((role, idx) => {
+        const normalized = normalizeAvailableRole({ ...role, type: 'custom' }, idx);
+        return {
+          ...normalized,
+          id: typeof role.id === 'number' ? role.id : (-2000 - idx),
+          color: '#f97316',
+          users_count: typeof (role as any).users_count === 'number' ? (role as any).users_count : 0,
+          created_at: typeof (role as any).created_at === 'string' ? (role as any).created_at : '',
+        };
+      });
 
       setRoles([...normalizedCustomRoles, ...normalizedSystemRoles]);
     } catch (err: any) {

@@ -1592,6 +1592,26 @@ export interface CreateCustomRoleData {
   };
 }
 
+export type RolePermissionMap = Record<string, string>;
+
+export interface RolePermissionItem {
+  slug: string;
+  name: string;
+}
+
+export interface RolePermissionGroup {
+  slug: string;
+  name: string;
+  permissions: RolePermissionItem[];
+}
+
+export interface RolePermissionsPayload {
+  system_permissions?: RolePermissionMap;
+  module_permissions?: Record<string, RolePermissionMap>;
+  module_groups?: RolePermissionMap;
+  interface_access?: RolePermissionMap;
+}
+
 export interface AvailableRole {
   id?: number;
   name: string;
@@ -1599,12 +1619,23 @@ export interface AvailableRole {
   description?: string;
   is_active?: boolean;
   type: 'system' | 'custom';
+  context?: string;
+  interface?: string | null;
+  interface_access?: string[];
+  assignable?: boolean;
+  permissions?: RolePermissionsPayload;
+  permission_groups?: RolePermissionGroup[];
+  permission_preview?: string[];
+  system_permissions_count?: number;
+  module_permissions_count?: number;
+  has_all_permissions?: boolean;
+  has_all_modules?: boolean;
 }
 
 export interface AvailableRolesResponse {
   success: boolean;
   data: {
-    system_roles: string[];
+    system_roles: Array<string | AvailableRole>;
     custom_roles: AvailableRole[];
     organization_id: number;
   };
@@ -1705,6 +1736,7 @@ export interface RoleComparison {
   context_slug: 'system' | 'organization' | 'project';
   interfaces: string[];
   interfaces_slugs: string[];
+  assignable?: boolean;
   billing_access: boolean;
   can_manage_roles: string[];
   cannot_manage_roles: string[];
@@ -1717,6 +1749,9 @@ export interface RoleComparison {
   module_permissions_count: number;
   has_all_permissions: boolean;
   has_all_modules: boolean;
+  permissions?: RolePermissionsPayload;
+  permission_groups?: RolePermissionGroup[];
+  permission_preview?: string[];
 }
 
 export interface RolesComparisonResponse {
