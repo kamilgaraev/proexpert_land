@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -74,6 +75,21 @@ describe('sitemap sync', () => {
     expect(sitemapUrls).not.toContain('https://prohelper.pro/privacy');
     expect(sitemapUrls).not.toContain('https://prohelper.pro/offer');
     expect(sitemapUrls).not.toContain('https://prohelper.pro/cookies');
+  });
+
+  it('has a generated raster OG image for every indexable marketing route', () => {
+    const missingImages = marketingSitemapRoutes.flatMap((route) => {
+      const seoData = getPageSEOData(route.path);
+      const imageFileName = seoData.ogImage.match(/^https:\/\/prohelper\.pro\/og\/([^/?#]+\.png)$/)?.[1];
+
+      if (imageFileName && fs.existsSync(path.resolve(process.cwd(), 'public', 'og', imageFileName))) {
+        return [];
+      }
+
+      return [`${route.path}: ${seoData.ogImage}`];
+    });
+
+    expect(missingImages).toEqual([]);
   });
 
   it('adds published blog article URLs supplied by the public blog sitemap API', () => {
