@@ -46,6 +46,11 @@ const featuredCapabilityIds = [
   'project-control',
   'supply-chain',
   'finance-control',
+  'pir-project-documentation',
+  'quality-handover',
+  'construction-safety',
+  'machinery-labor',
+  'change-control',
   'multi-org',
 ];
 
@@ -68,6 +73,14 @@ const painItems = [
     title: 'Деньги не привязаны к объекту',
     text: 'Платежи, договоры, акты и лимиты собираются в разных таблицах, а отклонения становятся видны уже после факта.',
   },
+  {
+    title: 'ПИР, качество и приемка идут отдельно',
+    text: 'Проектные версии, дефекты, punch-list и исполнительная документация живут рядом с проектом только в ручных отчетах.',
+  },
+  {
+    title: 'Ресурсы и безопасность видны поздно',
+    text: 'Техника, выработка, персонал, инструктажи и инциденты фиксируются отдельно от сроков, бюджета и ежедневного контроля.',
+  },
 ];
 
 const teamRoleItems = [
@@ -86,6 +99,18 @@ const teamRoleItems = [
   {
     role: 'Финансист',
     text: 'Связывает платежи, документы, лимиты и обязательства с конкретными проектами.',
+  },
+  {
+    role: 'Проектная команда',
+    text: 'Ведет ПД, РД, IFC, замечания, нормоконтроль и выпуск комплектов в проектном контексте.',
+  },
+  {
+    role: 'Стройконтроль и ОТ',
+    text: 'Фиксирует дефекты, повторные проверки, инструктажи, нарушения, инциденты и предписания.',
+  },
+  {
+    role: 'Механик и бригады',
+    text: 'Видит технику, смены, простои, ГСМ, наряды, выработку и трудозатраты по объектам.',
   },
 ];
 
@@ -138,8 +163,8 @@ const HomePage = () => {
   return (
     <div className="marketing-page-shell overflow-hidden bg-white">
       <PageHero
-        title="Управляйте объектами, снабжением и финансами в одной системе."
-        description="ProHelper помогает подрядчику, генподрядчику и девелоперу связать офис, площадку и руководителя в одном рабочем контуре."
+        title="Управляйте стройкой от ПИР до приемки в одной системе."
+        description="ProHelper помогает подрядчику, генподрядчику и девелоперу связать офис, площадку, ПИР, снабжение, финансы, качество, безопасность, ресурсы и заказчика в одном рабочем контуре."
         actions={[
           { label: 'Запросить демонстрацию', href: '#contact', primary: true },
           { label: 'Посмотреть пакеты', href: '#pricing' },
@@ -188,10 +213,10 @@ const HomePage = () => {
           <SectionHeader
             eyebrow="Почему меняют таблицы"
             title="Когда стройка живет в Excel, чатах и звонках, контроль появляется слишком поздно."
-            description="Главная ценность ProHelper — собрать операционный контур стройки так, чтобы решения принимались по актуальным данным, а не по ручному отчету."
+            description="Главная ценность ProHelper — собрать операционный контур стройки так, чтобы решения принимались по актуальным данным: от проектных версий и снабжения до качества, безопасности, ресурсов, изменений и приемки."
           />
 
-          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
             {painItems.map((item) => (
               <article key={item.title} className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm">
                 <div className="text-xl font-bold text-steel-950">{item.title}</div>
@@ -205,7 +230,7 @@ const HomePage = () => {
               Что меняется
             </div>
             <div className="mt-3 max-w-4xl text-2xl font-bold leading-tight">
-              Объект, заявки, материалы, документы и деньги становятся частями одного маршрута.
+              Объект, ПИР, заявки, материалы, качество, безопасность, ресурсы, изменения, документы и деньги становятся частями одного маршрута.
             </div>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-white/72">
               Команда видит не разрозненные файлы, а связанный процесс: что нужно сделать, кто отвечает, какие ресурсы нужны и где появляются отклонения.
@@ -271,8 +296,8 @@ const HomePage = () => {
         <div className="container-custom">
           <SectionHeader
             eyebrow="Что внутри"
-            title="Один продукт для объекта, снабжения, финансов и корпоративного контроля."
-            description="Показываем не перечень функций, а рабочие контуры, которые связывают офис, площадку и руководителя."
+            title="Один продукт для объекта, ПИР, снабжения, финансов, качества, безопасности и ресурсов."
+            description="Показываем не перечень функций, а рабочие контуры, которые связывают офис, площадку, проектную команду, стройконтроль и руководителя."
           />
 
           <div className="mt-10 grid gap-5 xl:grid-cols-2">
@@ -323,8 +348,11 @@ const HomePage = () => {
               items={[
                 { label: 'CRM для строительной компании', href: marketingPaths.constructionCrm },
                 { label: 'ERP для строительства', href: marketingPaths.constructionErp },
+                { label: 'ПИР и проектная документация', href: marketingPaths.pirProjectDocumentation },
+                { label: 'Охрана труда', href: marketingPaths.constructionSafety },
                 { label: 'Учет материалов', href: marketingPaths.materialAccounting },
                 { label: 'Исполнительная документация', href: marketingPaths.constructionDocuments },
+                { label: 'RFI и изменения', href: marketingPaths.changeControl },
               ]}
             />
           </div>
@@ -336,7 +364,7 @@ const HomePage = () => {
           <SectionHeader
             eyebrow="Один сервис для команды"
             title="Каждая роль видит свой участок, а руководитель — всю стройку целиком."
-            description="ProHelper не заменяет людей новым хаосом из экранов: он соединяет роли вокруг объекта, сроков, материалов и денег."
+            description="ProHelper не заменяет людей новым хаосом из экранов: он соединяет роли вокруг объекта, проектной документации, сроков, материалов, качества, безопасности, ресурсов и денег."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -379,7 +407,7 @@ const HomePage = () => {
           />
 
           <div className="mt-10 grid gap-5 xl:grid-cols-2">
-            {marketingPackages.slice(0, 4).map((item) => (
+            {marketingPackages.slice(0, 6).map((item) => (
               <PackageFamilyCard key={item.slug} item={item} compact />
             ))}
           </div>

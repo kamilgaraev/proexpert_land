@@ -5,11 +5,16 @@ import {
   BanknotesIcon,
   BuildingOfficeIcon,
   ChartBarIcon,
+  ClipboardDocumentCheckIcon,
   CpuChipIcon,
   CubeIcon,
+  DocumentCheckIcon,
+  ExclamationTriangleIcon,
   RectangleGroupIcon,
   ShieldCheckIcon,
   TruckIcon,
+  UserGroupIcon,
+  WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline';
 import { useSEO } from '@/hooks/useSEO';
 import {
@@ -35,6 +40,12 @@ const packageIcons: Record<string, ComponentType<{ className?: string }>> = {
   'estimates-pto': RectangleGroupIcon,
   'holding-analytics': ChartBarIcon,
   'ai-contour': CpuChipIcon,
+  'site-quality-handover': ClipboardDocumentCheckIcon,
+  'construction-safety': ShieldCheckIcon,
+  'machinery-and-labor': WrenchScrewdriverIcon,
+  'workforce-management': UserGroupIcon,
+  'change-control': ExclamationTriangleIcon,
+  'pir-project-documentation': DocumentCheckIcon,
 };
 
 const isExternalHref = (href: string) => href.startsWith('mailto:') || href.startsWith('http');

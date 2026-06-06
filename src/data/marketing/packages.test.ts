@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { marketingPackages, marketingSalesOffers } from './packages';
 
 describe('marketing pricing packages', () => {
-  it('publishes six paid commercial contours with client-facing names', () => {
+  it('publishes eleven paid commercial contours with client-facing names', () => {
     expect(marketingPackages.map((item) => item.slug)).toEqual([
       'objects-execution',
       'supply-warehouse',
@@ -10,6 +10,11 @@ describe('marketing pricing packages', () => {
       'estimates-pto',
       'holding-analytics',
       'ai-contour',
+      'site-quality-handover',
+      'construction-safety',
+      'machinery-and-labor',
+      'workforce-management',
+      'change-control',
     ]);
 
     expect(marketingPackages.every((item) => item.tiers.every((tier) => tier.price > 0))).toBe(true);
@@ -32,6 +37,32 @@ describe('marketing pricing packages', () => {
 
     const aiPackage = marketingPackages.find((item) => item.slug === 'ai-contour');
     expect(aiPackage?.capabilities.map((item) => item.label)).toContain('Вопросы по объектам');
+
+    const qualityPackage = marketingPackages.find((item) => item.slug === 'site-quality-handover');
+    expect(qualityPackage?.dataSources.map((item) => item.moduleSlug)).toEqual(
+      expect.arrayContaining(['quality-control', 'handover-acceptance', 'executive-documentation']),
+    );
+
+    const safetyPackage = marketingPackages.find((item) => item.slug === 'construction-safety');
+    expect(safetyPackage?.dataSources.map((item) => item.moduleSlug)).toContain('safety-management');
+  });
+
+  it('keeps newly released backend modules visible in public package tiers', () => {
+    const bySlug = new Map(marketingPackages.map((item) => [item.slug, item]));
+
+    expect(bySlug.get('estimates-pto')?.tiers[1].moduleSlugs).toContain('design-management');
+    expect(bySlug.get('site-quality-handover')?.tiers[0].moduleSlugs).toEqual(
+      expect.arrayContaining(['quality-control', 'handover-acceptance']),
+    );
+    expect(bySlug.get('site-quality-handover')?.tiers[1].moduleSlugs).toContain('executive-documentation');
+    expect(bySlug.get('construction-safety')?.tiers[0].moduleSlugs).toContain('safety-management');
+    expect(bySlug.get('machinery-and-labor')?.tiers[0].moduleSlugs).toEqual(
+      expect.arrayContaining(['machinery-operations', 'production-labor']),
+    );
+    expect(bySlug.get('workforce-management')?.tiers[0].moduleSlugs).toEqual(
+      expect.arrayContaining(['workforce-management', 'production-labor']),
+    );
+    expect(bySlug.get('change-control')?.tiers[0].moduleSlugs).toContain('change-management');
   });
 
   it('keeps package tiers cheaper than buying modules separately', () => {
@@ -67,5 +98,12 @@ describe('marketing pricing packages', () => {
     expect(moduleSlugs).not.toContain('advanced-reports');
     expect(moduleSlugs).not.toContain('advanced-dashboard');
     expect(moduleSlugs).not.toContain('basic-reports');
+    expect(moduleSlugs).not.toContain('acts');
+    expect(moduleSlugs).not.toContain('advance-requests');
+    expect(moduleSlugs).not.toContain('estimates');
+    expect(moduleSlugs).not.toContain('engineering-documents');
+    expect(moduleSlugs).not.toContain('analytics');
+    expect(moduleSlugs).not.toContain('reporting');
+    expect(moduleSlugs).not.toContain('holding-dashboard');
   });
 });

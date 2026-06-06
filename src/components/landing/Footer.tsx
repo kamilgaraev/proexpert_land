@@ -28,6 +28,7 @@ const sitemapGroups = [
     links: [
       { label: 'Программа для прораба', href: marketingPaths.foremanSoftware },
       { label: 'Система для ПТО', href: marketingPaths.ptoSoftware },
+      { label: 'ПИР и проектная документация', href: marketingPaths.pirProjectDocumentation },
       { label: 'Учет материалов', href: marketingPaths.materialAccounting },
       { label: 'Контроль подрядчиков', href: marketingPaths.contractorControl },
       { label: 'Контроль бюджета стройки', href: marketingPaths.constructionBudgetControl },
@@ -39,6 +40,16 @@ const sitemapGroups = [
       { label: 'CRM для строительной компании', href: marketingPaths.constructionCrm },
       { label: 'ERP для строительства', href: marketingPaths.constructionErp },
       { label: 'Исполнительная документация', href: marketingPaths.constructionDocuments },
+      { label: 'Контроль качества', href: marketingPaths.constructionQualityControl },
+      { label: 'Приемка и punch-list', href: marketingPaths.handoverAcceptance },
+      { label: 'Охрана труда', href: marketingPaths.constructionSafety },
+    ],
+  },
+  {
+    title: 'Операционные контуры',
+    links: [
+      { label: 'Техника и выработка', href: marketingPaths.machineryAndLabor },
+      { label: 'RFI и изменения', href: marketingPaths.changeControl },
       { label: 'Мобильное приложение', href: marketingPaths.mobileApp },
       { label: 'AI сметы по чертежам', href: marketingPaths.aiEstimates },
     ],
@@ -125,8 +136,9 @@ const Footer = () => {
             </div>
 
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/70">
-              ProHelper помогает собрать объект, снабжение, финансы, документы и управленческую картину
-              в одной системе для офиса, площадки и руководителя.
+              ProHelper помогает собрать объект, ПИР, снабжение, финансы, качество, безопасность,
+              ресурсы, изменения, документы и управленческую картину в одной системе для офиса,
+              площадки, заказчика и руководителя.
             </p>
 
             <div className="mt-8 grid gap-3 lg:grid-cols-3">

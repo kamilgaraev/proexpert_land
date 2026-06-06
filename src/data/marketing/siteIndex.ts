@@ -31,6 +31,12 @@ export const marketingSitemapRoutes: MarketingSitemapRoute[] = [
   { path: '/contractor-control', pageKey: 'contractor-control', priority: 0.88, changefreq: 'weekly' },
   { path: '/construction-documents', pageKey: 'construction-documents', priority: 0.87, changefreq: 'weekly' },
   { path: '/construction-budget-control', pageKey: 'construction-budget-control', priority: 0.89, changefreq: 'weekly' },
+  { path: '/pir-project-documentation', pageKey: 'pir-project-documentation', priority: 0.88, changefreq: 'weekly' },
+  { path: '/construction-safety', pageKey: 'construction-safety', priority: 0.87, changefreq: 'weekly' },
+  { path: '/construction-quality-control', pageKey: 'construction-quality-control', priority: 0.88, changefreq: 'weekly' },
+  { path: '/handover-acceptance', pageKey: 'handover-acceptance', priority: 0.86, changefreq: 'weekly' },
+  { path: '/machinery-and-labor', pageKey: 'machinery-and-labor', priority: 0.86, changefreq: 'weekly' },
+  { path: '/change-control', pageKey: 'change-control', priority: 0.86, changefreq: 'weekly' },
   { path: '/mobile-app', pageKey: 'mobile-app', priority: 0.87, changefreq: 'weekly' },
   { path: '/ai-estimates', pageKey: 'ai-estimates', priority: 0.84, changefreq: 'weekly' },
 ];

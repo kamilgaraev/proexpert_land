@@ -19,6 +19,26 @@ describe('marketing site index', () => {
     expect(findMarketingSitemapRoute('/features')?.pageKey).toBe('features');
   });
 
+  it('publishes new construction module routes as indexable sitemap routes', () => {
+    const expectedRoutes = [
+      ['/pir-project-documentation', 'pir-project-documentation'],
+      ['/construction-safety', 'construction-safety'],
+      ['/construction-quality-control', 'construction-quality-control'],
+      ['/handover-acceptance', 'handover-acceptance'],
+      ['/machinery-and-labor', 'machinery-and-labor'],
+      ['/change-control', 'change-control'],
+    ] as const;
+
+    for (const [path, pageKey] of expectedRoutes) {
+      expect(isKnownMarketingPath(path)).toBe(true);
+      expect(isMarketingNoIndexPath(path)).toBe(false);
+      expect(findMarketingSitemapRoute(path)).toMatchObject({
+        pageKey,
+        changefreq: 'weekly',
+      });
+    }
+  });
+
   it('recognizes noindex service routes', () => {
     expect(isKnownMarketingPath('/login')).toBe(true);
     expect(isMarketingNoIndexPath('/login')).toBe(true);

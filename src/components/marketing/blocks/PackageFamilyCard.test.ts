@@ -6,12 +6,20 @@ describe('PackageFamilyCard module labels', () => {
     const labels = [
       getMarketingModuleLabel('project-management'),
       getMarketingModuleLabel('basic-warehouse'),
+      getMarketingModuleLabel('design-management'),
+      getMarketingModuleLabel('safety-management'),
+      getMarketingModuleLabel('machinery-operations'),
+      getMarketingModuleLabel('change-management'),
       getMarketingModuleLabel('unknown-module-slug'),
     ];
 
     expect(labels).toEqual([
       'Управление проектами',
       'Складской учет',
+      'ПИР и проектная документация',
+      'Охрана труда',
+      'Техника и механизмы',
+      'Изменения и претензии',
       'Возможность ProHelper',
     ]);
     expect(labels.join(' ')).not.toMatch(/[a-z]+-[a-z-]+/);
