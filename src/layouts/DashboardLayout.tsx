@@ -2,10 +2,12 @@ import { useEffect, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Briefcase,
+  BookOpen,
   Building,
   Building2,
   CreditCard,
   HelpCircle,
+  History,
   Handshake,
   LayoutDashboard,
   Mail,
@@ -277,7 +279,19 @@ const DashboardLayout = () => {
       name: 'Справка',
       href: '/dashboard/help',
       icon: HelpCircle,
-      description: 'База знаний и FAQ',
+      description: 'FAQ и поддержка',
+    },
+    {
+      name: 'База знаний',
+      href: '/dashboard/help/knowledge',
+      icon: BookOpen,
+      description: 'Руководства и практики',
+    },
+    {
+      name: 'Обновления',
+      href: '/dashboard/help/changelog',
+      icon: History,
+      description: 'Что изменилось',
     },
   ];
 

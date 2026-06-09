@@ -43,6 +43,10 @@ const DashboardPage = lazy(() => import('@pages/dashboard/DashboardPage'));
 const ProfilePage = lazy(() => import('@pages/dashboard/ProfilePage'));
 const OrganizationPage = lazy(() => import('@pages/dashboard/OrganizationPage'));
 const HelpPage = lazy(() => import('@pages/dashboard/HelpPage'));
+const KnowledgeBasePage = lazy(() => import('@pages/dashboard/help/KnowledgeBasePage'));
+const KnowledgeArticlePage = lazy(() => import('@pages/dashboard/help/KnowledgeArticlePage'));
+const ChangelogPage = lazy(() => import('@pages/dashboard/help/ChangelogPage'));
+const ChangelogDetailPage = lazy(() => import('@pages/dashboard/help/ChangelogDetailPage'));
 const SupportPage = lazy(() => import('@pages/dashboard/SupportPage'));
 const AdminsPage = lazy(() => import('@pages/dashboard/AdminsPage'));
 const BillingPage = lazy(() => import('@pages/dashboard/BillingPage'));
@@ -265,6 +269,10 @@ function App({
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<ProfilePage />} />
           <Route path="help" element={<HelpPage />} />
+          <Route path="help/knowledge" element={<KnowledgeBasePage />} />
+          <Route path="help/knowledge/:slug" element={<KnowledgeArticlePage />} />
+          <Route path="help/changelog" element={<ChangelogPage />} />
+          <Route path="help/changelog/:slug" element={<ChangelogDetailPage />} />
           <Route path="support" element={<SupportPage />} />
           <Route path="faq" element={<FAQPage />} />
           <Route path="limits" element={

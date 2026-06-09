@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import {
   ChatBubbleLeftRightIcon,
   DocumentTextIcon,
@@ -50,21 +51,24 @@ export function HelpOverview({ onTabChange }: HelpOverviewProps) {
       description: "Обучающие ролики по всем функциям",
       icon: VideoCameraIcon,
       color: "bg-orange-100 text-orange-700",
-      items: ["Начало работы", "Управление командой", "Финансы", "Настройки"]
+      items: ["Начало работы", "Управление командой", "Финансы", "Настройки"],
+      href: "/dashboard/help/knowledge"
     },
     {
       title: "База знаний",
       description: "Подробные статьи и инструкции",
       icon: BookOpenIcon,
       color: "bg-blue-100 text-blue-700",
-      items: ["Руководства", "Лучшие практики", "Советы", "Обновления"]
+      items: ["Руководства", "Лучшие практики", "Советы", "Обновления"],
+      href: "/dashboard/help/knowledge"
     },
     {
       title: "Вебинары",
       description: "Живые обучающие сессии",
       icon: AcademicCapIcon,
       color: "bg-purple-100 text-purple-700",
-      items: ["Еженедельные вебинары", "Специальные темы", "Q&A сессии", "Записи"]
+      items: ["Еженедельные вебинары", "Специальные темы", "Q&A сессии", "Записи"],
+      href: "/dashboard/help?tab=support"
     }
   ];
 
@@ -165,8 +169,8 @@ export function HelpOverview({ onTabChange }: HelpOverviewProps) {
                     </li>
                   ))}
                 </ul>
-                <Button variant="outline" size="sm" className="w-full mt-4">
-                   Открыть раздел
+                <Button asChild variant="outline" size="sm" className="w-full mt-4">
+                  <Link to={resource.href}>Открыть раздел</Link>
                 </Button>
               </CardContent>
             </Card>
