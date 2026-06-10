@@ -87,7 +87,7 @@ const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) =>
         </div>
       </div>
 
-      <div className={`mt-6 grid gap-4 ${compact ? 'lg:grid-cols-2' : 'xl:grid-cols-3'}`}>
+      <div className={`mt-6 grid items-start gap-4 ${compact ? 'lg:grid-cols-2' : 'xl:grid-cols-3'}`}>
         {tiers.map((tier) => (
           <div key={`${item.slug}-${tier.key}`} className="rounded-[1.35rem] bg-concrete-50 p-5">
             <div className="flex items-start justify-between gap-3">

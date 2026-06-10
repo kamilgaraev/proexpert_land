@@ -161,7 +161,7 @@ const HomePage = () => {
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
   return (
-    <div className="marketing-page-shell overflow-hidden bg-white">
+    <div className="marketing-page-shell overflow-hidden">
       <PageHero
         title="Управляйте стройкой от ПИР до приемки в одной системе."
         description="ProHelper помогает подрядчику, генподрядчику и девелоперу связать офис, площадку, ПИР, снабжение, финансы, качество, безопасность, ресурсы и заказчика в одном рабочем контуре."

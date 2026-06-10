@@ -208,7 +208,10 @@ body::selection {
 }
 
 .marketing-page-shell {
-  background: white;
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.16), transparent 26rem),
+    radial-gradient(circle at top right, rgba(148, 163, 184, 0.16), transparent 24rem),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 18rem, #ffffff 34rem);
   padding-top: 7.25rem;
   overflow-x: clip;
 }

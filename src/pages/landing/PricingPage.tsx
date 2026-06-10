@@ -205,11 +205,11 @@ const PricingPage = () => {
             description="Так клиент сразу видит стоимость закрытого строительного процесса: объект, ПИР, снабжение, финансы, качество, безопасность, ресурсы, изменения или холдинг."
           />
 
-          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+          <div className="mt-10 grid items-start gap-5 lg:grid-cols-3">
             {marketingSalesOffers.map((offer) => (
               <article
                 key={offer.title}
-                className={`rounded-[1.75rem] border p-6 shadow-sm ${
+                className={`flex flex-col rounded-[1.75rem] border p-6 shadow-sm ${
                   offer.planSlug === 'business'
                     ? 'border-construction-300 bg-construction-50'
                     : 'border-steel-200 bg-white'
