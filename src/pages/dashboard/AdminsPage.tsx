@@ -53,6 +53,7 @@ const AdminsPage = () => {
     fetchUsers,
     fetchInvitations,
     fetchRoles,
+    roles: availableRoles,
     clearError
   } = useUserManagement();
 
@@ -130,7 +131,27 @@ const AdminsPage = () => {
     setSearchTerm(event.target.value);
   };
 
+  const roleNameBySlug = useMemo(() => {
+    const next = new Map<string, string>();
+
+    availableRoles.forEach((role) => {
+      if (role.slug && role.name && !next.has(role.slug)) {
+        next.set(role.slug, role.name);
+      }
+    });
+
+    return next;
+  }, [availableRoles]);
+
   const getRoleDisplayName = (role_slug: string | null): string => {
+    if (role_slug) {
+      const roleName = roleNameBySlug.get(role_slug);
+
+      if (roleName) {
+        return roleName;
+      }
+    }
+
     switch (role_slug) {
       case 'organization_owner':
         return 'Владелец';
@@ -149,7 +170,7 @@ const AdminsPage = () => {
       case 'support_admin':
         return 'Поддержка';
       default:
-        return role_slug || 'Пользователь';
+        return 'Пользователь';
     }
   };
 
