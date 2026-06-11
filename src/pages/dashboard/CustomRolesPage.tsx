@@ -33,6 +33,12 @@ const INTERFACE_GATE_PERMISSIONS: Record<string, string[]> = {
   admin: ['admin.access', 'admin.view'],
 };
 
+const getPermissionKeys = (permissions: any): string[] => (
+  Array.isArray(permissions)
+    ? permissions.map((permission: any) => permission.key).filter(Boolean)
+    : []
+);
+
 const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissions }: CustomRoleFormModalProps) => {
   const [formData, setFormData] = useState<CreateCustomRoleData>({
     name: role?.name || '',
@@ -129,6 +135,31 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
           ? prev.module_permissions[module].filter(p => p !== permission)
           : [...(prev.module_permissions?.[module] || []), permission]
       }
+    }));
+  };
+
+  const selectAllModulePermissions = () => {
+    const allModulePermissions = Object.entries(availablePermissions?.module_permissions || {}).reduce(
+      (acc, [module, permissions]) => {
+        const permissionKeys = getPermissionKeys(permissions);
+        if (permissionKeys.length > 0) {
+          acc[module] = permissionKeys;
+        }
+        return acc;
+      },
+      {} as Record<string, string[]>
+    );
+
+    setFormData(prev => ({
+      ...prev,
+      module_permissions: allModulePermissions,
+    }));
+  };
+
+  const clearAllModulePermissions = () => {
+    setFormData(prev => ({
+      ...prev,
+      module_permissions: {},
     }));
   };
 
@@ -277,6 +308,24 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
           {/* Module Permissions Tab */}
           {activeTab === 'modules' && (
             <div className="space-y-6">
+              {availablePermissions?.module_permissions && (
+                <div className="flex flex-wrap items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={selectAllModulePermissions}
+                    className="inline-flex items-center rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10"
+                  >
+                    Выбрать все
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearAllModulePermissions}
+                    className="inline-flex items-center rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary"
+                  >
+                    Снять все
+                  </button>
+                </div>
+              )}
               {availablePermissions?.module_permissions && Object.entries(availablePermissions.module_permissions).map(([module, permissions]: [string, any]) => (
                 <div key={module} className="border border-border rounded-lg p-4">
                   <h4 className="text-lg font-medium text-foreground mb-3">
