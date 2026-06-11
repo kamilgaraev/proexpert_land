@@ -77,15 +77,18 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSa
 
     setLoading(true);
     setShowEmailVerificationNotice(false);
+    const normalizedEmail = formData.email.trim().toLowerCase();
+
     try {
       if (inviteType === 'direct') {
         // Создаем пользователя с кастомными ролями напрямую
         const response = await createUserWithCustomRoles({
-          email: formData.email,
+          email: normalizedEmail,
           name: formData.name,
           password: formData.password,
           password_confirmation: formData.password_confirmation,
           custom_role_ids: formData.custom_role_ids,
+          roles: formData.role_slugs,
           send_credentials: formData.send_credentials
         });
         
@@ -98,7 +101,7 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSa
       } else {
         // Отправляем приглашение
         await sendInvitation({
-          email: formData.email,
+          email: normalizedEmail,
           name: formData.name,
           role_slugs: formData.role_slugs,
           metadata: {
@@ -394,4 +397,4 @@ const InviteUserModal: React.FC<InviteUserModalProps> = ({ isOpen, onClose, onSa
   );
 };
 
-export default InviteUserModal; 
+export default InviteUserModal;

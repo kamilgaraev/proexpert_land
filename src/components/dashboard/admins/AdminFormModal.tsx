@@ -291,7 +291,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
       } else {
         const dataToSendForCreate = {
           name: formData.name,
-          email: formData.email,
+          email: formData.email.trim().toLowerCase(),
           role_slug: formData.role_slug,
           password: formData.password,
           password_confirmation: formData.password_confirmation,

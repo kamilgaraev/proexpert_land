@@ -73,14 +73,17 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
   const submit = async () => {
     setLoading(true);
     setShowEmailVerificationNotice(false);
+    const normalizedEmail = form.email.trim().toLowerCase();
+
     try {
       if (mode === 'direct') {
         const response = await createUserWithCustomRoles({
           name: form.name,
-          email: form.email,
+          email: normalizedEmail,
           password: form.password,
           password_confirmation: form.password_confirmation,
           custom_role_ids: form.custom_role_ids,
+          roles: form.role_slugs,
           send_credentials: form.send_credentials
         });
         
@@ -93,7 +96,7 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
       } else {
         await sendInvitation({
           name: form.name,
-          email: form.email,
+          email: normalizedEmail,
           role_slugs: form.role_slugs,
           metadata: {}
         });

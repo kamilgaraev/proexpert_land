@@ -1647,6 +1647,7 @@ export interface CreateUserWithCustomRolesData {
   password: string;
   password_confirmation: string;
   custom_role_ids: number[];
+  roles?: string[];
   send_credentials?: boolean;
 }
 
