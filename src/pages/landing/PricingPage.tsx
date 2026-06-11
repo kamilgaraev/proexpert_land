@@ -205,11 +205,11 @@ const PricingPage = () => {
             description="Так клиент сразу видит стоимость закрытого строительного процесса: объект, ПИР, снабжение, финансы, качество, безопасность, ресурсы, изменения или холдинг."
           />
 
-          <div className="mt-10 grid items-start gap-5 lg:grid-cols-3">
+          <div className="mt-10 grid gap-5 lg:grid-cols-3">
             {marketingSalesOffers.map((offer) => (
               <article
                 key={offer.title}
-                className={`flex flex-col rounded-[1.75rem] border p-6 shadow-sm ${
+                className={`flex h-full flex-col rounded-[1.75rem] border p-6 shadow-sm ${
                   offer.planSlug === 'business'
                     ? 'border-construction-300 bg-construction-50'
                     : 'border-steel-200 bg-white'
@@ -225,12 +225,14 @@ const PricingPage = () => {
                   {offer.outcome}
                 </div>
                 <p className="mt-4 text-sm leading-7 text-steel-600">{offer.comparison}</p>
-                <MarketingLink
-                  href={offer.planSlug === 'enterprise' ? '#enterprise-constructor' : `/register?plan=${offer.planSlug}`}
-                  className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-800"
-                >
-                  {offer.planSlug === 'enterprise' ? 'Открыть конструктор' : `Выбрать ${offer.planName}`}
-                </MarketingLink>
+                <div className="mt-auto pt-5">
+                  <MarketingLink
+                    href={offer.planSlug === 'enterprise' ? '#enterprise-constructor' : `/register?plan=${offer.planSlug}`}
+                    className="inline-flex w-full items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-800"
+                  >
+                    {offer.planSlug === 'enterprise' ? 'Открыть конструктор' : `Выбрать ${offer.planName}`}
+                  </MarketingLink>
+                </div>
               </article>
             ))}
           </div>

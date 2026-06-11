@@ -114,16 +114,18 @@ const MarketingPricingSnapshot = () => (
                 ))}
               </div>
 
-              <Link
-                to={plan.ctaHref}
-                className={`mt-6 inline-flex w-full items-center justify-center rounded-full px-4 py-3 text-center text-sm font-semibold transition ${
-                  plan.isFeatured
-                    ? 'bg-steel-950 text-white hover:bg-steel-900'
-                    : 'border border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
-                }`}
-              >
-                {meta.ctaLabel}
-              </Link>
+              <div className="mt-auto pt-6">
+                <Link
+                  to={plan.ctaHref}
+                  className={`inline-flex w-full items-center justify-center rounded-full px-4 py-3 text-center text-sm font-semibold transition ${
+                    plan.isFeatured
+                      ? 'bg-steel-950 text-white hover:bg-steel-900'
+                      : 'border border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
+                  }`}
+                >
+                  {meta.ctaLabel}
+                </Link>
+              </div>
             </article>
           );
         })}

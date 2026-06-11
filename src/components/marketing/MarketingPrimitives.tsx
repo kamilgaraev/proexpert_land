@@ -154,8 +154,8 @@ export const PageHero = ({
   nav?: { label: string; href: string }[];
   aside?: ReactNode;
 }) => (
-  <section className="overflow-x-hidden border-b border-steel-100 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.16),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(148,163,184,0.16),_transparent_24%),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
-    <div className="container-custom py-12 sm:py-14 lg:py-20">
+  <section className="overflow-x-hidden border-b border-steel-100 bg-transparent">
+    <div className="container-custom pb-12 pt-8 sm:pb-14 sm:pt-10 lg:pb-20 lg:pt-10">
       <div className={`grid gap-8 ${aside ? 'xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)] xl:items-start' : ''}`}>
         <div className="min-w-0 max-w-4xl">
           {eyebrow ? <div className="text-sm font-semibold leading-6 text-construction-700">{eyebrow}</div> : null}
