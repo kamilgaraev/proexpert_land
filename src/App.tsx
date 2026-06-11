@@ -1,5 +1,7 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AppErrorBoundary } from '@components/common/AppErrorBoundary';
+import { AppLoadingFallback } from '@components/common/AppLoadingFallback';
 
 // Критические компоненты загружаем сразу (Landing + Auth)
 import LandingLayout from '@layouts/LandingLayout';
@@ -138,16 +140,6 @@ function App({
     return hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`);
   };
 
-  // Компонент загрузки для Suspense 
-  const LoadingFallback = () => (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-600 font-medium">Загрузка...</p>
-      </div>
-    </div>
-  );
-
   if (isHoldingSubdomain()) {
     return (
       <>
@@ -158,9 +150,11 @@ function App({
           enableTrackLinks={true}
           enableAccurateTrackBounce={true}
         />
-        <Suspense fallback={<LoadingFallback />}>
-          <HoldingRouter />
-        </Suspense>
+        <AppErrorBoundary resetKey={`${location.pathname}${location.search}`}>
+          <Suspense fallback={<AppLoadingFallback />}>
+            <HoldingRouter />
+          </Suspense>
+        </AppErrorBoundary>
         <ToastContainer 
           position="bottom-right"
           autoClose={3000} 
@@ -186,8 +180,9 @@ function App({
         enableTrackLinks={true}
         enableAccurateTrackBounce={true}
       />
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
+      <AppErrorBoundary resetKey={`${location.pathname}${location.search}`}>
+        <Suspense fallback={<AppLoadingFallback />}>
+          <Routes>
         {/* Публичные маршруты */}
         <Route element={<LandingLayout />}>
           <Route path="/" element={<HomePage />} />
@@ -419,8 +414,9 @@ function App({
         
         {/* Страница 404 для несуществующих маршрутов */}
         <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-      </Suspense>
+          </Routes>
+        </Suspense>
+      </AppErrorBoundary>
       <ToastContainer 
         position="bottom-right"
         autoClose={3000} 

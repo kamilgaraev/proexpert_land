@@ -152,8 +152,17 @@ server {
     index index.html;
     
     # ЛК страницы
+    location = /index.html {
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
+        add_header Pragma "no-cache" always;
+        add_header Expires "0" always;
+    }
+
     location / {
         try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
+        add_header Pragma "no-cache" always;
+        add_header Expires "0" always;
     }
     
     # API проксирование
@@ -202,8 +211,17 @@ server {
     index index.html;
     
     # Все маршруты отдаем React приложение
+    location = /index.html {
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
+        add_header Pragma "no-cache" always;
+        add_header Expires "0" always;
+    }
+
     location / {
         try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
+        add_header Pragma "no-cache" always;
+        add_header Expires "0" always;
     }
     
     # Статические файлы
@@ -268,4 +286,4 @@ else
     echo "🔍 Проверьте конфигурацию: nginx -t"
     echo "📝 Лог ошибок: tail -f /var/log/nginx/error.log"
     exit 1
-fi 
+fi

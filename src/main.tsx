@@ -4,12 +4,10 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from '@contexts/AuthContext';
 import { PermissionsProvider } from '@/contexts/PermissionsContext';
+import { installPreloadErrorRecovery } from '@utils/preloadRecovery';
 import './index.css';
 
-window.addEventListener('vite:preloadError', (event) => {
-  event.preventDefault();
-  window.location.reload();
-});
+installPreloadErrorRecovery();
 
 function handleSpaRedirect() {
   const redirect = localStorage.getItem('redirect_404');
