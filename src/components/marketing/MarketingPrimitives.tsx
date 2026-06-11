@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   ArrowUpRightIcon,
   BanknotesIcon,
+  BriefcaseIcon,
   BuildingOfficeIcon,
   ChartBarIcon,
   ClipboardDocumentCheckIcon,
@@ -37,6 +38,7 @@ const packageIcons: Record<string, ComponentType<{ className?: string }>> = {
   'objects-execution': BuildingOfficeIcon,
   'supply-warehouse': TruckIcon,
   'finance-acts': BanknotesIcon,
+  crm: BriefcaseIcon,
   'estimates-pto': RectangleGroupIcon,
   'holding-analytics': ChartBarIcon,
   'ai-contour': CpuChipIcon,

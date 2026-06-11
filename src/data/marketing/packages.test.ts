@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { marketingPackages, marketingSalesOffers } from './packages';
 
 describe('marketing pricing packages', () => {
-  it('publishes eleven paid commercial contours with client-facing names', () => {
+  it('publishes twelve paid commercial contours with client-facing names', () => {
     expect(marketingPackages.map((item) => item.slug)).toEqual([
       'objects-execution',
       'supply-warehouse',
       'finance-acts',
+      'crm',
       'estimates-pto',
       'holding-analytics',
       'ai-contour',
@@ -45,6 +46,9 @@ describe('marketing pricing packages', () => {
 
     const safetyPackage = marketingPackages.find((item) => item.slug === 'construction-safety');
     expect(safetyPackage?.dataSources.map((item) => item.moduleSlug)).toContain('safety-management');
+
+    const crmPackage = marketingPackages.find((item) => item.slug === 'crm');
+    expect(crmPackage?.businessOutcomes).toContain('Единый путь от лида до договора');
   });
 
   it('keeps newly released backend modules visible in public package tiers', () => {
@@ -63,6 +67,7 @@ describe('marketing pricing packages', () => {
       expect.arrayContaining(['workforce-management', 'production-labor']),
     );
     expect(bySlug.get('change-control')?.tiers[0].moduleSlugs).toContain('change-management');
+    expect(bySlug.get('crm')?.tiers[0].moduleSlugs).toContain('crm');
   });
 
   it('keeps package tiers cheaper than buying modules separately', () => {

@@ -10,6 +10,7 @@ describe('PackageFamilyCard module labels', () => {
       getMarketingModuleLabel('safety-management'),
       getMarketingModuleLabel('machinery-operations'),
       getMarketingModuleLabel('change-management'),
+      getMarketingModuleLabel('crm'),
       getMarketingModuleLabel('unknown-module-slug'),
     ];
 
@@ -20,6 +21,7 @@ describe('PackageFamilyCard module labels', () => {
       'Охрана труда',
       'Техника и механизмы',
       'Изменения и претензии',
+      'CRM и продажи',
       'Возможность ProHelper',
     ]);
     expect(labels.join(' ')).not.toMatch(/[a-z]+-[a-z-]+/);

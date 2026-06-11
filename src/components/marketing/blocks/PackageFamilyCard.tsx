@@ -50,6 +50,7 @@ const moduleDisplayNames: Record<string, string> = {
   'file-management': 'Файлы и версии',
   'rate-management': 'Расценки',
   reports: 'Отчеты',
+  crm: 'CRM и продажи',
   'report-templates': 'Шаблоны отчетов',
   'material-analytics': 'Материальная аналитика',
   'multi-organization': 'Группа компаний',
