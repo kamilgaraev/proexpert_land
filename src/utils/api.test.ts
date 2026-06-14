@@ -1,13 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  authService,
   billingService,
   createFetchResponse,
   getBalanceTransactionDescription,
   normalizeBalanceTransactionsResponse,
   normalizeOrganizationBalanceResponse,
 } from './api';
-import { clearAuthToken, saveAuthToken } from './authTokenStorage';
+import { clearAuthToken, getAuthToken, saveAuthToken } from './authTokenStorage';
 
 afterEach(() => {
   clearAuthToken();
@@ -38,6 +39,51 @@ describe('createFetchResponse', () => {
       config: {
         headers: {},
       },
+    });
+  });
+});
+
+describe('authService.login', () => {
+  it('retries a transient transport failure before returning the login response', async () => {
+    const fetchMock = vi.fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        data: {
+          token: 'login-token',
+          user: {
+            id: 1,
+            email: 'user@example.com',
+          },
+        },
+      }), {
+        status: 200,
+        statusText: 'OK',
+        headers: {
+          'content-type': 'application/json',
+        },
+      }));
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await authService.login({
+      email: 'user@example.com',
+      password: 'secret-password',
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(result.data.data?.token).toBe('login-token');
+    expect(getAuthToken()).toBe('login-token');
+  });
+
+  it('converts persistent fetch transport failures to a user-facing Russian error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+
+    await expect(authService.login({
+      email: 'user@example.com',
+      password: 'secret-password',
+    })).rejects.toMatchObject({
+      message: 'Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.',
+      status: 0,
     });
   });
 });

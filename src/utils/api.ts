@@ -90,6 +90,7 @@ type ApiRequestError = Error & {
   status?: number;
   data?: unknown;
   errors?: unknown;
+  originalError?: unknown;
 };
 
 type AuthPatchedWindow = Window & typeof globalThis & {
@@ -135,6 +136,89 @@ const extractTokenFromPayload = (payload: unknown): string | null => {
     ?? root.data?.token
     ?? root.data?.data?.token
     ?? null;
+};
+
+const LOGIN_NETWORK_ERROR_MESSAGE = 'Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.';
+const LOGIN_TIMEOUT_ERROR_MESSAGE = 'Сервер не ответил вовремя. Попробуйте войти еще раз.';
+const LOGIN_NETWORK_RETRY_ATTEMPTS = 1;
+const LOGIN_NETWORK_RETRY_DELAY_MS = 300;
+const LOGIN_REQUEST_TIMEOUT_MS = 15000;
+
+const delay = (timeoutMs: number): Promise<void> => new Promise((resolve) => {
+  setTimeout(resolve, timeoutMs);
+});
+
+const isAbortError = (error: unknown): boolean => (
+  error instanceof Error && error.name === 'AbortError'
+);
+
+const isLoginTransportError = (error: unknown): boolean => (
+  error instanceof TypeError || isAbortError(error)
+);
+
+const createApiRequestError = (
+  message: string,
+  status?: number,
+  data?: unknown,
+  originalError?: unknown,
+): ApiRequestError => {
+  const error: ApiRequestError = new Error(message);
+
+  if (status !== undefined) {
+    error.status = status;
+  }
+
+  if (data !== undefined) {
+    error.data = data;
+  }
+
+  if (originalError !== undefined) {
+    error.originalError = originalError;
+  }
+
+  return error;
+};
+
+const getLoginTransportErrorMessage = (error: unknown): string => (
+  isAbortError(error) ? LOGIN_TIMEOUT_ERROR_MESSAGE : LOGIN_NETWORK_ERROR_MESSAGE
+);
+
+const fetchLoginResponse = async (credentials: LoginRequest): Promise<Response> => {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= LOGIN_NETWORK_RETRY_ATTEMPTS; attempt += 1) {
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timeoutId = controller
+      ? setTimeout(() => controller.abort(), LOGIN_REQUEST_TIMEOUT_MS)
+      : null;
+
+    try {
+      return await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(credentials),
+        signal: controller?.signal,
+      });
+    } catch (error) {
+      lastError = error;
+
+      if (!isLoginTransportError(error) || attempt === LOGIN_NETWORK_RETRY_ATTEMPTS) {
+        throw createApiRequestError(getLoginTransportErrorMessage(error), 0, undefined, error);
+      }
+
+      await delay(LOGIN_NETWORK_RETRY_DELAY_MS);
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    }
+  }
+
+  throw createApiRequestError(LOGIN_NETWORK_ERROR_MESSAGE, 0, undefined, lastError);
 };
 
 // Интерцептор для добавления токена аутентификации
@@ -251,23 +335,12 @@ export const authService = {
 
   // Вход в систему
   login: async (credentials: LoginRequest): Promise<FetchApiResponse<AuthPayload>> => {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify(credentials)
-    });
+    const response = await fetchLoginResponse(credentials);
 
     const data = await response.json() as AuthPayload & ApiErrorPayload;
 
     if (!response.ok) {
-      const error: ApiRequestError = new Error(data?.message || 'Ошибка входа');
-      error.status = response.status;
-      error.data = data;
-      throw error;
+      throw createApiRequestError(data?.message || 'Ошибка входа', response.status, data);
     }
 
     // Сразу сохраняем токен в хранилище
