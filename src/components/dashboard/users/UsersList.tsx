@@ -1,11 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { OrganizationUser } from '../../../hooks/useUserManagement';
+import { useAuth } from '../../../hooks/useAuth';
+import { useIsOwner } from '../../../hooks/usePermissions';
 import { userManagementService } from '../../../utils/api';
 import { 
   CheckCircleIcon, 
   ExclamationTriangleIcon,
   EnvelopeIcon,
-  FunnelIcon
+  FunnelIcon,
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 
@@ -19,6 +22,11 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
   const [filterUnverifiedOnly, setFilterUnverifiedOnly] = useState(false);
   const [sortByVerification, setSortByVerification] = useState<'none' | 'unverified-first' | 'verified-first'>('unverified-first');
   const [sendingEmail, setSendingEmail] = useState<number | null>(null);
+  const [ownerCandidate, setOwnerCandidate] = useState<OrganizationUser | null>(null);
+  const [ownerAcknowledged, setOwnerAcknowledged] = useState(false);
+  const [grantingOwner, setGrantingOwner] = useState(false);
+  const { user: currentUser } = useAuth();
+  const isCurrentUserOwner = useIsOwner();
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -70,6 +78,10 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
     return user.email_verified_at !== null && user.email_verified_at !== undefined;
   };
 
+  const hasOrganizationOwnerRole = (user: OrganizationUser) => {
+    return user.roles.some(role => role.slug === 'organization_owner');
+  };
+
   const handleResendVerificationEmail = async (userId: number) => {
     setSendingEmail(userId);
     try {
@@ -84,6 +96,40 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
       toast.error(error.message || 'Не удалось отправить письмо');
     } finally {
       setSendingEmail(null);
+    }
+  };
+
+  const openGrantOwnerModal = (user: OrganizationUser) => {
+    setOwnerCandidate(user);
+    setOwnerAcknowledged(false);
+  };
+
+  const closeGrantOwnerModal = () => {
+    if (grantingOwner) return;
+    setOwnerCandidate(null);
+    setOwnerAcknowledged(false);
+  };
+
+  const handleGrantOwner = async () => {
+    if (!ownerCandidate || !ownerAcknowledged) return;
+
+    setGrantingOwner(true);
+
+    try {
+      const response = await userManagementService.grantOrganizationOwner(ownerCandidate.id);
+      if (response.data?.success) {
+        toast.success(response.data.message || 'Пользователь назначен владельцем организации');
+        setOwnerCandidate(null);
+        setOwnerAcknowledged(false);
+        onRefresh();
+      } else {
+        throw new Error(response.data?.message || 'Не удалось назначить владельца организации');
+      }
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error.message || 'Не удалось назначить владельца организации';
+      toast.error(message);
+    } finally {
+      setGrantingOwner(false);
     }
   };
 
@@ -199,6 +245,8 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
             <tbody className="bg-background divide-y divide-border">
               {filteredAndSortedUsers.map((user) => {
                 const verified = isEmailVerified(user);
+                const isOwner = hasOrganizationOwnerRole(user);
+                const canGrantOwner = isCurrentUserOwner && currentUser?.id !== user.id && !isOwner && user.status.toLowerCase() === 'active';
                 return (
                   <tr key={user.id} className="hover:bg-secondary/50">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -295,6 +343,16 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
                             )}
                           </button>
                         )}
+                        {canGrantOwner && (
+                          <button
+                            type="button"
+                            onClick={() => openGrantOwnerModal(user)}
+                            className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+                          >
+                            <ShieldCheckIcon className="w-4 h-4" />
+                            Сделать владельцем
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -304,8 +362,67 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
           </table>
         </div>
       )}
+
+      {ownerCandidate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-lg overflow-hidden rounded-lg bg-white shadow-xl">
+            <div className="flex items-start gap-3 border-b border-amber-200 bg-amber-50 px-5 py-4">
+              <ExclamationTriangleIcon className="mt-0.5 h-6 w-6 flex-shrink-0 text-amber-600" />
+              <div>
+                <h3 className="text-base font-semibold text-amber-950">
+                  Назначить владельцем организации?
+                </h3>
+                <p className="mt-1 text-sm text-amber-900">
+                  Это важная роль с полным доступом к управлению организацией, сотрудниками и настройками.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4 px-5 py-5">
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                <div className="text-sm font-semibold text-gray-900">{ownerCandidate.name}</div>
+                <div className="text-sm text-gray-600">{ownerCandidate.email}</div>
+              </div>
+
+              <label className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                <input
+                  type="checkbox"
+                  checked={ownerAcknowledged}
+                  onChange={(event) => setOwnerAcknowledged(event.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-amber-300 text-amber-700 focus:ring-amber-600"
+                />
+                <span>
+                  Я понимаю, что сотрудник получит права владельца организации и сможет управлять доступами других пользователей.
+                </span>
+              </label>
+            </div>
+
+            <div className="flex flex-col-reverse gap-2 border-t border-gray-200 px-5 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={closeGrantOwnerModal}
+                disabled={grantingOwner}
+                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                onClick={handleGrantOwner}
+                disabled={!ownerAcknowledged || grantingOwner}
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {grantingOwner && (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                )}
+                Назначить владельцем
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default UsersList; 
+export default UsersList;

@@ -59,6 +59,8 @@ const SYSTEM_ROLE_NAME_MAP: Record<string, string> = {
   parent_administrator: 'Администратор холдинга',
 };
 
+const OWNER_ROLE_SLUG = 'organization_owner';
+
 const humanizeRoleSlug = (slug: string) => SYSTEM_ROLE_NAME_MAP[slug] ?? slug
   .split('_')
   .map(s => s.charAt(0).toUpperCase() + s.slice(1))
@@ -239,7 +241,9 @@ export const useUserManagement = () => {
       const systemRolesRaw: Array<string | AvailableRole> = Array.isArray(data?.system_roles) ? data.system_roles : [];
       const customRolesRaw: AvailableRole[] = Array.isArray(data?.custom_roles) ? data.custom_roles : [];
 
-      const normalizedSystemRoles: OrganizationRole[] = systemRolesRaw.map((role, idx) => normalizeAvailableRole(role, idx));
+      const normalizedSystemRoles: OrganizationRole[] = systemRolesRaw
+        .map((role, idx) => normalizeAvailableRole(role, idx))
+        .filter(role => role.slug !== OWNER_ROLE_SLUG);
 
       const normalizedCustomRoles: OrganizationRole[] = customRolesRaw.map((role, idx) => {
         const normalized = normalizeAvailableRole({ ...role, type: 'custom' }, idx);

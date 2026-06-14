@@ -152,7 +152,9 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
         const system: Array<string | AvailableRole> = Array.isArray(data?.system_roles) ? data.system_roles : [];
         const custom: AvailableRole[] = Array.isArray(data?.custom_roles) ? data.custom_roles : [];
 
-        const systemOpts = system.map((role) => normalizeRoleOption(role, 'system'));
+        const systemOpts = system
+          .map((role) => normalizeRoleOption(role, 'system'))
+          .filter((role) => role.slug !== 'organization_owner');
         const customOpts = custom
           .filter((r) => r && r.slug && (r.is_active === undefined || r.is_active))
           .map((role) => normalizeRoleOption({ ...role, type: 'custom' }, 'custom'));

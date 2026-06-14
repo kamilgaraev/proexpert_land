@@ -1944,6 +1944,11 @@ export const userManagementService = {
     return response;
   },
 
+  grantOrganizationOwner: async (userId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
+    const response = await api.post(`/user-management/organization-users/${userId}/grant-owner`);
+    return response;
+  },
+
   assignRoleToUser: async (userId: number, roleId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post(`/user-management/organization-users/${userId}/assign-role/${roleId}`);
     return response;
