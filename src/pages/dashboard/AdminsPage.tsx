@@ -16,12 +16,14 @@ import {
   CheckCircleIcon,
   ChartBarIcon
 } from '@heroicons/react/24/outline';
-import { adminPanelUserService } from '@utils/api';
+import { adminPanelUserService, userManagementService } from '@utils/api';
 import { AdminPanelUser } from '@/types/admin';
 import AdminFormModal from '@components/dashboard/admins/AdminFormModal';
 import ConfirmDeleteModal from '@components/shared/ConfirmDeleteModal';
 import { toast } from 'react-toastify';
 import { useUserManagement } from '@hooks/useUserManagement';
+import { useAuth } from '@hooks/useAuth';
+import { useIsOwner } from '@hooks/usePermissions';
 import UsersList from '@components/dashboard/users/UsersList';
 import InvitationsList from '@components/dashboard/users/InvitationsList';
 import UserCreateInviteModal from '@components/dashboard/users/UserCreateInviteModal';
@@ -40,9 +42,14 @@ const AdminsPage = () => {
   const [editingAdmin, setEditingAdmin] = useState<AdminPanelUser | null>(null);
   const [isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen] = useState(false);
   const [deletingAdmin, setDeletingAdmin] = useState<AdminPanelUser | null>(null);
+  const [ownerCandidate, setOwnerCandidate] = useState<AdminPanelUser | null>(null);
+  const [ownerAcknowledged, setOwnerAcknowledged] = useState(false);
+  const [grantingOwner, setGrantingOwner] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [sendingEmail, setSendingEmail] = useState<number | null>(null);
+  const { user: currentUser } = useAuth();
+  const isCurrentUserOwner = useIsOwner();
 
   const {
     users,
@@ -219,6 +226,65 @@ const AdminsPage = () => {
 
   const isEmailVerified = (admin: AdminPanelUser) => {
     return admin.email_verified_at !== null && admin.email_verified_at !== undefined;
+  };
+
+  const hasOrganizationOwnerRole = (admin: AdminPanelUser) => {
+    return admin.role_slug === 'organization_owner'
+      || admin.roles?.some(role => role.slug === 'organization_owner') === true;
+  };
+
+  const currentUserHasOwnerRoleInProfile = () => {
+    const roles = (currentUser as any)?.roles;
+
+    if (!Array.isArray(roles)) return false;
+
+    return roles.some((role: any) => (
+      typeof role === 'string' ? role === 'organization_owner' : role?.slug === 'organization_owner'
+    ));
+  };
+
+  const canCurrentUserGrantOwner = isCurrentUserOwner || currentUserHasOwnerRoleInProfile();
+
+  const canGrantOwnerToAdmin = (admin: AdminPanelUser) => {
+    return canCurrentUserGrantOwner
+      && currentUser?.id !== admin.id
+      && admin.is_active
+      && !hasOrganizationOwnerRole(admin);
+  };
+
+  const openGrantOwnerModal = (admin: AdminPanelUser) => {
+    setOwnerCandidate(admin);
+    setOwnerAcknowledged(false);
+  };
+
+  const closeGrantOwnerModal = () => {
+    if (grantingOwner) return;
+    setOwnerCandidate(null);
+    setOwnerAcknowledged(false);
+  };
+
+  const handleGrantOwner = async () => {
+    if (!ownerCandidate || !ownerAcknowledged) return;
+
+    setGrantingOwner(true);
+
+    try {
+      const response = await userManagementService.grantOrganizationOwner(ownerCandidate.id);
+
+      if (response.data?.success) {
+        toast.success(response.data.message || 'Пользователь назначен владельцем организации');
+        setOwnerCandidate(null);
+        setOwnerAcknowledged(false);
+        await Promise.all([fetchAdmins(), fetchUsers()]);
+      } else {
+        throw new Error(response.data?.message || 'Не удалось назначить владельца организации');
+      }
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err.message || 'Не удалось назначить владельца организации';
+      toast.error(message);
+    } finally {
+      setGrantingOwner(false);
+    }
   };
 
   const handleResendVerificationEmail = async (adminId: number) => {
@@ -407,6 +473,17 @@ const AdminsPage = () => {
                 <div className="absolute top-0 right-0 -mt-8 -mr-8 w-24 h-24 bg-primary/10 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
 
                 <div className="relative z-10">
+                   {canGrantOwnerToAdmin(admin) && (
+                     <button
+                       type="button"
+                       onClick={() => openGrantOwnerModal(admin)}
+                       className="mb-5 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-amber-300 bg-amber-500 px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-amber-100 transition-all hover:border-amber-400 hover:bg-amber-600"
+                     >
+                       <ShieldCheckIcon className="h-5 w-5" />
+                       Сделать владельцем
+                     </button>
+                   )}
+
                    <div className="flex items-center space-x-4 mb-6">
                      <div className="relative">
                         <div className="w-16 h-16 rounded-2xl overflow-hidden bg-secondary p-1 ring-2 ring-background shadow-md">
@@ -771,6 +848,65 @@ const AdminsPage = () => {
         message={`Вы уверены, что хотите удалить администратора "${deletingAdmin?.name}"? Это действие нельзя отменить.`}
         isLoading={isProcessingDelete}
       />
+
+      {ownerCandidate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-start gap-3 border-b border-amber-200 bg-amber-50 px-5 py-4">
+              <ExclamationTriangleIcon className="mt-0.5 h-7 w-7 flex-shrink-0 text-amber-600" />
+              <div>
+                <h3 className="text-lg font-bold text-amber-950">
+                  Назначить владельцем организации?
+                </h3>
+                <p className="mt-1 text-sm leading-6 text-amber-900">
+                  Это важная роль с полным доступом к организации, сотрудникам, ролям и настройкам.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4 px-5 py-5">
+              <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                <div className="text-sm font-semibold text-gray-900">{ownerCandidate.name}</div>
+                <div className="text-sm text-gray-600">{ownerCandidate.email}</div>
+              </div>
+
+              <label className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                <input
+                  type="checkbox"
+                  checked={ownerAcknowledged}
+                  onChange={(event) => setOwnerAcknowledged(event.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-amber-300 text-amber-700 focus:ring-amber-600"
+                />
+                <span>
+                  Я понимаю, что сотрудник получит права владельца организации и сможет управлять доступами других пользователей.
+                </span>
+              </label>
+            </div>
+
+            <div className="flex flex-col-reverse gap-2 border-t border-gray-200 px-5 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={closeGrantOwnerModal}
+                disabled={grantingOwner}
+                className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                onClick={handleGrantOwner}
+                disabled={!ownerAcknowledged || grantingOwner}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-bold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {grantingOwner && (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                )}
+                Сделать владельцем
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
