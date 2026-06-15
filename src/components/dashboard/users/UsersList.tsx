@@ -82,6 +82,18 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
     return user.roles.some(role => role.slug === 'organization_owner');
   };
 
+  const currentUserHasOwnerRoleInProfile = () => {
+    const roles = (currentUser as any)?.roles;
+
+    if (!Array.isArray(roles)) return false;
+
+    return roles.some((role: any) => (
+      typeof role === 'string' ? role === 'organization_owner' : role?.slug === 'organization_owner'
+    ));
+  };
+
+  const canCurrentUserGrantOwner = isCurrentUserOwner || currentUserHasOwnerRoleInProfile();
+
   const handleResendVerificationEmail = async (userId: number) => {
     setSendingEmail(userId);
     try {
@@ -161,6 +173,16 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
     return filtered;
   }, [users, filterUnverifiedOnly, sortByVerification]);
 
+  const ownerGrantCandidates = useMemo(() => {
+    if (!canCurrentUserGrantOwner) return [];
+
+    return users.filter(user => (
+      currentUser?.id !== user.id
+      && !hasOrganizationOwnerRole(user)
+      && user.status.toLowerCase() === 'active'
+    ));
+  }, [users, currentUser?.id, canCurrentUserGrantOwner]);
+
   if (loading) {
     return (
       <div className="p-6">
@@ -181,6 +203,44 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
           <p className="text-sm text-muted-foreground">Управляйте участниками вашей организации</p>
         </div>
       </div>
+
+      {ownerGrantCandidates.length > 0 && (
+        <div className="mb-5 rounded-lg border-2 border-amber-300 bg-amber-50 p-4 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 ring-1 ring-amber-300">
+                <ShieldCheckIcon className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wide text-amber-950">
+                  Назначение владельца организации
+                </h3>
+                <p className="mt-1 max-w-2xl text-sm text-amber-900">
+                  Владелец получает полный доступ к организации, сотрудникам, ролям и настройкам.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 lg:justify-end">
+              {ownerGrantCandidates.slice(0, 3).map(user => (
+                <button
+                  key={user.id}
+                  type="button"
+                  onClick={() => openGrantOwnerModal(user)}
+                  className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-700"
+                >
+                  <ShieldCheckIcon className="h-4 w-4" />
+                  Назначить: {user.name}
+                </button>
+              ))}
+              {ownerGrantCandidates.length > 3 && (
+                <span className="inline-flex items-center rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-medium text-amber-900">
+                  Ещё {ownerGrantCandidates.length - 3} в таблице ниже
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Фильтры и сортировка */}
       <div className="mb-4 flex flex-wrap gap-4 items-center">
@@ -237,8 +297,8 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                   Последний вход
                 </th>
-                <th className="relative px-6 py-3">
-                  <span className="sr-only">Действия</span>
+                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">
+                  Действия
                 </th>
               </tr>
             </thead>
@@ -246,7 +306,7 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
               {filteredAndSortedUsers.map((user) => {
                 const verified = isEmailVerified(user);
                 const isOwner = hasOrganizationOwnerRole(user);
-                const canGrantOwner = isCurrentUserOwner && currentUser?.id !== user.id && !isOwner && user.status.toLowerCase() === 'active';
+                const canGrantOwner = canCurrentUserGrantOwner && currentUser?.id !== user.id && !isOwner && user.status.toLowerCase() === 'active';
                 return (
                   <tr key={user.id} className="hover:bg-secondary/50">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -347,10 +407,10 @@ const UsersList: React.FC<UsersListProps> = ({ users, loading, onRefresh }) => {
                           <button
                             type="button"
                             onClick={() => openGrantOwnerModal(user)}
-                            className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+                            className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-700"
                           >
                             <ShieldCheckIcon className="w-4 h-4" />
-                            Сделать владельцем
+                            Назначить владельцем
                           </button>
                         )}
                       </div>
