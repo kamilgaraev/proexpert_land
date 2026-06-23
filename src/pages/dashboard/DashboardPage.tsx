@@ -30,11 +30,13 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
+const isSuccessfulStatus = (status: number) => status >= 200 && status < 300;
+
 const DashboardPage = () => {
   const [landingData, setLandingData] = useState<LandingDashboardResponse | null>(null);
   const [dashboard, setDashboard] = useState<any>(null);
-  // const [dashboardLoading, setDashboardLoading] = useState(true);
-  // const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
   const permissionsReady = usePermissionsReady();
   const canViewBilling =
     useCanAccess({ permission: 'billing.manage' }) ||
@@ -59,21 +61,38 @@ const DashboardPage = () => {
       return;
     }
 
+    let isMounted = true;
+
     (async () => {
-      try {
-        const [{ data: landing }, planResponse] = await Promise.all([
-          landingService.getLandingDashboard(),
-          canViewBilling ? billingService.getOrgDashboard() : Promise.resolve(null),
-        ]);
-        setLandingData(landing);
-        setDashboard(planResponse?.data ?? null);
-        // setDashboardError(null);
-        // setDashboardLoading(false);
-      } catch (e: any) {
-        // setDashboardError(e.message || 'Ошибка загрузки данных');
-        // setDashboardLoading(false);
+      setDashboardLoading(true);
+      setDashboardError(null);
+      const [landingResult, billingResult] = await Promise.allSettled([
+        landingService.getLandingDashboard(),
+        canViewBilling ? billingService.getOrgDashboard() : Promise.resolve(null),
+      ]);
+
+      if (!isMounted) {
+        return;
       }
+
+      if (
+        landingResult.status === 'fulfilled' &&
+        isSuccessfulStatus(landingResult.value.status) &&
+        landingResult.value.data
+      ) {
+        setLandingData(landingResult.value.data);
+      } else {
+        setLandingData(null);
+        setDashboardError('Не удалось загрузить данные дашборда. Попробуйте обновить страницу.');
+      }
+
+      setDashboard(billingResult.status === 'fulfilled' ? billingResult.value?.data ?? null : null);
+      setDashboardLoading(false);
     })();
+
+    return () => {
+      isMounted = false;
+    };
   }, [permissionsReady, canViewBilling]);
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(val);
@@ -176,6 +195,23 @@ const DashboardPage = () => {
                  <Link to="/dashboard/billing">Обновить тариф</Link>
              </Button>
         </motion.div>
+      )}
+
+      {dashboardLoading && !landingData && (
+        <Card className="border-dashed">
+          <CardContent className="py-10 text-center text-muted-foreground">
+            Загружаем данные дашборда...
+          </CardContent>
+        </Card>
+      )}
+
+      {dashboardError && !dashboardLoading && (
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardContent className="py-6 flex items-center gap-3 text-destructive">
+            <AlertTriangle className="h-5 w-5" />
+            <span className="font-medium">{dashboardError}</span>
+          </CardContent>
+        </Card>
       )}
 
       {/* Stats Grid */}

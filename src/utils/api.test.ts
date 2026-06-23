@@ -5,6 +5,7 @@ import {
   billingService,
   createFetchResponse,
   getBalanceTransactionDescription,
+  landingService,
   normalizeBalanceTransactionsResponse,
   normalizeOrganizationBalanceResponse,
 } from './api';
@@ -163,7 +164,7 @@ describe('billingService', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    await billingService.getOrgDashboard();
+    const result = await billingService.getOrgDashboard();
 
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.prohelper.pro/api/v1/landing/billing/dashboard',
@@ -174,5 +175,70 @@ describe('billingService', () => {
         }),
       }),
     );
+    expect(result.data).toEqual({ ok: true });
+  });
+});
+
+describe('landingService', () => {
+  it('unwraps landing dashboard response data from the Laravel envelope', async () => {
+    saveAuthToken('test-token');
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
+      success: true,
+      message: 'loaded',
+      data: {
+        financial: {
+          balance: 125000,
+          credits_this_month: 50000,
+          debits_this_month: 25000,
+        },
+        projects: {
+          total: 3,
+          active: 2,
+          completed: 1,
+        },
+        contracts: {
+          total: 7,
+          active: 5,
+          draft: 1,
+          completed: 1,
+          total_amount: 3000000,
+        },
+        works_materials: {
+          works: {},
+          materials: {},
+        },
+        acts: {
+          total: 4,
+          approved: 3,
+          total_amount: 750000,
+        },
+        team: {
+          total: 12,
+          by_roles: {},
+        },
+        team_details: [],
+        charts: {
+          projects_monthly: { labels: ['Июнь'], values: [3] },
+          contracts_monthly: { labels: ['Июнь'], values: [7] },
+          completed_works_monthly: { labels: ['Июнь'], values: [4] },
+          balance_monthly: { labels: ['Июнь'], values: [125000] },
+          projects_status: { active: 2, completed: 1 },
+          contracts_status: { active: 5, completed: 1 },
+        },
+      },
+    }), {
+      status: 200,
+      statusText: 'OK',
+      headers: {
+        'content-type': 'application/json',
+      },
+    }));
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await landingService.getLandingDashboard();
+
+    expect(result.data.projects.total).toBe(3);
+    expect(result.data.financial.balance).toBe(125000);
   });
 });

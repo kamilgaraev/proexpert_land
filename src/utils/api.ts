@@ -1094,6 +1094,14 @@ export interface PaginatedBalanceTransactions {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
+const unwrapApiResponseData = <T>(payload: unknown): T => {
+  if (isRecord(payload) && 'data' in payload) {
+    return payload.data as T;
+  }
+
+  return payload as T;
+};
+
 const numberOrDefault = (value: unknown, fallback: number): number => {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : fallback;
@@ -1611,7 +1619,7 @@ export const billingService = {
     };
     const response = await fetchWithBillingLogging(url, options);
     const responseData = await response.json();
-    return { data: responseData, status: response.status, statusText: response.statusText };
+    return { data: unwrapApiResponseData<LegacyJsonPayload>(responseData), status: response.status, statusText: response.statusText };
   },
 
 
@@ -3172,7 +3180,7 @@ export const landingService = {
     };
     const response = await fetch(url, options);
     const responseData = await response.json();
-    return { data: responseData as LandingDashboardResponse, status: response.status, statusText: response.statusText };
+    return { data: unwrapApiResponseData<LandingDashboardResponse>(responseData), status: response.status, statusText: response.statusText };
   }
 };
 

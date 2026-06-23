@@ -1,0 +1,120 @@
+import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import DashboardPage from './DashboardPage';
+
+const apiMocks = vi.hoisted(() => ({
+  getLandingDashboard: vi.fn(),
+  getOrgDashboard: vi.fn(),
+}));
+
+vi.mock('@utils/api', () => ({
+  landingService: {
+    getLandingDashboard: apiMocks.getLandingDashboard,
+  },
+  billingService: {
+    getOrgDashboard: apiMocks.getOrgDashboard,
+  },
+}));
+
+vi.mock('@hooks/useSubscriptionLimits', () => ({
+  useSubscriptionLimits: () => ({
+    hasWarnings: false,
+    criticalWarnings: [],
+  }),
+}));
+
+vi.mock('@/hooks/usePermissions', () => ({
+  usePermissionsReady: () => true,
+  useCanAccess: () => true,
+}));
+
+vi.mock('@components/dashboard/LineChart', () => ({
+  default: () => <div data-testid="line-chart" />,
+}));
+
+vi.mock('@components/dashboard/DonutStatusChart', () => ({
+  default: () => <div data-testid="donut-chart" />,
+}));
+
+const dashboardPayload = {
+  financial: {
+    balance: 125000,
+    credits_this_month: 50000,
+    debits_this_month: 25000,
+  },
+  projects: {
+    total: 3,
+    active: 2,
+    completed: 1,
+  },
+  contracts: {
+    total: 7,
+    active: 5,
+    draft: 1,
+    completed: 1,
+    total_amount: 3000000,
+  },
+  works_materials: {
+    works: {},
+    materials: {},
+  },
+  acts: {
+    total: 4,
+    approved: 3,
+    total_amount: 750000,
+  },
+  team: {
+    total: 12,
+    by_roles: {},
+  },
+  team_details: [],
+  charts: {
+    projects_monthly: { labels: ['Июнь'], values: [3] },
+    contracts_monthly: { labels: ['Июнь'], values: [7] },
+    completed_works_monthly: { labels: ['Июнь'], values: [4] },
+    balance_monthly: { labels: ['Июнь'], values: [125000] },
+    projects_status: { active: 2, completed: 1 },
+    contracts_status: { active: 5, completed: 1 },
+  },
+};
+
+describe('DashboardPage', () => {
+  beforeEach(() => {
+    apiMocks.getLandingDashboard.mockReset();
+    apiMocks.getOrgDashboard.mockReset();
+  });
+
+  it('shows landing dashboard data when optional billing dashboard fails', async () => {
+    apiMocks.getLandingDashboard.mockResolvedValue({ data: dashboardPayload, status: 200 });
+    apiMocks.getOrgDashboard.mockRejectedValue(new Error('Billing unavailable'));
+
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    );
+
+    await screen.findByText('125 000,00 ₽');
+
+    await waitFor(() => {
+      expect(document.querySelector('a[href="/dashboard/admins"]')).not.toBeNull();
+    });
+    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('7')).toBeInTheDocument();
+  });
+
+  it('shows an error state when landing dashboard data is unavailable', async () => {
+    apiMocks.getLandingDashboard.mockResolvedValue({ data: null, status: 500 });
+    apiMocks.getOrgDashboard.mockRejectedValue(new Error('Billing unavailable'));
+
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Не удалось загрузить данные дашборда. Попробуйте обновить страницу.')).toBeInTheDocument();
+  });
+});
