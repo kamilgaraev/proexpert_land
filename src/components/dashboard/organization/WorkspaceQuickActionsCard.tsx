@@ -1,6 +1,6 @@
 import type { WorkspaceAction, WorkspaceProfile } from '@/types/organization-profile';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, Briefcase, Puzzle, Settings } from 'lucide-react';
 
 interface WorkspaceQuickActionsCardProps {
@@ -55,7 +55,6 @@ export const WorkspaceQuickActionsCard = ({
                   <ArrowRight className="mt-1 h-4 w-4 text-construction-500" />
                 </div>
                 <CardTitle className="text-base">{action.label}</CardTitle>
-                <CardDescription>{action.route}</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
                 <Button variant="ghost" size="sm" className="w-full text-construction-600 hover:bg-construction-50">
