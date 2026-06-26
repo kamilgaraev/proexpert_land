@@ -36,15 +36,15 @@ describe('workspaceOrchestration', () => {
     );
 
     expect(prioritized.map((item) => item.href)).toEqual([
+      '/dashboard',
       '/dashboard/projects',
       '/dashboard/contractor-invitations',
       '/dashboard/modules',
       '/dashboard/billing',
-      '/dashboard',
     ]);
   });
 
-  it('keeps active module access visible for supply profiles', () => {
+  it('keeps overview first and active module access visible for supply profiles', () => {
     const prioritized = prioritizeWorkspaceNavigation(
       navigation,
       {
@@ -64,7 +64,8 @@ describe('workspaceOrchestration', () => {
       ['payments', 'basic-warehouse']
     );
 
-    expect(prioritized[0].href).toBe('/dashboard/modules');
+    expect(prioritized[0].href).toBe('/dashboard');
+    expect(prioritized[1].href).toBe('/dashboard/modules');
     expect(prioritized.some((item) => item.href === '/dashboard')).toBe(true);
   });
 

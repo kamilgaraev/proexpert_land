@@ -177,6 +177,14 @@ export const prioritizeWorkspaceNavigation = <T extends NavigationItemLike>(
   }
 
   return [...navigation].sort((leftItem, rightItem) => {
+    if (leftItem.href === '/dashboard' && rightItem.href !== '/dashboard') {
+      return -1;
+    }
+
+    if (rightItem.href === '/dashboard' && leftItem.href !== '/dashboard') {
+      return 1;
+    }
+
     const workspaceLeft = getRoutePriority(leftItem.href, workspaceRoutes);
     const workspaceRight = getRoutePriority(rightItem.href, workspaceRoutes);
 
