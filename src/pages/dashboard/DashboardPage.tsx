@@ -32,6 +32,33 @@ import { cn } from '@/lib/utils';
 
 const isSuccessfulStatus = (status: number) => status >= 200 && status < 300;
 
+const dashboardStatusFallbackLabels: Record<string, string> = {
+  active: 'Активные',
+  completed: 'Завершенные',
+  draft: 'Черновики',
+  planned: 'Запланированные',
+  planning: 'Планирование',
+  paused: 'Приостановленные',
+  cancelled: 'Отмененные',
+  terminated: 'Расторгнутые',
+  suspended: 'Приостановленные',
+  on_hold: 'На паузе',
+  archived: 'Архивные',
+};
+
+const localizeStatusDistribution = (
+  distribution?: Record<string, number>,
+  labels?: Record<string, string>,
+): Record<string, number> => Object.entries(distribution ?? {}).reduce<Record<string, number>>(
+  (result, [status, value]) => {
+    const label = labels?.[status] ?? dashboardStatusFallbackLabels[status] ?? 'Другой статус';
+    result[label] = (result[label] ?? 0) + value;
+
+    return result;
+  },
+  {},
+);
+
 const DashboardPage = () => {
   const [landingData, setLandingData] = useState<LandingDashboardResponse | null>(null);
   const [dashboard, setDashboard] = useState<any>(null);
@@ -96,6 +123,10 @@ const DashboardPage = () => {
   }, [permissionsReady, canViewBilling]);
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(val);
+  const projectStatusChartData = localizeStatusDistribution(
+    landingData?.charts?.projects_status,
+    landingData?.charts?.status_labels?.projects,
+  );
 
   const statCards = landingData ? [
     {
@@ -319,14 +350,12 @@ const DashboardPage = () => {
                      <CardTitle>Проекты по месяцам</CardTitle>
                      <CardDescription>Динамика создания новых объектов</CardDescription>
                  </CardHeader>
-                 <CardContent className="pl-2">
-                     <div className="h-[300px]">
-                        <LineChart
-                            title=""
-                            labels={landingData.charts?.projects_monthly?.labels || []}
-                            values={landingData.charts?.projects_monthly?.values || []}
-                        />
-                     </div>
+                 <CardContent className="h-[300px] pl-2 pr-4 pb-6">
+                    <LineChart
+                        title=""
+                        labels={landingData.charts?.projects_monthly?.labels || []}
+                        values={landingData.charts?.projects_monthly?.values || []}
+                    />
                  </CardContent>
              </Card>
              <Card className="lg:col-span-3">
@@ -334,10 +363,8 @@ const DashboardPage = () => {
                      <CardTitle>Статус проектов</CardTitle>
                      <CardDescription>Распределение по этапам</CardDescription>
                  </CardHeader>
-                 <CardContent>
-                     <div className="h-[300px] flex items-center justify-center">
-                        <DonutStatusChart title="" data={landingData.charts?.projects_status || []} />
-                     </div>
+                 <CardContent className="h-[300px] pb-6">
+                    <DonutStatusChart title="" data={projectStatusChartData} />
                  </CardContent>
              </Card>
          </div>
@@ -350,42 +377,36 @@ const DashboardPage = () => {
                  <CardHeader>
                      <CardTitle className="text-sm">Контракты</CardTitle>
                  </CardHeader>
-                 <CardContent className="pl-0 pr-2">
-                    <div className="h-[200px]">
-                         <LineChart
-                            title=""
-                            labels={landingData.charts?.contracts_monthly?.labels || []}
-                            values={landingData.charts?.contracts_monthly?.values || []}
-                        />
-                    </div>
+                 <CardContent className="h-[240px] pl-2 pr-4 pb-6">
+                    <LineChart
+                        title=""
+                        labels={landingData.charts?.contracts_monthly?.labels || []}
+                        values={landingData.charts?.contracts_monthly?.values || []}
+                    />
                  </CardContent>
             </Card>
             <Card>
                  <CardHeader>
                      <CardTitle className="text-sm">Завершённые работы</CardTitle>
                  </CardHeader>
-                 <CardContent className="pl-0 pr-2">
-                    <div className="h-[200px]">
-                        <LineChart
-                            title=""
-                            labels={landingData.charts?.completed_works_monthly?.labels || []}
-                            values={landingData.charts?.completed_works_monthly?.values || []}
-                        />
-                    </div>
+                 <CardContent className="h-[240px] pl-2 pr-4 pb-6">
+                    <LineChart
+                        title=""
+                        labels={landingData.charts?.completed_works_monthly?.labels || []}
+                        values={landingData.charts?.completed_works_monthly?.values || []}
+                    />
                  </CardContent>
             </Card>
             <Card>
                  <CardHeader>
                      <CardTitle className="text-sm">Баланс (Динамика)</CardTitle>
                  </CardHeader>
-                 <CardContent className="pl-0 pr-2">
-                    <div className="h-[200px]">
-                        <LineChart
-                            title=""
-                            labels={landingData.charts?.balance_monthly?.labels || []}
-                            values={landingData.charts?.balance_monthly?.values || []}
-                        />
-                    </div>
+                 <CardContent className="h-[240px] pl-2 pr-4 pb-6">
+                    <LineChart
+                        title=""
+                        labels={landingData.charts?.balance_monthly?.labels || []}
+                        values={landingData.charts?.balance_monthly?.values || []}
+                    />
                  </CardContent>
             </Card>
          </div>

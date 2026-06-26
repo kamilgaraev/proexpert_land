@@ -74,15 +74,15 @@ const DonutStatusChart: React.FC<DonutStatusChartProps> = ({ data, title }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300">
-      <h3 className="text-sm font-medium text-steel-600 mb-4">{title}</h3>
+    <div className="flex h-full min-h-0 w-full flex-col">
+      {title && <h3 className="mb-4 text-sm font-medium text-steel-600">{title}</h3>}
       {hasData ? (
-        <div className="h-64">
+        <div className="relative min-h-0 flex-1">
           <Doughnut data={chartData} options={options} />
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center h-64 text-steel-400">
-          <ChartPieIcon className="h-12 w-12 mb-2" />
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center text-steel-400">
+          <ChartPieIcon className="mb-2 h-12 w-12" />
           <span className="text-sm">Нет данных</span>
         </div>
       )}

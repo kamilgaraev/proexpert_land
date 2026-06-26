@@ -4198,6 +4198,10 @@ export interface LandingDashboardResponse {
     balance_monthly: { labels: string[]; values: number[] };
     projects_status: Record<string, number>;
     contracts_status: Record<string, number>;
+    status_labels?: {
+      projects?: Record<string, string>;
+      contracts?: Record<string, string>;
+    };
   };
 }
 // --- конец типов дашборда лендинга ---

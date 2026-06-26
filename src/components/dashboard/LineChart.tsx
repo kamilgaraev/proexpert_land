@@ -87,9 +87,9 @@ const LineChart: React.FC<LineChartProps> = ({ labels, values, title }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-steel-100 hover:shadow-xl transition-all duration-300">
-      <h3 className="text-sm font-medium text-steel-600 mb-4">{title}</h3>
-      <div className="h-64">
+    <div className="flex h-full min-h-0 w-full flex-col">
+      {title && <h3 className="mb-4 text-sm font-medium text-steel-600">{title}</h3>}
+      <div className="relative min-h-0 flex-1">
         <Line data={data} options={options} />
       </div>
     </div>

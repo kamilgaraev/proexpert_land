@@ -35,7 +35,9 @@ vi.mock('@components/dashboard/LineChart', () => ({
 }));
 
 vi.mock('@components/dashboard/DonutStatusChart', () => ({
-  default: () => <div data-testid="donut-chart" />,
+  default: ({ data }: { data: Record<string, number> }) => (
+    <div data-testid="donut-chart">{Object.keys(data).join(', ')}</div>
+  ),
 }));
 
 const dashboardPayload = {
@@ -77,6 +79,10 @@ const dashboardPayload = {
     balance_monthly: { labels: ['Июнь'], values: [125000] },
     projects_status: { active: 2, completed: 1 },
     contracts_status: { active: 5, completed: 1 },
+    status_labels: {
+      projects: { active: 'Активные', completed: 'Завершенные' },
+      contracts: { active: 'Активные', completed: 'Завершенные' },
+    },
   },
 };
 
@@ -103,6 +109,8 @@ describe('DashboardPage', () => {
     });
     expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByText('7')).toBeInTheDocument();
+    expect(screen.getByTestId('donut-chart')).toHaveTextContent('Активные');
+    expect(screen.getByTestId('donut-chart')).not.toHaveTextContent('active');
   });
 
   it('shows an error state when landing dashboard data is unavailable', async () => {

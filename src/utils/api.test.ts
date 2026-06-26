@@ -224,6 +224,10 @@ describe('landingService', () => {
           balance_monthly: { labels: ['Июнь'], values: [125000] },
           projects_status: { active: 2, completed: 1 },
           contracts_status: { active: 5, completed: 1 },
+          status_labels: {
+            projects: { active: 'Активные', completed: 'Завершенные' },
+            contracts: { active: 'Активные', completed: 'Завершенные' },
+          },
         },
       },
     }), {
@@ -240,5 +244,6 @@ describe('landingService', () => {
 
     expect(result.data.projects.total).toBe(3);
     expect(result.data.financial.balance).toBe(125000);
+    expect(result.data.charts.status_labels?.projects?.active).toBe('Активные');
   });
 });
