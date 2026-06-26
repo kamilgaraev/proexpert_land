@@ -80,7 +80,7 @@ export const OrganizationProfileModal = ({
     {
       id: 'business_type',
       title: 'Основной режим работы',
-      description: 'Определяет стартовый workspace и приоритет рекомендаций',
+      description: 'Определяет стартовый раздел и приоритет рекомендаций',
     },
     {
       id: 'specializations',
@@ -89,7 +89,7 @@ export const OrganizationProfileModal = ({
     },
     {
       id: 'workspace',
-      title: 'Стартовый workspace',
+      title: 'Стартовый раздел',
       description: 'Быстрые действия и рекомендуемые модули по выбранному режиму',
     },
     {
@@ -266,7 +266,7 @@ export const OrganizationProfileModal = ({
                         Полнота профиля: <span className="font-bold text-construction-600">{profile?.profile_completeness || 0}%</span>
                       </p>
                       <p className="text-sm text-gray-500">
-                        После завершения откроется основной workspace, связанный с выбранным режимом работы.
+                        После завершения откроется основной раздел, связанный с выбранным режимом работы.
                       </p>
                     </CardContent>
                   </Card>

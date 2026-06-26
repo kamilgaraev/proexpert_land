@@ -43,7 +43,7 @@ const HelpPage = () => {
         <div className="flex justify-center">
           <TabsList className="bg-secondary/50 p-1 rounded-xl inline-flex">
             <TabsTrigger value="overview" className="rounded-lg px-8 py-2 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">Обзор</TabsTrigger>
-            <TabsTrigger value="faq" className="rounded-lg px-8 py-2 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">FAQ</TabsTrigger>
+            <TabsTrigger value="faq" className="rounded-lg px-8 py-2 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">Вопросы</TabsTrigger>
             <TabsTrigger value="support" className="rounded-lg px-8 py-2 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">Поддержка</TabsTrigger>
           </TabsList>
         </div>

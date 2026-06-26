@@ -14,7 +14,6 @@ import {
   Puzzle,
   Settings,
   ShieldCheck,
-  UserCog,
   Users,
 } from 'lucide-react';
 
@@ -117,74 +116,74 @@ const DashboardLayout = () => {
     const hasMultiOrgAccess = hasMultiOrgModule;
     const allNavigationItems = [
       {
-        name: 'Обзор',
+        name: 'Главная',
         href: '/dashboard',
         icon: LayoutDashboard,
         description: 'Сводная статистика и стартовые сценарии',
         visible: true,
       },
       {
-        name: 'Мои проекты',
+        name: 'Проекты',
         href: '/dashboard/projects',
         icon: Briefcase,
         description: 'Проекты вашей организации',
         visible: true,
       },
       {
-        name: 'Организация',
+        name: 'Данные компании',
         href: '/dashboard/organization',
         icon: Building2,
         description: 'Данные и верификация',
         visible: canViewOrganization,
       },
       {
-        name: 'Управление',
+        name: 'Направления работы',
         href: '/dashboard/organization/settings',
         icon: Settings,
-        description: 'Рабочий профиль и специализации',
+        description: 'Профиль деятельности и специализации',
         visible: canViewOrganization,
       },
       {
-        name: 'Команда',
+        name: 'Сотрудники',
         href: '/dashboard/admins',
         icon: Users,
-        description: 'Администраторы и прорабы',
+        description: 'Пользователи и доступ к кабинету',
         visible: canManageUsers,
       },
       {
-        name: 'Роли',
+        name: 'Права доступа',
         href: '/dashboard/custom-roles',
         icon: ShieldCheck,
-        description: 'Кастомные роли организации',
+        description: 'Роли и ограничения пользователей',
         visible: canViewOrganization && canManageUsers,
       },
       {
-        name: 'Финансы',
+        name: 'Оплата и тариф',
         href: '/dashboard/billing',
         icon: CreditCard,
         description: 'Баланс, тарифы и лимиты',
         visible: canViewBilling,
       },
       {
-        name: 'Модули',
+        name: 'Разделы системы',
         href: '/dashboard/modules',
         icon: Puzzle,
-        description: 'Оплаченные и рекомендованные модули',
+        description: 'Подключенные и доступные разделы',
         badge: hasExpiring ? expiringModules.length : undefined,
         visible: canManageModules,
       },
       {
-        name: 'Партнеры',
+        name: 'Подрядчики',
         href: '/dashboard/contractor-invitations',
         icon: Mail,
-        description: 'Приглашения подрядчиков и партнерские бонусы',
+        description: 'Приглашения и совместная работа',
         visible: canInviteUsers,
       },
       {
-        name: 'Маркетплейс',
+        name: 'Каталог подрядчиков',
         href: '/dashboard/contractor-marketplace',
         icon: Handshake,
-        description: 'Закрытый каталог и оферы найма',
+        description: 'Профиль подрядчика и предложения о работе',
         visible: canViewContractorMarketplace,
       },
     ];
@@ -196,25 +195,16 @@ const DashboardLayout = () => {
       const isHoldingOrg = userOrg?.organization_type === 'parent' || userOrg?.is_holding === true;
 
       baseNavigation.push({
-        name: isHoldingOrg ? 'Панель холдинга' : 'Мультиорганизация',
+        name: isHoldingOrg ? 'Холдинг' : 'Группа компаний',
         href: isHoldingOrg
           ? '/landing/multi-organization/dashboard'
           : '/dashboard/multi-organization',
         icon: Building,
-        description: isHoldingOrg ? 'Управление холдингом' : 'Создание холдинга',
+        description: isHoldingOrg ? 'Управление группой компаний' : 'Настройка группы компаний',
         visible: true,
         badge: undefined,
       });
     }
-
-    baseNavigation.push({
-      name: 'Настройки',
-      href: '/dashboard/profile',
-      icon: UserCog,
-      description: 'Профиль и настройки пользователя',
-      visible: true,
-      badge: undefined,
-    });
 
     return prioritizeWorkspaceNavigation(
       baseNavigation,
@@ -276,19 +266,19 @@ const DashboardLayout = () => {
 
   const supportNavigation = [
     {
-      name: 'Справка',
+      name: 'Помощь',
       href: '/dashboard/help',
       icon: HelpCircle,
-      description: 'FAQ и поддержка',
+      description: 'Вопросы и поддержка',
     },
     {
-      name: 'База знаний',
+      name: 'Инструкции',
       href: '/dashboard/help/knowledge',
       icon: BookOpen,
       description: 'Руководства и практики',
     },
     {
-      name: 'Обновления',
+      name: 'Что изменилось',
       href: '/dashboard/help/changelog',
       icon: History,
       description: 'Что изменилось',
@@ -296,8 +286,8 @@ const DashboardLayout = () => {
   ];
 
   const userNavigation = [
-    { name: 'Профиль', href: '/dashboard/profile', onClick: () => {} },
-    { name: 'Настройки', href: '/dashboard/settings', onClick: () => {} },
+    { name: 'Мой профиль', href: '/dashboard/profile', onClick: () => {} },
+    { name: 'Настройки кабинета', href: '/dashboard/settings', onClick: () => {} },
     { name: 'Выйти', href: '/login', onClick: handleLogout },
   ];
 

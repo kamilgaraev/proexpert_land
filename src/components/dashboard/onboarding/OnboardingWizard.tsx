@@ -244,7 +244,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
                 </div>
                 <h2 className="text-3xl font-bold text-gray-900">Профиль готов</h2>
                 <p className="mx-auto max-w-2xl text-lg text-gray-600">
-                  Мы сохранили выбранные направления и собрали стартовый workspace под основной режим работы.
+                  Мы сохранили выбранные направления и собрали стартовый раздел под основной режим работы.
                 </p>
               </div>
 

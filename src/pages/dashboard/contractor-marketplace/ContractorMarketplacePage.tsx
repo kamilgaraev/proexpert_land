@@ -20,7 +20,7 @@ const normalizeErrorMessage = (error: unknown): string => {
     ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
     : null;
 
-  return responseMessage || 'Не удалось загрузить данные маркетплейса.';
+  return responseMessage || 'Не удалось загрузить данные каталога подрядчиков.';
 };
 
 const ContractorMarketplacePage = () => {
@@ -32,7 +32,7 @@ const ContractorMarketplacePage = () => {
   const [isUploadingDocument, setIsUploadingDocument] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  usePageTitle('Маркетплейс подрядчика');
+  usePageTitle('Каталог подрядчиков');
 
   const loadInitialData = useCallback(async () => {
     setIsLoading(true);
@@ -146,9 +146,9 @@ const ContractorMarketplacePage = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Маркетплейс подрядчика</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Каталог подрядчиков</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Закрытый профиль для сотрудничества с генподрядчиками, входящие оферы и рабочие категории.
+            Закрытый профиль для сотрудничества с генподрядчиками, входящие предложения и рабочие категории.
           </p>
         </div>
         <Button variant="outline" onClick={() => void loadInitialData()} disabled={isLoading}>
@@ -168,7 +168,7 @@ const ContractorMarketplacePage = () => {
         <div className="flex min-h-[360px] items-center justify-center rounded-xl border bg-background">
           <div className="flex items-center gap-3 text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <span>Загрузка маркетплейса</span>
+            <span>Загрузка каталога подрядчиков</span>
           </div>
         </div>
       ) : (
@@ -180,7 +180,7 @@ const ContractorMarketplacePage = () => {
             </TabsTrigger>
             <TabsTrigger value="offers" className="gap-2">
               <BriefcaseBusiness className="h-4 w-4" />
-              Оферы
+              Предложения
             </TabsTrigger>
           </TabsList>
 

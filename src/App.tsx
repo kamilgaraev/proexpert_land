@@ -43,6 +43,7 @@ import DashboardLayout from '@layouts/DashboardLayout';
 // Lazy loading для dashboard страниц (тяжелые компоненты)
 const DashboardPage = lazy(() => import('@pages/dashboard/DashboardPage'));
 const ProfilePage = lazy(() => import('@pages/dashboard/ProfilePage'));
+const SettingsPage = lazy(() => import('@pages/dashboard/SettingsPage'));
 const OrganizationPage = lazy(() => import('@pages/dashboard/OrganizationPage'));
 const HelpPage = lazy(() => import('@pages/dashboard/HelpPage'));
 const KnowledgeBasePage = lazy(() => import('@pages/dashboard/help/KnowledgeBasePage'));
@@ -262,7 +263,7 @@ function App({
         }>
           <Route index element={<DashboardPage />} />
           <Route path="profile" element={<ProfilePage />} />
-          <Route path="settings" element={<ProfilePage />} />
+          <Route path="settings" element={<SettingsPage />} />
           <Route path="help" element={<HelpPage />} />
           <Route path="help/knowledge" element={<KnowledgeBasePage />} />
           <Route path="help/knowledge/:slug" element={<KnowledgeArticlePage />} />

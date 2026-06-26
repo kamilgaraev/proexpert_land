@@ -151,13 +151,13 @@ export function Header({
                         <DropdownMenuItem asChild>
                             <Link to="/dashboard/profile">
                                 <User className="mr-2 h-4 w-4" />
-                                <span>Профиль</span>
+                                <span>Мой профиль</span>
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                             <Link to="/dashboard/settings">
                                 <Settings className="mr-2 h-4 w-4" />
-                                <span>Настройки</span>
+                                <span>Настройки кабинета</span>
                             </Link>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>

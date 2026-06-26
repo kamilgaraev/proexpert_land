@@ -320,7 +320,7 @@ export const OrganizationSettingsPage = () => {
                     {primaryBusinessType ? BUSINESS_TYPE_LABELS[primaryBusinessType] : null}
                   </p>
                   <p className="mt-0.5 text-sm text-muted-foreground">
-                    Основной workspace и сценарий, который открывается первым
+                    Основной раздел и сценарий, который открывается первым
                   </p>
                 </div>
               </div>

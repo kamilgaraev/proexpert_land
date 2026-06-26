@@ -344,7 +344,7 @@ export const ProfileEditor = ({
         <CardHeader className="border-b">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <CardTitle className="text-xl">Профиль в маркетплейсе</CardTitle>
+              <CardTitle className="text-xl">Профиль в каталоге подрядчиков</CardTitle>
               <CardDescription>Карточка, которую увидят генподрядчики из вашей закрытой сети.</CardDescription>
             </div>
             <div className="flex flex-wrap items-center gap-2">

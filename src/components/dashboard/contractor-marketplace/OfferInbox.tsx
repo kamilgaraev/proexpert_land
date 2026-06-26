@@ -43,7 +43,7 @@ import type {
 
 const offerStatusLabels: Record<MarketplaceOfferStatus, string> = {
   draft: 'Черновик',
-  sent: 'Новый офер',
+  sent: 'Новое предложение',
   viewed: 'Просмотрен',
   accepted: 'Принят',
   declined: 'Отклонен',
@@ -231,7 +231,7 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
     <div className="space-y-5">
       <div className="flex flex-col gap-4 rounded-xl border bg-background p-4 shadow-sm md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Оферы найма</h2>
+          <h2 className="text-xl font-semibold">Предложения о работе</h2>
           <p className="text-sm text-muted-foreground">
             Входящие предложения от генподрядчиков из вашей закрытой сети.
           </p>
@@ -282,7 +282,7 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
       ) : offers.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-background p-10 text-center">
           <Briefcase className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-          <h3 className="text-lg font-semibold">Оферов пока нет</h3>
+          <h3 className="text-lg font-semibold">Предложений пока нет</h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             Когда генподрядчик из вашей сети отправит предложение на проект, оно появится здесь.
           </p>
@@ -378,7 +378,7 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
       <Sheet open={selectedOffer !== null} onOpenChange={(open) => !open && setSelectedOffer(null)}>
         <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
           <SheetHeader>
-            <SheetTitle>{selectedOffer?.title ?? 'Офер найма'}</SheetTitle>
+            <SheetTitle>{selectedOffer?.title ?? 'Предложение о работе'}</SheetTitle>
           </SheetHeader>
 
           {isDetailLoading || !selectedOffer ? (
@@ -495,7 +495,7 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
                   ) : (
                     <CheckCircle2 className="mr-2 h-4 w-4" />
                   )}
-                  Принять офер
+                  Принять предложение
                 </Button>
               </div>
             </div>
@@ -506,7 +506,7 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
       <Dialog open={declineOffer !== null} onOpenChange={(open) => !open && setDeclineOffer(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Отклонить офер</DialogTitle>
+            <DialogTitle>Отклонить предложение</DialogTitle>
             <DialogDescription>
               Причина будет видна генподрядчику в карточке предложения.
             </DialogDescription>
