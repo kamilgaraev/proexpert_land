@@ -4,10 +4,14 @@ import { attachAuthorizationHeader } from './authTokenStorage';
 import type {
   KnowledgeArticleDetail,
   KnowledgeArticleSummary,
+  KnowledgeArticleTreeNode,
+  KnowledgeContextHelp,
+  KnowledgeFeedbackPayload,
   KnowledgeHubApiEnvelope,
   KnowledgeHubFilters,
   KnowledgeHubOverview,
   KnowledgeHubPaginatedResponse,
+  KnowledgeSearchResult,
 } from '@/types/knowledgeHub';
 
 const api = axios.create({
@@ -39,6 +43,13 @@ const buildParams = (filters?: KnowledgeHubFilters): URLSearchParams => {
   return params;
 };
 
+const pathWithParams = (path: string, filters?: KnowledgeHubFilters): string => {
+  const params = buildParams(filters);
+  const query = params.toString();
+
+  return query ? `${path}?${query}` : path;
+};
+
 const unwrap = <T>(response: { data: KnowledgeHubApiEnvelope<T> }): T => response.data.data;
 
 const unwrapPaginated = <T>(response: {
@@ -63,12 +74,41 @@ export const knowledgeHubApi = {
   getArticles: async (
     filters?: KnowledgeHubFilters,
   ): Promise<KnowledgeHubPaginatedResponse<KnowledgeArticleSummary>> => {
-    const params = buildParams(filters);
-    const response = await api.get(`/articles${params.toString() ? `?${params.toString()}` : ''}`);
+    const response = await api.get(pathWithParams('/articles', filters));
 
     return unwrapPaginated<KnowledgeArticleSummary>(
       response as { data: KnowledgeHubApiEnvelope<KnowledgeArticleSummary[]> },
     );
+  },
+
+  searchArticles: async (
+    filters: KnowledgeHubFilters & { q: string },
+  ): Promise<KnowledgeHubPaginatedResponse<KnowledgeSearchResult>> => {
+    const response = await api.get(pathWithParams('/search', filters));
+
+    return unwrapPaginated<KnowledgeSearchResult>(
+      response as { data: KnowledgeHubApiEnvelope<KnowledgeSearchResult[]> },
+    );
+  },
+
+  getTree: async (filters?: KnowledgeHubFilters): Promise<KnowledgeArticleTreeNode[]> => {
+    const response = await api.get(pathWithParams('/tree', filters));
+
+    return unwrap<KnowledgeArticleTreeNode[]>(
+      response as { data: KnowledgeHubApiEnvelope<KnowledgeArticleTreeNode[]> },
+    );
+  },
+
+  getContextHelp: async (filters?: KnowledgeHubFilters): Promise<KnowledgeContextHelp> => {
+    const response = await api.get(pathWithParams('/context', filters));
+
+    return unwrap<KnowledgeContextHelp>(response as { data: KnowledgeHubApiEnvelope<KnowledgeContextHelp> });
+  },
+
+  sendFeedback: async (payload: KnowledgeFeedbackPayload): Promise<{ id: number }> => {
+    const response = await api.post('/feedback', payload);
+
+    return unwrap<{ id: number }>(response as { data: KnowledgeHubApiEnvelope<{ id: number }> });
   },
 
   getArticle: async (slug: string): Promise<KnowledgeArticleDetail> => {
@@ -80,8 +120,7 @@ export const knowledgeHubApi = {
   getChangelog: async (
     filters?: Omit<KnowledgeHubFilters, 'kind' | 'category'>,
   ): Promise<KnowledgeHubPaginatedResponse<KnowledgeArticleSummary>> => {
-    const params = buildParams(filters);
-    const response = await api.get(`/changelog${params.toString() ? `?${params.toString()}` : ''}`);
+    const response = await api.get(pathWithParams('/changelog', filters));
 
     return unwrapPaginated<KnowledgeArticleSummary>(
       response as { data: KnowledgeHubApiEnvelope<KnowledgeArticleSummary[]> },

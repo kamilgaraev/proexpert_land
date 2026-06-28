@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Clock } from 'lucide-react';
+import { ArrowLeft, Clock, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import type { KnowledgeArticleDetail } from '@/types/knowledgeHub';
+import { knowledgeHubApi } from '@/utils/knowledgeHubApi';
+import type { KnowledgeArticleDetail, KnowledgeFeedbackReaction } from '@/types/knowledgeHub';
 import { KnowledgeArticleCard } from './KnowledgeArticleCard';
 
 interface KnowledgeArticleReaderProps {
@@ -44,8 +45,23 @@ const addHeadingAnchors = (content: string | null, article: KnowledgeArticleDeta
 };
 
 export function KnowledgeArticleReader({ article, backTo, relatedBasePath }: KnowledgeArticleReaderProps) {
+  const [feedbackState, setFeedbackState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const publishedAt = formatDate(article.release_date ?? article.published_at);
   const content = useMemo(() => addHeadingAnchors(article.content, article), [article]);
+
+  const sendFeedback = async (reaction: KnowledgeFeedbackReaction) => {
+    setFeedbackState('sending');
+
+    try {
+      await knowledgeHubApi.sendFeedback({
+        article_id: article.id,
+        reaction,
+      });
+      setFeedbackState('sent');
+    } catch {
+      setFeedbackState('error');
+    }
+  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -78,6 +94,55 @@ export function KnowledgeArticleReader({ article, backTo, relatedBasePath }: Kno
             className="prose prose-slate max-w-none prose-headings:scroll-mt-24 prose-headings:text-foreground prose-p:leading-8 prose-a:text-primary"
             dangerouslySetInnerHTML={{ __html: content }}
           />
+
+          {article.children.length > 0 && (
+            <section className="space-y-4 border-t border-border pt-6">
+              <h2 className="text-xl font-semibold text-foreground">Следующие разделы</h2>
+              <div className="grid gap-4 md:grid-cols-2">
+                {article.children.map((child) => (
+                  <KnowledgeArticleCard
+                    key={child.slug}
+                    article={child}
+                    to={`${relatedBasePath}/${child.slug}`}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          <div className="flex flex-col gap-3 rounded-lg border border-border bg-background p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-medium text-foreground">
+              {feedbackState === 'sent'
+                ? 'Спасибо, мы учли оценку материала.'
+                : feedbackState === 'error'
+                  ? 'Не удалось отправить оценку. Попробуйте еще раз.'
+                  : 'Материал помог решить вопрос?'}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                disabled={feedbackState === 'sending'}
+                onClick={() => void sendFeedback('helpful')}
+              >
+                <ThumbsUp className="h-4 w-4" />
+                Да
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                disabled={feedbackState === 'sending'}
+                onClick={() => void sendFeedback('not_helpful')}
+              >
+                <ThumbsDown className="h-4 w-4" />
+                Нет
+              </Button>
+            </div>
+          </div>
         </article>
 
         {article.table_of_contents.length > 0 && (

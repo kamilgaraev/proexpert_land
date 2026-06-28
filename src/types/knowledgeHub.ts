@@ -2,6 +2,10 @@ export type KnowledgeArticleKind = 'article' | 'guide' | 'best_practice' | 'tip'
 
 export type KnowledgeArticleStatus = 'draft' | 'published' | 'archived';
 
+export type KnowledgeSurface = 'lk' | 'admin' | 'mobile' | 'superadmin';
+
+export type KnowledgeFeedbackReaction = 'helpful' | 'not_helpful';
+
 export interface KnowledgeCategory {
   id: number;
   title: string;
@@ -20,13 +24,30 @@ export interface KnowledgeArticleSummary {
   title: string;
   slug: string;
   excerpt: string | null;
+  parent_id: number | null;
+  depth: number;
+  audiences: string[];
+  surfaces: KnowledgeSurface[];
+  module_slugs: string[];
+  context_keys: string[];
   category: KnowledgeCategory | null;
+  parent?: Pick<KnowledgeArticleSummary, 'id' | 'title' | 'slug'> | null;
   tags: string[];
   release_version: string | null;
   release_date: string | null;
   published_at: string | null;
   reading_time: number;
   is_featured: boolean;
+  is_pinned: boolean;
+}
+
+export interface KnowledgeSearchResult extends KnowledgeArticleSummary {
+  search_rank: number | null;
+  snippet: string | null;
+}
+
+export interface KnowledgeArticleTreeNode extends KnowledgeArticleSummary {
+  children: KnowledgeArticleTreeNode[];
 }
 
 export interface KnowledgeArticleTocItem {
@@ -37,7 +58,9 @@ export interface KnowledgeArticleTocItem {
 
 export interface KnowledgeArticleDetail extends KnowledgeArticleSummary {
   content: string | null;
+  plain_text?: string | null;
   table_of_contents: KnowledgeArticleTocItem[];
+  children: KnowledgeArticleSummary[];
   related: KnowledgeArticleSummary[];
 }
 
@@ -59,8 +82,35 @@ export interface KnowledgeHubFilters {
   category?: string;
   tag?: string;
   kind?: KnowledgeArticleKind;
+  surface?: KnowledgeSurface;
+  module?: string;
+  module_slug?: string;
+  permission_key?: string;
+  context_key?: string;
+  clicked_article_id?: number;
+  limit?: number;
   page?: number;
   per_page?: number;
+}
+
+export interface KnowledgeContextHelp {
+  primary: KnowledgeArticleSummary | null;
+  suggested: KnowledgeArticleSummary[];
+  context: {
+    surface: KnowledgeSurface;
+    module_slug: string | null;
+    permission_key: string | null;
+    context_key: string | null;
+  };
+}
+
+export interface KnowledgeFeedbackPayload {
+  article_id: number;
+  reaction: KnowledgeFeedbackReaction;
+  comment?: string;
+  context_key?: string;
+  module_slug?: string;
+  permission_key?: string;
 }
 
 export interface KnowledgeHubPaginationMeta {

@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { PageLoading } from '@components/common/PageLoading';
 import NotificationService from '@components/shared/NotificationService';
+import { KnowledgeContextHelpLink } from '@/components/support/KnowledgeContextHelpLink';
 import { useModulesOverview } from '@hooks/useModulesOverview';
 import {
   ModulesOverviewModule,
@@ -207,6 +208,10 @@ const ModulesPage = () => {
             </div>
 
             <div className="relative flex items-center gap-3">
+              <KnowledgeContextHelpLink
+                contextKey="modules.overview"
+                moduleSlug="modules"
+              />
               <button
                 type="button"
                 onClick={() => void refresh()}

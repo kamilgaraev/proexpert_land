@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import type { KnowledgeArticleSummary } from '@/types/knowledgeHub';
+import type { KnowledgeArticleSummary, KnowledgeSearchResult } from '@/types/knowledgeHub';
 
 interface KnowledgeArticleCardProps {
-  article: KnowledgeArticleSummary;
+  article: KnowledgeArticleSummary | KnowledgeSearchResult;
   to: string;
 }
 
@@ -23,6 +23,7 @@ const formatDate = (value: string | null): string | null => {
 
 export function KnowledgeArticleCard({ article, to }: KnowledgeArticleCardProps) {
   const publishedAt = formatDate(article.release_date ?? article.published_at);
+  const snippet = 'snippet' in article ? article.snippet : null;
 
   return (
     <Card className="h-full border-border shadow-sm transition-shadow hover:shadow-md">
@@ -38,7 +39,12 @@ export function KnowledgeArticleCard({ article, to }: KnowledgeArticleCardProps)
 
         <div className="space-y-2">
           <h3 className="text-lg font-semibold leading-snug text-foreground">{article.title}</h3>
-          {article.excerpt && (
+          {snippet ? (
+            <p
+              className="line-clamp-3 text-sm leading-6 text-muted-foreground [&_mark]:rounded [&_mark]:bg-amber-100 [&_mark]:px-1 [&_mark]:text-amber-900"
+              dangerouslySetInnerHTML={{ __html: snippet }}
+            />
+          ) : article.excerpt && (
             <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">{article.excerpt}</p>
           )}
         </div>
