@@ -166,6 +166,7 @@ const RegisterPage = () => {
     
     if (!password) errors.password = 'Укажите пароль';
     else if (password.length < 8) errors.password = 'Пароль должен содержать не менее 8 символов';
+    else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(password)) errors.password = 'Пароль должен содержать минимум одну заглавную букву, одну строчную букву и одну цифру';
     
     if (!passwordConfirmation) errors.passwordConfirmation = 'Подтвердите пароль';
     else if (password !== passwordConfirmation) errors.passwordConfirmation = 'Пароли не совпадают';

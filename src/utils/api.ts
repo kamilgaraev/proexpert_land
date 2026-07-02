@@ -170,6 +170,10 @@ const createApiRequestError = (
 
   if (data !== undefined) {
     error.data = data;
+
+    if (data && typeof data === 'object' && 'errors' in data) {
+      error.errors = (data as ApiErrorPayload).errors;
+    }
   }
 
   if (originalError !== undefined) {
@@ -322,7 +326,11 @@ export const authService = {
       body: formData
     });
 
-    const data = await response.json() as AuthPayload;
+    const data = await response.json() as AuthPayload & ApiErrorPayload;
+
+    if (!response.ok) {
+      throw createApiRequestError(data?.message || 'Ошибка регистрации', response.status, data);
+    }
 
     const token = extractTokenFromPayload(data);
 

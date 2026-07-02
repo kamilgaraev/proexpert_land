@@ -89,6 +89,36 @@ describe('authService.login', () => {
   });
 });
 
+describe('authService.register', () => {
+  it('throws validation errors from the registration API instead of returning a tokenless response', async () => {
+    const payload = {
+      success: false,
+      message: 'Пароль должен содержать минимум одну заглавную букву, одну строчную букву и одну цифру',
+      data: null,
+      errors: {
+        password: ['Пароль должен содержать минимум одну заглавную букву, одну строчную букву и одну цифру'],
+      },
+    };
+
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(payload), {
+      status: 422,
+      statusText: 'Unprocessable Content',
+      headers: {
+        'content-type': 'application/json',
+      },
+    })));
+
+    await expect(authService.register(new FormData())).rejects.toMatchObject({
+      message: payload.message,
+      status: 422,
+      data: payload,
+      errors: payload.errors,
+    });
+
+    expect(getAuthToken()).toBeNull();
+  });
+});
+
 describe('billing response normalizers', () => {
   it('normalizes balance from Laravel resource envelope', () => {
     expect(normalizeOrganizationBalanceResponse({
