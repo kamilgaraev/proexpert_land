@@ -143,8 +143,8 @@ const AdminProductDemo = () => {
             <aside className="border-b border-steel-200 bg-white xl:border-b-0 xl:border-r">
               <div className="flex min-h-[64px] items-center justify-between gap-3 border-b border-steel-200 px-4">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-sm font-black text-steel-950 shadow-sm ring-1 ring-steel-200">
-                    PH
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-steel-200">
+                    <img src="/most-icon.svg" alt="" className="h-6 w-6" aria-hidden="true" />
                   </div>
                   <div className="min-w-0">
                     <div className="truncate text-sm font-bold text-steel-950">МОСТ</div>
