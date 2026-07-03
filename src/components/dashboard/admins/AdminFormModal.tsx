@@ -146,7 +146,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
     const loadRoles = async () => {
       try {
         setRolesLoading(true);
-        const resp = await customRolesService.getAvailableRoles();
+        const resp = await customRolesService.getAvailableRoles({ scope: 'admin_panel' });
         const payload = resp?.data;
         const data = payload?.data ?? payload;
         const system: Array<string | AvailableRole> = Array.isArray(data?.system_roles) ? data.system_roles : [];

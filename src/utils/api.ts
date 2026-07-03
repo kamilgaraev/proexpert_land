@@ -1740,6 +1740,12 @@ export interface CreateUserWithCustomRolesData {
   send_credentials?: boolean;
 }
 
+export type AvailableRolesParams = {
+  scope?: 'all' | 'admin_panel';
+  admin_panel?: boolean;
+  current_interface?: string;
+};
+
 // Новый сервис для управления кастомными ролями
 export const customRolesService = {
   // Просмотр ролей
@@ -1801,8 +1807,8 @@ export const customRolesService = {
   },
 
   // Вспомогательные методы
-  getAvailableRoles: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
-    const response = await api.get('/user-management/available-roles');
+  getAvailableRoles: async (params?: AvailableRolesParams): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
+    const response = await api.get('/user-management/available-roles', { params });
     return response;
   },
 
