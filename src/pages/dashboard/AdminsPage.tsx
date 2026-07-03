@@ -195,6 +195,23 @@ const AdminsPage = () => {
         return 'bg-slate-100 text-slate-800 border-slate-200';
     }
   };
+
+  const getDisplayRoles = (admin: AdminPanelUser) => {
+    if (Array.isArray(admin.roles) && admin.roles.length > 0) {
+      return admin.roles;
+    }
+
+    if (!admin.role_slug) {
+      return [];
+    }
+
+    return [{
+      id: -1,
+      name: getRoleDisplayName(admin.role_slug),
+      slug: admin.role_slug,
+      type: 'system' as const,
+    }];
+  };
   
   const formatDate = (dateString: string): string => {
     if (!dateString) return 'N/A';
@@ -503,9 +520,17 @@ const AdminsPage = () => {
                      </div>
                      <div className="flex-1 min-w-0">
                        <h3 className="text-lg font-bold text-foreground truncate mb-1">{admin.name}</h3>
-                       <span className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-bold border ${getRoleColor(admin.role_slug)}`}>
-                         {getRoleDisplayName(admin.role_slug)}
-                       </span>
+                       <div className="flex flex-wrap gap-1.5">
+                         {getDisplayRoles(admin).map((role) => (
+                           <span
+                             key={`${admin.id}-${role.type ?? 'system'}-${role.slug}`}
+                             className={`inline-flex max-w-full px-2.5 py-0.5 rounded-lg text-xs font-bold border ${getRoleColor(role.slug)}`}
+                             title={role.name}
+                           >
+                             <span className="truncate">{role.name}</span>
+                           </span>
+                         ))}
+                       </div>
                      </div>
                    </div>
 

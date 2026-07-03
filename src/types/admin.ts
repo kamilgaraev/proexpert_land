@@ -2,6 +2,7 @@ export interface AdminPanelUserRole {
   id: number;
   name: string;
   slug: string;
+  type?: 'system' | 'custom';
 }
 
 export interface AdminPanelUser {
