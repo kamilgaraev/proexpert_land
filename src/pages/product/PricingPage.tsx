@@ -132,7 +132,7 @@ const PricingPage = () => {
 
   return (
     <PageLayout
-      title="Тарифы ProHelper"
+      title="Тарифы МОСТ"
       subtitle="Выберите план, который подходит вашей компании"
       seoPage="pricing"
     >
@@ -236,7 +236,7 @@ const PricingPage = () => {
           <div className="container-custom">
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-4xl font-bold text-slate-900 mb-6">
-                Рассчитайте экономию от ProHelper
+                Рассчитайте экономию от МОСТ
               </h2>
               <p className="text-xl text-slate-600 mb-12">
                 В среднем наши клиенты экономят 2-4 часа в день на административных задачах
@@ -259,7 +259,7 @@ const PricingPage = () => {
 
               <div className="bg-gradient-to-r from-construction-500 to-safety-500 rounded-2xl p-8 text-white">
                 <h3 className="text-2xl font-bold mb-4">
-                  Окупаемость ProHelper составляет в среднем 2-3 месяца
+                  Окупаемость МОСТ составляет в среднем 2-3 месяца
                 </h3>
                 <p className="text-construction-100 mb-6">
                   Благодаря автоматизации учета, сокращению ошибок и повышению эффективности команды
@@ -283,7 +283,7 @@ const PricingPage = () => {
               Готовы начать экономить время и деньги?
             </h2>
             <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-              Попробуйте ProHelper бесплатно 14 дней. Никаких карт, никаких обязательств.
+              Попробуйте МОСТ бесплатно 14 дней. Никаких карт, никаких обязательств.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 

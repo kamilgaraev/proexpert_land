@@ -46,7 +46,7 @@ const HoldingLoginPage = () => {
         if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
           slug = 'proverocka';
           setHoldingInfo({
-            name: 'Холдинг ProHelper',
+            name: 'Холдинг МОСТ',
             slug: 'proverocka',
             description: 'Система управления строительными проектами'
           });

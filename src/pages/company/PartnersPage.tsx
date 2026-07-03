@@ -13,7 +13,7 @@ const PartnersPage = () => {
   const partnerTypes = [
     {
       title: 'Реселлеры',
-      description: 'Продавайте ProHelper под собственным брендом',
+      description: 'Продавайте МОСТ под собственным брендом',
       icon: UserGroupIcon,
       benefits: [
         'Комиссия до 30% с продаж',
@@ -26,7 +26,7 @@ const PartnersPage = () => {
     },
     {
       title: 'Системные интеграторы',
-      description: 'Внедряйте ProHelper в рамках комплексных проектов',
+      description: 'Внедряйте МОСТ в рамках комплексных проектов',
       icon: CogIcon,
       benefits: [
         'Комиссия 20% за внедрение',
@@ -39,7 +39,7 @@ const PartnersPage = () => {
     },
     {
       title: 'Консультанты',
-      description: 'Рекомендуйте ProHelper в рамках консалтинговых услуг',
+      description: 'Рекомендуйте МОСТ в рамках консалтинговых услуг',
       icon: AcademicCapIcon,
       benefits: [
         'Комиссия 15% за привлечение',
@@ -118,7 +118,7 @@ const PartnersPage = () => {
 
   return (
     <PageLayout
-      title="Партнерская программа ProHelper"
+      title="Партнерская программа МОСТ"
       subtitle="Развивайте бизнес вместе с нами"
       seoPage="partners"
     >
@@ -182,7 +182,7 @@ const PartnersPage = () => {
                 Наши партнеры
               </h2>
               <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-                Компании, которые уже развивают свой бизнес вместе с ProHelper
+                Компании, которые уже развивают свой бизнес вместе с МОСТ
               </p>
             </div>
 
@@ -318,7 +318,7 @@ const PartnersPage = () => {
               Готовы стать нашим партнером?
             </h2>
             <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-              Присоединяйтесь к растущей экосистеме ProHelper и развивайте свой бизнес
+              Присоединяйтесь к растущей экосистеме МОСТ и развивайте свой бизнес
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 

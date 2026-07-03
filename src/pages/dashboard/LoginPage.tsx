@@ -89,7 +89,7 @@ const LoginPage = () => {
           <div className="mb-8">
             <Link to="/" className="inline-flex items-center mb-8 gap-3 transition-opacity hover:opacity-80">
               <img src="/logo.svg" alt="" className="h-12 w-12 object-contain" />
-              <span className="text-2xl font-extrabold tracking-tight text-foreground">ProHelper</span>
+              <span className="text-2xl font-extrabold tracking-tight text-foreground">МОСТ</span>
             </Link>
             
             <h1 className="text-3xl lg:text-4xl font-bold tracking-tight mb-3">
@@ -212,7 +212,7 @@ const LoginPage = () => {
                     Строим будущее<br/>вместе с вами
                 </h2>
                 <p className="text-white/80 text-lg max-w-md leading-relaxed">
-                    Полный контроль над строительными проектами, финансами и командой в единой экосистеме ProHelper.
+                    Полный контроль над строительными проектами, финансами и командой в единой экосистеме МОСТ.
                 </p>
             </div>
 

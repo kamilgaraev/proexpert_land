@@ -1,4 +1,4 @@
-// Типы для системы разрешений ProHelper
+// Типы для системы разрешений МОСТ
 
 export interface PermissionsData {
   user_id: number;

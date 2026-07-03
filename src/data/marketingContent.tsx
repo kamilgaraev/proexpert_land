@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArrowPathRoundedSquareIcon,
   BanknotesIcon,
   BuildingOffice2Icon,
@@ -88,8 +88,8 @@ export interface FaqItem {
 
 export interface ComparisonItem {
   label: string;
-  withoutProHelper: string;
-  withProHelper: string;
+  withoutMost: string;
+  withMost: string;
 }
 
 export interface SolutionStory {
@@ -308,23 +308,23 @@ export const roleScenarios: RoleScenario[] = [
 export const comparisonItems: ComparisonItem[] = [
   {
     label: 'Статус объекта',
-    withoutProHelper: 'Звоните прорабу, ждёте ответа, получаете устаревшие данные.',
-    withProHelper: 'Открываете приложение — видите текущий статус. Или спрашиваете AI — получаете сводку за секунды.',
+    withoutMost: 'Звоните прорабу, ждёте ответа, получаете устаревшие данные.',
+    withMost: 'Открываете приложение — видите текущий статус. Или спрашиваете AI — получаете сводку за секунды.',
   },
   {
     label: 'Заявка на материал',
-    withoutProHelper: 'Прораб пишет в WhatsApp, снабженец забывает или путает объект.',
-    withProHelper: 'Заявка создаётся в системе. AI предупреждает о дефиците до того, как материалы закончатся.',
+    withoutMost: 'Прораб пишет в WhatsApp, снабженец забывает или путает объект.',
+    withMost: 'Заявка создаётся в системе. AI предупреждает о дефиците до того, как материалы закончатся.',
   },
   {
     label: 'Смета на объект',
-    withoutProHelper: 'Инженер тратит 3-5 дней на составление сметы вручную из нормативов.',
-    withProHelper: 'Загружаете чертежи — AI генерирует смету за 15 минут с разбивкой по позициям.',
+    withoutMost: 'Инженер тратит 3-5 дней на составление сметы вручную из нормативов.',
+    withMost: 'Загружаете чертежи — AI генерирует смету за 15 минут с разбивкой по позициям.',
   },
   {
     label: 'Финансовый отчёт',
-    withoutProHelper: 'Собирается вручную раз в неделю из чеков, таблиц и звонков в бухгалтерию.',
-    withProHelper: 'Доступен в реальном времени. AI сам выявляет перерасходы и аномалии в расходах.',
+    withoutMost: 'Собирается вручную раз в неделю из чеков, таблиц и звонков в бухгалтерию.',
+    withMost: 'Доступен в реальном времени. AI сам выявляет перерасходы и аномалии в расходах.',
   },
 ];
 

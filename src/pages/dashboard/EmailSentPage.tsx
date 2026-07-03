@@ -98,7 +98,7 @@ export const EmailSentPage = () => {
                     <ol className="space-y-2 text-blue-800">
                       <li className="flex items-start">
                         <span className="font-bold mr-2">1.</span>
-                        <span>Откройте свою почту и найдите письмо от ProHelper</span>
+                        <span>Откройте свою почту и найдите письмо от МОСТ</span>
                       </li>
                       <li className="flex items-start">
                         <span className="font-bold mr-2">2.</span>

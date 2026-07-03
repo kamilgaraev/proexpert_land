@@ -274,7 +274,7 @@ const ContractorInvitationsList: React.FC<ContractorInvitationsListProps> = ({
           <p className="text-steel-600 mb-4">
             {filters.status
               ? 'Попробуйте изменить фильтры или обновить список'
-              : 'Здесь появятся входящие запросы от организаций, которые хотят работать с вами в ProHelper'
+              : 'Здесь появятся входящие запросы от организаций, которые хотят работать с вами в МОСТ'
             }
           </p>
           {filters.status && (

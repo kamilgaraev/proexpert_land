@@ -47,7 +47,7 @@ const Calculator = () => {
     <section className="py-12 sm:py-24 bg-slate-50 min-h-screen">
       <div className="container-custom px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Соберите свой ProHelper</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Соберите свой МОСТ</h2>
           <p className="text-lg text-slate-600">
             Выбирайте только то, что нужно вашему бизнесу. Платите только за результат.
           </p>

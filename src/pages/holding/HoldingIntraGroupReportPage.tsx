@@ -88,7 +88,7 @@ const HoldingIntraGroupReportPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-steel-50">
       <SEOHead 
-        title="Отчет по внутригрупповым проектам - ProHelper"
+        title="Отчет по внутригрупповым проектам - МОСТ"
         description="Отчет по внутригрупповым проектам холдинга"
       />
       <PageHeader 

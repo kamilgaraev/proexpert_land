@@ -106,9 +106,9 @@ const buildArticleDocumentProps = (article: BlogArticle) => {
 };
 
 const buildMissingArticleDocumentProps = () => ({
-  title: 'Статья не найдена | ProHelper',
-  description: 'Материал блога ProHelper не найден или еще не опубликован.',
-  keywords: 'блог ProHelper, статья не найдена',
+  title: 'Статья не найдена | МОСТ',
+  description: 'Материал блога МОСТ не найден или еще не опубликован.',
+  keywords: 'блог МОСТ, статья не найдена',
   canonicalUrl: `${BASE_URL}/blog`,
   noIndex: true,
   statusCode: 404,

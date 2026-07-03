@@ -88,7 +88,7 @@ export const useSEO = (props: UseSEOProps = {}) => {
       keywords: props.keywords ?? pageData.keywords,
       ogImage: normalizeOgImageUrl(props.ogImage ?? pageData.ogImage) ?? `${BASE_URL}/og/default.png`,
       type: props.type ?? 'website',
-      author: props.author ?? 'ProHelper',
+      author: props.author ?? 'МОСТ',
       publishedTime: props.publishedTime,
       modifiedTime: props.modifiedTime,
       noIndex: props.noIndex ?? pageData.noIndex ?? false,
@@ -113,7 +113,7 @@ export const useSEO = (props: UseSEOProps = {}) => {
     setMetaTag('og:image:alt', finalData.title, true);
     setMetaTag('og:url', currentUrl, true);
     setMetaTag('og:type', finalData.type, true);
-    setMetaTag('og:site_name', 'ProHelper', true);
+    setMetaTag('og:site_name', 'МОСТ', true);
     setMetaTag('og:locale', 'ru_RU', true);
 
     setMetaTag('twitter:card', 'summary_large_image');

@@ -318,7 +318,7 @@ const RegisterPage = () => {
             <div className="flex items-center justify-between mb-6">
                 <Link to="/" className="flex items-center gap-3 text-primary-foreground">
                      <img src="/logo-white.svg" alt="" className="h-11 w-11 object-contain" />
-                     <span className="text-xl font-extrabold tracking-tight">ProHelper</span>
+                     <span className="text-xl font-extrabold tracking-tight">МОСТ</span>
                 </Link>
                  <Link 
                     to="/login" 
@@ -329,7 +329,7 @@ const RegisterPage = () => {
             </div>
             
             <h1 className="text-2xl font-bold text-primary-foreground mb-2">Создание аккаунта</h1>
-             <p className="text-primary-foreground/70 text-sm">Присоединяйтесь к ProHelper для управления строительными проектами</p>
+             <p className="text-primary-foreground/70 text-sm">Присоединяйтесь к МОСТ для управления строительными проектами</p>
 
              {/* Progress Steps */}
             <div className="mt-8 flex items-center">

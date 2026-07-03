@@ -27,7 +27,7 @@ describe('buildServerSeoPayload', () => {
     const payload = buildServerSeoPayload('/features');
 
     expect(payload.statusCode).toBe(200);
-    expect(payload.title).toContain('Возможности ProHelper');
+    expect(payload.title).toContain('Возможности МОСТ');
     expect(payload.canonicalUrl).toBe('https://prohelper.pro/features');
     expect(payload.allMeta).toContain('index, follow');
     expect(payload.structuredDataTag).toContain('application/ld+json');
@@ -43,7 +43,7 @@ describe('buildServerSeoPayload', () => {
 
   it('uses server-provided article metadata for dynamic blog article pages', () => {
     const payload = buildServerSeoPayload('/blog/test-article', {
-      title: 'Тестовая статья | ProHelper',
+      title: 'Тестовая статья | МОСТ',
       description: 'Описание тестовой статьи для поисковой выдачи.',
       canonicalUrl: 'https://prohelper.pro/blog/test-article',
       ogImage: 'https://prohelper.pro/og/contractor-control.svg',
@@ -57,7 +57,7 @@ describe('buildServerSeoPayload', () => {
     });
 
     expect(payload.statusCode).toBe(200);
-    expect(payload.title).toBe('Тестовая статья | ProHelper');
+    expect(payload.title).toBe('Тестовая статья | МОСТ');
     expect(payload.canonicalUrl).toBe('https://prohelper.pro/blog/test-article');
     expect(payload.allMeta).toContain('<meta property="og:type" content="article" />');
     expect(payload.allMeta).toContain('https://prohelper.pro/og/contractor-control.png');
@@ -71,7 +71,7 @@ describe('buildServerSeoPayload', () => {
     expect(payload.statusCode).toBe(404);
     expect(payload.allMeta).toContain('<meta name="robots" content="noindex, nofollow, noarchive"');
     expect(payload.canonicalUrl).toBe('https://prohelper.pro/');
-    expect(payload.title).toBe('Страница не найдена | ProHelper');
+    expect(payload.title).toBe('Страница не найдена | МОСТ');
   });
 
   it('returns a true 404 payload for unknown paths', () => {

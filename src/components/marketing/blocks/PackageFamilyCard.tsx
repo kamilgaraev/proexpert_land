@@ -59,7 +59,7 @@ const moduleDisplayNames: Record<string, string> = {
 };
 
 export const getMarketingModuleLabel = (moduleSlug: string): string => (
-  moduleDisplayNames[moduleSlug] ?? 'Возможность ProHelper'
+  moduleDisplayNames[moduleSlug] ?? 'Возможность МОСТ'
 );
 
 const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) => {

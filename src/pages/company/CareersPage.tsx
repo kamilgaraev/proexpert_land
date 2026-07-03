@@ -1,5 +1,5 @@
 import PageLayout from '../../components/shared/PageLayout';
-import { 
+import {
   BriefcaseIcon,
   MapPinIcon,
   ClockIcon,
@@ -109,17 +109,17 @@ const CareersPage = () => {
   ];
 
   return (
-    <PageLayout 
-      title="Карьера в ProHelper" 
+    <PageLayout
+      title="Карьера в МОСТ"
       subtitle="Присоединяйтесь к команде, которая меняет строительную отрасль"
     >
       <div className="mb-16">
         <div className="bg-white rounded-2xl p-8 shadow-lg border border-concrete-100 mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-steel-900 mb-6">Почему ProHelper?</h2>
+            <h2 className="text-3xl font-bold text-steel-900 mb-6">Почему МОСТ?</h2>
             <p className="text-xl text-steel-600 max-w-3xl mx-auto">
-              Мы создаем инновационный продукт, который помогает тысячам строительных компаний 
-              работать эффективнее. Присоединяйтесь к команде профессионалов, которые ценят 
+              Мы создаем инновационный продукт, который помогает тысячам строительных компаний
+              работать эффективнее. Присоединяйтесь к команде профессионалов, которые ценят
               качество, инновации и развитие.
             </p>
           </div>
@@ -145,7 +145,7 @@ const CareersPage = () => {
             <h2 className="text-3xl font-bold text-steel-900 mb-4">Наши ценности</h2>
             <p className="text-xl text-steel-600">Принципы, которые объединяют нашу команду</p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((value, index) => (
               <div key={index} className="bg-white rounded-xl p-6 shadow-lg border border-concrete-100 text-center">

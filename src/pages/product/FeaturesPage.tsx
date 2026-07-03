@@ -112,7 +112,7 @@ const FeaturesPage = () => {
 
   return (
     <PageLayout
-      title="Возможности ProHelper"
+      title="Возможности МОСТ"
       subtitle="Полный функционал для современного строительства"
       seoPage="features"
     >
@@ -126,7 +126,7 @@ const FeaturesPage = () => {
                 Полный набор инструментов для <span className="text-construction-600">современного строительства</span>
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                ProHelper объединяет все необходимые функции для эффективного управления строительными проектами в одной платформе
+                МОСТ объединяет все необходимые функции для эффективного управления строительными проектами в одной платформе
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-12">
                 {benefits.map((benefit, index) => (
@@ -214,7 +214,7 @@ const FeaturesPage = () => {
                 Интегрируется с вашими инструментами
               </h2>
               <p className="text-xl text-construction-100 mb-12">
-                ProHelper легко подключается к существующим системам, не нарушая рабочие процессы
+                МОСТ легко подключается к существующим системам, не нарушая рабочие процессы
               </p>
               
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -258,10 +258,10 @@ const FeaturesPage = () => {
         <section className="py-24 bg-white">
           <div className="container-custom text-center">
             <h2 className="text-4xl font-bold text-slate-900 mb-6">
-              Готовы испытать все возможности ProHelper?
+              Готовы испытать все возможности МОСТ?
             </h2>
             <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-              Начните бесплатный тест-драйв на 14 дней и оцените, как ProHelper изменит ваши проекты
+              Начните бесплатный тест-драйв на 14 дней и оцените, как МОСТ изменит ваши проекты
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 

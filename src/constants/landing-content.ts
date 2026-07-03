@@ -74,7 +74,7 @@ export const SOLUTIONS = [
 ];
 
 export const AI_BLOCK = {
-  title: "ProHelper AI: Ваш цифровой инженер ПТО",
+  title: "МОСТ AI: Ваш цифровой инженер ПТО",
   price: "3 990 ₽/мес",
   status: "Early Access",
   features: [

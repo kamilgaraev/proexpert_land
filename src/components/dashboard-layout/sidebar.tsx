@@ -57,7 +57,7 @@ const SidebarContent = ({
       <div className="flex items-center gap-3">
         <img src="/logo.svg" alt="" className="h-10 w-10 object-contain" />
         <div className="flex flex-col">
-          <span className="text-lg font-bold leading-none tracking-tight">ProHelper</span>
+          <span className="text-lg font-bold leading-none tracking-tight">МОСТ</span>
           <span className="mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
             Личный кабинет
           </span>

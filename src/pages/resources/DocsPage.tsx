@@ -18,7 +18,7 @@ const DocsPage = () => {
     {
       title: 'Быстрый старт',
       icon: PlayCircleIcon,
-      description: 'Начните работу с ProHelper за 5 минут',
+      description: 'Начните работу с МОСТ за 5 минут',
       items: [
         'Регистрация и первый вход',
         'Создание первого проекта',
@@ -78,7 +78,7 @@ const DocsPage = () => {
   return (
     <PageLayout 
       title="Документация" 
-      subtitle="Полная база знаний по работе с ProHelper"
+      subtitle="Полная база знаний по работе с МОСТ"
     >
       <div className="mb-16">
         <div className="bg-white rounded-2xl p-8 shadow-lg border border-concrete-100 mb-12">
@@ -206,7 +206,7 @@ const DocsPage = () => {
             {[
               { title: 'Создание и управление проектами', category: 'Руководство', readTime: '5 мин' },
               { title: 'Настройка интеграции с 1C', category: 'Интеграции', readTime: '10 мин' },
-              { title: 'Работа с API ProHelper', category: 'Разработчикам', readTime: '15 мин' },
+              { title: 'Работа с API МОСТ', category: 'Разработчикам', readTime: '15 мин' },
               { title: 'Мобильное приложение: первые шаги', category: 'Мобильное', readTime: '7 мин' },
               { title: 'Настройка ролей и прав доступа', category: 'Администрирование', readTime: '8 мин' },
               { title: 'Генерация отчетов и аналитика', category: 'Отчетность', readTime: '12 мин' }

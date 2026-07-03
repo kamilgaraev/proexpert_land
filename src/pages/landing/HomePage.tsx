@@ -119,25 +119,25 @@ const productScreenshots = [
     title: 'График',
     description: 'Задачи, зависимости и план-факт по срокам.',
     image: ganttScreenshot,
-    alt: 'Диаграмма Ганта с задачами и сроками в ProHelper',
+    alt: 'Диаграмма Ганта с задачами и сроками в МОСТ',
   },
   {
     title: 'Склад',
     description: 'Остатки, резервы и быстрые складские сценарии.',
     image: warehouseScreenshot,
-    alt: 'Рабочий экран склада в ProHelper',
+    alt: 'Рабочий экран склада в МОСТ',
   },
   {
     title: 'Платежи',
     description: 'Реестр документов с суммами, сроками и сигналами.',
     image: paymentsScreenshot,
-    alt: 'Реестр платежных документов в ProHelper',
+    alt: 'Реестр платежных документов в МОСТ',
   },
   {
     title: 'Заявки',
     description: 'Запросы с объекта, статусы и связь с платежами.',
     image: siteRequestsScreenshot,
-    alt: 'Реестр заявок с объекта в ProHelper',
+    alt: 'Реестр заявок с объекта в МОСТ',
   },
 ];
 
@@ -164,7 +164,7 @@ const HomePage = () => {
     <div className="marketing-page-shell overflow-hidden">
       <PageHero
         title="Управляйте стройкой от ПИР до приемки в одной системе."
-        description="ProHelper помогает подрядчику, генподрядчику и девелоперу связать офис, площадку, ПИР, снабжение, финансы, качество, безопасность, ресурсы и заказчика в одном рабочем контуре."
+        description="МОСТ помогает подрядчику, генподрядчику и девелоперу связать офис, площадку, ПИР, снабжение, финансы, качество, безопасность, ресурсы и заказчика в одном рабочем контуре."
         actions={[
           { label: 'Запросить демонстрацию', href: '#contact', primary: true },
           { label: 'Посмотреть пакеты', href: '#pricing' },
@@ -180,7 +180,7 @@ const HomePage = () => {
             />
             <div className="p-5">
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                Рабочий экран ProHelper
+                Рабочий экран МОСТ
               </div>
               <div className="mt-2 text-lg font-bold text-steel-950">{productScreenshots[0].title}</div>
               <p className="mt-2 text-sm leading-7 text-steel-600">{productScreenshots[0].description}</p>
@@ -213,7 +213,7 @@ const HomePage = () => {
           <SectionHeader
             eyebrow="Почему меняют таблицы"
             title="Когда стройка живет в Excel, чатах и звонках, контроль появляется слишком поздно."
-            description="Главная ценность ProHelper — собрать операционный контур стройки так, чтобы решения принимались по актуальным данным: от проектных версий и снабжения до качества, безопасности, ресурсов, изменений и приемки."
+            description="Главная ценность МОСТ — собрать операционный контур стройки так, чтобы решения принимались по актуальным данным: от проектных версий и снабжения до качества, безопасности, ресурсов, изменений и приемки."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
@@ -364,7 +364,7 @@ const HomePage = () => {
           <SectionHeader
             eyebrow="Один сервис для команды"
             title="Каждая роль видит свой участок, а руководитель — всю стройку целиком."
-            description="ProHelper не заменяет людей новым хаосом из экранов: он соединяет роли вокруг объекта, проектной документации, сроков, материалов, качества, безопасности, ресурсов и денег."
+            description="МОСТ не заменяет людей новым хаосом из экранов: он соединяет роли вокруг объекта, проектной документации, сроков, материалов, качества, безопасности, ресурсов и денег."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -419,7 +419,7 @@ const HomePage = () => {
           <div className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
             <SectionHeader
               eyebrow="Запуск"
-              title="Как проходит запуск ProHelper."
+              title="Как проходит запуск МОСТ."
               description="Идем поэтапно: от диагностики процесса до первого рабочего результата."
             />
 
@@ -472,7 +472,7 @@ const HomePage = () => {
           <div>
             <SectionHeader
               eyebrow="Контакт"
-              title="Запросите демонстрацию ProHelper."
+              title="Запросите демонстрацию МОСТ."
               description="Расскажите коротко о компании и процессе, а мы покажем релевантный сценарий работы."
             />
             <div className="mt-8 grid gap-3">

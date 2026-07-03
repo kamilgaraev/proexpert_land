@@ -241,12 +241,12 @@ const HowItWorks = () => {
           <div className="relative z-10 text-center mb-8 sm:mb-10 lg:mb-12">
             <h3 
               className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4 font-construction"
-              data-seo-keyword="преимущества ProHelper цифры"
+              data-seo-keyword="преимущества МОСТ цифры"
             >
               Преимущества в цифрах
             </h3>
             <p className="text-sm sm:text-base lg:text-xl text-white/90 max-w-3xl mx-auto">
-              Реальные показатели от наших клиентов, которые уже используют ProHelper
+              Реальные показатели от наших клиентов, которые уже используют МОСТ
             </p>
           </div>
 

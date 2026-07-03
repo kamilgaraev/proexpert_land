@@ -67,7 +67,7 @@ const Navbar = () => {
             <Link to={marketingPaths.home} className="flex min-w-0 flex-1 items-center gap-3">
               <img
                 src="/logo.svg"
-                alt="ProHelper"
+                alt="МОСТ"
                 className="h-12 w-12 shrink-0 object-contain"
               />
               <div className="min-w-0">

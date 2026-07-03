@@ -172,7 +172,7 @@ const updateMetaTags = (data: {
   setMetaTag('og:image:alt', data.title, true);
   setMetaTag('og:url', data.url, true);
   setMetaTag('og:type', 'website', true);
-  setMetaTag('og:site_name', 'ProHelper', true);
+  setMetaTag('og:site_name', 'МОСТ', true);
   setMetaTag('og:locale', 'ru_RU', true);
   
   // Twitter Cards

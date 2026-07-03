@@ -1,4 +1,4 @@
-name: Deploy ProHelper Frontend
+name: Deploy МОСТ Frontend
 
 on:
   push:

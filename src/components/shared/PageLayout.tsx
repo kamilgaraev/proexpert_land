@@ -57,7 +57,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({
 
               <div className="mt-5 max-w-4xl">
                 <div className="inline-flex items-center rounded-full border border-construction-200 bg-construction-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-construction-700">
-                  ProHelper
+                  МОСТ
                 </div>
                 <h1 className="mt-4 font-sans text-[clamp(2rem,5.4vw,4.1rem)] font-bold leading-[0.98] tracking-tight text-steel-950">
                   {title}

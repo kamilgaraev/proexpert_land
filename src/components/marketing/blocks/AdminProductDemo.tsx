@@ -94,7 +94,7 @@ const AdminProductDemo = () => {
         <div className="grid gap-8 xl:grid-cols-[minmax(0,0.74fr)_minmax(0,1.26fr)] xl:items-end">
           <SectionHeader
             eyebrow="Платформа"
-            title="Так выглядит рабочий контур в админке ProHelper."
+            title="Так выглядит рабочий контур в админке МОСТ."
             description="Показываем не личный кабинет и не рекламную картинку, а упрощенную витрину реальной админской логики: меню, проектный контекст, статистику, фильтры, реестр и связанные действия."
           />
 
@@ -147,7 +147,7 @@ const AdminProductDemo = () => {
                     PH
                   </div>
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-bold text-steel-950">ProHelper</div>
+                    <div className="truncate text-sm font-bold text-steel-950">МОСТ</div>
                     <div className="truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-steel-500">
                       Admin
                     </div>

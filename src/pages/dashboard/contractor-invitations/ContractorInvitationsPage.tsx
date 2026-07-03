@@ -97,10 +97,10 @@ const ContractorInvitationsPage: React.FC = () => {
                 <div>
                     <h3 className="font-semibold mb-2">Как работает партнерская программа?</h3>
                     <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
-                        <li><span className="font-medium text-foreground">Приглашение:</span> Вы можете бесплатно пригласить подрядную организацию к работе в ProHelper.</li>
+                        <li><span className="font-medium text-foreground">Приглашение:</span> Вы можете бесплатно пригласить подрядную организацию к работе в МОСТ.</li>
                         <li><span className="font-medium text-foreground">Первая оплата:</span> Бонусы появляются только после первой оплаченной подписки приглашенной организации.</li>
                         <li><span className="font-medium text-foreground">Антифрод:</span> Начисление выполняется после окончания оплаченного периода, если подписка не отменена заранее.</li>
-                        <li><span className="font-medium text-foreground">Использование бонуса:</span> Бонус остается на балансе ProHelper и может быть потрачен внутри сервиса.</li>
+                        <li><span className="font-medium text-foreground">Использование бонуса:</span> Бонус остается на балансе МОСТ и может быть потрачен внутри сервиса.</li>
                     </ul>
                 </div>
             </div>

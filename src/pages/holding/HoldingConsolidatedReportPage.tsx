@@ -101,7 +101,7 @@ const HoldingConsolidatedReportPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-steel-50">
       <SEOHead 
-        title="Консолидированный отчет холдинга - ProHelper"
+        title="Консолидированный отчет холдинга - МОСТ"
         description="Полный консолидированный отчет холдинга со всеми данными"
       />
       <PageHeader 

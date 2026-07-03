@@ -169,7 +169,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-gray-900">Добро пожаловать в ProHelper</h2>
+              <h2 className="text-3xl font-bold text-gray-900">Добро пожаловать в МОСТ</h2>
               <p className="mx-auto max-w-2xl text-lg text-gray-600">
                 Сначала отметьте все направления, которыми компания реально занимается, а затем выберите основной
                 режим работы для личного кабинета.

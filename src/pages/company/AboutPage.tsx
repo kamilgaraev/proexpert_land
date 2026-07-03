@@ -26,7 +26,7 @@ const AboutPage = () => {
     <div className="marketing-page-shell">
       <PageHero
         eyebrow="О продукте"
-        title="ProHelper для управления строительной компанией."
+        title="МОСТ для управления строительной компанией."
         description="Единый рабочий контур для офиса, площадки, снабжения, финансового блока и руководителя."
         actions={[
           { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
@@ -87,7 +87,7 @@ const AboutPage = () => {
             <SectionHeader
               eyebrow="Принципы"
               title="Как мы подходим к внедрению и развитию продукта."
-              description="ProHelper запускается поэтапно и масштабируется вместе с компанией."
+              description="МОСТ запускается поэтапно и масштабируется вместе с компанией."
             />
           </div>
           <div className="rounded-[1.75rem] border border-steel-900 bg-steel-950 p-6 text-white">
@@ -113,7 +113,7 @@ const AboutPage = () => {
           <div>
             <SectionHeader
               eyebrow="Доверие"
-              title="Почему ProHelper удобен для корпоративного клиента."
+              title="Почему МОСТ удобен для корпоративного клиента."
               description="Понятные роли, прозрачные процессы и управляемый формат запуска."
             />
           </div>
@@ -125,7 +125,7 @@ const AboutPage = () => {
         <div className="container-custom">
           <CtaBand
             eyebrow="Следующий шаг"
-            title="Если хотите увидеть ProHelper на своем процессе, проведем прицельную демонстрацию."
+            title="Если хотите увидеть МОСТ на своем процессе, проведем прицельную демонстрацию."
             description="Покажем релевантный контур, обсудим этап внедрения и отдельно ответим на вопросы по безопасности и документам."
             actions={[
               { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },

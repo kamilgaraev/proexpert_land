@@ -15,13 +15,13 @@ interface SEOHeadProps {
 }
 
 export const SEOHead: React.FC<SEOHeadProps> = ({
-  title = 'ProHelper - Умная платформа для управления строительными проектами',
-  description = 'Автоматизируйте строительные процессы с ProHelper: учет материалов, контроль бюджета, координация команд и отчетность в одной платформе.',
-  keywords = 'строительство, управление проектами, учет материалов, строительная отчетность, SaaS для строителей, автоматизация строительства, финансовый контроль, ProHelper',
+  title = 'МОСТ - Умная платформа для управления строительными проектами',
+  description = 'Автоматизируйте строительные процессы с МОСТ: учет материалов, контроль бюджета, координация команд и отчетность в одной платформе.',
+  keywords = 'строительство, управление проектами, учет материалов, строительная отчетность, SaaS для строителей, автоматизация строительства, финансовый контроль, МОСТ',
   ogImage = 'https://prohelper.pro/og/default.png',
   canonicalUrl,
   type = 'website',
-  author = 'ProHelper Team',
+  author = 'МОСТ Team',
   publishedTime,
   modifiedTime,
   structuredData
@@ -77,7 +77,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag('og:image:alt', title, true);
     setMetaTag('og:url', currentUrl, true);
     setMetaTag('og:type', type, true);
-    setMetaTag('og:site_name', 'ProHelper', true);
+    setMetaTag('og:site_name', 'МОСТ', true);
     setMetaTag('og:locale', 'ru_RU', true);
     
     setMetaTag('twitter:card', 'summary_large_image', true);

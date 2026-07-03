@@ -42,10 +42,10 @@ export const normalizeOgImageUrl = (image?: string | null) => {
 };
 
 const notFoundSeo = {
-  title: 'Страница не найдена | ProHelper',
+  title: 'Страница не найдена | МОСТ',
   description:
-    'Запрошенная страница не найдена. Перейдите к решениям ProHelper для управления строительством, снабжением и финансами.',
-  keywords: 'страница не найдена, 404, ProHelper',
+    'Запрошенная страница не найдена. Перейдите к решениям МОСТ для управления строительством, снабжением и финансами.',
+  keywords: 'страница не найдена, 404, МОСТ',
 };
 
 const internalPageSeoByExactPath: Record<
@@ -53,50 +53,50 @@ const internalPageSeoByExactPath: Record<
   { title: string; description: string; keywords?: string }
 > = {
   '/login': {
-    title: 'Вход в ProHelper',
-    description: 'Страница входа в личный кабинет ProHelper.',
-    keywords: 'вход ProHelper, личный кабинет',
+    title: 'Вход в МОСТ',
+    description: 'Страница входа в личный кабинет МОСТ.',
+    keywords: 'вход МОСТ, личный кабинет',
   },
   '/register': {
-    title: 'Регистрация в ProHelper',
-    description: 'Страница регистрации в ProHelper.',
-    keywords: 'регистрация ProHelper',
+    title: 'Регистрация в МОСТ',
+    description: 'Страница регистрации в МОСТ.',
+    keywords: 'регистрация МОСТ',
   },
   '/forgot-password': {
-    title: 'Восстановление доступа | ProHelper',
-    description: 'Страница восстановления доступа к ProHelper.',
-    keywords: 'восстановление пароля ProHelper',
+    title: 'Восстановление доступа | МОСТ',
+    description: 'Страница восстановления доступа к МОСТ.',
+    keywords: 'восстановление пароля МОСТ',
   },
   '/verify-email': {
-    title: 'Подтверждение email | ProHelper',
-    description: 'Служебная страница подтверждения электронной почты в ProHelper.',
-    keywords: 'подтверждение email ProHelper',
+    title: 'Подтверждение email | МОСТ',
+    description: 'Служебная страница подтверждения электронной почты в МОСТ.',
+    keywords: 'подтверждение email МОСТ',
   },
   '/email-sent': {
-    title: 'Письмо отправлено | ProHelper',
-    description: 'Служебная страница подтверждения отправки письма в ProHelper.',
-    keywords: 'письмо отправлено ProHelper',
+    title: 'Письмо отправлено | МОСТ',
+    description: 'Служебная страница подтверждения отправки письма в МОСТ.',
+    keywords: 'письмо отправлено МОСТ',
   },
 };
 
 const internalPageSeoByPrefix = [
   {
     prefix: '/dashboard',
-    title: 'Личный кабинет ProHelper',
-    description: 'Рабочее пространство ProHelper для управления проектами и организациями.',
-    keywords: 'личный кабинет ProHelper',
+    title: 'Личный кабинет МОСТ',
+    description: 'Рабочее пространство МОСТ для управления проектами и организациями.',
+    keywords: 'личный кабинет МОСТ',
   },
   {
     prefix: '/landing/multi-organization',
-    title: 'Группа компаний | ProHelper',
-    description: 'Служебный контур управления группой компаний в ProHelper.',
-    keywords: 'группа компаний ProHelper',
+    title: 'Группа компаний | МОСТ',
+    description: 'Служебный контур управления группой компаний в МОСТ.',
+    keywords: 'группа компаний МОСТ',
   },
   {
     prefix: '/blog/preview',
-    title: 'Предпросмотр статьи | ProHelper',
-    description: 'Служебный предпросмотр статьи блога ProHelper.',
-    keywords: 'предпросмотр статьи ProHelper',
+    title: 'Предпросмотр статьи | МОСТ',
+    description: 'Служебный предпросмотр статьи блога МОСТ.',
+    keywords: 'предпросмотр статьи МОСТ',
   },
 ];
 
@@ -121,9 +121,9 @@ const resolveGenericInternalSeo = (pathname: string) => {
 
   return (
     internalPageSeoByPrefix.find((entry) => pathname.startsWith(entry.prefix)) ?? {
-      title: 'Служебная страница | ProHelper',
-      description: 'Служебная страница ProHelper.',
-      keywords: 'служебная страница ProHelper',
+      title: 'Служебная страница | МОСТ',
+      description: 'Служебная страница МОСТ.',
+      keywords: 'служебная страница МОСТ',
     }
   );
 };

@@ -22,7 +22,7 @@ describe('PackageFamilyCard module labels', () => {
       'Техника и механизмы',
       'Изменения и претензии',
       'CRM и продажи',
-      'Возможность ProHelper',
+      'Возможность МОСТ',
     ]);
     expect(labels.join(' ')).not.toMatch(/[a-z]+-[a-z-]+/);
   });

@@ -23,17 +23,17 @@ const BlogCategoryPage = () => {
   useSEO(
     category
       ? {
-          title: category.meta_title || `${category.name} - блог ProHelper`,
+          title: category.meta_title || `${category.name} - блог МОСТ`,
           description:
             category.meta_description ||
             category.description ||
-            `Подборка материалов ProHelper по теме "${category.name}".`,
-          keywords: `${category.name}, блог ProHelper, строительство`,
+            `Подборка материалов МОСТ по теме "${category.name}".`,
+          keywords: `${category.name}, блог МОСТ, строительство`,
           type: 'website',
         }
       : {
-          title: 'Категория блога ProHelper',
-          description: 'Подборка материалов ProHelper по категориям блога.',
+          title: 'Категория блога МОСТ',
+          description: 'Подборка материалов МОСТ по категориям блога.',
           type: 'website',
         },
   );

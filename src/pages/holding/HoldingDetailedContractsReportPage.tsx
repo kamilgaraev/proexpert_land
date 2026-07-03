@@ -88,7 +88,7 @@ const HoldingDetailedContractsReportPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-steel-50">
       <SEOHead 
-        title="Детальный отчет по контрактам - ProHelper"
+        title="Детальный отчет по контрактам - МОСТ"
         description="Детальный отчет по контрактам холдинга"
       />
       <PageHeader 

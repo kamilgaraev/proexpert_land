@@ -59,10 +59,10 @@ export class SEOOptimizer {
     const linkPatterns = [
       { pattern: /учет материалов/gi, link: '/features', anchor: 'учет материалов' },
       { pattern: /управление проектами/gi, link: '/features', anchor: 'управление строительными проектами' },
-      { pattern: /тарифы|цены/gi, link: '/pricing', anchor: 'тарифы ProHelper' },
-      { pattern: /интеграция|интеграции/gi, link: '/integrations', anchor: 'интеграции ProHelper' },
-      { pattern: /малый бизнес/gi, link: '/small-business', anchor: 'ProHelper для малого бизнеса' },
-      { pattern: /enterprise|корпоративный/gi, link: '/enterprise', anchor: 'ProHelper Enterprise' }
+      { pattern: /тарифы|цены/gi, link: '/pricing', anchor: 'тарифы МОСТ' },
+      { pattern: /интеграция|интеграции/gi, link: '/integrations', anchor: 'интеграции МОСТ' },
+      { pattern: /малый бизнес/gi, link: '/small-business', anchor: 'МОСТ для малого бизнеса' },
+      { pattern: /enterprise|корпоративный/gi, link: '/enterprise', anchor: 'МОСТ Enterprise' }
     ];
     
     let optimizedContent = content;
@@ -110,8 +110,8 @@ export class SEOOptimizer {
     // Генерируем title
     const h1Match = content.match(/<h1[^>]*>(.*?)<\/h1>/i);
     const suggestedTitle = h1Match 
-      ? h1Match[1].replace(/<[^>]*>/g, '') + ' | ProHelper'
-      : currentTitle || 'ProHelper - Строительная CRM';
+      ? h1Match[1].replace(/<[^>]*>/g, '') + ' | МОСТ'
+      : currentTitle || 'МОСТ - Строительная CRM';
     
     return {
       suggestedTitle,

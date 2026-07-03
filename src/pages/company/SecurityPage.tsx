@@ -24,7 +24,7 @@ const SecurityPage = () => {
     <div className="marketing-page-shell">
       <PageHero
         eyebrow="Безопасность"
-        title="Безопасность ProHelper для корпоративных клиентов."
+        title="Безопасность МОСТ для корпоративных клиентов."
         description="Роли, доступ, документы, прозрачность действий и поддержка проектного запуска."
         actions={[
           { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
@@ -90,7 +90,7 @@ const SecurityPage = () => {
             <SectionHeader
               eyebrow="Роли"
               title="Офис, площадка, кабинет и корпоративный контур разделены по задачам."
-              description="Показываем это на примерах из продуктовых контуров ProHelper."
+              description="Показываем это на примерах из продуктовых контуров МОСТ."
             />
             <div className="mt-8 grid gap-4">
               {marketingCapabilityMatrix.slice(0, 5).map((capability) => (

@@ -129,7 +129,7 @@ export const VerifyEmailPage = () => {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
               <p className="text-sm text-gray-500">
-                Теперь у вас есть доступ ко всем функциям платформы ProHelper
+                Теперь у вас есть доступ ко всем функциям платформы МОСТ
               </p>
             </div>
           ) : (

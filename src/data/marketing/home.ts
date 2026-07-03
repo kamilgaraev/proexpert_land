@@ -50,7 +50,7 @@ export const marketingLaunchSteps: MarketingLaunchStep[] = [
 
 export const marketingFaqs: MarketingFaqItem[] = [
   {
-    question: 'Для кого в первую очередь подходит ProHelper?',
+    question: 'Для кого в первую очередь подходит МОСТ?',
     answer:
       'Для подрядчиков, генподрядчиков, девелоперов и инженерных команд, которым важно собрать проект, ПИР, снабжение, финансы, качество, безопасность, ресурсы и документы в один понятный рабочий процесс.',
   },

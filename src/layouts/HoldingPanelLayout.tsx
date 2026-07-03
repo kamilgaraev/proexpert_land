@@ -357,7 +357,7 @@ export const HoldingPanelLayout = () => {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
                 <div className="flex items-center gap-2 text-gray-600">
                   <BuildingOfficeIcon className="w-4 h-4 text-slate-600" />
-                  <span className="font-medium">{userOrg?.name || 'ProHelper'}</span>
+                  <span className="font-medium">{userOrg?.name || 'МОСТ'}</span>
                   <span className="hidden sm:inline text-gray-400">•</span>
                   <span className="hidden sm:inline text-gray-500">© 2025 Все права защищены</span>
                 </div>

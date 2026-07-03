@@ -1,4 +1,4 @@
-====== ОБНОВЛЕНИЕ NGINX ОДНОЙ КОМАНДОЙ (БЕЗ SCP) ======
+﻿====== ОБНОВЛЕНИЕ NGINX ОДНОЙ КОМАНДОЙ (БЕЗ SCP) ======
 
 Подключитесь к серверу и выполните:
 
@@ -6,7 +6,7 @@ ssh root@your-server
 
 Затем скопируйте и вставьте ВСЮ эту команду целиком:
 
-cat > /etc/nginx/sites-available/prohelper.pro.conf << 'PROHELPER_CONF'
+cat > /etc/nginx/sites-available/prohelper.pro.conf << 'MOST_CONF'
 server {
     listen 80;
     listen [::]:80;
@@ -76,7 +76,7 @@ server {
     access_log /var/log/nginx/prohelper_access.log;
     error_log /var/log/nginx/prohelper_error.log;
 }
-PROHELPER_CONF
+MOST_CONF
 
 cat > /etc/nginx/sites-available/lk.prohelper.pro.conf << 'LK_CONF'
 server {

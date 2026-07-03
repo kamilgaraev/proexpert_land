@@ -93,7 +93,7 @@ const Footer = () => {
                 Следующий шаг
               </div>
               <h2 className="mt-4 max-w-4xl text-[clamp(2rem,4.2vw,3.8rem)] font-bold leading-[1.02]">
-                Разберем ваш сценарий и покажем, с какого контура ProHelper лучше стартовать.
+                Разберем ваш сценарий и покажем, с какого контура МОСТ лучше стартовать.
               </h2>
               <p className="mt-5 max-w-3xl text-base leading-8 text-white/72">
                 На созвоне раскладываем роли команды, текущий процесс и приоритет запуска.
@@ -124,7 +124,7 @@ const Footer = () => {
             <div className="flex items-center gap-4">
               <img
                 src="/logo-white.svg"
-                alt="ProHelper"
+                alt="МОСТ"
                 className="h-14 w-14 shrink-0 object-contain"
               />
               <div>
@@ -136,7 +136,7 @@ const Footer = () => {
             </div>
 
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/70">
-              ProHelper помогает собрать объект, ПИР, снабжение, финансы, качество, безопасность,
+              МОСТ помогает собрать объект, ПИР, снабжение, финансы, качество, безопасность,
               ресурсы, изменения, документы и управленческую картину в одной системе для офиса,
               площадки, заказчика и руководителя.
             </p>
@@ -244,7 +244,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-6 text-sm text-white/45 md:flex-row md:items-center md:justify-between">
-          <div>© {currentYear} ProHelper. Все права защищены.</div>
+          <div>© {currentYear} МОСТ. Все права защищены.</div>
           <div className="flex flex-wrap gap-5">
             <Link to={marketingPaths.privacy} className="transition hover:text-white">
               Конфиденциальность

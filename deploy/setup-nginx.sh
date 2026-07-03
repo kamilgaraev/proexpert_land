@@ -2,7 +2,7 @@
 
 set -e
 
-echo "=== Установка конфигураций Nginx для ProHelper ==="
+echo "=== Установка конфигураций Nginx для МОСТ ==="
 
 NGINX_AVAILABLE="/etc/nginx/sites-available"
 NGINX_ENABLED="/etc/nginx/sites-enabled"

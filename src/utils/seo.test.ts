@@ -21,7 +21,7 @@ describe('getPageSEOData', () => {
 
     expect(seoData.statusCode).toBe(404);
     expect(seoData.noIndex).toBe(true);
-    expect(seoData.title).toBe('Страница не найдена | ProHelper');
+    expect(seoData.title).toBe('Страница не найдена | МОСТ');
     expect(seoData.canonicalUrl).toBe('https://prohelper.pro/');
     expect(seoData.ogImage).toBe('https://prohelper.pro/og/404.png');
   });
@@ -46,7 +46,7 @@ describe('getPageSEOData', () => {
 });
 
 describe('normalizeOgImageUrl', () => {
-  it('converts static ProHelper OG svg images to png', () => {
+  it('converts static МОСТ OG svg images to png', () => {
     expect(normalizeOgImageUrl('https://prohelper.pro/og/contractor-control.svg'))
       .toBe('https://prohelper.pro/og/contractor-control.png');
     expect(normalizeOgImageUrl('/og/contractor-control.svg')).toBe('/og/contractor-control.png');

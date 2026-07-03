@@ -131,7 +131,7 @@ const BlogSidebar = () => {
       <section id="blog-cta">
         <CtaBand
           eyebrow="Следующий шаг"
-          title="Если нужен разбор вашего процесса, покажем релевантный сценарий ProHelper."
+          title="Если нужен разбор вашего процесса, покажем релевантный сценарий МОСТ."
           description="На встрече свяжем материалы блога с вашим типом компании, текущими ролями и задачами запуска."
           actions={[
             { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },

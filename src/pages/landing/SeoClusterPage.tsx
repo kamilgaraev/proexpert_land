@@ -62,7 +62,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
   useEffect(() => {
     addFAQSchema(page.faq);
     addBreadcrumbSchema([
-      { name: 'ProHelper', url: 'https://prohelper.pro/' },
+      { name: 'МОСТ', url: 'https://prohelper.pro/' },
       { name: 'Решения', url: 'https://prohelper.pro/solutions' },
       { name: page.title, url: canonicalUrl },
     ]);

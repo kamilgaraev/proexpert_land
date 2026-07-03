@@ -70,7 +70,7 @@ export const SEOImage: React.FC<SEOImageProps> = ({
           const target = e.target as HTMLImageElement;
           // Fallback для сломанных изображений
           target.src = '/images/fallback.jpg';
-          target.alt = 'Изображение недоступно - ProHelper';
+          target.alt = 'Изображение недоступно - МОСТ';
         }}
       />
     </>
@@ -110,7 +110,7 @@ export const BlogSEOImage: React.FC<SEOImageProps & {
   articleTitle?: string;
   category?: string;
 }> = ({ articleTitle, category, keyword, alt, ...props }) => {
-  const seoKeyword = keyword || category || 'строительство ProHelper';
+  const seoKeyword = keyword || category || 'строительство МОСТ';
   const blogAlt = articleTitle 
     ? `${alt} - ${articleTitle} | ${seoKeyword}`
     : `${alt} - ${seoKeyword}`;

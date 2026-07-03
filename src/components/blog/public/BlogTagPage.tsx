@@ -22,9 +22,9 @@ const BlogTagPage = () => {
   const tagDisplayName = getBlogTagDisplayName(slug, tag);
 
   useSEO({
-    title: tagDisplayName ? `Тег #${tagDisplayName} - блог ProHelper` : 'Теги блога ProHelper',
-    description: tagDisplayName ? `Подборка статей ProHelper по тегу #${tagDisplayName}.` : 'Подборка статей ProHelper по тегам.',
-    keywords: tagDisplayName ? `${tagDisplayName}, блог ProHelper, строительство` : 'теги блога ProHelper',
+    title: tagDisplayName ? `Тег #${tagDisplayName} - блог МОСТ` : 'Теги блога МОСТ',
+    description: tagDisplayName ? `Подборка статей МОСТ по тегу #${tagDisplayName}.` : 'Подборка статей МОСТ по тегам.',
+    keywords: tagDisplayName ? `${tagDisplayName}, блог МОСТ, строительство` : 'теги блога МОСТ',
     noIndex: true,
     type: 'website',
   });

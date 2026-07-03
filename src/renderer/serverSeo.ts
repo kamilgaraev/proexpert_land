@@ -39,7 +39,7 @@ const normalizeStructuredData = (value: unknown): unknown[] => {
   return [value];
 };
 
-const stripBrandSuffix = (title: string) => title.replace(/\s+\|\s+ProHelper$/, '').trim();
+const stripBrandSuffix = (title: string) => title.replace(/\s+\|\s+МОСТ$/, '').trim();
 
 export const buildServerSeoPayload = (
   pathname: string,
@@ -121,7 +121,7 @@ export const buildServerSeoPayload = (
     `<meta property="og:image:alt" content="${escapedTitle}" />`,
     `<meta property="og:url" content="${escapedCanonicalUrl}" />`,
     `<meta property="og:type" content="${ogType}" />`,
-    `<meta property="og:site_name" content="ProHelper" />`,
+    `<meta property="og:site_name" content="МОСТ" />`,
     `<meta property="og:locale" content="ru_RU" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${escapedTitle}" />`,

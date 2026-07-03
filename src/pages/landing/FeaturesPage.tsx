@@ -47,7 +47,7 @@ const FeaturesPage = () => {
     <div className="marketing-page-shell">
       <PageHero
         eyebrow="Продукт"
-        title="Ключевые возможности ProHelper для строительной компании."
+        title="Ключевые возможности МОСТ для строительной компании."
         description="Объект, снабжение, финансы, документы, отчетность и корпоративное управление в одном продукте."
         actions={[
           { label: 'Запросить демонстрацию', href: marketingPaths.contact, primary: true },
@@ -194,7 +194,7 @@ const FeaturesPage = () => {
             <SectionHeader
               eyebrow="Доверие"
               title="Прозрачность процессов, ролей и доступа."
-              description="Показываем, как ProHelper поддерживает управляемость и корпоративные требования."
+              description="Показываем, как МОСТ поддерживает управляемость и корпоративные требования."
             />
           </div>
           <TrustFactList items={marketingTrustFacts} />

@@ -12,7 +12,7 @@ const Solutions = () => {
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl font-bold text-slate-900 mb-4">Решения под ваши задачи</h2>
           <p className="text-lg text-slate-600">
-            ProHelper адаптируется под специфику вашего бизнеса, будь то генподряд или поставка материалов.
+            МОСТ адаптируется под специфику вашего бизнеса, будь то генподряд или поставка материалов.
           </p>
         </div>
 

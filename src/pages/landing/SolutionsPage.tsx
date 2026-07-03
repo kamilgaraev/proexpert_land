@@ -44,7 +44,7 @@ const SolutionsPage = () => {
     <div className="marketing-page-shell">
       <PageHero
         eyebrow="Решения"
-        title="Решения ProHelper для подрядчика, генподрядчика, девелопера и ПТО."
+        title="Решения МОСТ для подрядчика, генподрядчика, девелопера и ПТО."
         description="Выберите сценарий, который соответствует вашей структуре, задачам и этапу развития компании."
         actions={[
           { label: 'Подобрать сценарий запуска', href: '#solutions', primary: true },

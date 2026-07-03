@@ -55,7 +55,7 @@ const AIFocus = () => {
             </div>
             
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
-              ProHelper <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">AI</span>
+              МОСТ <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">AI</span>
               <br />
               <span className="text-slate-400 text-2xl sm:text-3xl font-medium">Ваш цифровой инженер ПТО</span>
             </h2>
@@ -99,7 +99,7 @@ const AIFocus = () => {
                   AI
                 </div>
                 <div>
-                  <div className="text-white font-medium">ProHelper Assistant</div>
+                  <div className="text-white font-medium">МОСТ Assistant</div>
                   <div className="text-xs text-slate-500 flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-green-500" />
                     Online

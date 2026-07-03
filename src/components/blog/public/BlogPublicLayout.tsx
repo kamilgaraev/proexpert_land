@@ -20,7 +20,7 @@ const defaultNav = [
 
 const BlogPublicLayout = ({
   children,
-  eyebrow = 'Блог ProHelper',
+  eyebrow = 'Блог МОСТ',
   title = 'Материалы о строительных процессах, запуске и цифровом контуре.',
   description = 'Публикуем статьи о графиках работ, снабжении, документах, финансах и организации строительной команды.',
   nav = defaultNav,

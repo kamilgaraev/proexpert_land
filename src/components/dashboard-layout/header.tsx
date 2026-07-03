@@ -64,7 +64,7 @@ export function Header({
           {/* Breadcrumbs Placeholder - can be made dynamic */}
            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <img src="/logo.svg" alt="" className="h-5 w-5 object-contain" />
-                <span>ProHelper</span>
+                <span>МОСТ</span>
                 <span>/</span>
                 <span className="text-foreground font-medium">
                     Личный кабинет

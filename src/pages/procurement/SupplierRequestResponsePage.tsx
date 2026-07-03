@@ -221,9 +221,9 @@ const SupplierRequestResponsePage: React.FC = () => {
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
         <div className="mb-6 flex items-center gap-3">
-          <img src="/logo.svg" alt="ProHelper" className="h-10 w-auto" />
+          <img src="/logo.svg" alt="МОСТ" className="h-10 w-auto" />
           <div>
-            <p className="text-sm text-slate-500">ProHelper</p>
+            <p className="text-sm text-slate-500">МОСТ</p>
             <h1 className="text-2xl font-bold text-slate-950">Коммерческое предложение</h1>
           </div>
         </div>

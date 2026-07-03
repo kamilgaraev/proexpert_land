@@ -110,7 +110,7 @@ const ForgotPasswordPage = () => {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center mb-6 gap-3">
             <img src="/logo.svg" alt="" className="h-12 w-12 object-contain" />
-            <span className="text-2xl font-extrabold tracking-tight text-foreground">ProHelper</span>
+            <span className="text-2xl font-extrabold tracking-tight text-foreground">МОСТ</span>
           </Link>
           
           <h1 className="text-2xl font-bold mb-2">

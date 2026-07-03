@@ -101,8 +101,8 @@ const HoldingReportsIndexPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-steel-50">
         <SEOHead 
-          title="Отчеты холдинга - ProHelper"
-          description="Отчеты холдинга ProHelper"
+          title="Отчеты холдинга - МОСТ"
+          description="Отчеты холдинга МОСТ"
         />
         <PageHeader 
           title="Отчеты холдинга"
@@ -128,8 +128,8 @@ const HoldingReportsIndexPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-steel-50">
       <SEOHead 
-        title="Отчеты холдинга - ProHelper"
-        description="Отчеты холдинга ProHelper"
+        title="Отчеты холдинга - МОСТ"
+        description="Отчеты холдинга МОСТ"
       />
       <PageHeader 
         title="Отчеты холдинга"

@@ -30,7 +30,7 @@ const rewardRules = [
     icon: Clock3,
   },
   {
-    title: 'Только внутри ProHelper',
+    title: 'Только внутри МОСТ',
     description: 'Бонус остается на балансе и используется для подписки, пакетов и дополнительных модулей.',
     icon: Wallet,
   },
@@ -63,7 +63,7 @@ const ContractorReferralProgramPage: React.FC = () => {
           >
             <h1 className="text-3xl font-bold tracking-tight">Условия партнерской программы</h1>
             <p className="mt-2 text-muted-foreground">
-              Приглашайте подрядчиков в ProHelper бесплатно. Бонус начисляется только после первой успешной оплаты приглашенной организации и проверки оплаченного периода.
+              Приглашайте подрядчиков в МОСТ бесплатно. Бонус начисляется только после первой успешной оплаты приглашенной организации и проверки оплаченного периода.
             </p>
           </motion.div>
         </div>
@@ -101,12 +101,12 @@ const ContractorReferralProgramPage: React.FC = () => {
             <div className="rounded-xl border border-border bg-secondary/30 p-5">
               <p className="text-sm text-muted-foreground">Пригласившая организация</p>
               <p className="mt-1 text-2xl font-bold text-foreground">30% от первого платежа</p>
-              <p className="mt-2 text-sm text-muted-foreground">Максимум 30 000 ₽ на баланс ProHelper.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Максимум 30 000 ₽ на баланс МОСТ.</p>
             </div>
             <div className="rounded-xl border border-border bg-secondary/30 p-5">
               <p className="text-sm text-muted-foreground">Приглашенная организация</p>
               <p className="mt-1 text-2xl font-bold text-foreground">20% welcome-бонусом</p>
-              <p className="mt-2 text-sm text-muted-foreground">Максимум 20 000 ₽ на баланс ProHelper после проверки периода.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Максимум 20 000 ₽ на баланс МОСТ после проверки периода.</p>
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">
               Сумма округляется до 1 000 ₽. Для отдельных стартовых тарифов могут применяться фиксированные бонусы, если это указано в условиях оплаты.

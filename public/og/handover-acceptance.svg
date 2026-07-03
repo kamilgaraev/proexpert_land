@@ -51,7 +51,7 @@
     <circle cx="830" cy="438" r="5" fill="#99F6E4" />
     <text x="850" y="445" class="capability">Передача</text>
   </g>
-  <text x="798" y="520" class="stamp">PROHELPER</text>
+  <text x="798" y="520" class="stamp">MOST</text>
   <rect x="82" y="86" width="174" height="48" rx="24" fill="#0F766E" />
   <text x="108" y="117" class="brand" fill="#FFFFFF">ПРИЕМКА</text>
   <text x="282" y="117" class="domain">PROHELPER.PRO</text>

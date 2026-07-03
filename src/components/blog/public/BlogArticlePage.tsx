@@ -38,7 +38,7 @@ const BlogArticlePage = ({
     article
       ? {
           title: article.meta_title || article.og_title || article.title,
-          description: article.meta_description || article.og_description || article.excerpt || 'Статья ProHelper',
+          description: article.meta_description || article.og_description || article.excerpt || 'Статья МОСТ',
           keywords: article.meta_keywords?.join(', ') || article.tags.map((tag) => tag.name).join(', '),
           ogImage: article.og_image || article.featured_image,
           type: 'article',
@@ -59,8 +59,8 @@ const BlogArticlePage = ({
           }),
         }
       : {
-          title: 'Блог ProHelper',
-          description: 'Материалы ProHelper о строительных процессах и цифровом контуре.',
+          title: 'Блог МОСТ',
+          description: 'Материалы МОСТ о строительных процессах и цифровом контуре.',
           type: 'website',
         },
   );
@@ -118,7 +118,7 @@ const BlogArticlePage = ({
   if (loading) {
     return (
       <BlogPublicLayout
-        eyebrow="Блог ProHelper"
+        eyebrow="Блог МОСТ"
         title="Загружаем материал"
         description="Подготавливаем статью и связанные материалы."
       >
@@ -141,7 +141,7 @@ const BlogArticlePage = ({
   if (error || !article) {
     return (
       <BlogPublicLayout
-        eyebrow="Блог ProHelper"
+        eyebrow="Блог МОСТ"
         title="Статья недоступна"
         description="Похоже, материал был перемещен, удален или еще не опубликован."
       >
@@ -167,7 +167,7 @@ const BlogArticlePage = ({
     <BlogPublicLayout
       eyebrow={isPreview ? 'Preview' : article.category.name}
       title={article.title}
-      description={article.excerpt || 'Материал ProHelper о строительных процессах, ролях и цифровом контуре.'}
+      description={article.excerpt || 'Материал МОСТ о строительных процессах, ролях и цифровом контуре.'}
       nav={[
         { label: 'Содержание', href: '#article-content' },
         { label: isPreview ? 'Предпросмотр' : 'Похожие материалы', href: isPreview ? '#article-content' : '#related-articles' },

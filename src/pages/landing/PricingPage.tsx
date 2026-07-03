@@ -164,7 +164,7 @@ const PricingPage = () => {
     <div className="marketing-page-shell">
       <PageHero
         eyebrow="Пакеты"
-        title="Пакеты ProHelper под ваш этап развития."
+        title="Пакеты МОСТ под ваш этап развития."
         description="Выберите стартовый контур для объекта, ПИР, снабжения, финансов, качества, охраны труда, ресурсов, изменений, отчетности или корпоративного управления."
         actions={[
           { label: 'Начать бесплатно', href: '/register?plan=free', primary: true },

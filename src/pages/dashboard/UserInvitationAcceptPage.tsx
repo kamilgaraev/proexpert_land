@@ -119,7 +119,7 @@ const UserInvitationAcceptPage = () => {
         <div className="p-8 lg:p-10">
           <Link to="/" className="inline-flex items-center mb-8 gap-3 transition-opacity hover:opacity-80">
             <img src="/logo.svg" alt="" className="h-12 w-12 object-contain" />
-            <span className="text-2xl font-extrabold tracking-tight text-foreground">ProHelper</span>
+            <span className="text-2xl font-extrabold tracking-tight text-foreground">МОСТ</span>
           </Link>
 
           {isLoading && (
@@ -172,7 +172,7 @@ const UserInvitationAcceptPage = () => {
                 <p className="text-muted-foreground">
                   {invitation.organization_name
                     ? `Вас пригласили присоединиться к организации ${invitation.organization_name}.`
-                    : 'Вас пригласили присоединиться к организации в ProHelper.'}
+                    : 'Вас пригласили присоединиться к организации в МОСТ.'}
                 </p>
               </div>
 

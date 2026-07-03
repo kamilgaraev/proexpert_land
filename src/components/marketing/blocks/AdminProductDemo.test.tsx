@@ -13,7 +13,7 @@ describe('AdminProductDemo', () => {
     }
 
     expect(screen.getByText(/Демонстрационная версия/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/В личном кабинете ProHelper больше деталей/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/В личном кабинете МОСТ больше деталей/i).length).toBeGreaterThan(0);
   });
 
   it('changes the active admin workspace when a module is clicked', () => {

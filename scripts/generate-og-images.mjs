@@ -82,7 +82,7 @@ const items = [
     theme: 'neutral',
     badge: '404',
     title: 'Страница не найдена',
-    subtitle: 'Перейдите к решениям ProHelper для управления строительными процессами',
+    subtitle: 'Перейдите к решениям МОСТ для управления строительными процессами',
     capabilities: ['Главная', 'Решения', 'Блог', 'Контакты'],
   },
   {
@@ -111,7 +111,7 @@ const items = [
     key: 'pricing',
     theme: 'finance',
     badge: 'Пакеты',
-    title: 'Пакеты ProHelper под этап запуска',
+    title: 'Пакеты МОСТ под этап запуска',
     subtitle: 'От первого управляемого контура до масштабирования компании',
     capabilities: ['Старт', 'Команда', 'Процессы', 'Масштаб'],
   },
@@ -148,7 +148,7 @@ const items = [
     key: 'about',
     theme: 'neutral',
     badge: 'О продукте',
-    title: 'ProHelper собирает строительные процессы в один контур',
+    title: 'МОСТ собирает строительные процессы в один контур',
     subtitle: 'Подход к запуску, роли продукта и управляемая цифровизация',
     titleMaxCharacters: 34,
   },
@@ -400,7 +400,7 @@ const renderImageSvg = (item) => {
   <text x="802" y="144" class="panel-title">ЕДИНЫЙ КОНТУР</text>
   <text x="802" y="184" class="panel-copy">для строительных процессов</text>
   ${renderCapabilityRows(capabilities, theme)}
-  <text x="798" y="520" class="stamp">PROHELPER</text>
+  <text x="798" y="520" class="stamp">MOST</text>
   <rect x="82" y="86" width="${badgeWidth}" height="48" rx="24" fill="${theme.accent}" />
   <text x="108" y="117" class="brand" fill="#FFFFFF">${escapeXml(badge)}</text>
   <text x="${brandX}" y="117" class="domain">PROHELPER.PRO</text>

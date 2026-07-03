@@ -83,7 +83,7 @@ const HoldingProjectsReportPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-steel-50">
       <SEOHead 
-        title="Отчет по проектам - ProHelper"
+        title="Отчет по проектам - МОСТ"
         description="Отчет по проектам холдинга"
       />
       <PageHeader 

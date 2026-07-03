@@ -1,5 +1,5 @@
 import PageLayout from '../../components/shared/PageLayout';
-import { 
+import {
   DocumentTextIcon,
   CalendarDaysIcon,
   UserIcon,
@@ -43,14 +43,14 @@ const BlogPage = () => {
     },
     {
       title: 'Кейс: Экономия 2.5 млн рублей на проекте ЖК "Северный"',
-      excerpt: 'История успешного внедрения ProHelper в крупном жилом комплексе',
+      excerpt: 'История успешного внедрения МОСТ в крупном жилом комплексе',
       author: 'Елена Волкова',
       date: '8 января 2024',
       category: 'Кейсы клиентов',
       readTime: '10 мин'
     },
     {
-      title: 'Мобильное приложение ProHelper 2.0',
+      title: 'Мобильное приложение МОСТ 2.0',
       excerpt: 'Обзор новых возможностей и улучшений в последней версии',
       author: 'Игорь Смирнов',
       date: '5 января 2024',
@@ -86,8 +86,8 @@ const BlogPage = () => {
   };
 
   return (
-    <PageLayout 
-      title="Блог ProHelper" 
+    <PageLayout
+      title="Блог МОСТ"
       subtitle="Экспертные статьи о строительстве и управлении проектами"
     >
       <div className="mb-16">
@@ -170,8 +170,8 @@ const BlogPage = () => {
                 Получайте свежие статьи и новости индустрии первыми
               </p>
               <div className="space-y-3">
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   placeholder="Ваш email"
                   className="w-full px-3 py-2 rounded-lg text-steel-900 text-sm"
                 />

@@ -113,7 +113,7 @@ pm2 restart ecosystem.config.js --only prohelper-ssr
    Должны быть все 4 тега
 
 3. SSR работает:
-   curl -s https://prohelper.pro/ | grep "ProHelper"
+   curl -s https://prohelper.pro/ | grep "МОСТ"
    Должен вернуть HTML с контентом
 
 ВАЖНО:
