@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,8 +17,13 @@ const createEmailHash = async (email: string): Promise<string> => {
 export const VerifyEmailPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const idParam = searchParams.get('id');
+  const hashParam = searchParams.get('hash');
+  const expiresParam = searchParams.get('expires');
+  const signatureParam = searchParams.get('signature');
   const { verifyEmail, loading } = useEmailVerification();
   const { user, isLoading: isAuthLoading, fetchUser } = useAuth();
+  const processedVerificationKeyRef = useRef<string | null>(null);
   
   const [verificationState, setVerificationState] = useState<{
     status: 'pending' | 'success' | 'error';
@@ -30,10 +35,22 @@ export const VerifyEmailPage = () => {
 
   useEffect(() => {
     const performVerification = async () => {
-      let id = searchParams.get('id');
-      let hash = searchParams.get('hash');
-      const expires = searchParams.get('expires');
-      const signature = searchParams.get('signature');
+      let id = idParam;
+      let hash = hashParam;
+      const expires = expiresParam;
+      const signature = signatureParam;
+      const verificationKey = [
+        id || `user:${user?.id ?? ''}`,
+        hash || `email:${user?.email ?? ''}`,
+        expires || '',
+        signature || '',
+      ].join('|');
+
+      if (processedVerificationKeyRef.current === verificationKey) {
+        return;
+      }
+
+      processedVerificationKeyRef.current = verificationKey;
 
       if ((!id || !hash) && user?.id && user.email) {
         id = String(user.id);
@@ -63,7 +80,17 @@ export const VerifyEmailPage = () => {
     if (!isAuthLoading) {
       performVerification();
     }
-  }, [fetchUser, isAuthLoading, searchParams, user, verifyEmail]);
+  }, [
+    expiresParam,
+    fetchUser,
+    hashParam,
+    idParam,
+    isAuthLoading,
+    signatureParam,
+    user?.email,
+    user?.id,
+    verifyEmail,
+  ]);
 
   const handleGoToDashboard = () => {
     navigate('/dashboard');
