@@ -11,6 +11,7 @@ import {
   ShieldCheckIcon,
   XMarkIcon,
   CheckIcon,
+  ChevronDownIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import ConfirmActionModal from '@components/shared/ConfirmActionModal';
@@ -51,6 +52,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
 
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'permissions' | 'modules'>('basic');
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     if (isOpen) {
@@ -84,6 +86,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
         });
       }
       setActiveTab('basic');
+      setExpandedModules(new Set());
     }
   }, [isOpen, role]);
 
@@ -127,15 +130,64 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
   };
 
   const toggleModulePermission = (module: string, permission: string) => {
+    setFormData(prev => {
+      const currentModulePermissions = prev.module_permissions?.[module] || [];
+      const nextPermissionList = currentModulePermissions.includes(permission)
+        ? currentModulePermissions.filter(p => p !== permission)
+        : [...currentModulePermissions, permission];
+      const nextModulePermissions = { ...(prev.module_permissions || {}) };
+
+      if (nextPermissionList.length > 0) {
+        nextModulePermissions[module] = nextPermissionList;
+      } else {
+        delete nextModulePermissions[module];
+      }
+
+      return {
+        ...prev,
+        module_permissions: nextModulePermissions
+      };
+    });
+  };
+
+  const toggleModuleExpanded = (module: string) => {
+    setExpandedModules(prev => {
+      const nextExpandedModules = new Set(prev);
+
+      if (nextExpandedModules.has(module)) {
+        nextExpandedModules.delete(module);
+      } else {
+        nextExpandedModules.add(module);
+      }
+
+      return nextExpandedModules;
+    });
+  };
+
+  const selectModulePermissions = (module: string, permissions: any) => {
+    const permissionKeys = getPermissionKeys(permissions);
+
+    if (permissionKeys.length === 0) return;
+
     setFormData(prev => ({
       ...prev,
       module_permissions: {
-        ...prev.module_permissions,
-        [module]: prev.module_permissions?.[module]?.includes(permission)
-          ? prev.module_permissions[module].filter(p => p !== permission)
-          : [...(prev.module_permissions?.[module] || []), permission]
+        ...(prev.module_permissions || {}),
+        [module]: permissionKeys
       }
     }));
+  };
+
+  const clearModulePermissions = (module: string) => {
+    setFormData(prev => {
+      const nextModulePermissions = { ...(prev.module_permissions || {}) };
+      delete nextModulePermissions[module];
+
+      return {
+        ...prev,
+        module_permissions: nextModulePermissions
+      };
+    });
   };
 
   const selectAllModulePermissions = () => {
@@ -326,31 +378,76 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                   </button>
                 </div>
               )}
-              {availablePermissions?.module_permissions && Object.entries(availablePermissions.module_permissions).map(([module, permissions]: [string, any]) => (
-                <div key={module} className="border border-border rounded-lg p-4">
-                  <h4 className="text-lg font-medium text-foreground mb-3">
-                    {availablePermissions?.module_groups?.[module] || module}
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {(Array.isArray(permissions) ? permissions : []).map((permission: any) => (
-                      <label key={permission.key} className="flex items-start">
-                        <input
-                          type="checkbox"
-                          checked={formData.module_permissions?.[module]?.includes(permission.key) || false}
-                          onChange={() => toggleModulePermission(module, permission.key)}
-                          className="h-4 w-4 text-primary focus:ring-primary border-border rounded mt-0.5"
-                        />
-                        <div className="ml-2">
-                          <span className="text-sm font-medium text-foreground">{permission.name}</span>
-                          {permission.description && (
-                            <p className="text-xs text-muted-foreground">{permission.description}</p>
-                          )}
+              {availablePermissions?.module_permissions && Object.entries(availablePermissions.module_permissions).map(([module, permissions]: [string, any]) => {
+                const moduleName = availablePermissions?.module_groups?.[module] || module;
+                const permissionList = Array.isArray(permissions) ? permissions : [];
+                const permissionKeys = getPermissionKeys(permissions);
+                const selectedPermissions = formData.module_permissions?.[module] || [];
+                const selectedCount = permissionKeys.filter(permission => selectedPermissions.includes(permission)).length;
+                const isExpanded = expandedModules.has(module);
+                const isFullySelected = permissionKeys.length > 0 && permissionKeys.every(permission => selectedPermissions.includes(permission));
+                const moduleSelectionLabel = isFullySelected
+                  ? `Снять все права модуля ${moduleName}`
+                  : `Выбрать все права модуля ${moduleName}`;
+
+                return (
+                  <div key={module} className="overflow-hidden rounded-lg border border-border">
+                    <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <button
+                        type="button"
+                        aria-expanded={isExpanded}
+                        aria-controls={`module-permissions-${module}`}
+                        aria-label={isExpanded ? `Свернуть модуль ${moduleName}` : `Развернуть модуль ${moduleName}`}
+                        onClick={() => toggleModuleExpanded(module)}
+                        className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                      >
+                        <ChevronDownIcon className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        <span className="min-w-0">
+                          <span className="block text-lg font-medium text-foreground">{moduleName}</span>
+                          <span className="block text-sm text-muted-foreground">Выбрано прав: {selectedCount} из {permissionKeys.length}</span>
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={moduleSelectionLabel}
+                        disabled={permissionKeys.length === 0}
+                        onClick={() => {
+                          if (isFullySelected) {
+                            clearModulePermissions(module);
+                          } else {
+                            selectModulePermissions(module, permissions);
+                          }
+                        }}
+                        className="inline-flex items-center justify-center rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {isFullySelected ? 'Снять модуль' : 'Выбрать модуль'}
+                      </button>
+                    </div>
+                    {isExpanded && (
+                      <div id={`module-permissions-${module}`} className="border-t border-border p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {permissionList.map((permission: any) => (
+                            <label key={permission.key} className="flex items-start">
+                              <input
+                                type="checkbox"
+                                checked={formData.module_permissions?.[module]?.includes(permission.key) || false}
+                                onChange={() => toggleModulePermission(module, permission.key)}
+                                className="h-4 w-4 text-primary focus:ring-primary border-border rounded mt-0.5"
+                              />
+                              <div className="ml-2">
+                                <span className="text-sm font-medium text-foreground">{permission.name}</span>
+                                {permission.description && (
+                                  <p className="text-xs text-muted-foreground">{permission.description}</p>
+                                )}
+                              </div>
+                            </label>
+                          ))}
                         </div>
-                      </label>
-                    ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

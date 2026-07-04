@@ -48,6 +48,7 @@ vi.mock('@components/shared/NotificationService', () => ({
 
 describe('CustomRolesPage', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     createCustomRole.mockResolvedValue({});
     updateCustomRole.mockResolvedValue({});
     deleteCustomRole.mockResolvedValue({});
@@ -70,6 +71,41 @@ describe('CustomRolesPage', () => {
         module_permissions: {
           warehouse: ['warehouse.view', 'warehouse.stock.manage'],
           estimates: ['estimates.ai.generate'],
+        },
+      }));
+    });
+  });
+
+  it('keeps module permission groups collapsed until a module is opened', () => {
+    render(<CustomRolesPage />);
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Создать роль' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Модули' }));
+
+    expect(screen.getByRole('button', { name: 'Развернуть модуль Склад' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('checkbox', { name: 'Просмотр склада' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Развернуть модуль Склад' }));
+
+    expect(screen.getByRole('button', { name: 'Свернуть модуль Склад' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('checkbox', { name: 'Просмотр склада' })).toBeInTheDocument();
+  });
+
+  it('selects permissions only for the chosen module', async () => {
+    render(<CustomRolesPage />);
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Создать роль' })[0]);
+    fireEvent.change(screen.getByPlaceholderText('Введите название роли'), {
+      target: { value: 'Складской доступ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Модули' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Выбрать все права модуля Склад' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
+
+    await waitFor(() => {
+      expect(createCustomRole).toHaveBeenCalledWith(expect.objectContaining({
+        module_permissions: {
+          warehouse: ['warehouse.view', 'warehouse.stock.manage'],
         },
       }));
     });
