@@ -60,6 +60,17 @@ describe('normalizeOgImageUrl', () => {
 });
 
 describe('sitemap sync', () => {
+  it('keeps public robots and static sitemap on the readable .рф domain', () => {
+    const robotsTxt = fs.readFileSync(path.resolve(process.cwd(), 'public', 'robots.txt'), 'utf8');
+    const staticSitemapXml = fs.readFileSync(path.resolve(process.cwd(), 'public', 'sitemap.xml'), 'utf8');
+
+    expect(robotsTxt).toContain('Host: 1мост.рф');
+    expect(robotsTxt).toContain('Sitemap: https://1мост.рф/sitemap.xml');
+    expect(staticSitemapXml).toContain('<loc>https://1мост.рф/</loc>');
+    expect(`${robotsTxt}\n${staticSitemapXml}`).not.toContain('prohelper.pro');
+    expect(`${robotsTxt}\n${staticSitemapXml}`).not.toContain('xn--1-xtbgmf');
+  });
+
   it('contains every indexable marketing route from the registry', () => {
     const sitemapXml = renderSitemapXml();
     const sitemapUrls = Array.from(
