@@ -12,21 +12,21 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-if [ ! -f "/tmp/prohelper.pro.conf" ] || [ ! -f "/tmp/lk.prohelper.pro.conf" ]; then
+if [ ! -f "/tmp/1мост.рф.conf" ] || [ ! -f "/tmp/lk.1мост.рф.conf" ]; then
     echo "Ошибка: Конфигурационные файлы не найдены в /tmp/"
     echo "Сначала загрузите файлы на сервер:"
-    echo "  scp deploy/nginx/prohelper.pro.conf user@server:/tmp/"
-    echo "  scp deploy/nginx/lk.prohelper.pro.conf user@server:/tmp/"
+    echo "  scp deploy/nginx/1мост.рф.conf user@server:/tmp/"
+    echo "  scp deploy/nginx/lk.1мост.рф.conf user@server:/tmp/"
     exit 1
 fi
 
 echo "1. Копирование конфигураций..."
-cp "/tmp/prohelper.pro.conf" "$NGINX_AVAILABLE/"
-cp "/tmp/lk.prohelper.pro.conf" "$NGINX_AVAILABLE/"
+cp "/tmp/1мост.рф.conf" "$NGINX_AVAILABLE/"
+cp "/tmp/lk.1мост.рф.conf" "$NGINX_AVAILABLE/"
 
 echo "2. Создание симлинков..."
-ln -sf "$NGINX_AVAILABLE/prohelper.pro.conf" "$NGINX_ENABLED/"
-ln -sf "$NGINX_AVAILABLE/lk.prohelper.pro.conf" "$NGINX_ENABLED/"
+ln -sf "$NGINX_AVAILABLE/1мост.рф.conf" "$NGINX_ENABLED/"
+ln -sf "$NGINX_AVAILABLE/lk.1мост.рф.conf" "$NGINX_ENABLED/"
 
 echo "3. Удаление старых конфигураций..."
 rm -f "$NGINX_ENABLED/default"
@@ -41,10 +41,10 @@ echo ""
 echo "✅ Конфигурация успешно установлена!"
 echo ""
 echo "Проверьте редиректы:"
-echo "  curl -I https://prohelper.pro/dashboard"
-echo "  curl -I https://prohelper.pro/login"
+echo "  curl -I https://1мост.рф/dashboard"
+echo "  curl -I https://1мост.рф/login"
 echo ""
 echo "Для установки/обновления SSL сертификатов:"
-echo "  sudo certbot --nginx -d prohelper.pro -d www.prohelper.pro"
-echo "  sudo certbot --nginx -d lk.prohelper.pro"
+echo "  sudo certbot --nginx -d 1мост.рф -d www.1мост.рф"
+echo "  sudo certbot --nginx -d lk.1мост.рф"
 

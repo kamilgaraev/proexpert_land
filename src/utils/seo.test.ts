@@ -22,8 +22,8 @@ describe('getPageSEOData', () => {
     expect(seoData.statusCode).toBe(404);
     expect(seoData.noIndex).toBe(true);
     expect(seoData.title).toBe('Страница не найдена | МОСТ');
-    expect(seoData.canonicalUrl).toBe('https://prohelper.pro/');
-    expect(seoData.ogImage).toBe('https://prohelper.pro/og/404.png');
+    expect(seoData.canonicalUrl).toBe('https://1мост.рф/');
+    expect(seoData.ogImage).toBe('https://1мост.рф/og/404.png');
   });
 
   it('marks preview pages as noindex and keeps canonical path', () => {
@@ -31,8 +31,8 @@ describe('getPageSEOData', () => {
 
     expect(seoData.statusCode).toBe(200);
     expect(seoData.noIndex).toBe(true);
-    expect(seoData.canonicalUrl).toBe('https://prohelper.pro/blog/preview/42');
-    expect(seoData.ogImage).toBe('https://prohelper.pro/og/blog.png');
+    expect(seoData.canonicalUrl).toBe('https://1мост.рф/blog/preview/42');
+    expect(seoData.ogImage).toBe('https://1мост.рф/og/blog.png');
   });
 
   it('returns cluster structured data and route-specific og image', () => {
@@ -40,22 +40,22 @@ describe('getPageSEOData', () => {
 
     expect(seoData.statusCode).toBe(200);
     expect(seoData.noIndex).toBe(false);
-    expect(seoData.ogImage).toBe('https://prohelper.pro/og/construction-crm.png');
+    expect(seoData.ogImage).toBe('https://1мост.рф/og/construction-crm.png');
     expect(seoData.structuredData).toHaveLength(4);
   });
 });
 
 describe('normalizeOgImageUrl', () => {
   it('converts static МОСТ OG svg images to png', () => {
-    expect(normalizeOgImageUrl('https://prohelper.pro/og/contractor-control.svg'))
-      .toBe('https://prohelper.pro/og/contractor-control.png');
+    expect(normalizeOgImageUrl('https://1мост.рф/og/contractor-control.svg'))
+      .toBe('https://1мост.рф/og/contractor-control.png');
     expect(normalizeOgImageUrl('/og/contractor-control.svg')).toBe('/og/contractor-control.png');
   });
 
   it('keeps external or already raster images unchanged', () => {
     expect(normalizeOgImageUrl('https://cdn.example.test/cover.svg')).toBe('https://cdn.example.test/cover.svg');
-    expect(normalizeOgImageUrl('https://prohelper.pro/og/contractor-control.png'))
-      .toBe('https://prohelper.pro/og/contractor-control.png');
+    expect(normalizeOgImageUrl('https://1мост.рф/og/contractor-control.png'))
+      .toBe('https://1мост.рф/og/contractor-control.png');
   });
 });
 
@@ -68,19 +68,19 @@ describe('sitemap sync', () => {
     );
 
     const expectedUrls = marketingSitemapRoutes.map(
-      (route) => `https://prohelper.pro${route.path === '/' ? '/' : route.path}`,
+      (route) => `https://1мост.рф${route.path === '/' ? '/' : route.path}`,
     );
 
     expect([...sitemapUrls].sort()).toEqual([...expectedUrls].sort());
-    expect(sitemapUrls).not.toContain('https://prohelper.pro/privacy');
-    expect(sitemapUrls).not.toContain('https://prohelper.pro/offer');
-    expect(sitemapUrls).not.toContain('https://prohelper.pro/cookies');
+    expect(sitemapUrls).not.toContain('https://1мост.рф/privacy');
+    expect(sitemapUrls).not.toContain('https://1мост.рф/offer');
+    expect(sitemapUrls).not.toContain('https://1мост.рф/cookies');
   });
 
   it('has a generated raster OG image for every indexable marketing route', () => {
     const missingImages = marketingSitemapRoutes.flatMap((route) => {
       const seoData = getPageSEOData(route.path);
-      const imageFileName = seoData.ogImage.match(/^https:\/\/prohelper\.pro\/og\/([^/?#]+\.png)$/)?.[1];
+      const imageFileName = new URL(seoData.ogImage).pathname.match(/^\/og\/([^/?#]+\.png)$/)?.[1];
 
       if (imageFileName && fs.existsSync(path.resolve(process.cwd(), 'public', 'og', imageFileName))) {
         return [];
@@ -100,7 +100,7 @@ describe('sitemap sync', () => {
       },
     ]);
 
-    expect(sitemapXml).toContain('<loc>https://prohelper.pro/blog/kak-kontrolirovat-podryadchikov</loc>');
+    expect(sitemapXml).toContain('<loc>https://1мост.рф/blog/kak-kontrolirovat-podryadchikov</loc>');
     expect(sitemapXml).toContain('<lastmod>2026-05-27T08:00:00.000Z</lastmod>');
   });
 });

@@ -1,4 +1,4 @@
-﻿import {
+import {
   ArrowPathRoundedSquareIcon,
   BanknotesIcon,
   BuildingOffice2Icon,
@@ -525,8 +525,8 @@ export const featureGroups: FeatureGroup[] = [
 export const marketingContacts = {
   phone: '+7 (999) 123-45-67',
   phoneHref: 'tel:+79991234567',
-  email: 'info@prohelper.pro',
-  emailHref: 'mailto:info@prohelper.pro',
+  email: 'info@xn--1-xtbgmf.xn--p1ai',
+  emailHref: 'mailto:info@xn--1-xtbgmf.xn--p1ai',
   location: 'Москва, работа по всей России',
 };
 

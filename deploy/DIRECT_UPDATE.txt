@@ -1,4 +1,4 @@
-﻿====== ОБНОВЛЕНИЕ NGINX ОДНОЙ КОМАНДОЙ (БЕЗ SCP) ======
+====== ОБНОВЛЕНИЕ NGINX ОДНОЙ КОМАНДОЙ (БЕЗ SCP) ======
 
 Подключитесь к серверу и выполните:
 
@@ -6,11 +6,11 @@ ssh root@your-server
 
 Затем скопируйте и вставьте ВСЮ эту команду целиком:
 
-cat > /etc/nginx/sites-available/prohelper.pro.conf << 'MOST_CONF'
+cat > /etc/nginx/sites-available/1мост.рф.conf << 'MOST_CONF'
 server {
     listen 80;
     listen [::]:80;
-    server_name prohelper.pro www.prohelper.pro;
+    server_name 1мост.рф www.1мост.рф;
 
     return 301 https://$host$request_uri;
 }
@@ -18,10 +18,10 @@ server {
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
-    server_name prohelper.pro www.prohelper.pro;
+    server_name 1мост.рф www.1мост.рф;
 
-    ssl_certificate /etc/letsencrypt/live/prohelper.pro/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/prohelper.pro/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/1мост.рф/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/1мост.рф/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
@@ -29,23 +29,23 @@ server {
     index index.html;
 
     location = /dashboard {
-        return 301 https://lk.prohelper.pro/dashboard;
+        return 301 https://lk.1мост.рф/dashboard;
     }
 
     location ^~ /dashboard/ {
-        return 301 https://lk.prohelper.pro$request_uri;
+        return 301 https://lk.1мост.рф$request_uri;
     }
 
     location = /login {
-        return 301 https://lk.prohelper.pro/login;
+        return 301 https://lk.1мост.рф/login;
     }
 
     location = /register {
-        return 301 https://lk.prohelper.pro/register;
+        return 301 https://lk.1мост.рф/register;
     }
 
     location = /forgot-password {
-        return 301 https://lk.prohelper.pro/forgot-password;
+        return 301 https://lk.1мост.рф/forgot-password;
     }
 
     location / {
@@ -78,11 +78,11 @@ server {
 }
 MOST_CONF
 
-cat > /etc/nginx/sites-available/lk.prohelper.pro.conf << 'LK_CONF'
+cat > /etc/nginx/sites-available/lk.1мост.рф.conf << 'LK_CONF'
 server {
     listen 80;
     listen [::]:80;
-    server_name lk.prohelper.pro;
+    server_name lk.1мост.рф;
 
     return 301 https://$host$request_uri;
 }
@@ -90,10 +90,10 @@ server {
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
-    server_name lk.prohelper.pro;
+    server_name lk.1мост.рф;
 
-    ssl_certificate /etc/letsencrypt/live/lk.prohelper.pro/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/lk.prohelper.pro/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/lk.1мост.рф/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/lk.1мост.рф/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
@@ -105,8 +105,8 @@ server {
     }
 
     location /api/ {
-        proxy_pass https://api.prohelper.pro;
-        proxy_set_header Host api.prohelper.pro;
+        proxy_pass https://api.1мост.рф;
+        proxy_set_header Host api.1мост.рф;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -127,11 +127,11 @@ server {
 }
 LK_CONF
 
-cat > /etc/nginx/sites-available/holdings.prohelper.pro.conf << 'HOLDINGS_CONF'
+cat > /etc/nginx/sites-available/holdings.1мост.рф.conf << 'HOLDINGS_CONF'
 server {
     listen 80;
     listen [::]:80;
-    server_name *.prohelper.pro;
+    server_name *.1мост.рф;
 
     return 301 https://$host$request_uri;
 }
@@ -141,8 +141,8 @@ server {
     listen [::]:443 ssl http2;
     server_name ~^(?<holding_slug>[^.]+)\.prohelper\.pro$;
 
-    ssl_certificate /etc/letsencrypt/live/prohelper.pro-0001/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/prohelper.pro-0001/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/1мост.рф-0001/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/1мост.рф-0001/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
@@ -168,9 +168,9 @@ server {
 }
 HOLDINGS_CONF
 
-sudo ln -sf /etc/nginx/sites-available/prohelper.pro.conf /etc/nginx/sites-enabled/
-sudo ln -sf /etc/nginx/sites-available/lk.prohelper.pro.conf /etc/nginx/sites-enabled/
-sudo ln -sf /etc/nginx/sites-available/holdings.prohelper.pro.conf /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/1мост.рф.conf /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/lk.1мост.рф.conf /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/holdings.1мост.рф.conf /etc/nginx/sites-enabled/
 
 sudo nginx -t && sudo systemctl reload nginx && echo "✅ Nginx успешно обновлен!"
 

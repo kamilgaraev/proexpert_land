@@ -1,4 +1,4 @@
-const BASE_URL = 'https://prohelper.pro';
+const BASE_URL = 'https://1мост.рф';
 
 const STATIC_MARKETING_SITEMAP_ROUTES = [
   { path: '/', lastmod: '2026-04-05', changefreq: 'weekly', priority: '1.0' },
@@ -38,7 +38,7 @@ const escapeXml = (value) => String(value)
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&apos;');
 
-const normalizeApiBase = (apiBase) => (apiBase || 'https://api.prohelper.pro').replace(/\/+$/, '');
+const normalizeApiBase = (apiBase) => (apiBase || 'https://api.1мост.рф').replace(/\/+$/, '');
 
 const normalizeLastmod = (value) => {
   const date = value ? new Date(value) : null;

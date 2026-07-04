@@ -47,7 +47,7 @@ export const CreateHoldingForm = ({ organizationName, onCancel }: CreateHoldingF
             window.location.reload();
           } else {
             // В продакшене редиректим на поддомен
-            window.location.href = `https://${slug}.prohelper.pro/dashboard`;
+            window.location.href = `https://${slug}.1мост.рф/dashboard`;
           }
         } else {
           // Если нет slug, просто перезагружаем

@@ -55,7 +55,7 @@ const BlogArticlePage = ({
             image: article.og_image || article.featured_image,
             category: article.category.name,
             tags: article.tags.map((tag) => tag.name),
-            url: isPreview ? `https://prohelper.pro/blog/preview/${article.id}` : `https://prohelper.pro/blog/${article.slug}`,
+            url: isPreview ? `https://1мост.рф/blog/preview/${article.id}` : `https://1мост.рф/blog/${article.slug}`,
           }),
         }
       : {

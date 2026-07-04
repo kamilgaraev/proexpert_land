@@ -1,7 +1,10 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
+
 import { blogPublicApi } from './blogPublicApi';
+
+const apiUrl = (path: string) => new URL(path, 'https://api.1мост.рф').href;
 
 const articleFixture = {
   id: 42,
@@ -61,7 +64,7 @@ const articleFixture = {
 };
 
 const server = setupServer(
-  http.get('https://api.prohelper.pro/api/v1/blog/articles', () =>
+  http.get(apiUrl('/api/v1/blog/articles'), () =>
     HttpResponse.json({
       success: true,
       data: {
@@ -73,21 +76,21 @@ const server = setupServer(
           total: 1,
         },
         links: {
-          first: 'https://api.prohelper.pro/api/v1/blog/articles?page=1',
-          last: 'https://api.prohelper.pro/api/v1/blog/articles?page=1',
+          first: 'https://api.1мост.рф/api/v1/blog/articles?page=1',
+          last: 'https://api.1мост.рф/api/v1/blog/articles?page=1',
           prev: null,
           next: null,
         },
       },
     }),
   ),
-  http.get('https://api.prohelper.pro/api/v1/blog/preview/42', () =>
+  http.get(apiUrl('/api/v1/blog/preview/42'), () =>
     HttpResponse.json({
       success: true,
       data: articleFixture,
     }),
   ),
-  http.get('https://api.prohelper.pro/api/v1/blog/categories', () =>
+  http.get(apiUrl('/api/v1/blog/categories'), () =>
     HttpResponse.json({
       success: true,
       data: {
@@ -95,7 +98,7 @@ const server = setupServer(
       },
     }),
   ),
-  http.get('https://api.prohelper.pro/api/v1/blog/tags', ({ request }) => {
+  http.get(apiUrl('/api/v1/blog/tags'), ({ request }) => {
     const url = new URL(request.url);
 
     return HttpResponse.json({
@@ -152,13 +155,13 @@ describe('blogPublicApi', () => {
 
   it('unwraps direct resource arrays returned by public list endpoints', async () => {
     server.use(
-      http.get('https://api.prohelper.pro/api/v1/blog/categories', () =>
+      http.get(apiUrl('/api/v1/blog/categories'), () =>
         HttpResponse.json({
           success: true,
           data: [articleFixture.category],
         }),
       ),
-      http.get('https://api.prohelper.pro/api/v1/blog/tags', () =>
+      http.get(apiUrl('/api/v1/blog/tags'), () =>
         HttpResponse.json({
           success: true,
           data: [
@@ -170,13 +173,13 @@ describe('blogPublicApi', () => {
           ],
         }),
       ),
-      http.get('https://api.prohelper.pro/api/v1/blog/articles/popular', () =>
+      http.get(apiUrl('/api/v1/blog/articles/popular'), () =>
         HttpResponse.json({
           success: true,
           data: [articleFixture],
         }),
       ),
-      http.get('https://api.prohelper.pro/api/v1/blog/search', () =>
+      http.get(apiUrl('/api/v1/blog/search'), () =>
         HttpResponse.json({
           success: true,
           data: [articleFixture],

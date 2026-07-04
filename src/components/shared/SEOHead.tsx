@@ -18,7 +18,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   title = 'МОСТ - Умная платформа для управления строительными проектами',
   description = 'Автоматизируйте строительные процессы с МОСТ: учет материалов, контроль бюджета, координация команд и отчетность в одной платформе.',
   keywords = 'строительство, управление проектами, учет материалов, строительная отчетность, SaaS для строителей, автоматизация строительства, финансовый контроль, МОСТ',
-  ogImage = 'https://prohelper.pro/og/default.png',
+  ogImage = 'https://1мост.рф/og/default.png',
   canonicalUrl,
   type = 'website',
   author = 'МОСТ Team',
@@ -29,9 +29,9 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   const currentUrl =
     canonicalUrl ||
     (typeof window !== 'undefined'
-      ? `https://prohelper.pro${window.location.pathname}`
-      : 'https://prohelper.pro');
-  const normalizedOgImage = normalizeOgImageUrl(ogImage) ?? 'https://prohelper.pro/og/default.png';
+      ? `https://1мост.рф${window.location.pathname}`
+      : 'https://1мост.рф');
+  const normalizedOgImage = normalizeOgImageUrl(ogImage) ?? 'https://1мост.рф/og/default.png';
 
   useEffect(() => {
     document.title = title;

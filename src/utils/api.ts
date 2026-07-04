@@ -12,13 +12,13 @@ import NotificationService from '@components/shared/NotificationService';
 
 // БЛОК ОПРЕДЕЛЕНИЯ URL
 // Базовый домен API
-const API_BASE_DOMAIN = 'https://api.prohelper.pro';
+const API_BASE_DOMAIN = 'https://api.1мост.рф';
 
 // Базовый путь для всех API v1, включая /landing
-// Результат: https://api.prohelper.pro/api/v1/landing
+// Результат: https://api.1мост.рф/api/v1/landing
 const API_URL = `${API_BASE_DOMAIN}/api/v1/landing`;
 
-// URL для эндпоинтов биллинга, который должен быть https://api.prohelper.pro/api/v1/landing/billing
+// URL для эндпоинтов биллинга, который должен быть https://api.1мост.рф/api/v1/landing/billing
 // Строится от API_URL (который уже .../landing) добавлением /billing
 const BILLING_API_URL = `${API_URL}/billing`;
 
@@ -2266,9 +2266,9 @@ export const multiOrganizationService = {
     let url: string;
 
     if (isLocalDev) {
-      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}`;
+      url = `https://api.1мост.рф/api/v1/holding-api/${slug}`;
     } else {
-      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}`;
+      url = `https://api.1мост.рф/api/v1/holding-api/${slug}`;
     }
 
     const response = await fetch(url, {
@@ -2297,9 +2297,9 @@ export const multiOrganizationService = {
     let url: string;
 
     if (isLocalDev) {
-      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/dashboard`;
+      url = `https://api.1мост.рф/api/v1/holding-api/${slug}/dashboard`;
     } else {
-      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/dashboard`;
+      url = `https://api.1мост.рф/api/v1/holding-api/${slug}/dashboard`;
     }
 
     const response = await fetch(url, {
@@ -2334,7 +2334,7 @@ export const multiOrganizationService = {
     if (isLocalDev) {
       url = `/api/v1/multi-organization/accessible`;
     } else {
-      url = `https://api.prohelper.pro/api/v1/holding-api/${slug}/organizations`;
+      url = `https://api.1мост.рф/api/v1/holding-api/${slug}/organizations`;
     }
 
     const response = await fetch(url, {

@@ -18,7 +18,7 @@ type SeoClusterPageProps = {
 
 const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
   const page = marketingSeoLandingPages[pageKey];
-  const canonicalUrl = `https://prohelper.pro${page.path}`;
+  const canonicalUrl = `https://1мост.рф${page.path}`;
   const trustProfile = page.trust ?? {
     title: 'Когда этот сценарий дает лучший результат',
     description:
@@ -46,7 +46,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
         url: canonicalUrl,
         items: page.relatedLinks.map((link) => ({
           name: link.label,
-          url: `https://prohelper.pro${link.href}`,
+          url: `https://1мост.рф${link.href}`,
           description: link.description,
         })),
       }),
@@ -62,8 +62,8 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
   useEffect(() => {
     addFAQSchema(page.faq);
     addBreadcrumbSchema([
-      { name: 'МОСТ', url: 'https://prohelper.pro/' },
-      { name: 'Решения', url: 'https://prohelper.pro/solutions' },
+      { name: 'МОСТ', url: 'https://1мост.рф/' },
+      { name: 'Решения', url: 'https://1мост.рф/solutions' },
       { name: page.title, url: canonicalUrl },
     ]);
   }, [addBreadcrumbSchema, addFAQSchema, canonicalUrl, page.faq, page.title]);

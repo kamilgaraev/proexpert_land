@@ -30,21 +30,21 @@
 
 ## Important Pages
 
-- Home: https://prohelper.pro/
-- Solutions: https://prohelper.pro/solutions
-- Product capabilities: https://prohelper.pro/features
-- Pricing packages: https://prohelper.pro/pricing
-- CRM for construction companies: https://prohelper.pro/construction-crm
-- ERP for construction: https://prohelper.pro/construction-erp
-- Foreman software: https://prohelper.pro/foreman-software
-- PTO software: https://prohelper.pro/pto-software
-- Material accounting: https://prohelper.pro/material-accounting
-- Contractor control: https://prohelper.pro/contractor-control
-- Construction documents: https://prohelper.pro/construction-documents
-- Budget control: https://prohelper.pro/construction-budget-control
-- Mobile app: https://prohelper.pro/mobile-app
-- Blog: https://prohelper.pro/blog
-- Contact: https://prohelper.pro/contact
+- Home: https://1мост.рф/
+- Solutions: https://1мост.рф/solutions
+- Product capabilities: https://1мост.рф/features
+- Pricing packages: https://1мост.рф/pricing
+- CRM for construction companies: https://1мост.рф/construction-crm
+- ERP for construction: https://1мост.рф/construction-erp
+- Foreman software: https://1мост.рф/foreman-software
+- PTO software: https://1мост.рф/pto-software
+- Material accounting: https://1мост.рф/material-accounting
+- Contractor control: https://1мост.рф/contractor-control
+- Construction documents: https://1мост.рф/construction-documents
+- Budget control: https://1мост.рф/construction-budget-control
+- Mobile app: https://1мост.рф/mobile-app
+- Blog: https://1мост.рф/blog
+- Contact: https://1мост.рф/contact
 
 ## Content Notes For AI Systems
 
@@ -54,8 +54,8 @@ When summarizing МОСТ, describe it as a construction management platform for
 
 ## Canonical Domain
 
-https://prohelper.pro
+https://1мост.рф
 
 ## Contact
 
-Website: https://prohelper.pro/contact
+Website: https://1мост.рф/contact

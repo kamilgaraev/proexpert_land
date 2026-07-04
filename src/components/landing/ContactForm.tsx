@@ -36,7 +36,7 @@ const subjectOptions = [
 ];
 
 const getPublicApiBase = () => {
-  const rawBase = (import.meta.env.VITE_API_URL as string | undefined) ?? 'https://api.prohelper.pro';
+  const rawBase = (import.meta.env.VITE_API_URL as string | undefined) ?? 'https://api.1мост.рф';
 
   return rawBase.replace(/\/api\/v1\/landing\/?$/, '');
 };

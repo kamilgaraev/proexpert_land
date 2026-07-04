@@ -12,7 +12,7 @@ export const EmailSentPage = () => {
   const email = location.state?.email || 'вашу почту';
   const [countdown, setCountdown] = useState(3);
   const [autoRedirect, setAutoRedirect] = useState(true);
-  
+
   const {
     canResend,
     resendCooldown,
@@ -125,7 +125,7 @@ export const EmailSentPage = () => {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-yellow-800">
-                      <strong>Не видите письмо?</strong> Проверьте папку "Спам" или "Промоакции". 
+                      <strong>Не видите письмо?</strong> Проверьте папку "Спам" или "Промоакции".
                       Письмо должно прийти в течение нескольких минут.
                     </p>
                   </div>
@@ -146,7 +146,7 @@ export const EmailSentPage = () => {
                   Перейти в личный кабинет
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-                
+
                 <Button
                   onClick={resendVerificationEmail}
                   disabled={!canResend || loading}
@@ -203,8 +203,8 @@ export const EmailSentPage = () => {
         >
           <p className="text-gray-600">
             Нужна помощь?{' '}
-            <a 
-              href="mailto:support@prohelper.pro" 
+            <a
+              href="mailto:support@xn--1-xtbgmf.xn--p1ai"
               className="text-construction-600 hover:text-construction-700 font-semibold underline"
             >
               Напишите нам

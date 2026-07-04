@@ -1,7 +1,10 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
+
 import { contractorInvitationsService } from './contractorInvitationsApi';
+
+const apiUrl = (path: string) => new URL(path, 'https://api.1мост.рф').href;
 
 const invitationFixture = {
   id: 10,
@@ -25,7 +28,7 @@ const invitationFixture = {
 };
 
 const server = setupServer(
-  http.get('https://api.prohelper.pro/api/v1/landing/contractor-invitations', () =>
+  http.get(apiUrl('/api/v1/landing/contractor-invitations'), () =>
     HttpResponse.json({
       success: true,
       message: null,

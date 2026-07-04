@@ -71,7 +71,7 @@ import { ContractorInvitationNotifications } from '@components/dashboard/contrac
 
 Система ожидает следующие API endpoints:
 
-### Базовый URL: `https://api.prohelper.pro/api/v1/landing`
+### Базовый URL: `https://api.1мост.рф/api/v1/landing`
 
 - `GET /contractor-invitations` - Список входящих приглашений
 - `GET /contractor-invitations/{token}` - Детали по токену

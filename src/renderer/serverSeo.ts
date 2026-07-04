@@ -130,7 +130,7 @@ export const buildServerSeoPayload = (
     `<meta name="twitter:image:alt" content="${escapedTitle}" />`,
   ].join('\n');
 
-  const breadcrumbItems = [{ name: 'Главная', url: 'https://prohelper.pro/' }];
+  const breadcrumbItems = [{ name: 'Главная', url: 'https://1мост.рф/' }];
   if (pathname !== '/') {
     breadcrumbItems.push({
       name: stripBrandSuffix(title),
@@ -164,7 +164,7 @@ export const buildServerSeoPayload = (
     `<link rel="manifest" href="/site.webmanifest.json" />`,
     `<meta name="theme-color" content="#EA580C" />`,
     `<link rel="preconnect" href="https://fonts.googleapis.com" />`,
-    `<link rel="dns-prefetch" href="https://api.prohelper.pro" />`,
+    `<link rel="dns-prefetch" href="https://api.1мост.рф" />`,
   ].join('\n');
 
   return {

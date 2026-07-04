@@ -54,7 +54,7 @@ interface ProposalFormState {
 
 const API_BASE_DOMAIN = (import.meta.env.VITE_API_BASE as string | undefined)
   ?? (import.meta.env.VITE_API_URL as string | undefined)
-  ?? 'https://api.prohelper.pro';
+  ?? 'https://api.1мост.рф';
 
 const todayPlus = (days: number): string => {
   const date = new Date();

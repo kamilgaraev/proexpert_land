@@ -1,7 +1,10 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
+
 import { clearAuthToken, saveAuthToken } from './authTokenStorage';
+
+const apiUrl = (path: string) => new URL(path, 'https://api.1мост.рф').href;
 import { knowledgeHubApi } from './knowledgeHubApi';
 
 const categoryFixture = {
@@ -40,7 +43,7 @@ const articleFixture = {
 };
 
 const server = setupServer(
-  http.get('https://api.prohelper.pro/api/v1/landing/knowledge-hub/overview', () =>
+  http.get(apiUrl('/api/v1/landing/knowledge-hub/overview'), () =>
     HttpResponse.json({
       success: true,
       data: {
@@ -55,7 +58,7 @@ const server = setupServer(
       },
     }),
   ),
-  http.get('https://api.prohelper.pro/api/v1/landing/knowledge-hub/articles', ({ request }) => {
+  http.get(apiUrl('/api/v1/landing/knowledge-hub/articles'), ({ request }) => {
     const url = new URL(request.url);
 
     return HttpResponse.json({
@@ -69,7 +72,7 @@ const server = setupServer(
       },
     });
   }),
-  http.get('https://api.prohelper.pro/api/v1/landing/knowledge-hub/search', ({ request }) => {
+  http.get(apiUrl('/api/v1/landing/knowledge-hub/search'), ({ request }) => {
     const url = new URL(request.url);
 
     return HttpResponse.json({
@@ -87,7 +90,7 @@ const server = setupServer(
       },
     });
   }),
-  http.get('https://api.prohelper.pro/api/v1/landing/knowledge-hub/tree', () =>
+  http.get(apiUrl('/api/v1/landing/knowledge-hub/tree'), () =>
     HttpResponse.json({
       success: true,
       data: [{
@@ -104,7 +107,7 @@ const server = setupServer(
       }],
     }),
   ),
-  http.get('https://api.prohelper.pro/api/v1/landing/knowledge-hub/context', () =>
+  http.get(apiUrl('/api/v1/landing/knowledge-hub/context'), () =>
     HttpResponse.json({
       success: true,
       data: {
@@ -119,7 +122,7 @@ const server = setupServer(
       },
     }),
   ),
-  http.post('https://api.prohelper.pro/api/v1/landing/knowledge-hub/feedback', async ({ request }) => {
+  http.post(apiUrl('/api/v1/landing/knowledge-hub/feedback'), async ({ request }) => {
     const body = await request.json() as { article_id?: number };
 
     return HttpResponse.json({
@@ -129,7 +132,7 @@ const server = setupServer(
       },
     });
   }),
-  http.get('https://api.prohelper.pro/api/v1/landing/knowledge-hub/articles/invite-admin', ({ request }) =>
+  http.get(apiUrl('/api/v1/landing/knowledge-hub/articles/invite-admin'), ({ request }) =>
     HttpResponse.json({
       success: true,
       data: {

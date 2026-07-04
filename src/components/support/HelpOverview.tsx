@@ -30,7 +30,7 @@ export function HelpOverview({ onTabChange }: HelpOverviewProps) {
     {
       title: "Email поддержка",
       description: "Отвечаем в течение 2 часов",
-      contact: "support@prohelper.pro",
+      contact: "support@xn--1-xtbgmf.xn--p1ai",
       icon: EnvelopeIcon,
       color: "bg-blue-50 text-blue-600",
       hours: "Круглосуточно"
@@ -110,7 +110,7 @@ export function HelpOverview({ onTabChange }: HelpOverviewProps) {
             <div>
               <h3 className="font-bold text-lg text-foreground mb-1">Email</h3>
               <p className="text-sm text-muted-foreground mb-3">Напишите нам на почту для детального обсуждения</p>
-              <a href="mailto:support@prohelper.pro" className="text-sm font-medium text-emerald-600 group-hover:underline">support@prohelper.pro →</a>
+              <a href="mailto:support@xn--1-xtbgmf.xn--p1ai" className="text-sm font-medium text-emerald-600 group-hover:underline">support@xn--1-xtbgmf.xn--p1ai →</a>
             </div>
           </CardContent>
         </Card>

@@ -121,7 +121,7 @@ export function Header({
 
              {/* Admin Panel Link */}
              <Button variant="ghost" size="sm" className="hidden lg:flex text-muted-foreground" asChild>
-                <a href="https://admin.prohelper.pro/" target="_blank" rel="noopener noreferrer">
+                <a href="https://admin.1мост.рф/" target="_blank" rel="noopener noreferrer">
                     <ShieldCheck className="h-4 w-4 mr-2" />
                     Админ
                 </a>

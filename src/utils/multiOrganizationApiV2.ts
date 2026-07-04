@@ -11,7 +11,7 @@ import type {
 } from '@/types/multi-organization-v2';
 import { getTokenFromStorages } from './api';
 
-const API_BASE_DOMAIN = 'https://api.prohelper.pro';
+const API_BASE_DOMAIN = 'https://api.1мост.рф';
 const MULTI_ORG_API_URL = `${API_BASE_DOMAIN}/api/v1/landing/multi-organization`;
 
 const createApiClient = () => {

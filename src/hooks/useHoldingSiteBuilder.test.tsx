@@ -127,7 +127,7 @@ describe('useHoldingSiteBuilder', () => {
       expect(updateSiteMock).toHaveBeenCalledWith(
         expect.objectContaining({
           title: 'Alpha Holding Updated',
-          domain: 'alpha.prohelper.pro',
+          domain: 'alpha.1мост.рф',
           seo_meta: expect.any(Object),
           analytics_config: expect.any(Object),
         }),

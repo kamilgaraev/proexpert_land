@@ -20,7 +20,7 @@ const createRecoveryWindow = (previousReloadAt: string | null = null) => {
 
   const win = {
     location: {
-      href: 'https://lk.prohelper.pro/dashboard?tab=projects#content',
+      href: 'https://lk.1мост.рф/dashboard?tab=projects#content',
       replace: vi.fn(),
     },
     sessionStorage: {
@@ -42,8 +42,8 @@ const createRecoveryWindow = (previousReloadAt: string | null = null) => {
 
 describe('preloadRecovery', () => {
   it('adds cache-busting parameter without losing query and hash', () => {
-    expect(buildCacheBustedUrl('https://lk.prohelper.pro/dashboard?tab=projects#content', 42))
-      .toBe('https://lk.prohelper.pro/dashboard?tab=projects&app_reload=42#content');
+    expect(buildCacheBustedUrl('https://lk.1мост.рф/dashboard?tab=projects#content', 42))
+      .toBe(new URL('https://lk.1мост.рф/dashboard?tab=projects&app_reload=42#content').href);
   });
 
   it('allows one preload recovery reload per cooldown window', () => {
@@ -63,7 +63,7 @@ describe('preloadRecovery', () => {
     expect(event.defaultPrevented).toBe(true);
     expect(win.sessionStorage.setItem).toHaveBeenCalledWith('prohelper:preload-reload-at', '42');
     expect(win.location.replace).toHaveBeenCalledWith(
-      'https://lk.prohelper.pro/dashboard?tab=projects&app_reload=42#content',
+      new URL('https://lk.1мост.рф/dashboard?tab=projects&app_reload=42#content').href,
     );
   });
 

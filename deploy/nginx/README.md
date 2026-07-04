@@ -2,23 +2,23 @@
 
 ## Структура
 
-- `prohelper.pro.conf` - конфигурация для основного домена (лендинг)
-- `lk.prohelper.pro.conf` - конфигурация для личного кабинета
+- `1мост.рф.conf` - конфигурация для основного домена (лендинг)
+- `lk.1мост.рф.conf` - конфигурация для личного кабинета
 
 ## Установка
 
 ### 1. Копирование конфигураций
 
 ```bash
-sudo cp deploy/nginx/prohelper.pro.conf /etc/nginx/sites-available/
-sudo cp deploy/nginx/lk.prohelper.pro.conf /etc/nginx/sites-available/
+sudo cp deploy/nginx/1мост.рф.conf /etc/nginx/sites-available/
+sudo cp deploy/nginx/lk.1мост.рф.conf /etc/nginx/sites-available/
 ```
 
 ### 2. Создание симлинков
 
 ```bash
-sudo ln -sf /etc/nginx/sites-available/prohelper.pro.conf /etc/nginx/sites-enabled/
-sudo ln -sf /etc/nginx/sites-available/lk.prohelper.pro.conf /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/1мост.рф.conf /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/lk.1мост.рф.conf /etc/nginx/sites-enabled/
 ```
 
 ### 3. Удаление старых конфигураций (если есть)
@@ -45,13 +45,13 @@ sudo systemctl reload nginx
 Если сертификаты еще не установлены:
 
 ```bash
-sudo certbot --nginx -d prohelper.pro -d www.prohelper.pro
-sudo certbot --nginx -d lk.prohelper.pro
+sudo certbot --nginx -d 1мост.рф -d www.1мост.рф
+sudo certbot --nginx -d lk.1мост.рф
 ```
 
 ## Автоматические редиректы
 
-### prohelper.pro → lk.prohelper.pro
+### 1мост.рф → lk.1мост.рф
 
 Следующие маршруты автоматически редиректятся на поддомен:
 - `/dashboard` и `/dashboard/*`
@@ -77,10 +77,10 @@ sudo certbot --nginx -d lk.prohelper.pro
 ## Проверка работы редиректов
 
 ```bash
-curl -I https://prohelper.pro/dashboard
-curl -I https://prohelper.pro/login
-curl -I https://prohelper.pro/register
+curl -I https://1мост.рф/dashboard
+curl -I https://1мост.рф/login
+curl -I https://1мост.рф/register
 ```
 
-Ожидаемый результат: `HTTP/1.1 301 Moved Permanently` с заголовком `Location: https://lk.prohelper.pro/...`
+Ожидаемый результат: `HTTP/1.1 301 Moved Permanently` с заголовком `Location: https://lk.1мост.рф/...`
 

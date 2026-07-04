@@ -29,9 +29,9 @@ export interface PageSEOData {
   structuredData: unknown[];
 }
 
-const BASE_URL = 'https://prohelper.pro';
+const BASE_URL = 'https://1мост.рф';
 const OG_BASE_PATH = `${BASE_URL}/og`;
-const MARKETING_OG_IMAGE_PATTERN = /^(https?:\/\/(?:www\.)?prohelper\.pro)?\/og\/([^?#]+)\.svg([?#].*)?$/i;
+const MARKETING_OG_IMAGE_PATTERN = /^(https?:\/\/(?:www\.)?(?:prohelper\.pro|1мост\.рф|xn--1-xtbgmf\.xn--p1ai))?\/og\/([^?#]+)\.svg([?#].*)?$/i;
 
 export const normalizeOgImageUrl = (image?: string | null) => {
   if (!image) {

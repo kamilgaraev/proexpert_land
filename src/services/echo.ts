@@ -53,12 +53,12 @@ const getEcho = () => {
     echoInstance = new Echo({
       broadcaster: 'reverb',
       key: appKey,
-      wsHost: import.meta.env.VITE_REVERB_HOST || 'api.prohelper.pro',
+      wsHost: import.meta.env.VITE_REVERB_HOST || 'api.1мост.рф',
       wsPort: import.meta.env.VITE_REVERB_PORT || 443,
       wssPort: import.meta.env.VITE_REVERB_PORT || 443,
       forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'https') === 'https',
       enabledTransports: ['ws', 'wss'],
-      authEndpoint: `${import.meta.env.VITE_API_URL || 'https://api.prohelper.pro'}/api/v1/landing/broadcasting/auth`,
+      authEndpoint: `${import.meta.env.VITE_API_URL || 'https://api.1мост.рф'}/api/v1/landing/broadcasting/auth`,
       auth: {
         headers: {
           'Authorization': `Bearer ${token}`,

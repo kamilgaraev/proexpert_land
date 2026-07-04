@@ -64,7 +64,7 @@ export const useAdvancedSEO = (props: AdvancedSEOProps = {}) => {
       description: finalDescription,
       keywords: finalKeywords,
       ogImage: finalOGImage,
-      url: `https://prohelper.pro${location.pathname}`
+      url: `https://1мост.рф${location.pathname}`
     });
     
     // Создаем structured data
@@ -78,7 +78,7 @@ export const useAdvancedSEO = (props: AdvancedSEOProps = {}) => {
       schemas.push(generateWebPageSchema({
         name: finalTitle,
         description: finalDescription,
-        url: `https://prohelper.pro${location.pathname}`,
+        url: `https://1мост.рф${location.pathname}`,
         breadcrumbs: props.breadcrumbs
       }));
     }
@@ -92,7 +92,7 @@ export const useAdvancedSEO = (props: AdvancedSEOProps = {}) => {
     if (props.article) {
       schemas.push(generateArticleSchema({
         ...props.article,
-        url: `https://prohelper.pro${location.pathname}`
+        url: `https://1мост.рф${location.pathname}`
       }));
     }
     

@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { NotificationResponse, UnreadCountResponse, NotificationFilter } from '../types/notification';
 import { getJsonAuthHeaders } from '../utils/authTokenStorage';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.prohelper.pro';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.1мост.рф';
 
 export const notificationService = {
   getNotifications: async (

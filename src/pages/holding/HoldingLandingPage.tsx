@@ -29,7 +29,7 @@ const HoldingLandingPage = () => {
         setError(null);
         
         const hostname = window.location.hostname;
-        const mainDomain = 'prohelper.pro';
+        const mainDomain = '1мост.рф';
         let slug = '';
         
         if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {

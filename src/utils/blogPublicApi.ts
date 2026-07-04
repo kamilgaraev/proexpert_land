@@ -8,7 +8,7 @@ import type {
   BlogTag,
 } from '../types/blog';
 
-const API_BASE_DOMAIN = (import.meta.env.VITE_API_BASE as string | undefined) ?? 'https://api.prohelper.pro';
+const API_BASE_DOMAIN = (import.meta.env.VITE_API_BASE as string | undefined) ?? 'https://api.1мост.рф';
 const BLOG_PUBLIC_API_URL = `${API_BASE_DOMAIN}/api/v1/blog`;
 
 const api = axios.create({

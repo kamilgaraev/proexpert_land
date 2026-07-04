@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { getTokenFromStorages } from '@/utils/api';
 
-const API_BASE_DOMAIN = 'https://api.prohelper.pro';
+const API_BASE_DOMAIN = 'https://api.1мост.рф';
 const MULTI_ORG_API_URL = `${API_BASE_DOMAIN}/api/v1/landing/multi-organization`;
 
 const createApiClient = () => {

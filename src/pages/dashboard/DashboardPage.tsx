@@ -159,7 +159,7 @@ const DashboardPage = () => {
     {
       name: 'Создать проект',
       description: 'Новый объект строительства',
-      href: 'https://admin.prohelper.pro/projects/create',
+      href: 'https://admin.1мост.рф/projects/create',
       icon: Building2,
       variant: 'default' as const
     },
@@ -200,7 +200,7 @@ const DashboardPage = () => {
              Обновлено: {new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
            </span>
            <Button asChild>
-             <Link to="https://admin.prohelper.pro/projects/create">
+             <Link to="https://admin.1мост.рф/projects/create">
                <Plus className="h-4 w-4 mr-2" />
                Новый проект
              </Link>

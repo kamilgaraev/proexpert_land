@@ -359,7 +359,7 @@ export class PermissionsManager {
       const token = this.getToken();
       if (!token) return false;
 
-      const response = await fetch('https://api.prohelper.pro/api/lk/v1/permissions/check', {
+      const response = await fetch('https://api.1мост.рф/api/lk/v1/permissions/check', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -429,7 +429,7 @@ export class PermissionsManager {
    */
   private getEndpoint(interfaceType: AccessInterface): string {
     // Используем базовый API_URL и строим полные адреса
-    const baseUrl = 'https://api.prohelper.pro/api';
+    const baseUrl = 'https://api.1мост.рф/api';
     const endpoints = {
       'lk': `${baseUrl}/lk/v1/permissions`,
       'admin': `${baseUrl}/admin/v1/permissions`,

@@ -2,8 +2,8 @@ import { isKnownMarketingPath, normalizeMarketingPath } from '@/data/marketingRe
 import type { BlogArticle } from '@/types/blog';
 import { generateArticleSchema } from '@/utils/seo';
 
-const BASE_URL = 'https://prohelper.pro';
-const API_BASE_DOMAIN = process.env.VITE_API_BASE ?? process.env.API_BASE_URL ?? 'https://api.prohelper.pro';
+const BASE_URL = 'https://1мост.рф';
+const API_BASE_DOMAIN = process.env.VITE_API_BASE ?? process.env.API_BASE_URL ?? 'https://api.1мост.рф';
 
 interface BlogApiResponse<T> {
   success: boolean;

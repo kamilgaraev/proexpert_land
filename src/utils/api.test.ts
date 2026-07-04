@@ -197,7 +197,7 @@ describe('billingService', () => {
     const result = await billingService.getOrgDashboard();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://api.prohelper.pro/api/v1/landing/billing/dashboard',
+      'https://api.1мост.рф/api/v1/landing/billing/dashboard',
       expect.objectContaining({
         method: 'GET',
         headers: expect.objectContaining({

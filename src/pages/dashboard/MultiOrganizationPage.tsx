@@ -207,7 +207,7 @@ const MultiOrganizationPage = () => {
           <div className="flex flex-wrap gap-3">
             {hierarchy?.parent?.slug && (
               <a
-                href={`https://${hierarchy.parent.slug}.prohelper.pro/`}
+                href={`https://${hierarchy.parent.slug}.1мост.рф/`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-medium"

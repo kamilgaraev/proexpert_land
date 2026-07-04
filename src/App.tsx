@@ -124,7 +124,7 @@ function App({
     }
 
     const hostname = window.location.hostname;
-    const mainDomain = 'prohelper.pro';
+    const mainDomain = '1мост.рф';
 
     if (
       hostname.includes('localhost') ||

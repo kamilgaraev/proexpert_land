@@ -54,16 +54,16 @@ npm run build
 
 ## 🔗 Полезные ссылки
 
-- [Демо](https://prohelper.pro)
-- [Документация API](https://prohelper.pro/api)
-- [Интеграции](https://prohelper.pro/integrations)
-- [Блог](https://prohelper.pro/blog)
+- [Демо](https://1мост.рф)
+- [Документация API](https://1мост.рф/api)
+- [Интеграции](https://1мост.рф/integrations)
+- [Блог](https://1мост.рф/blog)
 
 ## 📞 Поддержка
 
-- Email: support@prohelper.pro
+- Email: support@xn--1-xtbgmf.xn--p1ai
 - Telegram: [@prohelper_support](https://t.me/prohelper_support)
-- Документация: [prohelper.pro/docs](https://prohelper.pro/docs)
+- Документация: [1мост.рф/docs](https://1мост.рф/docs)
 
 ## 📄 Лицензия
 

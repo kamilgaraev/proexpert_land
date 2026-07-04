@@ -118,9 +118,9 @@ jobs:
       RELEASES_ROOT: /var/www/prohelper_lk/releases
       CURRENT_LINK: /var/www/prohelper_lk/current
       KEEP_RELEASES: '5'
-      VITE_API_URL: https://api.prohelper.pro
+      VITE_API_URL: https://api.1мост.рф
       VITE_REVERB_APP_KEY: 1234567890abcdef1234567890abcdef
-      VITE_REVERB_HOST: api.prohelper.pro
+      VITE_REVERB_HOST: api.1мост.рф
       VITE_REVERB_PORT: 443
       VITE_REVERB_SCHEME: https
     steps:

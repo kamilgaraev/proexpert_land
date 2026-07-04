@@ -45,7 +45,7 @@ export const MyProjectsPage = () => {
   });
 
   const handleViewDetails = (projectId: number) => {
-    window.location.href = `https://admin.prohelper.pro/projects/${projectId}`;
+    window.location.href = `https://admin.1мост.рф/projects/${projectId}`;
   };
 
   return (
@@ -61,7 +61,7 @@ export const MyProjectsPage = () => {
           <Button 
             className="h-11 rounded-xl bg-primary px-5 font-semibold text-primary-foreground shadow-[0_12px_28px_rgba(249,115,22,0.22)] transition-all hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_16px_34px_rgba(249,115,22,0.28)]"
             onClick={() => {
-              window.location.href = 'https://admin.prohelper.pro/projects/create';
+              window.location.href = 'https://admin.1мост.рф/projects/create';
             }}
           >
             <PlusIcon className="mr-2 h-4 w-4" />

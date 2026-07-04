@@ -75,14 +75,14 @@ const PressPage = () => {
     {
       name: 'Алексей Петров',
       role: 'Руководитель по связям с общественностью',
-      email: 'press@prohelper.pro',
+      email: 'press@1мост.рф',
       phone: '+7 (999) 123-45-67',
       telegram: '@alex_prohelper'
     },
     {
       name: 'Мария Сидорова',
       role: 'Маркетинг-директор',
-      email: 'marketing@prohelper.pro',
+      email: 'marketing@1мост.рф',
       phone: '+7 (999) 234-56-78',
       telegram: '@maria_prohelper'
     }
@@ -309,7 +309,7 @@ const PressPage = () => {
                 Время ответа на запросы СМИ: до 24 часов
               </p>
               <a 
-                href="mailto:press@prohelper.pro"
+                href="mailto:press@1мост.рф"
                 className="inline-flex items-center px-6 py-3 bg-white text-construction-600 font-semibold rounded-xl hover:bg-slate-50 transition-colors"
               >
                 Написать в пресс-службу

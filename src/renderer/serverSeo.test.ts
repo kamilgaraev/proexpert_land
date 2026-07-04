@@ -6,10 +6,10 @@ describe('buildServerSeoPayload', () => {
     const payload = buildServerSeoPayload('/');
 
     expect(payload.statusCode).toBe(200);
-    expect(payload.allMeta).toContain('https://prohelper.pro/og/home.png');
+    expect(payload.allMeta).toContain('https://1мост.рф/og/home.png');
     expect(payload.allMeta).toContain('<meta property="og:image:type" content="image/png" />');
     expect(payload.structuredDataTag).toContain('"@type":"FAQPage"');
-    expect(payload.canonicalUrl).toBe('https://prohelper.pro/');
+    expect(payload.canonicalUrl).toBe('https://1мост.рф/');
     expect(payload.faviconTags).toContain('/site.webmanifest.json');
   });
 
@@ -17,7 +17,7 @@ describe('buildServerSeoPayload', () => {
     const payload = buildServerSeoPayload('/construction-crm');
 
     expect(payload.statusCode).toBe(200);
-    expect(payload.allMeta).toContain('https://prohelper.pro/og/construction-crm.png');
+    expect(payload.allMeta).toContain('https://1мост.рф/og/construction-crm.png');
     expect(payload.structuredDataTag).toContain('"@type":"Service"');
     expect(payload.structuredDataTag).toContain('"@type":"HowTo"');
     expect(payload.structuredDataTag).toContain('"@type":"FAQPage"');
@@ -28,7 +28,7 @@ describe('buildServerSeoPayload', () => {
 
     expect(payload.statusCode).toBe(200);
     expect(payload.title).toContain('Возможности МОСТ');
-    expect(payload.canonicalUrl).toBe('https://prohelper.pro/features');
+    expect(payload.canonicalUrl).toBe('https://1мост.рф/features');
     expect(payload.allMeta).toContain('index, follow');
     expect(payload.structuredDataTag).toContain('application/ld+json');
   });
@@ -37,7 +37,7 @@ describe('buildServerSeoPayload', () => {
     const payload = buildServerSeoPayload('/blog');
 
     expect(payload.statusCode).toBe(200);
-    expect(payload.allMeta).toContain('https://prohelper.pro/og/blog.png');
+    expect(payload.allMeta).toContain('https://1мост.рф/og/blog.png');
     expect(payload.allMeta).toContain('<meta name="robots" content="index, follow');
   });
 
@@ -45,8 +45,8 @@ describe('buildServerSeoPayload', () => {
     const payload = buildServerSeoPayload('/blog/test-article', {
       title: 'Тестовая статья | МОСТ',
       description: 'Описание тестовой статьи для поисковой выдачи.',
-      canonicalUrl: 'https://prohelper.pro/blog/test-article',
-      ogImage: 'https://prohelper.pro/og/contractor-control.svg',
+      canonicalUrl: 'https://1мост.рф/blog/test-article',
+      ogImage: 'https://1мост.рф/og/contractor-control.svg',
       type: 'article',
       statusCode: 200,
       structuredData: [{
@@ -58,10 +58,10 @@ describe('buildServerSeoPayload', () => {
 
     expect(payload.statusCode).toBe(200);
     expect(payload.title).toBe('Тестовая статья | МОСТ');
-    expect(payload.canonicalUrl).toBe('https://prohelper.pro/blog/test-article');
+    expect(payload.canonicalUrl).toBe('https://1мост.рф/blog/test-article');
     expect(payload.allMeta).toContain('<meta property="og:type" content="article" />');
-    expect(payload.allMeta).toContain('https://prohelper.pro/og/contractor-control.png');
-    expect(payload.allMeta).not.toContain('https://prohelper.pro/og/contractor-control.svg');
+    expect(payload.allMeta).toContain('https://1мост.рф/og/contractor-control.png');
+    expect(payload.allMeta).not.toContain('https://1мост.рф/og/contractor-control.svg');
     expect(payload.structuredDataTag).toContain('"@type":"BlogPosting"');
   });
 
@@ -70,7 +70,7 @@ describe('buildServerSeoPayload', () => {
 
     expect(payload.statusCode).toBe(404);
     expect(payload.allMeta).toContain('<meta name="robots" content="noindex, nofollow, noarchive"');
-    expect(payload.canonicalUrl).toBe('https://prohelper.pro/');
+    expect(payload.canonicalUrl).toBe('https://1мост.рф/');
     expect(payload.title).toBe('Страница не найдена | МОСТ');
   });
 

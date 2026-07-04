@@ -15,7 +15,7 @@ import { normalizeInvitationListResponse } from './contractorInvitationResponseN
 import { attachAuthorizationHeader, clearAuthToken } from './authTokenStorage';
 
 // Базовый URL для API личного кабинета
-const API_BASE_DOMAIN = 'https://api.prohelper.pro';
+const API_BASE_DOMAIN = 'https://api.1мост.рф';
 const API_URL = `${API_BASE_DOMAIN}/api/v1/landing`;
 
 // Создаем экземпляр axios с базовой конфигурацией

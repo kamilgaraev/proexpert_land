@@ -9,7 +9,7 @@ import {
 } from '@/utils/seo';
 
 const isBrowser = typeof document !== 'undefined';
-const BASE_URL = 'https://prohelper.pro';
+const BASE_URL = 'https://1мост.рф';
 
 interface UseSEOProps {
   title?: string;

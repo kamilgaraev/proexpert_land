@@ -5,7 +5,7 @@
 Проблемы: 
 1. Некорректная настройка HTTP-кода 404
 2. Отсутствие региональных мета-тегов
-3. Яндекс.Метрика отправляет данные с lk.prohelper.pro (нужно только с prohelper.pro)
+3. Яндекс.Метрика отправляет данные с lk.1мост.рф (нужно только с 1мост.рф)
 
 ВНЕСЕННЫЕ ИЗМЕНЕНИЯ:
 ====================
@@ -30,7 +30,7 @@
    <meta name="ICBM" content="55.751244, 37.618423" />
 
 3. NGINX КОНФИГУРАЦИЯ:
-   - deploy/nginx/prohelper.pro.conf: Добавлен proxy_intercept_errors on
+   - deploy/nginx/1мост.рф.conf: Добавлен proxy_intercept_errors on
 
 4. SEO ФАЙЛЫ:
    - public/sitemap.xml: Обновлены даты, добавлен /solutions
@@ -39,9 +39,9 @@
 5. ЯНДЕКС.МЕТРИКА:
    - src/components/analytics/YandexMetrika.tsx: 
      * Добавлена функция shouldEnableMetrika()
-     * Метрика отключена для lk.prohelper.pro
+     * Метрика отключена для lk.1мост.рф
      * Метрика отключена для localhost
-     * Метрика работает только на основном домене prohelper.pro
+     * Метрика работает только на основном домене 1мост.рф
 
 ИНСТРУКЦИЯ ПО РАЗВЕРТЫВАНИЮ:
 ============================
@@ -56,7 +56,7 @@ scp -r dist/* user@server:/var/www/prohelper_marketing/
 
 ШАГ 3: ОБНОВЛЕНИЕ NGINX
 ------------------------
-sudo cp deploy/nginx/prohelper.pro.conf /etc/nginx/sites-available/prohelper.pro
+sudo cp deploy/nginx/1мост.рф.conf /etc/nginx/sites-available/1мост.рф
 sudo nginx -t
 sudo systemctl reload nginx
 
@@ -69,30 +69,30 @@ pm2 restart ecosystem.config.js --only prohelper-ssr
 ШАГ 5: ПРОВЕРКА
 ---------------
 1. Проверить HTTP-код 404:
-   curl -I https://prohelper.pro/nesushhestvuyushhaya-stranica
+   curl -I https://1мост.рф/nesushhestvuyushhaya-stranica
    Ожидается: HTTP/2 404
 
 2. Проверить региональные мета-теги:
-   curl https://prohelper.pro/ | grep "geo.region"
+   curl https://1мост.рф/ | grep "geo.region"
    Ожидается: <meta name="geo.region" content="RU" />
 
 3. Проверить в браузере:
-   - Открыть https://prohelper.pro/test-404
+   - Открыть https://1мост.рф/test-404
    - Открыть DevTools → Network
    - Проверить статус код: должен быть 404
 
 4. Проверить Яндекс.Метрику:
-   - Открыть https://prohelper.pro/
+   - Открыть https://1мост.рф/
    - Открыть DevTools → Network
    - Должен загружаться скрипт mc.yandex.ru/metrika/tag.js
    
-   - Открыть https://lk.prohelper.pro/dashboard
+   - Открыть https://lk.1мост.рф/dashboard
    - Открыть DevTools → Network
    - НЕ должен загружаться скрипт метрики
    
    - В консоли проверить: window.ym
-   - На prohelper.pro должна быть функция
-   - На lk.prohelper.pro должен быть undefined
+   - На 1мост.рф должна быть функция
+   - На lk.1мост.рф должен быть undefined
 
 ШАГ 6: ОТПРАВКА В ЯНДЕКС.ВЕБМАСТЕР
 -----------------------------------
@@ -105,15 +105,15 @@ pm2 restart ecosystem.config.js --only prohelper-ssr
 ======================
 
 1. HTTP 404:
-   curl -I https://prohelper.pro/random-404-page
+   curl -I https://1мост.рф/random-404-page
    Должен вернуть: HTTP/2 404
 
 2. Региональность:
-   curl -s https://prohelper.pro/ | grep -E "geo\.(region|placename|position)|ICBM"
+   curl -s https://1мост.рф/ | grep -E "geo\.(region|placename|position)|ICBM"
    Должны быть все 4 тега
 
 3. SSR работает:
-   curl -s https://prohelper.pro/ | grep "МОСТ"
+   curl -s https://1мост.рф/ | grep "МОСТ"
    Должен вернуть HTML с контентом
 
 ВАЖНО:
