@@ -112,6 +112,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [roleOptions, setRoleOptions] = useState<RoleOption[]>([]);
+  const [selectedRoleSlugs, setSelectedRoleSlugs] = useState<string[]>([]);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
@@ -122,21 +123,29 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
   useEffect(() => {
     if (isOpen) {
       if (isEditing && adminToEdit) {
+        const roleSlugs = adminToEdit.roles && adminToEdit.roles.length > 0
+          ? adminToEdit.roles.map((role) => role.slug)
+          : adminToEdit.role_slug ? [adminToEdit.role_slug] : [];
+
         setFormData({
           name: adminToEdit.name,
           email: adminToEdit.email,
-          role_slug: adminToEdit.roles && adminToEdit.roles.length > 0 ? adminToEdit.roles[0].slug : '',
+          role_slug: roleSlugs[0] ?? '',
+          role_slugs: roleSlugs,
           password: '',
           password_confirmation: '',
           is_active: adminToEdit.is_active !== undefined ? adminToEdit.is_active : true,
         });
+        setSelectedRoleSlugs(roleSlugs);
       } else {
         setFormData({ ...initialFormState });
+        setSelectedRoleSlugs([]);
       }
       setError(null);
       setIsLoading(false);
     } else {
       setFormData(initialFormState);
+      setSelectedRoleSlugs([]);
       setError(null);
     }
   }, [isOpen, isEditing, adminToEdit]);
@@ -163,7 +172,12 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
         setRoleOptions(opts);
         if (!isEditing) {
           const defaultSlug = systemOpts[0]?.slug || customOpts[0]?.slug || '';
-          setFormData((prev) => ({ ...prev, role_slug: prev.role_slug || defaultSlug }));
+          setFormData((prev) => ({
+            ...prev,
+            role_slug: prev.role_slug || defaultSlug,
+            role_slugs: prev.role_slugs?.length ? prev.role_slugs : defaultSlug ? [defaultSlug] : [],
+          }));
+          setSelectedRoleSlugs((prev) => (prev.length ? prev : defaultSlug ? [defaultSlug] : []));
         }
       } catch {
       } finally {
@@ -174,10 +188,23 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
     loadRoles();
   }, [isOpen, isEditing]);
 
-  const selectedRoleOption = roleOptions.find((role) => role.slug === formData.role_slug);
-  const selectedRolePermissionsCount = selectedRoleOption
-    ? (selectedRoleOption.system_permissions_count ?? 0) + (selectedRoleOption.module_permissions_count ?? 0)
-    : 0;
+  const selectedRoleOptions = roleOptions.filter((role) => selectedRoleSlugs.includes(role.slug));
+
+  const handleRoleToggle = (roleSlug: string) => {
+    setSelectedRoleSlugs((prev) => {
+      const next = prev.includes(roleSlug)
+        ? prev.filter((slug) => slug !== roleSlug)
+        : [...prev, roleSlug];
+
+      setFormData((current) => ({
+        ...current,
+        role_slug: next[0] ?? '',
+        role_slugs: next,
+      }));
+
+      return next;
+    });
+  };
 
   const getPasswordStrength = (password: string) => {
     if (password.length === 0) return 0;
@@ -276,6 +303,11 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
       toast.error('Пароли не совпадают.');
       return;
     }
+    if (selectedRoleSlugs.length === 0) {
+      setError('Выберите хотя бы одну роль.');
+      toast.error('Выберите хотя бы одну роль.');
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -284,6 +316,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
         const dataToSendForUpdate: Partial<AdminFormData> = {
           name: formData.name,
           is_active: formData.is_active,
+          role_slugs: selectedRoleSlugs,
         };
         if (formData.password) {
           dataToSendForUpdate.password = formData.password;
@@ -294,7 +327,8 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
         const dataToSendForCreate = {
           name: formData.name,
           email: formData.email.trim().toLowerCase(),
-          role_slug: formData.role_slug,
+          role_slug: selectedRoleSlugs[0],
+          role_slugs: selectedRoleSlugs,
           password: formData.password,
           password_confirmation: formData.password_confirmation,
           organization_id: user?.current_organization_id,
@@ -466,50 +500,95 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                       </div>
                       
                       <div>
-                        <label htmlFor="role_slug" className="block text-sm font-semibold text-steel-700 mb-2">Роль</label>
-                        <select
-                          id="role_slug"
-                          name="role_slug"
-                          required
-                          value={formData.role_slug}
-                          onChange={handleChange}
-                          className="block w-full rounded-xl border-2 border-steel-200 transition-all duration-200 px-4 py-3 text-steel-900 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium focus:border-construction-500 focus:ring-construction-500/20 focus:ring-4 hover:border-steel-300"
-                        >
-                          {!formData.role_slug && <option value="" disabled>{rolesLoading ? 'Загрузка...' : 'Выберите роль'}</option>}
-                          {roleOptions.some((r) => r.type === 'system') && (
-                            <optgroup label="Системные роли">
-                              {roleOptions.filter((r) => r.type === 'system').map((r) => (
-                                <option key={`system:${r.slug}`} value={r.slug}>{r.name}</option>
-                              ))}
-                            </optgroup>
-                          )}
-                          {roleOptions.some((r) => r.type === 'custom') && (
-                            <optgroup label="Кастомные роли">
-                              {roleOptions.filter((r) => r.type === 'custom').map((r) => (
-                                <option key={`custom:${r.slug}`} value={r.slug}>{r.name}</option>
-                              ))}
-                            </optgroup>
-                          )}
-                        </select>
-                        {selectedRoleOption && (
-                          <div className="mt-3 rounded-xl border border-steel-200 bg-white/70 px-4 py-3">
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-steel-600">
-                              <span className="font-semibold text-steel-800">{selectedRoleOption.type === 'system' ? 'Системная роль' : 'Кастомная роль'}</span>
-                              {selectedRolePermissionsCount > 0 && (
-                                <span>{selectedRolePermissionsCount} прав</span>
-                              )}
-                              {selectedRoleOption.interface_access?.length ? (
-                                <span>{selectedRoleOption.interface_access.map((slug) => INTERFACE_LABELS[slug] ?? slug).join(', ')}</span>
-                              ) : null}
+                        <div className="flex items-center justify-between gap-3 mb-2">
+                          <label className="block text-sm font-semibold text-steel-700">Роли</label>
+                          <span className="text-xs font-semibold text-steel-500">
+                            Выбрано: {selectedRoleSlugs.length}
+                          </span>
+                        </div>
+                        <div className="rounded-xl border-2 border-steel-200 bg-white/80 p-3 shadow-sm">
+                          {rolesLoading ? (
+                            <div className="py-6 text-center text-sm font-medium text-steel-500">Загрузка ролей...</div>
+                          ) : roleOptions.length === 0 ? (
+                            <div className="py-6 text-center text-sm font-medium text-steel-500">Нет доступных ролей</div>
+                          ) : (
+                            <div className="space-y-4">
+                              {(['system', 'custom'] as const).map((roleType) => {
+                                const roles = roleOptions.filter((role) => role.type === roleType);
+
+                                if (roles.length === 0) {
+                                  return null;
+                                }
+
+                                return (
+                                  <div key={roleType}>
+                                    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-steel-500">
+                                      {roleType === 'system' ? 'Системные роли' : 'Кастомные роли'}
+                                    </p>
+                                    <div className="grid grid-cols-1 gap-2">
+                                      {roles.map((role) => {
+                                        const checked = selectedRoleSlugs.includes(role.slug);
+                                        const permissionsCount = (role.system_permissions_count ?? 0) + (role.module_permissions_count ?? 0);
+
+                                        return (
+                                          <label
+                                            key={`${role.type}:${role.slug}`}
+                                            className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition-all ${
+                                              checked
+                                                ? 'border-construction-300 bg-construction-50'
+                                                : 'border-steel-100 bg-white hover:border-steel-200 hover:bg-steel-50'
+                                            }`}
+                                          >
+                                            <input
+                                              type="checkbox"
+                                              checked={checked}
+                                              onChange={() => handleRoleToggle(role.slug)}
+                                              className="mt-1 h-4 w-4 rounded border-steel-300 text-construction-600 focus:ring-construction-500"
+                                            />
+                                            <span className="min-w-0 flex-1">
+                                              <span className="flex flex-wrap items-center gap-2">
+                                                <span className="font-semibold text-steel-900">{role.name}</span>
+                                                <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                                                  role.type === 'system'
+                                                    ? 'bg-steel-100 text-steel-700'
+                                                    : 'bg-orange-100 text-orange-700'
+                                                }`}>
+                                                  {role.type === 'system' ? 'Системная' : 'Кастомная'}
+                                                </span>
+                                              </span>
+                                              <span className="mt-1 flex flex-wrap gap-2 text-xs text-steel-500">
+                                                {permissionsCount > 0 && <span>{permissionsCount} прав</span>}
+                                                {role.interface_access?.length ? (
+                                                  <span>{role.interface_access.map((slug) => INTERFACE_LABELS[slug] ?? slug).join(', ')}</span>
+                                                ) : null}
+                                              </span>
+                                              {role.description && (
+                                                <span className="mt-1 block text-xs text-steel-600">{role.description}</span>
+                                              )}
+                                            </span>
+                                          </label>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
-                            {selectedRoleOption.description && (
-                              <p className="mt-2 text-sm text-steel-700">{selectedRoleOption.description}</p>
-                            )}
-                            {selectedRoleOption.permission_preview?.length ? (
-                              <p className="mt-2 text-xs text-steel-600">
-                                {selectedRoleOption.permission_preview.slice(0, 4).join(', ')}
-                              </p>
-                            ) : null}
+                          )}
+                        </div>
+                        {selectedRoleOptions.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {selectedRoleOptions.map((role) => (
+                              <button
+                                key={`selected:${role.type}:${role.slug}`}
+                                type="button"
+                                onClick={() => handleRoleToggle(role.slug)}
+                                className="inline-flex max-w-full items-center gap-1 rounded-full border border-construction-200 bg-construction-50 px-3 py-1 text-xs font-semibold text-construction-800 hover:border-construction-300"
+                              >
+                                <span className="truncate">{role.name}</span>
+                                <XMarkIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                              </button>
+                            ))}
                           </div>
                         )}
                       </div>

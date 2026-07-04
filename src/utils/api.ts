@@ -1960,6 +1960,10 @@ export const userManagementService = {
   updateUserRoles: async (userId: number, rolesData: {
     system_roles?: string[];
     custom_roles?: number[];
+    custom_role_ids?: number[];
+    role_slugs?: string[];
+    scope?: 'all' | 'admin_panel';
+    admin_panel?: boolean;
     action: 'replace' | 'add' | 'remove';
   }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post(`/user-management/organization-users/${userId}/roles`, rolesData);

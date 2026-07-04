@@ -21,7 +21,8 @@ export interface AdminFormData {
   email: string;
   password?: string;
   password_confirmation?: string;
-  role_slug: string;
+  role_slug?: string;
+  role_slugs?: string[];
   is_active?: boolean; 
 }
 
