@@ -305,7 +305,7 @@ export const marketingCompany = {
   tagline: 'Платформа управления строительством',
   phone: '',
   phoneHref: '',
-  email: 'info@xn--1-xtbgmf.xn--p1ai',
+  email: 'info@1мост.рф',
   emailHref: 'mailto:info@xn--1-xtbgmf.xn--p1ai',
   location: 'Онлайн-демонстрация, рабочие сессии и запуск по согласованному сценарию.',
   responseTime: 'Отвечаем в течение рабочего дня',

@@ -61,7 +61,7 @@ npm run build
 
 ## 📞 Поддержка
 
-- Email: support@xn--1-xtbgmf.xn--p1ai
+- Email: support@1мост.рф
 - Telegram: [@prohelper_support](https://t.me/prohelper_support)
 - Документация: [1мост.рф/docs](https://1мост.рф/docs)
 
