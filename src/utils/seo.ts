@@ -240,7 +240,16 @@ export const generateOrganizationSchema = () => ({
       areaServed: 'RU',
     },
   ],
-  areaServed: 'RU',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Москва',
+    addressRegion: 'Москва',
+    addressCountry: 'RU',
+  },
+  areaServed: {
+    '@type': 'Country',
+    name: 'Россия',
+  },
   description: marketingSeo.home.description,
 });
 

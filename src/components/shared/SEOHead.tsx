@@ -65,8 +65,8 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag('keywords', keywords);
     setMetaTag('author', author);
     setMetaTag('robots', 'index, follow');
-    setMetaTag('geo.region', 'RU');
-    setMetaTag('geo.placename', 'Россия');
+    setMetaTag('geo.region', 'RU-MOW');
+    setMetaTag('geo.placename', 'Москва');
     setMetaTag('geo.position', '55.751244;37.618423');
     setMetaTag('ICBM', '55.751244, 37.618423');
     

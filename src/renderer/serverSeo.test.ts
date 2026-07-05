@@ -11,6 +11,9 @@ describe('buildServerSeoPayload', () => {
     expect(payload.structuredDataTag).toContain('"@type":"FAQPage"');
     expect(payload.canonicalUrl).toBe('https://1мост.рф/');
     expect(payload.faviconTags).toContain('/site.webmanifest.json');
+    expect(payload.faviconTags).toContain('/favicon-120x120.png');
+    expect(payload.allMeta).toContain('<meta name="geo.region" content="RU-MOW" />');
+    expect(payload.allMeta).toContain('<meta name="geo.placename" content="Москва" />');
   });
 
   it('renders cluster schema for commercial landing pages', () => {
