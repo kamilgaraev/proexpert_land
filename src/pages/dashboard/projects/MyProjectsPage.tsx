@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ProjectCard } from '@/components/dashboard/projects/ProjectCard';
 import api from '@/utils/api';
 import { FolderIcon, PlusIcon, Search } from 'lucide-react';
@@ -8,9 +9,10 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ProjectOverview } from '@/types/projects-overview';
 
 export const MyProjectsPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [projects, setProjects] = useState<ProjectOverview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') ?? '');
   const [activeTab, setActiveTab] = useState('my_projects');
 
   useEffect(() => {
@@ -30,6 +32,25 @@ export const MyProjectsPage = () => {
 
     fetchProjects();
   }, []);
+
+  useEffect(() => {
+    setSearchTerm(searchParams.get('search') ?? '');
+  }, [searchParams]);
+
+  const handleSearchTermChange = (value: string) => {
+    setSearchTerm(value);
+
+    const nextSearchParams = new URLSearchParams(searchParams);
+    const normalizedValue = value.trim();
+
+    if (normalizedValue) {
+      nextSearchParams.set('search', normalizedValue);
+    } else {
+      nextSearchParams.delete('search');
+    }
+
+    setSearchParams(nextSearchParams, { replace: true });
+  };
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -92,7 +113,7 @@ export const MyProjectsPage = () => {
             <Input
               placeholder="Поиск проектов..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearchTermChange(e.target.value)}
               className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-sm focus-visible:ring-primary"
             />
           </div>
