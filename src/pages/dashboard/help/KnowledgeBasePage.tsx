@@ -221,54 +221,54 @@ const KnowledgeBasePage = () => {
         </div>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="space-y-4">
+      {featured.length > 0 && !isSearchMode && (
+        <section className="space-y-4">
+          <h2 className="text-xl font-semibold text-foreground">Рекомендуемые материалы</h2>
+          <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+            {featured.map((article) => (
+              <KnowledgeArticleCard
+                key={article.slug}
+                article={article}
+                to={`/dashboard/help/knowledge/${article.slug}`}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <KnowledgeHubSearch
+        query={query}
+        selectedCategory={selectedCategory}
+        categories={categories}
+        onQueryChange={handleQueryChange}
+        onCategoryChange={handleCategoryChange}
+        onSubmit={() => setPage(1)}
+      />
+
+      {query.trim().length === 1 && (
+        <p className="text-sm text-muted-foreground">Введите минимум два символа для полнотекстового поиска.</p>
+      )}
+
+      {error && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(220px,280px)_minmax(0,1fr)]">
+        <aside className="xl:sticky xl:top-24 xl:self-start">
           <ArticleTree nodes={tree} />
         </aside>
 
-        <section className="space-y-6">
-          {featured.length > 0 && !isSearchMode && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-foreground">Рекомендуемые материалы</h2>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {featured.map((article) => (
-                  <KnowledgeArticleCard
-                    key={article.slug}
-                    article={article}
-                    to={`/dashboard/help/knowledge/${article.slug}`}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          <KnowledgeHubSearch
-            query={query}
-            selectedCategory={selectedCategory}
-            categories={categories}
-            onQueryChange={handleQueryChange}
-            onCategoryChange={handleCategoryChange}
-            onSubmit={() => setPage(1)}
-          />
-
-          {query.trim().length === 1 && (
-            <p className="text-sm text-muted-foreground">Введите минимум два символа для полнотекстового поиска.</p>
-          )}
-
-          {error && (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-
+        <section className="min-w-0 space-y-6">
           {isArticlesLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
               {skeletons.map((item) => (
                 <Skeleton key={item} className="h-56" />
               ))}
             </div>
           ) : articles.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
               {articles.map((article) => (
                 <KnowledgeArticleCard
                   key={article.slug}
