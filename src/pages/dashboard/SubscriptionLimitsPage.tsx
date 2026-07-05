@@ -6,7 +6,6 @@ import {
   EnvelopeIcon,
   ExclamationTriangleIcon,
   UserGroupIcon,
-  UsersIcon,
 } from '@heroicons/react/24/outline';
 import { useSubscriptionLimits } from '@hooks/useSubscriptionLimits';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,7 @@ type LimitCard = {
   key: string;
   title: string;
   unit: string;
-  icon: typeof UsersIcon;
+  icon: typeof UserGroupIcon;
   value: SubscriptionLimitItem | StorageLimitItem | undefined;
   storage?: boolean;
 };
@@ -118,7 +117,6 @@ const SubscriptionLimitsPage = () => {
   const cards: LimitCard[] = [
     { key: 'users', title: 'Пользователи', unit: 'чел.', icon: UserGroupIcon, value: limits?.users },
     { key: 'projects', title: 'Проекты', unit: 'шт.', icon: BuildingOfficeIcon, value: limits?.projects },
-    { key: 'foremen', title: 'Прорабы', unit: 'чел.', icon: UsersIcon, value: limits?.foremen },
     { key: 'storage', title: 'Хранилище', unit: 'ГБ', icon: CircleStackIcon, value: limits?.storage, storage: true },
     { key: 'invitations', title: 'Приглашения', unit: 'шт.', icon: EnvelopeIcon, value: limits?.invitations },
     { key: 'ai', title: 'AI-запросы', unit: 'шт.', icon: BeakerIcon, value: limits?.ai_requests ?? limits?.ai },

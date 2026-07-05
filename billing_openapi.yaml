@@ -43,10 +43,6 @@ components:
         duration_in_days:
           type: integer
           example: 30
-        max_foremen:
-          type: integer
-          nullable: true
-          example: 1
         max_projects:
           type: integer
           nullable: true
@@ -559,4 +555,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ValidationErrorResponse" 
+                $ref: "#/components/schemas/ValidationErrorResponse"

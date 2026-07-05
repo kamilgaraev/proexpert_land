@@ -329,7 +329,6 @@ export default function EnterpriseConstructorModal({
                 {preview && (
                   <div className="space-y-3">
                     <LimitLine icon={UserGroupIcon} label="Пользователи" value={preview.limits.users} />
-                    <LimitLine icon={UserGroupIcon} label="Прорабы" value={preview.limits.foremen} />
                     <LimitLine icon={CircleStackIcon} label="Хранилище" value={`${preview.limits.storage_gb} ГБ`} />
                     <LimitLine icon={SparklesIcon} label="AI-запросы" value={preview.limits.ai_requests} />
                   </div>

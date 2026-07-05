@@ -137,7 +137,7 @@ class NotificationService {
 
   static showLimitApproaching(limitType: string, percentage: number) {
     const limitNames: Record<string, string> = {
-      foremen: 'прорабов',
+      users: 'пользователей',
       projects: 'проектов',
       storage: 'хранилища'
     };
@@ -161,4 +161,4 @@ class NotificationService {
   }
 }
 
-export default NotificationService; 
+export default NotificationService;

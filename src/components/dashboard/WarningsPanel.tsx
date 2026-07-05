@@ -15,6 +15,14 @@ interface WarningsPanelProps {
   onUpgradeClick?: () => void;
 }
 
+const warningTypeLabels: Record<string, string> = {
+  users: 'Пользователи',
+  projects: 'Проекты',
+  storage: 'Хранилище',
+  subscription_expiring: 'Срок подписки',
+  subscription_canceled: 'Подписка отменена',
+};
+
 const WarningsPanel: React.FC<WarningsPanelProps> = ({ 
   warnings, 
   onDismiss,
@@ -100,9 +108,7 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({
                         {warning.level === 'critical' ? 'Критично' : 'Внимание'}
                       </span>
                       <span className="text-xs text-slate-500 capitalize font-medium">
-                        {warning.type === 'foremen' ? 'Прорабы' :
-                         warning.type === 'projects' ? 'Проекты' :
-                         warning.type === 'storage' ? 'Хранилище' : warning.type}
+                        {warningTypeLabels[warning.type] ?? 'Уведомление'}
                       </span>
                     </div>
 
@@ -181,4 +187,4 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({
   );
 };
 
-export default WarningsPanel; 
+export default WarningsPanel;

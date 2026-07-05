@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  UsersIcon,
   UserGroupIcon,
   BuildingOfficeIcon,
   CircleStackIcon,
@@ -136,13 +135,7 @@ const LimitsView: React.FC = () => {
 
       {/* Сетка лимитов */}
       {data.limits && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <LimitWidget
-            title="Прорабы"
-            limit={data.limits.foremen}
-            unit="чел."
-            icon={UsersIcon}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <LimitWidget
             title="Пользователи"
             limit={data.limits.users}

@@ -436,7 +436,6 @@ const DashboardPage = () => {
                      <Separator />
                      
                      <div className="space-y-3">
-                         <LimitItem label="Прорабы" used={dashboard.plan.used_foremen} max={dashboard.plan.max_foremen} />
                          <LimitItem label="Объекты" used={dashboard.plan.used_projects} max={dashboard.plan.max_projects} />
                          <LimitItem label="Хранилище" used={dashboard.plan.used_storage_gb} max={dashboard.plan.max_storage_gb} unit="ГБ" />
                      </div>

@@ -782,29 +782,6 @@ const AdminsPage = () => {
                   )}
                 </div>
               )}
-              
-              {limits.limits.foremen && (
-                <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-bold text-foreground">Лимит прорабов</h4>
-                    <span className={`px-3 py-1 rounded-lg text-xs font-bold ${
-                      limits.limits.foremen.is_unlimited 
-                        ? 'bg-emerald-100 text-emerald-700' 
-                        : 'bg-secondary text-muted-foreground'
-                    }`}>
-                      {limits.limits.foremen.is_unlimited ? 'БЕЗЛИМИТ' : `${limits.limits.foremen.used} / ${limits.limits.foremen.limit}`}
-                    </span>
-                  </div>
-                  {!limits.limits.foremen.is_unlimited && (
-                    <div className="w-full bg-secondary rounded-full h-3 overflow-hidden">
-                      <div 
-                        className="bg-primary h-full rounded-full transition-all duration-500" 
-                        style={{ width: `${Math.min(limits.limits.foremen.percentage_used, 100)}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
           </div>
         )}
 

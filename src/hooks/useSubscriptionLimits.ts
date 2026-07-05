@@ -79,7 +79,6 @@ const normalizeLimitsResponse = (value: unknown): SubscriptionLimitsResponse => 
     has_subscription: Boolean(data.has_subscription),
     subscription: data.subscription ?? null,
     limits: {
-      foremen: normalizeLimitItem(limits.foremen),
       projects: normalizeLimitItem(limits.projects),
       users: normalizeLimitItem(limits.users),
       storage: normalizeStorageLimitItem(limits.storage),

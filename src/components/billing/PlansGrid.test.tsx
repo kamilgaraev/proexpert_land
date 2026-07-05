@@ -48,7 +48,6 @@ describe('PlansGrid', () => {
           price: 99000,
           currency: 'RUB',
           max_users: 100,
-          max_foremen: 100,
           max_projects: 100,
           max_storage_gb: 50,
           included_packages: [],
@@ -72,7 +71,6 @@ describe('PlansGrid', () => {
           price_label: '99 000 ₽ в месяц',
           limits: {
             users: 100,
-            foremen: 100,
             projects: 100,
             organizations: 1,
             storage_gb: 50,
@@ -94,6 +92,7 @@ describe('PlansGrid', () => {
 
     const button = await screen.findByRole('button', { name: /Открыть конструктор/ });
     expect(screen.getAllByText((_, node) => node?.textContent === '100 пользователей').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/прорабов/i)).not.toBeInTheDocument();
     fireEvent.click(button);
 
     expect(screen.getByRole('heading', { name: 'Enterprise Конструктор' })).toBeInTheDocument();

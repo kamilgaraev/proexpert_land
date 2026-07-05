@@ -35,13 +35,12 @@ describe('SubscriptionLimitsPage', () => {
         limits: {
           users: { limit: 25, used: 10, remaining: 15, percentage_used: 40, is_unlimited: false, status: 'normal' },
           projects: { limit: 8, used: 5, remaining: 3, percentage_used: 62, is_unlimited: false, status: 'approaching' },
-          foremen: { limit: 12, used: 12, remaining: 0, percentage_used: 100, is_unlimited: false, status: 'exceeded' },
           storage: { limit_gb: 128, used_gb: 64, remaining_gb: 64, percentage_used: 50, is_unlimited: false, status: 'normal' },
           invitations: { limit: 20, used: 2, remaining: 18, percentage_used: 10, is_unlimited: false, status: 'normal' },
           ai_requests: { limit: null, used: 310, remaining: 0, percentage_used: 0, is_unlimited: false, status: 'normal' },
         },
         features: ['ai-contour'],
-        warnings: [{ type: 'foremen', level: 'critical', message: 'Лимит прорабов исчерпан' }],
+        warnings: [{ type: 'subscription_expiring', level: 'warning', message: 'Подписка заканчивается через 6 дней.' }],
         upgrade_required: true,
       },
       loading: false,
@@ -63,18 +62,17 @@ describe('SubscriptionLimitsPage', () => {
     expect(screen.getByText('Enterprise Конструктор')).toBeInTheDocument();
     expect(screen.getByText('Пользователи')).toBeInTheDocument();
     expect(screen.getByText('Проекты')).toBeInTheDocument();
-    expect(screen.getByText('Прорабы')).toBeInTheDocument();
+    expect(screen.queryByText('Прорабы')).not.toBeInTheDocument();
     expect(screen.getByText('Хранилище')).toBeInTheDocument();
     expect(screen.getByText('Приглашения')).toBeInTheDocument();
     expect(screen.getByText('AI-запросы')).toBeInTheDocument();
     expect(screen.getByText(/Индивидуально/)).toBeInTheDocument();
-    expect(screen.getByText('Превышен')).toBeInTheDocument();
-    expect(screen.getByText('Лимит прорабов исчерпан')).toBeInTheDocument();
+    expect(screen.getByText('Подписка заканчивается через 6 дней.')).toBeInTheDocument();
   });
 
   it('does not expose raw technical identifiers', () => {
     renderPage();
 
-    expect(screen.queryByText(/ai-contour|ai_requests|foremen|payload|slug|null/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ai-contour|ai_requests|foremen|subscription_expiring|payload|slug|null/i)).not.toBeInTheDocument();
   });
 });

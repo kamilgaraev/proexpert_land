@@ -439,15 +439,9 @@ const PlansGrid = () => {
               {/* Limits Grid */}
               <div>
                 <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-4 opacity-80">Ваши лимиты</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {subscription.limits && (
                     <>
-                      <LimitWidget 
-                         title="Прорабы" 
-                         limit={subscription.limits.foremen} 
-                         unit="чел." 
-                         icon={UserGroupIcon} 
-                      />
                       <LimitWidget 
                          title="Пользователи" 
                          limit={subscription.limits.users} 
@@ -572,12 +566,6 @@ const PlansGrid = () => {
                                 <UserGroupIcon className="w-4 h-4" />
                              </div>
                              <span><span className="font-bold">{formatPlanLimit(plan.max_users)}</span> пользователей</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-sm text-foreground">
-                             <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 text-muted-foreground">
-                                <UserGroupIcon className="w-4 h-4" />
-                             </div>
-                             <span><span className="font-bold">{formatPlanLimit(plan.max_foremen)}</span> прорабов</span>
                           </div>
                           <div className="flex items-center gap-3 text-sm text-foreground">
                              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 text-muted-foreground">

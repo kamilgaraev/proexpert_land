@@ -206,13 +206,6 @@ export interface SubscriptionLimits {
       percentage_used: number;
       is_unlimited: boolean;
     };
-    foremen: {
-      limit: number;
-      used: number;
-      remaining: number;
-      percentage_used: number;
-      is_unlimited: boolean;
-    };
   };
   warnings: Array<{
     type: string;

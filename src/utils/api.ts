@@ -1026,7 +1026,7 @@ export interface SubscriptionPlan {
   price: number;
   currency: string;
   duration_in_days: number;
-  max_foremen?: number | null;
+  max_users?: number | null;
   max_projects?: number | null;
   max_storage_gb?: number | null;
   features: string[];
@@ -1267,7 +1267,6 @@ export interface StorageLimitItem {
 }
 
 export interface SubscriptionLimits {
-  foremen: SubscriptionLimitItem;
   projects: SubscriptionLimitItem;
   users: SubscriptionLimitItem;
   storage: StorageLimitItem;
@@ -1327,7 +1326,6 @@ export interface EnterpriseConstructorPreview {
   price_label: string;
   limits: {
     users: number;
-    foremen: number;
     projects: number;
     organizations: number;
     storage_gb: number;

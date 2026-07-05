@@ -29,7 +29,6 @@ const preview = {
   price_label: '99 000 ₽ в месяц',
   limits: {
     users: 100,
-    foremen: 100,
     projects: 100,
     organizations: 1,
     storage_gb: 50,
