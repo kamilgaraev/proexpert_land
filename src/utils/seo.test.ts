@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { marketingSitemapRoutes } from '@/data/marketingRegistry';
+import { buildArticleDocumentProps } from '@/pages/catch-all.page.server';
 import { getPageSEOData, normalizeOgImageUrl } from '@/utils/seo';
 
 const require = createRequire(import.meta.url);
@@ -113,5 +114,104 @@ describe('sitemap sync', () => {
 
     expect(sitemapXml).toContain('<loc>https://1мост.рф/blog/kak-kontrolirovat-podryadchikov</loc>');
     expect(sitemapXml).toContain('<lastmod>2026-05-27T08:00:00.000Z</lastmod>');
+  });
+
+  it('keeps production sitemap routed to SSR instead of the static client file', () => {
+    const nginxConfig = fs.readFileSync(path.resolve(process.cwd(), 'deploy', 'nginx', 'prohelper.pro.conf'), 'utf8');
+    const packageJson = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')) as {
+      scripts: Record<string, string>;
+    };
+
+    const sitemapLocationIndex = nginxConfig.indexOf('location = /sitemap.xml');
+    const genericLocationIndex = nginxConfig.indexOf('location / {');
+
+    expect(sitemapLocationIndex).toBeGreaterThan(-1);
+    expect(genericLocationIndex).toBeGreaterThan(sitemapLocationIndex);
+    expect(nginxConfig.slice(sitemapLocationIndex, genericLocationIndex)).toContain('proxy_pass http://127.0.0.1:3001');
+    expect(packageJson.scripts['build:marketing']).toContain('rm -f client/sitemap.xml');
+  });
+});
+
+describe('blog article SSR metadata', () => {
+  it('drops legacy backend BlogPosting schema and normalizes legacy marketing URLs', () => {
+    const documentProps = buildArticleDocumentProps({
+      id: 1,
+      title: 'Test article',
+      slug: 'test-article',
+      excerpt: 'Test excerpt',
+      content: '<p>Test</p>',
+      meta_description: 'Test description',
+      og_image: 'https://prohelper.pro/og/foreman-software.png',
+      structured_data: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'BlogPosting',
+          mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': 'https://prohelper.pro/blog/test-article',
+          },
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'Test',
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'https://prohelper.pro/contact',
+              },
+            },
+          ],
+        },
+      ],
+      status: 'published',
+      published_at: '2026-05-19T03:52:44.000000Z',
+      views_count: 0,
+      likes_count: 0,
+      comments_count: 0,
+      reading_time: 1,
+      estimated_reading_time: 1,
+      is_featured: false,
+      allow_comments: true,
+      is_published_in_rss: true,
+      noindex: false,
+      sort_order: 1,
+      url: '/blog/test-article',
+      is_published: true,
+      category: {
+        id: 1,
+        name: 'Category',
+        slug: 'category',
+        color: '#000000',
+        sort_order: 1,
+        is_active: true,
+        created_at: '2026-05-19T03:52:44.000000Z',
+        updated_at: '2026-05-19T03:52:44.000000Z',
+      },
+      author: {
+        id: 1,
+        name: 'Author',
+        email: 'author@example.test',
+      },
+      tags: [
+        {
+          id: 1,
+          name: 'tag',
+          slug: 'tag',
+        },
+      ],
+      created_at: '2026-05-19T03:52:44.000000Z',
+      updated_at: '2026-06-21T13:28:42.000000Z',
+    });
+
+    const structuredJson = JSON.stringify(documentProps.structuredData);
+    const blogPostingCount = Array.from(structuredJson.matchAll(/"@type":"BlogPosting"/g)).length;
+
+    expect(blogPostingCount).toBe(1);
+    expect(structuredJson).not.toContain('prohelper.pro');
+    expect(structuredJson).toContain('/blog/test-article');
+    expect(structuredJson).toContain('/contact');
   });
 });

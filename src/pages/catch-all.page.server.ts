@@ -16,6 +16,8 @@ interface BlogArticleSsrResult {
 }
 
 const normalizeApiBase = (apiBase: string) => apiBase.replace(/\/+$/, '');
+const LEGACY_MARKETING_ORIGIN_PATTERN = /^https?:\/\/(?:www\.)?prohelper\.pro/i;
+const normalizeMarketingUrl = (value: string) => value.replace(LEGACY_MARKETING_ORIGIN_PATTERN, BASE_URL);
 
 const resolveAbsoluteUrl = (value?: string) => {
   if (!value) {
@@ -23,10 +25,43 @@ const resolveAbsoluteUrl = (value?: string) => {
   }
 
   if (/^https?:\/\//i.test(value)) {
-    return value;
+    return normalizeMarketingUrl(value);
   }
 
   return `${BASE_URL}${value.startsWith('/') ? value : `/${value}`}`;
+};
+
+const normalizeStructuredDataValue = (value: unknown): unknown => {
+  if (typeof value === 'string') {
+    return normalizeMarketingUrl(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(normalizeStructuredDataValue);
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .map(([key, item]) => [key, normalizeStructuredDataValue(item)]),
+    );
+  }
+
+  return value;
+};
+
+const getSchemaTypes = (value: unknown): string[] => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return [];
+  }
+
+  const schemaType = (value as Record<string, unknown>)['@type'];
+
+  if (Array.isArray(schemaType)) {
+    return schemaType.filter((item): item is string => typeof item === 'string');
+  }
+
+  return typeof schemaType === 'string' ? [schemaType] : [];
 };
 
 const resolveBlogArticleSlug = (pathname: string) => {
@@ -40,7 +75,9 @@ const normalizeStructuredData = (value: unknown): unknown[] => {
     return [];
   }
 
-  return Array.isArray(value) ? value : [value];
+  return (Array.isArray(value) ? value : [value])
+    .map(normalizeStructuredDataValue)
+    .filter((item) => !getSchemaTypes(item).includes('BlogPosting'));
 };
 
 const fetchBlogArticleForSsr = async (slug: string): Promise<BlogArticleSsrResult> => {
@@ -74,7 +111,7 @@ const fetchBlogArticleForSsr = async (slug: string): Promise<BlogArticleSsrResul
   }
 };
 
-const buildArticleDocumentProps = (article: BlogArticle) => {
+export const buildArticleDocumentProps = (article: BlogArticle) => {
   const articleUrl = `${BASE_URL}/blog/${article.slug}`;
   const image = resolveAbsoluteUrl(article.og_image || article.featured_image);
   const description = article.meta_description || article.og_description || article.excerpt || article.title;
