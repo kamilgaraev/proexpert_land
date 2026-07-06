@@ -1,41 +1,16 @@
-import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, CheckCircle, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
+import { Mail, CheckCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useEmailVerification } from '@/hooks/useEmailVerification';
 
 export const EmailSentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email || 'вашу почту';
-  const [countdown, setCountdown] = useState(3);
-  const [autoRedirect, setAutoRedirect] = useState(true);
 
-  const {
-    canResend,
-    resendCooldown,
-    resendVerificationEmail,
-    loading
-  } = useEmailVerification();
-
-  useEffect(() => {
-    if (autoRedirect && countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (autoRedirect && countdown === 0) {
-      navigate('/dashboard');
-    }
-  }, [countdown, autoRedirect, navigate]);
-
-  const handleGoToDashboard = () => {
-    setAutoRedirect(false);
-    navigate('/dashboard');
-  };
-
-  const handleCancelAutoRedirect = () => {
-    setAutoRedirect(false);
+  const handleGoToLogin = () => {
+    navigate('/login', { state: { email } });
   };
 
   return (
@@ -139,58 +114,14 @@ export const EmailSentPage = () => {
                 className="flex flex-col sm:flex-row gap-4 pt-4"
               >
                 <Button
-                  onClick={handleGoToDashboard}
+                  onClick={handleGoToLogin}
                   className="flex-1 h-14 text-lg shadow-lg"
                   size="lg"
                 >
-                  Перейти в личный кабинет
+                  Перейти ко входу
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-
-                <Button
-                  onClick={resendVerificationEmail}
-                  disabled={!canResend || loading}
-                  variant="outline"
-                  className="h-14 px-6 border-2"
-                  size="lg"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Отправка...
-                    </>
-                  ) : !canResend ? (
-                    <>
-                      <RefreshCw className="w-5 h-5 mr-2" />
-                      Повторить через {resendCooldown}с
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="w-5 h-5 mr-2" />
-                      Отправить повторно
-                    </>
-                  )}
-                </Button>
               </motion.div>
-
-              {autoRedirect && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1.2 }}
-                  className="text-center pt-4 border-t"
-                >
-                  <p className="text-sm text-gray-500 mb-2">
-                    Автоматический переход в личный кабинет через {countdown} {countdown === 1 ? 'секунду' : 'секунд'}...
-                  </p>
-                  <button
-                    onClick={handleCancelAutoRedirect}
-                    className="text-sm text-construction-600 hover:text-construction-700 underline"
-                  >
-                    Отменить
-                  </button>
-                </motion.div>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -217,4 +148,3 @@ export const EmailSentPage = () => {
 };
 
 export default EmailSentPage;
-

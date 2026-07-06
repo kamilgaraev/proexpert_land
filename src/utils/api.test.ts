@@ -90,6 +90,33 @@ describe('authService.login', () => {
 });
 
 describe('authService.register', () => {
+  it('does not persist a token from a successful verification-required registration response', async () => {
+    const payload = {
+      success: true,
+      message: 'Регистрация завершена. Подтвердите email, чтобы войти в аккаунт.',
+      data: {
+        status: 'verification_required',
+        email_verified: false,
+        can_enter_portal: false,
+        email: 'owner@example.test',
+        token: 'unexpected-registration-token',
+      },
+    };
+
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(payload), {
+      status: 201,
+      statusText: 'Created',
+      headers: {
+        'content-type': 'application/json',
+      },
+    })));
+
+    const result = await authService.register(new FormData());
+
+    expect(result.data.data?.status).toBe('verification_required');
+    expect(getAuthToken()).toBeNull();
+  });
+
   it('throws validation errors from the registration API instead of returning a tokenless response', async () => {
     const payload = {
       success: false,

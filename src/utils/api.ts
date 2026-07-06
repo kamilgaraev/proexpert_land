@@ -301,8 +301,12 @@ export interface ApiResponse<T> {
 
 // Интерфейсы для данных ответов
 export interface AuthResponseData {
-  token: string;
-  user: LandingUser;
+  token?: string;
+  user?: LandingUser;
+  status?: 'verification_required';
+  email_verified?: boolean;
+  can_enter_portal?: boolean;
+  email?: string;
 }
 
 export interface UserResponseData {
@@ -332,12 +336,6 @@ export const authService = {
       throw createApiRequestError(data?.message || 'Ошибка регистрации', response.status, data);
     }
 
-    const token = extractTokenFromPayload(data);
-
-    if (token) {
-      saveTokenToMultipleStorages(token);
-    }
-
     return createFetchResponse(data, response);
   },
 
@@ -363,9 +361,12 @@ export const authService = {
   },
 
   // Выход из системы
-  logout: () => {
-    clearTokenFromStorages();
-    return api.post<ApiResponse<null>>('/auth/logout');
+  logout: async () => {
+    try {
+      return await api.post<ApiResponse<null>>('/auth/logout');
+    } finally {
+      clearTokenFromStorages();
+    }
   },
 
   // Получение данных текущего пользователя

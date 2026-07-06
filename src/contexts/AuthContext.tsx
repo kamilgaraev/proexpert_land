@@ -140,21 +140,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const response = await authService.register(formData);
-      const apiToken = response.data?.token || response.data?.data?.token || response.data?.data?.data?.token;
-      const nextUser = response.data?.user || response.data?.data?.user || response.data?.data?.data?.user;
+      const payload = response.data?.data || response.data;
+      const status = payload?.status;
 
-      if (!apiToken) {
-        throw new Error('Токен не получен от сервера после регистрации.');
+      clearAuthToken();
+      setToken(null);
+      setUser(null);
+
+      if (status !== 'verification_required') {
+        throw new Error('Регистрация завершена, но статус подтверждения email не получен.');
       }
-
-      if (!nextUser) {
-        throw new Error('Данные пользователя не получены от сервера после регистрации.');
-      }
-
-      saveAuthToken(apiToken, 'session');
-      setToken(apiToken);
-      setUser(nextUser as unknown as User);
-      window.dispatchEvent(new CustomEvent('user-login'));
     } catch (error) {
       clearAuthToken();
       setToken(null);
@@ -165,12 +160,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   const logout = () => {
-    authService.logout().catch((_err: Error) => {});
-    clearAuthToken();
-    setToken(null);
-    setUser(null);
-    setIsLoading(false);
-    window.dispatchEvent(new CustomEvent('user-logout'));
+    void authService.logout().finally(() => {
+      setToken(null);
+      setUser(null);
+      setIsLoading(false);
+      window.dispatchEvent(new CustomEvent('user-logout'));
+    });
   };
   const value = {
     user,
