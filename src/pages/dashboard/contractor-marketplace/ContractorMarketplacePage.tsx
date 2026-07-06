@@ -1,13 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AlertCircle, BriefcaseBusiness, Loader2, UserRoundCog } from 'lucide-react';
+import {
+  AlertCircle,
+  Inbox,
+  Loader2,
+  Search,
+  Send,
+  UserRoundCog,
+} from 'lucide-react';
 import { toast } from 'react-toastify';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ContractorSearchPanel from '@/components/dashboard/contractor-marketplace/ContractorSearchPanel';
 import OfferInbox from '@/components/dashboard/contractor-marketplace/OfferInbox';
+import OutgoingOffersPanel from '@/components/dashboard/contractor-marketplace/OutgoingOffersPanel';
 import ProfileEditor from '@/components/dashboard/contractor-marketplace/ProfileEditor';
 import { normalizeOrganizationProfileResponse } from '@/hooks/useOrganizationProfile';
+import { useCanAccess } from '@/hooks/usePermissions';
 import { usePageTitle } from '@/hooks/useSEO';
 import { organizationProfileService, organizationService, type Organization } from '@/utils/api';
 import contractorMarketplaceApi from '@/utils/contractorMarketplaceApi';
@@ -61,6 +71,35 @@ const ContractorMarketplacePage = () => {
 
   usePageTitle('Каталог подрядчиков');
 
+  const isOrganizationOwner = useCanAccess({ role: 'organization_owner' });
+  const isOrganizationAdmin = useCanAccess({ role: 'organization_admin' });
+  const hasSearchPermission = useCanAccess({ permission: 'contractor_marketplace.search.view' });
+  const hasProfileViewPermission = useCanAccess({ permission: 'contractor_marketplace.profile.view' });
+  const hasOffersViewPermission = useCanAccess({ permission: 'contractor_marketplace.offers.view' });
+  const hasOfferCreatePermission = useCanAccess({ permission: 'contractor_marketplace.offers.create' });
+  const hasOfferCancelPermission = useCanAccess({ permission: 'contractor_marketplace.offers.cancel' });
+  const hasOfferReviewPermission = useCanAccess({ permission: 'contractor_marketplace.offers.review' });
+  const hasOwnerAccess = isOrganizationOwner || isOrganizationAdmin;
+  const canSearchContractors =
+    hasOwnerAccess ||
+    hasSearchPermission;
+  const canViewProfile =
+    hasOwnerAccess ||
+    hasProfileViewPermission;
+  const canViewOffers =
+    hasOwnerAccess ||
+    hasOffersViewPermission;
+  const canCreateOffer =
+    hasOwnerAccess ||
+    hasOfferCreatePermission;
+  const canCancelOffer =
+    hasOwnerAccess ||
+    hasOfferCancelPermission;
+  const canReviewOffer =
+    hasOwnerAccess ||
+    hasOfferReviewPermission;
+  const canUseMarketplace = canSearchContractors || canViewProfile || canViewOffers;
+
   const loadInitialData = useCallback(async () => {
     setIsLoading(true);
     setErrorMessage(null);
@@ -72,10 +111,10 @@ const ContractorMarketplacePage = () => {
         loadedOrganization,
         loadedOrganizationProfile,
       ] = await Promise.all([
-        contractorMarketplaceApi.getCategories(),
-        contractorMarketplaceApi.getProfile(),
-        loadOrganization(),
-        loadOrganizationProfile(),
+        canUseMarketplace ? contractorMarketplaceApi.getCategories() : Promise.resolve([]),
+        canViewProfile ? contractorMarketplaceApi.getProfile() : Promise.resolve(null),
+        canViewProfile ? loadOrganization() : Promise.resolve(null),
+        canViewProfile ? loadOrganizationProfile() : Promise.resolve(null),
       ]);
 
       setCategories(loadedCategories);
@@ -87,7 +126,7 @@ const ContractorMarketplacePage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [canUseMarketplace, canViewProfile]);
 
   useEffect(() => {
     void loadInitialData();
@@ -200,46 +239,92 @@ const ContractorMarketplacePage = () => {
         </Alert>
       )}
 
-      {isLoading || !profile ? (
+      {isLoading ? (
         <div className="flex min-h-[360px] items-center justify-center rounded-xl border bg-background">
           <div className="flex items-center gap-3 text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin" />
             <span>Загрузка каталога подрядчиков</span>
           </div>
         </div>
+      ) : !canUseMarketplace ? (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>У вас нет доступа к каталогу подрядчиков.</AlertDescription>
+        </Alert>
       ) : (
-        <Tabs defaultValue="profile" className="space-y-5">
-          <TabsList className="grid w-full grid-cols-2 md:w-auto">
-            <TabsTrigger value="profile" className="gap-2">
-              <UserRoundCog className="h-4 w-4" />
-              Профиль
-            </TabsTrigger>
-            <TabsTrigger value="offers" className="gap-2">
-              <BriefcaseBusiness className="h-4 w-4" />
-              Предложения
-            </TabsTrigger>
+        <Tabs
+          defaultValue={canSearchContractors ? 'search' : canViewProfile ? 'profile' : 'incoming'}
+          className="space-y-5"
+        >
+          <TabsList className="grid w-full grid-cols-2 md:flex md:w-auto">
+            {canSearchContractors && (
+              <TabsTrigger value="search" className="gap-2">
+                <Search className="h-4 w-4" />
+                Поиск
+              </TabsTrigger>
+            )}
+            {canViewOffers && (
+              <TabsTrigger value="outgoing" className="gap-2">
+                <Send className="h-4 w-4" />
+                Исходящие
+              </TabsTrigger>
+            )}
+            {canViewProfile && (
+              <TabsTrigger value="profile" className="gap-2">
+                <UserRoundCog className="h-4 w-4" />
+                Профиль
+              </TabsTrigger>
+            )}
+            {canViewOffers && (
+              <TabsTrigger value="incoming" className="gap-2">
+                <Inbox className="h-4 w-4" />
+                Входящие
+              </TabsTrigger>
+            )}
           </TabsList>
 
-          <TabsContent value="profile" className="space-y-5">
-            <ProfileEditor
-              profile={profile}
-              categories={categories}
-              organization={organization}
-              organizationProfile={organizationProfile}
-              isSaving={isSaving}
-              isPublishing={isPublishing}
-              isUploadingDocument={isUploadingDocument}
-              onSave={saveProfile}
-              onPublish={publishProfile}
-              onPause={pauseProfile}
-              onUploadDocument={uploadDocument}
-              onDeleteDocument={deleteDocument}
-            />
-          </TabsContent>
+          {canSearchContractors && (
+            <TabsContent value="search" className="space-y-5">
+              <ContractorSearchPanel categories={categories} canCreateOffer={canCreateOffer} />
+            </TabsContent>
+          )}
 
-          <TabsContent value="offers" className="space-y-5">
-            <OfferInbox />
-          </TabsContent>
+          {canViewOffers && (
+            <TabsContent value="outgoing" className="space-y-5">
+              <OutgoingOffersPanel canCancelOffer={canCancelOffer} canReviewOffer={canReviewOffer} />
+            </TabsContent>
+          )}
+
+          {canViewProfile && (
+            <TabsContent value="profile" className="space-y-5">
+              {profile ? (
+                <ProfileEditor
+                  profile={profile}
+                  categories={categories}
+                  organization={organization}
+                  organizationProfile={organizationProfile}
+                  isSaving={isSaving}
+                  isPublishing={isPublishing}
+                  isUploadingDocument={isUploadingDocument}
+                  onSave={saveProfile}
+                  onPublish={publishProfile}
+                  onPause={pauseProfile}
+                  onUploadDocument={uploadDocument}
+                  onDeleteDocument={deleteDocument}
+                />
+              ) : (
+                <Alert>
+                  <AlertDescription>Профиль подрядчика пока недоступен.</AlertDescription>
+                </Alert>
+              )}
+            </TabsContent>
+          )}
+
+          {canViewOffers && (
+            <TabsContent value="incoming" className="space-y-5">
+              <OfferInbox />
+            </TabsContent>
+          )}
         </Tabs>
       )}
     </div>

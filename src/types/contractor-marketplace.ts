@@ -63,6 +63,17 @@ export interface MarketplaceCategoryRating {
   category?: MarketplaceWorkCategory | null;
 }
 
+export interface MarketplaceCategoryMatch {
+  category_id: number;
+  slug: string | null;
+  name: string | null;
+  is_primary: boolean;
+  experience_years: number | null;
+  team_capacity: number | null;
+  min_project_budget: MoneyLike;
+  max_project_budget: MoneyLike;
+}
+
 export interface MarketplaceRegion {
   id?: number;
   country: string;
@@ -127,6 +138,22 @@ export interface MarketplaceContractorProfile {
   updated_at: string | null;
 }
 
+export interface MarketplaceContractorListItem {
+  id: number;
+  organization_id: number;
+  display_name: string;
+  short_description: string | null;
+  base_city: string | null;
+  availability_status: MarketplaceAvailabilityStatus;
+  verification_level: MarketplaceVerificationLevel;
+  team_size_min: number | null;
+  team_size_max: number | null;
+  published_at: string | null;
+  organization?: MarketplaceOrganizationMini;
+  category_match?: MarketplaceCategoryMatch | null;
+  category_rating?: MarketplaceCategoryRating | null;
+}
+
 export interface MarketplaceProfileUpdatePayload {
   display_name?: string | null;
   short_description?: string | null;
@@ -159,6 +186,19 @@ export interface MarketplaceHiringOfferWorkPackage {
   metadata?: Record<string, unknown>;
 }
 
+export interface MarketplaceHiringOfferReview {
+  id: number;
+  category: MarketplaceWorkCategory | null;
+  quality_score: MoneyLike;
+  deadline_score: MoneyLike;
+  communication_score: MoneyLike;
+  safety_score: MoneyLike;
+  financial_discipline_score: MoneyLike;
+  comment: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
 export interface MarketplaceHiringOffer {
   id: number;
   status: MarketplaceOfferStatus;
@@ -170,6 +210,7 @@ export interface MarketplaceHiringOffer {
   contractor_organization: MarketplaceOrganizationMini | null;
   contractor_profile: MarketplaceContractorProfile | null;
   work_packages: MarketplaceHiringOfferWorkPackage[];
+  reviews: MarketplaceHiringOfferReview[];
   starts_at: string | null;
   ends_at: string | null;
   budget_min: MoneyLike;
@@ -195,6 +236,21 @@ export interface MarketplaceOffersParams {
   per_page?: number;
 }
 
+export interface MarketplaceSearchParams {
+  search?: string;
+  category_id?: number;
+  city?: string;
+  availability_status?: Exclude<MarketplaceAvailabilityStatus, 'hidden'>;
+  verification_level?: MarketplaceVerificationLevel;
+  min_rating?: number;
+  team_capacity_min?: number;
+  budget_min?: number;
+  budget_max?: number;
+  sort_by?: 'relevance' | 'category_rating' | 'name';
+  page?: number;
+  per_page?: number;
+}
+
 export interface MarketplacePaginationMeta {
   current_page: number;
   last_page: number;
@@ -212,4 +268,58 @@ export interface MarketplacePaginatedResponse<T> {
     prev?: string | null;
     next?: string | null;
   };
+}
+
+export interface MarketplaceSearchResponse extends MarketplacePaginatedResponse<MarketplaceContractorListItem> {
+  summary?: {
+    network_size?: number;
+  };
+}
+
+export interface MarketplaceCreateOfferWorkPackage {
+  category_id: number;
+  title: string;
+  description?: string;
+  quantity?: number;
+  unit?: string;
+  budget_min?: number;
+  budget_max?: number;
+  starts_at?: string;
+  ends_at?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface MarketplaceCreateOfferPayload {
+  project_id: number;
+  contractor_profile_id: number;
+  role: MarketplaceProjectRole;
+  title: string;
+  message?: string;
+  starts_at?: string;
+  ends_at?: string;
+  budget_min?: number;
+  budget_max?: number;
+  currency?: string;
+  expires_at?: string;
+  metadata?: Record<string, unknown>;
+  work_packages: MarketplaceCreateOfferWorkPackage[];
+}
+
+export interface MarketplaceCancelOfferPayload {
+  reason?: string;
+}
+
+export interface MarketplaceOfferReviewItemPayload {
+  category_id: number;
+  quality_score: number;
+  deadline_score: number;
+  communication_score: number;
+  safety_score?: number;
+  financial_discipline_score?: number;
+  comment?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface MarketplaceReviewOfferPayload {
+  reviews: MarketplaceOfferReviewItemPayload[];
 }

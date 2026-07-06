@@ -36,6 +36,7 @@ const UserInvitationAcceptPage = lazy(() => import('@pages/dashboard/UserInvitat
 import DashboardProtectedRoute from '@components/DashboardProtectedRoute';
 import { HoldingPanelRouteGuard } from '@/components/multi-org/HoldingPanelRouteGuard';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
+import { useCanAccess, usePermissions } from '@/hooks/usePermissions';
 
 // Layouts - загружаем статически (нужны для структуры)
 import DashboardLayout from '@layouts/DashboardLayout';
@@ -98,6 +99,27 @@ interface AppProps {
   initialBlogArticleNotFound?: boolean;
   initialBlogArticleNotFoundSlug?: string;
 }
+
+const ContractorMarketplaceAccessRoute = () => {
+  const { isLoaded, isLoading, error } = usePermissions();
+  const isOwner = useCanAccess({ role: 'organization_owner' });
+  const isOrganizationAdmin = useCanAccess({ role: 'organization_admin' });
+  const canSearchContractors = useCanAccess({ permission: 'contractor_marketplace.search.view' });
+  const canViewProfile = useCanAccess({ permission: 'contractor_marketplace.profile.view' });
+  const canViewOffers = useCanAccess({ permission: 'contractor_marketplace.offers.view' });
+  const hasAccess =
+    isOwner ||
+    isOrganizationAdmin ||
+    canSearchContractors ||
+    canViewProfile ||
+    canViewOffers;
+
+  if (isLoading || (!isLoaded && !error)) {
+    return <AppLoadingFallback />;
+  }
+
+  return hasAccess ? <ContractorMarketplacePage /> : <Navigate to="/dashboard" replace />;
+};
 
 function App({
   initialBlogArticle,
@@ -375,14 +397,7 @@ function App({
             </ProtectedComponent>
           } />
           <Route path="contractor-marketplace" element={
-            <ProtectedComponent
-              permission="contractor_marketplace.profile.view"
-              role="organization_owner"
-              requireAll={false}
-              fallback={<Navigate to="/dashboard" replace />}
-            >
-              <ContractorMarketplacePage />
-            </ProtectedComponent>
+            <ContractorMarketplaceAccessRoute />
           } />
           <Route path="contractor-invitations/token/:token" element={<ContractorInvitationTokenPage />} />
 

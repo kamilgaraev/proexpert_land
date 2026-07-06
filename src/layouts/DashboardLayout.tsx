@@ -83,11 +83,19 @@ const DashboardLayout = () => {
     useCanAccess({ role: 'organization_owner' }) ||
     useCanAccess({ role: 'organization_admin' });
 
+  const canViewContractorMarketplaceProfile = useCanAccess({ permission: 'contractor_marketplace.profile.view' });
+  const canSearchContractorMarketplace = useCanAccess({ permission: 'contractor_marketplace.search.view' });
+  const canViewContractorMarketplaceOffers = useCanAccess({ permission: 'contractor_marketplace.offers.view' });
+  const canCreateContractorMarketplaceOffers = useCanAccess({ permission: 'contractor_marketplace.offers.create' });
+  const canAccessContractorMarketplaceAsOwner = useCanAccess({ role: 'organization_owner' });
+  const canAccessContractorMarketplaceAsAdmin = useCanAccess({ role: 'organization_admin' });
   const canViewContractorMarketplace =
-    useCanAccess({ permission: 'contractor_marketplace.profile.view' }) ||
-    useCanAccess({ permission: 'contractor_marketplace.offers.view' }) ||
-    useCanAccess({ role: 'organization_owner' }) ||
-    useCanAccess({ role: 'organization_admin' });
+    canViewContractorMarketplaceProfile ||
+    canSearchContractorMarketplace ||
+    canViewContractorMarketplaceOffers ||
+    canCreateContractorMarketplaceOffers ||
+    canAccessContractorMarketplaceAsOwner ||
+    canAccessContractorMarketplaceAsAdmin;
 
   const canManageMultiOrg =
     useCanAccess({ permission: 'multi-organization.manage' }) ||
@@ -176,7 +184,7 @@ const DashboardLayout = () => {
         name: 'Каталог подрядчиков',
         href: '/dashboard/contractor-marketplace',
         icon: Handshake,
-        description: 'Профиль подрядчика и предложения о работе',
+        description: 'Поиск, профиль и офферы подрядчиков',
         visible: canViewContractorMarketplace,
       },
     ];

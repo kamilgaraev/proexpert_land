@@ -1,10 +1,16 @@
 import api from './api';
 import type {
+  MarketplaceCancelOfferPayload,
+  MarketplaceContractorListItem,
   MarketplaceContractorProfile,
+  MarketplaceCreateOfferPayload,
   MarketplaceHiringOffer,
   MarketplaceOffersParams,
   MarketplacePaginatedResponse,
   MarketplaceProfileUpdatePayload,
+  MarketplaceReviewOfferPayload,
+  MarketplaceSearchParams,
+  MarketplaceSearchResponse,
   MarketplaceWorkCategory,
 } from '@/types/contractor-marketplace';
 
@@ -69,16 +75,20 @@ const normalizeOffer = (payload: unknown): MarketplaceHiringOffer => {
     ...offer,
     contractor_profile: offer.contractor_profile ? normalizeProfile(offer.contractor_profile) : null,
     work_packages: Array.isArray(offer.work_packages) ? offer.work_packages : [],
+    reviews: Array.isArray(offer.reviews) ? offer.reviews : [],
     metadata: offer.metadata ?? {},
   };
 };
 
-const normalizePaginatedOffers = (payload: unknown): MarketplacePaginatedResponse<MarketplaceHiringOffer> => {
+const normalizePaginatedResponse = <T>(
+  payload: unknown,
+  normalizeItem: (item: unknown) => T
+): MarketplacePaginatedResponse<T> => {
   const source = isRecord(payload) && isRecord(payload.data) && Array.isArray(payload.data.data)
     ? payload.data
     : payload;
   const data = isRecord(source) && Array.isArray(source.data)
-    ? source.data.map(normalizeOffer)
+    ? source.data.map(normalizeItem)
     : [];
   const metaSource = isRecord(source) && isRecord(source.meta) ? source.meta : {};
 
@@ -92,6 +102,37 @@ const normalizePaginatedOffers = (payload: unknown): MarketplacePaginatedRespons
       ...metaSource,
     },
     links: isRecord(source) && isRecord(source.links) ? source.links : undefined,
+  };
+};
+
+const normalizePaginatedOffers = (payload: unknown): MarketplacePaginatedResponse<MarketplaceHiringOffer> => (
+  normalizePaginatedResponse(payload, normalizeOffer)
+);
+
+const normalizeContractorListItem = (payload: unknown): MarketplaceContractorListItem => {
+  const contractor = unwrapResponseData<MarketplaceContractorListItem>(payload);
+
+  return {
+    ...contractor,
+    category_match: contractor.category_match ?? null,
+    category_rating: contractor.category_rating ?? null,
+  };
+};
+
+const normalizeSearchResponse = (payload: unknown): MarketplaceSearchResponse => {
+  const normalized = normalizePaginatedResponse(payload, normalizeContractorListItem);
+  const source = isRecord(payload) && isRecord(payload.data) && Array.isArray(payload.data.data)
+    ? payload.data
+    : payload;
+  const summary = isRecord(payload) && isRecord(payload.summary)
+    ? payload.summary
+    : isRecord(source) && isRecord(source.summary)
+      ? source.summary
+      : undefined;
+
+  return {
+    ...normalized,
+    summary,
   };
 };
 
@@ -148,6 +189,21 @@ export const contractorMarketplaceApi = {
     return normalizeProfile(response.data);
   },
 
+  async searchContractors(params: MarketplaceSearchParams = {}): Promise<MarketplaceSearchResponse> {
+    const requestParams = compactParams(params);
+    const response = requestParams
+      ? await api.get('/contractor-marketplace/search', { params: requestParams })
+      : await api.get('/contractor-marketplace/search');
+
+    return normalizeSearchResponse(response.data);
+  },
+
+  async getPublicProfile(profileId: number): Promise<MarketplaceContractorProfile> {
+    const response = await api.get(`/contractor-marketplace/profiles/${profileId}`);
+
+    return normalizeProfile(response.data);
+  },
+
   async getOffers(params: MarketplaceOffersParams = {}): Promise<MarketplacePaginatedResponse<MarketplaceHiringOffer>> {
     const requestParams = compactParams(params);
     const response = requestParams
@@ -159,6 +215,45 @@ export const contractorMarketplaceApi = {
 
   async getOffer(offerId: number): Promise<MarketplaceHiringOffer> {
     const response = await api.get(`/contractor-marketplace/offers/${offerId}`);
+
+    return normalizeOffer(response.data);
+  },
+
+  async getOutgoingOffers(params: MarketplaceOffersParams = {}): Promise<MarketplacePaginatedResponse<MarketplaceHiringOffer>> {
+    const requestParams = compactParams(params);
+    const response = requestParams
+      ? await api.get('/contractor-marketplace/outgoing-offers', { params: requestParams })
+      : await api.get('/contractor-marketplace/outgoing-offers');
+
+    return normalizePaginatedOffers(response.data);
+  },
+
+  async getOutgoingOffer(offerId: number): Promise<MarketplaceHiringOffer> {
+    const response = await api.get(`/contractor-marketplace/outgoing-offers/${offerId}`);
+
+    return normalizeOffer(response.data);
+  },
+
+  async createOffer(payload: MarketplaceCreateOfferPayload): Promise<MarketplaceHiringOffer> {
+    const response = await api.post('/contractor-marketplace/outgoing-offers', payload);
+
+    return normalizeOffer(response.data);
+  },
+
+  async cancelOutgoingOffer(
+    offerId: number,
+    payload: MarketplaceCancelOfferPayload = {}
+  ): Promise<MarketplaceHiringOffer> {
+    const response = await api.post(`/contractor-marketplace/outgoing-offers/${offerId}/cancel`, payload);
+
+    return normalizeOffer(response.data);
+  },
+
+  async reviewOutgoingOffer(
+    offerId: number,
+    payload: MarketplaceReviewOfferPayload
+  ): Promise<MarketplaceHiringOffer> {
+    const response = await api.post(`/contractor-marketplace/outgoing-offers/${offerId}/review`, payload);
 
     return normalizeOffer(response.data);
   },

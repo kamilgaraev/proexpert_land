@@ -69,6 +69,7 @@ const offer = {
   contractor_organization: { id: 7, name: 'Монолит Про' },
   contractor_profile: profile,
   work_packages: [{ id: 31, category, title: 'Каркас' }],
+  reviews: [],
   starts_at: null,
   ends_at: null,
   budget_min: null,
@@ -156,6 +157,56 @@ describe('contractorMarketplaceApi', () => {
     expect(api.delete).toHaveBeenCalledWith('/contractor-marketplace/profile/documents/45');
   });
 
+  it('searches contractors and loads public contractor profile', async () => {
+    vi.mocked(api.get)
+      .mockResolvedValueOnce(apiResponse({
+        data: [{
+          id: 11,
+          organization_id: 7,
+          display_name: 'Монолит Про',
+          short_description: 'Монолитные работы',
+          base_city: 'Казань',
+          availability_status: 'available',
+          verification_level: 'verified',
+          team_size_min: 12,
+          team_size_max: 30,
+          published_at: '2026-05-30T10:00:00+03:00',
+          category_match: null,
+          category_rating: null,
+        }],
+        meta: {
+          current_page: 1,
+          last_page: 1,
+          per_page: 12,
+          total: 1,
+        },
+        summary: {
+          network_size: 4,
+        },
+      }))
+      .mockResolvedValueOnce(apiResponse(profile));
+
+    const response = await contractorMarketplaceApi.searchContractors({
+      search: 'монолит',
+      category_id: undefined,
+      page: 1,
+      per_page: 12,
+    });
+    const loadedProfile = await contractorMarketplaceApi.getPublicProfile(11);
+
+    expect(api.get).toHaveBeenNthCalledWith(1, '/contractor-marketplace/search', {
+      params: {
+        search: 'монолит',
+        page: 1,
+        per_page: 12,
+      },
+    });
+    expect(api.get).toHaveBeenNthCalledWith(2, '/contractor-marketplace/profiles/11');
+    expect(response.summary?.network_size).toBe(4);
+    expect(response.data[0].display_name).toBe('Монолит Про');
+    expect(loadedProfile.id).toBe(11);
+  });
+
   it('loads offer inbox with compact params and pagination', async () => {
     vi.mocked(api.get).mockResolvedValueOnce(apiResponse({
         data: [offer],
@@ -181,6 +232,66 @@ describe('contractorMarketplaceApi', () => {
     });
     expect(response.data[0].contractor_profile?.id).toBe(11);
     expect(response.meta.total).toBe(1);
+  });
+
+  it('manages outgoing offers through landing endpoints', async () => {
+    vi.mocked(api.get)
+      .mockResolvedValueOnce(apiResponse({
+        data: [offer],
+        meta: {
+          current_page: 1,
+          last_page: 1,
+          per_page: 20,
+          total: 1,
+        },
+      }))
+      .mockResolvedValueOnce(apiResponse(offer));
+    vi.mocked(api.post).mockResolvedValue(apiResponse(offer));
+
+    await contractorMarketplaceApi.getOutgoingOffers({ status: 'sent', page: 1 });
+    await contractorMarketplaceApi.getOutgoingOffer(21);
+    await contractorMarketplaceApi.createOffer({
+      project_id: 5,
+      contractor_profile_id: 11,
+      role: 'contractor',
+      title: 'Монолит на корпус 1',
+      work_packages: [{ category_id: 3, title: 'Каркас' }],
+    });
+    await contractorMarketplaceApi.cancelOutgoingOffer(21, { reason: 'Изменили график' });
+    await contractorMarketplaceApi.reviewOutgoingOffer(21, {
+      reviews: [{
+        category_id: 3,
+        quality_score: 5,
+        deadline_score: 5,
+        communication_score: 4,
+      }],
+    });
+
+    expect(api.get).toHaveBeenNthCalledWith(1, '/contractor-marketplace/outgoing-offers', {
+      params: {
+        status: 'sent',
+        page: 1,
+      },
+    });
+    expect(api.get).toHaveBeenNthCalledWith(2, '/contractor-marketplace/outgoing-offers/21');
+    expect(api.post).toHaveBeenNthCalledWith(1, '/contractor-marketplace/outgoing-offers', {
+      project_id: 5,
+      contractor_profile_id: 11,
+      role: 'contractor',
+      title: 'Монолит на корпус 1',
+      work_packages: [{ category_id: 3, title: 'Каркас' }],
+    });
+    expect(api.post).toHaveBeenNthCalledWith(2, '/contractor-marketplace/outgoing-offers/21/cancel', {
+      reason: 'Изменили график',
+    });
+    expect(api.post).toHaveBeenNthCalledWith(3, '/contractor-marketplace/outgoing-offers/21/review', {
+      reviews: [{
+        category_id: 3,
+        quality_score: 5,
+        deadline_score: 5,
+        communication_score: 4,
+      }],
+    });
   });
 
   it('marks offer viewed, accepts and declines with reason', async () => {
