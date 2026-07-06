@@ -37,6 +37,23 @@ describe('dashboard search', () => {
     expect(findDashboardSearchItems(items, 'баланс')[0]?.href).toBe('/dashboard/billing');
   });
 
+  it('finds merged organization page by work directions alias', () => {
+    const items = buildDashboardSearchItems({
+      navigation: [
+        {
+          name: 'Данные компании',
+          href: '/dashboard/organization',
+          description: 'Реквизиты, верификация и направления работы',
+          aliases: ['направления работы', 'специализации'],
+        },
+      ],
+    });
+
+    expect(findDashboardSearchItems(items, 'направления')[0]?.href).toBe(
+      '/dashboard/organization'
+    );
+  });
+
   it('adds contextual routes only when the parent section is visible', () => {
     const items = buildDashboardSearchItems({ navigation });
 

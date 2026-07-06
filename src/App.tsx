@@ -81,7 +81,6 @@ const ContractorMarketplacePage = lazy(() => import('@pages/dashboard/contractor
 const SupplierRequestResponsePage = lazy(() => import('@pages/procurement/SupplierRequestResponsePage'));
 
 // Lazy loading для Project-Based RBAC
-const OrganizationSettingsPage = lazy(() => import('@pages/dashboard/organization').then(m => ({ default: m.OrganizationSettingsPage })));
 const OnboardingPage = lazy(() => import('@pages/dashboard/organization').then(m => ({ default: m.OnboardingPage })));
 const MyProjectsPage = lazy(() => import('@pages/dashboard/projects').then(m => ({ default: m.MyProjectsPage })));
 const ProjectDetailsPage = lazy(() => import('@pages/dashboard/projects/ProjectDetailsPage'));
@@ -348,7 +347,7 @@ function App({
             </ProtectedComponent>
           } />
           
-          <Route path="organization/settings" element={<OrganizationSettingsPage />} />
+          <Route path="organization/settings" element={<Navigate to="/dashboard/organization?tab=directions" replace />} />
           <Route path="organization/onboarding" element={<OnboardingPage />} />
           
           <Route path="projects" element={<MyProjectsPage />} />

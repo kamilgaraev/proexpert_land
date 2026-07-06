@@ -7,13 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import OfferInbox from '@/components/dashboard/contractor-marketplace/OfferInbox';
 import ProfileEditor from '@/components/dashboard/contractor-marketplace/ProfileEditor';
+import { normalizeOrganizationProfileResponse } from '@/hooks/useOrganizationProfile';
 import { usePageTitle } from '@/hooks/useSEO';
+import { organizationProfileService, organizationService, type Organization } from '@/utils/api';
 import contractorMarketplaceApi from '@/utils/contractorMarketplaceApi';
 import type {
   MarketplaceContractorProfile,
   MarketplaceProfileUpdatePayload,
   MarketplaceWorkCategory,
 } from '@/types/contractor-marketplace';
+import type { OrganizationProfile } from '@/types/organization-profile';
 
 const normalizeErrorMessage = (error: unknown): string => {
   const responseMessage = typeof error === 'object' && error !== null && 'response' in error
@@ -23,9 +26,33 @@ const normalizeErrorMessage = (error: unknown): string => {
   return responseMessage || 'Не удалось загрузить данные каталога подрядчиков.';
 };
 
+const loadOrganization = async (): Promise<Organization | null> => {
+  try {
+    const response = await organizationService.getCurrent();
+
+    return response.success ? response.data.organization : null;
+  } catch {
+    return null;
+  }
+};
+
+const loadOrganizationProfile = async (): Promise<OrganizationProfile | null> => {
+  try {
+    const response = await organizationProfileService.getProfile();
+
+    return response.data?.success
+      ? normalizeOrganizationProfileResponse(response.data.data)
+      : null;
+  } catch {
+    return null;
+  }
+};
+
 const ContractorMarketplacePage = () => {
   const [categories, setCategories] = useState<MarketplaceWorkCategory[]>([]);
   const [profile, setProfile] = useState<MarketplaceContractorProfile | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [organizationProfile, setOrganizationProfile] = useState<OrganizationProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -39,13 +66,22 @@ const ContractorMarketplacePage = () => {
     setErrorMessage(null);
 
     try {
-      const [loadedCategories, loadedProfile] = await Promise.all([
+      const [
+        loadedCategories,
+        loadedProfile,
+        loadedOrganization,
+        loadedOrganizationProfile,
+      ] = await Promise.all([
         contractorMarketplaceApi.getCategories(),
         contractorMarketplaceApi.getProfile(),
+        loadOrganization(),
+        loadOrganizationProfile(),
       ]);
 
       setCategories(loadedCategories);
       setProfile(loadedProfile);
+      setOrganization(loadedOrganization);
+      setOrganizationProfile(loadedOrganizationProfile);
     } catch (error) {
       setErrorMessage(normalizeErrorMessage(error));
     } finally {
@@ -188,6 +224,8 @@ const ContractorMarketplacePage = () => {
             <ProfileEditor
               profile={profile}
               categories={categories}
+              organization={organization}
+              organizationProfile={organizationProfile}
               isSaving={isSaving}
               isPublishing={isPublishing}
               isUploadingDocument={isUploadingDocument}

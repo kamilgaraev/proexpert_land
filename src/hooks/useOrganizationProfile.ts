@@ -51,7 +51,7 @@ const normalizeWorkspaceProfile = (workspaceProfile: unknown): WorkspaceProfile 
   return workspaceProfile as WorkspaceProfile;
 };
 
-const normalizeProfile = (responseData: any): OrganizationProfile => {
+export const normalizeOrganizationProfileResponse = (responseData: any): OrganizationProfile => {
   const profileData = responseData.profile || responseData;
 
   return {
@@ -102,7 +102,7 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
       const response = await organizationProfileService.getProfile();
 
       if (response.data?.success) {
-        setProfile(normalizeProfile(response.data.data));
+        setProfile(normalizeOrganizationProfileResponse(response.data.data));
         return;
       }
 
@@ -123,7 +123,7 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
       const response = await organizationProfileService.updateCapabilities(capabilities);
 
       if (!response.data?.success) {
-        throw new Error(response.data?.message || 'Ошибка обновления capabilities');
+        throw new Error(response.data?.message || 'Не удалось обновить направления работы');
       }
 
       setProfile((currentProfile) => {
@@ -139,9 +139,9 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
         };
       });
 
-      toast.success(response.data.message || 'Capabilities успешно обновлены!');
+      toast.success(response.data.message || 'Направления работы обновлены');
     } catch (err: any) {
-      const errorMessage = err.message || 'Ошибка обновления capabilities';
+      const errorMessage = err.message || 'Не удалось обновить направления работы';
       setError(errorMessage);
       toast.error(errorMessage);
       throw err;
@@ -286,13 +286,13 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
         return;
       }
 
-      setError(response.data?.message || 'Ошибка загрузки списка capabilities');
+      setError(response.data?.message || 'Не удалось загрузить список направлений работы');
       setAvailableCapabilities([]);
     } catch (err: any) {
-      const errorMessage = err.message || 'Ошибка загрузки списка capabilities';
+      const errorMessage = err.message || 'Не удалось загрузить список направлений работы';
       setError(errorMessage);
       setAvailableCapabilities([]);
-      console.error('Ошибка при загрузке списка capabilities:', err);
+      console.error('Ошибка при загрузке списка направлений работы:', err);
     } finally {
       setLoading(false);
     }

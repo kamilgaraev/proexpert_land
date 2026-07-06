@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { 
   Building2, 
   Pencil, 
-  // Check, 
-  // ShieldCheck, 
   AlertTriangle,
   Info,
   Loader2,
-  CheckCircle
+  CheckCircle,
+  ListChecks
 } from 'lucide-react';
 import { organizationService, Organization, OrganizationUpdateData, VerificationRecommendations, UserMessage } from '@utils/api';
 import { useDaData } from '@hooks/useDaData';
 import AutocompleteInput from '@components/shared/AutocompleteInput';
 import VerificationRecommendationsComponent from '@components/dashboard/VerificationRecommendations';
+import { OrganizationSettingsPage } from '@pages/dashboard/organization';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,8 +25,10 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const OrganizationPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [recommendations, setRecommendations] = useState<VerificationRecommendations | null>(null);
   const [userMessage, setUserMessage] = useState<UserMessage | null>(null);
@@ -162,8 +165,21 @@ const OrganizationPage = () => {
 
   const isFullyVerified = recommendations.current_score === recommendations.max_score;
   const shouldShowUserMessage = userMessage && !(isFullyVerified && userMessage.action === 'verify');
+  const activeTab = searchParams.get('tab') === 'directions' ? 'directions' : 'company';
 
-  return (
+  const handleTabChange = (value: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (value === 'directions') {
+      nextParams.set('tab', 'directions');
+    } else {
+      nextParams.delete('tab');
+    }
+
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const companyContent = (
     <div className="space-y-6">
       {shouldShowUserMessage && (
         <Alert variant={userMessage.type === 'error' ? 'destructive' : 'default'} className={
@@ -394,6 +410,38 @@ const OrganizationPage = () => {
         isVerifying={isVerifying}
         refreshTrigger={recommendationsKey}
       />
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Данные компании</h1>
+        <p className="mt-2 max-w-3xl text-muted-foreground">
+          Реквизиты, верификация, направления работы и специализации организации.
+        </p>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-5">
+        <TabsList className="grid w-full grid-cols-2 md:w-auto">
+          <TabsTrigger value="company" className="gap-2">
+            <Building2 className="h-4 w-4" />
+            Компания
+          </TabsTrigger>
+          <TabsTrigger value="directions" className="gap-2">
+            <ListChecks className="h-4 w-4" />
+            Направления работы
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="company" className="space-y-5">
+          {companyContent}
+        </TabsContent>
+
+        <TabsContent value="directions" className="space-y-5">
+          <OrganizationSettingsPage embedded />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

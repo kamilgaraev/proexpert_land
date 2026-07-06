@@ -42,7 +42,11 @@ const SPECIALIZATION_LABELS: Record<string, string> = {
   demolition_works: 'Демонтажные работы',
 };
 
-export const OrganizationSettingsPage = () => {
+interface OrganizationSettingsPageProps {
+  embedded?: boolean;
+}
+
+export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSettingsPageProps = {}) => {
   const navigate = useNavigate();
   const {
     profile,
@@ -235,13 +239,15 @@ export const OrganizationSettingsPage = () => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Профиль организации</h1>
-        <p className="text-muted-foreground">
-          Управляйте направлениями деятельности, основным режимом работы и специализациями
-          вашей организации
-        </p>
-      </div>
+      {!embedded && (
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Профиль организации</h1>
+          <p className="text-muted-foreground">
+            Управляйте направлениями деятельности, основным режимом работы и специализациями
+            вашей организации
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

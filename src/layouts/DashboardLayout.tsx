@@ -12,7 +12,6 @@ import {
   LayoutDashboard,
   Mail,
   Puzzle,
-  Settings,
   ShieldCheck,
   Users,
 } from 'lucide-react';
@@ -133,14 +132,8 @@ const DashboardLayout = () => {
         name: 'Данные компании',
         href: '/dashboard/organization',
         icon: Building2,
-        description: 'Данные и верификация',
-        visible: canViewOrganization,
-      },
-      {
-        name: 'Направления работы',
-        href: '/dashboard/organization/settings',
-        icon: Settings,
-        description: 'Профиль деятельности и специализации',
+        description: 'Реквизиты, верификация и направления работы',
+        aliases: ['направления работы', 'профиль организации', 'специализации'],
         visible: canViewOrganization,
       },
       {

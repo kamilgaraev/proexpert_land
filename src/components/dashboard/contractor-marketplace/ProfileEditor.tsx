@@ -27,22 +27,15 @@ import type {
   MarketplaceRegion,
   MarketplaceWorkCategory,
 } from '@/types/contractor-marketplace';
-
-interface CategoryDraft {
-  category_id: number;
-  is_primary: boolean;
-  experience_years: string;
-  team_capacity: string;
-  min_project_budget: string;
-  max_project_budget: string;
-}
-
-interface RegionDraft {
-  country: string;
-  region: string;
-  city: string;
-  is_primary: boolean;
-}
+import type { OrganizationProfile } from '@/types/organization-profile';
+import type { Organization } from '@/utils/api';
+import {
+  buildContractorMarketplaceDraftDefaults,
+  optionalNumber,
+  toStringValue,
+  type MarketplaceCategoryDraft,
+  type MarketplaceRegionDraft,
+} from '@/utils/contractorMarketplaceDefaults';
 
 interface PortfolioDraft {
   category_id: string;
@@ -55,6 +48,8 @@ interface PortfolioDraft {
 interface ProfileEditorProps {
   profile: MarketplaceContractorProfile;
   categories: MarketplaceWorkCategory[];
+  organization: Organization | null;
+  organizationProfile: OrganizationProfile | null;
   isSaving: boolean;
   isPublishing: boolean;
   isUploadingDocument: boolean;
@@ -68,35 +63,6 @@ interface ProfileEditorProps {
 const flattenCategories = (categories: MarketplaceWorkCategory[]): MarketplaceWorkCategory[] => (
   categories.flatMap((category) => [category, ...flattenCategories(category.children ?? [])])
 );
-
-const toStringValue = (value: string | number | null | undefined): string => (
-  value === null || value === undefined ? '' : String(value)
-);
-
-const optionalNumber = (value: string): number | null => {
-  if (value.trim() === '') {
-    return null;
-  }
-
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-};
-
-const categoryDraftFromProfile = (category: MarketplaceProfileCategory): CategoryDraft => ({
-  category_id: category.category_id,
-  is_primary: category.is_primary,
-  experience_years: toStringValue(category.experience_years),
-  team_capacity: toStringValue(category.team_capacity),
-  min_project_budget: toStringValue(category.min_project_budget),
-  max_project_budget: toStringValue(category.max_project_budget),
-});
-
-const regionDraftFromProfile = (region: MarketplaceRegion): RegionDraft => ({
-  country: region.country || 'Россия',
-  region: region.region ?? '',
-  city: region.city ?? '',
-  is_primary: region.is_primary,
-});
 
 const portfolioDraftFromProfile = (item: MarketplacePortfolioItem): PortfolioDraft => ({
   category_id: item.category_id ? String(item.category_id) : 'none',
@@ -123,6 +89,8 @@ const statusLabels: Record<string, string> = {
 export const ProfileEditor = ({
   profile,
   categories,
+  organization,
+  organizationProfile,
   isSaving,
   isPublishing,
   isUploadingDocument,
@@ -143,8 +111,8 @@ export const ProfileEditor = ({
   const [serviceRadiusKm, setServiceRadiusKm] = useState('');
   const [availabilityStatus, setAvailabilityStatus] = useState<MarketplaceAvailabilityStatus>('hidden');
   const [availableFrom, setAvailableFrom] = useState('');
-  const [categoryDrafts, setCategoryDrafts] = useState<CategoryDraft[]>([]);
-  const [regionDrafts, setRegionDrafts] = useState<RegionDraft[]>([]);
+  const [categoryDrafts, setCategoryDrafts] = useState<MarketplaceCategoryDraft[]>([]);
+  const [regionDrafts, setRegionDrafts] = useState<MarketplaceRegionDraft[]>([]);
   const [portfolioDrafts, setPortfolioDrafts] = useState<PortfolioDraft[]>([]);
   const [documentTitle, setDocumentTitle] = useState('');
   const [documentType, setDocumentType] = useState('license');
@@ -152,21 +120,28 @@ export const ProfileEditor = ({
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
-    setDisplayName(profile.display_name ?? '');
-    setShortDescription(profile.short_description ?? '');
-    setDescription(profile.description ?? '');
+    const defaults = buildContractorMarketplaceDraftDefaults({
+      profile,
+      categories,
+      organization,
+      organizationProfile,
+    });
+
+    setDisplayName(defaults.displayName);
+    setShortDescription(defaults.shortDescription);
+    setDescription(defaults.description);
     setTeamSizeMin(toStringValue(profile.team_size_min));
     setTeamSizeMax(toStringValue(profile.team_size_max));
     setYearsOnMarket(toStringValue(profile.years_on_market));
-    setBaseCity(profile.base_city ?? '');
+    setBaseCity(defaults.baseCity);
     setServiceRadiusKm(toStringValue(profile.service_radius_km));
     setAvailabilityStatus(profile.availability_status ?? 'hidden');
     setAvailableFrom(profile.available_from ? profile.available_from.slice(0, 10) : '');
-    setCategoryDrafts(profile.categories.map(categoryDraftFromProfile));
-    setRegionDrafts(profile.regions.map(regionDraftFromProfile));
+    setCategoryDrafts(defaults.categoryDrafts);
+    setRegionDrafts(defaults.regionDrafts);
     setPortfolioDrafts(profile.portfolio_items.map(portfolioDraftFromProfile));
     setValidationError(null);
-  }, [profile]);
+  }, [categories, organization, organizationProfile, profile]);
 
   const readinessChecks = [
     Boolean(displayName.trim()),
@@ -197,7 +172,11 @@ export const ProfileEditor = ({
     ]);
   };
 
-  const updateCategory = <K extends keyof CategoryDraft>(index: number, key: K, value: CategoryDraft[K]) => {
+  const updateCategory = <K extends keyof MarketplaceCategoryDraft>(
+    index: number,
+    key: K,
+    value: MarketplaceCategoryDraft[K]
+  ) => {
     setCategoryDrafts((current) => current.map((item, itemIndex) => {
       if (itemIndex !== index) {
         return key === 'is_primary' && value === true ? { ...item, is_primary: false } : item;
@@ -223,7 +202,11 @@ export const ProfileEditor = ({
     ]);
   };
 
-  const updateRegion = <K extends keyof RegionDraft>(index: number, key: K, value: RegionDraft[K]) => {
+  const updateRegion = <K extends keyof MarketplaceRegionDraft>(
+    index: number,
+    key: K,
+    value: MarketplaceRegionDraft[K]
+  ) => {
     setRegionDrafts((current) => current.map((item, itemIndex) => {
       if (itemIndex !== index) {
         return key === 'is_primary' && value === true ? { ...item, is_primary: false } : item;
