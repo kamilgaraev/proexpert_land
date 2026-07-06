@@ -6,7 +6,7 @@
 import axios from 'axios';
 // @ts-ignore
 // import api_instance from './axiosConfig'; 
-import { attachAuthorizationHeader, clearAuthToken, getAuthToken, saveAuthToken, type AuthTokenPersistence } from './authTokenStorage';
+import { attachAuthorizationHeader, clearAuthToken, getAuthToken, getAuthTokenPersistence, saveAuthToken, type AuthTokenPersistence } from './authTokenStorage';
 import type { AdminFormData as AdminFormDataExternal, AdminUsersListResponse, AdminUserDetailResponse, AdminUserDeleteResponse } from '../types/admin';
 import NotificationService from '@components/shared/NotificationService';
 
@@ -250,7 +250,7 @@ api.interceptors.response.use(
           return Promise.reject(new Error('Refresh response did not contain a token.'));
         }
 
-        saveTokenToMultipleStorages(token);
+        saveTokenToMultipleStorages(token, getAuthTokenPersistence());
 
         // Повторяем оригинальный запрос с новым токеном
         if (originalRequest.headers) {
@@ -393,7 +393,16 @@ export const authService = {
   },
 
   // Обновление токена
-  refreshToken: () => api.post<ApiResponse<{ token: string }>>('/auth/refresh'),
+  refreshToken: async () => {
+    const response = await api.post<ApiResponse<{ token: string }>>('/auth/refresh');
+    const token = extractTokenFromPayload(response.data);
+
+    if (token) {
+      saveTokenToMultipleStorages(token, getAuthTokenPersistence());
+    }
+
+    return response;
+  },
 
   // Запрос на сброс пароля
   requestPasswordReset: (email: string) =>

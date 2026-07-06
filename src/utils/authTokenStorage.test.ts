@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { clearAuthToken, getAuthToken, saveAuthToken } from './authTokenStorage';
+import { clearAuthToken, getAuthToken, getAuthTokenPersistence, saveAuthToken } from './authTokenStorage';
 
 afterEach(() => {
   clearAuthToken();
@@ -14,6 +14,7 @@ describe('authTokenStorage', () => {
     saveAuthToken('session-token');
 
     expect(getAuthToken()).toBe('session-token');
+    expect(getAuthTokenPersistence()).toBe('session');
     expect(window.sessionStorage.getItem('authToken')).toBe('session-token');
     expect(window.localStorage.getItem('authToken')).toBeNull();
   });
@@ -22,7 +23,18 @@ describe('authTokenStorage', () => {
     saveAuthToken('local-token', 'local');
 
     expect(getAuthToken()).toBe('local-token');
+    expect(getAuthTokenPersistence()).toBe('local');
     expect(window.localStorage.getItem('authToken')).toBe('local-token');
+    expect(window.sessionStorage.getItem('authToken')).toBeNull();
+  });
+
+  it('keeps the selected persistence when replacing an active token', () => {
+    saveAuthToken('local-token', 'local');
+    saveAuthToken('refreshed-token', getAuthTokenPersistence());
+
+    expect(getAuthToken()).toBe('refreshed-token');
+    expect(getAuthTokenPersistence()).toBe('local');
+    expect(window.localStorage.getItem('authToken')).toBe('refreshed-token');
     expect(window.sessionStorage.getItem('authToken')).toBeNull();
   });
 
@@ -35,6 +47,7 @@ describe('authTokenStorage', () => {
     clearAuthToken();
 
     expect(getAuthToken()).toBeNull();
+    expect(getAuthTokenPersistence()).toBe('memory');
     expect(window.localStorage.getItem('token')).toBeNull();
     expect(window.localStorage.getItem('authToken')).toBeNull();
     expect(window.sessionStorage.getItem('token')).toBeNull();

@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { authService, LandingUser } from '@utils/api';
-import { clearAuthToken, getAuthToken, saveAuthToken } from '@utils/authTokenStorage';
+import { clearAuthToken, getAuthToken, getAuthTokenPersistence, saveAuthToken } from '@utils/authTokenStorage';
 
 export interface User extends Omit<LandingUser, 'email_verified_at'> {
   email_verified_at: string | null;
@@ -65,28 +65,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const checkAuth = async () => {
-      try {
-        const existingToken = getAuthToken();
+      const existingToken = getAuthToken();
 
-        if (existingToken) {
-          setToken(existingToken);
-          await fetchUser();
-          return;
-        }
-
-        const refreshResponse = await authService.refreshToken();
-        const refreshedToken = refreshResponse.data?.data?.token;
-
-        if (refreshedToken) {
-          saveAuthToken(refreshedToken);
-          setToken(refreshedToken);
-        }
-
-        await fetchUser();
-      } catch (_error) {
-        clearAuthToken();
+      if (!existingToken) {
         setToken(null);
         setUser(null);
+        setIsLoading(false);
+        return;
+      }
+
+      const persistence = getAuthTokenPersistence();
+
+      try {
+        setToken(existingToken);
+        await fetchUser();
+      } catch (_profileError) {
+        try {
+          const refreshResponse = await authService.refreshToken();
+          const refreshPayload = refreshResponse.data as { token?: string; data?: { token?: string } };
+          const refreshedToken = refreshPayload.data?.token || refreshPayload.token;
+
+          if (!refreshedToken) {
+            throw new Error('Токен не получен от сервера.');
+          }
+
+          saveAuthToken(refreshedToken, persistence);
+          setToken(refreshedToken);
+          await fetchUser();
+        } catch (_refreshError) {
+          clearAuthToken();
+          setToken(null);
+          setUser(null);
+        }
       } finally {
         setIsLoading(false);
       }

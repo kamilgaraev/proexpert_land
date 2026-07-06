@@ -4,37 +4,48 @@ const legacyCookieName = 'authToken';
 const primaryStorageKey = 'authToken';
 const legacyStorageKeys = ['token', primaryStorageKey];
 
-const readPersistedAuthToken = (): string | null => {
+type PersistedAuthToken = {
+  token: string | null;
+  persistence: AuthTokenPersistence;
+};
+
+const readPersistedAuthToken = (): PersistedAuthToken => {
   if (typeof window === 'undefined') {
-    return null;
+    return { token: null, persistence: 'memory' };
   }
 
   for (const key of legacyStorageKeys) {
     const sessionToken = window.sessionStorage.getItem(key);
 
     if (sessionToken) {
-      return sessionToken;
+      return { token: sessionToken, persistence: 'session' };
     }
 
     const localToken = window.localStorage.getItem(key);
 
     if (localToken) {
-      return localToken;
+      return { token: localToken, persistence: 'local' };
     }
   }
 
-  return null;
+  return { token: null, persistence: 'memory' };
 };
 
-let memoryToken: string | null = readPersistedAuthToken();
+const initialAuthToken = readPersistedAuthToken();
+
+let memoryToken: string | null = initialAuthToken.token;
+let memoryPersistence: AuthTokenPersistence = initialAuthToken.persistence;
 
 export const getAuthToken = (): string | null => memoryToken;
+
+export const getAuthTokenPersistence = (): AuthTokenPersistence => memoryPersistence;
 
 export const saveAuthToken = (
   token: string | null | undefined,
   persistence: AuthTokenPersistence = 'session',
 ): void => {
   memoryToken = token || null;
+  memoryPersistence = memoryToken ? persistence : 'memory';
 
   if (typeof window === 'undefined') {
     return;
@@ -55,6 +66,7 @@ export const saveAuthToken = (
 
 export const clearAuthToken = (): void => {
   memoryToken = null;
+  memoryPersistence = 'memory';
   clearPersistedAuthToken();
 };
 
