@@ -53,6 +53,35 @@ const BillingOverview = ({
     });
   };
 
+  const formatPaymentDate = (dateString?: string | null) => {
+    if (!dateString) return 'Не запланирован';
+
+    const date = new Date(dateString);
+    const currentYear = new Date().getFullYear();
+
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      ...(date.getFullYear() !== currentYear ? { year: 'numeric' } : {}),
+    });
+  };
+
+  const getNextPaymentHint = () => {
+    if (!subscription) {
+      return 'Подписка не оформлена';
+    }
+
+    if (!subscription.next_billing_at) {
+      return 'Дата пока не назначена';
+    }
+
+    if (billingStats?.upcoming?.summary?.sufficient_balance === false) {
+      return 'Нужно пополнить баланс';
+    }
+
+    return subscription.is_auto_payment_enabled ? 'Автоплатеж включен' : 'Проверьте оплату заранее';
+  };
+
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'credit':
@@ -250,27 +279,33 @@ const BillingOverview = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
-        {/* Всего потрачено */}
+        {/* Следующий платеж */}
         <Card className="shadow-sm hover:shadow-md transition-shadow border-border">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-muted-foreground text-sm font-medium">Всего потрачено</p>
-                {billingStats?.stats?.stats?.total_spent_all_time ? (
-                  <p className="text-2xl font-bold text-foreground">
-                    ₽{billingStats.stats.stats.total_spent_all_time.toLocaleString()}
-                  </p>
-                ) : (
-                  <p className="text-muted-foreground">...</p>
-                )}
+                <p className="text-muted-foreground text-sm font-medium">Следующий платеж</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {formatPaymentDate(subscription?.next_billing_at)}
+                </p>
               </div>
-              <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center">
-                <ChartBarIcon className="w-6 h-6 text-red-500" />
+              <div className={cn(
+                "w-12 h-12 rounded-2xl flex items-center justify-center",
+                billingStats?.upcoming?.summary?.sufficient_balance === false ? "bg-red-50" : "bg-sky-50"
+              )}>
+                <ClockIcon className={cn(
+                  "w-6 h-6",
+                  billingStats?.upcoming?.summary?.sufficient_balance === false ? "text-red-500" : "text-sky-500"
+                )} />
               </div>
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
-              <ArrowDownIcon className="w-4 h-4 mr-1 text-red-500" />
-              <span>За все время</span>
+              {billingStats?.upcoming?.summary?.sufficient_balance === false ? (
+                <ArrowDownIcon className="w-4 h-4 mr-1 text-red-500" />
+              ) : (
+                <CheckCircleIcon className="w-4 h-4 mr-1 text-sky-500" />
+              )}
+              <span>{getNextPaymentHint()}</span>
             </div>
           </CardContent>
         </Card>
