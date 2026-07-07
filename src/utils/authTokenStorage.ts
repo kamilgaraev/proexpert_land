@@ -70,6 +70,16 @@ export const clearAuthToken = (): void => {
   clearPersistedAuthToken();
 };
 
+export const clearAuthTokenIfCurrent = (expectedToken: string | null): boolean => {
+  if (memoryToken !== expectedToken) {
+    return false;
+  }
+
+  clearAuthToken();
+
+  return true;
+};
+
 export const clearPersistedAuthToken = (): void => {
   if (typeof window === 'undefined') {
     return;
@@ -87,14 +97,38 @@ export const getAuthorizationHeader = (): Record<string, string> => {
   return memoryToken ? { Authorization: `Bearer ${memoryToken}` } : {};
 };
 
+export const getAuthorizationHeaderForToken = (token: string | null): Record<string, string> => {
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 export const getJsonAuthHeaders = (): Record<string, string> => ({
   Accept: 'application/json',
   ...getAuthorizationHeader(),
 });
 
-export const attachAuthorizationHeader = <T extends { headers?: any }>(config: T): T => {
+const hasAuthorizationHeader = (headers: any): boolean => {
+  if (!headers) {
+    return false;
+  }
+
+  if (typeof headers.has === 'function' && (headers.has('Authorization') || headers.has('authorization'))) {
+    return true;
+  }
+
+  return Boolean(headers.Authorization || headers.authorization);
+};
+
+export const attachAuthorizationHeader = <T extends { headers?: any; skipAuth?: boolean }>(config: T): T => {
+  if (config.skipAuth) {
+    return config;
+  }
+
   if (memoryToken) {
     config.headers = config.headers || {};
+
+    if (hasAuthorizationHeader(config.headers)) {
+      return config;
+    }
 
     if (typeof config.headers.set === 'function') {
       config.headers.set('Authorization', `Bearer ${memoryToken}`);

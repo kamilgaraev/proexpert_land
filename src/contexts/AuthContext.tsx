@@ -160,12 +160,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   const logout = () => {
-    void authService.logout().finally(() => {
-      setToken(null);
-      setUser(null);
-      setIsLoading(false);
-      window.dispatchEvent(new CustomEvent('user-logout'));
-    });
+    const tokenSnapshot = getAuthToken();
+    const logoutRequest = authService.logout(tokenSnapshot);
+
+    clearAuthToken();
+    setToken(null);
+    setUser(null);
+    setIsLoading(false);
+    window.dispatchEvent(new CustomEvent('user-logout'));
+
+    void logoutRequest.catch(() => undefined);
   };
   const value = {
     user,

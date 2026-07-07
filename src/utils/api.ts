@@ -6,7 +6,16 @@
 import axios from 'axios';
 // @ts-ignore
 // import api_instance from './axiosConfig'; 
-import { attachAuthorizationHeader, clearAuthToken, getAuthToken, getAuthTokenPersistence, saveAuthToken, type AuthTokenPersistence } from './authTokenStorage';
+import {
+  attachAuthorizationHeader,
+  clearAuthToken,
+  clearAuthTokenIfCurrent,
+  getAuthorizationHeaderForToken,
+  getAuthToken,
+  getAuthTokenPersistence,
+  saveAuthToken,
+  type AuthTokenPersistence,
+} from './authTokenStorage';
 import type { AdminFormData as AdminFormDataExternal, AdminUsersListResponse, AdminUserDetailResponse, AdminUserDeleteResponse } from '../types/admin';
 import NotificationService from '@components/shared/NotificationService';
 
@@ -56,8 +65,13 @@ export const getTokenFromStorages = (): string | null => {
   return getAuthToken();
 };
 
-const clearTokenFromStorages = () => {
-  clearAuthToken();
+const clearTokenFromStorages = (expectedToken?: string | null) => {
+  if (expectedToken === undefined) {
+    clearAuthToken();
+    return true;
+  }
+
+  return clearAuthTokenIfCurrent(expectedToken);
 };
 
 export type FetchApiResponse<T> = {
@@ -74,6 +88,7 @@ export type LegacyJsonPayload = ReturnType<typeof JSON.parse>;
 
 type RetriableRequestConfig = Axios.AxiosXHRConfig<unknown> & {
   _retry?: boolean;
+  skipAuth?: boolean;
 };
 
 type ApiErrorPayload = {
@@ -361,11 +376,16 @@ export const authService = {
   },
 
   // Выход из системы
-  logout: async () => {
+  logout: async (tokenSnapshot: string | null = getTokenFromStorages()) => {
+    const logoutConfig = {
+      headers: getAuthorizationHeaderForToken(tokenSnapshot),
+      skipAuth: tokenSnapshot === null,
+    } as RetriableRequestConfig;
+
     try {
-      return await api.post<ApiResponse<null>>('/auth/logout');
+      return await api.post<ApiResponse<null>>('/auth/logout', undefined, logoutConfig);
     } finally {
-      clearTokenFromStorages();
+      clearTokenFromStorages(tokenSnapshot);
     }
   },
 

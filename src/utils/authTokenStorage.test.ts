@@ -1,7 +1,14 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { clearAuthToken, getAuthToken, getAuthTokenPersistence, saveAuthToken } from './authTokenStorage';
+import {
+  attachAuthorizationHeader,
+  clearAuthToken,
+  clearAuthTokenIfCurrent,
+  getAuthToken,
+  getAuthTokenPersistence,
+  saveAuthToken,
+} from './authTokenStorage';
 
 afterEach(() => {
   clearAuthToken();
@@ -52,5 +59,41 @@ describe('authTokenStorage', () => {
     expect(window.localStorage.getItem('authToken')).toBeNull();
     expect(window.sessionStorage.getItem('token')).toBeNull();
     expect(window.sessionStorage.getItem('authToken')).toBeNull();
+  });
+
+  it('does not clear a newer token from a stale logout snapshot', () => {
+    saveAuthToken('old-token');
+    const logoutSnapshot = getAuthToken();
+
+    saveAuthToken('new-token');
+
+    expect(clearAuthTokenIfCurrent(logoutSnapshot)).toBe(false);
+    expect(getAuthToken()).toBe('new-token');
+    expect(window.sessionStorage.getItem('authToken')).toBe('new-token');
+  });
+
+  it('keeps explicit authorization headers for snapshot logout requests', () => {
+    saveAuthToken('new-token');
+    const config = {
+      headers: {
+        Authorization: 'Bearer old-token',
+      },
+    };
+
+    attachAuthorizationHeader(config);
+
+    expect(config.headers.Authorization).toBe('Bearer old-token');
+  });
+
+  it('does not attach the current token when auth is explicitly skipped', () => {
+    saveAuthToken('new-token');
+    const config = {
+      headers: {},
+      skipAuth: true,
+    };
+
+    attachAuthorizationHeader(config);
+
+    expect(config.headers).not.toHaveProperty('Authorization');
   });
 });
