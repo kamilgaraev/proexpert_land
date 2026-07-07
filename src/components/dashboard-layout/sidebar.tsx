@@ -16,6 +16,7 @@ interface NavigationItem {
   description?: string;
   visible?: boolean;
   badge?: number | string;
+  activeHrefs?: string[];
 }
 
 interface SidebarProps {
@@ -28,12 +29,14 @@ interface SidebarProps {
   workspaceSummary?: WorkspaceSummary | null;
 }
 
-const isNavigationMatch = (pathname: string, href: string) =>
-  pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`));
+const isNavigationMatch = (pathname: string, item: NavigationItem) =>
+  [item.href, ...(item.activeHrefs ?? [])].some(
+    (href) => pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`))
+  );
 
 const getActiveNavigationHref = (pathname: string, navigation: NavigationItem[]) =>
   navigation
-    .filter((item) => isNavigationMatch(pathname, item.href))
+    .filter((item) => isNavigationMatch(pathname, item))
     .sort((first, second) => second.href.length - first.href.length)[0]?.href;
 
 const SidebarContent = ({

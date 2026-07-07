@@ -43,6 +43,7 @@ const WORKSPACE_DESCRIPTIONS: Record<OrganizationCapability, string> = {
 const PROFILE_ROUTE_PRIORITIES: Record<OrganizationCapability, string[]> = {
   general_contracting: [
     '/dashboard/projects',
+    '/dashboard/contractor-marketplace',
     '/dashboard/contractor-invitations',
     '/dashboard/admins',
     '/dashboard/modules',
@@ -53,6 +54,7 @@ const PROFILE_ROUTE_PRIORITIES: Record<OrganizationCapability, string[]> = {
   ],
   subcontracting: [
     '/dashboard/projects',
+    '/dashboard/contractor-marketplace',
     '/dashboard/contractor-invitations',
     '/dashboard/modules',
     '/dashboard/organization',
@@ -77,6 +79,7 @@ const PROFILE_ROUTE_PRIORITIES: Record<OrganizationCapability, string[]> = {
   equipment_rental: [
     '/dashboard/modules',
     '/dashboard/billing',
+    '/dashboard/contractor-marketplace',
     '/dashboard/contractor-invitations',
     '/dashboard/organization',
     '/dashboard/projects',
@@ -86,6 +89,7 @@ const PROFILE_ROUTE_PRIORITIES: Record<OrganizationCapability, string[]> = {
   materials_supply: [
     '/dashboard/modules',
     '/dashboard/billing',
+    '/dashboard/contractor-marketplace',
     '/dashboard/contractor-invitations',
     '/dashboard/organization',
     '/dashboard/projects',
@@ -112,7 +116,10 @@ const PROFILE_ROUTE_PRIORITIES: Record<OrganizationCapability, string[]> = {
 
 const MODULE_ROUTE_PRIORITIES: Record<string, string[]> = {
   'project-management': ['/dashboard/projects'],
-  'contractor-portal': ['/dashboard/contractor-invitations'],
+  'contractor-portal': [
+    '/dashboard/contractor-marketplace',
+    '/dashboard/contractor-invitations',
+  ],
   procurement: ['/dashboard/modules', '/dashboard/billing'],
   payments: ['/dashboard/billing', '/dashboard/modules'],
   'basic-warehouse': ['/dashboard/modules'],

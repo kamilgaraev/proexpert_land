@@ -19,14 +19,22 @@ describe('dashboard search', () => {
       description: 'Проекты вашей организации',
     },
     {
-      name: 'Оплата и тариф',
-      href: '/dashboard/billing',
-      description: 'Баланс, тарифы и лимиты',
+      name: 'Сотрудники и доступ',
+      href: '/dashboard/admins',
+      description: 'Пользователи, роли и доступ к кабинету',
+      aliases: ['сотрудники', 'права доступа', 'роли', 'пользователи', 'доступ'],
+    },
+    {
+      name: 'Разделы и тариф',
+      href: '/dashboard/modules',
+      description: 'Подключенные разделы, тариф и оплата',
+      aliases: ['разделы системы', 'модули', 'оплата', 'тариф', 'баланс', 'лимиты'],
     },
     {
       name: 'Подрядчики',
-      href: '/dashboard/contractor-invitations',
-      description: 'Приглашения и совместная работа',
+      href: '/dashboard/contractor-marketplace',
+      description: 'Каталог, приглашения и офферы подрядчиков',
+      aliases: ['каталог подрядчиков', 'приглашения подрядчиков', 'офферы подрядчиков', 'партнеры'],
     },
   ];
 
@@ -34,7 +42,11 @@ describe('dashboard search', () => {
     const items = buildDashboardSearchItems({ navigation });
 
     expect(findDashboardSearchItems(items, 'проекты')[0]?.href).toBe('/dashboard/projects');
-    expect(findDashboardSearchItems(items, 'баланс')[0]?.href).toBe('/dashboard/billing');
+    expect(findDashboardSearchItems(items, 'баланс')[0]?.href).toBe('/dashboard/modules');
+    expect(findDashboardSearchItems(items, 'права')[0]?.href).toBe('/dashboard/admins');
+    expect(findDashboardSearchItems(items, 'каталог подрядчиков')[0]?.href).toBe(
+      '/dashboard/contractor-marketplace'
+    );
   });
 
   it('finds merged organization page by work directions alias', () => {
@@ -55,7 +67,12 @@ describe('dashboard search', () => {
   });
 
   it('adds contextual routes only when the parent section is visible', () => {
-    const items = buildDashboardSearchItems({ navigation });
+    const items = buildDashboardSearchItems({
+      navigation: [
+        { name: 'Оплата и тариф', href: '/dashboard/billing' },
+        { name: 'Подрядчики', href: '/dashboard/contractor-invitations' },
+      ],
+    });
 
     expect(findDashboardSearchItems(items, 'партнеры')[0]?.href).toBe(
       '/dashboard/contractor-referral-program'

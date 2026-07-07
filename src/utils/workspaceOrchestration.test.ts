@@ -10,9 +10,8 @@ describe('workspaceOrchestration', () => {
   const navigation = [
     { href: '/dashboard', name: 'Обзор' },
     { href: '/dashboard/projects', name: 'Проекты' },
-    { href: '/dashboard/modules', name: 'Модули' },
-    { href: '/dashboard/contractor-invitations', name: 'Партнеры' },
-    { href: '/dashboard/billing', name: 'Финансы' },
+    { href: '/dashboard/modules', name: 'Разделы и тариф' },
+    { href: '/dashboard/contractor-marketplace', name: 'Подрядчики' },
   ];
 
   it('prioritizes project routes for general contracting', () => {
@@ -38,9 +37,8 @@ describe('workspaceOrchestration', () => {
     expect(prioritized.map((item) => item.href)).toEqual([
       '/dashboard',
       '/dashboard/projects',
-      '/dashboard/contractor-invitations',
+      '/dashboard/contractor-marketplace',
       '/dashboard/modules',
-      '/dashboard/billing',
     ]);
   });
 
