@@ -68,6 +68,10 @@ const money = (value: number): string => value.toLocaleString('ru-RU', {
   maximumFractionDigits: 2,
 });
 
+const moneyWithCurrency = (value: number, currency: string): string => (
+  `${money(value)} ${currency}`
+);
+
 const SupplierRequestResponsePage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const [request, setRequest] = useState<PublicSupplierRequest | null>(null);
@@ -265,7 +269,17 @@ const SupplierRequestResponsePage: React.FC = () => {
             </section>
 
             <section className="rounded-xl bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-950">Позиции</h2>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-950">Позиции</h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Стоимость строк считается отдельно от доставки и НДС.
+                  </p>
+                </div>
+                <div className="rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-700">
+                  Материалы: <span className="font-semibold text-slate-950">{moneyWithCurrency(subtotalAmount, form.currency)}</span>
+                </div>
+              </div>
               <div className="mt-4 space-y-4">
                 {form.items.map((item, index) => (
                   <div key={item.supplier_request_line_id} className="rounded-lg border border-slate-200 p-4">
@@ -292,9 +306,9 @@ const SupplierRequestResponsePage: React.FC = () => {
                         />
                       </label>
                       <div className="text-sm text-slate-600">
-                        <span>Сумма</span>
+                        <span>Стоимость позиции</span>
                         <div className="mt-3 text-base font-semibold text-slate-950">
-                          {money(Number(item.unit_price || 0) * item.quantity)} {form.currency}
+                          {moneyWithCurrency(Number(item.unit_price || 0) * item.quantity, form.currency)}
                         </div>
                       </div>
                     </div>
@@ -318,8 +332,8 @@ const SupplierRequestResponsePage: React.FC = () => {
                 <Field label="КП действует до" type="date" required value={form.valid_until} onChange={(value) => setForm((prev) => ({ ...prev, valid_until: value }))} />
                 <Field label="Дата поставки" type="date" value={form.delivery_due_date} onChange={(value) => setForm((prev) => ({ ...prev, delivery_due_date: value }))} />
                 <Field label="Срок поставки, дней" type="number" value={form.lead_time_days} onChange={(value) => setForm((prev) => ({ ...prev, lead_time_days: value }))} />
-                <Field label="Доставка" type="number" value={form.delivery_amount} onChange={(value) => setForm((prev) => ({ ...prev, delivery_amount: value }))} />
-                <Field label="НДС" type="number" value={form.vat_amount} onChange={(value) => setForm((prev) => ({ ...prev, vat_amount: value }))} />
+                <Field label="Стоимость доставки" type="number" value={form.delivery_amount} onChange={(value) => setForm((prev) => ({ ...prev, delivery_amount: value }))} />
+                <Field label="Сумма НДС" type="number" value={form.vat_amount} onChange={(value) => setForm((prev) => ({ ...prev, vat_amount: value }))} />
                 <TextArea label="Условия оплаты" required value={form.payment_terms} onChange={(value) => setForm((prev) => ({ ...prev, payment_terms: value }))} />
                 <TextArea label="Условия доставки" required value={form.delivery_terms} onChange={(value) => setForm((prev) => ({ ...prev, delivery_terms: value }))} />
                 <TextArea label="Гарантия" value={form.warranty_terms} onChange={(value) => setForm((prev) => ({ ...prev, warranty_terms: value }))} />
@@ -329,11 +343,23 @@ const SupplierRequestResponsePage: React.FC = () => {
 
             <section className="rounded-xl bg-white p-6 shadow-sm">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="space-y-1 text-sm text-slate-600">
-                  <div>Позиции: {money(subtotalAmount)} {form.currency}</div>
-                  <div>Доставка: {money(deliveryAmount)} {form.currency}</div>
-                  <div>НДС: {money(vatAmount)} {form.currency}</div>
-                  <div className="text-xl font-bold text-slate-950">Итого: {money(totalAmount)} {form.currency}</div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-950">Итог КП</h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Итог складывается из материалов, доставки и НДС.
+                  </p>
+                  <div className="mt-4 min-w-[18rem] space-y-2 text-sm">
+                    <AmountRow label="Материалы" value={moneyWithCurrency(subtotalAmount, form.currency)} />
+                    <AmountRow label="Доставка" value={moneyWithCurrency(deliveryAmount, form.currency)} />
+                    <AmountRow label="НДС" value={moneyWithCurrency(vatAmount, form.currency)} />
+                    <div className="border-t border-slate-200 pt-3">
+                      <AmountRow
+                        label="Итого"
+                        value={moneyWithCurrency(totalAmount, form.currency)}
+                        strong
+                      />
+                    </div>
+                  </div>
                 </div>
                 <button
                   type="submit"
@@ -350,6 +376,19 @@ const SupplierRequestResponsePage: React.FC = () => {
     </main>
   );
 };
+
+interface AmountRowProps {
+  label: string;
+  value: string;
+  strong?: boolean;
+}
+
+const AmountRow: React.FC<AmountRowProps> = ({ label, value, strong = false }) => (
+  <div className="flex items-center justify-between gap-6">
+    <span className={strong ? 'text-base font-semibold text-slate-950' : 'text-slate-600'}>{label}</span>
+    <span className={strong ? 'text-xl font-bold text-slate-950' : 'font-semibold text-slate-950'}>{value}</span>
+  </div>
+);
 
 interface FieldProps {
   label: string;
