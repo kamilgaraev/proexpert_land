@@ -41,7 +41,6 @@ interface ProposalFormState {
   vat_mode: string;
   vat_rate: string;
   delivery_amount: string;
-  total_amount: string;
   valid_until: string;
   delivery_due_date: string;
   lead_time_days: string;
@@ -74,12 +73,20 @@ const moneyWithCurrency = (value: number, currency: string): string => (
 
 const roundMoney = (value: number): number => Math.round((value + Number.EPSILON) * 100) / 100;
 
-const calculateIncludedVatAmount = (totalAmount: number, vatRate: number): number => {
-  if (totalAmount <= 0 || vatRate <= 0) {
+const calculateIncludedVatAmount = (amountWithVat: number, vatRate: number): number => {
+  if (amountWithVat <= 0 || vatRate <= 0) {
     return 0;
   }
 
-  return roundMoney((totalAmount * vatRate) / (100 + vatRate));
+  return roundMoney((amountWithVat * vatRate) / (100 + vatRate));
+};
+
+const calculateExcludedVatAmount = (amountWithoutVat: number, vatRate: number): number => {
+  if (amountWithoutVat <= 0 || vatRate <= 0) {
+    return 0;
+  }
+
+  return roundMoney((amountWithoutVat * vatRate) / 100);
 };
 
 const SupplierRequestResponsePage: React.FC = () => {
@@ -87,6 +94,7 @@ const SupplierRequestResponsePage: React.FC = () => {
   const [request, setRequest] = useState<PublicSupplierRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [form, setForm] = useState<ProposalFormState>({
@@ -94,7 +102,6 @@ const SupplierRequestResponsePage: React.FC = () => {
     vat_mode: 'included',
     vat_rate: '20',
     delivery_amount: '0',
-    total_amount: '',
     valid_until: todayPlus(7),
     delivery_due_date: todayPlus(3),
     lead_time_days: '',
@@ -152,9 +159,13 @@ const SupplierRequestResponsePage: React.FC = () => {
     form.items.reduce((sum, item) => sum + (Number(item.unit_price || 0) * item.quantity), 0)
   ), [form.items]);
   const deliveryAmount = Number(form.delivery_amount || 0);
-  const totalAmount = Number(form.total_amount || 0);
   const vatRate = Number(form.vat_rate || 0);
-  const vatAmount = calculateIncludedVatAmount(totalAmount, vatRate);
+  const amountBeforeVat = roundMoney(subtotalAmount + deliveryAmount);
+  const isVatExcluded = form.vat_mode === 'excluded';
+  const vatAmount = isVatExcluded
+    ? calculateExcludedVatAmount(amountBeforeVat, vatRate)
+    : calculateIncludedVatAmount(amountBeforeVat, vatRate);
+  const totalAmount = isVatExcluded ? roundMoney(amountBeforeVat + vatAmount) : amountBeforeVat;
 
   const updateItem = (index: number, patch: Partial<ProposalLineForm>) => {
     setForm((prev) => ({
@@ -165,15 +176,24 @@ const SupplierRequestResponsePage: React.FC = () => {
     }));
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!token || !request?.can_submit) {
       return;
     }
 
+    setConfirmOpen(true);
+  };
+
+  const sendProposal = async () => {
+    if (!token || !request?.can_submit) {
+      return;
+    }
+
     try {
       setSubmitting(true);
+      setConfirmOpen(false);
       setError(null);
       setSuccess(null);
 
@@ -343,8 +363,36 @@ const SupplierRequestResponsePage: React.FC = () => {
                 <Field label="Дата поставки" type="date" value={form.delivery_due_date} onChange={(value) => setForm((prev) => ({ ...prev, delivery_due_date: value }))} />
                 <Field label="Срок поставки, дней" type="number" value={form.lead_time_days} onChange={(value) => setForm((prev) => ({ ...prev, lead_time_days: value }))} />
                 <Field label="Стоимость доставки" type="number" value={form.delivery_amount} onChange={(value) => setForm((prev) => ({ ...prev, delivery_amount: value }))} />
-                <Field label="Итоговая сумма" type="number" required value={form.total_amount} onChange={(value) => setForm((prev) => ({ ...prev, total_amount: value }))} />
                 <Field label="НДС, %" type="number" required value={form.vat_rate} onChange={(value) => setForm((prev) => ({ ...prev, vat_rate: value }))} />
+                <div className="md:col-span-2">
+                  <div className="text-sm text-slate-600">Режим НДС</div>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, vat_mode: 'included' }))}
+                      className={`rounded-lg border px-4 py-3 text-left text-sm font-semibold transition ${
+                        form.vat_mode === 'included'
+                          ? 'border-orange-500 bg-orange-50 text-orange-700'
+                          : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400'
+                      }`}
+                    >
+                      С учетом НДС
+                      <span className="mt-1 block text-xs font-normal text-slate-500">НДС уже входит в цены и доставку.</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, vat_mode: 'excluded' }))}
+                      className={`rounded-lg border px-4 py-3 text-left text-sm font-semibold transition ${
+                        form.vat_mode === 'excluded'
+                          ? 'border-orange-500 bg-orange-50 text-orange-700'
+                          : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400'
+                      }`}
+                    >
+                      Без учета НДС
+                      <span className="mt-1 block text-xs font-normal text-slate-500">НДС будет начислен сверху.</span>
+                    </button>
+                  </div>
+                </div>
                 <TextArea label="Условия оплаты" required value={form.payment_terms} onChange={(value) => setForm((prev) => ({ ...prev, payment_terms: value }))} />
                 <TextArea label="Условия доставки" required value={form.delivery_terms} onChange={(value) => setForm((prev) => ({ ...prev, delivery_terms: value }))} />
                 <TextArea label="Гарантия" value={form.warranty_terms} onChange={(value) => setForm((prev) => ({ ...prev, warranty_terms: value }))} />
@@ -357,11 +405,12 @@ const SupplierRequestResponsePage: React.FC = () => {
                 <div>
                   <h2 className="text-lg font-semibold text-slate-950">Итог КП</h2>
                   <p className="mt-1 text-sm text-slate-500">
-                    Сумма НДС рассчитывается из итоговой суммы и ставки.
+                    Итог пересчитывается из позиций, доставки и выбранного режима НДС.
                   </p>
                   <div className="mt-4 min-w-[18rem] space-y-2 text-sm">
                     <AmountRow label="Материалы" value={moneyWithCurrency(subtotalAmount, form.currency)} />
                     <AmountRow label="Доставка" value={moneyWithCurrency(deliveryAmount, form.currency)} />
+                    <AmountRow label={isVatExcluded ? 'Сумма без НДС' : 'Сумма с НДС'} value={moneyWithCurrency(amountBeforeVat, form.currency)} />
                     <AmountRow label={`НДС ${vatRate || 0}%`} value={moneyWithCurrency(vatAmount, form.currency)} />
                     <div className="border-t border-slate-200 pt-3">
                       <AmountRow
@@ -381,6 +430,41 @@ const SupplierRequestResponsePage: React.FC = () => {
                 </button>
               </div>
             </section>
+
+            {confirmOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4">
+                <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+                  <h2 className="text-lg font-semibold text-slate-950">Подтвердите отправку КП</h2>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Проверьте сумму и условия перед отправкой. После отправки изменить КП по этой ссылке нельзя.
+                  </p>
+                  <div className="mt-4 space-y-2 rounded-lg bg-slate-50 p-4 text-sm">
+                    <AmountRow label="Материалы" value={moneyWithCurrency(subtotalAmount, form.currency)} />
+                    <AmountRow label="Доставка" value={moneyWithCurrency(deliveryAmount, form.currency)} />
+                    <AmountRow label="НДС" value={moneyWithCurrency(vatAmount, form.currency)} />
+                    <AmountRow label="Итого" value={moneyWithCurrency(totalAmount, form.currency)} strong />
+                  </div>
+                  <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setConfirmOpen(false)}
+                      disabled={submitting}
+                      className="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Вернуться к редактированию
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void sendProposal()}
+                      disabled={submitting}
+                      className="rounded-lg bg-orange-600 px-4 py-2 font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300"
+                    >
+                      {submitting ? 'Отправка...' : 'Подтвердить отправку'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
         )}
       </div>
