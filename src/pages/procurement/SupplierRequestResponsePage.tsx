@@ -41,7 +41,7 @@ interface ProposalFormState {
   vat_mode: string;
   vat_rate: string;
   delivery_amount: string;
-  vat_amount: string;
+  total_amount: string;
   valid_until: string;
   delivery_due_date: string;
   lead_time_days: string;
@@ -72,6 +72,16 @@ const moneyWithCurrency = (value: number, currency: string): string => (
   `${money(value)} ${currency}`
 );
 
+const roundMoney = (value: number): number => Math.round((value + Number.EPSILON) * 100) / 100;
+
+const calculateIncludedVatAmount = (totalAmount: number, vatRate: number): number => {
+  if (totalAmount <= 0 || vatRate <= 0) {
+    return 0;
+  }
+
+  return roundMoney((totalAmount * vatRate) / (100 + vatRate));
+};
+
 const SupplierRequestResponsePage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const [request, setRequest] = useState<PublicSupplierRequest | null>(null);
@@ -84,7 +94,7 @@ const SupplierRequestResponsePage: React.FC = () => {
     vat_mode: 'included',
     vat_rate: '20',
     delivery_amount: '0',
-    vat_amount: '0',
+    total_amount: '',
     valid_until: todayPlus(7),
     delivery_due_date: todayPlus(3),
     lead_time_days: '',
@@ -142,8 +152,9 @@ const SupplierRequestResponsePage: React.FC = () => {
     form.items.reduce((sum, item) => sum + (Number(item.unit_price || 0) * item.quantity), 0)
   ), [form.items]);
   const deliveryAmount = Number(form.delivery_amount || 0);
-  const vatAmount = Number(form.vat_amount || 0);
-  const totalAmount = subtotalAmount + deliveryAmount + vatAmount;
+  const totalAmount = Number(form.total_amount || 0);
+  const vatRate = Number(form.vat_rate || 0);
+  const vatAmount = calculateIncludedVatAmount(totalAmount, vatRate);
 
   const updateItem = (index: number, patch: Partial<ProposalLineForm>) => {
     setForm((prev) => ({
@@ -175,11 +186,10 @@ const SupplierRequestResponsePage: React.FC = () => {
         body: JSON.stringify({
           subtotal_amount: subtotalAmount,
           delivery_amount: deliveryAmount,
-          vat_amount: vatAmount,
           total_amount: totalAmount,
           currency: form.currency,
           vat_mode: form.vat_mode,
-          vat_rate: form.vat_rate ? Number(form.vat_rate) : null,
+          vat_rate: vatRate,
           valid_until: form.valid_until,
           delivery_due_date: form.delivery_due_date || null,
           lead_time_days: form.lead_time_days ? Number(form.lead_time_days) : null,
@@ -273,7 +283,7 @@ const SupplierRequestResponsePage: React.FC = () => {
                 <div>
                   <h2 className="text-lg font-semibold text-slate-950">Позиции</h2>
                   <p className="mt-1 text-sm text-slate-500">
-                    Стоимость строк считается отдельно от доставки и НДС.
+                    Стоимость строк помогает сверить материалы, итоговая сумма и НДС указываются в условиях КП.
                   </p>
                 </div>
                 <div className="rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-700">
@@ -333,7 +343,8 @@ const SupplierRequestResponsePage: React.FC = () => {
                 <Field label="Дата поставки" type="date" value={form.delivery_due_date} onChange={(value) => setForm((prev) => ({ ...prev, delivery_due_date: value }))} />
                 <Field label="Срок поставки, дней" type="number" value={form.lead_time_days} onChange={(value) => setForm((prev) => ({ ...prev, lead_time_days: value }))} />
                 <Field label="Стоимость доставки" type="number" value={form.delivery_amount} onChange={(value) => setForm((prev) => ({ ...prev, delivery_amount: value }))} />
-                <Field label="Сумма НДС" type="number" value={form.vat_amount} onChange={(value) => setForm((prev) => ({ ...prev, vat_amount: value }))} />
+                <Field label="Итоговая сумма" type="number" required value={form.total_amount} onChange={(value) => setForm((prev) => ({ ...prev, total_amount: value }))} />
+                <Field label="НДС, %" type="number" required value={form.vat_rate} onChange={(value) => setForm((prev) => ({ ...prev, vat_rate: value }))} />
                 <TextArea label="Условия оплаты" required value={form.payment_terms} onChange={(value) => setForm((prev) => ({ ...prev, payment_terms: value }))} />
                 <TextArea label="Условия доставки" required value={form.delivery_terms} onChange={(value) => setForm((prev) => ({ ...prev, delivery_terms: value }))} />
                 <TextArea label="Гарантия" value={form.warranty_terms} onChange={(value) => setForm((prev) => ({ ...prev, warranty_terms: value }))} />
@@ -346,12 +357,12 @@ const SupplierRequestResponsePage: React.FC = () => {
                 <div>
                   <h2 className="text-lg font-semibold text-slate-950">Итог КП</h2>
                   <p className="mt-1 text-sm text-slate-500">
-                    Итог складывается из материалов, доставки и НДС.
+                    Сумма НДС рассчитывается из итоговой суммы и ставки.
                   </p>
                   <div className="mt-4 min-w-[18rem] space-y-2 text-sm">
                     <AmountRow label="Материалы" value={moneyWithCurrency(subtotalAmount, form.currency)} />
                     <AmountRow label="Доставка" value={moneyWithCurrency(deliveryAmount, form.currency)} />
-                    <AmountRow label="НДС" value={moneyWithCurrency(vatAmount, form.currency)} />
+                    <AmountRow label={`НДС ${vatRate || 0}%`} value={moneyWithCurrency(vatAmount, form.currency)} />
                     <div className="border-t border-slate-200 pt-3">
                       <AmountRow
                         label="Итого"
