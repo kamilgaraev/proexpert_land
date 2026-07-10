@@ -47,9 +47,9 @@ const renderRoutes = (articleElement: ReactNode, initialEntry = '/blog/missing-a
     </MemoryRouter>,
   );
 
-const createArticle = (slug: string): BlogArticle => ({
+const createArticle = (slug: string, title = 'Старая статья'): BlogArticle => ({
   id: 1,
-  title: 'Старая статья',
+  title,
   slug,
   excerpt: 'Описание старой статьи.',
   content: '<p>Материал</p>',
@@ -87,6 +87,21 @@ const createArticle = (slug: string): BlogArticle => ({
   updated_at: '2026-01-01T00:00:00Z',
 });
 
+const expectMissingArticleSeo = async () => {
+  await waitFor(() => {
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe(
+      'noindex, nofollow, noarchive',
+    );
+    expect(document.querySelector('meta[name="googlebot"]')?.getAttribute('content')).toBe(
+      'noindex, nofollow',
+    );
+    expect(document.querySelector('#ld-json')).toBeNull();
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'https://1мост.рф/blog',
+    );
+  });
+};
+
 describe('BlogArticlePage SEO for unavailable articles', () => {
   beforeEach(() => {
     blogApiMocks.getArticle.mockReset();
@@ -110,16 +125,7 @@ describe('BlogArticlePage SEO for unavailable articles', () => {
     await screen.findByText('Статья не найдена');
 
     expect(blogApiMocks.getArticle).not.toHaveBeenCalled();
-    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe(
-      'noindex, nofollow, noarchive',
-    );
-    expect(document.querySelector('meta[name="googlebot"]')?.getAttribute('content')).toBe(
-      'noindex, nofollow',
-    );
-    expect(document.querySelector('#ld-json')).toBeNull();
-    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
-      'https://1мост.рф/blog',
-    );
+    await expectMissingArticleSeo();
   });
 
   it('switches from the blog graph to noindex after a client 404', async () => {
@@ -135,20 +141,14 @@ describe('BlogArticlePage SEO for unavailable articles', () => {
     await screen.findByText('Статья не найдена');
 
     expect(blogApiMocks.getArticle).toHaveBeenCalledWith('missing-article');
-    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe(
-      'noindex, nofollow, noarchive',
-    );
-    expect(document.querySelector('meta[name="googlebot"]')?.getAttribute('content')).toBe(
-      'noindex, nofollow',
-    );
-    expect(document.querySelector('#ld-json')).toBeNull();
-    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
-      'https://1мост.рф/blog',
-    );
+    await expectMissingArticleSeo();
   });
 
   it('does not retain previous article SEO while the next slug is loading', async () => {
-    const nextArticleRequest = new Promise(() => {});
+    let resolveNextArticle!: (value: { data: { data: BlogArticle } }) => void;
+    const nextArticleRequest = new Promise<{ data: { data: BlogArticle } }>((resolve) => {
+      resolveNextArticle = resolve;
+    });
     blogApiMocks.getArticle.mockImplementation((slug: string) => (
       slug === 'old-article'
         ? Promise.resolve({ data: { data: createArticle(slug) } })
@@ -181,5 +181,10 @@ describe('BlogArticlePage SEO for unavailable articles', () => {
     });
 
     expect(document.title).not.toContain('Старая статья');
+
+    resolveNextArticle({ data: { data: createArticle('new-article', 'Новая статья') } });
+    await waitFor(() => {
+      expect(document.title).toBe('Новая статья | МОСТ');
+    });
   });
 });
