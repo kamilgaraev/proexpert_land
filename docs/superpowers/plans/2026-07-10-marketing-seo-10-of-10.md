@@ -145,17 +145,26 @@ Commit: `fix[marketing]: уточнена schema разметка страниц
 **Files:**
 - Create: `src/data/marketing/seoProductPages.ts`
 - Modify: `src/data/marketing/common.ts`
+- Modify: `src/data/marketing/capabilities.ts`
 - Modify: `src/data/marketing/seoPages.ts`
 - Modify: `src/data/marketing/index.ts`
 - Modify: `src/data/marketing/sitemapRoutes.json`
 - Modify: `src/App.tsx`
+- Modify: `public/llms.txt`
+- Create: `public/og/construction-procurement.png`
+- Create: `public/og/site-requests.png`
+- Create: `public/og/workforce-management.png`
+- Create: `public/og/construction-payments.png`
+- Create: `public/og/1c-integration.png`
+- Create: `public/og/contractor-marketplace.png`
+- Create: `public/og/project-pulse.png`
 - Modify: `src/data/marketing/siteIndex.test.ts`
 - Modify: `src/data/marketing/marketingContent.test.ts`
 - Modify: `src/utils/seo.test.ts`
 
 - [ ] **Step 1: Написать RED для полного контракта страниц**
 
-Для ключей `construction-procurement`, `site-requests`, `workforce-management`, `construction-payments`, `one-c-integration`, `contractor-marketplace`, `ai-construction-assistant` проверить наличие meta, indexable sitemap route, landing content, четырех supporting queries, трех role views, трех внутренних ссылок и трех FAQ. Проверить, что URL отдает SEO status `200`, canonical на себя и page-specific `Service` schema.
+Для ключей `construction-procurement`, `site-requests`, `workforce-management`, `construction-payments`, `1c-integration`, `contractor-marketplace`, `project-pulse` проверить наличие meta, indexable sitemap route, landing content, четырех supporting queries, трех role views, трех внутренних ссылок и трех FAQ. Проверить, что URL отдает SEO status `200`, canonical на себя и page-specific `Service` schema. Для каждого URL проверить наличие PNG OG-image.
 
 - [ ] **Step 2: Запустить RED**
 
@@ -165,17 +174,23 @@ Expected: FAIL, потому что новые keys отсутствуют.
 
 - [ ] **Step 3: Добавить URL и meta**
 
-Добавить typed paths и meta с уникальными title/description/keywords. Title должны описывать буквальный коммерческий intent, заканчиваться брендом `| МОСТ` там, где он помогает читаемости, и не обещать отсутствующие интеграции или автоматические решения.
+Добавить typed paths и meta с уникальными title/description/keywords. Title должны описывать буквальный коммерческий intent, заканчиваться брендом `| МОСТ` там, где он помогает читаемости, и не обещать отсутствующие интеграции или автоматические решения. Для 1С использовать путь `/1c-integration`, для AI-сводки — `/project-pulse`.
 
 - [ ] **Step 4: Добавить уникальный operational content**
 
-В `seoProductPages.ts` создать семь `MarketingSeoLandingPage` через локальную typed factory. Для каждой страницы задать самостоятельные сигналы, before/after, метрики без выдуманных чисел, аудитории, проблемы, автоматизации, role views, related links, blog links, contact highlights и FAQ. Тексты основывать на продуктовых контурах из дизайн-спецификации.
+В `seoProductPages.ts` создать семь `MarketingSeoLandingPage` через локальную typed factory. Для каждой страницы задать самостоятельные сигналы, before/after, метрики без выдуманных чисел, аудитории, проблемы, автоматизации, role views, related links, blog links, contact highlights и FAQ. Добавить уникальный proof-workflow: цепочка закупки; типы заявок с объекта; очередь платежных действий; расчетный период персонала; карта обмена и сопоставлений 1С/MDM; профиль и оффер подрядчику; источники Project Pulse. Тексты основывать на продуктовых контурах из дизайн-спецификации.
 
 - [ ] **Step 5: Подключить маршруты и перелинковку**
 
-Добавить семь `<Route>` с `SeoClusterPage`, включить URL в sitemap JSON и добавить ссылки в коммерческую/модульную коллекцию так, чтобы каждый новый кластер имел минимум две входящие контекстные ссылки из registry.
+Добавить семь `<Route>` с `SeoClusterPage`, включить URL в sitemap JSON и добавить ссылки в коммерческую/модульную коллекцию так, чтобы каждый новый кластер имел минимум две входящие контекстные ссылки из registry. Обновить `public/llms.txt`. Добавить capability для 1С/MDM и marketplace, исправить `sourceOfTruth` платежей на `Core/Payments`, а Project Pulse на `Features/AIAssistant`. Усилить существующую `/change-control` связью RFI с бюджетом, сроками и платежами без создания конкурирующих URL.
 
-- [ ] **Step 6: Запустить GREEN и commit**
+- [ ] **Step 6: Сгенерировать OG images**
+
+Run: `npm run generate:og`
+
+Expected: PNG 1200x630 существует для каждого нового slug; команда не запускает Vite build.
+
+- [ ] **Step 7: Запустить GREEN и commit**
 
 Run: `npm run test:run -- src/data/marketing/siteIndex.test.ts src/data/marketing/marketingContent.test.ts src/utils/seo.test.ts`
 
@@ -223,4 +238,3 @@ Expected: отчет сохранен только в выводе; SSR-aware р
 - [ ] **Step 6: Финальный review и commit исправлений проверки**
 
 Провести независимый review соответствия всей спецификации и отдельный code-quality review. Исправить подтвержденные проблемы, повторить Step 1-4. Если появились исправления, commit: `fix[marketing]: завершена SEO верификация сайта`.
-
