@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { buildServerSeoPayload } from '@/renderer/serverSeo';
 
+type StructuredDataNode = Record<string, unknown>;
+
+const parseStructuredDataGraph = (structuredDataTag: string) => {
+  const json = structuredDataTag.slice(
+    structuredDataTag.indexOf('>') + 1,
+    structuredDataTag.lastIndexOf('</script>'),
+  );
+
+  return JSON.parse(json) as { '@context': string; '@graph': StructuredDataNode[] };
+};
+
+const getGraphTypes = (structuredDataTag: string) =>
+  parseStructuredDataGraph(structuredDataTag)['@graph'].map((node) => node['@type']);
+
 describe('buildServerSeoPayload', () => {
   it('renders home SEO payload with faq schema and home og image', () => {
     const payload = buildServerSeoPayload('/');
@@ -14,6 +28,40 @@ describe('buildServerSeoPayload', () => {
     expect(payload.faviconTags).toContain('/favicon-120x120.png');
     expect(payload.allMeta).toContain('<meta name="geo.region" content="RU-MOW" />');
     expect(payload.allMeta).toContain('<meta name="geo.placename" content="Москва" />');
+    expect(getGraphTypes(payload.structuredDataTag)).toEqual([
+      'Organization',
+      'WebSite',
+      'SoftwareApplication',
+      'WebPage',
+      'FAQPage',
+    ]);
+  });
+
+  it('renders offers only on pricing', () => {
+    const payloads = {
+      home: buildServerSeoPayload('/'),
+      pricing: buildServerSeoPayload('/pricing'),
+      features: buildServerSeoPayload('/features'),
+      cluster: buildServerSeoPayload('/construction-crm'),
+      blog: buildServerSeoPayload('/blog'),
+    };
+
+    expect(getGraphTypes(payloads.pricing.structuredDataTag)).toEqual([
+      'Organization',
+      'BreadcrumbList',
+      'WebPage',
+      'Product',
+    ]);
+    expect(JSON.stringify(parseStructuredDataGraph(payloads.pricing.structuredDataTag))).toContain('"offers"');
+
+    for (const [page, payload] of Object.entries(payloads)) {
+      const graph = parseStructuredDataGraph(payload.structuredDataTag);
+
+      expect(JSON.stringify(graph), page).not.toContain('AggregateRating');
+      if (page !== 'pricing') {
+        expect(JSON.stringify(graph), page).not.toContain('"offers"');
+      }
+    }
   });
 
   it('renders cluster schema for commercial landing pages', () => {
@@ -24,6 +72,15 @@ describe('buildServerSeoPayload', () => {
     expect(payload.structuredDataTag).toContain('"@type":"Service"');
     expect(payload.structuredDataTag).toContain('"@type":"HowTo"');
     expect(payload.structuredDataTag).toContain('"@type":"FAQPage"');
+    expect(getGraphTypes(payload.structuredDataTag)).toEqual([
+      'Organization',
+      'BreadcrumbList',
+      'WebPage',
+      'Service',
+      'ItemList',
+      'HowTo',
+      'FAQPage',
+    ]);
   });
 
   it('returns indexable metadata for known marketing pages', () => {
@@ -34,6 +91,11 @@ describe('buildServerSeoPayload', () => {
     expect(payload.canonicalUrl).toBe('https://1мост.рф/features');
     expect(payload.allMeta).toContain('index, follow');
     expect(payload.structuredDataTag).toContain('application/ld+json');
+    expect(getGraphTypes(payload.structuredDataTag)).toEqual([
+      'Organization',
+      'BreadcrumbList',
+      'WebPage',
+    ]);
   });
 
   it('renders blog payload with blog og image', () => {
@@ -42,6 +104,11 @@ describe('buildServerSeoPayload', () => {
     expect(payload.statusCode).toBe(200);
     expect(payload.allMeta).toContain('https://1мост.рф/og/blog.png');
     expect(payload.allMeta).toContain('<meta name="robots" content="index, follow');
+    expect(getGraphTypes(payload.structuredDataTag)).toEqual([
+      'Organization',
+      'BreadcrumbList',
+      'CollectionPage',
+    ]);
   });
 
   it('uses server-provided article metadata for dynamic blog article pages', () => {
@@ -66,6 +133,33 @@ describe('buildServerSeoPayload', () => {
     expect(payload.allMeta).toContain('https://1мост.рф/og/contractor-control.png');
     expect(payload.allMeta).not.toContain('https://1мост.рф/og/contractor-control.svg');
     expect(payload.structuredDataTag).toContain('"@type":"BlogPosting"');
+    expect(getGraphTypes(payload.structuredDataTag)).toEqual([
+      'Organization',
+      'BreadcrumbList',
+      'WebPage',
+      'BlogPosting',
+    ]);
+    expect(parseStructuredDataGraph(payload.structuredDataTag)['@graph']).toHaveLength(4);
+  });
+
+  it('escapes tag-opening characters in the SSR graph', () => {
+    const payload = buildServerSeoPayload('/blog/test-article', {
+      title: 'Тестовая статья | МОСТ',
+      description: 'Описание тестовой статьи.',
+      canonicalUrl: 'https://1мост.рф/blog/test-article',
+      type: 'article',
+      statusCode: 200,
+      structuredData: {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: '</script><div>Тест</div>',
+      },
+    });
+
+    expect(payload.structuredDataTag).not.toContain('</script><div>');
+    expect(parseStructuredDataGraph(payload.structuredDataTag)['@graph'][3].headline).toBe(
+      '</script><div>Тест</div>',
+    );
   });
 
   it('returns noindex 404 metadata for unknown routes', () => {
@@ -75,6 +169,7 @@ describe('buildServerSeoPayload', () => {
     expect(payload.allMeta).toContain('<meta name="robots" content="noindex, nofollow, noarchive"');
     expect(payload.canonicalUrl).toBe('https://1мост.рф/');
     expect(payload.title).toBe('Страница не найдена | МОСТ');
+    expect(payload.structuredDataTag).toBe('');
   });
 
   it('returns a true 404 payload for unknown paths', () => {

@@ -29,6 +29,23 @@ export interface PageSEOData {
   structuredData: unknown[];
 }
 
+export type StructuredDataNode = Record<string, unknown>;
+
+export interface StructuredDataGraph {
+  '@context': 'https://schema.org';
+  '@graph': StructuredDataNode[];
+}
+
+export interface BuildStructuredDataGraphInput {
+  pathname: string;
+  title: string;
+  description: string;
+  canonicalUrl: string;
+  noIndex: boolean;
+  statusCode: number;
+  structuredData?: unknown;
+}
+
 const BASE_URL = 'https://1мост.рф';
 const OG_BASE_PATH = `${BASE_URL}/og`;
 const MARKETING_OG_IMAGE_PATTERN = /^(https?:\/\/(?:www\.)?(?:prohelper\.pro|1мост\.рф|xn--1-xtbgmf\.xn--p1ai))?\/og\/([^?#]+)\.svg([?#].*)?$/i;
@@ -281,7 +298,17 @@ const buildPackageOffers = () => {
   );
 };
 
-export const generateSoftwareSchema = () => ({
+export const generateWebSiteSchema = () => ({
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': `${BASE_URL}/#website`,
+  name: marketingCompany.brand,
+  url: `${BASE_URL}/`,
+  description: marketingSeo.home.description,
+  inLanguage: 'ru-RU',
+});
+
+export const generateSoftwareSchema = (includeOffers = false) => ({
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
   name: marketingCompany.brand,
@@ -290,7 +317,7 @@ export const generateSoftwareSchema = () => ({
   url: BASE_URL,
   description: marketingSeo.home.description,
   featureList: marketingCapabilityMatrix.map((capability) => capability.title),
-  offers: buildPackageOffers(),
+  ...(includeOffers ? { offers: buildPackageOffers() } : {}),
 });
 
 export const generateBreadcrumbSchema = (items: Array<{ name: string; url: string }>) => ({
@@ -410,7 +437,7 @@ export const generateArticleSchema = (article: {
   image: normalizeOgImageUrl(article.image) ?? `${OG_BASE_PATH}/blog.png`,
   author: {
     '@type': 'Person',
-    name: article.author,
+    name: /^prohelper$/i.test(article.author.trim()) ? marketingCompany.brand : article.author,
   },
   publisher: {
     '@type': 'Organization',
@@ -448,6 +475,186 @@ export const generateWebPageSchema = (page: {
     : undefined,
   inLanguage: 'ru-RU',
 });
+
+const generateCollectionPageSchema = (page: {
+  name: string;
+  description: string;
+  url: string;
+}) => ({
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: page.name,
+  description: page.description,
+  url: page.url,
+  isPartOf: {
+    '@id': `${BASE_URL}/#website`,
+  },
+  inLanguage: 'ru-RU',
+});
+
+const normalizeStructuredDataNodes = (value: unknown): StructuredDataNode[] => {
+  if (!value) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => normalizeStructuredDataNodes(item));
+  }
+
+  if (typeof value !== 'object') {
+    return [];
+  }
+
+  const node = value as StructuredDataNode;
+  if (Array.isArray(node['@graph'])) {
+    return normalizeStructuredDataNodes(node['@graph']);
+  }
+
+  return [node];
+};
+
+const sanitizeStructuredDataValue = (value: unknown, allowOffers: boolean): unknown => {
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizeStructuredDataValue(item, allowOffers));
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value as StructuredDataNode)
+      .filter(([key]) => key !== '@context' && key !== 'aggregateRating' && (allowOffers || key !== 'offers'))
+      .map(([key, item]) => [key, sanitizeStructuredDataValue(item, allowOffers)]),
+  );
+};
+
+const stableSerialize = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableSerialize(item)).join(',')}]`;
+  }
+
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as StructuredDataNode)
+      .filter(([, item]) => item !== undefined)
+      .sort(([left], [right]) => left.localeCompare(right));
+
+    return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${stableSerialize(item)}`).join(',')}}`;
+  }
+
+  return JSON.stringify(value) ?? 'undefined';
+};
+
+const deduplicateStructuredDataNodes = (nodes: StructuredDataNode[]) => {
+  const seen = new Set<string>();
+
+  return nodes.filter((node) => {
+    const serialized = stableSerialize(node);
+    if (seen.has(serialized)) {
+      return false;
+    }
+
+    seen.add(serialized);
+    return true;
+  });
+};
+
+const stripTitleBrand = (title: string) => title.replace(/\s+\|\s+(?:МОСТ|ProHelper)$/i, '').trim();
+
+const stripUrlQuery = (url: string) => url.replace(/[?#].*$/, '');
+
+export const buildStructuredDataGraph = ({
+  pathname,
+  title,
+  description,
+  canonicalUrl,
+  noIndex,
+  statusCode,
+  structuredData,
+}: BuildStructuredDataGraphInput): StructuredDataGraph => {
+  if (noIndex || statusCode !== 200) {
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [],
+    };
+  }
+
+  const normalizedPath = normalizeMarketingPath(pathname);
+  const pageKey = resolveMarketingSeoKey(normalizedPath);
+  const isBlogArticle = /^\/blog\/[^/]+$/.test(normalizedPath);
+  const normalizedCanonicalUrl = stripUrlQuery(canonicalUrl);
+  const currentPageName = stripTitleBrand(title);
+  const breadcrumbItems = [
+    { name: 'Главная', url: `${BASE_URL}/` },
+    ...(normalizedPath === '/'
+      ? []
+      : normalizedPath.startsWith('/blog/')
+        ? [
+            { name: 'Блог', url: `${BASE_URL}/blog` },
+            { name: currentPageName, url: normalizedCanonicalUrl },
+          ]
+        : [{ name: currentPageName, url: normalizedCanonicalUrl }]),
+  ];
+  const webPage = generateWebPageSchema({
+    name: title,
+    description,
+    url: normalizedCanonicalUrl,
+  });
+  const nodes: unknown[] = [generateOrganizationSchema()];
+
+  if (normalizedPath === marketingPaths.home) {
+    nodes.push(
+      generateWebSiteSchema(),
+      generateSoftwareSchema(),
+      webPage,
+      generateFAQSchema(marketingFaqs),
+    );
+  } else if (normalizedPath === marketingPaths.pricing) {
+    nodes.push(generateBreadcrumbSchema(breadcrumbItems), webPage, generatePricingSchema());
+  } else if (pageKey in marketingSeoLandingPages) {
+    nodes.push(
+      generateBreadcrumbSchema(breadcrumbItems),
+      webPage,
+      ...resolveClusterStructuredData(pageKey, normalizedCanonicalUrl),
+    );
+  } else if (normalizedPath === marketingPaths.blog) {
+    nodes.push(
+      generateBreadcrumbSchema(breadcrumbItems),
+      generateCollectionPageSchema({
+        name: title,
+        description,
+        url: normalizedCanonicalUrl,
+      }),
+    );
+  } else {
+    nodes.push(generateBreadcrumbSchema(breadcrumbItems), webPage);
+  }
+
+  const customNodes = normalizeStructuredDataNodes(structuredData);
+  nodes.push(
+    ...(isBlogArticle
+      ? customNodes.filter((node) => {
+          const nodeType = node['@type'];
+          return nodeType === 'BlogPosting' || (Array.isArray(nodeType) && nodeType.includes('BlogPosting'));
+        }).slice(0, 1)
+      : customNodes),
+  );
+
+  const allowOffers = normalizedPath === marketingPaths.pricing;
+  const sanitizedNodes = normalizeStructuredDataNodes(nodes)
+    .filter((node) => {
+      const nodeType = node['@type'];
+      return nodeType !== 'AggregateRating'
+        && !(Array.isArray(nodeType) && nodeType.includes('AggregateRating'))
+        && (allowOffers || nodeType !== 'Offer');
+    })
+    .map((node) => sanitizeStructuredDataValue(node, allowOffers) as StructuredDataNode);
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': deduplicateStructuredDataNodes(sanitizedNodes),
+  };
+};
 
 export const validateSEOLength = (title: string, description: string) => {
   const warnings: string[] = [];

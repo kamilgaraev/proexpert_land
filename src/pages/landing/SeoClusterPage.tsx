@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import ContactForm from '@/components/landing/ContactForm';
 import FaqAccordion from '@/components/marketing/blocks/FaqAccordion';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
@@ -10,7 +9,6 @@ import {
 } from '@/components/marketing/MarketingPrimitives';
 import { marketingSeoLandingPages, marketingSeo, marketingPaths } from '@/data/marketingRegistry';
 import { useSEO } from '@/hooks/useSEO';
-import { generateCommercialPageSchema, generateHowToSchema, generateItemListSchema } from '@/utils/seo';
 
 type SeoClusterPageProps = {
   pageKey: keyof typeof marketingSeoLandingPages;
@@ -18,7 +16,6 @@ type SeoClusterPageProps = {
 
 const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
   const page = marketingSeoLandingPages[pageKey];
-  const canonicalUrl = `https://1мост.рф${page.path}`;
   const trustProfile = page.trust ?? {
     title: 'Когда этот сценарий дает лучший результат',
     description:
@@ -30,43 +27,10 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
     firstStepTitle: 'С чего обычно начинают',
     firstStep: page.contactHighlights.slice(0, 3),
   };
-  const { addBreadcrumbSchema, addFAQSchema } = useSEO({
+  useSEO({
     ...marketingSeo[pageKey],
     type: 'website',
-    structuredData: [
-      generateCommercialPageSchema({
-        name: page.title,
-        description: page.description,
-        url: canonicalUrl,
-        audience: page.audiences,
-        keywords: page.supportingQueries,
-      }),
-      generateItemListSchema({
-        name: `Связанные решения ${page.title}`,
-        url: canonicalUrl,
-        items: page.relatedLinks.map((link) => ({
-          name: link.label,
-          url: `https://1мост.рф${link.href}`,
-          description: link.description,
-        })),
-      }),
-      generateHowToSchema({
-        name: `Как запускают ${page.title}`,
-        description: trustProfile.description,
-        url: canonicalUrl,
-        steps: trustProfile.firstStep,
-      }),
-    ],
   });
-
-  useEffect(() => {
-    addFAQSchema(page.faq);
-    addBreadcrumbSchema([
-      { name: 'МОСТ', url: 'https://1мост.рф/' },
-      { name: 'Решения', url: 'https://1мост.рф/solutions' },
-      { name: page.title, url: canonicalUrl },
-    ]);
-  }, [addBreadcrumbSchema, addFAQSchema, canonicalUrl, page.faq, page.title]);
 
   return (
     <div className="marketing-page-shell">

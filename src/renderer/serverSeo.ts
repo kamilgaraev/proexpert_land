@@ -1,9 +1,6 @@
 import { resolveMarketingRedirectTarget } from '@/data/marketingRegistry';
 import {
-  generateBreadcrumbSchema,
-  generateOrganizationSchema,
-  generateSoftwareSchema,
-  generateWebPageSchema,
+  buildStructuredDataGraph,
   getPageSEOData,
   normalizeOgImageUrl,
   type PageSEOData,
@@ -27,24 +24,10 @@ const escapeHtmlAttribute = (value: string) =>
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-const normalizeStructuredData = (value: unknown): unknown[] => {
-  if (!value) {
-    return [];
-  }
-
-  if (Array.isArray(value)) {
-    return value.flatMap((item) => normalizeStructuredData(item));
-  }
-
-  return [value];
-};
-
-const stripBrandSuffix = (title: string) => title.replace(/\s+\|\s+МОСТ$/, '').trim();
-
 export const buildServerSeoPayload = (
   pathname: string,
   documentProps?: Partial<
-    PageSEOData & {
+    Omit<PageSEOData, 'structuredData'> & {
       ogImage?: string;
       noIndex?: boolean;
       type?: 'website' | 'article' | 'product';
@@ -75,15 +58,12 @@ export const buildServerSeoPayload = (
   const title = resolvedDocumentProps.title ?? baseSeo.title;
   const description = resolvedDocumentProps.description ?? baseSeo.description;
   const keywords = resolvedDocumentProps.keywords ?? baseSeo.keywords;
-  const canonicalUrl = resolvedDocumentProps.canonicalUrl ?? baseSeo.canonicalUrl;
+  const canonicalUrl = (resolvedDocumentProps.canonicalUrl ?? baseSeo.canonicalUrl).replace(/[?#].*$/, '');
   const ogImage = normalizeOgImageUrl(resolvedDocumentProps.ogImage ?? baseSeo.ogImage) ?? baseSeo.ogImage;
   const noIndex = resolvedDocumentProps.noIndex ?? baseSeo.noIndex;
   const ogType = resolvedDocumentProps.type ?? baseSeo.type;
   const lang = resolvedDocumentProps.lang ?? baseSeo.lang;
-  const structuredData = [
-    ...baseSeo.structuredData,
-    ...normalizeStructuredData(resolvedDocumentProps.structuredData),
-  ];
+  const statusCode = resolvedDocumentProps.statusCode ?? baseSeo.statusCode;
 
   const robotsContent = noIndex
     ? 'noindex, nofollow, noarchive'
@@ -130,30 +110,18 @@ export const buildServerSeoPayload = (
     `<meta name="twitter:image:alt" content="${escapedTitle}" />`,
   ].join('\n');
 
-  const breadcrumbItems = [{ name: 'Главная', url: 'https://1мост.рф/' }];
-  if (pathname !== '/') {
-    breadcrumbItems.push({
-      name: stripBrandSuffix(title),
-      url: canonicalUrl,
-    });
-  }
-
-  const structuredJson = JSON.stringify({
-    '@graph': [
-      generateOrganizationSchema(),
-      generateSoftwareSchema(),
-      generateBreadcrumbSchema(breadcrumbItems),
-      generateWebPageSchema({
-        name: title,
-        description,
-        url: canonicalUrl,
-        breadcrumbs: breadcrumbItems,
-      }),
-      ...structuredData,
-    ],
-  }).replace(/</g, '\\u003c');
-
-  const structuredDataTag = `<script id="ld-json" type="application/ld+json">${structuredJson}</script>`;
+  const structuredDataGraph = buildStructuredDataGraph({
+    pathname,
+    title,
+    description,
+    canonicalUrl,
+    noIndex,
+    statusCode,
+    structuredData: resolvedDocumentProps.structuredData,
+  });
+  const structuredDataTag = structuredDataGraph['@graph'].length > 0
+    ? `<script id="ld-json" type="application/ld+json">${JSON.stringify(structuredDataGraph).replace(/</g, '\\u003c')}</script>`
+    : '';
 
   const faviconTags = [
     `<link rel="icon" type="image/svg+xml" href="/favicon.svg" />`,
@@ -169,7 +137,7 @@ export const buildServerSeoPayload = (
   ].join('\n');
 
   return {
-    statusCode: resolvedDocumentProps.statusCode ?? baseSeo.statusCode,
+    statusCode,
     lang,
     title,
     canonicalUrl: escapedCanonicalUrl,

@@ -142,15 +142,11 @@ const productScreenshots = [
 ];
 
 const HomePage = () => {
-  const { addFAQSchema } = useSEO({
+  useSEO({
     ...marketingSeo.home,
     type: 'website',
   });
   const { trackPageView } = useAnalytics();
-
-  useEffect(() => {
-    addFAQSchema(marketingFaqs);
-  }, [addFAQSchema]);
 
   useEffect(() => {
     trackPageView('marketing_home');

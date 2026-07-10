@@ -6,7 +6,13 @@ import { describe, expect, it } from 'vitest';
 import { marketingSitemapRoutes } from '@/data/marketingRegistry';
 import { buildArticleDocumentProps } from '@/pages/catch-all.page.server';
 import { normalizeArticleTitleBrand } from './seo';
-import { getPageSEOData, normalizeOgImageUrl } from '@/utils/seo';
+import {
+  buildStructuredDataGraph,
+  generateArticleSchema,
+  generateSoftwareSchema,
+  getPageSEOData,
+  normalizeOgImageUrl,
+} from '@/utils/seo';
 
 const require = createRequire(import.meta.url);
 const { renderSitemapXml, validateSitemapRoutes } = require(path.resolve(process.cwd(), 'server/sitemap.cjs')) as {
@@ -46,6 +52,72 @@ describe('getPageSEOData', () => {
     expect(seoData.noIndex).toBe(false);
     expect(seoData.ogImage).toBe('https://1мост.рф/og/construction-crm.png');
     expect(seoData.structuredData).toHaveLength(4);
+  });
+});
+
+describe('buildStructuredDataGraph', () => {
+  const baseInput = {
+    pathname: '/features',
+    title: 'Возможности МОСТ',
+    description: 'Описание возможностей МОСТ.',
+    canonicalUrl: 'https://1мост.рф/features',
+    noIndex: false,
+    statusCode: 200,
+  };
+
+  it('normalizes arrays and nested graphs under one context and deduplicates identical nodes', () => {
+    const duplicate = {
+      '@context': 'https://schema.org',
+      '@type': 'Thing',
+      name: 'Проверенная сущность',
+    };
+    const graph = buildStructuredDataGraph({
+      ...baseInput,
+      structuredData: [
+        duplicate,
+        {
+          '@context': 'https://schema.org',
+          '@graph': [
+            { name: 'Проверенная сущность', '@type': 'Thing', '@context': 'https://schema.org' },
+            { '@type': 'Dataset', name: 'Данные страницы' },
+          ],
+        },
+      ],
+    });
+
+    expect(graph['@context']).toBe('https://schema.org');
+    expect(graph['@graph'].filter((node) => node['@type'] === 'Thing')).toHaveLength(1);
+    expect(graph['@graph'].map((node) => node['@type'])).toEqual([
+      'Organization',
+      'BreadcrumbList',
+      'WebPage',
+      'Thing',
+      'Dataset',
+    ]);
+    expect(JSON.stringify(graph['@graph'])).not.toContain('"@context"');
+  });
+
+  it('returns an empty graph for noindex and non-success pages', () => {
+    expect(buildStructuredDataGraph({ ...baseInput, noIndex: true })['@graph']).toEqual([]);
+    expect(buildStructuredDataGraph({ ...baseInput, statusCode: 404 })['@graph']).toEqual([]);
+  });
+
+  it('keeps software offers opt-in', () => {
+    expect(generateSoftwareSchema()).not.toHaveProperty('offers');
+    expect(generateSoftwareSchema(true)).toHaveProperty('offers');
+  });
+
+  it('normalizes the legacy article author brand to МОСТ', () => {
+    const schema = generateArticleSchema({
+      title: 'Статья',
+      description: 'Описание статьи.',
+      author: 'ProHelper',
+      category: 'Управление',
+      url: 'https://1мост.рф/blog/article',
+    });
+
+    expect(schema.author.name).toBe('МОСТ');
+    expect(schema.publisher.name).toBe('МОСТ');
   });
 });
 

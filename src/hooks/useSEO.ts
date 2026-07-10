@@ -1,15 +1,26 @@
 import { useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
-  generateOrganizationSchema,
-  generateSoftwareSchema,
-  generateWebPageSchema,
+  buildStructuredDataGraph,
   getPageSEOData,
   normalizeOgImageUrl,
+  type StructuredDataGraph,
 } from '@/utils/seo';
 
 const isBrowser = typeof document !== 'undefined';
 const BASE_URL = 'https://1мост.рф';
+const LEGACY_STRUCTURED_DATA_SELECTORS = [
+  '#seo-structured-data',
+  '#webpage-schema',
+  '#software-schema',
+  '#organization-schema',
+  '#custom-structured-data',
+  '#breadcrumb-schema',
+  '#faq-schema',
+  '#product-schema',
+  '#dynamic-seo',
+  'script[type="application/ld+json"][data-seo="auto"]',
+].join(',');
 
 interface UseSEOProps {
   title?: string;
@@ -30,9 +41,6 @@ export const useSEO = (props: UseSEOProps = {}) => {
 
     return {
       updateSEO: noop,
-      addBreadcrumbSchema: noop,
-      addFAQSchema: noop,
-      addProductSchema: noop,
       setMetaTag: noop,
       setLinkTag: noop,
       setStructuredData: noop,
@@ -66,17 +74,29 @@ export const useSEO = (props: UseSEOProps = {}) => {
     link.setAttribute('href', href);
   }, []);
 
-  const setStructuredData = useCallback((data: unknown, id = 'seo-structured-data') => {
-    let script = document.querySelector(`script[type="application/ld+json"]#${id}`);
+  const removeMetaTag = useCallback((name: string, property = false) => {
+    const attribute = property ? 'property' : 'name';
+    document.querySelector(`meta[${attribute}="${name}"]`)?.remove();
+  }, []);
+
+  const setStructuredData = useCallback((graph: StructuredDataGraph) => {
+    document.querySelectorAll(LEGACY_STRUCTURED_DATA_SELECTORS).forEach((script) => script.remove());
+
+    let script = document.querySelector<HTMLScriptElement>('script[type="application/ld+json"]#ld-json');
+
+    if (graph['@graph'].length === 0) {
+      script?.remove();
+      return;
+    }
 
     if (!script) {
       script = document.createElement('script');
       script.setAttribute('type', 'application/ld+json');
-      script.setAttribute('id', id);
+      script.setAttribute('id', 'ld-json');
       document.head.appendChild(script);
     }
 
-    script.textContent = JSON.stringify(data);
+    script.textContent = JSON.stringify(graph).replace(/</g, '\\u003c');
   }, []);
 
   const updateSEO = useCallback(() => {
@@ -87,14 +107,14 @@ export const useSEO = (props: UseSEOProps = {}) => {
       description: props.description ?? pageData.description,
       keywords: props.keywords ?? pageData.keywords,
       ogImage: normalizeOgImageUrl(props.ogImage ?? pageData.ogImage) ?? `${BASE_URL}/og/default.png`,
-      type: props.type ?? 'website',
+      type: props.type ?? pageData.type,
       author: props.author ?? 'МОСТ',
       publishedTime: props.publishedTime,
       modifiedTime: props.modifiedTime,
       noIndex: props.noIndex ?? pageData.noIndex ?? false,
     };
 
-    const currentUrl = `${BASE_URL}${location.pathname}`;
+    const currentUrl = pageData.canonicalUrl.replace(/[?#].*$/, '');
 
     document.title = finalData.title;
 
@@ -125,28 +145,27 @@ export const useSEO = (props: UseSEOProps = {}) => {
 
     if (finalData.publishedTime) {
       setMetaTag('article:published_time', finalData.publishedTime, true);
+    } else {
+      removeMetaTag('article:published_time', true);
     }
 
     if (finalData.modifiedTime) {
       setMetaTag('article:modified_time', finalData.modifiedTime, true);
+    } else {
+      removeMetaTag('article:modified_time', true);
     }
 
     setLinkTag('canonical', currentUrl);
 
-    setStructuredData(
-      generateWebPageSchema({
-        name: finalData.title,
-        description: finalData.description,
-        url: currentUrl,
-      }),
-      'webpage-schema',
-    );
-    setStructuredData(generateSoftwareSchema(), 'software-schema');
-    setStructuredData(generateOrganizationSchema(), 'organization-schema');
-
-    if (props.structuredData) {
-      setStructuredData(props.structuredData, 'custom-structured-data');
-    }
+    setStructuredData(buildStructuredDataGraph({
+      pathname: location.pathname,
+      title: finalData.title,
+      description: finalData.description,
+      canonicalUrl: currentUrl,
+      noIndex: finalData.noIndex,
+      statusCode: pageData.statusCode,
+      structuredData: props.structuredData,
+    }));
   }, [
     location.pathname,
     props.author,
@@ -159,6 +178,7 @@ export const useSEO = (props: UseSEOProps = {}) => {
     props.structuredData,
     props.title,
     props.type,
+    removeMetaTag,
     setLinkTag,
     setMetaTag,
     setStructuredData,
@@ -168,74 +188,8 @@ export const useSEO = (props: UseSEOProps = {}) => {
     updateSEO();
   }, [updateSEO]);
 
-  const addBreadcrumbSchema = useCallback((items: Array<{ name: string; url: string }>) => {
-    setStructuredData(
-      {
-        '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        itemListElement: items.map((item, index) => ({
-          '@type': 'ListItem',
-          position: index + 1,
-          name: item.name,
-          item: item.url,
-        })),
-      },
-      'breadcrumb-schema',
-    );
-  }, [setStructuredData]);
-
-  const addFAQSchema = useCallback((faqs: Array<{ question: string; answer: string }>) => {
-    setStructuredData(
-      {
-        '@context': 'https://schema.org',
-        '@type': 'FAQPage',
-        mainEntity: faqs.map((faq) => ({
-          '@type': 'Question',
-          name: faq.question,
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: faq.answer,
-          },
-        })),
-      },
-      'faq-schema',
-    );
-  }, [setStructuredData]);
-
-  const addProductSchema = useCallback((product: {
-    name: string;
-    description: string;
-    price: string;
-    currency: string;
-    availability: string;
-    brand: string;
-  }) => {
-    setStructuredData(
-      {
-        '@context': 'https://schema.org',
-        '@type': 'Product',
-        name: product.name,
-        description: product.description,
-        brand: {
-          '@type': 'Brand',
-          name: product.brand,
-        },
-        offers: {
-          '@type': 'Offer',
-          price: product.price,
-          priceCurrency: product.currency,
-          availability: `https://schema.org/${product.availability}`,
-        },
-      },
-      'product-schema',
-    );
-  }, [setStructuredData]);
-
   return {
     updateSEO,
-    addBreadcrumbSchema,
-    addFAQSchema,
-    addProductSchema,
     setMetaTag,
     setLinkTag,
     setStructuredData,

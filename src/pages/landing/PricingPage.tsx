@@ -13,7 +13,6 @@ import {
 } from '@/data/marketingRegistry';
 import useAnalytics from '@/hooks/useAnalytics';
 import { useSEO } from '@/hooks/useSEO';
-import { generatePricingSchema } from '@/utils/seo';
 
 const pricingPrinciples = [
   'Стартуем с того контура, где сейчас выше всего ручная нагрузка и потери.',
@@ -100,7 +99,6 @@ const PricingPage = () => {
   useSEO({
     ...marketingSeo.pricing,
     type: 'website',
-    structuredData: generatePricingSchema(),
   });
 
   const { trackPageView, trackPricingView } = useAnalytics();
