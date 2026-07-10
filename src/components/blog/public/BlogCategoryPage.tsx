@@ -51,7 +51,7 @@ const BlogCategoryPage = () => {
         setCategories(categoriesData);
         setCategory(resolvedCategory);
 
-        if (!resolvedCategory) {
+        if (!resolvedCategory || resolvedCategory.id === null) {
           setError('Категория не найдена.');
           return;
         }
@@ -82,7 +82,7 @@ const BlogCategoryPage = () => {
   }, [slug]);
 
   const handleLoadMore = async () => {
-    if (!category) {
+    if (!category || category.id === null) {
       return;
     }
 

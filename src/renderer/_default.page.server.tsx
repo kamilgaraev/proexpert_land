@@ -7,9 +7,11 @@ import { redirect } from 'vite-plugin-ssr/abort';
 import { StaticRouter } from 'react-router-dom/server';
 import { PageShell } from './PageShell';
 import { buildServerSeoPayload } from './serverSeo';
+import { resolveServerRouterLocation } from './serverRouterLocation';
 
 export async function render(pageContext: PageContextServer) {
   const pathname = pageContext.urlPathname || '/';
+  const routerLocation = resolveServerRouterLocation(pageContext);
   const seoPayload = buildServerSeoPayload(pathname, pageContext.documentProps as any);
 
   if (seoPayload.redirectTarget) {
@@ -18,7 +20,7 @@ export async function render(pageContext: PageContextServer) {
 
   const { Page, pageProps } = pageContext;
   const html = ReactDOMServer.renderToString(
-    <StaticRouter location={pathname}>
+    <StaticRouter location={routerLocation}>
       <PageShell pageContext={pageContext}>
         <Page {...pageProps} />
       </PageShell>

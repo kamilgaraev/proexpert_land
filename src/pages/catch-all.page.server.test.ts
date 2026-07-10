@@ -97,6 +97,7 @@ describe('catch-all blog SSR', () => {
       pagination: { current_page: 1, last_page: 3, per_page: 12, total: 25 },
       articlesLoaded: true,
       categoriesLoaded: true,
+      queryKey: 'category=&search=&page=1',
     });
   });
 
@@ -166,6 +167,34 @@ describe('catch-all blog SSR', () => {
     expect(result.pageContext.pageProps?.initialBlogIndexData).toMatchObject({
       articles: [nullableArticle],
       categories: [nullableCategory],
+      articlesLoaded: true,
+      categoriesLoaded: true,
+    });
+  });
+
+  it('accepts the public orphan article fallback DTO', async () => {
+    const orphanArticle = {
+      ...article,
+      category: {
+        ...category,
+        id: null,
+        created_at: null,
+        updated_at: null,
+      },
+      author: {
+        id: null,
+        name: 'Редакция МОСТ',
+        email: null,
+      },
+      created_at: null,
+      updated_at: null,
+    };
+    vi.stubGlobal('fetch', blogIndexFetch(orphanArticle, [category]));
+
+    const result = await onBeforeRender({ urlPathname: '/blog' });
+
+    expect(result.pageContext.pageProps?.initialBlogIndexData).toMatchObject({
+      articles: [orphanArticle],
       articlesLoaded: true,
       categoriesLoaded: true,
     });

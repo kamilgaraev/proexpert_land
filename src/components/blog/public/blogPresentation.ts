@@ -1,9 +1,11 @@
-export const formatBlogDate = (dateString: string) =>
-  new Date(dateString).toLocaleDateString('ru-RU', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+export const formatBlogDate = (dateString?: string | null) =>
+  dateString
+    ? new Date(dateString).toLocaleDateString('ru-RU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : 'Дата не указана';
 
 export const getBlogReadingTime = (content: string) => {
   const wordsPerMinute = 200;

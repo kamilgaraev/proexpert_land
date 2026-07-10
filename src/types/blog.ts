@@ -33,12 +33,12 @@ export interface BlogArticle {
   author: BlogAuthor;
   tags: BlogTag[];
   comments?: BlogComment[];
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface BlogCategory {
-  id: number;
+  id: number | null;
   name: string;
   slug: string;
   description?: string | null;
@@ -50,8 +50,8 @@ export interface BlogCategory {
   is_active: boolean;
   articles_count?: number;
   published_articles_count?: number;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface BlogTag {
@@ -85,9 +85,9 @@ export interface BlogComment {
 }
 
 export interface BlogAuthor {
-  id: number;
+  id: number | null;
   name: string;
-  email: string;
+  email: string | null;
 }
 
 export interface BlogSEOSettings {
@@ -244,6 +244,7 @@ export interface BlogIndexInitialData {
   pagination: BlogPaginationMeta;
   articlesLoaded: boolean;
   categoriesLoaded: boolean;
+  queryKey: string;
 }
 
 export interface BlogArticleFilters {

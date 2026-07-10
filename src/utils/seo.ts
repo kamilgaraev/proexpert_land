@@ -396,7 +396,7 @@ export const generateArticleSchema = (article: {
   title: string;
   description: string;
   author: string;
-  publishedTime: string;
+  publishedTime?: string;
   modifiedTime?: string;
   image?: string;
   category: string;
@@ -416,8 +416,12 @@ export const generateArticleSchema = (article: {
     '@type': 'Organization',
     name: marketingCompany.brand,
   },
-  datePublished: article.publishedTime,
-  dateModified: article.modifiedTime ?? article.publishedTime,
+  ...(article.publishedTime
+    ? {
+        datePublished: article.publishedTime,
+        dateModified: article.modifiedTime ?? article.publishedTime,
+      }
+    : {}),
   articleSection: article.category,
   keywords: article.tags?.join(', ') ?? '',
   mainEntityOfPage: article.url,

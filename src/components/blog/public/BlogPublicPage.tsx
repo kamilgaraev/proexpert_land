@@ -8,34 +8,69 @@ import { getBlogListMeta } from './blogPresentation';
 import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import { marketingPaths, marketingSeo } from '@/data/marketingRegistry';
 import { useSEO } from '@/hooks/useSEO';
-import type { BlogArticle, BlogCategory, BlogIndexInitialData } from '@/types/blog';
+import type {
+  BlogArticle,
+  BlogCategory,
+  BlogIndexInitialData,
+  BlogPaginationMeta,
+} from '@/types/blog';
+import { BLOG_INDEX_BASE_QUERY_KEY, buildBlogIndexQueryKey } from '@/utils/blogIndexQuery';
 import { blogPublicApi } from '@/utils/blogPublicApi';
 
 interface BlogPublicPageProps {
   initialData?: BlogIndexInitialData;
 }
 
+interface ArticlesRequest {
+  generation: number;
+  key: string;
+  promise: Promise<{ data: BlogArticle[]; meta?: BlogPaginationMeta }>;
+}
+
 const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const selectedCategory = searchParams.get('category');
+  const searchQuery = searchParams.get('search');
+  const queryKey = useMemo(
+    () => buildBlogIndexQueryKey({ category: selectedCategory, search: searchQuery }),
+    [searchQuery, selectedCategory],
+  );
   const [articles, setArticles] = useState<BlogArticle[]>(() => initialData?.articles ?? []);
   const [categories, setCategories] = useState<BlogCategory[]>(() => initialData?.categories ?? []);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(initialData?.categoriesLoaded ?? false);
   const [loading, setLoading] = useState(() => !(initialData?.articlesLoaded ?? false));
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(() => initialData?.articlesLoaded
     ? initialData.pagination.current_page < initialData.pagination.last_page
     : true);
+  const [loadedPage, setLoadedPage] = useState(() => initialData?.articlesLoaded
+    ? initialData.pagination.current_page
+    : 0);
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
-  const skipInitialArticlesRequest = useRef(initialData?.articlesLoaded ?? false);
+  const appliedQueryKeyRef = useRef(initialData?.articlesLoaded
+    ? initialData.queryKey ?? BLOG_INDEX_BASE_QUERY_KEY
+    : null);
+  const articlesRequestRef = useRef<ArticlesRequest | null>(null);
+  const articlesGenerationRef = useRef(0);
+  const categoriesRequestRef = useRef<Promise<BlogCategory[]> | null>(null);
+  const currentQueryKeyRef = useRef(queryKey);
+  const loadingMoreRef = useRef(false);
+  const mountedRef = useRef(false);
+  currentQueryKeyRef.current = queryKey;
 
   useSEO({
     ...marketingSeo.blog,
     type: 'website',
   });
 
-  const currentPage = Number(searchParams.get('page') || '1');
-  const selectedCategory = searchParams.get('category');
-  const searchQuery = searchParams.get('search');
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     setSearchInput(searchQuery || '');
@@ -68,63 +103,140 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
   }, [searchInput, searchParams, setSearchParams]);
 
   useEffect(() => {
-    if (initialData?.categoriesLoaded) {
+    if (categoriesLoaded) {
       return;
     }
 
-    const fetchCategories = async () => {
-      try {
-        const response = await blogPublicApi.getCategories();
-        setCategories((response.data as { data: BlogCategory[] }).data);
-      } catch (fetchError) {
-        console.error('Error fetching categories:', fetchError);
-      }
-    };
+    let active = true;
 
-    fetchCategories();
-  }, [initialData?.categoriesLoaded]);
+    if (!categoriesRequestRef.current) {
+      categoriesRequestRef.current = blogPublicApi.getCategories()
+        .then((response) => response.data.data);
+    }
+
+    categoriesRequestRef.current
+      .then((nextCategories) => {
+        if (!active) {
+          return;
+        }
+
+        setCategories(nextCategories);
+        setCategoriesLoaded(true);
+      })
+      .catch((fetchError) => {
+        if (!active) {
+          return;
+        }
+
+        console.error('Error fetching categories:', fetchError);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [categoriesLoaded]);
 
   const categoryId = useMemo(() => {
     if (!selectedCategory) {
       return undefined;
     }
 
-    return categories.find((category) => category.slug === selectedCategory)?.id;
+    return categories.find((category) => category.slug === selectedCategory)?.id ?? undefined;
   }, [categories, selectedCategory]);
 
   useEffect(() => {
-    if (skipInitialArticlesRequest.current && !categoryId && !searchQuery) {
-      skipInitialArticlesRequest.current = false;
+    if (selectedCategory && !categoriesLoaded) {
       return;
     }
 
-    skipInitialArticlesRequest.current = false;
+    if (selectedCategory && categoryId === undefined) {
+      appliedQueryKeyRef.current = queryKey;
+      loadingMoreRef.current = false;
+      setArticles([]);
+      setLoadedPage(0);
+      setHasMore(false);
+      setLoading(false);
+      setLoadingMore(false);
+      setError('Категория не найдена.');
+      return;
+    }
 
-    const fetchArticles = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    if (appliedQueryKeyRef.current === queryKey) {
+      setLoading(false);
+      return;
+    }
 
-        const response = await blogPublicApi.getArticles({
+    let active = true;
+    loadingMoreRef.current = false;
+    setLoadingMore(false);
+    setLoading(true);
+    setError(null);
+
+    let request = articlesRequestRef.current;
+
+    if (!request || request.key !== queryKey) {
+      const generation = articlesGenerationRef.current + 1;
+      articlesGenerationRef.current = generation;
+      request = {
+        generation,
+        key: queryKey,
+        promise: blogPublicApi.getArticles({
           page: 1,
           per_page: 12,
           category_id: categoryId,
           search: searchQuery || undefined,
-        });
+        }).then((response) => response.data),
+      };
+      articlesRequestRef.current = request;
+    }
 
-        const payload = response.data as { data: BlogArticle[]; meta: { current_page: number; last_page: number } };
+    const { generation } = request;
+
+    request.promise
+      .then((payload) => {
+        if (
+          !active
+          || currentQueryKeyRef.current !== queryKey
+          || articlesGenerationRef.current !== generation
+        ) {
+          return;
+        }
+
+        const currentPage = payload.meta?.current_page ?? 1;
+        const lastPage = payload.meta?.last_page ?? currentPage;
+        appliedQueryKeyRef.current = queryKey;
         setArticles(payload.data);
-        setHasMore(payload.meta.current_page < payload.meta.last_page);
-      } catch (fetchError) {
+        setLoadedPage(currentPage);
+        setHasMore(currentPage < lastPage);
+      })
+      .catch((fetchError) => {
+        if (
+          !active
+          || currentQueryKeyRef.current !== queryKey
+          || articlesGenerationRef.current !== generation
+        ) {
+          return;
+        }
+
         console.error('Error fetching articles:', fetchError);
         setError('Не удалось загрузить статьи. Попробуйте обновить страницу позже.');
-      } finally {
-        setLoading(false);
-      }
-    };
+      })
+      .finally(() => {
+        if (
+          !active
+          || currentQueryKeyRef.current !== queryKey
+          || articlesGenerationRef.current !== generation
+        ) {
+          return;
+        }
 
-    fetchArticles();
-  }, [categoryId, searchQuery]);
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [categoriesLoaded, categoryId, queryKey, searchQuery, selectedCategory]);
 
   const handleCategoryFilter = (categorySlug: string | null) => {
     setSearchParams((prev) => {
@@ -142,10 +254,18 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
   };
 
   const handleLoadMore = async () => {
+    if (loadingMoreRef.current) {
+      return;
+    }
+
+    const requestQueryKey = queryKey;
+    const requestGeneration = articlesGenerationRef.current;
+    const nextPage = loadedPage + 1;
+    loadingMoreRef.current = true;
+
     try {
       setLoadingMore(true);
 
-      const nextPage = currentPage + 1;
       const response = await blogPublicApi.getArticles({
         page: nextPage,
         per_page: 12,
@@ -153,20 +273,38 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
         search: searchQuery || undefined,
       });
 
-      const payload = response.data as { data: BlogArticle[]; meta: { current_page: number; last_page: number } };
+      if (
+        !mountedRef.current
+        || currentQueryKeyRef.current !== requestQueryKey
+        || articlesGenerationRef.current !== requestGeneration
+      ) {
+        return;
+      }
+
+      const payload = response.data;
+      const currentPage = payload.meta?.current_page ?? nextPage;
+      const lastPage = payload.meta?.last_page ?? currentPage;
       setArticles((prev) => [...prev, ...payload.data]);
-      setHasMore(payload.meta.current_page < payload.meta.last_page);
+      setLoadedPage(currentPage);
+      setHasMore(currentPage < lastPage);
 
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
-        next.set('page', String(nextPage));
+        next.set('page', String(currentPage));
         return next;
       });
     } catch (fetchError) {
+      if (!mountedRef.current || currentQueryKeyRef.current !== requestQueryKey) {
+        return;
+      }
+
       console.error('Error loading more articles:', fetchError);
       setError('Не удалось загрузить следующую страницу статей.');
     } finally {
-      setLoadingMore(false);
+      if (mountedRef.current && currentQueryKeyRef.current === requestQueryKey) {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      }
     }
   };
 

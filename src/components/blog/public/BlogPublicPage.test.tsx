@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { StrictMode } from 'react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
 import { http, HttpResponse } from 'msw';
@@ -9,6 +10,7 @@ import type { BlogArticle, BlogCategory, BlogIndexInitialData } from '@/types/bl
 import BlogPublicPage from './BlogPublicPage';
 
 const apiUrl = (path: string) => new URL(path, 'https://api.1мост.рф').href;
+const BASE_QUERY_KEY = 'category=&search=&page=1';
 const requests = { articles: 0, categories: 0 };
 
 const category: BlogCategory = {
@@ -86,10 +88,12 @@ afterAll(() => {
   server.close();
 });
 
-const renderPage = (initialData: BlogIndexInitialData) => render(
-  <MemoryRouter initialEntries={['/blog']}>
-    <BlogPublicPage initialData={initialData} />
-  </MemoryRouter>,
+const renderPage = (initialData: BlogIndexInitialData, initialEntry = '/blog') => render(
+  <StrictMode>
+    <MemoryRouter initialEntries={[initialEntry]}>
+      <BlogPublicPage initialData={initialData} />
+    </MemoryRouter>
+  </StrictMode>,
 );
 
 describe('BlogPublicPage SSR hydration', () => {
@@ -103,6 +107,7 @@ describe('BlogPublicPage SSR hydration', () => {
             pagination: { current_page: 1, last_page: 1, per_page: 12, total: 1 },
             articlesLoaded: true,
             categoriesLoaded: true,
+            queryKey: BASE_QUERY_KEY,
           }}
         />
       </MemoryRouter>,
@@ -120,6 +125,7 @@ describe('BlogPublicPage SSR hydration', () => {
       pagination: { current_page: 1, last_page: 1, per_page: 12, total: 1 },
       articlesLoaded: true,
       categoriesLoaded: true,
+      queryKey: BASE_QUERY_KEY,
     };
 
     const { container } = renderPage(initialData);
@@ -145,6 +151,7 @@ describe('BlogPublicPage SSR hydration', () => {
       pagination: { current_page: 1, last_page: 1, per_page: 12, total: 1 },
       articlesLoaded: true,
       categoriesLoaded: false,
+      queryKey: BASE_QUERY_KEY,
     });
 
     expect(screen.getByRole('heading', { name: article.title })).toBeVisible();
@@ -163,6 +170,7 @@ describe('BlogPublicPage SSR hydration', () => {
       pagination: { current_page: 1, last_page: 1, per_page: 12, total: 0 },
       articlesLoaded: false,
       categoriesLoaded: true,
+      queryKey: BASE_QUERY_KEY,
     });
 
     expect(screen.getByRole('button', { name: category.name })).toBeVisible();
@@ -172,5 +180,176 @@ describe('BlogPublicPage SSR hydration', () => {
     });
     expect(requests.articles).toBe(1);
     expect(requests.categories).toBe(0);
+  });
+
+  it('deduplicates both missing collections in StrictMode', async () => {
+    renderPage({
+      articles: [],
+      categories: [],
+      pagination: { current_page: 1, last_page: 1, per_page: 12, total: 0 },
+      articlesLoaded: false,
+      categoriesLoaded: false,
+      queryKey: BASE_QUERY_KEY,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: article.title })).toBeVisible();
+      expect(screen.getByRole('button', { name: category.name })).toBeVisible();
+    });
+    expect(requests.articles).toBe(1);
+    expect(requests.categories).toBe(1);
+  });
+
+  it('requests page 1 when the URL contains a search query and stale page number', async () => {
+    const observedQueries: Array<{ page: string | null; search: string | null }> = [];
+
+    server.use(
+      http.get(apiUrl('/api/v1/blog/articles'), ({ request }) => {
+        requests.articles += 1;
+        const params = new URL(request.url).searchParams;
+        observedQueries.push({
+          page: params.get('page'),
+          search: params.get('search'),
+        });
+
+        return HttpResponse.json({
+          success: true,
+          data: {
+            data: [article],
+            meta: { current_page: 1, last_page: 1, per_page: 12, total: 1 },
+          },
+        });
+      }),
+    );
+
+    renderPage({
+      articles: [article],
+      categories: [category],
+      pagination: { current_page: 1, last_page: 1, per_page: 12, total: 1 },
+      articlesLoaded: true,
+      categoriesLoaded: true,
+      queryKey: BASE_QUERY_KEY,
+    }, '/blog?search=budget&page=4');
+
+    await waitFor(() => expect(requests.articles).toBe(1));
+    expect(observedQueries).toEqual([{ page: '1', search: 'budget' }]);
+  });
+
+  it('keeps the newest category response when an older request resolves last', async () => {
+    const secondCategory: BlogCategory = {
+      ...category,
+      id: 8,
+      name: 'Снабжение',
+      slug: 'procurement',
+    };
+    const managementArticle = {
+      ...article,
+      id: 43,
+      title: 'Управление без потерь',
+      slug: 'management-guide',
+    };
+    const procurementArticle = {
+      ...article,
+      id: 44,
+      title: 'Снабжение без задержек',
+      slug: 'procurement-guide',
+      category: secondCategory,
+    };
+    let releaseManagement!: () => void;
+    const requestedPages: Array<string | null> = [];
+    const managementGate = new Promise<void>((resolve) => {
+      releaseManagement = resolve;
+    });
+
+    server.use(
+      http.get(apiUrl('/api/v1/blog/articles'), async ({ request }) => {
+        requests.articles += 1;
+        const params = new URL(request.url).searchParams;
+        const categoryId = params.get('category_id');
+        requestedPages.push(params.get('page'));
+
+        if (categoryId === '7') {
+          await managementGate;
+        }
+
+        const responseArticle = categoryId === '8' ? procurementArticle : managementArticle;
+
+        return HttpResponse.json({
+          success: true,
+          data: {
+            data: [responseArticle],
+            meta: { current_page: 1, last_page: 1, per_page: 12, total: 1 },
+          },
+        });
+      }),
+    );
+
+    renderPage({
+      articles: [article],
+      categories: [category, secondCategory],
+      pagination: { current_page: 1, last_page: 1, per_page: 12, total: 1 },
+      articlesLoaded: true,
+      categoriesLoaded: true,
+      queryKey: BASE_QUERY_KEY,
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: category.name }));
+    await waitFor(() => expect(requests.articles).toBeGreaterThanOrEqual(1));
+    fireEvent.click(screen.getByRole('button', { name: secondCategory.name }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: procurementArticle.title })).toBeVisible();
+    });
+
+    await act(async () => {
+      releaseManagement();
+      await new Promise((resolve) => window.setTimeout(resolve, 10));
+    });
+
+    expect(screen.getByRole('heading', { name: procurementArticle.title })).toBeVisible();
+    expect(screen.queryByRole('heading', { name: managementArticle.title })).not.toBeInTheDocument();
+    expect(requestedPages).toEqual(['1', '1']);
+  });
+
+  it('loads page 2 after reloading a URL that contains a stale page number', async () => {
+    const requestedPages: string[] = [];
+    const nextArticle = {
+      ...article,
+      id: 45,
+      title: 'Вторая страница',
+      slug: 'second-page',
+    };
+
+    server.use(
+      http.get(apiUrl('/api/v1/blog/articles'), ({ request }) => {
+        requests.articles += 1;
+        const page = new URL(request.url).searchParams.get('page') ?? '';
+        requestedPages.push(page);
+
+        return HttpResponse.json({
+          success: true,
+          data: {
+            data: [nextArticle],
+            meta: { current_page: Number(page), last_page: 3, per_page: 12, total: 25 },
+          },
+        });
+      }),
+    );
+
+    renderPage({
+      articles: [article],
+      categories: [category],
+      pagination: { current_page: 1, last_page: 3, per_page: 12, total: 25 },
+      articlesLoaded: true,
+      categoriesLoaded: true,
+      queryKey: BASE_QUERY_KEY,
+    }, '/blog?page=4');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Показать еще' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: nextArticle.title })).toBeVisible();
+    });
+    expect(requestedPages).toEqual(['2']);
   });
 });

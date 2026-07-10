@@ -34,6 +34,8 @@ const BlogArticlePage = ({
   const [loading, setLoading] = useState(() => !(hasInitialArticle || hasInitialNotFound));
   const [error, setError] = useState<string | null>(() => (hasInitialNotFound ? ARTICLE_NOT_FOUND_MESSAGE : null));
   const articleImage = article?.og_image || article?.featured_image || undefined;
+  const publishedTime = article?.published_at || article?.created_at || undefined;
+  const modifiedTime = article?.updated_at || undefined;
 
   useSEO(
     article
@@ -44,15 +46,15 @@ const BlogArticlePage = ({
           ogImage: articleImage,
           type: 'article',
           author: article.author.name,
-          publishedTime: article.published_at || article.created_at,
-          modifiedTime: article.updated_at,
+          publishedTime,
+          modifiedTime,
           noIndex: isPreview || article.noindex,
           structuredData: generateArticleSchema({
             title: article.title,
             description: article.meta_description || article.og_description || article.excerpt || article.title,
             author: article.author.name,
-            publishedTime: article.published_at || article.created_at,
-            modifiedTime: article.updated_at,
+            publishedTime,
+            modifiedTime,
             image: articleImage,
             category: article.category.name,
             tags: article.tags.map((tag) => tag.name),
