@@ -190,6 +190,16 @@ describe('normalizeOgImageUrl', () => {
 });
 
 describe('sitemap sync', () => {
+  it('keeps generated OG sources on the approved public МОСТ brand', () => {
+    const generator = fs.readFileSync(path.resolve(process.cwd(), 'scripts', 'generate-og-images.mjs'), 'utf8');
+    const generatedImage = fs.readFileSync(path.resolve(process.cwd(), 'public', 'og', 'construction-procurement.svg'), 'utf8');
+
+    expect(generator).toContain('МОСТ');
+    expect(generator).not.toContain('PROHELPER.PRO');
+    expect(generatedImage).toContain('МОСТ');
+    expect(generatedImage).not.toContain('PROHELPER.PRO');
+  });
+
   it('rejects malformed or duplicate runtime sitemap registry entries', () => {
     const route = {
       path: '/features',

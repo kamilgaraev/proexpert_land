@@ -319,9 +319,9 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     moduleSlugs: ['integrations', 'data-filters'],
     packageSlugs: ['holding-analytics'],
     sourceOfTruth: [
-      'prohelper/app/BusinessModules/Features/Integrations',
-      'prohelper/app/BusinessModules/Features/DataManagement',
-      'prohelper_land/src/pages/product/IntegrationsPage.tsx',
+      'prohelper/app/BusinessModules/Addons/Integrations',
+      'prohelper/app/Models/OneCIntegrationProfile.php',
+      'prohelper/app/Services/AccountingIntegrationService.php',
     ],
     cta: 'Обсудить сценарий интеграции с 1С',
   },

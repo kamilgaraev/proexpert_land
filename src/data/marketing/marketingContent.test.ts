@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   marketingCapabilityMatrix,
@@ -123,7 +125,14 @@ describe('marketing content consistency', () => {
 
     expect(finance?.sourceOfTruth).toContain('prohelper/app/BusinessModules/Core/Payments');
     expect(integration?.maturity).toBe('early_access');
-    expect(integration?.sourceOfTruth.some((source) => source.includes('Integrations'))).toBe(true);
+    expect(integration?.sourceOfTruth).toEqual(expect.arrayContaining([
+      'prohelper/app/BusinessModules/Addons/Integrations',
+      'prohelper/app/Models/OneCIntegrationProfile.php',
+      'prohelper/app/Services/AccountingIntegrationService.php',
+    ]));
+    for (const source of integration?.sourceOfTruth ?? []) {
+      expect(fs.existsSync(path.resolve(process.cwd(), '..', source))).toBe(true);
+    }
     expect(marketplace?.sourceOfTruth.some((source) => source.includes('ContractorMarketplace'))).toBe(true);
     expect(pulse?.maturity).toBe('early_access');
     expect(pulse?.sourceOfTruth).toContain('prohelper/app/BusinessModules/Features/AIAssistant');
@@ -160,5 +169,22 @@ describe('marketing content consistency', () => {
         expect(landingPagePaths.has(link.href)).toBe(true);
       }
     }
+  });
+
+  it('keeps procurement intent separate from material accounting anchors', () => {
+    const materialAccountingLinks = [
+      ...marketingCommercialLandingLinks,
+      ...marketingModuleLandingLinks,
+    ].filter((link) => link.href === '/material-accounting');
+    const procurementLinks = [
+      ...marketingCommercialLandingLinks,
+      ...marketingModuleLandingLinks,
+    ].filter((link) => link.label === 'Строительные закупки');
+
+    expect(materialAccountingLinks.map((link) => link.label)).toContain('Учет материалов');
+    expect(materialAccountingLinks.map((link) => link.label)).not.toContain('Строительные закупки');
+    expect(procurementLinks).toEqual([
+      expect.objectContaining({ href: '/construction-procurement' }),
+    ]);
   });
 });

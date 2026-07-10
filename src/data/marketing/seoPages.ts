@@ -163,7 +163,7 @@ export const marketingCommercialLandingLinks: MarketingContentLink[] = [
     description: 'Изменения, дополнительные работы, претензии и влияние на сроки.',
   },
   {
-    label: 'Закупки в строительстве',
+    label: 'Строительные закупки',
     href: marketingPaths.constructionProcurement,
     description: 'Потребность объекта, поставщики, заказ, оплата и приемка в одном маршруте.',
   },
@@ -246,9 +246,9 @@ export const marketingModuleLandingLinks: MarketingContentLink[] = [
     description: 'Остатки, движения, поставки и контроль материалов по объектам.',
   },
   {
-    label: 'Строительные закупки',
+    label: 'Учет материалов',
     href: marketingPaths.materialAccounting,
-    description: 'Путь от заявки до поставки и закрывающих документов.',
+    description: 'Остатки, движения, поставки и складской контур по объектам.',
   },
   {
     label: 'Акты КС-2 и КС-3',

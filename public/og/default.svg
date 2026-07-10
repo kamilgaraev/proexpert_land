@@ -51,15 +51,15 @@
     <circle cx="830" cy="438" r="5" fill="#FED7AA" />
     <text x="850" y="445" class="capability">Финансы</text>
   </g>
-  <text x="798" y="520" class="stamp">MOST</text>
+  <text x="798" y="520" class="stamp">МОСТ</text>
   <rect x="82" y="86" width="210" height="48" rx="24" fill="#EA580C" />
   <text x="108" y="117" class="brand" fill="#FFFFFF">ПЛАТФОРМА</text>
-  <text x="318" y="117" class="domain">PROHELPER.PRO</text>
+  <text x="318" y="117" class="domain">МОСТ</text>
   <text x="82" y="214" class="title">Система управления</text>
 <text x="82" y="278" class="title">строительной компанией</text>
   <text x="82" y="370" class="subtitle">Единый контур для объектов, команды, документов и</text>
 <text x="82" y="408" class="subtitle">финансов</text>
   <rect x="82" y="468" width="254" height="7" rx="3.5" fill="url(#accent-default)" />
   <text x="82" y="536" class="footer">Объекты, документы, команда и финансы в одной системе</text>
-  <text x="82" y="572" class="domain">PROHELPER.PRO</text>
+  <text x="82" y="572" class="domain">МОСТ</text>
 </svg>

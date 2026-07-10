@@ -457,15 +457,15 @@ const renderImageSvg = (item) => {
   <text x="802" y="144" class="panel-title">ЕДИНЫЙ КОНТУР</text>
   <text x="802" y="184" class="panel-copy">для строительных процессов</text>
   ${renderCapabilityRows(capabilities, theme)}
-  <text x="798" y="520" class="stamp">MOST</text>
+  <text x="798" y="520" class="stamp">МОСТ</text>
   <rect x="82" y="86" width="${badgeWidth}" height="48" rx="24" fill="${theme.accent}" />
   <text x="108" y="117" class="brand" fill="#FFFFFF">${escapeXml(badge)}</text>
-  <text x="${brandX}" y="117" class="domain">PROHELPER.PRO</text>
+  <text x="${brandX}" y="117" class="domain">МОСТ</text>
   ${renderTextLines({ lines: titleLines, x: 82, y: 214, lineHeight: 64, className: 'title' })}
   ${renderTextLines({ lines: subtitleLines, x: 82, y: subtitleY, lineHeight: 38, className: 'subtitle' })}
   <rect x="82" y="468" width="254" height="7" rx="3.5" fill="url(#accent-${item.key})" />
   <text x="82" y="536" class="footer">Объекты, документы, команда и финансы в одной системе</text>
-  <text x="82" y="572" class="domain">PROHELPER.PRO</text>
+  <text x="82" y="572" class="domain">МОСТ</text>
 </svg>
 `;
 };
