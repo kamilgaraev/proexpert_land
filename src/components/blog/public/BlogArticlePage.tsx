@@ -33,6 +33,7 @@ const BlogArticlePage = ({
   const [relatedArticles, setRelatedArticles] = useState<BlogArticle[]>([]);
   const [loading, setLoading] = useState(() => !(hasInitialArticle || hasInitialNotFound));
   const [error, setError] = useState<string | null>(() => (hasInitialNotFound ? ARTICLE_NOT_FOUND_MESSAGE : null));
+  const articleImage = article?.og_image || article?.featured_image || undefined;
 
   useSEO(
     article
@@ -40,7 +41,7 @@ const BlogArticlePage = ({
           title: normalizeArticleTitleBrand(article.meta_title || article.og_title || article.title),
           description: article.meta_description || article.og_description || article.excerpt || 'Статья МОСТ',
           keywords: article.meta_keywords?.join(', ') || article.tags.map((tag) => tag.name).join(', '),
-          ogImage: article.og_image || article.featured_image,
+          ogImage: articleImage,
           type: 'article',
           author: article.author.name,
           publishedTime: article.published_at || article.created_at,
@@ -52,7 +53,7 @@ const BlogArticlePage = ({
             author: article.author.name,
             publishedTime: article.published_at || article.created_at,
             modifiedTime: article.updated_at,
-            image: article.og_image || article.featured_image,
+            image: articleImage,
             category: article.category.name,
             tags: article.tags.map((tag) => tag.name),
             url: isPreview ? `https://1мост.рф/blog/preview/${article.id}` : `https://1мост.рф/blog/${article.slug}`,

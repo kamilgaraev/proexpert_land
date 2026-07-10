@@ -40,6 +40,8 @@ const isString = (value: unknown): value is string => typeof value === 'string';
 const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean';
 const isOptional = (value: unknown, validator: (item: unknown) => boolean) =>
   value === undefined || validator(value);
+const isNullableOptional = (value: unknown, validator: (item: unknown) => boolean) =>
+  value === undefined || value === null || validator(value);
 const isStringArray = (value: unknown) => Array.isArray(value) && value.every(isString);
 
 const isBlogAuthor = (value: unknown): value is BlogAuthor =>
@@ -62,11 +64,11 @@ const isBlogCategory = (value: unknown): value is BlogCategory => {
   return isFiniteNumber(value.id)
     && isString(value.name)
     && isString(value.slug)
-    && isOptional(value.description, isString)
-    && isOptional(value.meta_title, isString)
-    && isOptional(value.meta_description, isString)
+    && isNullableOptional(value.description, isString)
+    && isNullableOptional(value.meta_title, isString)
+    && isNullableOptional(value.meta_description, isString)
     && isString(value.color)
-    && isOptional(value.image, isString)
+    && isNullableOptional(value.image, isString)
     && isFiniteNumber(value.sort_order)
     && isBoolean(value.is_active)
     && isOptional(value.articles_count, isFiniteNumber)
@@ -95,14 +97,14 @@ const isBlogComment = (value: unknown): value is BlogComment => {
 
   return isFiniteNumber(value.id)
     && isFiniteNumber(value.article_id)
-    && isOptional(value.parent_id, isFiniteNumber)
+    && isNullableOptional(value.parent_id, isFiniteNumber)
     && isString(value.author_name)
     && isString(value.author_email)
-    && isOptional(value.author_website, isString)
+    && isNullableOptional(value.author_website, isString)
     && isString(value.content)
     && isString(value.status)
     && BLOG_COMMENT_STATUSES.has(value.status as BlogComment['status'])
-    && isOptional(value.approved_at, isString)
+    && isNullableOptional(value.approved_at, isString)
     && isFiniteNumber(value.likes_count)
     && isBoolean(value.is_approved)
     && isBoolean(value.is_root)
@@ -130,18 +132,18 @@ const isBlogArticle = (value: unknown): value is BlogArticle => {
     && isString(value.slug)
     && isString(value.excerpt)
     && isString(value.content)
-    && isOptional(value.featured_image, isString)
-    && isOptional(value.gallery_images, isStringArray)
-    && isOptional(value.meta_title, isString)
-    && isOptional(value.meta_description, isString)
-    && isOptional(value.meta_keywords, isStringArray)
-    && isOptional(value.og_title, isString)
-    && isOptional(value.og_description, isString)
-    && isOptional(value.og_image, isString)
+    && isNullableOptional(value.featured_image, isString)
+    && isNullableOptional(value.gallery_images, isStringArray)
+    && isNullableOptional(value.meta_title, isString)
+    && isNullableOptional(value.meta_description, isString)
+    && isNullableOptional(value.meta_keywords, isStringArray)
+    && isNullableOptional(value.og_title, isString)
+    && isNullableOptional(value.og_description, isString)
+    && isNullableOptional(value.og_image, isString)
     && isString(value.status)
     && BLOG_ARTICLE_STATUSES.has(value.status as BlogArticle['status'])
-    && isOptional(value.published_at, isString)
-    && isOptional(value.scheduled_at, isString)
+    && isNullableOptional(value.published_at, isString)
+    && isNullableOptional(value.scheduled_at, isString)
     && isFiniteNumber(value.views_count)
     && isFiniteNumber(value.likes_count)
     && isFiniteNumber(value.comments_count)
@@ -154,7 +156,7 @@ const isBlogArticle = (value: unknown): value is BlogArticle => {
     && isFiniteNumber(value.sort_order)
     && isString(value.url)
     && isBoolean(value.is_published)
-    && isOptional(value.readable_published_at, isString)
+    && isNullableOptional(value.readable_published_at, isString)
     && isBlogCategory(value.category)
     && isBlogAuthor(value.author)
     && Array.isArray(value.tags)
@@ -269,7 +271,7 @@ const normalizeApiBase = (apiBase: string) => apiBase.replace(/\/+$/, '');
 const LEGACY_MARKETING_ORIGIN_PATTERN = /^https?:\/\/(?:www\.)?prohelper\.pro/i;
 const normalizeMarketingUrl = (value: string) => value.replace(LEGACY_MARKETING_ORIGIN_PATTERN, BASE_URL);
 
-const resolveAbsoluteUrl = (value?: string) => {
+const resolveAbsoluteUrl = (value?: string | null) => {
   if (!value) {
     return undefined;
   }

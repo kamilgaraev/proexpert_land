@@ -136,6 +136,41 @@ describe('catch-all blog SSR', () => {
     });
   });
 
+  it('accepts nullable fields returned by the production blog resources', async () => {
+    const nullableCategory = {
+      ...category,
+      description: null,
+      meta_title: null,
+      meta_description: null,
+      image: null,
+    };
+    const nullableArticle = {
+      ...article,
+      featured_image: null,
+      gallery_images: null,
+      meta_title: null,
+      meta_description: null,
+      meta_keywords: null,
+      og_title: null,
+      og_description: null,
+      og_image: null,
+      published_at: null,
+      scheduled_at: null,
+      readable_published_at: null,
+      category: nullableCategory,
+    };
+    vi.stubGlobal('fetch', blogIndexFetch(nullableArticle, [nullableCategory]));
+
+    const result = await onBeforeRender({ urlPathname: '/blog' });
+
+    expect(result.pageContext.pageProps?.initialBlogIndexData).toMatchObject({
+      articles: [nullableArticle],
+      categories: [nullableCategory],
+      articlesLoaded: true,
+      categoriesLoaded: true,
+    });
+  });
+
   it('rejects an article missing a required field so the client can retry', async () => {
     const { views_count: _viewsCount, ...articleWithoutViews } = article;
     vi.stubGlobal('fetch', blogIndexFetch(articleWithoutViews, [category]));
@@ -181,6 +216,18 @@ describe('catch-all blog SSR', () => {
 
   it('rejects invalid optional article arrays', async () => {
     vi.stubGlobal('fetch', blogIndexFetch({ ...article, meta_keywords: ['стройка', 42] }, [category]));
+
+    const result = await onBeforeRender({ urlPathname: '/blog' });
+
+    expect(result.pageContext.pageProps?.initialBlogIndexData).toMatchObject({
+      articles: [],
+      articlesLoaded: false,
+      categoriesLoaded: true,
+    });
+  });
+
+  it('rejects a wrong non-null type for a nullable article field', async () => {
+    vi.stubGlobal('fetch', blogIndexFetch({ ...article, featured_image: 42 }, [category]));
 
     const result = await onBeforeRender({ urlPathname: '/blog' });
 
