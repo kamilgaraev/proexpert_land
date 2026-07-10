@@ -3,9 +3,6 @@ import { marketingProductSeoLandingPages } from './seoProductPages';
 import type {
   MarketingContentLink,
   MarketingEditorialSeries,
-  MarketingFaqItem,
-  MarketingProofMetric,
-  MarketingRoleView,
   MarketingSeoLandingPage,
 } from '@/types/marketing';
 
@@ -17,34 +14,13 @@ const contactLink: MarketingContentLink = {
 
 const createProof = (proof: MarketingSeoLandingPage['proof']) => proof;
 
-type OperationalSeoPageConfig = {
-  path: string;
-  eyebrow: string;
-  title: string;
-  description: string;
-  supportingQueries: string[];
+type OperationalSeoPageConfig = Omit<MarketingSeoLandingPage, 'proof'> & {
   proofTitle: string;
   proofDescription: string;
   signals: string[];
   beforeState: string[];
   afterState: string[];
-  metrics: MarketingProofMetric[];
-  audienceTitle: string;
-  audienceDescription: string;
-  audiences: string[];
-  problemTitle: string;
-  problemDescription: string;
-  problems: string[];
-  automationTitle: string;
-  automationDescription: string;
-  automations: string[];
-  visibilityTitle: string;
-  visibilityDescription: string;
-  roleViews: MarketingRoleView[];
-  relatedLinks: MarketingContentLink[];
-  blogLinks: MarketingContentLink[];
-  contactHighlights: string[];
-  faq: MarketingFaqItem[];
+  metrics: MarketingSeoLandingPage['proof']['metrics'];
 };
 
 const createOperationalSeoPage = (config: OperationalSeoPageConfig): MarketingSeoLandingPage => ({
@@ -79,6 +55,7 @@ const createOperationalSeoPage = (config: OperationalSeoPageConfig): MarketingSe
   blogLinks: config.blogLinks,
   contactHighlights: config.contactHighlights,
   faq: config.faq,
+  workflow: config.workflow,
 });
 
 export const marketingCommercialLandingLinks: MarketingContentLink[] = [
