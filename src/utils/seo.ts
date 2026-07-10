@@ -48,6 +48,10 @@ export interface BuildStructuredDataGraphInput {
 
 const BASE_URL = 'https://1мост.рф';
 const OG_BASE_PATH = `${BASE_URL}/og`;
+export const ROBOTS_INDEX_CONTENT = 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1';
+export const ROBOTS_NOINDEX_CONTENT = 'noindex, nofollow, noarchive';
+export const GOOGLEBOT_INDEX_CONTENT = 'index, follow, max-snippet:-1, max-image-preview:large';
+export const GOOGLEBOT_NOINDEX_CONTENT = 'noindex, nofollow';
 const MARKETING_OG_IMAGE_PATTERN = /^(https?:\/\/(?:www\.)?(?:prohelper\.pro|1мост\.рф|xn--1-xtbgmf\.xn--p1ai))?\/og\/([^?#]+)\.svg([?#].*)?$/i;
 const ARTICLE_TITLE_BRAND_SUFFIX = /\s*\|\s*(?:prohelper|мост)\s*$/i;
 

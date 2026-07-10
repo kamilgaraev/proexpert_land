@@ -1,8 +1,12 @@
 import { resolveMarketingRedirectTarget } from '@/data/marketingRegistry';
 import {
   buildStructuredDataGraph,
+  GOOGLEBOT_INDEX_CONTENT,
+  GOOGLEBOT_NOINDEX_CONTENT,
   getPageSEOData,
   normalizeOgImageUrl,
+  ROBOTS_INDEX_CONTENT,
+  ROBOTS_NOINDEX_CONTENT,
   type PageSEOData,
 } from '@utils/seo';
 
@@ -65,13 +69,8 @@ export const buildServerSeoPayload = (
   const lang = resolvedDocumentProps.lang ?? baseSeo.lang;
   const statusCode = resolvedDocumentProps.statusCode ?? baseSeo.statusCode;
 
-  const robotsContent = noIndex
-    ? 'noindex, nofollow, noarchive'
-    : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1';
-
-  const googlebotContent = noIndex
-    ? 'noindex, nofollow'
-    : 'index, follow, max-snippet:-1, max-image-preview:large';
+  const robotsContent = noIndex ? ROBOTS_NOINDEX_CONTENT : ROBOTS_INDEX_CONTENT;
+  const googlebotContent = noIndex ? GOOGLEBOT_NOINDEX_CONTENT : GOOGLEBOT_INDEX_CONTENT;
 
   const escapedTitle = escapeHtmlAttribute(title);
   const escapedDescription = escapeHtmlAttribute(description);

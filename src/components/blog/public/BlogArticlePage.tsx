@@ -18,6 +18,7 @@ interface BlogArticlePageProps {
 }
 
 const ARTICLE_NOT_FOUND_MESSAGE = 'Статья не найдена или временно недоступна.';
+const BASE_URL = 'https://1мост.рф';
 
 const isNotFoundResponse = (error: unknown) => {
   if (!error || typeof error !== 'object' || !('response' in error)) {
@@ -38,46 +39,58 @@ const BlogArticlePage = ({
   const isPreview = Boolean(articleId);
   const hasInitialArticle = !isPreview && initialArticle?.slug === slug;
   const hasInitialNotFound = !isPreview && initialArticleNotFound && initialArticleNotFoundSlug === slug;
+  const currentRouteKey = isPreview ? `preview:${articleId ?? ''}` : `article:${slug ?? ''}`;
   const [article, setArticle] = useState<BlogArticle | null>(() => (hasInitialArticle ? initialArticle ?? null : null));
   const [relatedArticles, setRelatedArticles] = useState<BlogArticle[]>([]);
   const [loading, setLoading] = useState(() => !(hasInitialArticle || hasInitialNotFound));
   const [error, setError] = useState<string | null>(() => (hasInitialNotFound ? ARTICLE_NOT_FOUND_MESSAGE : null));
-  const [articleNotFound, setArticleNotFound] = useState(hasInitialNotFound);
-  const articleImage = article?.og_image || article?.featured_image || undefined;
-  const publishedTime = article?.published_at || article?.created_at || undefined;
-  const modifiedTime = article?.updated_at || undefined;
+  const [notFoundRouteKey, setNotFoundRouteKey] = useState<string | null>(() => (
+    hasInitialNotFound ? currentRouteKey : null
+  ));
+  const articleMatchesRoute = Boolean(
+    article && (isPreview ? `${article.id}` === articleId : article.slug === slug),
+  );
+  const seoArticle = articleMatchesRoute ? article : null;
+  const articleNotFound = hasInitialNotFound || notFoundRouteKey === currentRouteKey;
+  const articleImage = seoArticle?.og_image || seoArticle?.featured_image || undefined;
+  const publishedTime = seoArticle?.published_at || seoArticle?.created_at || undefined;
+  const modifiedTime = seoArticle?.updated_at || undefined;
 
   useSEO(
-    article
+    seoArticle
       ? {
-          title: normalizeArticleTitleBrand(article.meta_title || article.og_title || article.title),
-          description: article.meta_description || article.og_description || article.excerpt || 'Статья МОСТ',
-          keywords: article.meta_keywords?.join(', ') || article.tags.map((tag) => tag.name).join(', '),
+          title: normalizeArticleTitleBrand(seoArticle.meta_title || seoArticle.og_title || seoArticle.title),
+          description: seoArticle.meta_description || seoArticle.og_description || seoArticle.excerpt || 'Статья МОСТ',
+          keywords: seoArticle.meta_keywords?.join(', ') || seoArticle.tags.map((tag) => tag.name).join(', '),
           ogImage: articleImage,
           type: 'article',
-          author: article.author.name,
+          author: seoArticle.author.name,
           publishedTime,
           modifiedTime,
-          noIndex: isPreview || article.noindex,
+          noIndex: isPreview || seoArticle.noindex,
+          canonicalUrl: isPreview
+            ? `${BASE_URL}/blog/preview/${seoArticle.id}`
+            : `${BASE_URL}/blog/${seoArticle.slug}`,
           structuredData: generateArticleSchema({
-            title: article.title,
-            description: article.meta_description || article.og_description || article.excerpt || article.title,
-            author: article.author.name,
+            title: seoArticle.title,
+            description: seoArticle.meta_description || seoArticle.og_description || seoArticle.excerpt || seoArticle.title,
+            author: seoArticle.author.name,
             publishedTime,
             modifiedTime,
             image: articleImage,
-            category: article.category.name,
-            tags: article.tags.map((tag) => tag.name),
-            url: isPreview ? `https://1мост.рф/blog/preview/${article.id}` : `https://1мост.рф/blog/${article.slug}`,
+            category: seoArticle.category.name,
+            tags: seoArticle.tags.map((tag) => tag.name),
+            url: isPreview ? `${BASE_URL}/blog/preview/${seoArticle.id}` : `${BASE_URL}/blog/${seoArticle.slug}`,
           }),
         }
-      : articleNotFound || hasInitialNotFound
+      : articleNotFound
         ? {
             title: 'Статья не найдена | МОСТ',
             description: 'Материал блога МОСТ не найден или еще не опубликован.',
             type: 'website',
             noIndex: true,
             statusCode: 404,
+            canonicalUrl: `${BASE_URL}/blog`,
           }
         : {
           title: 'Блог МОСТ',
@@ -105,20 +118,21 @@ const BlogArticlePage = ({
       try {
         setLoading(true);
         setError(null);
-        setArticleNotFound(false);
+        setArticle(null);
+        setNotFoundRouteKey(null);
 
         const response = isPreview
           ? await blogPublicApi.getPreviewArticle(articleId!, searchParams)
           : await blogPublicApi.getArticle(slug!);
         const articleData = (response.data as { data: BlogArticle }).data;
         setArticle(articleData);
-        setArticleNotFound(false);
+        setNotFoundRouteKey(null);
         await fetchRelatedArticles(articleData);
       } catch (fetchError) {
         console.error('Error fetching article:', fetchError);
         setArticle(null);
         setRelatedArticles([]);
-        setArticleNotFound(isNotFoundResponse(fetchError));
+        setNotFoundRouteKey(isNotFoundResponse(fetchError) ? currentRouteKey : null);
         setError(ARTICLE_NOT_FOUND_MESSAGE);
       } finally {
         setLoading(false);
@@ -127,7 +141,7 @@ const BlogArticlePage = ({
 
     if (hasInitialArticle && initialArticle) {
       setArticle(initialArticle);
-      setArticleNotFound(false);
+      setNotFoundRouteKey(null);
       setError(null);
       setLoading(false);
       void fetchRelatedArticles(initialArticle);
@@ -137,7 +151,7 @@ const BlogArticlePage = ({
     if (hasInitialNotFound) {
       setArticle(null);
       setRelatedArticles([]);
-      setArticleNotFound(true);
+      setNotFoundRouteKey(currentRouteKey);
       setError(ARTICLE_NOT_FOUND_MESSAGE);
       setLoading(false);
       return;
@@ -146,9 +160,9 @@ const BlogArticlePage = ({
     if ((isPreview && articleId) || (!isPreview && slug)) {
       fetchArticle();
     }
-  }, [articleId, hasInitialArticle, hasInitialNotFound, initialArticle, isPreview, searchParams, slug]);
+  }, [articleId, currentRouteKey, hasInitialArticle, hasInitialNotFound, initialArticle, isPreview, searchParams, slug]);
 
-  if (loading) {
+  if (loading || (!articleMatchesRoute && !error && !articleNotFound)) {
     return (
       <BlogPublicLayout
         eyebrow="Блог МОСТ"
@@ -171,7 +185,7 @@ const BlogArticlePage = ({
     );
   }
 
-  if (error || !article) {
+  if (error || !article || !articleMatchesRoute) {
     return (
       <BlogPublicLayout
         eyebrow="Блог МОСТ"

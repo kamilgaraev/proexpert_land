@@ -32,6 +32,13 @@ const graphTypes = () => {
   return graph['@graph']?.map((node) => node['@type']) ?? [];
 };
 
+const graphNode = (type: string) => {
+  const script = document.querySelector<HTMLScriptElement>('#ld-json');
+  const graph = JSON.parse(script?.textContent ?? '{}') as { '@graph'?: Array<Record<string, unknown>> };
+
+  return graph['@graph']?.find((node) => node['@type'] === type);
+};
+
 describe('useSEO structured data policy', () => {
   beforeEach(() => {
     document.head.innerHTML = [
@@ -124,12 +131,32 @@ describe('useSEO structured data policy', () => {
     expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0);
   });
 
+  it('uses a query-free canonical override in metadata and the WebPage graph', async () => {
+    renderSeo('/features?utm_source=route', {
+      canonicalUrl: 'https://1мост.рф/solutions?utm_source=override#details',
+    });
+
+    await waitFor(() => {
+      expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+        'https://1мост.рф/solutions',
+      );
+    });
+
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute('content')).toBe(
+      'https://1мост.рф/solutions',
+    );
+    expect(graphNode('WebPage')?.url).toBe('https://1мост.рф/solutions');
+  });
+
   it('keeps googlebot synchronized while navigating indexable and noindex pages', async () => {
     const view = renderSeo('/features');
 
     await waitFor(() => {
       expect(document.querySelector('meta[name="googlebot"]')?.getAttribute('content')).toBe(
         'index, follow, max-snippet:-1, max-image-preview:large',
+      );
+      expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe(
+        'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
       );
     });
 
@@ -143,6 +170,9 @@ describe('useSEO structured data policy', () => {
       expect(document.querySelector('meta[name="googlebot"]')?.getAttribute('content')).toBe(
         'noindex, nofollow',
       );
+      expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe(
+        'noindex, nofollow, noarchive',
+      );
     });
     expect(document.querySelector('#ld-json')).toBeNull();
 
@@ -155,6 +185,9 @@ describe('useSEO structured data policy', () => {
     await waitFor(() => {
       expect(document.querySelector('meta[name="googlebot"]')?.getAttribute('content')).toBe(
         'index, follow, max-snippet:-1, max-image-preview:large',
+      );
+      expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe(
+        'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
       );
     });
     expect(document.querySelector('#ld-json')).not.toBeNull();

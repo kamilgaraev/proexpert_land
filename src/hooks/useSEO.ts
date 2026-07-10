@@ -2,8 +2,12 @@ import { useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   buildStructuredDataGraph,
+  GOOGLEBOT_INDEX_CONTENT,
+  GOOGLEBOT_NOINDEX_CONTENT,
   getPageSEOData,
   normalizeOgImageUrl,
+  ROBOTS_INDEX_CONTENT,
+  ROBOTS_NOINDEX_CONTENT,
   type StructuredDataGraph,
 } from '@/utils/seo';
 
@@ -34,6 +38,7 @@ interface UseSEOProps {
   structuredData?: unknown;
   noIndex?: boolean;
   statusCode?: number;
+  canonicalUrl?: string;
 }
 
 export const useSEO = (props: UseSEOProps = {}) => {
@@ -114,9 +119,10 @@ export const useSEO = (props: UseSEOProps = {}) => {
       modifiedTime: props.modifiedTime,
       noIndex: props.noIndex ?? pageData.noIndex ?? false,
       statusCode: props.statusCode ?? pageData.statusCode,
+      canonicalUrl: (props.canonicalUrl ?? pageData.canonicalUrl).replace(/[?#].*$/, ''),
     };
 
-    const currentUrl = pageData.canonicalUrl.replace(/[?#].*$/, '');
+    const currentUrl = finalData.canonicalUrl;
 
     document.title = finalData.title;
 
@@ -125,13 +131,11 @@ export const useSEO = (props: UseSEOProps = {}) => {
     setMetaTag('author', finalData.author);
     setMetaTag(
       'robots',
-      finalData.noIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large',
+      finalData.noIndex ? ROBOTS_NOINDEX_CONTENT : ROBOTS_INDEX_CONTENT,
     );
     setMetaTag(
       'googlebot',
-      finalData.noIndex
-        ? 'noindex, nofollow'
-        : 'index, follow, max-snippet:-1, max-image-preview:large',
+      finalData.noIndex ? GOOGLEBOT_NOINDEX_CONTENT : GOOGLEBOT_INDEX_CONTENT,
     );
 
     setMetaTag('og:title', finalData.title, true);
@@ -177,6 +181,7 @@ export const useSEO = (props: UseSEOProps = {}) => {
   }, [
     location.pathname,
     props.author,
+    props.canonicalUrl,
     props.description,
     props.keywords,
     props.modifiedTime,
