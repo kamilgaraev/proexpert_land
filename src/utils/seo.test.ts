@@ -74,16 +74,22 @@ describe('sitemap sync', () => {
 
   it('contains every indexable marketing route from the registry', () => {
     const sitemapXml = renderSitemapXml();
-    const sitemapUrls = Array.from(
-      sitemapXml.matchAll(/<loc>(.*?)<\/loc>/g),
-      (match) => match[1],
-    );
+    const sitemapDocument = new DOMParser().parseFromString(sitemapXml, 'application/xml');
+    const sitemapEntries = Array.from(sitemapDocument.querySelectorAll('url'), (url) => ({
+      loc: url.querySelector('loc')?.textContent,
+      changefreq: url.querySelector('changefreq')?.textContent,
+      priority: Number(url.querySelector('priority')?.textContent),
+      lastmod: url.querySelector('lastmod')?.textContent ?? null,
+    }));
+    const expectedEntries = marketingSitemapRoutes.map((route) => ({
+      loc: `https://1мост.рф${route.path === '/' ? '/' : route.path}`,
+      changefreq: route.changefreq,
+      priority: route.priority,
+      lastmod: null,
+    }));
+    const sitemapUrls = sitemapEntries.map((entry) => entry.loc);
 
-    const expectedUrls = marketingSitemapRoutes.map(
-      (route) => `https://1мост.рф${route.path === '/' ? '/' : route.path}`,
-    );
-
-    expect([...sitemapUrls].sort()).toEqual([...expectedUrls].sort());
+    expect(sitemapEntries).toEqual(expectedEntries);
     expect(sitemapUrls).not.toContain('https://1мост.рф/privacy');
     expect(sitemapUrls).not.toContain('https://1мост.рф/offer');
     expect(sitemapUrls).not.toContain('https://1мост.рф/cookies');
