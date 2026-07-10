@@ -18,6 +18,16 @@ const marketingChangefreqs = new Set<MarketingSitemapRoute['changefreq']>([
   'monthly',
 ]);
 
+const marketingSitemapRouteFields = new Set([
+  'path',
+  'pageKey',
+  'priority',
+  'changefreq',
+]);
+
+const isCanonicalMarketingPath = (value: string) => value === '/'
+  || /^\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/.test(value);
+
 const isMarketingSitemapRoute = (route: unknown): route is MarketingSitemapRoute => {
   if (typeof route !== 'object' || route === null) {
     return false;
@@ -25,20 +35,41 @@ const isMarketingSitemapRoute = (route: unknown): route is MarketingSitemapRoute
 
   const candidate = route as Partial<MarketingSitemapRoute>;
 
-  return typeof candidate.path === 'string'
-    && candidate.path.startsWith('/')
+  return Object.keys(route).length === marketingSitemapRouteFields.size
+    && Object.keys(route).every((field) => marketingSitemapRouteFields.has(field))
+    && typeof candidate.path === 'string'
+    && isCanonicalMarketingPath(candidate.path)
     && typeof candidate.pageKey === 'string'
-    && candidate.pageKey.length > 0
+    && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(candidate.pageKey)
     && typeof candidate.priority === 'number'
+    && Number.isFinite(candidate.priority)
     && candidate.priority >= 0
     && candidate.priority <= 1
     && typeof candidate.changefreq === 'string'
     && marketingChangefreqs.has(candidate.changefreq as MarketingSitemapRoute['changefreq']);
 };
 
-if (!sitemapRoutes.every(isMarketingSitemapRoute)) {
-  throw new Error('Invalid marketing sitemap route registry');
+export function assertMarketingSitemapRoutes(
+  routes: unknown,
+): asserts routes is MarketingSitemapRoute[] {
+  if (!Array.isArray(routes) || !routes.every(isMarketingSitemapRoute)) {
+    throw new Error('Invalid marketing sitemap route registry');
+  }
+
+  const paths = new Set<string>();
+  const pageKeys = new Set<string>();
+
+  for (const route of routes) {
+    if (paths.has(route.path) || pageKeys.has(route.pageKey)) {
+      throw new Error('Duplicate marketing sitemap route registry entry');
+    }
+
+    paths.add(route.path);
+    pageKeys.add(route.pageKey);
+  }
 }
+
+assertMarketingSitemapRoutes(sitemapRoutes);
 
 export const marketingSitemapRoutes: MarketingSitemapRoute[] = sitemapRoutes;
 

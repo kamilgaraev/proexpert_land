@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import sitemapRoutes from './sitemapRoutes.json';
 import {
+  assertMarketingSitemapRoutes,
   findMarketingSitemapRoute,
   isKnownMarketingPath,
   isMarketingNoIndexPath,
@@ -12,6 +13,33 @@ import {
 describe('marketing site index', () => {
   it('uses the shared sitemap route registry', () => {
     expect(marketingSitemapRoutes).toEqual(sitemapRoutes);
+  });
+
+  it('rejects malformed or duplicate sitemap registry entries', () => {
+    const route = {
+      path: '/features',
+      pageKey: 'features',
+      priority: 0.9,
+      changefreq: 'weekly',
+    };
+    const invalidRegistries = [
+      null,
+      {},
+      [{ ...route, path: 'features' }],
+      [{ ...route, path: '/features/' }],
+      [{ ...route, pageKey: '' }],
+      [{ ...route, priority: 1.1 }],
+      [{ ...route, changefreq: 'yearly' }],
+      [{ ...route, unexpected: true }],
+      [route, { ...route, pageKey: 'features-copy' }],
+      [route, { ...route, path: '/features-copy' }],
+    ];
+
+    expect(typeof assertMarketingSitemapRoutes).toBe('function');
+
+    for (const registry of invalidRegistries) {
+      expect(() => assertMarketingSitemapRoutes(registry)).toThrow();
+    }
   });
 
   it('normalizes query strings, hashes, and trailing slashes', () => {

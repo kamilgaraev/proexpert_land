@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
+import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { marketingSitemapRoutes } from '@/data/marketingRegistry';
@@ -7,13 +8,14 @@ import { buildArticleDocumentProps } from '@/pages/catch-all.page.server';
 import { getPageSEOData, normalizeOgImageUrl } from '@/utils/seo';
 
 const require = createRequire(import.meta.url);
-const { renderSitemapXml } = require(path.resolve(process.cwd(), 'server/sitemap.cjs')) as {
+const { renderSitemapXml, validateSitemapRoutes } = require(path.resolve(process.cwd(), 'server/sitemap.cjs')) as {
   renderSitemapXml: (articles?: Array<{
     slug?: string;
     url?: string;
     published_at?: string;
     updated_at?: string;
   }>) => string;
+  validateSitemapRoutes: (routes: unknown) => void;
 };
 
 describe('getPageSEOData', () => {
@@ -61,6 +63,58 @@ describe('normalizeOgImageUrl', () => {
 });
 
 describe('sitemap sync', () => {
+  it('rejects malformed or duplicate runtime sitemap registry entries', () => {
+    const route = {
+      path: '/features',
+      pageKey: 'features',
+      priority: 0.9,
+      changefreq: 'weekly',
+    };
+    const invalidRegistries = [
+      null,
+      {},
+      [{ ...route, path: 'features' }],
+      [{ ...route, path: '/features/' }],
+      [{ ...route, pageKey: '' }],
+      [{ ...route, priority: -0.1 }],
+      [{ ...route, changefreq: 'yearly' }],
+      [{ ...route, unexpected: true }],
+      [route, { ...route, pageKey: 'features-copy' }],
+      [route, { ...route, path: '/features-copy' }],
+    ];
+
+    expect(typeof validateSitemapRoutes).toBe('function');
+
+    for (const registry of invalidRegistries) {
+      expect(() => validateSitemapRoutes(registry)).toThrow();
+    }
+  });
+
+  it('loads the registry beside sitemap.cjs in a deploy-like directory', () => {
+    const deployDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'prohelper-sitemap-'));
+
+    try {
+      fs.copyFileSync(
+        path.resolve(process.cwd(), 'server', 'sitemap.cjs'),
+        path.join(deployDirectory, 'sitemap.cjs'),
+      );
+      fs.writeFileSync(
+        path.join(deployDirectory, 'sitemapRoutes.json'),
+        JSON.stringify([
+          { path: '/', pageKey: 'home', priority: 1, changefreq: 'weekly' },
+        ]),
+      );
+
+      const deployedSitemap = require(path.join(deployDirectory, 'sitemap.cjs')) as {
+        renderSitemapXml: () => string;
+      };
+
+      expect(deployedSitemap.renderSitemapXml().match(/<url>/g)).toHaveLength(1);
+    } finally {
+      fs.rmSync(deployDirectory, { recursive: true, force: true });
+    }
+  });
+
   it('keeps public robots on the readable .рф domain without legacy static artifacts', () => {
     const robotsTxt = fs.readFileSync(path.resolve(process.cwd(), 'public', 'robots.txt'), 'utf8');
 
@@ -128,6 +182,35 @@ describe('sitemap sync', () => {
     expect(sitemapXml).toContain('<lastmod>2026-05-27T08:00:00.000Z</lastmod>');
   });
 
+  it('uses published_at when updated_at is invalid', () => {
+    const sitemapXml = renderSitemapXml([
+      {
+        slug: 'fallback-date',
+        updated_at: 'not-a-date',
+        published_at: '2026-04-10T12:00:00.000000Z',
+      },
+    ]);
+
+    expect(sitemapXml).toContain('<lastmod>2026-04-10T12:00:00.000Z</lastmod>');
+  });
+
+  it('deduplicates article URLs and keeps the freshest valid lastmod', () => {
+    const sitemapXml = renderSitemapXml([
+      {
+        slug: 'duplicate-article',
+        updated_at: '2026-04-10T12:00:00.000000Z',
+      },
+      {
+        url: '/blog/duplicate-article',
+        updated_at: '2026-06-10T12:00:00.000000Z',
+      },
+    ]);
+
+    expect(sitemapXml.match(/<loc>https:\/\/1мост\.рф\/blog\/duplicate-article<\/loc>/g)).toHaveLength(1);
+    expect(sitemapXml).toContain('<lastmod>2026-06-10T12:00:00.000Z</lastmod>');
+    expect(sitemapXml).not.toContain('<lastmod>2026-04-10T12:00:00.000Z</lastmod>');
+  });
+
   it('keeps production sitemap routed to SSR instead of the static client file', () => {
     const nginxConfig = fs.readFileSync(path.resolve(process.cwd(), 'deploy', 'nginx', 'prohelper.pro.conf'), 'utf8');
     const packageJson = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')) as {
@@ -149,6 +232,34 @@ describe('sitemap sync', () => {
     expect(sitemapRegistryCopyIndex).toBeGreaterThan(-1);
     expect(directoryRotationIndex).toBeGreaterThan(sitemapRegistryCopyIndex);
     expect(buildMarketing).toContain('rm -f client/sitemap.xml client/index.html');
+  });
+
+  it('deploys the versioned nginx config through guarded validation and rollback', () => {
+    const workflow = fs.readFileSync(path.resolve(process.cwd(), '.github', 'workflows', 'deploy.yml'), 'utf8');
+    const applyScriptPath = path.resolve(process.cwd(), 'deploy', 'apply-marketing-nginx.sh');
+
+    expect(workflow).toContain('username: root');
+    expect(workflow).toContain('deploy/nginx/prohelper.pro.conf');
+    expect(workflow).toContain('deploy/apply-marketing-nginx.sh');
+    expect(workflow).toContain('bash deploy/apply-marketing-nginx.sh');
+    expect(workflow).toContain('NGINX_CONFIG_PATH');
+    expect(workflow.indexOf('bash deploy/apply-marketing-nginx.sh')).toBeLessThan(
+      workflow.indexOf('ln -sfn "$RELEASE_PATH"'),
+    );
+    expect(fs.existsSync(applyScriptPath)).toBe(true);
+
+    if (!fs.existsSync(applyScriptPath)) {
+      return;
+    }
+
+    const applyScript = fs.readFileSync(applyScriptPath, 'utf8');
+
+    expect(applyScript).toContain('[[ ! -f "$CONFIG_PATH" ]]');
+    expect(applyScript).toContain('[[ ! -L "$ENABLED_PATH" ]]');
+    expect(applyScript).toContain('readlink -f "$ENABLED_PATH"');
+    expect(applyScript).toContain('rollback()');
+    expect(applyScript).toContain('nginx -t');
+    expect(applyScript).toContain('systemctl reload nginx');
   });
 });
 

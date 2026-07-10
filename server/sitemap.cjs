@@ -2,6 +2,50 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const BASE_URL = 'https://1мост.рф';
+const SITEMAP_CHANGEFREQS = new Set(['daily', 'weekly', 'monthly']);
+const SITEMAP_ROUTE_FIELDS = new Set(['path', 'pageKey', 'priority', 'changefreq']);
+
+const isCanonicalMarketingPath = (value) => value === '/'
+  || /^\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/.test(value);
+
+const validateSitemapRoutes = (routes) => {
+  if (!Array.isArray(routes)) {
+    throw new Error('Invalid marketing sitemap route registry');
+  }
+
+  const paths = new Set();
+  const pageKeys = new Set();
+
+  for (const route of routes) {
+    if (
+      typeof route !== 'object'
+      || route === null
+      || Object.keys(route).length !== SITEMAP_ROUTE_FIELDS.size
+      || !Object.keys(route).every((field) => SITEMAP_ROUTE_FIELDS.has(field))
+      || typeof route.path !== 'string'
+      || !isCanonicalMarketingPath(route.path)
+      || typeof route.pageKey !== 'string'
+      || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(route.pageKey)
+      || typeof route.priority !== 'number'
+      || !Number.isFinite(route.priority)
+      || route.priority < 0
+      || route.priority > 1
+      || typeof route.changefreq !== 'string'
+      || !SITEMAP_CHANGEFREQS.has(route.changefreq)
+    ) {
+      throw new Error('Invalid marketing sitemap route registry');
+    }
+
+    if (paths.has(route.path) || pageKeys.has(route.pageKey)) {
+      throw new Error('Duplicate marketing sitemap route registry entry');
+    }
+
+    paths.add(route.path);
+    pageKeys.add(route.pageKey);
+  }
+
+  return routes;
+};
 
 const sitemapRoutePaths = [
   path.resolve(__dirname, 'sitemapRoutes.json'),
@@ -13,7 +57,9 @@ if (!sitemapRoutePath) {
   throw new Error('Marketing sitemap route registry not found');
 }
 
-const STATIC_MARKETING_SITEMAP_ROUTES = JSON.parse(fs.readFileSync(sitemapRoutePath, 'utf8'));
+const STATIC_MARKETING_SITEMAP_ROUTES = validateSitemapRoutes(
+  JSON.parse(fs.readFileSync(sitemapRoutePath, 'utf8')),
+);
 
 const escapeXml = (value) => String(value)
   .replace(/&/g, '&amp;')
@@ -51,6 +97,9 @@ const normalizeArticlePath = (article) => {
   return article.slug ? `/blog/${article.slug}` : null;
 };
 
+const resolveArticleLastmod = (article) => normalizeLastmod(article.updated_at)
+  || normalizeLastmod(article.published_at);
+
 const renderSitemapXml = (articles = []) => {
   const staticUrls = STATIC_MARKETING_SITEMAP_ROUTES.map((route) => ({
     loc: route.path === '/' ? `${BASE_URL}/` : `${BASE_URL}${route.path}`,
@@ -58,22 +107,32 @@ const renderSitemapXml = (articles = []) => {
     priority: route.priority,
   }));
 
-  const articleUrls = articles
-    .map((article) => {
-      const path = normalizeArticlePath(article);
+  const articleUrlMap = new Map();
 
-      if (!path) {
-        return null;
-      }
+  for (const article of articles) {
+    const articlePath = normalizeArticlePath(article);
 
-      return {
-        loc: `${BASE_URL}${path}`,
-        lastmod: normalizeLastmod(article.updated_at || article.published_at),
-        changefreq: 'monthly',
-        priority: '0.64',
-      };
-    })
-    .filter(Boolean);
+    if (!articlePath) {
+      continue;
+    }
+
+    const articleUrl = {
+      loc: `${BASE_URL}${articlePath}`,
+      lastmod: resolveArticleLastmod(article),
+      changefreq: 'monthly',
+      priority: '0.64',
+    };
+    const existingArticleUrl = articleUrlMap.get(articleUrl.loc);
+
+    if (
+      !existingArticleUrl
+      || (articleUrl.lastmod && (!existingArticleUrl.lastmod || articleUrl.lastmod > existingArticleUrl.lastmod))
+    ) {
+      articleUrlMap.set(articleUrl.loc, articleUrl);
+    }
+  }
+
+  const articleUrls = Array.from(articleUrlMap.values());
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -121,4 +180,5 @@ module.exports = {
   createSitemapXml,
   fetchBlogSitemapArticles,
   renderSitemapXml,
+  validateSitemapRoutes,
 };
