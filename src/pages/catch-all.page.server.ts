@@ -1,9 +1,12 @@
 import { isKnownMarketingPath, normalizeMarketingPath } from '@/data/marketingRegistry';
 import type {
   BlogArticle,
+  BlogAuthor,
   BlogCategory,
+  BlogComment,
   BlogIndexInitialData,
   BlogPaginationMeta,
+  BlogTag,
 } from '@/types/blog';
 import { generateArticleSchema, normalizeArticleTitleBrand } from '@/utils/seo';
 
@@ -33,11 +36,23 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value);
 
-const isBlogTag = (value: unknown) =>
+const isString = (value: unknown): value is string => typeof value === 'string';
+const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean';
+const isOptional = (value: unknown, validator: (item: unknown) => boolean) =>
+  value === undefined || validator(value);
+const isStringArray = (value: unknown) => Array.isArray(value) && value.every(isString);
+
+const isBlogAuthor = (value: unknown): value is BlogAuthor =>
   isRecord(value)
   && isFiniteNumber(value.id)
-  && typeof value.name === 'string'
-  && typeof value.slug === 'string';
+  && isString(value.name)
+  && isString(value.email);
+
+const isBlogTag = (value: unknown): value is BlogTag =>
+  isRecord(value)
+  && isFiniteNumber(value.id)
+  && isString(value.name)
+  && isString(value.slug);
 
 const isBlogCategory = (value: unknown): value is BlogCategory => {
   if (!isRecord(value)) {
@@ -45,10 +60,65 @@ const isBlogCategory = (value: unknown): value is BlogCategory => {
   }
 
   return isFiniteNumber(value.id)
-    && typeof value.name === 'string'
-    && typeof value.slug === 'string'
-    && typeof value.color === 'string';
+    && isString(value.name)
+    && isString(value.slug)
+    && isOptional(value.description, isString)
+    && isOptional(value.meta_title, isString)
+    && isOptional(value.meta_description, isString)
+    && isString(value.color)
+    && isOptional(value.image, isString)
+    && isFiniteNumber(value.sort_order)
+    && isBoolean(value.is_active)
+    && isOptional(value.articles_count, isFiniteNumber)
+    && isOptional(value.published_articles_count, isFiniteNumber)
+    && isString(value.created_at)
+    && isString(value.updated_at);
 };
+
+const BLOG_COMMENT_STATUSES = new Set<BlogComment['status']>([
+  'pending',
+  'approved',
+  'rejected',
+  'spam',
+]);
+
+const isBlogCommentArticle = (value: unknown) =>
+  isRecord(value)
+  && isFiniteNumber(value.id)
+  && isString(value.title)
+  && isString(value.slug);
+
+const isBlogComment = (value: unknown): value is BlogComment => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return isFiniteNumber(value.id)
+    && isFiniteNumber(value.article_id)
+    && isOptional(value.parent_id, isFiniteNumber)
+    && isString(value.author_name)
+    && isString(value.author_email)
+    && isOptional(value.author_website, isString)
+    && isString(value.content)
+    && isString(value.status)
+    && BLOG_COMMENT_STATUSES.has(value.status as BlogComment['status'])
+    && isOptional(value.approved_at, isString)
+    && isFiniteNumber(value.likes_count)
+    && isBoolean(value.is_approved)
+    && isBoolean(value.is_root)
+    && isOptional(value.article, isBlogCommentArticle)
+    && isOptional(value.replies, (replies) => Array.isArray(replies) && replies.every(isBlogComment))
+    && isOptional(value.approved_by, isBlogAuthor)
+    && isString(value.created_at)
+    && isString(value.updated_at);
+};
+
+const BLOG_ARTICLE_STATUSES = new Set<BlogArticle['status']>([
+  'draft',
+  'published',
+  'scheduled',
+  'archived',
+]);
 
 const isBlogArticle = (value: unknown): value is BlogArticle => {
   if (!isRecord(value)) {
@@ -56,15 +126,42 @@ const isBlogArticle = (value: unknown): value is BlogArticle => {
   }
 
   return isFiniteNumber(value.id)
-    && typeof value.title === 'string'
-    && typeof value.slug === 'string'
-    && typeof value.excerpt === 'string'
-    && typeof value.content === 'string'
+    && isString(value.title)
+    && isString(value.slug)
+    && isString(value.excerpt)
+    && isString(value.content)
+    && isOptional(value.featured_image, isString)
+    && isOptional(value.gallery_images, isStringArray)
+    && isOptional(value.meta_title, isString)
+    && isOptional(value.meta_description, isString)
+    && isOptional(value.meta_keywords, isStringArray)
+    && isOptional(value.og_title, isString)
+    && isOptional(value.og_description, isString)
+    && isOptional(value.og_image, isString)
+    && isString(value.status)
+    && BLOG_ARTICLE_STATUSES.has(value.status as BlogArticle['status'])
+    && isOptional(value.published_at, isString)
+    && isOptional(value.scheduled_at, isString)
+    && isFiniteNumber(value.views_count)
+    && isFiniteNumber(value.likes_count)
+    && isFiniteNumber(value.comments_count)
+    && isFiniteNumber(value.reading_time)
+    && isFiniteNumber(value.estimated_reading_time)
+    && isBoolean(value.is_featured)
+    && isBoolean(value.allow_comments)
+    && isBoolean(value.is_published_in_rss)
+    && isBoolean(value.noindex)
+    && isFiniteNumber(value.sort_order)
+    && isString(value.url)
+    && isBoolean(value.is_published)
+    && isOptional(value.readable_published_at, isString)
     && isBlogCategory(value.category)
-    && isRecord(value.author)
-    && typeof value.author.name === 'string'
+    && isBlogAuthor(value.author)
     && Array.isArray(value.tags)
-    && value.tags.every(isBlogTag);
+    && value.tags.every(isBlogTag)
+    && isOptional(value.comments, (comments) => Array.isArray(comments) && comments.every(isBlogComment))
+    && isString(value.created_at)
+    && isString(value.updated_at);
 };
 
 const normalizePaginationMeta = (value: unknown): BlogPaginationMeta | null => {

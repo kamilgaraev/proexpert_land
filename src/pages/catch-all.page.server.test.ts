@@ -47,6 +47,19 @@ const jsonResponse = (payload: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   });
 
+const blogIndexFetch = (articlePayload: unknown, categoriesPayload: unknown) =>
+  vi.fn((input: string | URL | Request) => Promise.resolve(
+    String(input).includes('/articles?')
+      ? jsonResponse({
+          success: true,
+          data: {
+            data: [articlePayload],
+            meta: { current_page: 1, last_page: 1, per_page: 12, total: 1 },
+          },
+        })
+      : jsonResponse({ success: true, data: categoriesPayload }),
+  ));
+
 afterEach(() => {
   vi.unstubAllGlobals();
 });
@@ -108,6 +121,84 @@ describe('catch-all blog SSR', () => {
       articles: [article],
       categories: [],
       articlesLoaded: true,
+      categoriesLoaded: false,
+    });
+  });
+
+  it('accepts the flat production categories envelope', async () => {
+    vi.stubGlobal('fetch', blogIndexFetch(article, [category]));
+
+    const result = await onBeforeRender({ urlPathname: '/blog' });
+
+    expect(result.pageContext.pageProps?.initialBlogIndexData).toMatchObject({
+      categories: [category],
+      categoriesLoaded: true,
+    });
+  });
+
+  it('rejects an article missing a required field so the client can retry', async () => {
+    const { views_count: _viewsCount, ...articleWithoutViews } = article;
+    vi.stubGlobal('fetch', blogIndexFetch(articleWithoutViews, [category]));
+
+    const result = await onBeforeRender({ urlPathname: '/blog' });
+
+    expect(result.pageContext.pageProps?.initialBlogIndexData).toMatchObject({
+      articles: [],
+      articlesLoaded: false,
+      categoriesLoaded: true,
+    });
+  });
+
+  it.each([
+    { ...category, is_active: 'true' },
+    { ...category, sort_order: '1' },
+  ])('rejects a category with invalid boolean or number fields', async (invalidCategory) => {
+    vi.stubGlobal('fetch', blogIndexFetch(article, [invalidCategory]));
+
+    const result = await onBeforeRender({ urlPathname: '/blog' });
+
+    expect(result.pageContext.pageProps?.initialBlogIndexData).toMatchObject({
+      articlesLoaded: true,
+      categories: [],
+      categoriesLoaded: false,
+    });
+  });
+
+  it.each([
+    { ...article, author: { name: 'Редакция' } },
+    { ...article, tags: [{ id: 1, name: 'Процессы', slug: 12 }] },
+  ])('rejects invalid nested article authors and tags', async (invalidArticle) => {
+    vi.stubGlobal('fetch', blogIndexFetch(invalidArticle, [category]));
+
+    const result = await onBeforeRender({ urlPathname: '/blog' });
+
+    expect(result.pageContext.pageProps?.initialBlogIndexData).toMatchObject({
+      articles: [],
+      articlesLoaded: false,
+      categoriesLoaded: true,
+    });
+  });
+
+  it('rejects invalid optional article arrays', async () => {
+    vi.stubGlobal('fetch', blogIndexFetch({ ...article, meta_keywords: ['стройка', 42] }, [category]));
+
+    const result = await onBeforeRender({ urlPathname: '/blog' });
+
+    expect(result.pageContext.pageProps?.initialBlogIndexData).toMatchObject({
+      articles: [],
+      articlesLoaded: false,
+      categoriesLoaded: true,
+    });
+  });
+
+  it('rejects invalid optional category fields', async () => {
+    vi.stubGlobal('fetch', blogIndexFetch(article, [{ ...category, articles_count: '12' }]));
+
+    const result = await onBeforeRender({ urlPathname: '/blog' });
+
+    expect(result.pageContext.pageProps?.initialBlogIndexData).toMatchObject({
+      articlesLoaded: true,
+      categories: [],
       categoriesLoaded: false,
     });
   });
