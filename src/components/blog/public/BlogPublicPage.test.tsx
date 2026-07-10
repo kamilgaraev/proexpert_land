@@ -118,6 +118,28 @@ describe('BlogPublicPage SSR hydration', () => {
     expect(html).not.toContain('animate-pulse');
   });
 
+  it('server-renders an article card when its excerpt is null', () => {
+    const articleWithoutExcerpt = { ...article, excerpt: null };
+    const html = renderToString(
+      <MemoryRouter initialEntries={['/blog']}>
+        <BlogPublicPage
+          initialData={{
+            articles: [articleWithoutExcerpt],
+            categories: [category],
+            pagination: { current_page: 1, last_page: 1, per_page: 12, total: 1 },
+            articlesLoaded: true,
+            categoriesLoaded: true,
+            queryKey: BASE_QUERY_KEY,
+          }}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(html).toContain('Как управлять стройкой');
+    expect(html).toContain('href="/blog/manage-construction"');
+    expect(html).not.toContain('Практический разбор');
+  });
+
   it('renders initial articles immediately and does not duplicate successful requests', async () => {
     const initialData: BlogIndexInitialData = {
       articles: [article],

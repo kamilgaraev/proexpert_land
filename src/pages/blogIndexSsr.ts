@@ -132,7 +132,7 @@ const isBlogArticle = (value: unknown): value is BlogArticle => {
   return isFiniteNumber(value.id)
     && isString(value.title)
     && isString(value.slug)
-    && isString(value.excerpt)
+    && isNullable(value.excerpt, isString)
     && isString(value.content)
     && isNullableOptional(value.featured_image, isString)
     && isNullableOptional(value.gallery_images, isStringArray)

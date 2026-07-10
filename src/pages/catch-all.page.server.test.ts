@@ -147,6 +147,7 @@ describe('catch-all blog SSR', () => {
     };
     const nullableArticle = {
       ...article,
+      excerpt: null,
       featured_image: null,
       gallery_images: null,
       meta_title: null,

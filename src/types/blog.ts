@@ -2,7 +2,7 @@ export interface BlogArticle {
   id: number;
   title: string;
   slug: string;
-  excerpt: string;
+  excerpt: string | null;
   content: string;
   featured_image?: string | null;
   gallery_images?: string[] | null;
