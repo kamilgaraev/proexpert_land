@@ -25,7 +25,7 @@ describe('marketing content consistency', () => {
   });
 
   it('has a clear public contact channel', () => {
-    expect(marketingCompany.email).toMatch(/@prohelper\.pro$/);
+    expect(marketingCompany.email).toMatch(/@1мост\.рф$/);
     expect(marketingCompany.responseTime.length).toBeGreaterThan(0);
   });
 

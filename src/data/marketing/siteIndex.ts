@@ -1,3 +1,5 @@
+import sitemapRoutes from './sitemapRoutes.json';
+
 export interface MarketingSitemapRoute {
   path: string;
   pageKey: string;
@@ -10,36 +12,35 @@ export interface MarketingRedirectRoute {
   target: string;
 }
 
-export const marketingSitemapRoutes: MarketingSitemapRoute[] = [
-  { path: '/', pageKey: 'home', priority: 1, changefreq: 'weekly' },
-  { path: '/solutions', pageKey: 'solutions', priority: 0.95, changefreq: 'weekly' },
-  { path: '/features', pageKey: 'features', priority: 0.92, changefreq: 'weekly' },
-  { path: '/pricing', pageKey: 'pricing', priority: 0.86, changefreq: 'monthly' },
-  { path: '/integrations', pageKey: 'integrations', priority: 0.8, changefreq: 'monthly' },
-  { path: '/contractors', pageKey: 'contractors', priority: 0.84, changefreq: 'monthly' },
-  { path: '/developers', pageKey: 'developers', priority: 0.82, changefreq: 'monthly' },
-  { path: '/enterprise', pageKey: 'enterprise', priority: 0.83, changefreq: 'monthly' },
-  { path: '/about', pageKey: 'about', priority: 0.62, changefreq: 'monthly' },
-  { path: '/security', pageKey: 'security', priority: 0.66, changefreq: 'monthly' },
-  { path: '/contact', pageKey: 'contact', priority: 0.78, changefreq: 'monthly' },
-  { path: '/blog', pageKey: 'blog', priority: 0.72, changefreq: 'weekly' },
-  { path: '/foreman-software', pageKey: 'foreman-software', priority: 0.9, changefreq: 'weekly' },
-  { path: '/construction-crm', pageKey: 'construction-crm', priority: 0.9, changefreq: 'weekly' },
-  { path: '/construction-erp', pageKey: 'construction-erp', priority: 0.9, changefreq: 'weekly' },
-  { path: '/material-accounting', pageKey: 'material-accounting', priority: 0.89, changefreq: 'weekly' },
-  { path: '/pto-software', pageKey: 'pto-software', priority: 0.88, changefreq: 'weekly' },
-  { path: '/contractor-control', pageKey: 'contractor-control', priority: 0.88, changefreq: 'weekly' },
-  { path: '/construction-documents', pageKey: 'construction-documents', priority: 0.87, changefreq: 'weekly' },
-  { path: '/construction-budget-control', pageKey: 'construction-budget-control', priority: 0.89, changefreq: 'weekly' },
-  { path: '/pir-project-documentation', pageKey: 'pir-project-documentation', priority: 0.88, changefreq: 'weekly' },
-  { path: '/construction-safety', pageKey: 'construction-safety', priority: 0.87, changefreq: 'weekly' },
-  { path: '/construction-quality-control', pageKey: 'construction-quality-control', priority: 0.88, changefreq: 'weekly' },
-  { path: '/handover-acceptance', pageKey: 'handover-acceptance', priority: 0.86, changefreq: 'weekly' },
-  { path: '/machinery-and-labor', pageKey: 'machinery-and-labor', priority: 0.86, changefreq: 'weekly' },
-  { path: '/change-control', pageKey: 'change-control', priority: 0.86, changefreq: 'weekly' },
-  { path: '/mobile-app', pageKey: 'mobile-app', priority: 0.87, changefreq: 'weekly' },
-  { path: '/ai-estimates', pageKey: 'ai-estimates', priority: 0.84, changefreq: 'weekly' },
-];
+const marketingChangefreqs = new Set<MarketingSitemapRoute['changefreq']>([
+  'daily',
+  'weekly',
+  'monthly',
+]);
+
+const isMarketingSitemapRoute = (route: unknown): route is MarketingSitemapRoute => {
+  if (typeof route !== 'object' || route === null) {
+    return false;
+  }
+
+  const candidate = route as Partial<MarketingSitemapRoute>;
+
+  return typeof candidate.path === 'string'
+    && candidate.path.startsWith('/')
+    && typeof candidate.pageKey === 'string'
+    && candidate.pageKey.length > 0
+    && typeof candidate.priority === 'number'
+    && candidate.priority >= 0
+    && candidate.priority <= 1
+    && typeof candidate.changefreq === 'string'
+    && marketingChangefreqs.has(candidate.changefreq as MarketingSitemapRoute['changefreq']);
+};
+
+if (!sitemapRoutes.every(isMarketingSitemapRoute)) {
+  throw new Error('Invalid marketing sitemap route registry');
+}
+
+export const marketingSitemapRoutes: MarketingSitemapRoute[] = sitemapRoutes;
 
 export const marketingNoIndexPaths = new Set(['/privacy', '/offer', '/cookies']);
 

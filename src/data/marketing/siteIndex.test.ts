@@ -1,13 +1,19 @@
 import { describe, expect, it } from 'vitest';
+import sitemapRoutes from './sitemapRoutes.json';
 import {
   findMarketingSitemapRoute,
   isKnownMarketingPath,
   isMarketingNoIndexPath,
+  marketingSitemapRoutes,
   normalizeMarketingPath,
   resolveMarketingRedirectTarget,
 } from './siteIndex';
 
 describe('marketing site index', () => {
+  it('uses the shared sitemap route registry', () => {
+    expect(marketingSitemapRoutes).toEqual(sitemapRoutes);
+  });
+
   it('normalizes query strings, hashes, and trailing slashes', () => {
     expect(normalizeMarketingPath('/features/?utm_source=test#top')).toBe('/features');
     expect(normalizeMarketingPath('/')).toBe('/');

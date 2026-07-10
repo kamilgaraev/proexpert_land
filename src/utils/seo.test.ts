@@ -61,15 +61,15 @@ describe('normalizeOgImageUrl', () => {
 });
 
 describe('sitemap sync', () => {
-  it('keeps public robots and static sitemap on the readable .рф domain', () => {
+  it('keeps public robots on the readable .рф domain without legacy static artifacts', () => {
     const robotsTxt = fs.readFileSync(path.resolve(process.cwd(), 'public', 'robots.txt'), 'utf8');
-    const staticSitemapXml = fs.readFileSync(path.resolve(process.cwd(), 'public', 'sitemap.xml'), 'utf8');
 
     expect(robotsTxt).toContain('Host: 1мост.рф');
     expect(robotsTxt).toContain('Sitemap: https://1мост.рф/sitemap.xml');
-    expect(staticSitemapXml).toContain('<loc>https://1мост.рф/</loc>');
-    expect(`${robotsTxt}\n${staticSitemapXml}`).not.toContain('prohelper.pro');
-    expect(`${robotsTxt}\n${staticSitemapXml}`).not.toContain('xn--1-xtbgmf');
+    expect(robotsTxt).not.toContain('prohelper.pro');
+    expect(robotsTxt).not.toContain('xn--1-xtbgmf');
+    expect(fs.existsSync(path.resolve(process.cwd(), 'public', 'sitemap.xml'))).toBe(false);
+    expect(fs.existsSync(path.resolve(process.cwd(), 'public', 'index.html'))).toBe(false);
   });
 
   it('contains every indexable marketing route from the registry', () => {
@@ -87,6 +87,12 @@ describe('sitemap sync', () => {
     expect(sitemapUrls).not.toContain('https://1мост.рф/privacy');
     expect(sitemapUrls).not.toContain('https://1мост.рф/offer');
     expect(sitemapUrls).not.toContain('https://1мост.рф/cookies');
+  });
+
+  it('omits lastmod from static marketing URLs', () => {
+    const sitemapXml = renderSitemapXml();
+
+    expect(sitemapXml).not.toContain('<lastmod>');
   });
 
   it('has a generated raster OG image for every indexable marketing route', () => {
@@ -123,12 +129,20 @@ describe('sitemap sync', () => {
     };
 
     const sitemapLocationIndex = nginxConfig.indexOf('location = /sitemap.xml');
+    const rootLocationIndex = nginxConfig.indexOf('location = / {');
     const genericLocationIndex = nginxConfig.indexOf('location / {');
+    const buildMarketing = packageJson.scripts['build:marketing'];
+    const sitemapRegistryCopyIndex = buildMarketing.indexOf('cp src/data/marketing/sitemapRoutes.json dist/server/');
+    const directoryRotationIndex = buildMarketing.indexOf('rm -rf client server');
 
     expect(sitemapLocationIndex).toBeGreaterThan(-1);
-    expect(genericLocationIndex).toBeGreaterThan(sitemapLocationIndex);
+    expect(rootLocationIndex).toBeGreaterThan(sitemapLocationIndex);
+    expect(genericLocationIndex).toBeGreaterThan(rootLocationIndex);
     expect(nginxConfig.slice(sitemapLocationIndex, genericLocationIndex)).toContain('proxy_pass http://127.0.0.1:3001');
-    expect(packageJson.scripts['build:marketing']).toContain('rm -f client/sitemap.xml');
+    expect(nginxConfig.slice(rootLocationIndex, genericLocationIndex)).toContain('proxy_pass http://127.0.0.1:3001');
+    expect(sitemapRegistryCopyIndex).toBeGreaterThan(-1);
+    expect(directoryRotationIndex).toBeGreaterThan(sitemapRegistryCopyIndex);
+    expect(buildMarketing).toContain('rm -f client/sitemap.xml client/index.html');
   });
 });
 
