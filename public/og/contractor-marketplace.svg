@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="panel-contractor-marketplace" x1="760" y1="82" x2="1128" y2="548" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1F2937" />
+      <stop offset="1" stop-color="#0F172A" />
+    </linearGradient>
+    <linearGradient id="accent-contractor-marketplace" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#B45309" />
+      <stop offset="1" stop-color="#FDE68A" />
+    </linearGradient>
+    <style>
+      .brand { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 0.22em; fill: #111827; }
+      .domain { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.24em; fill: #475569; }
+      .title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 52px; font-weight: 800; fill: #111827; }
+      .subtitle { font-family: 'Segoe UI', Arial, sans-serif; font-size: 25px; font-weight: 600; fill: #475569; }
+      .footer { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 700; fill: #111827; }
+      .panel-title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 0.14em; fill: #F8FAFC; }
+      .panel-copy { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #CBD5E1; }
+      .capability { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 700; fill: #F8FAFC; }
+      .stamp { font-family: 'Segoe UI', Arial, sans-serif; font-size: 44px; font-weight: 900; letter-spacing: 0.04em; fill: #F8FAFC; opacity: 0.08; }
+    </style>
+  </defs>
+  <rect width="1200" height="630" fill="#F8FAFC" />
+  <path d="M696 0H1200V630H620C724 496 751 334 696 0Z" fill="#F1F5F9" />
+  <path d="M82 514H602" stroke="#CBD5E1" stroke-width="1" stroke-opacity="0.6" />
+  <path d="M82 548H528" stroke="#E2E8F0" stroke-width="1" />
+  <circle cx="1046" cy="98" r="142" fill="#B45309" fill-opacity="0.10" />
+  <circle cx="1002" cy="520" r="186" fill="#FDE68A" fill-opacity="0.18" />
+  <rect x="760" y="78" width="368" height="474" rx="34" fill="url(#panel-contractor-marketplace)" />
+  <path d="M814 158H1080" stroke="#FDE68A" stroke-width="2" stroke-opacity="0.35" />
+  <text x="802" y="144" class="panel-title">ЕДИНЫЙ КОНТУР</text>
+  <text x="802" y="184" class="panel-copy">для строительных процессов</text>
+  <g>
+    <rect x="802" y="222" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#FDE68A" stroke-opacity="0.18" />
+    <circle cx="830" cy="246" r="5" fill="#FDE68A" />
+    <text x="850" y="253" class="capability">Категории</text>
+  </g>
+<g>
+    <rect x="802" y="286" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#FDE68A" stroke-opacity="0.18" />
+    <circle cx="830" cy="310" r="5" fill="#FDE68A" />
+    <text x="850" y="317" class="capability">Поиск</text>
+  </g>
+<g>
+    <rect x="802" y="350" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#FDE68A" stroke-opacity="0.18" />
+    <circle cx="830" cy="374" r="5" fill="#FDE68A" />
+    <text x="850" y="381" class="capability">Приглашения</text>
+  </g>
+<g>
+    <rect x="802" y="414" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#FDE68A" stroke-opacity="0.18" />
+    <circle cx="830" cy="438" r="5" fill="#FDE68A" />
+    <text x="850" y="445" class="capability">Выбор</text>
+  </g>
+  <text x="798" y="520" class="stamp">MOST</text>
+  <rect x="82" y="86" width="228" height="48" rx="24" fill="#B45309" />
+  <text x="108" y="117" class="brand" fill="#FFFFFF">ПОДРЯДЧИКИ</text>
+  <text x="336" y="117" class="domain">PROHELPER.PRO</text>
+  <text x="82" y="214" class="title">Маркетплейс подрядчиков</text>
+  <text x="82" y="306" class="subtitle">Поиск, шорт-лист, приглашения и выбор исполнителя</text>
+  <rect x="82" y="468" width="254" height="7" rx="3.5" fill="url(#accent-contractor-marketplace)" />
+  <text x="82" y="536" class="footer">Объекты, документы, команда и финансы в одной системе</text>
+  <text x="82" y="572" class="domain">PROHELPER.PRO</text>
+</svg>

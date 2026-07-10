@@ -1,4 +1,5 @@
 import { marketingPaths } from './common';
+import { marketingProductSeoLandingPages } from './seoProductPages';
 import type {
   MarketingContentLink,
   MarketingEditorialSeries,
@@ -161,6 +162,41 @@ export const marketingCommercialLandingLinks: MarketingContentLink[] = [
     href: marketingPaths.changeControl,
     description: 'Изменения, дополнительные работы, претензии и влияние на сроки.',
   },
+  {
+    label: 'Закупки в строительстве',
+    href: marketingPaths.constructionProcurement,
+    description: 'Потребность объекта, поставщики, заказ, оплата и приемка в одном маршруте.',
+  },
+  {
+    label: 'Заявки с объекта',
+    href: marketingPaths.siteRequests,
+    description: 'Материалы, техника, люди и финансовые обращения из площадки в офис.',
+  },
+  {
+    label: 'Управление персоналом',
+    href: marketingPaths.workforceManagement,
+    description: 'Бригады, смены, время и производственный факт по объектам.',
+  },
+  {
+    label: 'Платежи в строительстве',
+    href: marketingPaths.constructionPayments,
+    description: 'Счета, согласование, календарь, оплата и сверка по объекту.',
+  },
+  {
+    label: 'Интеграция с 1С',
+    href: marketingPaths.oneCIntegration,
+    description: 'Согласованный сценарий обмена, мастер-данные и сверка.',
+  },
+  {
+    label: 'Маркетплейс подрядчиков',
+    href: marketingPaths.contractorMarketplace,
+    description: 'Поиск исполнителей, шорт-лист и контролируемое приглашение.',
+  },
+  {
+    label: 'Project Pulse',
+    href: marketingPaths.projectPulse,
+    description: 'Пилотная ежедневная сводка и сигналы для управленческой проверки.',
+  },
 ];
 
 export const marketingRoleLandingLinks: MarketingContentLink[] = [
@@ -258,6 +294,41 @@ export const marketingModuleLandingLinks: MarketingContentLink[] = [
     label: 'Изменения и RFI',
     href: marketingPaths.changeControl,
     description: 'RFI, дополнительные работы, претензии и решения заказчика.',
+  },
+  {
+    label: 'Закупочный контур',
+    href: marketingPaths.constructionProcurement,
+    description: 'Потребность, запрос поставщикам, выбор, заказ и приемка.',
+  },
+  {
+    label: 'Заявки с площадки',
+    href: marketingPaths.siteRequests,
+    description: 'Маршрутизация обращений в снабжение, склад, финансы и кадровую команду.',
+  },
+  {
+    label: 'Персонал и смены',
+    href: marketingPaths.workforceManagement,
+    description: 'Сотрудники, бригады, время и производственная основа для выгрузки.',
+  },
+  {
+    label: 'Платежный календарь',
+    href: marketingPaths.constructionPayments,
+    description: 'Согласование счета, лимит, оплата и сверка по объекту.',
+  },
+  {
+    label: 'Интеграция с 1С и MDM',
+    href: marketingPaths.oneCIntegration,
+    description: 'Сопоставление справочников и контролируемый обмен по согласованному сценарию.',
+  },
+  {
+    label: 'Подбор подрядчиков',
+    href: marketingPaths.contractorMarketplace,
+    description: 'Категории, поиск, шорт-лист, приглашение и решение по кандидату.',
+  },
+  {
+    label: 'Project Pulse для руководителя',
+    href: marketingPaths.projectPulse,
+    description: 'Сигналы риска, ежедневная сводка и дальнейшее действие руководителя.',
   },
 ];
 
@@ -1960,6 +2031,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       { ...contactLink },
       { label: 'Контроль бюджета', href: marketingPaths.constructionBudgetControl, description: 'Финансовое влияние изменений.' },
       { label: 'ПИР и проектная документация', href: marketingPaths.pirProjectDocumentation, description: 'Проектная база и замечания.' },
+      { label: 'Project Pulse', href: marketingPaths.projectPulse, description: 'Управленческие сигналы по изменениям, бюджету и срокам объекта.' },
     ],
     blogLinks: [
       { label: 'Почему RFI и изменения нельзя вести только в переписке', href: marketingPaths.blog, description: 'Основания, влияние и решение заказчика.' },
@@ -1975,5 +2047,17 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       { question: 'Можно ли фиксировать претензии?', answer: 'Да, контур поддерживает претензии, основания, доказательства и решения.' },
       { question: 'Заказчик может согласовывать изменения?', answer: 'Да, если изменение требует решения заказчика, его можно вывести в customer-контур.' },
     ],
+    workflow: {
+      title: 'Как изменение проходит от RFI до закрытия',
+      description: 'Контур связывает инженерное основание, решение заказчика и последствия для сроков, денег и документов.',
+      stages: [
+        { label: 'RFI', description: 'Команда фиксирует запрос, основание и срок ответа по объекту.' },
+        { label: 'Решение и изменение', description: 'Ответ заказчика превращается в согласованное изменение или основание для претензии.' },
+        { label: 'Влияние на проект', description: 'ПТО оценивает влияние на смету, график и бюджет.' },
+        { label: 'Согласование и оплата', description: 'Решение связывается с платежом и необходимым комплектом документов.' },
+        { label: 'Претензия или закрытие', description: 'История решения и доказательства остаются доступными для дальнейшего действия.' },
+      ],
+    },
   }),
+  ...marketingProductSeoLandingPages,
 };

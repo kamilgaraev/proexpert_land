@@ -97,6 +97,20 @@ describe('buildStructuredDataGraph', () => {
     expect(JSON.stringify(graph['@graph'])).not.toContain('"@context"');
   });
 
+  it('returns self-canonical, service schema, and distinct OG image for product workflow pages', () => {
+    const seoData = getPageSEOData('/construction-procurement');
+
+    expect(seoData.statusCode).toBe(200);
+    expect(seoData.noIndex).toBe(false);
+    expect(seoData.canonicalUrl).toBe('https://1мост.рф/construction-procurement');
+    expect(seoData.ogImage).toBe('https://1мост.рф/og/construction-procurement.png');
+    expect(seoData.structuredData).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ '@type': 'Service' }),
+      ]),
+    );
+  });
+
   it('returns an empty graph for noindex and non-success pages', () => {
     expect(buildStructuredDataGraph({ ...baseInput, noIndex: true })['@graph']).toEqual([]);
     expect(buildStructuredDataGraph({ ...baseInput, statusCode: 404 })['@graph']).toEqual([]);

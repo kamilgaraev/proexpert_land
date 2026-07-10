@@ -73,6 +73,27 @@ describe('marketing site index', () => {
     }
   });
 
+  it('publishes product workflow routes as indexable sitemap routes', () => {
+    const expectedRoutes = [
+      ['/construction-procurement', 'construction-procurement'],
+      ['/site-requests', 'site-requests'],
+      ['/workforce-management', 'workforce-management'],
+      ['/construction-payments', 'construction-payments'],
+      ['/1c-integration', '1c-integration'],
+      ['/contractor-marketplace', 'contractor-marketplace'],
+      ['/project-pulse', 'project-pulse'],
+    ] as const;
+
+    for (const [path, pageKey] of expectedRoutes) {
+      expect(isKnownMarketingPath(path)).toBe(true);
+      expect(isMarketingNoIndexPath(path)).toBe(false);
+      expect(findMarketingSitemapRoute(path)).toMatchObject({
+        pageKey,
+        changefreq: 'weekly',
+      });
+    }
+  });
+
   it('recognizes noindex service routes', () => {
     expect(isKnownMarketingPath('/login')).toBe(true);
     expect(isMarketingNoIndexPath('/login')).toBe(true);

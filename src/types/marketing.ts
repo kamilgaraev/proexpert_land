@@ -187,6 +187,17 @@ export interface MarketingFaqItem {
   answer: string;
 }
 
+export interface MarketingWorkflowStage {
+  label: string;
+  description: string;
+}
+
+export interface MarketingWorkflow {
+  title: string;
+  description: string;
+  stages: MarketingWorkflowStage[];
+}
+
 export interface MarketingSeoLandingPage {
   path: string;
   eyebrow: string;
@@ -211,6 +222,7 @@ export interface MarketingSeoLandingPage {
   blogLinks: MarketingContentLink[];
   contactHighlights: string[];
   faq: MarketingFaqItem[];
+  workflow?: MarketingWorkflow;
 }
 
 export interface MarketingEditorialArticle {

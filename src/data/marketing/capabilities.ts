@@ -97,7 +97,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     moduleSlugs: ['payments', 'act-reporting', 'advance-accounting'],
     packageSlugs: ['finance-acts'],
     sourceOfTruth: [
-      'prohelper/app/BusinessModules/Features/Payments',
+      'prohelper/app/BusinessModules/Core/Payments',
       'prohelper/config/Packages/finance-acts.json',
       'prohelper_admin/src/pages/Finance',
     ],
@@ -299,5 +299,80 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
       'prohelper_land/src/HoldingRouter.tsx',
     ],
     cta: 'Разобрать сценарий группы компаний',
+  },
+  {
+    id: '1c-integration',
+    title: 'Интеграция с 1С и мастер-данные',
+    businessContour: 'Интеграции и данные',
+    summary:
+      'Базовый обмен с 1С, сопоставление справочников и управление мастер-данными запускаются по согласованному сценарию для конкретной строительной компании.',
+    publicClaim:
+      'МОСТ помогает согласовать практический сценарий обмена с 1С: юридические лица, контрагенты, номенклатура, правила сопоставления, сверка и обработка расхождений. Это не обещание универсальной двухсторонней интеграции.',
+    audiences: ['ИТ-руководитель', 'Финансовый блок', 'Владелец мастер-данных'],
+    outcomes: [
+      'Состав данных и направление обмена определяются до запуска.',
+      'Сопоставления и конфликты не остаются скрытой технической задачей.',
+      'Финансовая и ИТ-команда получают проверяемую сверку по согласованному сценарию.',
+    ],
+    surfaces: ['admin', 'lk'],
+    maturity: 'early_access',
+    moduleSlugs: ['integrations', 'data-filters'],
+    packageSlugs: ['holding-analytics'],
+    sourceOfTruth: [
+      'prohelper/app/BusinessModules/Features/Integrations',
+      'prohelper/app/BusinessModules/Features/DataManagement',
+      'prohelper_land/src/pages/product/IntegrationsPage.tsx',
+    ],
+    cta: 'Обсудить сценарий интеграции с 1С',
+  },
+  {
+    id: 'contractor-marketplace',
+    title: 'Маркетплейс подрядчиков',
+    businessContour: 'Подбор исполнителей',
+    summary:
+      'Профили, категории, поиск, шорт-листы, приглашения и предложения помогают провести подбор подрядчика до начала договорного и исполнительного контура.',
+    publicClaim:
+      'МОСТ помогает искать подрядчиков по категориям, сформировать шорт-лист и провести контролируемое приглашение. Маркетплейс не заменяет контроль сроков и объемов уже работающего подрядчика.',
+    audiences: ['Генподрядчик', 'Руководитель проекта', 'Подрядчик'],
+    outcomes: [
+      'Кандидаты и их специализация собираются в структурированных профилях.',
+      'Приглашения и ответы не теряются в личной переписке.',
+      'Выбор исполнителя фиксируется до передачи контакта и начала договорной работы.',
+    ],
+    surfaces: ['admin', 'lk'],
+    maturity: 'stable',
+    moduleSlugs: ['contractor-marketplace', 'contract-management'],
+    packageSlugs: ['objects-execution'],
+    sourceOfTruth: [
+      'prohelper/app/BusinessModules/Features/ContractorMarketplace',
+      'prohelper_land/src/pages/dashboard/contractor-marketplace',
+      'prohelper_admin/src/components/contractors',
+    ],
+    cta: 'Показать подбор подрядчиков',
+  },
+  {
+    id: 'project-pulse',
+    title: 'Project Pulse',
+    businessContour: 'Управленческие сигналы',
+    summary:
+      'Пилотный контур собирает доступные факты по проектам, снабжению, финансам, людям, графику и заявкам в ежедневную сводку для руководителя.',
+    publicClaim:
+      'Project Pulse выделяет поводы для управленческой проверки и помогает связать сигнал с исходным процессом. Решение, назначение действия и ответственность остаются за человеком.',
+    audiences: ['Руководитель строительства', 'Руководитель проекта', 'Собственник или холдинг'],
+    outcomes: [
+      'Сигналы риска рассматриваются рядом с объектом и источником факта.',
+      'Ежедневная сводка сокращает ручной сбор вопросов к совещанию.',
+      'Руководитель фиксирует действие и проверяет результат на следующем цикле.',
+    ],
+    surfaces: ['admin', 'lk', 'holding'],
+    maturity: 'early_access',
+    moduleSlugs: ['ai-assistant', 'dashboard-widgets', 'reports'],
+    packageSlugs: ['holding-analytics'],
+    sourceOfTruth: [
+      'prohelper/app/BusinessModules/Features/AIAssistant',
+      'prohelper/app/BusinessModules/Features/ProjectManagement',
+      'prohelper_land/src/components/multi-org',
+    ],
+    cta: 'Обсудить пилот Project Pulse',
   },
 ];

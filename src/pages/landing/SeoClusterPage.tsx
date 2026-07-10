@@ -47,6 +47,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
           { label: 'Задачи', href: '#problems' },
           { label: 'Когда подходит', href: '#trust' },
           { label: 'Схема изменений', href: '#proof' },
+          ...(page.workflow ? [{ label: 'Порядок работы', href: '#workflow' }] : []),
           { label: 'Автоматизация', href: '#automation' },
           { label: 'FAQ', href: '#faq' },
           { label: 'Контакт', href: '#contact' },
@@ -261,6 +262,30 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
           </div>
         </div>
       </section>
+
+      {page.workflow && (
+        <section id="workflow" className="border-y border-steel-200 bg-concrete-50 py-16 lg:py-20">
+          <div className="container-custom">
+            <SectionHeader
+              eyebrow="Порядок работы"
+              title={page.workflow.title}
+              description={page.workflow.description}
+            />
+
+            <ol className="mt-10 grid gap-x-8 gap-y-0 md:grid-cols-2 xl:grid-cols-3">
+              {page.workflow.stages.map((stage, index) => (
+                <li key={stage.label} className="border-t border-steel-300 py-6 first:border-t-0 md:first:border-t">
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-construction-700">
+                    Этап {String(index + 1).padStart(2, '0')}
+                  </div>
+                  <h3 className="mt-3 text-lg font-semibold text-steel-950">{stage.label}</h3>
+                  <p className="mt-3 text-sm leading-7 text-steel-700">{stage.description}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
 
       <section id="automation" className="py-16 lg:py-20">
         <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">

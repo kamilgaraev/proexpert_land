@@ -86,6 +86,49 @@ describe('marketing content consistency', () => {
     }
   });
 
+  it('publishes product workflow pages with complete SEO and internal-link contracts', () => {
+    const expectedPages = [
+      ['construction-procurement', '/construction-procurement', 'Заявка на закупку'],
+      ['site-requests', '/site-requests', 'Офисная триажировка'],
+      ['workforce-management', '/workforce-management', 'Смены и время'],
+      ['construction-payments', '/construction-payments', 'Платежный календарь'],
+      ['1c-integration', '/1c-integration', 'Сопоставление данных'],
+      ['contractor-marketplace', '/contractor-marketplace', 'Поиск подрядчиков'],
+      ['project-pulse', '/project-pulse', 'Сигналы риска'],
+    ] as const;
+    const sitemapPageKeys = new Set(marketingSitemapRoutes.map((route) => route.pageKey));
+
+    for (const [pageKey, path, workflowAnchor] of expectedPages) {
+      const page = marketingSeoLandingPages[pageKey];
+
+      expect(marketingSeo[pageKey]).toBeDefined();
+      expect(marketingSeo[pageKey].noIndex).not.toBe(true);
+      expect(page.path).toBe(path);
+      expect(sitemapPageKeys).toContain(pageKey);
+      expect(page.supportingQueries.length).toBeGreaterThanOrEqual(4);
+      expect(page.roleViews.length).toBeGreaterThanOrEqual(3);
+      expect(page.relatedLinks.length).toBeGreaterThanOrEqual(3);
+      expect(page.faq.length).toBeGreaterThanOrEqual(3);
+      expect(page.workflow?.stages.length).toBeGreaterThanOrEqual(4);
+      expect(page.workflow?.stages.map((stage) => stage.label)).toContain(workflowAnchor);
+    }
+  });
+
+  it('keeps published 1C, marketplace, and Project Pulse claims tied to verified product contours', () => {
+    const capabilities = new Map(marketingCapabilityMatrix.map((capability) => [capability.id, capability]));
+    const finance = capabilities.get('finance-control');
+    const integration = capabilities.get('1c-integration');
+    const marketplace = capabilities.get('contractor-marketplace');
+    const pulse = capabilities.get('project-pulse');
+
+    expect(finance?.sourceOfTruth).toContain('prohelper/app/BusinessModules/Core/Payments');
+    expect(integration?.maturity).toBe('early_access');
+    expect(integration?.sourceOfTruth.some((source) => source.includes('Integrations'))).toBe(true);
+    expect(marketplace?.sourceOfTruth.some((source) => source.includes('ContractorMarketplace'))).toBe(true);
+    expect(pulse?.maturity).toBe('early_access');
+    expect(pulse?.sourceOfTruth).toContain('prohelper/app/BusinessModules/Features/AIAssistant');
+  });
+
   it('keeps solution segment references resolvable', () => {
     const capabilityIds = new Set(marketingCapabilityMatrix.map((item) => item.id));
     const packageSlugs = new Set(marketingPackages.map((item) => item.slug));

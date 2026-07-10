@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="panel-pricing" x1="760" y1="82" x2="1128" y2="548" gradientUnits="userSpaceOnUse">
+    <linearGradient id="panel-construction-payments" x1="760" y1="82" x2="1128" y2="548" gradientUnits="userSpaceOnUse">
       <stop stop-color="#123226" />
       <stop offset="1" stop-color="#0F172A" />
     </linearGradient>
-    <linearGradient id="accent-pricing" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="accent-construction-payments" x1="0" y1="0" x2="1" y2="0">
       <stop stop-color="#047857" />
       <stop offset="1" stop-color="#A7F3D0" />
     </linearGradient>
@@ -27,39 +27,37 @@
   <path d="M82 548H528" stroke="#E2E8F0" stroke-width="1" />
   <circle cx="1046" cy="98" r="142" fill="#047857" fill-opacity="0.10" />
   <circle cx="1002" cy="520" r="186" fill="#A7F3D0" fill-opacity="0.18" />
-  <rect x="760" y="78" width="368" height="474" rx="34" fill="url(#panel-pricing)" />
+  <rect x="760" y="78" width="368" height="474" rx="34" fill="url(#panel-construction-payments)" />
   <path d="M814 158H1080" stroke="#A7F3D0" stroke-width="2" stroke-opacity="0.35" />
   <text x="802" y="144" class="panel-title">ЕДИНЫЙ КОНТУР</text>
   <text x="802" y="184" class="panel-copy">для строительных процессов</text>
   <g>
     <rect x="802" y="222" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#A7F3D0" stroke-opacity="0.18" />
     <circle cx="830" cy="246" r="5" fill="#A7F3D0" />
-    <text x="850" y="253" class="capability">Старт</text>
+    <text x="850" y="253" class="capability">Счета</text>
   </g>
 <g>
     <rect x="802" y="286" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#A7F3D0" stroke-opacity="0.18" />
     <circle cx="830" cy="310" r="5" fill="#A7F3D0" />
-    <text x="850" y="317" class="capability">Команда</text>
+    <text x="850" y="317" class="capability">Лимиты</text>
   </g>
 <g>
     <rect x="802" y="350" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#A7F3D0" stroke-opacity="0.18" />
     <circle cx="830" cy="374" r="5" fill="#A7F3D0" />
-    <text x="850" y="381" class="capability">Процессы</text>
+    <text x="850" y="381" class="capability">Календарь</text>
   </g>
 <g>
     <rect x="802" y="414" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#A7F3D0" stroke-opacity="0.18" />
     <circle cx="830" cy="438" r="5" fill="#A7F3D0" />
-    <text x="850" y="445" class="capability">Масштаб</text>
+    <text x="850" y="445" class="capability">Сверка</text>
   </g>
   <text x="798" y="520" class="stamp">MOST</text>
-  <rect x="82" y="86" width="170" height="48" rx="24" fill="#047857" />
-  <text x="108" y="117" class="brand" fill="#FFFFFF">ПАКЕТЫ</text>
-  <text x="278" y="117" class="domain">PROHELPER.PRO</text>
-  <text x="82" y="214" class="title">Пакеты МОСТ под этап</text>
-<text x="82" y="278" class="title">запуска</text>
-  <text x="82" y="370" class="subtitle">От первого управляемого контура до масштабирования</text>
-<text x="82" y="408" class="subtitle">компании</text>
-  <rect x="82" y="468" width="254" height="7" rx="3.5" fill="url(#accent-pricing)" />
+  <rect x="82" y="86" width="174" height="48" rx="24" fill="#047857" />
+  <text x="108" y="117" class="brand" fill="#FFFFFF">ПЛАТЕЖИ</text>
+  <text x="282" y="117" class="domain">PROHELPER.PRO</text>
+  <text x="82" y="214" class="title">Платежи по объектам</text>
+  <text x="82" y="306" class="subtitle">Счета, согласование, календарь, оплата и сверка</text>
+  <rect x="82" y="468" width="254" height="7" rx="3.5" fill="url(#accent-construction-payments)" />
   <text x="82" y="536" class="footer">Объекты, документы, команда и финансы в одной системе</text>
   <text x="82" y="572" class="domain">PROHELPER.PRO</text>
 </svg>
