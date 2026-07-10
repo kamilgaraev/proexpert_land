@@ -29,8 +29,6 @@ jobs:
       RELEASES_ROOT: /var/www/prohelper_marketing/releases
       CURRENT_LINK: /var/www/prohelper_marketing/current
       KEEP_RELEASES: '5'
-      NGINX_CONFIG_PATH: /etc/nginx/sites-available/1мост.рф.conf
-      NGINX_ENABLED_PATH: /etc/nginx/sites-enabled/1мост.рф.conf
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -54,10 +52,8 @@ jobs:
       - name: Prepare marketing artefact
         run: |
           rm -rf .deploy/marketing
-          mkdir -p .deploy/marketing/deploy/nginx
+          mkdir -p .deploy/marketing
           cp -R client server assets.json ecosystem.config.cjs package.json package-lock.json .deploy/marketing/
-          cp deploy/nginx/prohelper.pro.conf .deploy/marketing/deploy/nginx/
-          cp deploy/apply-marketing-nginx.sh .deploy/marketing/deploy/
           tar -czf marketing.tgz -C .deploy/marketing .
 
       - name: Upload marketing artefact
@@ -91,12 +87,6 @@ jobs:
 
             cd "$RELEASE_PATH"
             npm install --omit=dev --no-audit --no-fund
-
-            bash deploy/apply-marketing-nginx.sh \
-              deploy/nginx/prohelper.pro.conf \
-              "${{ env.NGINX_CONFIG_PATH }}" \
-              "${{ env.NGINX_ENABLED_PATH }}" \
-              "$RELEASE_PATH/.nginx-backup"
 
             ln -sfn "$RELEASE_PATH" "${{ env.CURRENT_LINK }}"
 
