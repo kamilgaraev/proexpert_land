@@ -92,9 +92,10 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import YandexMetrika from '@components/analytics/YandexMetrika';
 import { initSEOTracking } from '@utils/seoTracking';
-import type { BlogArticle } from '@/types/blog';
+import type { BlogArticle, BlogIndexInitialData } from '@/types/blog';
 
 interface AppProps {
+  initialBlogIndexData?: BlogIndexInitialData;
   initialBlogArticle?: BlogArticle;
   initialBlogArticleNotFound?: boolean;
   initialBlogArticleNotFoundSlug?: string;
@@ -122,6 +123,7 @@ const ContractorMarketplaceAccessRoute = () => {
 };
 
 function App({
+  initialBlogIndexData,
   initialBlogArticle,
   initialBlogArticleNotFound = false,
   initialBlogArticleNotFoundSlug,
@@ -255,7 +257,7 @@ function App({
         <Route path="/docs" element={<Navigate to="/features" replace />} />
         <Route path="/help" element={<Navigate to="/contact" replace />} />
         <Route path="/terms" element={<Navigate to="/offer" replace />} />
-        <Route path="/blog" element={<BlogPublicPage />} />
+        <Route path="/blog" element={<BlogPublicPage initialData={initialBlogIndexData} />} />
         <Route path="/blog/preview/:articleId" element={<BlogArticlePage />} />
         <Route path="/blog/category/:slug" element={<BlogCategoryPage />} />
         <Route path="/blog/tag/:slug" element={<BlogTagPage />} />

@@ -32,6 +32,13 @@ export interface PageSEOData {
 const BASE_URL = 'https://1мост.рф';
 const OG_BASE_PATH = `${BASE_URL}/og`;
 const MARKETING_OG_IMAGE_PATTERN = /^(https?:\/\/(?:www\.)?(?:prohelper\.pro|1мост\.рф|xn--1-xtbgmf\.xn--p1ai))?\/og\/([^?#]+)\.svg([?#].*)?$/i;
+const ARTICLE_TITLE_BRAND_SUFFIX = /\s*\|\s*(?:prohelper|мост)\s*$/i;
+
+export const normalizeArticleTitleBrand = (title: string) => {
+  const baseTitle = title.trim().replace(ARTICLE_TITLE_BRAND_SUFFIX, '').trim();
+
+  return baseTitle ? `${baseTitle} | МОСТ` : 'МОСТ';
+};
 
 export const normalizeOgImageUrl = (image?: string | null) => {
   if (!image) {

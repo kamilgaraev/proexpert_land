@@ -1,6 +1,11 @@
 import { isKnownMarketingPath, normalizeMarketingPath } from '@/data/marketingRegistry';
-import type { BlogArticle } from '@/types/blog';
-import { generateArticleSchema } from '@/utils/seo';
+import type {
+  BlogArticle,
+  BlogCategory,
+  BlogIndexInitialData,
+  BlogPaginationMeta,
+} from '@/types/blog';
+import { generateArticleSchema, normalizeArticleTitleBrand } from '@/utils/seo';
 
 const BASE_URL = 'https://1мост.рф';
 const API_BASE_DOMAIN = process.env.VITE_API_BASE ?? process.env.API_BASE_URL ?? 'https://api.1мост.рф';
@@ -14,6 +19,154 @@ interface BlogArticleSsrResult {
   article?: BlogArticle;
   notFound?: boolean;
 }
+
+const EMPTY_BLOG_PAGINATION: BlogPaginationMeta = {
+  current_page: 1,
+  last_page: 1,
+  per_page: 12,
+  total: 0,
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
+
+const isBlogTag = (value: unknown) =>
+  isRecord(value)
+  && isFiniteNumber(value.id)
+  && typeof value.name === 'string'
+  && typeof value.slug === 'string';
+
+const isBlogCategory = (value: unknown): value is BlogCategory => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return isFiniteNumber(value.id)
+    && typeof value.name === 'string'
+    && typeof value.slug === 'string'
+    && typeof value.color === 'string';
+};
+
+const isBlogArticle = (value: unknown): value is BlogArticle => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return isFiniteNumber(value.id)
+    && typeof value.title === 'string'
+    && typeof value.slug === 'string'
+    && typeof value.excerpt === 'string'
+    && typeof value.content === 'string'
+    && isBlogCategory(value.category)
+    && isRecord(value.author)
+    && typeof value.author.name === 'string'
+    && Array.isArray(value.tags)
+    && value.tags.every(isBlogTag);
+};
+
+const normalizePaginationMeta = (value: unknown): BlogPaginationMeta | null => {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const { current_page: currentPage, last_page: lastPage, per_page: perPage, total } = value;
+
+  if (
+    !isFiniteNumber(currentPage)
+    || !isFiniteNumber(lastPage)
+    || !isFiniteNumber(perPage)
+    || !isFiniteNumber(total)
+    || !Number.isInteger(currentPage)
+    || !Number.isInteger(lastPage)
+    || !Number.isInteger(perPage)
+    || !Number.isInteger(total)
+    || currentPage < 1
+    || lastPage < 1
+    || currentPage > lastPage
+    || perPage < 1
+    || total < 0
+  ) {
+    return null;
+  }
+
+  return {
+    current_page: currentPage,
+    last_page: lastPage,
+    per_page: perPage,
+    total,
+  };
+};
+
+const normalizeArticlesEnvelope = (value: unknown) => {
+  if (!isRecord(value) || value.success !== true || !isRecord(value.data)) {
+    return null;
+  }
+
+  const articles = value.data.data;
+  const pagination = normalizePaginationMeta(value.data.meta);
+
+  if (!Array.isArray(articles) || !articles.every(isBlogArticle) || !pagination) {
+    return null;
+  }
+
+  return { articles, pagination };
+};
+
+const normalizeCategoriesEnvelope = (value: unknown): BlogCategory[] | null => {
+  if (!isRecord(value) || value.success !== true) {
+    return null;
+  }
+
+  const collection = Array.isArray(value.data)
+    ? value.data
+    : isRecord(value.data)
+      ? value.data.data
+      : null;
+
+  if (!Array.isArray(collection) || !collection.every(isBlogCategory)) {
+    return null;
+  }
+
+  return collection;
+};
+
+const fetchBlogIndexResource = async (path: string): Promise<unknown> => {
+  const response = await fetch(`${normalizeApiBase(API_BASE_DOMAIN)}${path}`, {
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Blog API returned ${response.status}`);
+  }
+
+  return response.json() as Promise<unknown>;
+};
+
+const fetchBlogIndexForSsr = async (): Promise<BlogIndexInitialData> => {
+  const [articlesResult, categoriesResult] = await Promise.allSettled([
+    fetchBlogIndexResource('/api/v1/blog/articles?status=published&page=1&per_page=12'),
+    fetchBlogIndexResource('/api/v1/blog/categories'),
+  ]);
+  const articlesPayload = articlesResult.status === 'fulfilled'
+    ? normalizeArticlesEnvelope(articlesResult.value)
+    : null;
+  const categoriesPayload = categoriesResult.status === 'fulfilled'
+    ? normalizeCategoriesEnvelope(categoriesResult.value)
+    : null;
+
+  return {
+    articles: articlesPayload?.articles ?? [],
+    categories: categoriesPayload ?? [],
+    pagination: articlesPayload?.pagination ?? EMPTY_BLOG_PAGINATION,
+    articlesLoaded: articlesPayload !== null,
+    categoriesLoaded: categoriesPayload !== null,
+  };
+};
 
 const normalizeApiBase = (apiBase: string) => apiBase.replace(/\/+$/, '');
 const LEGACY_MARKETING_ORIGIN_PATTERN = /^https?:\/\/(?:www\.)?prohelper\.pro/i;
@@ -117,7 +270,7 @@ export const buildArticleDocumentProps = (article: BlogArticle) => {
   const description = article.meta_description || article.og_description || article.excerpt || article.title;
 
   return {
-    title: article.meta_title || article.og_title || article.title,
+    title: normalizeArticleTitleBrand(article.meta_title || article.og_title || article.title),
     description,
     keywords: article.meta_keywords?.join(', ') || article.tags.map((tag) => tag.name).join(', '),
     canonicalUrl: articleUrl,
@@ -155,6 +308,19 @@ export async function onBeforeRender(pageContext: { urlPathname?: string }) {
   const normalizedPath = normalizeMarketingPath(pageContext.urlPathname || '/');
   const routeStatusCode = isKnownMarketingPath(normalizedPath) ? 200 : 404;
   const articleSlug = resolveBlogArticleSlug(normalizedPath);
+
+  if (normalizedPath === '/blog') {
+    const initialBlogIndexData = await fetchBlogIndexForSsr();
+
+    return {
+      pageContext: {
+        routeStatusCode: 200,
+        pageProps: {
+          initialBlogIndexData,
+        },
+      },
+    };
+  }
 
   if (!articleSlug) {
     return {

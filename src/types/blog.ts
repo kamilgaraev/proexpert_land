@@ -236,6 +236,16 @@ export interface BlogPaginatedResponse<T> extends BlogApiResponse<T[]> {
   };
 }
 
+export type BlogPaginationMeta = BlogPaginatedResponse<BlogArticle>['meta'];
+
+export interface BlogIndexInitialData {
+  articles: BlogArticle[];
+  categories: BlogCategory[];
+  pagination: BlogPaginationMeta;
+  articlesLoaded: boolean;
+  categoriesLoaded: boolean;
+}
+
 export interface BlogArticleFilters {
   status?: string;
   category_id?: number;
@@ -258,4 +268,4 @@ export interface BlogAnalyticsFilters {
   period?: BlogAnalyticsPeriod;
   start_date?: string;
   end_date?: string;
-} 
+}

@@ -1,7 +1,8 @@
 import App from '@/App';
-import type { BlogArticle } from '@/types/blog';
+import type { BlogArticle, BlogIndexInitialData } from '@/types/blog';
 
 interface CatchAllPageProps {
+  initialBlogIndexData?: BlogIndexInitialData;
   initialBlogArticle?: BlogArticle;
   initialBlogArticleNotFound?: boolean;
   initialBlogArticleNotFoundSlug?: string;

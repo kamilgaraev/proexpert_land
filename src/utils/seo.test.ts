@@ -5,6 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { marketingSitemapRoutes } from '@/data/marketingRegistry';
 import { buildArticleDocumentProps } from '@/pages/catch-all.page.server';
+import { normalizeArticleTitleBrand } from './seo';
 import { getPageSEOData, normalizeOgImageUrl } from '@/utils/seo';
 
 const require = createRequire(import.meta.url);
@@ -264,6 +265,18 @@ describe('sitemap sync', () => {
 });
 
 describe('blog article SSR metadata', () => {
+  it.each([
+    ['Материал | ProHelper', 'Материал | МОСТ'],
+    ['Материал | pRoHeLpEr', 'Материал | МОСТ'],
+    ['Материал | МОСТ', 'Материал | МОСТ'],
+    ['Материал', 'Материал | МОСТ'],
+    ['  Материал   |   ProHelper  ', 'Материал | МОСТ'],
+    ['   ', 'МОСТ'],
+    ['', 'МОСТ'],
+  ])('normalizes the article brand in %j', (title, expected) => {
+    expect(normalizeArticleTitleBrand(title)).toBe(expected);
+  });
+
   it('drops legacy backend BlogPosting schema and normalizes legacy marketing URLs', () => {
     const documentProps = buildArticleDocumentProps({
       id: 1,
@@ -344,5 +357,6 @@ describe('blog article SSR metadata', () => {
     expect(structuredJson).not.toContain('prohelper.pro');
     expect(structuredJson).toContain('/blog/test-article');
     expect(structuredJson).toContain('/contact');
+    expect(documentProps.title).toBe('Test article | МОСТ');
   });
 });

@@ -8,7 +8,7 @@ import { formatBlogDate, getBlogReadingTime } from './blogPresentation';
 import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import { useSEO } from '@/hooks/useSEO';
 import type { BlogArticle } from '@/types/blog';
-import { generateArticleSchema } from '@/utils/seo';
+import { generateArticleSchema, normalizeArticleTitleBrand } from '@/utils/seo';
 import { blogPublicApi } from '@/utils/blogPublicApi';
 
 interface BlogArticlePageProps {
@@ -37,7 +37,7 @@ const BlogArticlePage = ({
   useSEO(
     article
       ? {
-          title: article.meta_title || article.og_title || article.title,
+          title: normalizeArticleTitleBrand(article.meta_title || article.og_title || article.title),
           description: article.meta_description || article.og_description || article.excerpt || 'Статья МОСТ',
           keywords: article.meta_keywords?.join(', ') || article.tags.map((tag) => tag.name).join(', '),
           ogImage: article.og_image || article.featured_image,

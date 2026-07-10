@@ -7,23 +7,34 @@ import { blogPublicApi } from '@/utils/blogPublicApi';
 import type { BlogArticle, BlogCategory, BlogTag } from '@/types/blog';
 import { formatBlogDate } from './blogPresentation';
 
-const BlogSidebar = () => {
+interface BlogSidebarProps {
+  categories?: BlogCategory[];
+}
+
+const BlogSidebar = ({ categories: providedCategories }: BlogSidebarProps) => {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState<BlogCategory[]>([]);
+  const [fetchedCategories, setFetchedCategories] = useState<BlogCategory[]>([]);
   const [popularArticles, setPopularArticles] = useState<BlogArticle[]>([]);
   const [tags, setTags] = useState<BlogTag[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const categories = providedCategories ?? fetchedCategories;
+  const shouldFetchCategories = providedCategories === undefined;
 
   useEffect(() => {
     const fetchSidebarData = async () => {
       try {
+        const categoriesRequest = shouldFetchCategories
+          ? blogPublicApi.getCategories()
+          : Promise.resolve(null);
         const [categoriesResponse, popularResponse, tagsResponse] = await Promise.all([
-          blogPublicApi.getCategories(),
+          categoriesRequest,
           blogPublicApi.getPopularArticles(4),
           blogPublicApi.getTags(),
         ]);
 
-        setCategories((categoriesResponse.data as { data: BlogCategory[] }).data);
+        if (categoriesResponse) {
+          setFetchedCategories((categoriesResponse.data as { data: BlogCategory[] }).data);
+        }
         setPopularArticles((popularResponse.data as { data: BlogArticle[] }).data);
         setTags((tagsResponse.data as { data: BlogTag[] }).data.slice(0, 12));
       } catch (error) {
@@ -32,7 +43,7 @@ const BlogSidebar = () => {
     };
 
     fetchSidebarData();
-  }, []);
+  }, [shouldFetchCategories]);
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

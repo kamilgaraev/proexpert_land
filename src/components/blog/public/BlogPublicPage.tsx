@@ -1,5 +1,5 @@
 import { FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import BlogArticleCard from './BlogArticleCard';
 import BlogPublicLayout from './BlogPublicLayout';
@@ -8,18 +8,25 @@ import { getBlogListMeta } from './blogPresentation';
 import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import { marketingPaths, marketingSeo } from '@/data/marketingRegistry';
 import { useSEO } from '@/hooks/useSEO';
-import type { BlogArticle, BlogCategory } from '@/types/blog';
+import type { BlogArticle, BlogCategory, BlogIndexInitialData } from '@/types/blog';
 import { blogPublicApi } from '@/utils/blogPublicApi';
 
-const BlogPublicPage = () => {
+interface BlogPublicPageProps {
+  initialData?: BlogIndexInitialData;
+}
+
+const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [articles, setArticles] = useState<BlogArticle[]>([]);
-  const [categories, setCategories] = useState<BlogCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [articles, setArticles] = useState<BlogArticle[]>(() => initialData?.articles ?? []);
+  const [categories, setCategories] = useState<BlogCategory[]>(() => initialData?.categories ?? []);
+  const [loading, setLoading] = useState(() => !(initialData?.articlesLoaded ?? false));
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(() => initialData?.articlesLoaded
+    ? initialData.pagination.current_page < initialData.pagination.last_page
+    : true);
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+  const skipInitialArticlesRequest = useRef(initialData?.articlesLoaded ?? false);
 
   useSEO({
     ...marketingSeo.blog,
@@ -61,6 +68,10 @@ const BlogPublicPage = () => {
   }, [searchInput, searchParams, setSearchParams]);
 
   useEffect(() => {
+    if (initialData?.categoriesLoaded) {
+      return;
+    }
+
     const fetchCategories = async () => {
       try {
         const response = await blogPublicApi.getCategories();
@@ -71,7 +82,7 @@ const BlogPublicPage = () => {
     };
 
     fetchCategories();
-  }, []);
+  }, [initialData?.categoriesLoaded]);
 
   const categoryId = useMemo(() => {
     if (!selectedCategory) {
@@ -82,6 +93,13 @@ const BlogPublicPage = () => {
   }, [categories, selectedCategory]);
 
   useEffect(() => {
+    if (skipInitialArticlesRequest.current && !categoryId && !searchQuery) {
+      skipInitialArticlesRequest.current = false;
+      return;
+    }
+
+    skipInitialArticlesRequest.current = false;
+
     const fetchArticles = async () => {
       try {
         setLoading(true);
@@ -324,7 +342,7 @@ const BlogPublicPage = () => {
             )}
           </div>
 
-          <BlogSidebar />
+          <BlogSidebar categories={categories} />
         </div>
       </section>
     </BlogPublicLayout>
