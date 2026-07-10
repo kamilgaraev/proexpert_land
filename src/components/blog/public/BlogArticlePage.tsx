@@ -19,6 +19,15 @@ interface BlogArticlePageProps {
 
 const ARTICLE_NOT_FOUND_MESSAGE = 'Статья не найдена или временно недоступна.';
 
+const isNotFoundResponse = (error: unknown) => {
+  if (!error || typeof error !== 'object' || !('response' in error)) {
+    return false;
+  }
+
+  const response = error.response;
+  return Boolean(response && typeof response === 'object' && 'status' in response && response.status === 404);
+};
+
 const BlogArticlePage = ({
   initialArticle,
   initialArticleNotFound = false,
@@ -33,6 +42,7 @@ const BlogArticlePage = ({
   const [relatedArticles, setRelatedArticles] = useState<BlogArticle[]>([]);
   const [loading, setLoading] = useState(() => !(hasInitialArticle || hasInitialNotFound));
   const [error, setError] = useState<string | null>(() => (hasInitialNotFound ? ARTICLE_NOT_FOUND_MESSAGE : null));
+  const [articleNotFound, setArticleNotFound] = useState(hasInitialNotFound);
   const articleImage = article?.og_image || article?.featured_image || undefined;
   const publishedTime = article?.published_at || article?.created_at || undefined;
   const modifiedTime = article?.updated_at || undefined;
@@ -61,7 +71,15 @@ const BlogArticlePage = ({
             url: isPreview ? `https://1мост.рф/blog/preview/${article.id}` : `https://1мост.рф/blog/${article.slug}`,
           }),
         }
-      : {
+      : articleNotFound || hasInitialNotFound
+        ? {
+            title: 'Статья не найдена | МОСТ',
+            description: 'Материал блога МОСТ не найден или еще не опубликован.',
+            type: 'website',
+            noIndex: true,
+            statusCode: 404,
+          }
+        : {
           title: 'Блог МОСТ',
           description: 'Материалы МОСТ о строительных процессах и цифровом контуре.',
           type: 'website',
@@ -70,10 +88,15 @@ const BlogArticlePage = ({
 
   useEffect(() => {
     const fetchRelatedArticles = async (articleData: BlogArticle) => {
-      if (!isPreview && articleData.id) {
+      if (isPreview || !articleData.id) {
+        setRelatedArticles([]);
+        return;
+      }
+
+      try {
         const relatedResponse = await blogPublicApi.getRelatedArticles(articleData.id, 3);
         setRelatedArticles((relatedResponse.data as { data: BlogArticle[] }).data);
-      } else {
+      } catch {
         setRelatedArticles([]);
       }
     };
@@ -82,16 +105,21 @@ const BlogArticlePage = ({
       try {
         setLoading(true);
         setError(null);
+        setArticleNotFound(false);
 
         const response = isPreview
           ? await blogPublicApi.getPreviewArticle(articleId!, searchParams)
           : await blogPublicApi.getArticle(slug!);
         const articleData = (response.data as { data: BlogArticle }).data;
         setArticle(articleData);
+        setArticleNotFound(false);
         await fetchRelatedArticles(articleData);
       } catch (fetchError) {
         console.error('Error fetching article:', fetchError);
-        setError('Статья не найдена или временно недоступна.');
+        setArticle(null);
+        setRelatedArticles([]);
+        setArticleNotFound(isNotFoundResponse(fetchError));
+        setError(ARTICLE_NOT_FOUND_MESSAGE);
       } finally {
         setLoading(false);
       }
@@ -99,6 +127,7 @@ const BlogArticlePage = ({
 
     if (hasInitialArticle && initialArticle) {
       setArticle(initialArticle);
+      setArticleNotFound(false);
       setError(null);
       setLoading(false);
       void fetchRelatedArticles(initialArticle);
@@ -108,6 +137,7 @@ const BlogArticlePage = ({
     if (hasInitialNotFound) {
       setArticle(null);
       setRelatedArticles([]);
+      setArticleNotFound(true);
       setError(ARTICLE_NOT_FOUND_MESSAGE);
       setLoading(false);
       return;

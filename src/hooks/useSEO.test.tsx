@@ -45,6 +45,7 @@ describe('useSEO structured data policy', () => {
       '<script id="product-schema" type="application/ld+json">{}</script>',
       '<script id="dynamic-seo" type="application/ld+json">{}</script>',
       '<script data-seo="auto" data-schema-id="schema-0" type="application/ld+json">{}</script>',
+      '<meta name="googlebot" content="index, follow">',
     ].join('');
   });
 
@@ -121,5 +122,41 @@ describe('useSEO structured data policy', () => {
       expect(document.querySelector('#ld-json')).toBeNull();
     });
     expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0);
+  });
+
+  it('keeps googlebot synchronized while navigating indexable and noindex pages', async () => {
+    const view = renderSeo('/features');
+
+    await waitFor(() => {
+      expect(document.querySelector('meta[name="googlebot"]')?.getAttribute('content')).toBe(
+        'index, follow, max-snippet:-1, max-image-preview:large',
+      );
+    });
+
+    view.rerender(
+      <MemoryRouter initialEntries={['/features']}>
+        <SeoHarness path="/login" />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(document.querySelector('meta[name="googlebot"]')?.getAttribute('content')).toBe(
+        'noindex, nofollow',
+      );
+    });
+    expect(document.querySelector('#ld-json')).toBeNull();
+
+    view.rerender(
+      <MemoryRouter initialEntries={['/features']}>
+        <SeoHarness path="/features" />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(document.querySelector('meta[name="googlebot"]')?.getAttribute('content')).toBe(
+        'index, follow, max-snippet:-1, max-image-preview:large',
+      );
+    });
+    expect(document.querySelector('#ld-json')).not.toBeNull();
   });
 });

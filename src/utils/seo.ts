@@ -279,21 +279,35 @@ export const generateOrganizationSchema = () => ({
 
 const buildPackageOffers = () => {
   return marketingPackages.flatMap((item) =>
-    item.tiers.map((tier) => {
+    item.tiers.flatMap((tier) => {
+      const isNonStableTier = tier.maturityNote
+        ? /beta|alpha|early[_\s-]?access|coming[_\s-]?soon|бета|пилот|ранн(?:ий|яя|ее|ие|его|ему|им|их|ими|ем)|по мере готовности/i.test(tier.maturityNote)
+        : false;
+
+      if (isNonStableTier || tier.price <= 0 || tier.billingModel !== 'subscription') {
+        return [];
+      }
+
+      const price = `${tier.price}`;
       const offer: Record<string, string> = {
         '@type': 'Offer',
         name: `${item.name} ${tier.label}`,
         availability: 'https://schema.org/InStock',
         category: item.name,
         description: tier.description,
+        price,
+        priceCurrency: 'RUB',
       };
 
-      if (tier.price > 0) {
-        offer.price = `${tier.price}`;
-        offer.priceCurrency = 'RUB';
-      }
-
-      return offer;
+      return [{
+        ...offer,
+        priceSpecification: {
+          '@type': 'UnitPriceSpecification',
+          price,
+          priceCurrency: 'RUB',
+          billingDuration: 'P1M',
+        },
+      }];
     }),
   );
 };
@@ -547,8 +561,18 @@ const stableSerialize = (value: unknown): string => {
 
 const deduplicateStructuredDataNodes = (nodes: StructuredDataNode[]) => {
   const seen = new Set<string>();
+  const seenIds = new Set<string>();
 
   return nodes.filter((node) => {
+    const id = node['@id'];
+    if (typeof id === 'string') {
+      if (seenIds.has(id)) {
+        return false;
+      }
+
+      seenIds.add(id);
+    }
+
     const serialized = stableSerialize(node);
     if (seen.has(serialized)) {
       return false;

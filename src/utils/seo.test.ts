@@ -107,6 +107,46 @@ describe('buildStructuredDataGraph', () => {
     expect(generateSoftwareSchema(true)).toHaveProperty('offers');
   });
 
+  it('retains the system node when custom structured data repeats its id', () => {
+    const graph = buildStructuredDataGraph({
+      ...baseInput,
+      structuredData: {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        '@id': 'https://1мост.рф/#organization',
+        name: 'Подмененная организация',
+      },
+    });
+    const organizations = graph['@graph'].filter((node) => node['@id'] === 'https://1мост.рф/#organization');
+
+    expect(organizations).toHaveLength(1);
+    expect(organizations[0].name).toBe('МОСТ');
+  });
+
+  it('publishes only stable monthly subscription offers on pricing', () => {
+    const graph = buildStructuredDataGraph({
+      ...baseInput,
+      pathname: '/pricing',
+      title: 'Тарифы МОСТ',
+      canonicalUrl: 'https://1мост.рф/pricing',
+    });
+    const product = graph['@graph'].find((node) => node['@type'] === 'Product');
+    const offers = product?.offers as Array<Record<string, unknown>>;
+
+    expect(offers.some((offer) => String(offer.name).startsWith('AI-контур'))).toBe(false);
+    expect(JSON.stringify(offers)).not.toMatch(/beta|пилот|ранн(?:ий|его|ий сценарий)/i);
+    for (const offer of offers) {
+      expect(offer.price).toEqual(expect.any(String));
+      expect(offer.priceCurrency).toBe('RUB');
+      expect(offer.priceSpecification).toEqual({
+        '@type': 'UnitPriceSpecification',
+        price: offer.price,
+        priceCurrency: 'RUB',
+        billingDuration: 'P1M',
+      });
+    }
+  });
+
   it('normalizes the legacy article author brand to МОСТ', () => {
     const schema = generateArticleSchema({
       title: 'Статья',

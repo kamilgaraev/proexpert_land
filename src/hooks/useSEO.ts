@@ -33,6 +33,7 @@ interface UseSEOProps {
   modifiedTime?: string;
   structuredData?: unknown;
   noIndex?: boolean;
+  statusCode?: number;
 }
 
 export const useSEO = (props: UseSEOProps = {}) => {
@@ -112,6 +113,7 @@ export const useSEO = (props: UseSEOProps = {}) => {
       publishedTime: props.publishedTime,
       modifiedTime: props.modifiedTime,
       noIndex: props.noIndex ?? pageData.noIndex ?? false,
+      statusCode: props.statusCode ?? pageData.statusCode,
     };
 
     const currentUrl = pageData.canonicalUrl.replace(/[?#].*$/, '');
@@ -124,6 +126,12 @@ export const useSEO = (props: UseSEOProps = {}) => {
     setMetaTag(
       'robots',
       finalData.noIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large',
+    );
+    setMetaTag(
+      'googlebot',
+      finalData.noIndex
+        ? 'noindex, nofollow'
+        : 'index, follow, max-snippet:-1, max-image-preview:large',
     );
 
     setMetaTag('og:title', finalData.title, true);
@@ -163,7 +171,7 @@ export const useSEO = (props: UseSEOProps = {}) => {
       description: finalData.description,
       canonicalUrl: currentUrl,
       noIndex: finalData.noIndex,
-      statusCode: pageData.statusCode,
+      statusCode: finalData.statusCode,
       structuredData: props.structuredData,
     }));
   }, [
@@ -176,6 +184,7 @@ export const useSEO = (props: UseSEOProps = {}) => {
     props.ogImage,
     props.publishedTime,
     props.structuredData,
+    props.statusCode,
     props.title,
     props.type,
     removeMetaTag,
