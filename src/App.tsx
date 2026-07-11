@@ -91,6 +91,7 @@ const ProjectDetailsPage = lazy(() => import('@pages/dashboard/projects/ProjectD
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import YandexMetrika from '@components/analytics/YandexMetrika';
+import { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
 import { initSEOTracking } from '@utils/seoTracking';
 import type { BlogArticle, BlogIndexInitialData } from '@/types/blog';
 
@@ -129,17 +130,11 @@ function App({
   initialBlogArticleNotFoundSlug,
 }: AppProps = {}) {
   const location = useLocation();
-  const yandexMetrikaId = 102888970;
+  const yandexMetrikaId = YANDEX_METRIKA_COUNTER_ID;
 
   useEffect(() => {
     initSEOTracking();
   }, []);
-
-  useEffect(() => {
-    import('@utils/seoTracking').then(({ seoTracker }) => {
-      seoTracker.trackPageView();
-    });
-  }, [location.pathname]);
 
   const isHoldingSubdomain = () => {
     if (typeof window === 'undefined') {
