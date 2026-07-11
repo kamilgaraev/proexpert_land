@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   COOKIE_CONSENT_EVENT,
@@ -8,6 +8,9 @@ import {
   isMarketingPublicPath,
   isPrimaryMarketingHost,
 } from '@/utils/publicSite';
+import { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
+
+export { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
 
 declare global {
   interface Window {
@@ -55,6 +58,7 @@ const YandexMetrika = ({
 }: YandexMetrikaProps) => {
   const location = useLocation();
   const [enabled, setEnabled] = useState(() => canEnableMetrika(location.pathname));
+  const previousUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     const syncState = () => {
@@ -72,8 +76,14 @@ const YandexMetrika = ({
   useEffect(() => {
     if (!enabled) {
       removeMetrikaNodes();
+      previousUrlRef.current = null;
       return;
     }
+
+    const currentUrl = new URL(
+      `${location.pathname}${location.search}${location.hash}`,
+      window.location.origin,
+    ).href;
 
     if (!document.getElementById(SCRIPT_ID)) {
       const script = document.createElement('script');
@@ -85,14 +95,17 @@ const YandexMetrika = ({
         m[i].l=1*new Date();
         for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
         k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js?id=${counterId}", "ym");
 
         ym(${counterId}, "init", {
+          ssr:true,
           ${enableClickmap ? 'clickmap:true,' : ''}
           ${enableTrackLinks ? 'trackLinks:true,' : ''}
           ${enableAccurateTrackBounce ? 'accurateTrackBounce:true,' : ''}
           ${enableWebvisor ? 'webvisor:true,' : ''}
-          trackHash:true
+          ecommerce:"dataLayer",
+          referrer:document.referrer,
+          url:location.href
         });
       `;
       document.head.appendChild(script);
@@ -105,10 +118,17 @@ const YandexMetrika = ({
       document.body.appendChild(noscript);
     }
 
+    const previousUrl = previousUrlRef.current;
+    previousUrlRef.current = currentUrl;
+
+    if (previousUrl === null || previousUrl === currentUrl) {
+      return;
+    }
+
     const hitTimer = window.setTimeout(() => {
-      window.ym?.(counterId, 'hit', window.location.href, {
+      window.ym?.(counterId, 'hit', currentUrl, {
         title: document.title,
-        referer: document.referrer,
+        referer: previousUrl,
       });
     }, 250);
 
@@ -122,6 +142,9 @@ const YandexMetrika = ({
     enableTrackLinks,
     enableWebvisor,
     enabled,
+    location.hash,
+    location.pathname,
+    location.search,
   ]);
 
   return null;
@@ -140,7 +163,7 @@ export const trackYandexGoal = (goalName: string, params?: Record<string, unknow
     return;
   }
 
-  window.ym?.(102888970, 'reachGoal', goalName, params);
+  window.ym?.(YANDEX_METRIKA_COUNTER_ID, 'reachGoal', goalName, params);
 };
 
 export const trackYandexEvent = (eventName: string, params?: Record<string, unknown>) => {
@@ -148,7 +171,7 @@ export const trackYandexEvent = (eventName: string, params?: Record<string, unkn
     return;
   }
 
-  window.ym?.(102888970, 'hit', window.location.href, {
+  window.ym?.(YANDEX_METRIKA_COUNTER_ID, 'hit', window.location.href, {
     title: document.title,
     referer: document.referrer,
     params: {

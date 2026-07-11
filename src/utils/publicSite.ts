@@ -11,6 +11,13 @@ const INTERNAL_EXACT_PATHS = new Set([
   '/email-sent',
 ]);
 
+const PRIMARY_MARKETING_HOSTS = new Set([
+  '1мост.рф',
+  'www.1мост.рф',
+  'xn--1-xtbgmf.xn--p1ai',
+  'www.xn--1-xtbgmf.xn--p1ai',
+]);
+
 export const isMarketingPublicPath = (pathname: string): boolean => {
   if (!pathname) {
     return false;
@@ -28,9 +35,5 @@ export const isPrimaryMarketingHost = (hostname: string): boolean => {
     return false;
   }
 
-  if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
-    return false;
-  }
-
-  return hostname === '1мост.рф';
+  return PRIMARY_MARKETING_HOSTS.has(hostname.toLowerCase());
 };
