@@ -5,6 +5,7 @@ import {
   isMarketingPublicPath,
   isPrimaryMarketingHost,
 } from '@/utils/publicSite';
+import { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
 
 export interface SEOEvent {
   action: string;
@@ -12,8 +13,6 @@ export interface SEOEvent {
   label?: string;
   value?: number;
 }
-
-const COUNTER_ID = 102888970;
 
 const canTrack = () => {
   if (typeof window === 'undefined') {
@@ -98,7 +97,7 @@ export class SEOTracker {
     }
 
     const currentUrl = url ?? window.location.href;
-    window.ym?.(COUNTER_ID, 'hit', currentUrl, {
+    window.ym?.(YANDEX_METRIKA_COUNTER_ID, 'hit', currentUrl, {
       title: document.title,
       referer: document.referrer,
     });
@@ -109,7 +108,7 @@ export class SEOTracker {
       return;
     }
 
-    window.ym?.(COUNTER_ID, 'reachGoal', event.action, {
+    window.ym?.(YANDEX_METRIKA_COUNTER_ID, 'reachGoal', event.action, {
       category: event.category,
       label: event.label,
       value: event.value,
