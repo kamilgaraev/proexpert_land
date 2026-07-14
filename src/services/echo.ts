@@ -17,6 +17,10 @@ if (typeof window !== 'undefined') {
 
 let echoInstance: any = null;
 
+const PLACEHOLDER_REVERB_KEYS = new Set([
+  '1234567890abcdef1234567890abcdef',
+]);
+
 export const resolveReverbAppKey = (value: unknown): string | null => {
   if (typeof value !== 'string') {
     return null;
@@ -24,7 +28,7 @@ export const resolveReverbAppKey = (value: unknown): string | null => {
 
   const key = value.trim();
 
-  return key.length > 0 ? key : null;
+  return key.length > 0 && !PLACEHOLDER_REVERB_KEYS.has(key.toLowerCase()) ? key : null;
 };
 
 const getEcho = () => {

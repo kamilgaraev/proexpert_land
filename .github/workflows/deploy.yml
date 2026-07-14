@@ -119,7 +119,7 @@ jobs:
       CURRENT_LINK: /var/www/prohelper_lk/current
       KEEP_RELEASES: '5'
       VITE_API_URL: https://api.1мост.рф
-      VITE_REVERB_APP_KEY: 1234567890abcdef1234567890abcdef
+      VITE_REVERB_APP_KEY: ${{ secrets.REVERB_APP_KEY }}
       VITE_REVERB_HOST: api.1мост.рф
       VITE_REVERB_PORT: 443
       VITE_REVERB_SCHEME: https
@@ -135,6 +135,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Verify Reverb configuration
+        run: npm run verify:reverb-config
 
       - name: Build lk
         run: npm run build:lk
