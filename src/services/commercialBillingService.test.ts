@@ -45,6 +45,8 @@ describe('commercialBillingService', () => {
           current_period_start_at: null,
           current_period_end_at: null,
           trial_ends_at: null,
+          trial_available: false,
+          trial_used: true,
         }],
       })),
       http.get(`${baseUrl}/billing/commercial/history`, ({ request }) => {
@@ -58,7 +60,7 @@ describe('commercialBillingService', () => {
       }),
     );
 
-    await expect(commercialBillingService.getPackages()).resolves.toHaveLength(1);
+    await expect(commercialBillingService.getPackages()).resolves.toMatchObject([{ trialAvailable: false, trialUsed: true }]);
     await expect(commercialBillingService.getHistory(2)).resolves.toMatchObject({
       items: [{ orderId: 'order-1', status: 'refunded' }],
       meta: { currentPage: 2, total: 41 },
@@ -110,6 +112,54 @@ describe('commercialBillingService', () => {
 
     await expect(pollCommercialOrder('order-1', { delaysMs: [0, 0] })).resolves.toMatchObject({ status: 'paid' });
     expect(attempts).toBe(2);
+  });
+
+  it('создаёт ручную оплату grace с UUID без передачи состава или периода', async () => {
+    saveAuthToken('test-token');
+    const key = '33333333-3333-4333-8333-333333333333';
+    server.use(http.post(`${baseUrl}/billing/commercial/renewal/manual-payment`, async ({ request }) => {
+      expect(await request.json()).toEqual({ client_idempotency_key: key });
+      return HttpResponse.json({ success: true, data: {
+        order_id: 'renewal-order', status: 'pending_payment', payment_status: 'pending',
+        amount: '7900.00', amount_minor: 790000, currency: 'RUB',
+        confirmation_url: 'https://yookassa.ru/confirm/manual', selected_package_slugs: ['machinery'],
+        period_start_at: '2026-07-14T09:00:00Z', period_end_at: '2026-08-13T09:00:00Z',
+        grace_deadline_at: '2026-07-21T09:00:00Z', test_mode: false,
+      } }, { status: 201 });
+    }));
+
+    await expect(commercialBillingService.createManualPayment(key)).resolves.toMatchObject({
+      orderId: 'renewal-order',
+      confirmationUrl: 'https://yookassa.ru/confirm/manual',
+      periodEndAt: '2026-08-13T09:00:00Z',
+    });
+  });
+
+  it.each(['failed', 'canceled', 'refunded'] as const)('возвращает отдельный terminal status %s', async (status) => {
+    saveAuthToken('test-token');
+    server.use(http.get(`${baseUrl}/billing/commercial/orders/order-terminal`, () => HttpResponse.json({ success: true, data: {
+      order_id: 'order-terminal', kind: 'renewal', status,
+      payment_status: status === 'failed' ? 'canceled' : status, amount: '7900.00', amount_minor: 790000,
+      currency: 'RUB', selected_package_slugs: ['machinery'], offer_type: 'packages',
+      period_start_at: null, period_end_at: null, auto_renew_consent: false, test_mode: false,
+      confirmation_url: null, created_at: null, paid_at: null, canceled_at: null,
+      refunds_summary: { count: status === 'refunded' ? 1 : 0, amount: '0.00', amount_minor: 0, currency: 'RUB', fully_refunded: status === 'refunded' },
+    } })));
+
+    await expect(pollCommercialOrder('order-terminal', { delaysMs: [0] })).resolves.toMatchObject({ status });
+  });
+
+  it('завершает ограниченный polling явным timeout, сохраняя возможность повторной проверки', async () => {
+    saveAuthToken('test-token');
+    server.use(http.get(`${baseUrl}/billing/commercial/orders/order-timeout`, () => HttpResponse.json({ success: true, data: {
+      order_id: 'order-timeout', kind: 'renewal', status: 'pending_payment', payment_status: 'pending',
+      amount: '7900.00', amount_minor: 790000, currency: 'RUB', selected_package_slugs: ['machinery'], offer_type: 'packages',
+      period_start_at: null, period_end_at: null, auto_renew_consent: false, test_mode: false,
+      confirmation_url: null, created_at: null, paid_at: null, canceled_at: null,
+      refunds_summary: { count: 0, amount: '0.00', amount_minor: 0, currency: 'RUB', fully_refunded: false },
+    } })));
+
+    await expect(pollCommercialOrder('order-timeout', { delaysMs: [0, 0] })).rejects.toMatchObject({ name: 'CommercialPollingTimeoutError', orderId: 'order-timeout' });
   });
 
   it('пробрасывает 403, 409, 422 и недоступность провайдера как типизированную ошибку', async () => {

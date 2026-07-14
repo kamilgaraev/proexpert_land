@@ -67,3 +67,15 @@ RED подтверждён отсутствующими коммерческим
 
 - Визуальная браузерная проверка не выполнялась: по условиям задачи dev server и сборку запускать нельзя, готовый локальный URL отсутствует.
 - Vitest выводит существующие предупреждения React Router о будущих флагах v7 и устаревшей базе Browserslist; на результат тестов они не влияют.
+
+## Resolution review 2026-07-15
+
+- Добавлен отдельный защищённый контур ручной оплаты задолженности в льготном периоде. Сервер использует неизменяемый snapshot текущего renewal order/cycle, прямой платёж YooKassa и клиентский UUID; состав, период и фиксированный якорь не пересчитываются.
+- Ручная оплата доступна только с `billing.manage`; пользователь только с `billing.view` видит информационное состояние без CTA.
+- Polling различает `paid`, `failed`, `canceled`, `refunded` и bounded timeout с повторной проверкой. Возврат больше не отображается как успешная оплата.
+- Каталог отдаёт authoritative `trial_available/trial_used`; состояние сохраняется после reload и используется интерфейсом без локальных предположений.
+- Renewal response отдаёт persisted scheduled reduction с целевым составом, датой применения и billing anchor. Интерфейс восстанавливает точные названия пакетов и дату после reload, не меняя текущие права до anchor.
+- Исправлен порядок permission hooks в уведомлении, удалён несвязанный document quick action в оплату, удалены старые tier-типы и `packagesService.subscribe/unsubscribe`.
+- Quote показывает названия добавляемых и удаляемых пакетов; overview различает полный комплект, корпоративный и пробный доступ; successful paid state показывает оплаченный состав и следующую дату.
+
+Проверки resolution: backend focused PHPUnit `18` тестов / `99` assertions, PHPStan, Pint и `php -l` — PASS; frontend targeted Vitest `25` тестов, TypeScript и scoped ESLint — PASS.

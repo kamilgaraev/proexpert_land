@@ -3,8 +3,14 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { NotificationItem } from './NotificationItem';
 
-const { access } = vi.hoisted(() => ({ access: { allowed: true } }));
-vi.mock('@/hooks/usePermissions', () => ({ useCanAccess: () => access.allowed }));
+const { access } = vi.hoisted(() => ({ access: { view: false, manage: false } }));
+vi.mock('@/hooks/usePermissions', async () => {
+  const React = await import('react');
+  return { useCanAccess: ({ permission }: { permission: string }) => {
+    React.useState(null);
+    return permission === 'billing.view' ? access.view : access.manage;
+  } };
+});
 
 const notification = {
   id: 'notice-1',
@@ -16,14 +22,25 @@ const notification = {
 
 describe('NotificationItem commercial billing', () => {
   it('ведет только в коммерческий контур текущего личного кабинета', () => {
-    access.allowed = true;
+    access.view = true;
     render(<MemoryRouter><NotificationItem notification={notification} onMarkAsRead={vi.fn()} onDelete={vi.fn()} onExecuteAction={vi.fn()} /></MemoryRouter>);
     expect(screen.getByRole('link', { name: 'Открыть пакеты и оплату' })).toHaveAttribute('href', '/dashboard/billing');
   });
 
   it('скрывает коммерческое уведомление без billing permission', () => {
-    access.allowed = false;
+    access.view = false;
+    access.manage = false;
     const { container } = render(<MemoryRouter><NotificationItem notification={notification} onMarkAsRead={vi.fn()} onDelete={vi.fn()} onExecuteAction={vi.fn()} /></MemoryRouter>);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('сохраняет порядок hooks при переходе loading к billing.view', () => {
+    access.view = false;
+    access.manage = false;
+    const props = { notification, onMarkAsRead: vi.fn(), onDelete: vi.fn(), onExecuteAction: vi.fn() };
+    const { rerender } = render(<MemoryRouter><NotificationItem {...props} /></MemoryRouter>);
+    access.view = true;
+    expect(() => rerender(<MemoryRouter><NotificationItem {...props} /></MemoryRouter>)).not.toThrow();
+    expect(screen.getByRole('link', { name: 'Открыть пакеты и оплату' })).toBeInTheDocument();
   });
 });

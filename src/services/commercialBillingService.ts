@@ -61,6 +61,8 @@ const packageFromApi = (item: JsonRecord): CommercialPackage => ({
   currentPeriodStartAt: item.current_period_start_at ?? null,
   currentPeriodEndAt: item.current_period_end_at ?? null,
   trialEndsAt: item.trial_ends_at ?? null,
+  trialAvailable: Boolean(item.trial_available),
+  trialUsed: Boolean(item.trial_used),
 });
 
 const quoteFromApi = (item: JsonRecord): CommercialQuote => ({
@@ -94,6 +96,14 @@ const renewalFromApi = (item: JsonRecord): CommercialRenewalState => ({
   retryStatus: item.retry_status ?? null,
   attemptCount: item.attempt_count ?? 0,
   nextAttemptAt: item.next_attempt_at ?? null,
+  scheduledChange: item.scheduled_change ? {
+    status: item.scheduled_change.status,
+    offerType: item.scheduled_change.offer_type,
+    targetPackageSlugs: item.scheduled_change.target_package_slugs ?? [],
+    currentPackageSlugs: item.scheduled_change.current_package_slugs ?? [],
+    applyAt: item.scheduled_change.apply_at,
+    billingAnchorAt: item.scheduled_change.billing_anchor_at ?? null,
+  } : null,
 });
 
 const orderFromApi = (item: JsonRecord): CommercialOrder => ({
@@ -164,8 +174,34 @@ export const commercialBillingService = {
   },
   getRenewal: async () => renewalFromApi(await request<JsonRecord>('/billing/commercial/renewal')),
   disableRenewal: async () => renewalFromApi(await request<JsonRecord>('/billing/commercial/renewal/disable', { method: 'POST' })),
+  createManualPayment: async (clientIdempotencyKey: string) => {
+    const item = await request<JsonRecord>('/billing/commercial/renewal/manual-payment', {
+      method: 'POST', body: JSON.stringify({ client_idempotency_key: clientIdempotencyKey }),
+    });
+    return {
+      orderId: item.order_id as string,
+      status: item.status as string,
+      paymentStatus: item.payment_status as string,
+      amount: item.amount as string,
+      amountMinor: item.amount_minor as number,
+      currency: item.currency as string,
+      confirmationUrl: item.confirmation_url as string | null,
+      selectedPackageSlugs: (item.selected_package_slugs ?? []) as string[],
+      periodStartAt: item.period_start_at as string | null,
+      periodEndAt: item.period_end_at as string | null,
+      graceDeadlineAt: item.grace_deadline_at as string | null,
+      testMode: Boolean(item.test_mode),
+    };
+  },
   startTrial: async (packageSlug: string) => request<JsonRecord>(`/packages/${encodeURIComponent(packageSlug)}/trial`, { method: 'POST' }),
 };
+
+export class CommercialPollingTimeoutError extends Error {
+  constructor(public readonly orderId: string, public readonly latest: CommercialOrder) {
+    super('Подтверждение ещё не получено. Повторите проверку.');
+    this.name = 'CommercialPollingTimeoutError';
+  }
+}
 
 export const pollCommercialOrder = async (
   orderId: string,
@@ -182,5 +218,5 @@ export const pollCommercialOrder = async (
     if (latest.status !== 'pending_payment') return latest;
   }
   if (!latest) throw new Error('Не удалось проверить состояние оплаты.');
-  return latest;
+  throw new CommercialPollingTimeoutError(orderId, latest);
 };

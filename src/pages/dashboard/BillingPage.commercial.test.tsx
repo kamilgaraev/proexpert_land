@@ -31,6 +31,8 @@ const packages = Array.from({ length: 10 }, (_, index) => ({
   current_period_start_at: index === 0 ? '2026-07-01T09:00:00Z' : null,
   current_period_end_at: index === 0 ? '2026-07-31T09:00:00Z' : null,
   trial_ends_at: null,
+  trial_available: index !== 1,
+  trial_used: index === 1,
 }));
 
 let accountStatus = 'active';
@@ -46,6 +48,7 @@ const server = setupServer(
     retry_status: accountStatus === 'grace' ? 'grace' : null,
     attempt_count: accountStatus === 'grace' ? 2 : 0,
     next_attempt_at: accountStatus === 'grace' ? '2026-08-01T00:00:00Z' : null,
+    scheduled_change: null,
   } })),
   http.get(`${baseUrl}/billing/commercial/history`, () => HttpResponse.json({ success: true, data: [], meta: { current_page: 1, per_page: 20, last_page: 1, total: 0 } })),
   http.post(`${baseUrl}/billing/commercial/quote`, async ({ request }) => {
@@ -100,6 +103,14 @@ describe('BillingPage commercial contour', () => {
     expect(screen.getByText(/Доступен просмотр без изменения состава/)).toBeInTheDocument();
   });
 
+  it('не показывает view-only пользователю CTA ручной оплаты в grace', async () => {
+    accountStatus = 'grace';
+    access.manage = false;
+    renderPage();
+    await screen.findByRole('heading', { name: 'Льготный период' });
+    expect(screen.queryByRole('button', { name: 'Оплатить сейчас' })).not.toBeInTheDocument();
+  });
+
   it('блокирует изменение в grace и объясняет фиксированную дату и оплату на шестой день', async () => {
     accountStatus = 'grace';
     renderPage();
@@ -108,6 +119,24 @@ describe('BillingPage commercial contour', () => {
     expect(screen.getByText(/на шестой день останется около 24 дней/)).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: /Пакет 2/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Оплатить сейчас' })).toBeInTheDocument();
+  });
+
+  it('запускает реальную ручную оплату grace с одним UUID intent', async () => {
+    accountStatus = 'grace';
+    let body: Record<string, unknown> | null = null;
+    server.use(http.post(`${baseUrl}/billing/commercial/renewal/manual-payment`, async ({ request }) => {
+      body = await request.json() as Record<string, unknown>;
+      return HttpResponse.json({ success: true, data: {
+        order_id: 'renewal-order', status: 'pending_payment', payment_status: 'pending', amount: '1000.00', amount_minor: 100000,
+        currency: 'RUB', confirmation_url: 'https://yookassa.ru/confirm/manual', selected_package_slugs: [packageSlugs[0]],
+        period_start_at: '2026-07-31T09:00:00Z', period_end_at: '2026-08-30T09:00:00Z', grace_deadline_at: '2026-08-07T09:00:00Z', test_mode: false,
+      } }, { status: 201 });
+    }));
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Оплатить сейчас' }));
+    await waitFor(() => expect(body).not.toBeNull());
+    expect(String((body as unknown as Record<string, unknown>).client_idempotency_key)).toMatch(/^[0-9a-f-]{36}$/i);
+    expect(sessionStorage.getItem('most:pending-commercial-order')).toBe('renewal-order');
   });
 
   it('игнорирует запоздавший quote и оставляет итог последнего выбора', async () => {
@@ -131,12 +160,22 @@ describe('BillingPage commercial contour', () => {
     expect(screen.getByText(/каждые 30 дней/)).toBeInTheDocument();
   });
 
-  it('показывает уже использованный trial после серверного 409', async () => {
-    server.use(http.post(`${baseUrl}/packages/:slug/trial`, () => HttpResponse.json({ success: false, message: 'Пробный доступ уже использован' }, { status: 409 })));
+  it('показывает authoritative использованный trial сразу после reload', async () => {
     renderPage();
-    const trialButtons = await screen.findAllByRole('button', { name: 'Попробовать на 72 часа' });
-    fireEvent.click(trialButtons[0]);
     expect(await screen.findByRole('button', { name: 'Пробный доступ уже использован' })).toBeDisabled();
+  });
+
+  it('восстанавливает после reload запланированное сокращение с точными пакетами и датой', async () => {
+    server.use(http.get(`${baseUrl}/billing/commercial/renewal`, () => HttpResponse.json({ success: true, data: {
+      status: 'active', auto_renew_enabled: true, saved_method_available: true,
+      next_billing_at: '2026-07-31T09:00:00Z', grace_started_at: null, grace_ends_at: null,
+      retry_status: null, attempt_count: 0, next_attempt_at: null,
+      scheduled_change: { status: 'scheduled', offer_type: 'packages', target_package_slugs: [packageSlugs[0]], current_package_slugs: [packageSlugs[0], packageSlugs[1]], apply_at: '2026-07-31T09:00:00Z', billing_anchor_at: '2026-07-31T09:00:00Z' },
+    } })));
+    renderPage();
+    expect(await screen.findByText(/После 31 июля 2026/)).toBeInTheDocument();
+    expect(screen.getByText(/останется Пакет 1/)).toBeInTheDocument();
+    expect(screen.getByText(/будет отключён Пакет 2/)).toBeInTheDocument();
   });
 
   it('планирует сокращение с UUID и не отбирает уже оплаченный период', async () => {

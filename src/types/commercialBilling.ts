@@ -19,6 +19,8 @@ export interface CommercialPackage {
   currentPeriodStartAt: string | null;
   currentPeriodEndAt: string | null;
   trialEndsAt: string | null;
+  trialAvailable: boolean;
+  trialUsed: boolean;
 }
 
 export interface CommercialQuote {
@@ -52,6 +54,14 @@ export interface CommercialRenewalState {
   retryStatus: string | null;
   attemptCount: number;
   nextAttemptAt: string | null;
+  scheduledChange: {
+    status: 'scheduled';
+    offerType: 'packages' | 'full_suite';
+    targetPackageSlugs: string[];
+    currentPackageSlugs: string[];
+    applyAt: string;
+    billingAnchorAt: string | null;
+  } | null;
 }
 
 export interface CommercialOrder {

@@ -11,7 +11,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   BarChart,
-  File,
   Plus,
 } from 'lucide-react';
 
@@ -141,13 +140,6 @@ const DashboardPage = () => {
       description: 'Добавить сотрудника',
       href: '/dashboard/admins',
       icon: Users,
-      variant: 'outline' as const
-    },
-    {
-      name: 'Загрузить документы',
-      description: 'Планы и чертежи',
-      href: '/dashboard/billing',
-      icon: File,
       variant: 'outline' as const
     },
     {

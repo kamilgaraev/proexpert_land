@@ -32,7 +32,9 @@ export const NotificationItem = ({
   onExecuteAction
 }: NotificationItemProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  const canViewBilling = useCanAccess({ permission: 'billing.view' }) || useCanAccess({ permission: 'billing.manage' });
+  const hasBillingView = useCanAccess({ permission: 'billing.view' });
+  const hasBillingManage = useCanAccess({ permission: 'billing.manage' });
+  const canViewBilling = hasBillingView || hasBillingManage;
   const isCommercialBilling = notification.type.startsWith('commercial_');
 
   const handleAction = async (action: NotificationAction) => {

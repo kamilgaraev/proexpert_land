@@ -98,6 +98,8 @@ describe('DashboardPage', () => {
     expect(screen.getByText('7')).toBeInTheDocument();
     expect(screen.getByTestId('donut-chart')).toHaveTextContent('Активные');
     expect(screen.getByTestId('donut-chart')).not.toHaveTextContent('active');
+    expect(screen.queryByRole('link', { name: /Загрузить документы/ })).not.toBeInTheDocument();
+    expect(document.querySelector('a[href="/dashboard/billing"]')).toBeNull();
   });
 
   it('shows an error state when landing dashboard data is unavailable', async () => {
