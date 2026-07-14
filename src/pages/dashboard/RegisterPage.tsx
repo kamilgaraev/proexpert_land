@@ -27,6 +27,23 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { parseCommercialIntent, rememberCommercialIntent } from '@/utils/commercialIntent';
 
+const getPackageCountLabel = (count: number): string => {
+  const lastTwoDigits = count % 100;
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+    return 'пакетов';
+  }
+
+  const lastDigit = count % 10;
+  if (lastDigit === 1) {
+    return 'пакет';
+  }
+  if (lastDigit >= 2 && lastDigit <= 4) {
+    return 'пакета';
+  }
+
+  return 'пакетов';
+};
+
 const RegisterPage = () => {
   // User Data
   const [name, setName] = useState('');
@@ -229,9 +246,8 @@ const RegisterPage = () => {
       if (avatarFile) {
         formData.append('avatar', avatarFile);
       }
-      rememberCommercialIntent(commercialIntent);
-      
       await register(formData);
+      rememberCommercialIntent(commercialIntent);
       
       navigate('/email-sent', { state: { email } });
     } catch (err: any) {
@@ -365,7 +381,7 @@ const RegisterPage = () => {
                 <div className="text-sm font-semibold text-steel-950">
                   {commercialIntent[0] === 'full-suite'
                     ? 'Сохранено намерение подключить полный комплект'
-                    : `Сохранен набор из ${commercialIntent.length} ${commercialIntent.length === 1 ? 'пакета' : 'пакетов'}`}
+                    : `Сохранен набор из ${commercialIntent.length} ${getPackageCountLabel(commercialIntent.length)}`}
                 </div>
                 <p className="mt-1 text-sm leading-6 text-steel-600">
                   Регистрация создаст бесплатную базу. Подключение пакетов выполняется отдельно в личном кабинете и требует явного подтверждения.

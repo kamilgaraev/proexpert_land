@@ -32,13 +32,33 @@ export const serializeCommercialIntent = (slugs: readonly CommercialIntentSlug[]
 );
 
 export const rememberCommercialIntent = (slugs: readonly CommercialIntentSlug[]): void => {
-  if (typeof window === 'undefined' || slugs.length === 0) {
+  if (typeof window === 'undefined') {
     return;
   }
 
   try {
-    window.sessionStorage.setItem(commercialIntentStorageKey, serializeCommercialIntent(slugs));
+    const serializedIntent = serializeCommercialIntent(slugs);
+    if (!serializedIntent) {
+      window.sessionStorage.removeItem(commercialIntentStorageKey);
+      return;
+    }
+
+    window.sessionStorage.setItem(commercialIntentStorageKey, serializedIntent);
   } catch {
     return;
+  }
+};
+
+export const consumeCommercialIntent = (): CommercialIntentSlug[] => {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const intent = parseCommercialIntent(window.sessionStorage.getItem(commercialIntentStorageKey));
+    window.sessionStorage.removeItem(commercialIntentStorageKey);
+    return intent;
+  } catch {
+    return [];
   }
 };
