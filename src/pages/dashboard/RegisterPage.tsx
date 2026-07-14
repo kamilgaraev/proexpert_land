@@ -24,20 +24,8 @@ import AutocompleteInput from '@/components/shared/AutocompleteInput';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { publicPricingPlans } from '@/data/marketing/pricingPlans';
 import { cn } from '@/lib/utils';
-
-const rememberSelectedPlan = (slug: string) => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  try {
-    window.sessionStorage.setItem('prohelper:selected-plan', slug);
-  } catch (error) {
-    void error;
-  }
-};
+import { parseCommercialIntent, rememberCommercialIntent } from '@/utils/commercialIntent';
 
 const RegisterPage = () => {
   // User Data
@@ -76,7 +64,7 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { searchAddresses, searchCities, searchOrganizations, isLoading: isDaDataLoading } = useDaData();
-  const selectedPlan = publicPricingPlans.find(plan => plan.slug === searchParams.get('plan'));
+  const commercialIntent = parseCommercialIntent(searchParams.get('packages'));
 
   const handleOrganizationSearch = async (query: string) => {
     const results = await searchOrganizations(query);
@@ -241,10 +229,7 @@ const RegisterPage = () => {
       if (avatarFile) {
         formData.append('avatar', avatarFile);
       }
-      if (selectedPlan) {
-        formData.append('plan_slug', selectedPlan.slug);
-        rememberSelectedPlan(selectedPlan.slug);
-      }
+      rememberCommercialIntent(commercialIntent);
       
       await register(formData);
       
@@ -375,13 +360,15 @@ const RegisterPage = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-8">
-             {selectedPlan ? (
+             {commercialIntent.length > 0 ? (
               <div className="mb-6 rounded-2xl border border-construction-200 bg-construction-50 px-5 py-4">
                 <div className="text-sm font-semibold text-steel-950">
-                  Выбран тариф {selectedPlan.title}
+                  {commercialIntent[0] === 'full-suite'
+                    ? 'Сохранено намерение подключить полный комплект'
+                    : `Сохранен набор из ${commercialIntent.length} ${commercialIntent.length === 1 ? 'пакета' : 'пакетов'}`}
                 </div>
                 <p className="mt-1 text-sm leading-6 text-steel-600">
-                  {selectedPlan.priceLabel} · в месяц. После регистрации можно изменить тариф в личном кабинете.
+                  Регистрация создаст бесплатную базу. Подключение пакетов выполняется отдельно в личном кабинете и требует явного подтверждения.
                 </p>
               </div>
             ) : null}

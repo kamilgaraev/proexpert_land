@@ -1,989 +1,215 @@
-import type {
-  MarketingAdvancedOffer,
-  MarketingPackageCapability,
-  MarketingPackageFamily,
-  MarketingPackageLinkedItem,
-  MarketingPackageTier,
-  MarketingSalesOffer,
-} from '@/types/marketing';
+import type { MarketingAdvancedOffer, MarketingPackageFamily } from '@/types/marketing';
 
-type MarketingPackageBase = Omit<
-  MarketingPackageFamily,
-  'foundationModules' | 'integrations' | 'recommendedAddons' | 'businessOutcomes' | 'dataSources' | 'capabilities' | 'tiers'
-> & {
-  tiers: Omit<MarketingPackageTier, 'includedModules'>[];
-};
+export const marketingPackageCatalogSource = 'Backend МОСТ: GET /api/v1/landing/packages';
 
-type MarketingPackageV2Details = {
-  foundationModules: string[];
-  integrations: MarketingPackageLinkedItem[];
-  recommendedAddons: MarketingPackageLinkedItem[];
-  businessOutcomes: string[];
-  dataSources: MarketingPackageLinkedItem[];
-  capabilities: MarketingPackageCapability[];
-};
+export type CommercialPackageSlug =
+  | 'projects-processes'
+  | 'planning-schedules'
+  | 'estimates-norms'
+  | 'quality-safety'
+  | 'pto-handover'
+  | 'supply-warehouse'
+  | 'finance-contracts'
+  | 'workforce-output'
+  | 'machinery'
+  | 'sales-contractors';
 
-const sharedFoundationModules = [
-  'organizations',
-  'users',
-  'project-management',
-  'contract-management',
-  'catalog-management',
-  'workflow-management',
-  'act-reporting',
-  'payments',
-  'reports',
-  'dashboard-widgets',
-  'data-filters',
-  'brigades',
-];
+export interface CommercialPackage extends MarketingPackageFamily {
+  number: number;
+  slug: CommercialPackageSlug;
+  price: number;
+}
 
-const packageV2Details: Record<string, MarketingPackageV2Details> = {
-  'objects-execution': {
-    foundationModules: sharedFoundationModules,
-    integrations: [
-      { packageSlug: 'supply-warehouse', moduleSlug: 'basic-warehouse', label: 'Склад и заявки с объекта' },
-      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Платежи и акты' },
-      { packageSlug: 'ai-contour', moduleSlug: 'ai-assistant', label: 'AI-сводки по исполнению' },
-    ],
-    recommendedAddons: [
-      { moduleSlug: 'video-monitoring', label: 'Видео с площадки' },
-      { moduleSlug: 'contractor-portal', label: 'Кабинет подрядчика' },
-    ],
-    businessOutcomes: [
-      'Единый контур объектов, договоров и исполнения',
-      'Понятная связь офиса и площадки',
-      'Контроль сроков, ответственных и статусов',
-    ],
-    dataSources: [
-      { moduleSlug: 'project-management', label: 'Объекты' },
-      { moduleSlug: 'schedule-management', label: 'График работ' },
-      { moduleSlug: 'site-requests', label: 'Заявки с объекта' },
-    ],
-    capabilities: [],
-  },
-  'supply-warehouse': {
-    foundationModules: sharedFoundationModules,
-    integrations: [
-      { packageSlug: 'objects-execution', moduleSlug: 'schedule-management', label: 'График работ' },
-      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Платежи по закупкам' },
-      { packageSlug: 'estimates-pto', moduleSlug: 'budget-estimates', label: 'Материалы из смет' },
-    ],
-    recommendedAddons: [
-      { moduleSlug: 'data-export', label: 'Выгрузки для снабжения' },
-    ],
-    businessOutcomes: [
-      'Контроль заявок, закупок и остатков',
-      'Движение материалов по объектам',
-      'Прозрачный процесс снабжения',
-    ],
-    dataSources: [
-      { moduleSlug: 'site-requests', label: 'Заявки' },
-      { moduleSlug: 'basic-warehouse', label: 'Склад' },
-      { moduleSlug: 'procurement', label: 'Закупки' },
-    ],
-    capabilities: [],
-  },
-  'finance-acts': {
-    foundationModules: sharedFoundationModules,
-    integrations: [
-      { packageSlug: 'supply-warehouse', moduleSlug: 'basic-warehouse', label: 'Складские движения' },
-      { packageSlug: 'objects-execution', moduleSlug: 'site-requests', label: 'Заявки с объекта' },
-      { packageSlug: 'estimates-pto', moduleSlug: 'budget-estimates', label: 'Сметный план-факт' },
-    ],
-    recommendedAddons: [
-      { moduleSlug: 'multi-organization', label: 'Финансы группы компаний' },
-    ],
-    businessOutcomes: [
-      'Платежи и акты в одном контуре',
-      'Связь финансов с объектами и контрагентами',
-      'Контроль авансов и подотчета',
-    ],
-    dataSources: [
-      { moduleSlug: 'payments', label: 'Платежи' },
-      { moduleSlug: 'act-reporting', label: 'Акты' },
-      { moduleSlug: 'advance-accounting', label: 'Авансы и подотчет' },
-    ],
-    capabilities: [],
-  },
-  crm: {
-    foundationModules: sharedFoundationModules,
-    integrations: [
-      { packageSlug: 'objects-execution', moduleSlug: 'project-management', label: 'Объекты после продажи' },
-      { packageSlug: 'finance-acts', moduleSlug: 'contract-management', label: 'Договоры и обязательства' },
-      { packageSlug: 'holding-analytics', moduleSlug: 'reports', label: 'Управленческая отчетность' },
-    ],
-    recommendedAddons: [
-      { moduleSlug: 'data-export', label: 'Выгрузки клиентской базы' },
-      { moduleSlug: 'ai-assistant', label: 'AI-сводки по сделкам' },
-    ],
-    businessOutcomes: [
-      'Единый путь от лида до договора',
-      'Понятная воронка продаж по строительным проектам',
-      'Связь коммерческого отдела с объектами и договорами',
-    ],
-    dataSources: [
-      { moduleSlug: 'crm', label: 'Клиенты, лиды и сделки' },
-      { moduleSlug: 'project-management', label: 'Объекты' },
-      { moduleSlug: 'contract-management', label: 'Договоры' },
-    ],
-    capabilities: [
-      { key: 'lead_to_deal', label: 'Лид превращается в сделку', requiresModules: ['crm'] },
-      { key: 'deal_to_project', label: 'Сделка связывается с объектом и договором', requiresModules: ['crm', 'project-management', 'contract-management'] },
-    ],
-  },
-  'estimates-pto': {
-    foundationModules: sharedFoundationModules,
-    integrations: [
-      { packageSlug: 'ai-contour', moduleSlug: 'ai-estimates', label: 'AI-старт сметы' },
-      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Финансовый план-факт' },
-      { packageSlug: 'supply-warehouse', moduleSlug: 'basic-warehouse', label: 'Материалы и склад' },
-    ],
-    recommendedAddons: [
-      { moduleSlug: 'file-management', label: 'Файлы объекта' },
-      { moduleSlug: 'data-export', label: 'Выгрузки ПТО' },
-    ],
-    businessOutcomes: [
-      'Сметы, расценки и шаблоны отчетов',
-      'ПИР, проектные файлы и единая инженерная база объекта',
-      'Быстрый старт первичной сметной работы',
-    ],
-    dataSources: [
-      { moduleSlug: 'budget-estimates', label: 'Сметы' },
-      { moduleSlug: 'design-management', label: 'ПИР и проектная документация' },
-      { moduleSlug: 'reports', label: 'Отчеты' },
-      { moduleSlug: 'report-templates', label: 'Шаблоны' },
-    ],
-    capabilities: [],
-  },
-  'holding-analytics': {
-    foundationModules: sharedFoundationModules,
-    integrations: [
-      { packageSlug: 'objects-execution', moduleSlug: 'schedule-management', label: 'Исполнение' },
-      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Финансы' },
-      { packageSlug: 'supply-warehouse', moduleSlug: 'basic-warehouse', label: 'Склад' },
-    ],
-    recommendedAddons: [
-      { moduleSlug: 'integrations', label: 'Внешние интеграции' },
-    ],
-    businessOutcomes: [
-      'Управленческий обзор по компаниям',
-      'Консолидация данных',
-      'Фильтры, дашборды и выгрузки',
-    ],
-    dataSources: [
-      { moduleSlug: 'dashboard-widgets', label: 'Дашборды' },
-      { moduleSlug: 'data-filters', label: 'Фильтры' },
-      { moduleSlug: 'multi-organization', label: 'Группа компаний' },
-    ],
-    capabilities: [],
-  },
-  'ai-contour': {
-    foundationModules: sharedFoundationModules,
-    integrations: [
-      { packageSlug: 'estimates-pto', moduleSlug: 'budget-estimates', label: 'Сметные сценарии' },
-      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Финансовые вопросы' },
-      { packageSlug: 'supply-warehouse', moduleSlug: 'basic-warehouse', label: 'Вопросы по складу' },
-    ],
-    recommendedAddons: [],
-    businessOutcomes: [
-      'AI-помощник по данным компании',
-      'AI-старт сметы',
-      'Проверка рисков и быстрые сводки',
-    ],
-    dataSources: [
-      { moduleSlug: 'ai-assistant', label: 'AI-помощник' },
-      { moduleSlug: 'ai-estimates', label: 'AI-сметы' },
-    ],
-    capabilities: [
-      { key: 'project_questions', label: 'Вопросы по объектам', requiresModules: ['project-management'] },
-      { key: 'estimate_start', label: 'AI-старт сметы', requiresModules: ['budget-estimates', 'ai-estimates'] },
-      { key: 'finance_questions', label: 'Вопросы по финансам', requiresModules: ['payments'] },
-      { key: 'warehouse_questions', label: 'Вопросы по складу', requiresModules: ['basic-warehouse'] },
-    ],
-  },
-  'site-quality-handover': {
-    foundationModules: sharedFoundationModules,
-    integrations: [
-      { packageSlug: 'estimates-pto', moduleSlug: 'budget-estimates', label: 'Сметы и объемы работ' },
-      { packageSlug: 'objects-execution', moduleSlug: 'site-requests', label: 'Заявки и замечания с площадки' },
-      { packageSlug: 'change-control', moduleSlug: 'change-management', label: 'Изменения и претензии' },
-    ],
-    recommendedAddons: [
-      { moduleSlug: 'file-management', label: 'Файлы, фото и версии документов' },
-    ],
-    businessOutcomes: [
-      'Контроль качества работ до приемки',
-      'Единый реестр дефектов и punch-list',
-      'Прозрачная передача результата заказчику',
-    ],
-    dataSources: [
-      { moduleSlug: 'quality-control', label: 'Инспекции и дефекты' },
-      { moduleSlug: 'handover-acceptance', label: 'Приемка и punch-list' },
-      { moduleSlug: 'executive-documentation', label: 'Исполнительная документация' },
-    ],
-    capabilities: [
-      { key: 'quality-to-handover', label: 'Дефекты переходят в punch-list', requiresModules: ['quality-control', 'handover-acceptance'] },
-    ],
-  },
-  'construction-safety': {
-    foundationModules: sharedFoundationModules,
-    integrations: [
-      { packageSlug: 'objects-execution', moduleSlug: 'site-requests', label: 'Нарушения и заявки с объекта' },
-      { packageSlug: 'machinery-and-labor', moduleSlug: 'production-labor', label: 'Бригады и наряды' },
-      { packageSlug: 'site-quality-handover', moduleSlug: 'quality-control', label: 'Связь с качеством' },
-    ],
-    recommendedAddons: [
-      { moduleSlug: 'video-monitoring', label: 'Видео и события с площадки' },
-    ],
-    businessOutcomes: [
-      'Контроль допусков и инструктажей',
-      'Фиксация нарушений и инцидентов',
-      'Управляемое устранение предписаний',
-    ],
-    dataSources: [
-      { moduleSlug: 'safety-management', label: 'Охрана труда и безопасность' },
-    ],
-    capabilities: [],
-  },
-  'machinery-and-labor': {
-    foundationModules: sharedFoundationModules,
-    integrations: [
-      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Начисления и выплаты' },
-      { packageSlug: 'supply-warehouse', moduleSlug: 'basic-warehouse', label: 'ГСМ и материалы' },
-      { packageSlug: 'workforce-management', moduleSlug: 'workforce-management', label: 'Персонал и трудозатраты' },
-    ],
-    recommendedAddons: [
-      { moduleSlug: 'rate-management', label: 'Расценки и коэффициенты' },
-    ],
-    businessOutcomes: [
-      'Прозрачная загрузка техники',
-      'Связь смен и нарядов с фактом работ',
-      'Подготовка начислений без ручных таблиц',
-    ],
-    dataSources: [
-      { moduleSlug: 'machinery-operations', label: 'Техника и смены' },
-      { moduleSlug: 'production-labor', label: 'Наряды и выработка' },
-    ],
-    capabilities: [],
-  },
-  'workforce-management': {
-    foundationModules: sharedFoundationModules,
-    integrations: [
-      { packageSlug: 'objects-execution', moduleSlug: 'schedule-management', label: 'Графики работ и сменные задания' },
-      { packageSlug: 'estimates-pto', moduleSlug: 'budget-estimates', label: 'Трудозатраты из смет' },
-      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Начисления и выплаты' },
-    ],
-    recommendedAddons: [
-      { moduleSlug: 'rate-management', label: 'Расценки и коэффициенты' },
-      { moduleSlug: 'data-export', label: 'Выгрузки для зарплатных систем' },
-    ],
-    businessOutcomes: [
-      'Единый контур сотрудников, бригад и производственной выработки',
-      'Подготовка проверяемых данных для начислений без ручных таблиц',
-      'Контроль трудозатрат по объектам, нарядам и периодам',
-    ],
-    dataSources: [
-      { moduleSlug: 'workforce-management', label: 'Кадровый контур' },
-      { moduleSlug: 'production-labor', label: 'Наряды и выработка' },
-    ],
-    capabilities: [],
-  },
-  'change-control': {
-    foundationModules: sharedFoundationModules,
-    integrations: [
-      { packageSlug: 'estimates-pto', moduleSlug: 'budget-estimates', label: 'Влияние на смету' },
-      { packageSlug: 'objects-execution', moduleSlug: 'schedule-management', label: 'Влияние на график' },
-      { packageSlug: 'finance-acts', moduleSlug: 'payments', label: 'Финансовое влияние' },
-    ],
-    recommendedAddons: [
-      { moduleSlug: 'executive-documentation', label: 'Документальные основания' },
-    ],
-    businessOutcomes: [
-      'Изменения проходят согласованный workflow',
-      'Влияние на бюджет и сроки видно до утверждения',
-      'Заказчик согласует изменения в customer-портале',
-    ],
-    dataSources: [
-      { moduleSlug: 'change-management', label: 'RFI, изменения и претензии' },
-    ],
-    capabilities: [],
-  },
-};
+interface PackageDefinition {
+  slug: CommercialPackageSlug;
+  name: string;
+  price: number;
+  description: string;
+  bestFor: string;
+  moduleSlugs: string[];
+  highlights: string[];
+  outcomes: string[];
+}
 
-const baseMarketingPackages: MarketingPackageBase[] = [
+const foundationModules = ['organizations', 'users', 'project-management', 'catalog-management'];
+
+const definitions: PackageDefinition[] = [
   {
-    slug: 'objects-execution',
-    name: 'Объекты и исполнение',
-    description:
-      'Рабочий контур для объектов, договоров, задач, статусов и связки офиса с площадкой.',
-    color: 'construction',
-    icon: 'objects-execution',
-    bestFor: 'Подрядчикам и генподрядчикам, которым нужно видеть ход работ без ручного сбора статусов.',
-    tiers: [
-      {
-        key: 'base',
-        label: 'Старт',
-        description: 'Единый порядок по объектам, договорам, графику и заявкам с площадки.',
-        price: 6900,
-        standalonePrice: 8600,
-        priceLabel: 'от 6 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'schedule-management', 'site-requests'],
-        businessOutcome: 'Офис и площадка видят объекты, договоры, график и заявки в одном рабочем контуре.',
-        highlights: ['Объекты и договоры', 'График работ', 'Заявки с объекта'],
-      },
-      {
-        key: 'pro',
-        label: 'Рост',
-        description: 'Контроль нескольких объектов с графиком работ и заявками с площадки.',
-        price: 9900,
-        standalonePrice: 12400,
-        priceLabel: 'от 9 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'schedule-management', 'site-requests'],
-        businessOutcome: 'Офис видит, что происходит на площадке, без ежедневного обзвона команды.',
-        maturityNote: 'График работ доступен в Beta.',
-        highlights: ['График работ', 'Заявки с объекта', 'Связка офиса и площадки'],
-      },
-      {
-        key: 'enterprise',
-        label: 'Корпоративный',
-        description: 'Расширенный контур исполнения для сложной структуры ролей и нескольких направлений.',
-        price: 12900,
-        standalonePrice: 16200,
-        priceLabel: 'от 12 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'schedule-management', 'site-requests', 'time-tracking'],
-        businessOutcome: 'Руководитель получает управляемую картину исполнения по нескольким объектам.',
-        maturityNote: 'Учет времени подключается как ранний сценарий.',
-        highlights: ['Несколько объектов', 'Учет времени', 'Расширенные роли'],
-      },
-    ],
+    slug: 'projects-processes',
+    name: 'Проекты и процессы',
+    price: 9_900,
+    description: 'Единый рабочий контур проектов, задач, договоров и согласованных процессов.',
+    bestFor: 'Командам, которым важно собрать управление объектами и ответственностью в одном месте.',
+    moduleSlugs: ['project-management', 'contract-management', 'workflow-management'],
+    highlights: ['Проекты и этапы', 'Задачи и ответственность', 'Рабочие маршруты'],
+    outcomes: ['Статусы проекта видны без ручной сводки', 'Договоры и процессы связаны с объектом'],
+  },
+  {
+    slug: 'planning-schedules',
+    name: 'Графики и планирование',
+    price: 7_900,
+    description: 'Календарное планирование, зависимости, сменные задания и план-факт по срокам.',
+    bestFor: 'Проектным командам и площадкам, которые управляют сроками и загрузкой.',
+    moduleSlugs: ['schedule-management', 'time-tracking'],
+    highlights: ['График работ', 'Зависимости', 'План-факт'],
+    outcomes: ['Отклонения по срокам заметны раньше', 'Площадка и офис работают по одному плану'],
+  },
+  {
+    slug: 'estimates-norms',
+    name: 'Сметы и нормы',
+    price: 12_900,
+    description: 'Сметный контур, нормативы, расценки и контроль объемов по объекту.',
+    bestFor: 'Сметчикам, ПТО и руководителям проектов с регулярным контролем стоимости.',
+    moduleSlugs: ['budget-estimates', 'rate-management', 'report-templates'],
+    highlights: ['Сметы', 'Нормы и расценки', 'Объемы работ'],
+    outcomes: ['Расчетная база хранится вместе с проектом', 'Изменения стоимости легче проверять'],
+  },
+  {
+    slug: 'quality-safety',
+    name: 'Качество и безопасность',
+    price: 9_900,
+    description: 'Инспекции, дефекты, охрана труда, допуски, нарушения и контроль устранения.',
+    bestFor: 'Стройконтролю и службам охраны труда на одном или нескольких объектах.',
+    moduleSlugs: ['quality-control', 'safety-management'],
+    highlights: ['Инспекции', 'Дефекты', 'Охрана труда'],
+    outcomes: ['Замечания доводятся до устранения', 'Допуски и нарушения видны в проектном контексте'],
+  },
+  {
+    slug: 'pto-handover',
+    name: 'ПТО и сдача',
+    price: 11_900,
+    description: 'ПИР, исполнительная документация, комплектность, приемка и передача результата.',
+    bestFor: 'ПТО и инженерным командам, которые ведут объект от документации до сдачи.',
+    moduleSlugs: ['design-management', 'executive-documentation', 'handover-acceptance'],
+    highlights: ['ПИР и версии', 'Исполнительная документация', 'Приемка'],
+    outcomes: ['Комплект сдачи не теряется между папками', 'Замечания связаны с приемкой'],
   },
   {
     slug: 'supply-warehouse',
     name: 'Снабжение и склад',
-    description:
-      'Контур для заявок, закупок, каталога материалов, склада и движения ТМЦ по объектам.',
-    color: 'earth',
-    icon: 'supply-warehouse',
-    bestFor: 'Компаниям, где простои и переплаты появляются из-за несвязанных заявок, закупок и остатков.',
-    tiers: [
-      {
-        key: 'base',
-        label: 'Старт',
-        description: 'Заявки и каталог материалов для первого управляемого процесса снабжения.',
-        price: 5900,
-        standalonePrice: 7200,
-        priceLabel: 'от 5 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'site-requests', 'catalog-management', 'basic-warehouse', 'procurement'],
-        businessOutcome: 'Снабженец получает заявки из системы, а не из разрозненных переписок.',
-        highlights: ['Каталог материалов', 'Заявки на снабжение', 'Первичный процесс закупки'],
-      },
-      {
-        key: 'pro',
-        label: 'Рост',
-        description: 'Снабжение, склад и движение материалов по объектам в одном процессе.',
-        price: 7900,
-        standalonePrice: 9990,
-        priceLabel: 'от 7 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'site-requests', 'catalog-management', 'basic-warehouse', 'procurement', 'material-analytics'],
-        businessOutcome: 'Остатки и закупки становятся связаны с реальной потребностью объектов.',
-        highlights: ['Склад и остатки', 'Закупки по объектам', 'Движение материалов'],
-      },
-      {
-        key: 'enterprise',
-        label: 'Корпоративный',
-        description: 'Централизованное снабжение с материальной аналитикой и контролем остатков.',
-        price: 10900,
-        standalonePrice: 13990,
-        priceLabel: 'от 10 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'site-requests', 'catalog-management', 'basic-warehouse', 'procurement', 'material-analytics', 'data-export'],
-        businessOutcome: 'Руководитель видит риски дефицита, излишков и отклонений закупки раньше простоя.',
-        highlights: ['Материальная аналитика', 'Центральный склад', 'Контроль отклонений'],
-      },
-    ],
+    price: 11_900,
+    description: 'Потребности объектов, закупки, поставки, резервы и складские остатки.',
+    bestFor: 'Снабжению и складу при работе с несколькими объектами и поставщиками.',
+    moduleSlugs: ['site-requests', 'procurement', 'basic-warehouse'],
+    highlights: ['Заявки с объекта', 'Закупки', 'Остатки и резервы'],
+    outcomes: ['Потребность проходит прозрачный маршрут', 'Материалы прослеживаются до объекта'],
   },
   {
-    slug: 'finance-acts',
-    name: 'Финансы и акты',
-    description:
-      'Контур платежей, актов, взаиморасчетов и финансовой связки с объектами и контрагентами.',
-    color: 'steel',
-    icon: 'finance-acts',
-    bestFor: 'Командам, которым нужно видеть деньги, акты и обязательства по каждому объекту.',
-    tiers: [
-      {
-        key: 'base',
-        label: 'Старт',
-        description: 'Платежные документы, подотчет и финансовая картина по объекту.',
-        price: 5900,
-        standalonePrice: 7200,
-        priceLabel: 'от 5 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['payments', 'act-reporting', 'advance-accounting', 'project-management', 'contract-management', 'workflow-management', 'catalog-management'],
-        businessOutcome: 'Платежи, акты и подотчет привязаны к объектам и контрагентам.',
-        highlights: ['Платежи по объектам', 'Авансы и подотчет', 'Финансовая связка'],
-      },
-      {
-        key: 'pro',
-        label: 'Рост',
-        description: 'Финансовый контур проекта с подотчетными средствами и связкой с исполнением.',
-        price: 7900,
-        standalonePrice: 9900,
-        priceLabel: 'от 7 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'catalog-management', 'workflow-management', 'contract-management', 'payments', 'act-reporting', 'advance-accounting'],
-        businessOutcome: 'Платежи, авансы и акты перестают жить отдельно от хода работ.',
-        maturityNote: 'Подотчетные средства подключаются как рабочий сценарий развития.',
-        highlights: ['Авансы и подотчет', 'Связка с контрагентами', 'Финансовый контур проекта'],
-      },
-      {
-        key: 'enterprise',
-        label: 'Корпоративный',
-        description: 'Документный и сметный контур для более сложных финансовых сценариев.',
-        price: 10900,
-        standalonePrice: 13600,
-        priceLabel: 'от 10 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'catalog-management', 'workflow-management', 'contract-management', 'payments', 'act-reporting', 'advance-accounting', 'budget-estimates'],
-        businessOutcome: 'Финансовая модель объекта читается вместе со сметами и выполнением.',
-        maturityNote: 'Сметный блок доступен в Beta.',
-        highlights: ['Сметный блок', 'Документный контур', 'План-факт по объекту'],
-      },
-    ],
+    slug: 'finance-contracts',
+    name: 'Финансы и договоры',
+    price: 12_900,
+    description: 'Договоры, обязательства, платежи, акты и финансовый контроль по объектам.',
+    bestFor: 'Финансовым и договорным службам строительной компании.',
+    moduleSlugs: ['contract-management', 'payments', 'act-reporting', 'advance-accounting'],
+    highlights: ['Договоры', 'Платежи', 'Акты и обязательства'],
+    outcomes: ['Деньги связаны с объектами и договорами', 'Обязательства видны до платежа'],
   },
   {
-    slug: 'crm',
-    name: 'CRM и продажи',
-    description:
-      'Отдельный коммерческий контур для лидов, клиентов, сделок и связи продаж с объектами и договорами.',
-    color: 'construction',
-    icon: 'crm',
-    bestFor: 'Компаниям, где входящие заявки, повторные клиенты и сделки должны доходить до объекта и договора без ручной пересборки.',
-    tiers: [
-      {
-        key: 'base',
-        label: 'Старт',
-        description: 'Базовая CRM для клиентской базы, лидов, сделок и ответственных.',
-        price: 4900,
-        standalonePrice: 5900,
-        priceLabel: 'от 4 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['crm'],
-        businessOutcome: 'Коммерческий отдел ведет клиентов, лиды и сделки в одном строительном контуре.',
-        highlights: ['Клиенты и контакты', 'Лиды и сделки', 'Связь с объектами'],
-      },
-      {
-        key: 'pro',
-        label: 'Рост',
-        description: 'CRM с управленческой отчетностью и выгрузками для регулярной работы отдела продаж.',
-        price: 7900,
-        standalonePrice: 9900,
-        priceLabel: 'от 7 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['crm', 'reports', 'data-export'],
-        businessOutcome: 'Руководитель видит воронку, ответственных, сумму сделок и данные для регулярных разборов.',
-        highlights: ['Воронка продаж', 'Отчеты по сделкам', 'Выгрузки клиентской базы'],
-      },
-      {
-        key: 'enterprise',
-        label: 'Корпоративный',
-        description: 'CRM для сложной структуры продаж, нескольких направлений и расширенной отчетности.',
-        price: 9900,
-        standalonePrice: 12400,
-        priceLabel: 'от 9 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['crm', 'reports', 'report-templates', 'data-export'],
-        businessOutcome: 'Продажи, договоры и исполнение связываются в управляемую картину по нескольким направлениям.',
-        highlights: ['Корпоративные отчеты', 'Шаблоны выгрузок', 'Связь продаж и исполнения'],
-      },
-    ],
+    slug: 'workforce-output',
+    name: 'Персонал и выработка',
+    price: 9_900,
+    description: 'Сотрудники, бригады, смены, наряды, время и производственная выработка.',
+    bestFor: 'Производственным командам с бригадами и сдельным учетом работ.',
+    moduleSlugs: ['workforce-management', 'production-labor', 'brigades'],
+    highlights: ['Бригады и смены', 'Наряды', 'Выработка'],
+    outcomes: ['Трудозатраты связаны с объектом', 'Данные для начислений становятся проверяемыми'],
   },
   {
-    slug: 'estimates-pto',
-    name: 'Сметы и ПТО',
-    description:
-      'Контур для смет, документов, шаблонов отчетов и инженерной подготовки работ.',
-    color: 'construction',
-    icon: 'estimates-pto',
-    bestFor: 'ПТО и инженерам, которым нужно меньше ручной первички и больше контроля по документам.',
-    tiers: [
-      {
-        key: 'base',
-        label: 'Старт',
-        description: 'Сметный блок и файлы объекта для управляемой инженерной базы.',
-        price: 5900,
-        standalonePrice: 6990,
-        priceLabel: 'от 5 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'budget-estimates', 'file-management'],
-        businessOutcome: 'Сметы и документы объекта перестают теряться между папками и переписками.',
-        maturityNote: 'Сметный блок доступен в Beta.',
-        highlights: ['Сметы по объекту', 'Файлы и документы', 'Единая инженерная база'],
-      },
-      {
-        key: 'pro',
-        label: 'Рост',
-        description: 'Сметы, расценки и шаблоны отчетов для регулярной работы ПТО.',
-        price: 7900,
-        standalonePrice: 9990,
-        priceLabel: 'от 7 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'catalog-management', 'budget-estimates', 'design-management', 'file-management', 'rate-management', 'reports', 'report-templates'],
-        businessOutcome: 'ПТО и проектная команда быстрее готовят ПД/РД, сметную основу и единый стандарт отчетности.',
-        maturityNote: 'Расценки и шаблоны подключаются как развивающиеся сценарии.',
-        highlights: ['ПИР и проектные версии', 'Расценки', 'Шаблоны отчетов'],
-      },
-      {
-        key: 'enterprise',
-        label: 'Корпоративный',
-        description: 'Полный инженерный контур с AI-ускорением первичной сметной работы.',
-        price: 11900,
-        standalonePrice: 14980,
-        priceLabel: 'от 11 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'catalog-management', 'budget-estimates', 'design-management', 'ai-estimates', 'file-management', 'rate-management', 'reports', 'report-templates'],
-        businessOutcome: 'Инженерная команда быстрее управляет проектными версиями, проверкой объемов и бюджетом.',
-        maturityNote: 'ПИР готов, AI-сценарии подключаются как пилотный контур.',
-        highlights: ['ПИР и ПД/РД', 'AI-старт сметы', 'Проверка объемов'],
-      },
-    ],
+    slug: 'machinery',
+    name: 'Техника и механизмы',
+    price: 7_900,
+    description: 'Техника, смены, загрузка, простои, путевые события и эксплуатационный контроль.',
+    bestFor: 'Механикам и диспетчерам строительной техники.',
+    moduleSlugs: ['machinery-operations'],
+    highlights: ['Реестр техники', 'Смены и простои', 'Загрузка'],
+    outcomes: ['Загрузка техники видна по объектам', 'Простои и смены фиксируются в одном контуре'],
   },
   {
-    slug: 'holding-analytics',
-    name: 'Холдинг и аналитика',
-    description:
-      'Управленческий контур для руководителя: отчеты, дашборды, фильтры и группа компаний.',
-    color: 'steel',
-    icon: 'holding-analytics',
-    bestFor: 'Генподрядчикам, девелоперам и группам компаний с несколькими юрлицами и объектами.',
-    tiers: [
-      {
-        key: 'base',
-        label: 'Старт',
-        description: 'Управленческий обзор по объектам и ключевым процессам.',
-        price: 5900,
-        standalonePrice: 7000,
-        priceLabel: 'от 5 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['dashboard-widgets', 'data-filters'],
-        businessOutcome: 'Руководитель получает ежедневную картину без ручной консолидации.',
-        highlights: ['Управленческий обзор', 'Виджеты руководителя', 'Базовая аналитика'],
-      },
-      {
-        key: 'pro',
-        label: 'Рост',
-        description: 'Отчеты, фильтры и расширенный дашборд для нескольких объектов.',
-        price: 8900,
-        standalonePrice: 10990,
-        priceLabel: 'от 8 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['data-filters', 'dashboard-widgets', 'data-export'],
-        businessOutcome: 'Команда быстрее находит отклонения по срокам, деньгам и исполнению.',
-        maturityNote: 'Расширенный дашборд подключается по мере готовности.',
-        highlights: ['Расширенные отчеты', 'Фильтры данных', 'Контроль отклонений'],
-      },
-      {
-        key: 'enterprise',
-        label: 'Корпоративный',
-        description: 'Холдинговая структура, консолидация и интеграционный контур.',
-        price: 14900,
-        standalonePrice: 18800,
-        priceLabel: 'от 14 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['dashboard-widgets', 'data-filters', 'data-export', 'multi-organization', 'integrations'],
-        businessOutcome: 'Группа компаний получает единую управленческую картину по структуре.',
-        maturityNote: 'Интеграции проектируются отдельно под контур заказчика.',
-        highlights: ['Группа компаний', 'Консолидация', 'Интеграции'],
-      },
-    ],
-  },
-  {
-    slug: 'ai-contour',
-    name: 'AI-контур',
-    description:
-      'Пилотные AI-сценарии для вопросов по данным, анализа рисков и ускорения сметной первички.',
-    color: 'construction',
-    icon: 'ai-contour',
-    bestFor: 'Командам с уже собранными данными, где AI должен помогать принимать решения, а не заменять процесс.',
-    tiers: [
-      {
-        key: 'base',
-        label: 'Старт',
-        description: 'AI-помощник для вопросов по проектам, деньгам и материалам.',
-        price: 3900,
-        standalonePrice: 4590,
-        priceLabel: 'от 3 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'ai-assistant'],
-        businessOutcome: 'Руководитель быстрее получает ответы по данным проекта.',
-        maturityNote: 'Пилотный режим для команд с понятным сценарием применения.',
-        highlights: ['Вопросы по данным', 'Анализ рисков', 'Быстрые сводки'],
-      },
-      {
-        key: 'pro',
-        label: 'Рост',
-        description: 'AI-помощник и AI-старт смет для ПТО и руководителя проекта.',
-        price: 6900,
-        standalonePrice: 8580,
-        priceLabel: 'от 6 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'budget-estimates', 'ai-assistant', 'ai-estimates'],
-        businessOutcome: 'ПТО и руководитель быстрее получают основу для проверки и обсуждения.',
-        maturityNote: 'AI-сметы подключаются как ранний сценарий.',
-        highlights: ['AI-помощник', 'AI-старт сметы', 'Проверка рисков'],
-      },
-      {
-        key: 'enterprise',
-        label: 'Корпоративный',
-        description: 'AI-пилот под данные и процессы компании с проектной настройкой.',
-        price: 9900,
-        standalonePrice: 12980,
-        priceLabel: 'от 9 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'budget-estimates', 'ai-assistant', 'ai-estimates', 'dashboard-widgets', 'data-filters', 'data-export'],
-        businessOutcome: 'AI работает поверх управленческой картины, а не отдельно от процессов.',
-        maturityNote: 'Корпоративный AI запускается через согласованный пилот.',
-        highlights: ['AI по данным компании', 'Сценарии для ПТО', 'Управленческие сводки'],
-      },
-    ],
-  },
-  {
-    slug: 'site-quality-handover',
-    name: 'Качество и приемка',
-    description:
-      'Контур контроля качества, дефектов, исполнительной документации и передачи результата заказчику.',
-    color: 'steel',
-    icon: 'site-quality-handover',
-    bestFor: 'Генподрядчикам, девелоперам и ПТО, которым нужно доводить дефекты до приемки и не терять комплект сдачи.',
-    tiers: [
-      {
-        key: 'base',
-        label: 'Контроль',
-        description: 'Инспекции качества, дефекты и приемка зон.',
-        price: 5900,
-        standalonePrice: 7200,
-        priceLabel: 'от 5 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'budget-estimates', 'file-management', 'quality-control', 'handover-acceptance'],
-        businessOutcome: 'Дефекты, ответственные, сроки устранения и приемка зон видны в одном рабочем контуре.',
-        highlights: ['Контроль качества', 'Дефекты и ответственные', 'Приемка зон'],
-      },
-      {
-        key: 'pro',
-        label: 'ПТО',
-        description: 'Качество, приемка и исполнительная документация.',
-        price: 7900,
-        standalonePrice: 9900,
-        priceLabel: 'от 7 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'budget-estimates', 'file-management', 'reports', 'report-templates', 'quality-control', 'executive-documentation', 'handover-acceptance'],
-        businessOutcome: 'ПТО, стройконтроль и руководитель видят дефекты, документы и готовность передачи заказчику.',
-        maturityNote: 'ИД подключается как рабочий контур ПТО.',
-        highlights: ['Исполнительная документация', 'Комплекты приемки', 'Версии и замечания'],
-      },
-      {
-        key: 'enterprise',
-        label: 'Сдача заказчику',
-        description: 'Полный контур качества, исполнительной документации, изменений и customer-приемки.',
-        price: 9900,
-        standalonePrice: 12400,
-        priceLabel: 'от 9 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'budget-estimates', 'payments', 'file-management', 'reports', 'report-templates', 'quality-control', 'executive-documentation', 'change-management', 'handover-acceptance'],
-        businessOutcome: 'Качество, замечания, документы, изменения и приемка собираются в управляемую картину сдачи.',
-        maturityNote: 'Изменения и заказчик подключаются через согласованный сценарий.',
-        highlights: ['Customer-приемка', 'Изменения и претензии', 'Комплект сдачи объекта'],
-      },
-    ],
-  },
-  {
-    slug: 'construction-safety',
-    name: 'Безопасность стройки',
-    description:
-      'Охрана труда, инструктажи, допуски, нарушения, инциденты и контроль устранения.',
-    color: 'steel',
-    icon: 'construction-safety',
-    bestFor: 'Компаниям, где безопасность нужно видеть в ежедневном проектном контроле, а не только в отдельном журнале.',
-    tiers: [
-      {
-        key: 'base',
-        label: 'Старт',
-        description: 'Инструктажи, нарушения и базовая отчетность по безопасности.',
-        price: 3900,
-        standalonePrice: 4900,
-        priceLabel: 'от 3 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'catalog-management', 'brigades', 'file-management', 'safety-management'],
-        businessOutcome: 'Инструктажи, нарушения, предписания и ответственные появляются в одном контуре по объектам.',
-        highlights: ['Инструктажи', 'Нарушения', 'Предписания'],
-      },
-      {
-        key: 'pro',
-        label: 'Контроль',
-        description: 'Безопасность с подрядчиками, файлами и видеофиксацией.',
-        price: 5900,
-        standalonePrice: 7200,
-        priceLabel: 'от 5 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'catalog-management', 'brigades', 'file-management', 'contractor-portal', 'video-monitoring', 'safety-management'],
-        businessOutcome: 'Специалист ОТ, прораб и руководитель видят нарушения и устранение без ручной пересборки.',
-        maturityNote: 'Видео подключается при наличии площадочного сценария.',
-        highlights: ['Подрядчики', 'Фото и видео', 'Расследования'],
-      },
-      {
-        key: 'enterprise',
-        label: 'Корпоративный',
-        description: 'Расширенный контур HSE для нескольких объектов и подрядчиков.',
-        price: 7900,
-        standalonePrice: 9900,
-        priceLabel: 'от 7 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'catalog-management', 'brigades', 'file-management', 'contractor-portal', 'video-monitoring', 'reports', 'safety-management'],
-        businessOutcome: 'HSE-контроль масштабируется на несколько объектов, подрядчиков и управленческую отчетность.',
-        highlights: ['Сводки по объектам', 'Отчеты HSE', 'Контроль подрядчиков'],
-      },
-    ],
-  },
-  {
-    slug: 'machinery-and-labor',
-    name: 'Техника и выработка',
-    description:
-      'Учет техники, смен, простоев, нарядов, выработки и подготовки начислений.',
-    color: 'earth',
-    icon: 'machinery-and-labor',
-    bestFor: 'Проектам, где техника, бригады и фактическая выработка сильно влияют на сроки и себестоимость.',
-    tiers: [
-      {
-        key: 'base',
-        label: 'Ресурсы',
-        description: 'Техника, наряды и фактическая выработка на объекте.',
-        price: 6900,
-        standalonePrice: 8600,
-        priceLabel: 'от 6 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'catalog-management', 'budget-estimates', 'site-requests', 'brigades', 'workflow-management', 'time-tracking', 'machinery-operations', 'production-labor'],
-        businessOutcome: 'Техника, сменные рапорты, наряды и фактическая выработка становятся частью проектного факта.',
-        highlights: ['Заявки на технику', 'Сменные рапорты', 'Наряды'],
-      },
-      {
-        key: 'pro',
-        label: 'План-факт',
-        description: 'Ресурсы, склад, начисления и акты.',
-        price: 8900,
-        standalonePrice: 10990,
-        priceLabel: 'от 8 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'catalog-management', 'budget-estimates', 'site-requests', 'brigades', 'workflow-management', 'time-tracking', 'basic-warehouse', 'payments', 'act-reporting', 'machinery-operations', 'production-labor'],
-        businessOutcome: 'Смены, простои, ГСМ, наряды и начисления связываются с объектом и финансовым контуром.',
-        maturityNote: 'Финансовая связка включается при готовности начислений.',
-        highlights: ['ГСМ и склад', 'Начисления', 'Связь с актами'],
-      },
-      {
-        key: 'enterprise',
-        label: 'Корпоративный',
-        description: 'Полный контур ресурсов, аналитики, расценок и финансового план-факта.',
-        price: 11900,
-        standalonePrice: 14900,
-        priceLabel: 'от 11 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'catalog-management', 'budget-estimates', 'site-requests', 'brigades', 'workflow-management', 'time-tracking', 'basic-warehouse', 'payments', 'act-reporting', 'rate-management', 'reports', 'machinery-operations', 'production-labor'],
-        businessOutcome: 'Руководитель видит ресурсные отклонения, себестоимость и план-факт по нескольким объектам.',
-        highlights: ['Расценки', 'Аналитика ресурсов', 'Финансовый план-факт'],
-      },
-    ],
-  },
-  {
-    slug: 'workforce-management',
-    name: 'Персонал и трудозатраты',
-    description:
-      'Пакет для сотрудников, нарядов, выработки, учета смен, подготовки начислений и контроля трудозатрат по объектам.',
-    color: 'steel',
-    icon: 'workforce-management',
-    bestFor: 'Компаниям, где трудозатраты, бригады и начисления нужно проверять по объектам и периодам.',
-    tiers: [
-      {
-        key: 'base',
-        label: 'Старт',
-        description: 'Сотрудники, наряды и фактическая выработка по объектам.',
-        price: 3900,
-        standalonePrice: 4900,
-        priceLabel: 'от 3 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'time-tracking', 'budget-estimates', 'workforce-management', 'production-labor'],
-        businessOutcome: 'Сотрудники, бригады, наряды и фактическая выработка собираются в проверяемый контур.',
-        highlights: ['Карточки сотрудников', 'Наряды и сменные задания', 'Фактическая выработка'],
-      },
-      {
-        key: 'pro',
-        label: 'Про',
-        description: 'Стартовый контур плюс штатная структура, графики, отсутствия и payroll source.',
-        price: 6900,
-        standalonePrice: 8600,
-        priceLabel: 'от 6 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'workflow-management', 'time-tracking', 'budget-estimates', 'workforce-management', 'production-labor'],
-        businessOutcome: 'Команда готовит основу для начислений без ручной пересборки нарядов и смен.',
-        highlights: ['Штатное расписание', 'Графики и отсутствия', 'Источник данных для начислений'],
-      },
-      {
-        key: 'enterprise',
-        label: 'Корпоративный',
-        description: 'Про-контур плюс блокировка периодов, бухгалтерские привязки и выгрузки для зарплатных систем.',
-        price: 9900,
-        standalonePrice: 12400,
-        priceLabel: 'от 9 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'workflow-management', 'time-tracking', 'budget-estimates', 'payments', 'reports', 'rate-management', 'data-export', 'workforce-management', 'production-labor'],
-        businessOutcome: 'Трудозатраты закрываются по периодам, счетам затрат и выгрузкам для зарплатных систем.',
-        maturityNote: 'Выгрузки подключаются под согласованный учетный сценарий.',
-        highlights: ['Блокировка payroll-периодов', 'Связка со счетами затрат', 'Выгрузки для зарплатных систем'],
-      },
-    ],
-  },
-  {
-    slug: 'change-control',
-    name: 'Изменения и претензии',
-    description:
-      'RFI, change orders, дополнительные работы, претензии и согласование влияния на бюджет и сроки.',
-    color: 'construction',
-    icon: 'change-control',
-    bestFor: 'Генподрядчикам и девелоперам, которым важно не терять решения заказчика и влияние изменений на договор, сроки и деньги.',
-    tiers: [
-      {
-        key: 'base',
-        label: 'Контроль',
-        description: 'RFI, изменения и претензии с финансовым влиянием.',
-        price: 5900,
-        standalonePrice: 7200,
-        priceLabel: 'от 5 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'budget-estimates', 'payments', 'change-management'],
-        businessOutcome: 'RFI, изменения, дополнительные работы и претензии получают статус, основание и влияние на проект.',
-        highlights: ['RFI', 'Change orders', 'Претензии'],
-      },
-      {
-        key: 'pro',
-        label: 'Согласование',
-        description: 'Изменения со сроками, документами и customer-согласованием.',
-        price: 7900,
-        standalonePrice: 9900,
-        priceLabel: 'от 7 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'budget-estimates', 'payments', 'schedule-management', 'file-management', 'reports', 'report-templates', 'executive-documentation', 'change-management'],
-        businessOutcome: 'Изменение видно до утверждения: по срокам, документам, смете и решению заказчика.',
-        maturityNote: 'Customer-согласование включается при наличии внешнего контура заказчика.',
-        highlights: ['Влияние на сроки', 'Основания и файлы', 'Customer-согласование'],
-      },
-      {
-        key: 'enterprise',
-        label: 'Корпоративный',
-        description: 'Полный коммерческий контроль изменений, претензий, приемки и аналитики.',
-        price: 9900,
-        standalonePrice: 12400,
-        priceLabel: 'от 9 900 ₽/мес',
-        billingModel: 'subscription',
-        moduleSlugs: ['project-management', 'contract-management', 'budget-estimates', 'payments', 'schedule-management', 'file-management', 'reports', 'report-templates', 'quality-control', 'executive-documentation', 'change-management', 'handover-acceptance'],
-        businessOutcome: 'Изменения, претензии, качество, ИД и приемка связываются с решением заказчика и историей проекта.',
-        maturityNote: 'Customer-согласования включаются при наличии внешнего контура заказчика.',
-        highlights: ['Претензионная работа', 'Приемка', 'Аналитика изменений'],
-      },
-    ],
+    slug: 'sales-contractors',
+    name: 'Продажи и подрядчики',
+    price: 7_900,
+    description: 'Продажи, воронка, подрядчики, предложения и переход от сделки к проекту.',
+    bestFor: 'Коммерческим службам, генподрядчикам и компаниям с сетью подрядчиков.',
+    moduleSlugs: ['crm', 'contractor-portal'],
+    highlights: ['Лиды и сделки', 'Подрядчики', 'Связь с проектом'],
+    outcomes: ['Коммерческий путь продолжается в проекте', 'Работа с подрядчиками становится прозрачнее'],
   },
 ];
 
-export const marketingPackages: MarketingPackageFamily[] = baseMarketingPackages.map((item) => {
-  const details = packageV2Details[item.slug];
+export const commercialPackages: CommercialPackage[] = definitions.map((item, index) => ({
+  ...item,
+  number: index + 1,
+  color: index % 2 === 0 ? 'construction' : 'steel',
+  icon: item.slug,
+  foundationModules,
+  integrations: [],
+  recommendedAddons: [],
+  businessOutcomes: item.outcomes,
+  dataSources: item.moduleSlugs.map((moduleSlug) => ({ moduleSlug, label: item.highlights[0] })),
+  capabilities: [],
+  tiers: [{
+    key: 'base',
+    label: 'Бизнес-пакет',
+    description: item.description,
+    price: item.price,
+    standalonePrice: item.price,
+    priceLabel: `${item.price.toLocaleString('ru-RU')} ₽ за 30 дней`,
+    billingModel: 'subscription',
+    durationDays: 30,
+    moduleSlugs: item.moduleSlugs,
+    includedModules: item.moduleSlugs,
+    highlights: item.highlights,
+    businessOutcome: item.outcomes[0],
+  }],
+}));
+
+export const marketingPackages: MarketingPackageFamily[] = commercialPackages;
+
+export const freeFoundationOffer = {
+  name: 'Бесплатная база',
+  price: 0,
+  description: 'Ограниченный, но полезный стартовый контур для организации, команды, проектов, базовых записей и просмотра данных.',
+  includes: ['Организация и команда', 'Проекты и базовые записи', 'Просмотр доступных данных'],
+};
+
+export const fullSuiteOffer = {
+  slug: 'full-suite' as const,
+  name: 'Полный комплект',
+  price: 79_900,
+  separatePrice: 103_000,
+  savings: 23_100,
+  savingsPercent: 22.43,
+  billingPeriodDays: 30,
+};
+
+export const commercialTerms = {
+  trialHours: 72,
+  graceDays: 7,
+  recommendationThreshold: 8,
+};
+
+export const getCommercialSelection = (slugs: readonly string[]) => {
+  const selected = new Set(slugs);
+  const selectedPackages = commercialPackages.filter((item) => selected.has(item.slug));
 
   return {
-    ...item,
-    ...details,
-    tiers: item.tiers.map((tier) => ({
-      ...tier,
-      includedModules: tier.moduleSlugs,
-    })),
+    selectedSlugs: selectedPackages.map((item) => item.slug),
+    selectedPackages,
+    total: selectedPackages.reduce((sum, item) => sum + item.price, 0),
+    recommendFullSuite: selectedPackages.length >= commercialTerms.recommendationThreshold,
+    isFullSuite: false,
   };
-});
-
-export const marketingSalesOffers: MarketingSalesOffer[] = [
-  {
-    title: 'Малый подрядчик',
-    planSlug: 'start',
-    planName: 'Start',
-    priceLabel: 'от 9 900 ₽/мес',
-    audience: 'Команда до 7 человек, первые активные объекты и задача быстро убрать хаос в статусах.',
-    packageSlugs: ['objects-execution'],
-    outcome: 'Start включает объектный контур: объекты, договоры, график и заявки с площадки.',
-    comparison: 'Дороже простой CRM, зато сразу закрывает строительный старт без отдельной покупки базового контура.',
-  },
-  {
-    title: 'Растущая строительная компания',
-    planSlug: 'business',
-    planName: 'Business',
-    priceLabel: 'от 24 900 ₽/мес',
-    audience: 'До 15 пользователей, несколько объектов, нужны снабжение, финансы и контроль исполнения.',
-    packageSlugs: ['objects-execution', 'supply-warehouse', 'finance-acts', 'crm'],
-    outcome: 'Business уже включает объекты, снабжение, финансы и CRM: компания получает рабочий контур без сборки по частям.',
-    comparison: 'Сценарий дороже горизонтальных CRM, но заметно выгоднее покупки тех же строительных процессов отдельно.',
-  },
-  {
-    title: 'Генподряд или холдинг',
-    planSlug: 'enterprise',
-    planName: 'Enterprise Конструктор',
-    priceLabel: 'от 99 000 ₽/мес',
-    audience: 'Группа компаний, генподрядчик или девелопер со 100+ пользователями, несколькими юрлицами, ПИР, качеством, HSE и ресурсным учетом.',
-    packageSlugs: [
-      'objects-execution',
-      'supply-warehouse',
-      'finance-acts',
-      'crm',
-      'estimates-pto',
-      'holding-analytics',
-      'ai-contour',
-      'site-quality-handover',
-      'construction-safety',
-      'machinery-and-labor',
-      'workforce-management',
-      'change-control',
-    ],
-    outcome: 'Enterprise Конструктор включает корпоративные направления, ПИР, качество, безопасность, ресурсы, изменения, расширенные лимиты и расчет стандартной конфигурации без ручного согласования.',
-    comparison: 'Сравнивается не с CRM за пользователя, а со стоимостью закрытого строительного процесса.',
-    isConsultative: false,
-  },
-];
+};
 
 export const marketingAdvancedOffers: MarketingAdvancedOffer[] = [
   {
-    id: 'ai-assistant',
-    title: 'AI-помощник для сметного и документного контура',
-    summary:
-      'Подключается как пилотное расширение для команд, где уже выстроен базовый рабочий процесс и есть понятный сценарий применения.',
-    maturity: 'beta',
-    surfaces: ['admin'],
-    moduleSlugs: ['ai-estimates', 'ai-assistant'],
-    sourceOfTruth: [
-      'prohelper/app/BusinessModules/Addons/AiAssistant',
-      'prohelper_admin/src/pages/AI',
-    ],
-    cta: 'Обсудить пилотный запуск',
-  },
-  {
-    id: 'integrations',
-    title: 'Индивидуальные интеграции и корпоративные расширения',
-    summary:
-      'Расширяем продукт под согласованный проектный сценарий, если типовой пакет уже закрывает базовую часть процесса.',
-    maturity: 'early_access',
+    id: 'corporate',
+    title: 'Корпоративный уровень',
+    summary: 'Полный комплект с несколькими организациями, сводной отчетностью, SSO, аудитом, интеграциями, SLA, миграцией и обучением.',
+    maturity: 'stable',
     surfaces: ['admin', 'lk', 'holding'],
-    moduleSlugs: ['integrations', 'multi-organization'],
-    sourceOfTruth: [
-      'prohelper/app/BusinessModules/Addons/Integrations',
-      'prohelper_land/src/pages/dashboard/paid-services/PaidServicesPage.tsx',
-    ],
-    cta: 'Запросить проектную консультацию',
+    moduleSlugs: ['multi-organization', 'integrations'],
+    sourceOfTruth: ['prohelper/app/BusinessModules/Billing'],
+    cta: 'Обсудить корпоративные условия',
   },
 ];

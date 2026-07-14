@@ -9,11 +9,7 @@ import {
   CpuChipIcon,
   ShieldCheckIcon,
   ClockIcon,
-  CloudArrowUpIcon,
-  StarIcon,
-  RocketLaunchIcon,
-  BriefcaseIcon,
-  BuildingOfficeIcon
+  CloudArrowUpIcon
 } from '@heroicons/react/24/outline';
 
 export const NAV_LINKS = [
@@ -100,128 +96,6 @@ export const TRUST_BLOCK = [
     title: "Безопасность",
     description: "Разграничение прав доступа, логирование действий",
     icon: ShieldCheckIcon
-  }
-];
-
-export type ModuleType = 'core' | 'feature' | 'addon' | 'service';
-
-export interface PricingModule {
-  id: string;
-  name: string;
-  price: number;
-  period?: 'mes' | 'one_time';
-  type: ModuleType;
-  status?: 'Beta' | 'Dev' | 'Alpha' | 'Скоро';
-  description?: string; // Optional description if needed later
-}
-
-export const PRICING_MODULES: PricingModule[] = [
-  { id: 'Organizations', name: 'Управление организациями', price: 0, type: 'core' },
-  { id: 'Users', name: 'Управление пользователями', price: 0, type: 'core' },
-  { id: 'Payments', name: 'Платежи и взаиморасчеты', price: 0, type: 'core' },
-  { id: 'ProjectManagement', name: 'Управление проектами', price: 0, type: 'core' },
-  { id: 'ContractManagement', name: 'Управление контрактами', price: 0, type: 'core' },
-  { id: 'CatalogManagement', name: 'Справочники', price: 0, type: 'core' },
-  { id: 'BasicReports', name: 'Базовые отчеты', price: 0, type: 'core' },
-  { id: 'BasicWarehouse', name: 'Базовый склад', price: 0, type: 'core' },
-  { id: 'DashboardWidgets', name: 'Виджеты', price: 0, type: 'core' },
-  { id: 'DataFilters', name: 'Фильтры', price: 0, type: 'core' },
-
-  { id: 'MultiOrganization', name: 'Мультиорганизация', price: 5900, type: 'feature' },
-  { id: 'BudgetEstimates', name: 'Сметное дело', price: 5000, type: 'feature', status: 'Beta' },
-  { id: 'AdvancedWarehouse', name: 'Продвинутый склад', price: 3990, type: 'feature', status: 'Dev' },
-  { id: 'ScheduleManagement', name: 'Расписание', price: 1990, type: 'feature', status: 'Beta' },
-  { id: 'WorkflowManagement', name: 'Рабочие процессы', price: 0, type: 'core' },
-  { id: 'AdvancedReports', name: 'Продвинутые отчеты', price: 2900, type: 'feature' },
-  { id: 'TimeTracking', name: 'Учет времени', price: 1490, type: 'feature', status: 'Alpha' },
-  { id: 'AdvancedDashboard', name: 'Продвинутый дашборд', price: 4990, type: 'feature', status: 'Скоро' },
-
-  { id: 'AIAssistant', name: 'AI-помощник', price: 3990, type: 'addon', status: 'Dev' },
-  { id: 'ContractorPortal', name: 'Портал подрядчиков', price: 3490, type: 'addon', status: 'Dev' },
-  { id: 'MaterialAnalytics', name: 'Аналитика материалов', price: 2990, type: 'addon' },
-  { id: 'Integrations', name: 'Интеграции 1С/CRM', price: 2900, type: 'addon', status: 'Скоро' },
-  { id: 'AdvanceAccounting', name: 'Подотчетные средства', price: 2490, type: 'addon', status: 'Dev' },
-  { id: 'RateManagement', name: 'Расценки', price: 2490, type: 'addon', status: 'Dev' },
-  { id: 'SystemLogs', name: 'Системные логи', price: 1990, type: 'addon', status: 'Скоро' },
-  { id: 'ActReporting', name: 'Управление актами', price: 0, type: 'core' },
-  { id: 'FileManagement', name: 'Файлы', price: 990, type: 'addon' },
-
-  { id: 'ReportTemplates', name: 'Шаблоны отчетов', price: 5900, type: 'service', period: 'one_time', status: 'Alpha' },
-  { id: 'DataExport', name: 'Экспорт данных безлимит', price: 500, type: 'service', period: 'one_time' },
-];
-
-export const PRICING_PLANS = [
-  {
-    name: 'Free',
-    price: 0,
-    description: 'Бесплатный тариф для знакомства с системой',
-    features: [
-      '1 объект',
-      '3 пользователя',
-      '1 ГБ хранилища',
-      'Объекты, договоры и справочники',
-      'Работы, акты и платежи'
-    ],
-    icon: WrenchScrewdriverIcon,
-    isPopular: false,
-    buttonText: 'Выбрать'
-  },
-  {
-    name: 'Start',
-    price: 9900,
-    description: '7 пользователей, 5 объектов, график и заявки',
-    features: [
-      '7 пользователей',
-      '5 проектов',
-      '3 ГБ хранилища',
-      'График и заявки с объекта'
-    ],
-    icon: RocketLaunchIcon,
-    isPopular: true,
-    buttonText: 'Выбрать'
-  },
-  {
-    name: 'Business',
-    price: 24900,
-    description: '15 пользователей, 20 объектов, снабжение и финансы',
-    features: [
-      '15 пользователей',
-      '20 проектов',
-      '10 ГБ хранилища',
-      'Снабжение и финансы'
-    ],
-    icon: BriefcaseIcon,
-    isPopular: false,
-    buttonText: 'Выбрать'
-  },
-  {
-    name: 'Profi',
-    price: 39900,
-    description: '40 пользователей, 50 объектов, ПТО и аналитика',
-    features: [
-      '40 пользователей',
-      '50 проектов',
-      '25 ГБ хранилища',
-      'ПТО, аналитика и AI-возможности'
-    ],
-    icon: StarIcon,
-    isPopular: false,
-    buttonText: 'Выбрать'
-  },
-  {
-    name: 'Enterprise',
-    price: 99000,
-    description: 'Индивидуальные условия для крупных компаний',
-    features: [
-      'Индивидуальные условия',
-      'От 99 000 руб./мес',
-      'Проектное внедрение по КП',
-      'Интеграции по согласованному плану',
-      'Условия поддержки в договоре'
-    ],
-    icon: BuildingOfficeIcon,
-    isPopular: false,
-    buttonText: 'Выбрать'
   }
 ];
 

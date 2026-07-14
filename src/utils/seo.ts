@@ -5,6 +5,8 @@ import {
   marketingCapabilityMatrix,
   marketingCompany,
   marketingFaqs,
+  freeFoundationOffer,
+  fullSuiteOffer,
   marketingPackages,
   marketingPaths,
   marketingSeo,
@@ -282,7 +284,7 @@ export const generateOrganizationSchema = () => ({
 });
 
 const buildPackageOffers = () => {
-  return marketingPackages.flatMap((item) =>
+  const packageOffers = marketingPackages.flatMap((item) =>
     item.tiers.flatMap((tier) => {
       const isNonStableTier = tier.maturityNote
         ? /beta|alpha|early[_\s-]?access|coming[_\s-]?soon|бета|пилот|ранн(?:ий|яя|ее|ие|его|ему|им|их|ими|ем)|по мере готовности/i.test(tier.maturityNote)
@@ -295,7 +297,7 @@ const buildPackageOffers = () => {
       const price = `${tier.price}`;
       const offer: Record<string, string> = {
         '@type': 'Offer',
-        name: `${item.name} ${tier.label}`,
+        name: item.name,
         availability: 'https://schema.org/InStock',
         category: item.name,
         description: tier.description,
@@ -309,11 +311,36 @@ const buildPackageOffers = () => {
           '@type': 'UnitPriceSpecification',
           price,
           priceCurrency: 'RUB',
-          billingDuration: 'P1M',
+          billingDuration: 'P30D',
         },
       }];
     }),
   );
+
+  const createOffer = (name: string, description: string, priceValue: number) => {
+    const price = `${priceValue}`;
+    return {
+      '@type': 'Offer',
+      name,
+      availability: 'https://schema.org/InStock',
+      category: 'Коммерческая модель МОСТ',
+      description,
+      price,
+      priceCurrency: 'RUB',
+      priceSpecification: {
+        '@type': 'UnitPriceSpecification',
+        price,
+        priceCurrency: 'RUB',
+        billingDuration: 'P30D',
+      },
+    };
+  };
+
+  return [
+    createOffer(freeFoundationOffer.name, freeFoundationOffer.description, freeFoundationOffer.price),
+    ...packageOffers,
+    createOffer(fullSuiteOffer.name, 'Все десять бизнес-пакетов МОСТ на 30 дней.', fullSuiteOffer.price),
+  ];
 };
 
 export const generateWebSiteSchema = () => ({
@@ -365,7 +392,7 @@ export const generateFAQSchema = (faqs: Array<{ question: string; answer: string
 export const generatePricingSchema = () => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
-  name: `${marketingCompany.brand} package catalog`,
+  name: `${marketingCompany.brand}: бесплатная база, пакеты и полный комплект`,
   description: marketingSeo.pricing.description,
   brand: {
     '@type': 'Brand',
