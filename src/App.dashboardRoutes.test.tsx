@@ -73,9 +73,6 @@ vi.mock('@pages/dashboard/RegisterPage', () => ({ default: () => <div /> }));
 vi.mock('@pages/dashboard/ForgotPasswordPage', () => ({ default: () => <div /> }));
 vi.mock('@pages/NotFoundPage', () => ({ default: () => <div /> }));
 vi.mock('@pages/dashboard/EmailSentPage', () => ({ default: () => <div /> }));
-vi.mock('@pages/dashboard/SubscriptionLimitsPage', () => ({
-  default: () => <div>Лимиты тарифа</div>,
-}));
 vi.mock('@pages/dashboard/help/KnowledgeBasePage', () => ({
   default: () => <div>База знаний ЛК</div>,
 }));
@@ -90,20 +87,6 @@ vi.mock('@pages/dashboard/help/ChangelogDetailPage', () => ({
 }));
 
 describe('dashboard route guards', () => {
-  it('protects subscription limits with billing access', async () => {
-    render(
-      <MemoryRouter initialEntries={['/dashboard/limits']}>
-        <App />
-      </MemoryRouter>
-    );
-
-    const guard = await screen.findByTestId('protected-route');
-
-    expect(guard).toHaveAttribute('data-permission', 'billing.view');
-    expect(guard).toHaveAttribute('data-role', 'organization_owner');
-    expect(screen.getByText('Лимиты тарифа')).toBeInTheDocument();
-  });
-
   it('registers knowledge hub dashboard routes', async () => {
     render(
       <MemoryRouter initialEntries={['/dashboard/help/knowledge']}>

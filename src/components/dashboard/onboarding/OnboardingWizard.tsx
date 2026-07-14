@@ -255,7 +255,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
 
               <RecommendedModulesCard
                 modules={profile?.recommended_modules || []}
-                onModuleClick={() => onComplete('/dashboard/modules')}
+                onModuleClick={() => onComplete('/dashboard/billing')}
               />
             </div>
           )}

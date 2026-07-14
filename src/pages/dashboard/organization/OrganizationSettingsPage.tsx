@@ -407,7 +407,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
             <RecommendedModulesCard
               modules={profile.recommended_modules}
               onModuleClick={() => {
-                navigate('/dashboard/modules');
+                navigate('/dashboard/billing');
               }}
               showTitle
             />

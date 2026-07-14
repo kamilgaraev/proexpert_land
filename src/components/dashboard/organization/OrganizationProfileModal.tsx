@@ -248,7 +248,7 @@ export const OrganizationProfileModal = ({
                     <RecommendedModulesCard
                       modules={profile?.recommended_modules || []}
                       onModuleClick={() => {
-                        navigate('/dashboard/modules');
+                        navigate('/dashboard/billing');
                         onClose();
                       }}
                     />

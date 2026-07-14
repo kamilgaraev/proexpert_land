@@ -60,16 +60,11 @@ const DashboardLayout = () => {
     useCanAccess({ role: 'organization_owner' }) ||
     useCanAccess({ role: 'accountant' });
 
-  const canManageModules =
-    useCanAccess({ permission: 'modules.manage' }) ||
-    useCanAccess({ role: 'organization_owner' }) ||
-    useCanAccess({ role: 'organization_admin' });
-
   const { balance: actualBalance, error: balanceError, refresh: refreshBalance } = useBalance({
     enabled: canViewBilling,
   });
 
-  const { activeModules, expiringModules, hasExpiring } = useModules({
+  const { activeModules } = useModules({
     autoRefresh: true,
     refreshInterval: 900000,
     includeBilling: canViewBilling,
@@ -151,19 +146,15 @@ const DashboardLayout = () => {
         visible: canManageUsers,
       },
       {
-        name: 'Разделы и тариф',
-        href: canManageModules ? '/dashboard/modules' : '/dashboard/billing',
+        name: 'Пакеты и оплата',
+        href: '/dashboard/billing',
         icon: Puzzle,
         description: 'Подключенные разделы, тариф и оплата',
         aliases: ['разделы системы', 'модули', 'оплата', 'тариф', 'баланс', 'лимиты'],
         activeHrefs: [
-          '/dashboard/modules',
           '/dashboard/billing',
-          '/dashboard/limits',
-          '/dashboard/paid-services',
         ],
-        badge: hasExpiring ? expiringModules.length : undefined,
-        visible: canManageModules || canViewBilling,
+        visible: canViewBilling,
       },
       {
         name: 'Подрядчики',
@@ -196,7 +187,6 @@ const DashboardLayout = () => {
         icon: Building,
         description: isHoldingOrg ? 'Управление группой компаний' : 'Настройка группы компаний',
         visible: true,
-        badge: undefined,
       });
     }
 
@@ -208,14 +198,11 @@ const DashboardLayout = () => {
   }, [
     activeModuleSlugs,
     canInviteUsers,
-    canManageModules,
     canManageMultiOrg,
     canManageUsers,
     canViewBilling,
     canViewContractorMarketplace,
     canViewOrganization,
-    expiringModules.length,
-    hasExpiring,
     hasMultiOrgModule,
     profile?.workspace_profile,
     user,

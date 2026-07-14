@@ -6,23 +6,12 @@ import DashboardPage from './DashboardPage';
 
 const apiMocks = vi.hoisted(() => ({
   getLandingDashboard: vi.fn(),
-  getOrgDashboard: vi.fn(),
 }));
 
 vi.mock('@utils/api', () => ({
   landingService: {
     getLandingDashboard: apiMocks.getLandingDashboard,
   },
-  billingService: {
-    getOrgDashboard: apiMocks.getOrgDashboard,
-  },
-}));
-
-vi.mock('@hooks/useSubscriptionLimits', () => ({
-  useSubscriptionLimits: () => ({
-    hasWarnings: false,
-    criticalWarnings: [],
-  }),
 }));
 
 vi.mock('@/hooks/usePermissions', () => ({
@@ -89,12 +78,10 @@ const dashboardPayload = {
 describe('DashboardPage', () => {
   beforeEach(() => {
     apiMocks.getLandingDashboard.mockReset();
-    apiMocks.getOrgDashboard.mockReset();
   });
 
   it('shows landing dashboard data when optional billing dashboard fails', async () => {
     apiMocks.getLandingDashboard.mockResolvedValue({ data: dashboardPayload, status: 200 });
-    apiMocks.getOrgDashboard.mockRejectedValue(new Error('Billing unavailable'));
 
     render(
       <MemoryRouter>
@@ -115,7 +102,6 @@ describe('DashboardPage', () => {
 
   it('shows an error state when landing dashboard data is unavailable', async () => {
     apiMocks.getLandingDashboard.mockResolvedValue({ data: null, status: 500 });
-    apiMocks.getOrgDashboard.mockRejectedValue(new Error('Billing unavailable'));
 
     render(
       <MemoryRouter>
