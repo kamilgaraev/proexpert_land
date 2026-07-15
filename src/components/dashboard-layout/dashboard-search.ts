@@ -61,7 +61,7 @@ const contextualSearchItems: ContextualSearchItem[] = [
   {
     name: 'Пакеты и оплата',
     href: '/dashboard/billing',
-    description: 'Коммерческий контур, оплаты и история',
+    description: 'Пакеты, оплата и история',
     aliases: ['пакеты', 'оплата', 'история', 'автопродление'],
     priority: 60,
     requireHref: '/dashboard/billing',
@@ -70,7 +70,7 @@ const contextualSearchItems: ContextualSearchItem[] = [
     name: 'Пробный доступ',
     href: '/dashboard/billing',
     description: 'Пробный доступ к бизнес-пакетам',
-    aliases: ['пробный доступ', 'пакеты', '72 часа'],
+    aliases: ['пробный доступ', 'пакеты', '3 дня'],
     priority: 58,
     requireHref: '/dashboard/billing',
   },

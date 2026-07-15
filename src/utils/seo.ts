@@ -390,7 +390,7 @@ export const generateFAQSchema = (faqs: Array<{ question: string; answer: string
 export const generatePricingSchema = () => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
-  name: `${marketingCompany.brand}: бесплатная база, пакеты и полный комплект`,
+  name: `${marketingCompany.brand}: начните бесплатно, подключайте пакеты`,
   description: marketingSeo.pricing.description,
   brand: {
     '@type': 'Brand',

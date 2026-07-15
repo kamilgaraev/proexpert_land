@@ -85,7 +85,7 @@ const BillingPage = () => {
     if (sources.includes('full_suite')) return 'Полный комплект';
     if (sources.includes('trial')) return 'Пробный доступ';
     if (sources.includes('paid_package')) return 'Оплаченные пакеты';
-    return 'Бесплатная основа';
+    return 'МОСТ без оплаты';
   }, [packages]);
 
   const loadOverview = useCallback(async () => {
@@ -315,7 +315,7 @@ const BillingPage = () => {
     }
   };
 
-  if (loading) return <div className="flex min-h-[420px] items-center justify-center" role="status"><Loader2 className="h-8 w-8 animate-spin text-primary" /><span className="sr-only">Загрузка коммерческого контура</span></div>;
+  if (loading) return <div className="flex min-h-[420px] items-center justify-center" role="status"><Loader2 className="h-8 w-8 animate-spin text-primary" /><span className="sr-only">Загрузка пакетов и оплаты</span></div>;
   if (error) return <Card className="border-red-200 bg-red-50"><CardContent className="flex flex-col items-start gap-4 p-6"><AlertCircle className="h-7 w-7 text-red-600" /><p className="font-medium text-red-900">{error}</p><Button variant="outline" onClick={() => void loadOverview()}><RefreshCw className="mr-2 h-4 w-4" />Повторить</Button></CardContent></Card>;
 
   const isGrace = renewal?.status === 'grace';
@@ -329,12 +329,12 @@ const BillingPage = () => {
         <div className="absolute inset-y-0 right-0 w-2/5 bg-[radial-gradient(circle_at_center,rgba(249,115,22,.28),transparent_65%)]" />
         <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-orange-300">МОСТ · управление доступом</p>
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Коммерческий контур</h1>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">Соберите рабочую систему из пакетов. Бесплатная основа остаётся доступной всегда, а сервер точно рассчитает доплату и следующий период.</p>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-orange-300">МОСТ · пакеты и оплата</p>
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Пакеты для вашей команды</h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">Подключайте только нужные возможности. МОСТ без оплаты остаётся доступен всегда, а стоимость и дата следующей оплаты обновляются автоматически.</p>
           </div>
           <div className="grid grid-cols-2 gap-2 text-sm sm:flex">
-            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"><span className="block text-xs text-slate-400">Состояние</span><strong>{isCorporate ? 'Корпоративный уровень' : isGrace ? 'Льготный период' : currentPaidSlugs.length ? 'Оплачено' : 'Бесплатная основа'}</strong></div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"><span className="block text-xs text-slate-400">Состояние</span><strong>{isCorporate ? 'Корпоративный уровень' : isGrace ? 'Льготный период' : currentPaidSlugs.length ? 'Оплачено' : 'МОСТ без оплаты'}</strong></div>
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"><span className="block text-xs text-slate-400">Следующая дата</span><strong>{formatDateTime(renewal?.nextBillingAt ?? null)}</strong></div>
           </div>
         </div>
@@ -355,24 +355,24 @@ const BillingPage = () => {
 
       {renewal?.scheduledChange ? <section className="rounded-2xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
         <strong>Запланировано сокращение состава</strong>
-        <p className="mt-2">После {formatDateTime(renewal.scheduledChange.applyAt)} останется {namesFor(renewal.scheduledChange.targetPackageSlugs) || 'только бесплатная основа'}; будет отключён {namesFor(scheduledRemoved)}. До этой даты текущий доступ сохраняется.</p>
+        <p className="mt-2">После {formatDateTime(renewal.scheduledChange.applyAt)} останется {namesFor(renewal.scheduledChange.targetPackageSlugs) || 'МОСТ без оплаты'}; будет отключён {namesFor(scheduledRemoved)}. До этой даты текущий доступ сохраняется.</p>
       </section> : null}
 
       {paymentState !== 'idle' ? <section className="rounded-2xl border bg-white p-5" role="status">
-        <div className="flex items-center gap-3">{paymentState === 'waiting' ? <Loader2 className="h-5 w-5 animate-spin" /> : paymentState === 'success' ? <Check className="h-5 w-5 text-emerald-600" /> : <AlertCircle className="h-5 w-5 text-orange-600" />}<strong>{paymentState === 'waiting' ? 'Проверяем оплату на сервере' : paymentState === 'success' ? 'Оплата подтверждена' : paymentState === 'failed' ? 'Оплата не прошла' : paymentState === 'canceled' ? 'Оплата отменена' : paymentState === 'refunded' ? 'Оплата возвращена' : paymentState === 'timeout' ? 'Подтверждение ещё не получено' : 'Не удалось проверить оплату'}</strong></div>
-        {paymentState === 'success' && paymentOrder ? <p className="mt-2 text-sm text-muted-foreground">Оплачено {formatMoney(paymentOrder.amountMinor, paymentOrder.currency)}. Состав: {namesFor(paymentOrder.selectedPackageSlugs)}. Следующая дата оплаты: {formatDateTime(paymentOrder.periodEndAt)}. Доступ обновлён после подтверждения сервера.</p> : null}
-        {paymentState === 'refunded' ? <p className="mt-2 text-sm text-muted-foreground">Возврат подтверждён сервером. Оплата не считается успешной.</p> : null}
+        <div className="flex items-center gap-3">{paymentState === 'waiting' ? <Loader2 className="h-5 w-5 animate-spin" /> : paymentState === 'success' ? <Check className="h-5 w-5 text-emerald-600" /> : <AlertCircle className="h-5 w-5 text-orange-600" />}<strong>{paymentState === 'waiting' ? 'Проверяем оплату' : paymentState === 'success' ? 'Оплата подтверждена' : paymentState === 'failed' ? 'Оплата не прошла' : paymentState === 'canceled' ? 'Оплата отменена' : paymentState === 'refunded' ? 'Оплата возвращена' : paymentState === 'timeout' ? 'Подтверждение ещё не получено' : 'Не удалось проверить оплату'}</strong></div>
+        {paymentState === 'success' && paymentOrder ? <p className="mt-2 text-sm text-muted-foreground">Оплачено {formatMoney(paymentOrder.amountMinor, paymentOrder.currency)}. Состав: {namesFor(paymentOrder.selectedPackageSlugs)}. Следующая дата оплаты: {formatDateTime(paymentOrder.periodEndAt)}. Доступ обновлён.</p> : null}
+        {paymentState === 'refunded' ? <p className="mt-2 text-sm text-muted-foreground">Возврат подтверждён. Оплата не считается успешной.</p> : null}
         {paymentState === 'timeout' && paymentOrder ? <Button className="mt-3" variant="outline" onClick={() => void verifyOrder(paymentOrder.orderId)}>Проверить ещё раз</Button> : null}
       </section> : null}
 
       <section className="grid gap-4 md:grid-cols-3">
-        <Card className="md:col-span-1"><CardContent className="p-6"><ShieldCheck className="h-7 w-7 text-emerald-600" /><h2 className="mt-4 text-xl font-semibold">Бесплатная основа</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Организация, сотрудники, проекты и базовые рабочие данные остаются доступны без оплаты.</p><Badge variant="secondary" className="mt-4">Доступна всегда</Badge></CardContent></Card>
-        <Card className="md:col-span-2"><CardContent className="grid gap-5 p-6 sm:grid-cols-3"><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Источник доступа</span><p className="mt-2 font-semibold">{accessSourceLabel}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Текущий период</span><p className="mt-2 font-semibold">{formatDateTime(currentPeriodStart)} — {formatDateTime(currentPeriodEnd)}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Способ оплаты</span><p className="mt-2 font-semibold">{renewal?.savedMethodAvailable ? 'Сохранён' : 'Не сохранён'}</p></div><div className="sm:col-span-3 flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Бонусы и компенсации учитываются отдельно и не используются для покупки пакетов.</p>{!isCorporate && renewal?.autoRenewEnabled && canManage ? <Button variant="outline" onClick={() => void disableRenewal()} disabled={actionBusy === 'renewal'}>Отключить автопродление</Button> : !isCorporate ? <Badge variant="outline">Автопродление отключено</Badge> : null}</div></CardContent></Card>
+        <Card className="md:col-span-1"><CardContent className="p-6"><ShieldCheck className="h-7 w-7 text-emerald-600" /><h2 className="mt-4 text-xl font-semibold">МОСТ без оплаты</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Организация, сотрудники, проекты и основные рабочие данные доступны без оплаты.</p><Badge variant="secondary" className="mt-4">Доступен всегда</Badge></CardContent></Card>
+        <Card className="md:col-span-2"><CardContent className="grid gap-5 p-6 sm:grid-cols-3"><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Ваш доступ</span><p className="mt-2 font-semibold">{accessSourceLabel}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Оплачено до</span><p className="mt-2 font-semibold">{formatDateTime(currentPeriodStart)} — {formatDateTime(currentPeriodEnd)}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Автоплатёж</span><p className="mt-2 font-semibold">{renewal?.savedMethodAvailable ? 'Настроен' : 'Не настроен'}</p></div><div className="sm:col-span-3 flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Бонусы и компенсации учитываются отдельно и не используются для покупки пакетов.</p>{!isCorporate && renewal?.autoRenewEnabled && canManage ? <Button variant="outline" onClick={() => void disableRenewal()} disabled={actionBusy === 'renewal'}>Отключить автопродление</Button> : !isCorporate ? <Badge variant="outline">Автопродление отключено</Badge> : null}</div></CardContent></Card>
       </section>
 
       <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Система 01—10</p><h2 className="mt-2 text-2xl font-semibold">Конструктор пакетов</h2><p className="mt-1 text-sm text-muted-foreground">Каждый узел — самостоятельный бизнес-процесс.</p></div>{!canManage ? <Badge variant="outline">Доступен просмотр без изменения состава</Badge> : null}</div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">10 пакетов МОСТ</p><h2 className="mt-2 text-2xl font-semibold">Выберите нужные возможности</h2><p className="mt-1 text-sm text-muted-foreground">Подключите один пакет или соберите полный комплект под задачи команды.</p></div>{!canManage ? <Badge variant="outline">Доступен просмотр без изменения состава</Badge> : null}</div>
           <div className="grid gap-3 md:grid-cols-2">
             {packages.map((item, index) => {
               const checked = fullSuite || selected.includes(item.slug);
@@ -383,21 +383,21 @@ const BillingPage = () => {
                   <span className="min-w-0 flex-1"><span className="flex items-start justify-between gap-3"><strong className="text-base">{item.name}</strong><span className="whitespace-nowrap text-sm font-semibold">{formatMoney(item.priceMinor, item.currency)}</span></span><span className={`mt-2 block text-sm leading-5 ${checked ? 'text-slate-300' : 'text-muted-foreground'}`}>{item.description}</span><span className={`mt-3 block text-xs ${checked ? 'text-orange-300' : 'text-primary'}`}>{item.businessOutcomes[0] ?? item.highlights[0]}</span></span>
                   <input type="checkbox" className="mt-1 h-5 w-5 accent-orange-500" checked={checked} disabled={!canManage || isGrace || isCorporate} onChange={() => togglePackage(item.slug)} aria-label={`${item.name}, ${formatMoney(item.priceMinor, item.currency)}`} />
                 </label>
-                {item.status === 'trialing' ? <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900"><Clock3 className="h-4 w-4" />Пробный доступ: {trialLeft ?? 'завершён'}</div> : !isCorporate && !item.isActive && canManage ? <Button variant={checked ? 'secondary' : 'outline'} size="sm" className="mt-4" disabled={!item.trialAvailable || item.trialUsed || actionBusy === `trial:${item.slug}`} onClick={() => void startTrial(item.slug)}>{item.trialUsed ? 'Пробный доступ уже использован' : 'Попробовать на 72 часа'}</Button> : null}
+                {item.status === 'trialing' ? <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900"><Clock3 className="h-4 w-4" />Пробный доступ: {trialLeft ?? 'завершён'}</div> : !isCorporate && !item.isActive && canManage ? <Button variant={checked ? 'secondary' : 'outline'} size="sm" className="mt-4" disabled={!item.trialAvailable || item.trialUsed || actionBusy === `trial:${item.slug}`} onClick={() => void startTrial(item.slug)}>{item.trialUsed ? 'Пробный доступ уже использован' : 'Попробовать 3 дня'}</Button> : null}
               </article>;
             })}
           </div>
         </div>
 
         {!isCorporate ? <aside id="order-summary" className="space-y-4 xl:sticky xl:top-6">
-          <Card className="overflow-hidden border-slate-300 shadow-xl"><div className="bg-orange-500 px-5 py-3 text-sm font-semibold text-white">Расчёт сервера</div><CardContent className="space-y-5 p-5">
+          <Card className="overflow-hidden border-slate-300 shadow-xl"><div className="bg-orange-500 px-5 py-3 text-sm font-semibold text-white">Ваш выбор</div><CardContent className="space-y-5 p-5">
             <div className="flex items-center justify-between"><span className="text-sm text-muted-foreground">Выбрано</span><strong>{fullSuite ? 'Полный комплект' : `${selected.length} из 10`}</strong></div>
             {quote?.recommendation === 'full_suite' && !fullSuite ? <button type="button" onClick={selectFullSuite} disabled={!canManage || isGrace} className="w-full rounded-2xl border border-orange-300 bg-orange-50 p-4 text-left text-sm text-orange-950"><Sparkles className="mb-2 h-5 w-5 text-orange-600" /><strong>Полный комплект выгоднее</strong><span className="mt-1 block text-xs">Рекомендация не меняет выбор автоматически.</span></button> : null}
-            {quoteLoading ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Пересчитываем</div> : quoteError ? <p className="text-sm text-red-700">{quoteError}</p> : quote ? <>
+            {quoteLoading ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Обновляем стоимость</div> : quoteError ? <p className="text-sm text-red-700">{quoteError}</p> : quote ? <>
               <div className="space-y-3 border-y py-4"><div className="flex justify-between text-sm"><span>В месяц</span><strong data-testid="monthly-total">{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong></div><div className="flex justify-between text-sm"><span>К оплате сейчас</span><strong className="text-lg">{formatMoney(quote.amountDueNowMinor, quote.currency)}</strong></div>{quote.savingsAmountMinor > 0 ? <div className="flex justify-between text-sm text-emerald-700"><span>Экономия</span><strong>{formatMoney(quote.savingsAmountMinor, quote.currency)} · {quote.savingsPercent}%</strong></div> : null}</div>
               <div className="space-y-2 text-xs text-muted-foreground"><p>Добавляется: {namesFor(quote.addedPackageSlugs) || 'нет'}</p><p>Убирается со следующего периода: {namesFor(quote.removedPackageSlugs) || 'нет'}</p><p>Следующая дата: {formatDateTime(quote.periodEndAt)}</p></div>
               {hasReduction ? <p className="rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-900">Сокращение бесплатно и будет применено в следующую фиксированную дату. Уже оплаченный доступ сохранится до конца периода.</p> : null}
-              {canManage && !isGrace && !hasReduction ? <label className="flex items-start gap-3 rounded-xl border p-3 text-xs leading-5"><input type="checkbox" className="mt-1 h-4 w-4" checked={autoRenewConsent} onChange={(event) => setAutoRenewConsent(event.target.checked)} /><span>Согласен на автоматическое списание <strong>{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong> каждые 30 дней. Отключить можно здесь же, в разделе коммерческого контура.</span></label> : null}
+              {canManage && !isGrace && !hasReduction ? <label className="flex items-start gap-3 rounded-xl border p-3 text-xs leading-5"><input type="checkbox" className="mt-1 h-4 w-4" checked={autoRenewConsent} onChange={(event) => setAutoRenewConsent(event.target.checked)} /><span>Согласен на автоматическое списание <strong>{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong> каждые 30 дней. Отключить можно здесь же, в разделе пакетов и оплаты.</span></label> : null}
               {canManage ? <Button className="w-full" size="lg" onClick={() => void submitContour()} disabled={isGrace || actionBusy === 'checkout' || (!hasReduction && !autoRenewConsent)}>{isGrace ? <><LockKeyhole className="mr-2 h-4 w-4" />Изменение заблокировано</> : hasReduction ? 'Запланировать сокращение' : <><CreditCard className="mr-2 h-4 w-4" />Перейти к оплате</>}</Button> : null}
             </> : <p className="text-sm text-muted-foreground">Выберите состав, чтобы получить расчёт.</p>}
             {actionError ? <p className={`rounded-xl p-3 text-sm ${actionError.startsWith('Сокращение') ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'}`}>{actionError}</p> : null}

@@ -149,7 +149,7 @@ describe('buildStructuredDataGraph', () => {
 
     expect(offers).toHaveLength(12);
     expect(offers.map((offer) => [offer.name, offer.price])).toEqual(expect.arrayContaining([
-      ['Бесплатная база', '0'],
+      ['Начните бесплатно', '0'],
       ['Проекты и процессы', '9900'],
       ['Полный комплект', '79900'],
     ]));
