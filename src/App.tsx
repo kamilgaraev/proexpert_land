@@ -55,9 +55,6 @@ const SupportPage = lazy(() => import('@pages/dashboard/SupportPage'));
 const AdminsPage = lazy(() => import('@pages/dashboard/AdminsPage'));
 const BillingPage = lazy(() => import('@pages/dashboard/BillingPage'));
 const FAQPage = lazy(() => import('@pages/dashboard/FAQPage'));
-const PaidServicesPage = lazy(() => import('@pages/dashboard/paid-services/PaidServicesPage'));
-const SubscriptionLimitsPage = lazy(() => import('@pages/dashboard/SubscriptionLimitsPage'));
-const ModulesPage = lazy(() => import('@pages/dashboard/ModulesPage'));
 const CustomRolesPage = lazy(() => import('@pages/dashboard/CustomRolesPage'));
 const MultiOrganizationPage = lazy(() => import('@pages/dashboard/MultiOrganizationPage'));
 const NotificationsPage = lazy(() => import('@pages/dashboard/NotificationsPage').then(m => ({ default: m.Page })));
@@ -121,6 +118,18 @@ const ContractorMarketplaceAccessRoute = () => {
   }
 
   return hasAccess ? <ContractorMarketplacePage /> : <Navigate to="/dashboard" replace />;
+};
+
+const BillingAccessRoute = () => {
+  const { isLoaded, isLoading, error } = usePermissions();
+  const canView = useCanAccess({ permission: 'billing.view' });
+  const canManage = useCanAccess({ permission: 'billing.manage' });
+
+  if (isLoading || (!isLoaded && !error)) {
+    return <AppLoadingFallback />;
+  }
+
+  return canView || canManage ? <BillingPage /> : <Navigate to="/dashboard" replace />;
 };
 
 function App({
@@ -296,29 +305,10 @@ function App({
           <Route path="help/changelog/:slug" element={<ChangelogDetailPage />} />
           <Route path="support" element={<SupportPage />} />
           <Route path="faq" element={<FAQPage />} />
-          <Route path="limits" element={
-            <ProtectedComponent
-              permission="billing.view"
-              role="organization_owner"
-              requireAll={false}
-              fallback={<Navigate to="/dashboard" replace />}
-            >
-              <SubscriptionLimitsPage />
-            </ProtectedComponent>
-          } />
           <Route path="notifications" element={<NotificationsPage />} />
           
           {/* Маршруты управления организацией с проверкой прав */}
-          <Route path="billing" element={
-            <ProtectedComponent
-              permission="billing.view"
-              role="organization_owner"
-              requireAll={false}
-              fallback={<Navigate to="/dashboard" replace />}
-            >
-              <BillingPage />
-            </ProtectedComponent>
-          } />
+          <Route path="billing" element={<BillingAccessRoute />} />
           <Route path="admins" element={
             <ProtectedComponent
               permission="users.manage"
@@ -342,26 +332,6 @@ function App({
             </ProtectedComponent>
           } />
 
-          <Route path="paid-services" element={
-            <ProtectedComponent 
-              permission="billing.manage"
-              role="organization_owner"
-              requireAll={false}
-              fallback={<Navigate to="/dashboard" replace />}
-            >
-              <PaidServicesPage />
-            </ProtectedComponent>
-          } />
-          <Route path="modules" element={
-            <ProtectedComponent 
-              permission="modules.manage"
-              role="organization_owner"
-              requireAll={false}
-              fallback={<Navigate to="/dashboard" replace />}
-            >
-              <ModulesPage />
-            </ProtectedComponent>
-          } />
           <Route path="organization" element={
             <ProtectedComponent 
               permission="organization.view"

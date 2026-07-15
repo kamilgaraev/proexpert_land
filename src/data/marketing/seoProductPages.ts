@@ -73,7 +73,7 @@ const createProductSeoPage = (config: ProductSeoPageConfig): MarketingSeoLanding
     {
       label: 'Пакеты для строительной команды',
       href: marketingPaths.pricing,
-      description: 'Сопоставьте стартовый контур с этапом развития компании и составом команды.',
+      description: 'Сопоставьте набор возможностей с этапом развития компании и составом команды.',
     },
   ],
   contactHighlights: [

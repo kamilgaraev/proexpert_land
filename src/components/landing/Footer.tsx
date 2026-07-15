@@ -103,10 +103,10 @@ const Footer = () => {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap xl:justify-end">
               <Link
-                to="/register?plan=free"
+                to="/register"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-center text-sm font-semibold text-steel-950 transition hover:bg-construction-100 sm:w-auto"
               >
-                Начать бесплатно
+                Создать бесплатную базу
                 <ArrowUpRightIcon className="h-4 w-4 shrink-0" />
               </Link>
               <a

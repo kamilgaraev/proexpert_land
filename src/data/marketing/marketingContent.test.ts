@@ -55,7 +55,7 @@ describe('marketing content consistency', () => {
     ];
     const publishedModuleSlugs = [
       ...marketingCapabilityMatrix.flatMap((item) => item.moduleSlugs),
-      ...marketingPackages.flatMap((item) => item.tiers.flatMap((tier) => tier.moduleSlugs)),
+      ...marketingPackages.flatMap((item) => item.moduleSlugs),
     ];
 
     for (const invalidSlug of invalidModuleSlugs) {

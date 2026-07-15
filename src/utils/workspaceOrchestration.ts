@@ -46,7 +46,7 @@ const PROFILE_ROUTE_PRIORITIES: Record<OrganizationCapability, string[]> = {
     '/dashboard/contractor-marketplace',
     '/dashboard/contractor-invitations',
     '/dashboard/admins',
-    '/dashboard/modules',
+    '/dashboard/billing',
     '/dashboard/organization',
     '/dashboard/billing',
     '/dashboard/profile',
@@ -56,7 +56,7 @@ const PROFILE_ROUTE_PRIORITIES: Record<OrganizationCapability, string[]> = {
     '/dashboard/projects',
     '/dashboard/contractor-marketplace',
     '/dashboard/contractor-invitations',
-    '/dashboard/modules',
+    '/dashboard/billing',
     '/dashboard/organization',
     '/dashboard/profile',
     '/dashboard/billing',
@@ -65,19 +65,19 @@ const PROFILE_ROUTE_PRIORITIES: Record<OrganizationCapability, string[]> = {
   design: [
     '/dashboard/projects',
     '/dashboard/organization',
-    '/dashboard/modules',
+    '/dashboard/billing',
     '/dashboard/profile',
     '/dashboard',
   ],
   construction_supervision: [
     '/dashboard/projects',
     '/dashboard/organization',
-    '/dashboard/modules',
+    '/dashboard/billing',
     '/dashboard/profile',
     '/dashboard',
   ],
   equipment_rental: [
-    '/dashboard/modules',
+    '/dashboard/billing',
     '/dashboard/billing',
     '/dashboard/contractor-marketplace',
     '/dashboard/contractor-invitations',
@@ -87,7 +87,7 @@ const PROFILE_ROUTE_PRIORITIES: Record<OrganizationCapability, string[]> = {
     '/dashboard',
   ],
   materials_supply: [
-    '/dashboard/modules',
+    '/dashboard/billing',
     '/dashboard/billing',
     '/dashboard/contractor-marketplace',
     '/dashboard/contractor-invitations',
@@ -98,7 +98,7 @@ const PROFILE_ROUTE_PRIORITIES: Record<OrganizationCapability, string[]> = {
   ],
   consulting: [
     '/dashboard/organization',
-    '/dashboard/modules',
+    '/dashboard/billing',
     '/dashboard/projects',
     '/dashboard/profile',
     '/dashboard/billing',
@@ -106,7 +106,7 @@ const PROFILE_ROUTE_PRIORITIES: Record<OrganizationCapability, string[]> = {
   ],
   facility_management: [
     '/dashboard/projects',
-    '/dashboard/modules',
+    '/dashboard/billing',
     '/dashboard/organization',
     '/dashboard/billing',
     '/dashboard/profile',
@@ -120,9 +120,9 @@ const MODULE_ROUTE_PRIORITIES: Record<string, string[]> = {
     '/dashboard/contractor-marketplace',
     '/dashboard/contractor-invitations',
   ],
-  procurement: ['/dashboard/modules', '/dashboard/billing'],
-  payments: ['/dashboard/billing', '/dashboard/modules'],
-  'basic-warehouse': ['/dashboard/modules'],
+  procurement: ['/dashboard/billing'],
+  payments: ['/dashboard/billing'],
+  'basic-warehouse': ['/dashboard/billing'],
   'schedule-management': ['/dashboard/projects'],
   'workflow-management': ['/dashboard/projects'],
 };
@@ -171,8 +171,8 @@ export const prioritizeWorkspaceNavigation = <T extends NavigationItemLike>(
     )
   );
 
-  if (activeModuleSlugs.length > 0 && !moduleRoutes.includes('/dashboard/modules')) {
-    moduleRoutes.unshift('/dashboard/modules');
+  if (activeModuleSlugs.length > 0 && !moduleRoutes.includes('/dashboard/billing')) {
+    moduleRoutes.unshift('/dashboard/billing');
   }
 
   return [...navigation].sort((leftItem, rightItem) => {

@@ -9,7 +9,7 @@ import type {
 const contactLink: MarketingContentLink = {
   label: 'Запросить демонстрацию',
   href: marketingPaths.contact,
-  description: 'Покажем релевантный сценарий, роли и стартовый контур под вашу компанию.',
+  description: 'Покажем подходящий сценарий, роли и набор возможностей для вашей компании.',
 };
 
 const createProof = (proof: MarketingSeoLandingPage['proof']) => proof;

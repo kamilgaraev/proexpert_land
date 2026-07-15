@@ -134,7 +134,7 @@ const FeaturesPage = () => {
             <SectionHeader
               eyebrow="Расширения"
               title="Пилотные расширения и интеграции."
-              description="Дополнительные сценарии подключаются отдельно, когда базовый контур уже определен."
+              description="Дополнительные возможности подключаются отдельно, когда основные задачи уже определены."
             />
             <div className="mt-8 grid gap-4">
               {marketingAdvancedOffers.map((offer) => (

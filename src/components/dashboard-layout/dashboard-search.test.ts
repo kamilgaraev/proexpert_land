@@ -25,9 +25,9 @@ describe('dashboard search', () => {
       aliases: ['сотрудники', 'права доступа', 'роли', 'пользователи', 'доступ'],
     },
     {
-      name: 'Разделы и тариф',
-      href: '/dashboard/modules',
-      description: 'Подключенные разделы, тариф и оплата',
+      name: 'Пакеты и оплата',
+      href: '/dashboard/billing',
+      description: 'Пакеты, оплата и история',
       aliases: ['разделы системы', 'модули', 'оплата', 'тариф', 'баланс', 'лимиты'],
     },
     {
@@ -42,7 +42,7 @@ describe('dashboard search', () => {
     const items = buildDashboardSearchItems({ navigation });
 
     expect(findDashboardSearchItems(items, 'проекты')[0]?.href).toBe('/dashboard/projects');
-    expect(findDashboardSearchItems(items, 'баланс')[0]?.href).toBe('/dashboard/modules');
+    expect(findDashboardSearchItems(items, 'баланс')[0]?.href).toBe('/dashboard/billing');
     expect(findDashboardSearchItems(items, 'права')[0]?.href).toBe('/dashboard/admins');
     expect(findDashboardSearchItems(items, 'каталог подрядчиков')[0]?.href).toBe(
       '/dashboard/contractor-marketplace'
@@ -77,7 +77,7 @@ describe('dashboard search', () => {
     expect(findDashboardSearchItems(items, 'партнеры')[0]?.href).toBe(
       '/dashboard/contractor-referral-program'
     );
-    expect(findDashboardSearchItems(items, 'лимиты')[0]?.href).toBe('/dashboard/limits');
+    expect(findDashboardSearchItems(items, 'пакеты')[0]?.href).toBe('/dashboard/billing');
   });
 
   it('keeps account navigation but excludes logout links', () => {

@@ -137,7 +137,7 @@ describe('buildStructuredDataGraph', () => {
     expect(organizations[0].name).toBe('МОСТ');
   });
 
-  it('publishes only stable monthly subscription offers on pricing', () => {
+  it('публикует бесплатную базу, десять пакетов и полный комплект', () => {
     const graph = buildStructuredDataGraph({
       ...baseInput,
       pathname: '/pricing',
@@ -147,8 +147,12 @@ describe('buildStructuredDataGraph', () => {
     const product = graph['@graph'].find((node) => node['@type'] === 'Product');
     const offers = product?.offers as Array<Record<string, unknown>>;
 
-    expect(offers.some((offer) => String(offer.name).startsWith('AI-контур'))).toBe(false);
-    expect(JSON.stringify(offers)).not.toMatch(/beta|пилот|ранн(?:ий|его|ий сценарий)/i);
+    expect(offers).toHaveLength(12);
+    expect(offers.map((offer) => [offer.name, offer.price])).toEqual(expect.arrayContaining([
+      ['Начните бесплатно', '0'],
+      ['Проекты и процессы', '9900'],
+      ['Полный комплект', '79900'],
+    ]));
     for (const offer of offers) {
       expect(offer.price).toEqual(expect.any(String));
       expect(offer.priceCurrency).toBe('RUB');
@@ -156,7 +160,7 @@ describe('buildStructuredDataGraph', () => {
         '@type': 'UnitPriceSpecification',
         price: offer.price,
         priceCurrency: 'RUB',
-        billingDuration: 'P1M',
+        billingDuration: 'P30D',
       });
     }
   });
