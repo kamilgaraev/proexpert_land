@@ -42,7 +42,12 @@ describe('commercialBillingService', () => {
           price_minor: 790000,
           currency: 'RUB',
           billing_period_days: 30,
-          modules: ['machinery'],
+          modules: [{
+            slug: 'machinery',
+            name: 'Техника',
+            description: 'Учёт техники, рейсов и загрузки.',
+            billing_model: 'subscription',
+          }],
           highlights: ['Рейсы'],
           business_outcomes: ['Меньше простоев'],
           is_active: false,
@@ -66,7 +71,13 @@ describe('commercialBillingService', () => {
       }),
     );
 
-    await expect(commercialBillingService.getPackages()).resolves.toMatchObject([{ trialAvailable: false, trialUsed: true }]);
+    const packages = await commercialBillingService.getPackages();
+    expect(packages[0].modules[0]).toEqual({
+      slug: 'machinery',
+      name: 'Техника',
+      description: 'Учёт техники, рейсов и загрузки.',
+    });
+    expect(packages[0]).toMatchObject({ trialAvailable: false, trialUsed: true });
     await expect(commercialBillingService.getHistory(2)).resolves.toMatchObject({
       items: [{ orderId: 'order-1', status: 'refunded' }],
       meta: { currentPage: 2, total: 41 },

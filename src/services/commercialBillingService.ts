@@ -52,7 +52,21 @@ const packageFromApi = (item: JsonRecord): CommercialPackage => ({
   priceMinor: item.price_minor,
   currency: item.currency,
   billingPeriodDays: item.billing_period_days,
-  modules: Array.isArray(item.modules) ? item.modules : [],
+  modules: Array.isArray(item.modules)
+    ? item.modules
+      .filter((module: unknown): module is JsonRecord => (
+        typeof module === 'object'
+        && module !== null
+        && typeof (module as JsonRecord).slug === 'string'
+        && typeof (module as JsonRecord).name === 'string'
+        && typeof (module as JsonRecord).description === 'string'
+      ))
+      .map((module: JsonRecord) => ({
+        slug: module.slug,
+        name: module.name,
+        description: module.description,
+      }))
+    : [],
   highlights: Array.isArray(item.highlights) ? item.highlights : [],
   businessOutcomes: Array.isArray(item.business_outcomes) ? item.business_outcomes : [],
   isActive: Boolean(item.is_active),

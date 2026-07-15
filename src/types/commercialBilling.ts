@@ -1,6 +1,12 @@
 export type CommercialAccountStatus = 'free' | 'active' | 'grace' | 'suspended' | 'corporate';
 export type CommercialOrderStatus = 'pending_payment' | 'paid' | 'canceled' | 'refunded' | 'failed';
 
+export interface CommercialPackageModule {
+  slug: string;
+  name: string;
+  description: string;
+}
+
 export interface CommercialPackage {
   slug: string;
   name: string;
@@ -10,7 +16,7 @@ export interface CommercialPackage {
   priceMinor: number;
   currency: string;
   billingPeriodDays: number;
-  modules: string[];
+  modules: CommercialPackageModule[];
   highlights: string[];
   businessOutcomes: string[];
   isActive: boolean;
