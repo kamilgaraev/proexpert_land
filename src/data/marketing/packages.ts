@@ -168,9 +168,9 @@ export const commercialPackages: CommercialPackage[] = definitions.map((item, in
 export const marketingPackages: MarketingPackage[] = commercialPackages;
 
 export const freeFoundationOffer = {
-  name: 'Бесплатная база',
+  name: 'Начните бесплатно',
   price: 0,
-  description: 'Ограниченный, но полезный стартовый контур для организации, команды, проектов, базовых записей и просмотра данных.',
+  description: 'Организация, команда, проекты, основные записи и просмотр доступных данных — без оплаты.',
   includes: ['Организация и команда', 'Проекты и базовые записи', 'Просмотр доступных данных'],
 };
 

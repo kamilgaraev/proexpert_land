@@ -18,7 +18,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     surfaces: ['admin', 'mobile', 'lk'],
     capabilityIds: ['project-control', 'site-requests', 'supply-chain', 'finance-control'],
     recommendedPackageSlugs: ['projects-processes', 'supply-warehouse', 'finance-contracts'],
-    cta: 'Показать стартовый контур для подрядчика',
+    cta: 'Показать подходящие возможности для подрядчика',
   },
   {
     id: 'general-contractor',

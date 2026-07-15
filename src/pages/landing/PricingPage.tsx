@@ -56,14 +56,14 @@ const PricingPage = () => {
     <div className="marketing-page-shell overflow-hidden">
       <PageHero
         eyebrow="Пакеты МОСТ"
-        title="Соберите рабочий контур из нужных процессов."
-        description="Бесплатная база остается у организации всегда. Подключайте один или несколько бизнес-пакетов на 30 дней либо выбирайте полный комплект из десяти пакетов."
+        title="Выберите только нужные возможности."
+        description="Начните работать в МОСТ без оплаты. Подключайте один или несколько бизнес-пакетов на 30 дней либо выбирайте полный комплект из десяти пакетов."
         actions={[
-          { label: 'Создать бесплатную базу', href: '/register', primary: true },
+          { label: 'Создать организацию', href: '/register', primary: true },
           { label: 'Собрать набор', href: '#constructor' },
         ]}
         nav={[
-          { label: 'Бесплатная база', href: '#foundation' },
+          { label: 'Начните бесплатно', href: '#foundation' },
           { label: 'Конструктор', href: '#constructor' },
           { label: 'Полный комплект', href: '#full-suite' },
           { label: 'Условия', href: '#terms' },
@@ -71,9 +71,9 @@ const PricingPage = () => {
         ]}
         aside={
           <div className="rounded-[1.75rem] border border-steel-700 bg-steel-950 p-6 text-white shadow-[0_28px_70px_rgba(15,23,42,0.2)]">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">Проектная ведомость</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">Варианты подключения</div>
             <div className="mt-5 grid grid-cols-[auto_1fr_auto] gap-x-4 gap-y-4 text-sm">
-              <span className="font-mono text-construction-200">00</span><span>Бесплатная база</span><strong>0 ₽</strong>
+              <span className="font-mono text-construction-200">00</span><span>Начните бесплатно</span><strong>0 ₽</strong>
               <span className="font-mono text-construction-200">01–10</span><span>Бизнес-пакеты</span><strong>7 900–12 900 ₽</strong>
               <span className="font-mono text-construction-200">Σ</span><span>Полный комплект</span><strong>79 900 ₽</strong>
             </div>
@@ -85,8 +85,8 @@ const PricingPage = () => {
       <section id="foundation" className="border-y border-steel-100 bg-white py-16 lg:py-20">
         <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] xl:items-center">
           <SectionHeader
-            eyebrow="Контур 00"
-            title="Бесплатная база — полезный ограниченный старт."
+            eyebrow="Начните бесплатно"
+            title="Основные возможности МОСТ — без оплаты."
             description={freeFoundationOffer.description}
           />
           <div className="grid gap-3 sm:grid-cols-3">
@@ -105,7 +105,7 @@ const PricingPage = () => {
           <SectionHeader
             eyebrow="Конструктор"
             title="Отметьте процессы, которые нужны вашей команде."
-            description="Выбор на сайте сохраняется только как намерение: регистрация создаст бесплатную базу, а подключение и оплата выполняются отдельно в личном кабинете."
+            description="Отметьте интересующие пакеты и продолжите регистрацию. Подключить и оплатить их можно будет в личном кабинете."
             tone="dark"
           />
 
@@ -163,7 +163,7 @@ const PricingPage = () => {
                     <span className="font-semibold">{formatPrice(item.price)}</span>
                   </div>
                 )) : (
-                  <p className="text-sm leading-7 text-steel-600">Пока выбран только бесплатный базовый контур.</p>
+                  <p className="text-sm leading-7 text-steel-600">Пока вы начинаете с возможностей МОСТ без оплаты.</p>
                 )}
               </div>
 
@@ -179,7 +179,7 @@ const PricingPage = () => {
                 href={registrationHref}
                 className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-construction-400 px-5 py-3 text-center text-sm font-semibold text-steel-950 transition hover:bg-construction-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-construction-500"
               >
-                {selection.selectedPackages.length > 0 ? 'Продолжить с выбранным набором' : 'Создать бесплатную базу'}
+                {selection.selectedPackages.length > 0 ? 'Продолжить с выбранным набором' : 'Создать организацию'}
               </MarketingLink>
             </aside>
           </div>
@@ -208,9 +208,9 @@ const PricingPage = () => {
 
       <section id="terms" className="border-y border-steel-100 bg-concrete-50 py-16 lg:py-20">
         <div className="container-custom">
-          <SectionHeader eyebrow="Понятные условия" title="Пробный период, оплата и продление без скрытой логики." />
+          <SectionHeader eyebrow="Понятные условия" title="Пробный период, оплата и продление." />
           <div className="mt-10 grid gap-5 lg:grid-cols-3">
-            <article className="rounded-[1.55rem] border border-steel-200 bg-white p-6"><div className="font-mono text-xs font-bold text-construction-700">{commercialTerms.trialHours}H</div><h2 className="mt-3 text-xl font-bold text-steel-950">Пробный период без карты</h2><p className="mt-3 text-sm leading-7 text-steel-600">Каждый пакет можно один раз попробовать в течение 72 часов для одной организации.</p></article>
+            <article className="rounded-[1.55rem] border border-steel-200 bg-white p-6"><div className="font-mono text-xs font-bold text-construction-700">3 дня</div><h2 className="mt-3 text-xl font-bold text-steel-950">Пробный период без карты</h2><p className="mt-3 text-sm leading-7 text-steel-600">Каждый пакет можно один раз бесплатно попробовать в течение 3 дней для одной организации.</p></article>
             <article className="rounded-[1.55rem] border border-steel-200 bg-white p-6"><div className="font-mono text-xs font-bold text-construction-700">30D</div><h2 className="mt-3 text-xl font-bold text-steel-950">Фиксированный период</h2><p className="mt-3 text-sm leading-7 text-steel-600">Пакеты оплачиваются на 30 дней. Дата следующего периода остается зафиксированной.</p></article>
             <article className="rounded-[1.55rem] border border-steel-200 bg-white p-6"><div className="font-mono text-xs font-bold text-construction-700">{commercialTerms.graceDays}D</div><h2 className="mt-3 text-xl font-bold text-steel-950">Семь дней на продление</h2><p className="mt-3 text-sm leading-7 text-steel-600">При задержке оплаты доступ можно восстановить до прежней расчетной даты. Поздний платеж не создает новый 30-дневный период.</p></article>
           </div>

@@ -72,7 +72,7 @@ const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) =>
           </div>
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-              Коммерческий контур
+              Пакет для команды
             </div>
             <h3 className="mt-2 text-[1.9rem] font-bold leading-tight text-steel-950">
               {item.name}
