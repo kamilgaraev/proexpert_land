@@ -358,18 +358,17 @@ const BillingPage = () => {
   const requiresAutoRenewConsent = !renewal?.autoRenewEnabled || !renewal.savedMethodAvailable;
 
   return (
-    <main className="space-y-8 pb-24">
-      <header className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-slate-950 px-6 py-7 text-white shadow-xl sm:px-8">
-        <div className="absolute inset-y-0 right-0 w-2/5 bg-[radial-gradient(circle_at_center,rgba(249,115,22,.28),transparent_65%)]" />
-        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <main className="mx-auto max-w-7xl space-y-6 pb-24">
+      <header className="rounded-2xl border border-slate-200 bg-white px-6 py-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:px-7">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-orange-300">МОСТ · пакеты и оплата</p>
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Пакеты для вашей команды</h1>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">Подключайте только нужные возможности. МОСТ без оплаты остаётся доступен всегда, а стоимость и дата следующей оплаты обновляются автоматически.</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">Пакеты и оплата</p>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-950">Пакеты для вашей команды</h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">Подключайте только нужные возможности. МОСТ без оплаты остаётся доступен всегда, а стоимость и дата следующей оплаты обновляются автоматически.</p>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-sm sm:flex">
-            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"><span className="block text-xs text-slate-400">Состояние</span><strong>{isCorporate ? 'Корпоративный уровень' : isGrace ? 'Льготный период' : currentPaidSlugs.length ? 'Оплачено' : 'МОСТ без оплаты'}</strong></div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"><span className="block text-xs text-slate-400">Следующая дата</span><strong>{formatDateTime(renewal?.nextBillingAt ?? null)}</strong></div>
+          <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><span className="block text-xs text-slate-500">Состояние</span><strong className="mt-1 block text-slate-950">{isCorporate ? 'Корпоративный уровень' : isGrace ? 'Льготный период' : currentPaidSlugs.length ? 'Оплачено' : 'МОСТ без оплаты'}</strong></div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><span className="block text-xs text-slate-500">Следующая дата</span><strong className="mt-1 block text-slate-950">{formatDateTime(renewal?.nextBillingAt ?? null)}</strong></div>
           </div>
         </div>
       </header>
@@ -404,17 +403,17 @@ const BillingPage = () => {
         <Card className="md:col-span-2"><CardContent className="grid gap-5 p-6 sm:grid-cols-3"><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Ваш доступ</span><p className="mt-2 font-semibold">{accessSourceLabel}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Оплачено до</span><p className="mt-2 font-semibold">{formatDateTime(currentPeriodStart)} — {formatDateTime(currentPeriodEnd)}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Автоплатёж</span><p className="mt-2 font-semibold">{renewal?.savedMethodAvailable ? 'Настроен' : 'Не настроен'}</p></div><div className="sm:col-span-3 flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Баланс организации можно использовать, когда на нём достаточно средств для полной оплаты.</p>{!isCorporate && renewal?.autoRenewEnabled && canManage ? <Button variant="outline" onClick={() => void disableRenewal()} disabled={actionBusy === 'renewal'}>Отключить автопродление</Button> : !isCorporate ? <Badge variant="outline">Автопродление отключено</Badge> : null}</div></CardContent></Card>
       </section>
 
-      <section className="rounded-[28px] border border-slate-800 bg-slate-950 p-6 text-white shadow-xl sm:p-8" aria-labelledby="full-suite-title">
+      <section className="rounded-2xl border border-orange-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]" aria-labelledby="full-suite-title">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-orange-300"><Sparkles className="h-4 w-4" />Все возможности МОСТ</div>
-            <h2 id="full-suite-title" className="text-2xl font-semibold sm:text-3xl">Полный комплект</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-300">Все 10 пакетов в одном составе. Подходит командам, которым нужен единый рабочий контур без выбора отдельных направлений.</p>
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-orange-600"><Sparkles className="h-4 w-4" />Все возможности МОСТ</div>
+            <h2 id="full-suite-title" className="text-2xl font-semibold text-slate-950">Полный комплект</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Все 10 пакетов в одном составе. Подходит командам, которым нужен единый рабочий контур без выбора отдельных направлений.</p>
           </div>
           {!isCorporate && canManage ? <Button
             size="lg"
             variant={fullSuite ? 'outline' : 'default'}
-            className={fullSuite ? 'border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white' : 'bg-orange-500 text-white hover:bg-orange-600'}
+            className={fullSuite ? 'border-orange-300 bg-orange-50 text-orange-800 hover:bg-orange-100 hover:text-orange-900' : 'bg-orange-500 text-white hover:bg-orange-600'}
             disabled={isGrace}
             onClick={() => {
               if (fullSuite) {
@@ -428,17 +427,17 @@ const BillingPage = () => {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-orange-50 p-6 shadow-sm sm:p-8" aria-labelledby="enterprise-offer-title">
+      <section className="overflow-hidden rounded-2xl border border-blue-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]" aria-labelledby="enterprise-offer-title">
         <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div>
             <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-blue-700"><Building2 className="h-4 w-4" />Для крупных компаний</div>
             <h2 id="enterprise-offer-title" className="text-2xl font-semibold text-slate-950 sm:text-3xl">Корпоративный уровень</h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Настроим МОСТ под структуру компании, подключим нужные интеграции и поможем командам перейти на единую систему работы.</p>
             <div className="mt-5 flex flex-wrap gap-2 text-xs font-medium text-slate-700">
-              <span className="rounded-full border bg-white px-3 py-2">Персональная настройка</span>
-              <span className="rounded-full border bg-white px-3 py-2">Приоритетная поддержка</span>
-              <span className="rounded-full border bg-white px-3 py-2">Обучение и запуск</span>
-              <span className="rounded-full border bg-white px-3 py-2">Особые условия оплаты</span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2">Персональная настройка</span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2">Приоритетная поддержка</span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2">Обучение и запуск</span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2">Особые условия оплаты</span>
             </div>
           </div>
           <Button asChild size="lg" className="w-full bg-blue-700 hover:bg-blue-800 lg:w-auto">
@@ -506,7 +505,7 @@ const BillingPage = () => {
         </div>
 
         {!isCorporate ? <aside id="order-summary" className="space-y-4 xl:sticky xl:top-6">
-          <Card className="overflow-hidden border-slate-300 shadow-xl"><div className="bg-orange-500 px-5 py-3 text-sm font-semibold text-white">Ваши изменения</div><CardContent className="space-y-5 p-5">
+          <Card className="overflow-hidden border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"><div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-950">Ваши изменения</div><CardContent className="space-y-5 p-5">
             {quote?.recommendation === 'full_suite' && !fullSuite ? <button type="button" onClick={selectFullSuite} disabled={!canManage || isGrace} className="w-full rounded-2xl border border-orange-300 bg-orange-50 p-4 text-left text-sm text-orange-950"><Sparkles className="mb-2 h-5 w-5 text-orange-600" /><strong>Полный комплект выгоднее</strong><span className="mt-1 block text-xs">Рекомендация не меняет выбор автоматически.</span></button> : null}
             {quoteLoading ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Обновляем стоимость</div> : quoteError ? <p className="text-sm text-red-700">{quoteError}</p> : quote ? <>
               {!hasChanges ? <div className="rounded-2xl bg-emerald-50 p-4"><strong className="text-emerald-900">Изменений нет</strong><p className="mt-1 text-xs leading-5 text-emerald-800">Текущий состав останется без изменений.</p></div> : null}

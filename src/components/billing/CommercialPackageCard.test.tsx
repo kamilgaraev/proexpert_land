@@ -45,6 +45,24 @@ describe('CommercialPackageCard', () => {
     expect(screen.getByRole('button', { name: 'Отключить со следующего периода' })).toBeInTheDocument();
   });
 
+  it('удерживает длинные действия внутри карточки на узкой ширине', () => {
+    render(
+      <CommercialPackageCard
+        packageItem={packageItem}
+        variant="connected"
+        onPrimaryAction={vi.fn()}
+        onDetails={vi.fn()}
+      />,
+    );
+
+    const detailsButton = screen.getByRole('button', { name: 'Подробнее' });
+    const disconnectButton = screen.getByRole('button', { name: 'Отключить со следующего периода' });
+    const actions = detailsButton.parentElement;
+
+    expect(actions).toHaveClass('grid');
+    expect(disconnectButton).toHaveClass('w-full', 'whitespace-normal');
+  });
+
   it('добавляет доступный пакет явной кнопкой', () => {
     const onPrimaryAction = vi.fn();
     render(

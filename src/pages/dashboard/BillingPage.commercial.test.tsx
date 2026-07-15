@@ -118,6 +118,19 @@ describe('BillingPage commercial packages', () => {
     expect(sessionStorage.getItem('most:commercial-package-intent')).toBeNull();
   });
 
+  it('использует спокойные карточки личного кабинета вместо промо-блоков', async () => {
+    renderPage();
+
+    const pageTitle = await screen.findByRole('heading', { name: 'Пакеты для вашей команды' });
+    const pageHeader = pageTitle.closest('header');
+    const fullSuiteSection = screen.getByRole('heading', { name: 'Полный комплект' }).closest('section');
+
+    expect(pageHeader).toHaveClass('bg-white');
+    expect(pageHeader).not.toHaveClass('bg-slate-950');
+    expect(fullSuiteSection).toHaveClass('bg-white');
+    expect(fullSuiteSection).not.toHaveClass('bg-slate-950');
+  });
+
   it('не показывает действия пользователю только с billing.view', async () => {
     access.manage = false;
     renderPage();

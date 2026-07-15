@@ -52,7 +52,7 @@ export const CommercialPackageCard = ({
 
   return (
     <article className={cn(
-      'group flex min-h-64 flex-col rounded-[28px] border bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg',
+      'group flex min-h-60 min-w-0 flex-col overflow-hidden rounded-2xl border bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition duration-200 hover:border-slate-300 hover:shadow-md sm:p-6',
       connected ? 'border-emerald-200' : 'border-slate-200',
       pendingAction === 'remove' && 'border-amber-300 bg-amber-50/40',
       pendingAction === 'add' && 'border-orange-300 bg-orange-50/40',
@@ -81,8 +81,8 @@ export const CommercialPackageCard = ({
       <p className="mt-3 text-sm leading-6 text-slate-600">{packageItem.description}</p>
       {effectiveDateLabel && <p className="mt-3 text-sm font-medium text-amber-800">{effectiveDateLabel}</p>}
 
-      <div className="mt-auto flex flex-col gap-2 pt-6 sm:flex-row sm:items-center">
-        <Button type="button" variant="outline" className="justify-between gap-3" onClick={onDetails}>
+      <div className="mt-auto grid min-w-0 gap-2 pt-6 sm:grid-cols-[auto_minmax(0,1fr)]">
+        <Button type="button" variant="outline" className="w-full justify-between gap-3 whitespace-normal" onClick={onDetails}>
           Подробнее
           <ArrowRight className="h-4 w-4" />
         </Button>
@@ -91,7 +91,7 @@ export const CommercialPackageCard = ({
             type="button"
             variant={connected ? 'ghost' : 'default'}
             className={cn(
-              'gap-2',
+              'h-auto min-h-10 w-full gap-2 whitespace-normal px-3 text-center leading-snug',
               connected && pendingAction !== 'remove' && 'text-slate-600 hover:text-red-700',
               !connected && 'bg-orange-500 text-white hover:bg-orange-600',
             )}
