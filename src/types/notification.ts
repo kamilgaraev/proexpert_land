@@ -38,6 +38,10 @@ export interface NotificationPaginationMeta {
   last_page: number;
   per_page: number;
   total: number;
+  unread_count: number;
+  unread_by_category: Record<string, number>;
+  unread_by_notification_type: Record<string, number>;
+  unread_by_type: Record<string, number>;
   [key: string]: unknown;
 }
 

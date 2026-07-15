@@ -112,13 +112,20 @@ export const useNotifications = (
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const lifecycleEpochRef = useRef(0);
+  const listRequestVersionRef = useRef(0);
   const notificationsRef = useRef<Notification[]>([]);
   const unreadCountRef = useRef(0);
   const unreadRevisionRef = useRef(0);
-  const realtimeSequenceRef = useRef(0);
-  const realtimeUnreadRef = useRef<Array<{ id: string; sequence: number }>>([]);
+  const mutationRevisionRef = useRef(0);
+  const acceptedUnreadTotalRef = useRef(0);
   const notificationVersionsRef = useRef<Map<string, number>>(new Map());
   const dedupeCacheRef = useRef<Map<string, true>>(new Map());
+  const activeListBuffersRef = useRef<Map<number, Map<string, Notification>>>(new Map());
+  const readOverridesRef = useRef<Map<string, string>>(new Map());
+  const deleteTombstonesRef = useRef<Set<string>>(new Set());
+  const pendingReadRef = useRef<Map<string, symbol>>(new Map());
+  const pendingDeleteRef = useRef<Map<string, symbol>>(new Map());
+  const pendingMarkAllRef = useRef<symbol | null>(null);
 
   const publishNotifications = useCallback((next: Notification[]): void => {
     notificationsRef.current = next;
@@ -149,45 +156,83 @@ export const useNotifications = (
 
   const refreshNotifications = useCallback(async (): Promise<void> => {
     const epoch = lifecycleEpochRef.current;
+    const requestVersion = listRequestVersionRef.current + 1;
+    const mutationRevision = mutationRevisionRef.current;
+    const realtimeBuffer = new Map<string, Notification>();
+    listRequestVersionRef.current = requestVersion;
+    activeListBuffersRef.current.set(requestVersion, realtimeBuffer);
     setLoading(true);
 
     try {
       const response = await notificationService.getNotifications(1, 5);
 
-      if (lifecycleEpochRef.current !== epoch) {
+      if (lifecycleEpochRef.current !== epoch
+        || listRequestVersionRef.current !== requestVersion) {
         return;
       }
 
-      response.data.forEach(notification => {
-        const id = typeof notification.id === 'string' ? notification.id.trim() : '';
+      const fetchedIds = new Set<string>();
+      const fetched = response.data
+        .filter(notification => typeof notification.id === 'string' && notification.id.trim().length > 0)
+        .map(notification => ({ ...notification, id: notification.id.trim() }))
+        .filter(notification => {
+          fetchedIds.add(notification.id);
+          rememberNotification(dedupeCacheRef.current, `${notification.id}:lk`);
+          return !deleteTombstonesRef.current.has(notification.id);
+        })
+        .map(notification => {
+          const readAt = readOverridesRef.current.get(notification.id);
+          return readAt ? { ...notification, read_at: readAt } : notification;
+        });
 
-        if (id) {
-          rememberNotification(dedupeCacheRef.current, `${id}:lk`);
-        }
-      });
-      publishNotifications(mergeVisible(notificationsRef.current, response.data));
+      const realtime = [...realtimeBuffer.values()]
+        .filter(notification => !deleteTombstonesRef.current.has(notification.id))
+        .reverse();
+      publishNotifications(mergeVisible(realtime, fetched));
+
+      const realtimeOnlyUnread = [...realtimeBuffer.values()].filter(notification => (
+        !notification.read_at && !fetchedIds.has(notification.id)
+      )).length;
+      if (mutationRevisionRef.current === mutationRevision) {
+        publishUnreadCount(response.meta.unread_count + realtimeOnlyUnread);
+      }
     } catch (error) {
-      if (lifecycleEpochRef.current === epoch) {
+      if (lifecycleEpochRef.current === epoch
+        && listRequestVersionRef.current === requestVersion) {
         console.error('Ошибка при загрузке уведомлений:', error);
       }
     } finally {
-      if (lifecycleEpochRef.current === epoch) {
+      activeListBuffersRef.current.delete(requestVersion);
+
+      if (lifecycleEpochRef.current === epoch
+        && listRequestVersionRef.current === requestVersion) {
         setLoading(false);
       }
     }
-  }, [publishNotifications]);
+  }, [publishNotifications, publishUnreadCount]);
 
   const markAsRead = useCallback(async (notificationId: string): Promise<void> => {
+    if (pendingReadRef.current.has(notificationId)) {
+      return;
+    }
+
+    const operation = Symbol(notificationId);
     const epoch = lifecycleEpochRef.current;
+    const version = notificationVersionsRef.current.get(notificationId) ?? 0;
+    pendingReadRef.current.set(notificationId, operation);
 
     try {
       await notificationService.markAsRead(notificationId);
 
-      if (lifecycleEpochRef.current !== epoch) {
+      if (lifecycleEpochRef.current !== epoch
+        || (notificationVersionsRef.current.get(notificationId) ?? 0) !== version) {
         return;
       }
 
       const current = notificationsRef.current.find(notification => notification.id === notificationId);
+      const readAt = new Date().toISOString();
+      mutationRevisionRef.current += 1;
+      readOverridesRef.current.set(notificationId, readAt);
 
       if (current && !current.read_at) {
         unreadRevisionRef.current += 1;
@@ -195,22 +240,30 @@ export const useNotifications = (
       }
 
       publishNotifications(notificationsRef.current.map(notification => (
-        notification.id === notificationId
-          ? { ...notification, read_at: new Date().toISOString() }
-          : notification
+        notification.id === notificationId ? { ...notification, read_at: readAt } : notification
       )));
     } catch (error) {
       if (lifecycleEpochRef.current === epoch) {
         console.error('Ошибка при отметке уведомления прочитанным:', error);
         toast.error('Не удалось отметить уведомление');
       }
+    } finally {
+      if (pendingReadRef.current.get(notificationId) === operation) {
+        pendingReadRef.current.delete(notificationId);
+      }
     }
   }, [publishNotifications, publishUnreadCount]);
 
   const markAllAsRead = useCallback(async (): Promise<void> => {
+    if (pendingMarkAllRef.current) {
+      return;
+    }
+
+    const operation = Symbol('mark-all');
     const epoch = lifecycleEpochRef.current;
-    const startSequence = realtimeSequenceRef.current;
+    const acceptedUnreadAtStart = acceptedUnreadTotalRef.current;
     const ids = new Set(notificationsRef.current.map(notification => notification.id));
+    pendingMarkAllRef.current = operation;
 
     try {
       await notificationService.markAllAsRead();
@@ -219,14 +272,13 @@ export const useNotifications = (
         return;
       }
 
-      const realtimeAfterStart = realtimeUnreadRef.current
-        .filter(event => event.sequence > startSequence).length;
+      const readAt = new Date().toISOString();
+      mutationRevisionRef.current += 1;
+      ids.forEach(id => readOverridesRef.current.set(id, readAt));
       unreadRevisionRef.current += 1;
-      publishUnreadCount(realtimeAfterStart);
+      publishUnreadCount(acceptedUnreadTotalRef.current - acceptedUnreadAtStart);
       publishNotifications(notificationsRef.current.map(notification => (
-        ids.has(notification.id)
-          ? { ...notification, read_at: new Date().toISOString() }
-          : notification
+        ids.has(notification.id) ? { ...notification, read_at: readAt } : notification
       )));
       toast.success('Все уведомления отмечены прочитанными');
     } catch (error) {
@@ -234,12 +286,22 @@ export const useNotifications = (
         console.error('Ошибка при отметке всех уведомлений:', error);
         toast.error('Не удалось отметить все уведомления');
       }
+    } finally {
+      if (pendingMarkAllRef.current === operation) {
+        pendingMarkAllRef.current = null;
+      }
     }
   }, [publishNotifications, publishUnreadCount]);
 
   const deleteNotification = useCallback(async (notificationId: string): Promise<void> => {
+    if (pendingDeleteRef.current.has(notificationId)) {
+      return;
+    }
+
+    const operation = Symbol(notificationId);
     const epoch = lifecycleEpochRef.current;
     const version = notificationVersionsRef.current.get(notificationId) ?? 0;
+    pendingDeleteRef.current.set(notificationId, operation);
 
     try {
       await notificationService.deleteNotification(notificationId);
@@ -250,12 +312,15 @@ export const useNotifications = (
       }
 
       const current = notificationsRef.current.find(notification => notification.id === notificationId);
+      mutationRevisionRef.current += 1;
 
       if (current && !current.read_at) {
         unreadRevisionRef.current += 1;
         publishUnreadCount(unreadCountRef.current - 1);
       }
 
+      deleteTombstonesRef.current.add(notificationId);
+      readOverridesRef.current.delete(notificationId);
       rememberNotification(dedupeCacheRef.current, `${notificationId}:lk`);
       publishNotifications(notificationsRef.current.filter(notification => notification.id !== notificationId));
       toast.success('Уведомление удалено');
@@ -263,9 +328,14 @@ export const useNotifications = (
       if (lifecycleEpochRef.current === epoch) {
         console.error('Ошибка при удалении уведомления:', error);
         toast.error('Не удалось удалить уведомление');
+        await refreshNotifications();
+      }
+    } finally {
+      if (pendingDeleteRef.current.get(notificationId) === operation) {
+        pendingDeleteRef.current.delete(notificationId);
       }
     }
-  }, [publishNotifications, publishUnreadCount]);
+  }, [publishNotifications, publishUnreadCount, refreshNotifications]);
 
   const executeAction = useCallback(async (url: string, method: string = 'POST'): Promise<void> => {
     const epoch = lifecycleEpochRef.current;
@@ -292,9 +362,15 @@ export const useNotifications = (
     lifecycleEpochRef.current = epoch;
     dedupeCacheRef.current.clear();
     notificationVersionsRef.current.clear();
-    realtimeUnreadRef.current = [];
-    realtimeSequenceRef.current = 0;
+    activeListBuffersRef.current.clear();
+    readOverridesRef.current.clear();
+    deleteTombstonesRef.current.clear();
+    pendingReadRef.current.clear();
+    pendingDeleteRef.current.clear();
+    pendingMarkAllRef.current = null;
+    acceptedUnreadTotalRef.current = 0;
     unreadRevisionRef.current = 0;
+    mutationRevisionRef.current = 0;
     publishNotifications([]);
     publishUnreadCount(0);
     setLoading(false);
@@ -308,8 +384,6 @@ export const useNotifications = (
     }
 
     const channelName = `App.Models.User.${userId}.lk`;
-    const bufferedNotifications = new Map<string, Notification>();
-    let initializing = true;
     let echo: ReturnType<typeof getEcho> = null;
 
     const acceptRealtime = (payload: unknown): void => {
@@ -335,15 +409,10 @@ export const useNotifications = (
       }
 
       rememberNotification(dedupeCacheRef.current, key);
-
-      if (initializing) {
-        bufferedNotifications.set(key, notification);
-      }
+      activeListBuffersRef.current.forEach(buffer => buffer.set(key, notification));
 
       if (!notification.read_at) {
-        realtimeSequenceRef.current += 1;
-        realtimeUnreadRef.current.push({ id: notification.id, sequence: realtimeSequenceRef.current });
-        realtimeUnreadRef.current = realtimeUnreadRef.current.slice(-MAX_DEDUPE_NOTIFICATIONS);
+        acceptedUnreadTotalRef.current += 1;
         unreadRevisionRef.current += 1;
         publishUnreadCount(unreadCountRef.current + 1);
       }
@@ -365,55 +434,16 @@ export const useNotifications = (
         channel.error(() => undefined);
       }
     } catch {
-      echo = null;
     }
 
-    const initialize = async (): Promise<void> => {
-      setLoading(true);
-      const [listResult, countResult] = await Promise.allSettled([
-        notificationService.getNotifications(1, 5),
-        notificationService.getUnreadCount(),
-      ]);
-
-      if (lifecycleEpochRef.current !== epoch) {
-        return;
-      }
-
-      const fetchedIds = new Set<string>();
-
-      if (listResult.status === 'fulfilled') {
-        const fetched = listResult.value.data.filter(notification => (
-          typeof notification.id === 'string' && notification.id.trim().length > 0
-        ));
-
-        fetched.forEach(notification => {
-          const id = notification.id.trim();
-          fetchedIds.add(id);
-          rememberNotification(dedupeCacheRef.current, `${id}:lk`);
-        });
-        publishNotifications(mergeVisible(notificationsRef.current, fetched));
-      }
-
-      if (countResult.status === 'fulfilled') {
-        const realtimeOnlyUnread = [...bufferedNotifications.values()].filter(notification => (
-          !notification.read_at && !fetchedIds.has(notification.id)
-        )).length;
-        publishUnreadCount(countResult.value + realtimeOnlyUnread);
-      }
-
-      initializing = false;
-      setLoading(false);
-    };
-
-    void initialize();
+    void refreshNotifications();
 
     return () => {
       if (lifecycleEpochRef.current === epoch) {
         lifecycleEpochRef.current += 1;
       }
 
-      initializing = false;
-      bufferedNotifications.clear();
+      activeListBuffersRef.current.clear();
 
       try {
         echo?.leave(channelName);
@@ -421,7 +451,7 @@ export const useNotifications = (
         return;
       }
     };
-  }, [publishNotifications, publishUnreadCount, token, userId]);
+  }, [publishNotifications, publishUnreadCount, refreshNotifications, token, userId]);
 
   return {
     notifications,

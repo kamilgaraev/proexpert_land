@@ -31,14 +31,32 @@ describe('notificationService', () => {
         success: true,
         message: null,
         data: [item('one')],
-        meta: { current_page: 2, last_page: 3, per_page: 10, total: 21 },
+        meta: {
+          current_page: 2,
+          last_page: 3,
+          per_page: 10,
+          total: 21,
+          unread_count: 9,
+          unread_by_category: { system: 4 },
+          unread_by_notification_type: { alert: 3 },
+          unread_by_type: { system: 4 },
+        },
         links: { first: '/first', last: '/last', prev: '/prev', next: '/next' },
       },
     } as never);
 
     await expect(notificationService.getNotifications(2, 10)).resolves.toEqual({
       data: [item('one')],
-      meta: { current_page: 2, last_page: 3, per_page: 10, total: 21 },
+      meta: {
+        current_page: 2,
+        last_page: 3,
+        per_page: 10,
+        total: 21,
+        unread_count: 9,
+        unread_by_category: { system: 4 },
+        unread_by_notification_type: { alert: 3 },
+        unread_by_type: { system: 4 },
+      },
       links: { first: '/first', last: '/last', prev: '/prev', next: '/next' },
     });
   });
@@ -47,7 +65,16 @@ describe('notificationService', () => {
     vi.mocked(axios.get).mockResolvedValueOnce({
       data: {
         data: [item('one'), item('two')],
-        meta: { current_page: 1, last_page: 1, per_page: 20, total: 2 },
+        meta: {
+          current_page: 1,
+          last_page: 1,
+          per_page: 20,
+          total: 2,
+          unread_count: 2,
+          unread_by_category: {},
+          unread_by_notification_type: {},
+          unread_by_type: {},
+        },
       },
     } as never);
 
@@ -65,6 +92,45 @@ describe('notificationService', () => {
     await expect(notificationService.getNotifications()).rejects.toThrow(
       'Некорректный ответ списка уведомлений',
     );
+  });
+
+  it('rejects list metadata without the atomic unread snapshot', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: [item('one')],
+        meta: { current_page: 1, last_page: 1, per_page: 20, total: 1 },
+      },
+    } as never);
+
+    await expect(notificationService.getNotifications()).rejects.toThrow(
+      'Некорректный ответ списка уведомлений',
+    );
+  });
+
+  it('normalizes empty PHP aggregate maps encoded as JSON arrays', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: [],
+        meta: {
+          current_page: 1,
+          last_page: 1,
+          per_page: 20,
+          total: 0,
+          unread_count: 0,
+          unread_by_category: [],
+          unread_by_notification_type: [],
+          unread_by_type: [],
+        },
+      },
+    } as never);
+
+    const response = await notificationService.getNotifications();
+
+    expect(response.meta.unread_by_category).toEqual({});
+    expect(response.meta.unread_by_notification_type).toEqual({});
+    expect(response.meta.unread_by_type).toEqual({});
   });
 
   it('normalizes a LandingResponse unread count', async () => {

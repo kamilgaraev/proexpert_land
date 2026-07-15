@@ -18,16 +18,35 @@ const isFiniteNumber = (value: unknown): value is number => (
   typeof value === 'number' && Number.isFinite(value)
 );
 
+const normalizeCountMap = (value: unknown): Record<string, number> => {
+  if (Array.isArray(value) && value.length === 0) {
+    return {};
+  }
+
+  if (!isRecord(value) || Object.values(value).some(count => !isFiniteNumber(count) || count < 0)) {
+    throw new Error('Некорректный ответ списка уведомлений');
+  }
+
+  return value as Record<string, number>;
+};
+
 const normalizeMeta = (value: unknown): NotificationPaginationMeta => {
   if (!isRecord(value)
     || !isFiniteNumber(value.current_page)
     || !isFiniteNumber(value.last_page)
     || !isFiniteNumber(value.per_page)
-    || !isFiniteNumber(value.total)) {
+    || !isFiniteNumber(value.total)
+    || !isFiniteNumber(value.unread_count)
+    || value.unread_count < 0) {
     throw new Error('Некорректный ответ списка уведомлений');
   }
 
-  return value as NotificationPaginationMeta;
+  return {
+    ...value,
+    unread_by_category: normalizeCountMap(value.unread_by_category),
+    unread_by_notification_type: normalizeCountMap(value.unread_by_notification_type),
+    unread_by_type: normalizeCountMap(value.unread_by_type),
+  } as NotificationPaginationMeta;
 };
 
 const normalizeLinks = (value: unknown): NotificationPaginationLinks | undefined => {
