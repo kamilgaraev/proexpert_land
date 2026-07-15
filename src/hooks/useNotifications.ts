@@ -184,6 +184,9 @@ export const useNotifications = (
   const pendingReadRef = useRef<Map<string, symbol>>(new Map());
   const pendingDeleteRef = useRef<Map<string, symbol>>(new Map());
   const pendingMarkAllRef = useRef<symbol | null>(null);
+  const mutationRefreshRequestedGenerationRef = useRef(0);
+  const mutationRefreshCompletedGenerationRef = useRef(0);
+  const mutationRefreshRunnerRef = useRef<Promise<void> | null>(null);
   const markAllSequenceCutRef = useRef(0);
   const markAllReadAtRef = useRef<string | null>(null);
 
@@ -381,6 +384,40 @@ export const useNotifications = (
     }
   }, [applyLocalState, canApplyListContent, canPublishUnread, organizationId, publishNotifications, publishUnreadCount]);
 
+  const scheduleMutationRefresh = useCallback((): void => {
+    const epoch = lifecycleEpochRef.current;
+    mutationRefreshRequestedGenerationRef.current += 1;
+    if (mutationRefreshRunnerRef.current) {
+      return;
+    }
+
+    const runner = (async (): Promise<void> => {
+      while (lifecycleEpochRef.current === epoch
+        && mutationRefreshCompletedGenerationRef.current < mutationRefreshRequestedGenerationRef.current) {
+        const targetGeneration = mutationRefreshRequestedGenerationRef.current;
+        const appliedUnreadVersion = lastAppliedSnapshotRequestVersionRef.current;
+        await refreshNotifications();
+        if (lifecycleEpochRef.current !== epoch) {
+          return;
+        }
+        if (lastAppliedSnapshotRequestVersionRef.current > appliedUnreadVersion) {
+          mutationRefreshCompletedGenerationRef.current = targetGeneration;
+          continue;
+        }
+        if (mutationRefreshRequestedGenerationRef.current > targetGeneration) {
+          continue;
+        }
+        return;
+      }
+    })();
+    mutationRefreshRunnerRef.current = runner;
+    void runner.finally(() => {
+      if (mutationRefreshRunnerRef.current === runner) {
+        mutationRefreshRunnerRef.current = null;
+      }
+    });
+  }, [refreshNotifications]);
+
   const markAsRead = useCallback(async (notificationId: string): Promise<void> => {
     if (pendingReadRef.current.has(notificationId)) {
       return;
@@ -405,10 +442,7 @@ export const useNotifications = (
       mutationRevisionRef.current += 1;
       readOverridesRef.current.set(notificationId, readAt);
 
-      if (targetAtStart && !targetAtStart.read_at) {
-        unreadRevisionRef.current += 1;
-        publishUnreadCount(unreadCountRef.current - 1);
-      }
+      unreadRevisionRef.current += 1;
       if (targetAtStart) {
         activeMarkAllBufferRef.current?.items.delete(targetAtStart.sequence);
         knownNotificationsRef.current.set(notificationId, {
@@ -421,6 +455,7 @@ export const useNotifications = (
       publishNotifications(notificationsRef.current.map(notification => (
         notification.id === notificationId ? { ...notification, read_at: readAt } : notification
       )));
+      scheduleMutationRefresh();
     } catch (error) {
       if (lifecycleEpochRef.current === epoch) {
         console.error('Ошибка при отметке уведомления прочитанным:', error);
@@ -439,7 +474,7 @@ export const useNotifications = (
       trimMap(knownNotificationsRef.current, protectedIds);
       trimMap(readOverridesRef.current, new Set(pendingReadRef.current.keys()));
     }
-  }, [publishNotifications, publishUnreadCount, refreshNotifications]);
+  }, [publishNotifications, refreshNotifications, scheduleMutationRefresh]);
 
   const markAllAsRead = useCallback(async (): Promise<void> => {
     if (pendingMarkAllRef.current) {
@@ -454,15 +489,9 @@ export const useNotifications = (
       overflowMinSequence: null,
       overflowMaxSequence: null,
     };
-    const preOperationCandidates = new Map<number, Notification>();
-    activeListBuffersRef.current.forEach(buffer => {
-      buffer.forEach(notification => preOperationCandidates.set(notification.sequence, notification));
-    });
-    notificationsRef.current.forEach(notification => (
-      preOperationCandidates.set(notification.sequence, notification)
-    ));
     activeMarkAllBufferRef.current = realtimeBuffer;
     pendingMarkAllRef.current = operation;
+    let mutationCommitted = false;
 
     try {
       const response = await notificationService.markAllAsRead();
@@ -472,6 +501,7 @@ export const useNotifications = (
       }
 
       const readAt = new Date().toISOString();
+      mutationCommitted = true;
       mutationRevisionRef.current += 1;
       markAllSequenceCutRef.current = Math.max(markAllSequenceCutRef.current, response.sequence_cut);
       markAllReadAtRef.current = readAt;
@@ -485,26 +515,11 @@ export const useNotifications = (
           knownNotificationsRef.current.set(id, { ...notification, read_at: readAt });
         }
       });
-      realtimeBuffer.items.forEach(notification => (
-        preOperationCandidates.set(notification.sequence, notification)
-      ));
-      let overflowUnread: number | null = 0;
-      if (realtimeBuffer.overflowCount > 0) {
-        if ((realtimeBuffer.overflowMinSequence ?? 0) > markAllSequenceCutRef.current) {
-          overflowUnread = realtimeBuffer.overflowCount;
-        } else if ((realtimeBuffer.overflowMaxSequence ?? 0) > markAllSequenceCutRef.current) {
-          overflowUnread = null;
-        }
-      }
       unreadRevisionRef.current += 1;
-      if (overflowUnread !== null) {
-        publishUnreadCount(overflowUnread + [...preOperationCandidates.values()].filter(notification => (
-          notification.sequence > markAllSequenceCutRef.current && !applyLocalState(notification)?.read_at
-        )).length);
-      }
       publishNotifications(notificationsRef.current
         .map(applyLocalState)
         .filter((notification): notification is Notification => notification !== null));
+      scheduleMutationRefresh();
       toast.success('Все уведомления отмечены прочитанными');
     } catch (error) {
       if (lifecycleEpochRef.current === epoch) {
@@ -515,12 +530,12 @@ export const useNotifications = (
       if (pendingMarkAllRef.current === operation) {
         pendingMarkAllRef.current = null;
         activeMarkAllBufferRef.current = null;
-        if (realtimeBuffer.overflowCount > 0) {
+        if (realtimeBuffer.overflowCount > 0 && !mutationCommitted) {
           void refreshNotifications();
         }
       }
     }
-  }, [applyLocalState, publishNotifications, publishUnreadCount, refreshNotifications]);
+  }, [applyLocalState, publishNotifications, refreshNotifications, scheduleMutationRefresh]);
 
   const deleteNotification = useCallback(async (notificationId: string): Promise<void> => {
     if (pendingDeleteRef.current.has(notificationId)) {
@@ -544,10 +559,7 @@ export const useNotifications = (
 
       mutationRevisionRef.current += 1;
 
-      if (targetAtStart && !targetAtStart.read_at) {
-        unreadRevisionRef.current += 1;
-        publishUnreadCount(unreadCountRef.current - 1);
-      }
+      unreadRevisionRef.current += 1;
       if (targetAtStart) {
         activeMarkAllBufferRef.current?.items.delete(targetAtStart.sequence);
       }
@@ -561,6 +573,7 @@ export const useNotifications = (
       trimSet(deleteTombstonesRef.current, new Set(pendingDeleteRef.current.keys()));
       rememberNotification(dedupeCacheRef.current, `${notificationId}:lk`);
       publishNotifications(notificationsRef.current.filter(notification => notification.id !== notificationId));
+      scheduleMutationRefresh();
       toast.success('Уведомление удалено');
     } catch (error) {
       if (lifecycleEpochRef.current === epoch) {
@@ -581,7 +594,7 @@ export const useNotifications = (
       trimMap(knownNotificationsRef.current, protectedIds);
       trimSet(deleteTombstonesRef.current, new Set(pendingDeleteRef.current.keys()));
     }
-  }, [publishNotifications, publishUnreadCount, refreshNotifications]);
+  }, [publishNotifications, refreshNotifications, scheduleMutationRefresh]);
 
   const executeAction = useCallback(async (url: string, method: string = 'POST'): Promise<void> => {
     const epoch = lifecycleEpochRef.current;
@@ -621,6 +634,9 @@ export const useNotifications = (
     pendingReadRef.current.clear();
     pendingDeleteRef.current.clear();
     pendingMarkAllRef.current = null;
+    mutationRefreshRequestedGenerationRef.current = 0;
+    mutationRefreshCompletedGenerationRef.current = 0;
+    mutationRefreshRunnerRef.current = null;
     markAllSequenceCutRef.current = 0;
     markAllReadAtRef.current = null;
     lastAppliedSnapshotSequenceRef.current = -1;

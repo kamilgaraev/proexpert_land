@@ -374,7 +374,7 @@ describe('useNotifications', () => {
     async operation => {
       vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(
         list([notification('mutation-target', { sequence: 5 })], 1, 5),
-      );
+      ).mockResolvedValueOnce(list([], 0, 5));
       vi.mocked(notificationService.markAllAsRead).mockResolvedValueOnce({ count: 1, sequence_cut: 5 });
       const count = deferred<{ count: number; snapshot_sequence: number }>();
       vi.mocked(notificationService.getUnreadCount).mockReturnValueOnce(count.promise);
@@ -404,7 +404,11 @@ describe('useNotifications', () => {
     async operation => {
       vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(
         list([notification('target', { sequence: 1 })], 1, 1),
-      );
+      ).mockResolvedValueOnce(list(
+        [7, 6, 5, 4, 3].map(sequence => notification(`burst-${sequence}`, { sequence })),
+        6,
+        7,
+      ));
       const mutation = deferred<void>();
       if (operation === 'read') {
         vi.mocked(notificationService.markAsRead).mockReturnValueOnce(mutation.promise);
@@ -566,7 +570,9 @@ describe('useNotifications', () => {
   });
 
   it('invalidates same-session delete when a newer realtime version arrives', async () => {
-    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([notification('shared')]));
+    vi.mocked(notificationService.getNotifications)
+      .mockResolvedValueOnce(list([notification('shared')]))
+      .mockResolvedValueOnce(list([notification('newer', { sequence: 2 })], 1, 2));
     const mutation = deferred<void>();
     vi.mocked(notificationService.deleteNotification).mockReturnValueOnce(mutation.promise);
     const { result } = renderHook(() => useNotifications('7', 'token-a'));
@@ -600,7 +606,9 @@ describe('useNotifications', () => {
   });
 
   it('leaves realtime received during mark-all unread', async () => {
-    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([notification('old', { sequence: 1 })]));
+    vi.mocked(notificationService.getNotifications)
+      .mockResolvedValueOnce(list([notification('old', { sequence: 1 })]))
+      .mockResolvedValueOnce(list([notification('new', { sequence: 2 })], 1, 2));
     const mutation = deferred<{ count: number; sequence_cut: number }>();
     vi.mocked(notificationService.markAllAsRead).mockReturnValueOnce(mutation.promise);
     const { result } = renderHook(() => useNotifications('7', 'token-a'));
@@ -672,6 +680,7 @@ describe('useNotifications', () => {
     const { result } = renderHook(() => useNotifications('7', 'token-a'));
     await waitFor(() => expect(result.current.notifications[0]?.id).toBe('deleted'));
     vi.mocked(notificationService.getNotifications).mockReturnValueOnce(staleList.promise);
+    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([], 0, 1));
     void result.current.refreshNotifications();
     await result.current.deleteNotification('deleted');
 
@@ -707,6 +716,9 @@ describe('useNotifications', () => {
     const { result } = renderHook(() => useNotifications('7', 'token-a'));
     await waitFor(() => expect(result.current.notifications[0]?.id).toBe('read'));
     vi.mocked(notificationService.getNotifications).mockReturnValueOnce(staleList.promise);
+    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([
+      notification('read', { sequence: 1, read_at: '2026-07-15T11:00:00Z' }),
+    ], 0, 1));
     void result.current.refreshNotifications();
     await result.current.markAsRead('read');
 
@@ -726,6 +738,9 @@ describe('useNotifications', () => {
     const { result } = renderHook(() => useNotifications('7', 'token-a'));
     await waitFor(() => expect(result.current.notifications[0]?.id).toBe('read-all'));
     vi.mocked(notificationService.getNotifications).mockReturnValueOnce(staleList.promise);
+    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([
+      notification('read-all', { sequence: 1, read_at: '2026-07-15T11:00:00Z' }),
+    ], 0, 1));
     void result.current.refreshNotifications();
     await result.current.markAllAsRead();
 
@@ -741,6 +756,11 @@ describe('useNotifications', () => {
   it('applies the global mark-all cut to fetched and buffered notifications', async () => {
     const initial = deferred<ReturnType<typeof list>>();
     vi.mocked(notificationService.getNotifications).mockReturnValueOnce(initial.promise);
+    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([
+      notification('after-cut', { sequence: 6 }),
+      notification('fetched-before-cut', { sequence: 3 }),
+      notification('before-cut', { sequence: 1 }),
+    ], 1, 6));
     vi.mocked(notificationService.markAllAsRead).mockResolvedValueOnce({ count: 1, sequence_cut: 5 });
     const { result } = renderHook(() => useNotifications('7', 'token-a'));
     await waitFor(() => expect(standardHandlers).toHaveLength(1));
@@ -821,6 +841,122 @@ describe('useNotifications', () => {
     expect(notificationService.markAllAsRead).toHaveBeenCalledOnce();
     mutation.resolve({ count: 0, sequence_cut: 0 });
     await act(async () => Promise.all([first, second]));
+  });
+
+  it.each(['read-first', 'all-first'] as const)(
+    'publishes only the final atomic snapshot for overlapping mark-read and mark-all (%s)',
+    async completionOrder => {
+      const firstRefresh = deferred<ReturnType<typeof list>>();
+      const finalRefresh = deferred<ReturnType<typeof list>>();
+      vi.mocked(notificationService.getNotifications)
+        .mockResolvedValueOnce(list([
+          notification('first', { sequence: 2 }),
+          notification('second', { sequence: 1 }),
+        ], 2, 2))
+        .mockReturnValueOnce(firstRefresh.promise)
+        .mockReturnValueOnce(finalRefresh.promise);
+      const readMutation = deferred<void>();
+      const allMutation = deferred<{ count: number; sequence_cut: number }>();
+      vi.mocked(notificationService.markAsRead).mockReturnValueOnce(readMutation.promise);
+      vi.mocked(notificationService.markAllAsRead).mockReturnValueOnce(allMutation.promise);
+      const { result } = renderHook(() => useNotifications('7', 'token-a'));
+      await waitFor(() => expect(result.current.unreadCount).toBe(2));
+      const read = result.current.markAsRead('first');
+      const all = result.current.markAllAsRead();
+
+      await act(async () => {
+        if (completionOrder === 'read-first') {
+          readMutation.resolve();
+          await readMutation.promise;
+        } else {
+          allMutation.resolve({ count: 2, sequence_cut: 2 });
+          await allMutation.promise;
+        }
+      });
+      await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledTimes(2));
+      act(() => standardHandlers[0](notification('post-cut', { sequence: 3 })));
+      await act(async () => {
+        if (completionOrder === 'read-first') {
+          allMutation.resolve({ count: 2, sequence_cut: 2 });
+          await allMutation.promise;
+        } else {
+          readMutation.resolve();
+          await readMutation.promise;
+        }
+      });
+      await act(async () => {
+        firstRefresh.resolve(list([], 2, 2));
+        await firstRefresh.promise;
+      });
+      await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledTimes(3));
+      await act(async () => {
+        finalRefresh.resolve(list([notification('post-cut', { sequence: 3 })], 1, 3));
+        await finalRefresh.promise;
+        await Promise.all([read, all]);
+      });
+
+      expect(result.current.unreadCount).toBe(1);
+      expect(result.current.notifications.map(item => item.id)).toEqual(['post-cut']);
+    },
+  );
+
+  it('coalesces overlapping delete completions and always refreshes after the last completion', async () => {
+    const firstRefresh = deferred<ReturnType<typeof list>>();
+    const finalRefresh = deferred<ReturnType<typeof list>>();
+    vi.mocked(notificationService.getNotifications)
+      .mockResolvedValueOnce(list([
+        notification('delete-a', { sequence: 2 }),
+        notification('delete-b', { sequence: 1 }),
+      ], 2, 2))
+      .mockReturnValueOnce(firstRefresh.promise)
+      .mockReturnValueOnce(finalRefresh.promise);
+    const deleteA = deferred<void>();
+    const deleteB = deferred<void>();
+    vi.mocked(notificationService.deleteNotification)
+      .mockReturnValueOnce(deleteA.promise)
+      .mockReturnValueOnce(deleteB.promise);
+    const { result } = renderHook(() => useNotifications('7', 'token-a'));
+    await waitFor(() => expect(result.current.unreadCount).toBe(2));
+    const pendingA = result.current.deleteNotification('delete-a');
+    const pendingB = result.current.deleteNotification('delete-b');
+    deleteA.resolve();
+    await act(async () => deleteA.promise);
+    await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledTimes(2));
+    deleteB.resolve();
+    await act(async () => deleteB.promise);
+
+    expect(notificationService.getNotifications).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      firstRefresh.resolve(list([], 1, 2));
+      await firstRefresh.promise;
+    });
+    await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledTimes(3));
+    await act(async () => {
+      finalRefresh.resolve(list([], 0, 2));
+      await finalRefresh.promise;
+      await Promise.all([pendingA, pendingB]);
+    });
+
+    expect(result.current.unreadCount).toBe(0);
+    expect(result.current.notifications).toEqual([]);
+  });
+
+  it('preserves counters on mutation refetch failure and retries after a later mutation', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.mocked(notificationService.getNotifications)
+      .mockResolvedValueOnce(list([notification('target', { sequence: 1 })], 1, 1))
+      .mockRejectedValueOnce(new Error('snapshot unavailable'))
+      .mockResolvedValueOnce(list([], 0, 1));
+    const { result } = renderHook(() => useNotifications('7', 'token-a'));
+    await waitFor(() => expect(result.current.unreadCount).toBe(1));
+
+    await act(async () => result.current.markAsRead('target'));
+    await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledTimes(2));
+    expect(result.current.unreadCount).toBe(1);
+    await act(async () => result.current.deleteNotification('target'));
+    await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(result.current.unreadCount).toBe(0));
+    consoleError.mockRestore();
   });
 
   it('refetches authoritative state after an ambiguous delete failure', async () => {
