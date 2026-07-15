@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   authService,
-  billingService,
   createFetchResponse,
   getBalanceTransactionDescription,
   landingService,
@@ -205,34 +204,6 @@ describe('billing response normalizers', () => {
       meta: { type: 'contractor_referral_reward' },
       created_at: '2026-05-08T10:00:00+03:00',
     })).toBe('Бонус за приглашенную организацию');
-  });
-});
-
-describe('billingService', () => {
-  it('loads organization dashboard from the landing billing dashboard endpoint', async () => {
-    saveAuthToken('test-token');
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ data: { ok: true } }), {
-      status: 200,
-      statusText: 'OK',
-      headers: {
-        'content-type': 'application/json',
-      },
-    }));
-
-    vi.stubGlobal('fetch', fetchMock);
-
-    const result = await billingService.getOrgDashboard();
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://api.1мост.рф/api/v1/landing/billing/dashboard',
-      expect.objectContaining({
-        method: 'GET',
-        headers: expect.objectContaining({
-          Authorization: 'Bearer test-token',
-        }),
-      }),
-    );
-    expect(result.data).toEqual({ ok: true });
   });
 });
 

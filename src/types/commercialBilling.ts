@@ -1,4 +1,4 @@
-export type CommercialAccountStatus = 'free' | 'active' | 'grace' | 'suspended';
+export type CommercialAccountStatus = 'free' | 'active' | 'grace' | 'suspended' | 'corporate';
 export type CommercialOrderStatus = 'pending_payment' | 'paid' | 'canceled' | 'refunded' | 'failed';
 
 export interface CommercialPackage {

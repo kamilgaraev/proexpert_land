@@ -61,7 +61,7 @@ export const RecommendedModulesCard = ({
       <Card>
         <CardContent className="p-8 text-center">
           <p className="text-gray-500">
-            Заполните профиль организации, чтобы получить рекомендации по модулям
+            Заполните профиль организации, чтобы получить рекомендации по пакетам
           </p>
         </CardContent>
       </Card>
@@ -73,7 +73,7 @@ export const RecommendedModulesCard = ({
       {showTitle && (
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            Рекомендуемые модули
+            Рекомендуемые пакеты
           </h3>
           <p className="text-sm text-gray-600">
             На основе профиля вашей организации
@@ -114,7 +114,7 @@ export const RecommendedModulesCard = ({
                   size="sm"
                   className="w-full text-construction-600 hover:bg-construction-50 group-hover:bg-construction-50"
                 >
-                  Подключить модуль →
+                  Выбрать пакет →
                 </Button>
               </CardContent>
             </Card>
@@ -124,7 +124,7 @@ export const RecommendedModulesCard = ({
 
       <div className="mt-6 p-4 bg-construction-50 border border-construction-200 rounded-lg">
         <p className="text-sm text-construction-800">
-          <strong>💡 Совет:</strong> Эти модули автоматически подобраны на основе возможностей и специализаций вашей организации. Вы можете подключить их в разделе "Модули".
+          <strong>💡 Совет:</strong> Эти пакеты подобраны по возможностям и специализациям вашей организации. Изменить состав можно в разделе «Пакеты и оплата».
         </p>
       </div>
     </div>

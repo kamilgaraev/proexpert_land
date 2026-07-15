@@ -67,6 +67,7 @@ const BillingPage = () => {
   const [paymentState, setPaymentState] = useState<'idle' | 'waiting' | 'success' | 'failed' | 'canceled' | 'refunded' | 'timeout' | 'error'>('idle');
   const [now, setNow] = useState(() => Date.now());
   const quoteSequence = useRef(0);
+  const isCorporate = renewal?.status === 'corporate';
 
   const currentPaidSlugs = useMemo(() => packages
     .filter((item) => item.isActive && ['paid_package', 'full_suite', 'corporate'].includes(item.accessSource ?? ''))
@@ -117,15 +118,20 @@ const BillingPage = () => {
     }
   }, []);
 
-  const refreshCommercialState = useCallback(async () => {
-    const [packageItems, renewalState] = await Promise.all([
+  const refreshCommercialState = useCallback(async (refreshHistory = false) => {
+    const [packageItems, renewalState, historyData] = await Promise.all([
       commercialBillingService.getPackages(),
       commercialBillingService.getRenewal(),
+      refreshHistory ? commercialBillingService.getHistory(1) : Promise.resolve(null),
     ]);
     setPackages(packageItems);
     setRenewal(renewalState);
     setSelected(packageItems.filter((item) => item.isActive && ['paid_package', 'full_suite', 'corporate'].includes(item.accessSource ?? '')).map((item) => item.slug));
     setFullSuite(false);
+    if (historyData) {
+      setHistory(historyData);
+      setHistoryPage(1);
+    }
   }, []);
 
   useEffect(() => { void loadOverview(); }, [loadOverview]);
@@ -136,7 +142,7 @@ const BillingPage = () => {
   }, []);
 
   useEffect(() => {
-    if (loading || packages.length === 0 || renewal?.status === 'grace') return;
+    if (loading || packages.length === 0 || renewal?.status === 'grace' || isCorporate) return;
     const controller = new AbortController();
     const sequence = ++quoteSequence.current;
     const timer = window.setTimeout(async () => {
@@ -156,7 +162,7 @@ const BillingPage = () => {
       }
     }, 220);
     return () => { window.clearTimeout(timer); controller.abort(); };
-  }, [fullSuite, loading, packages.length, renewal?.status, selected]);
+  }, [fullSuite, isCorporate, loading, packages.length, renewal?.status, selected]);
 
   const verifyOrder = useCallback(async (orderId: string, signal?: AbortSignal) => {
     setPaymentState('waiting');
@@ -166,16 +172,19 @@ const BillingPage = () => {
       if (order.status === 'paid') {
         setPaymentState('success');
         window.sessionStorage.removeItem(pendingOrderStorageKey);
-        await refreshCommercialState();
+        await refreshCommercialState(true);
       } else if (order.status === 'refunded') {
         setPaymentState('refunded');
         window.sessionStorage.removeItem(pendingOrderStorageKey);
+        await refreshCommercialState(true);
       } else if (order.status === 'failed') {
         setPaymentState('failed');
         window.sessionStorage.removeItem(pendingOrderStorageKey);
+        await refreshCommercialState(true);
       } else if (order.status === 'canceled') {
         setPaymentState('canceled');
         window.sessionStorage.removeItem(pendingOrderStorageKey);
+        await refreshCommercialState(true);
       }
     } catch (requestError) {
       if (signal?.aborted) return;
@@ -198,6 +207,7 @@ const BillingPage = () => {
   }, [verifyOrder]);
 
   const togglePackage = (slug: string) => {
+    if (isCorporate) return;
     setFullSuite(false);
     setSelected((current) => current.includes(slug) ? current.filter((item) => item !== slug) : [...current, slug]);
     setAutoRenewConsent(false);
@@ -205,12 +215,14 @@ const BillingPage = () => {
   };
 
   const selectFullSuite = () => {
+    if (isCorporate) return;
     setFullSuite(true);
     setSelected(packages.map((item) => item.slug));
     setAutoRenewConsent(false);
   };
 
   const startTrial = async (packageSlug: string) => {
+    if (isCorporate) return;
     setActionBusy(`trial:${packageSlug}`);
     setActionError(null);
     try {
@@ -226,7 +238,7 @@ const BillingPage = () => {
   };
 
   const submitContour = async () => {
-    if (!quote || !canManage) return;
+    if (!quote || !canManage || isCorporate) return;
     setActionBusy('checkout');
     setActionError(null);
     const fingerprint = JSON.stringify({ target: quote.targetPackageSlugs, current: quote.currentPackageSlugs, fullSuite, quoteVersion: quote.quoteVersion, autoRenewConsent });
@@ -262,7 +274,7 @@ const BillingPage = () => {
   };
 
   const payGrace = async () => {
-    if (!canManage || renewal?.status !== 'grace') return;
+    if (!canManage || renewal?.status !== 'grace' || isCorporate) return;
     setActionBusy('manual-payment');
     setActionError(null);
     const key = createCheckoutIntentKey(`manual:${renewal.graceStartedAt ?? ''}:${renewal.graceEndsAt ?? ''}`);
@@ -279,6 +291,7 @@ const BillingPage = () => {
   };
 
   const disableRenewal = async () => {
+    if (isCorporate) return;
     setActionBusy('renewal');
     setActionError(null);
     try {
@@ -321,7 +334,7 @@ const BillingPage = () => {
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">Соберите рабочую систему из пакетов. Бесплатная основа остаётся доступной всегда, а сервер точно рассчитает доплату и следующий период.</p>
           </div>
           <div className="grid grid-cols-2 gap-2 text-sm sm:flex">
-            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"><span className="block text-xs text-slate-400">Состояние</span><strong>{isGrace ? 'Льготный период' : currentPaidSlugs.length ? 'Оплачено' : 'Бесплатная основа'}</strong></div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"><span className="block text-xs text-slate-400">Состояние</span><strong>{isCorporate ? 'Корпоративный уровень' : isGrace ? 'Льготный период' : currentPaidSlugs.length ? 'Оплачено' : 'Бесплатная основа'}</strong></div>
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"><span className="block text-xs text-slate-400">Следующая дата</span><strong>{formatDateTime(renewal?.nextBillingAt ?? null)}</strong></div>
           </div>
         </div>
@@ -332,6 +345,12 @@ const BillingPage = () => {
           <div className="max-w-3xl"><Badge className="mb-3 bg-orange-600">Требуется действие</Badge><h2 id="grace-title" className="text-2xl font-semibold text-orange-950">Льготный период</h2><p className="mt-2 text-orange-900">Автоматическая оплата не прошла. Доступ сохранён до <strong>{formatDateTime(renewal?.graceEndsAt ?? null)}</strong> — осталось {remaining(renewal?.graceEndsAt ?? null, now)}. Изменение состава временно заблокировано.</p><p className="mt-3 text-sm leading-6 text-orange-800">Расчётная дата не переносится: поздняя оплата закрывает пропущенный фиксированный 30-дневный период. При оплате на шестой день останется около 24 дней до следующей расчётной даты.</p></div>
           {canManage ? <Button size="lg" disabled={actionBusy === 'manual-payment'} onClick={() => void payGrace()}>Оплатить сейчас<ArrowRight className="ml-2 h-4 w-4" /></Button> : null}
         </div>
+      </section> : null}
+
+      {isCorporate ? <section className="rounded-[24px] border border-blue-200 bg-blue-50 p-6" aria-labelledby="corporate-title">
+        <Badge className="mb-3 bg-blue-700">Корпоративный уровень</Badge>
+        <h2 id="corporate-title" className="text-2xl font-semibold text-blue-950">Персональное сопровождение</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-blue-900">Состав, условия оплаты и изменения корпоративного контура согласуются с персональным менеджером МОСТ. Самостоятельное подключение, пробный доступ и изменение пакетов для этой организации недоступны.</p>
       </section> : null}
 
       {renewal?.scheduledChange ? <section className="rounded-2xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
@@ -348,7 +367,7 @@ const BillingPage = () => {
 
       <section className="grid gap-4 md:grid-cols-3">
         <Card className="md:col-span-1"><CardContent className="p-6"><ShieldCheck className="h-7 w-7 text-emerald-600" /><h2 className="mt-4 text-xl font-semibold">Бесплатная основа</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Организация, сотрудники, проекты и базовые рабочие данные остаются доступны без оплаты.</p><Badge variant="secondary" className="mt-4">Доступна всегда</Badge></CardContent></Card>
-        <Card className="md:col-span-2"><CardContent className="grid gap-5 p-6 sm:grid-cols-3"><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Источник доступа</span><p className="mt-2 font-semibold">{accessSourceLabel}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Текущий период</span><p className="mt-2 font-semibold">{formatDateTime(currentPeriodStart)} — {formatDateTime(currentPeriodEnd)}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Способ оплаты</span><p className="mt-2 font-semibold">{renewal?.savedMethodAvailable ? 'Сохранён' : 'Не сохранён'}</p></div><div className="sm:col-span-3 flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Бонусы и компенсации учитываются отдельно и не используются для покупки пакетов.</p>{renewal?.autoRenewEnabled && canManage ? <Button variant="outline" onClick={() => void disableRenewal()} disabled={actionBusy === 'renewal'}>Отключить автопродление</Button> : <Badge variant="outline">Автопродление отключено</Badge>}</div></CardContent></Card>
+        <Card className="md:col-span-2"><CardContent className="grid gap-5 p-6 sm:grid-cols-3"><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Источник доступа</span><p className="mt-2 font-semibold">{accessSourceLabel}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Текущий период</span><p className="mt-2 font-semibold">{formatDateTime(currentPeriodStart)} — {formatDateTime(currentPeriodEnd)}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Способ оплаты</span><p className="mt-2 font-semibold">{renewal?.savedMethodAvailable ? 'Сохранён' : 'Не сохранён'}</p></div><div className="sm:col-span-3 flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Бонусы и компенсации учитываются отдельно и не используются для покупки пакетов.</p>{!isCorporate && renewal?.autoRenewEnabled && canManage ? <Button variant="outline" onClick={() => void disableRenewal()} disabled={actionBusy === 'renewal'}>Отключить автопродление</Button> : !isCorporate ? <Badge variant="outline">Автопродление отключено</Badge> : null}</div></CardContent></Card>
       </section>
 
       <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
@@ -362,15 +381,15 @@ const BillingPage = () => {
                 <label className="flex cursor-pointer items-start gap-4">
                   <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-mono text-sm ${checked ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-600'}`}>{String(index + 1).padStart(2, '0')}</span>
                   <span className="min-w-0 flex-1"><span className="flex items-start justify-between gap-3"><strong className="text-base">{item.name}</strong><span className="whitespace-nowrap text-sm font-semibold">{formatMoney(item.priceMinor, item.currency)}</span></span><span className={`mt-2 block text-sm leading-5 ${checked ? 'text-slate-300' : 'text-muted-foreground'}`}>{item.description}</span><span className={`mt-3 block text-xs ${checked ? 'text-orange-300' : 'text-primary'}`}>{item.businessOutcomes[0] ?? item.highlights[0]}</span></span>
-                  <input type="checkbox" className="mt-1 h-5 w-5 accent-orange-500" checked={checked} disabled={!canManage || isGrace} onChange={() => togglePackage(item.slug)} aria-label={`${item.name}, ${formatMoney(item.priceMinor, item.currency)}`} />
+                  <input type="checkbox" className="mt-1 h-5 w-5 accent-orange-500" checked={checked} disabled={!canManage || isGrace || isCorporate} onChange={() => togglePackage(item.slug)} aria-label={`${item.name}, ${formatMoney(item.priceMinor, item.currency)}`} />
                 </label>
-                {item.status === 'trialing' ? <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900"><Clock3 className="h-4 w-4" />Пробный доступ: {trialLeft ?? 'завершён'}</div> : !item.isActive && canManage ? <Button variant={checked ? 'secondary' : 'outline'} size="sm" className="mt-4" disabled={!item.trialAvailable || item.trialUsed || actionBusy === `trial:${item.slug}`} onClick={() => void startTrial(item.slug)}>{item.trialUsed ? 'Пробный доступ уже использован' : 'Попробовать на 72 часа'}</Button> : null}
+                {item.status === 'trialing' ? <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900"><Clock3 className="h-4 w-4" />Пробный доступ: {trialLeft ?? 'завершён'}</div> : !isCorporate && !item.isActive && canManage ? <Button variant={checked ? 'secondary' : 'outline'} size="sm" className="mt-4" disabled={!item.trialAvailable || item.trialUsed || actionBusy === `trial:${item.slug}`} onClick={() => void startTrial(item.slug)}>{item.trialUsed ? 'Пробный доступ уже использован' : 'Попробовать на 72 часа'}</Button> : null}
               </article>;
             })}
           </div>
         </div>
 
-        <aside id="order-summary" className="space-y-4 xl:sticky xl:top-6">
+        {!isCorporate ? <aside id="order-summary" className="space-y-4 xl:sticky xl:top-6">
           <Card className="overflow-hidden border-slate-300 shadow-xl"><div className="bg-orange-500 px-5 py-3 text-sm font-semibold text-white">Расчёт сервера</div><CardContent className="space-y-5 p-5">
             <div className="flex items-center justify-between"><span className="text-sm text-muted-foreground">Выбрано</span><strong>{fullSuite ? 'Полный комплект' : `${selected.length} из 10`}</strong></div>
             {quote?.recommendation === 'full_suite' && !fullSuite ? <button type="button" onClick={selectFullSuite} disabled={!canManage || isGrace} className="w-full rounded-2xl border border-orange-300 bg-orange-50 p-4 text-left text-sm text-orange-950"><Sparkles className="mb-2 h-5 w-5 text-orange-600" /><strong>Полный комплект выгоднее</strong><span className="mt-1 block text-xs">Рекомендация не меняет выбор автоматически.</span></button> : null}
@@ -383,7 +402,7 @@ const BillingPage = () => {
             </> : <p className="text-sm text-muted-foreground">Выберите состав, чтобы получить расчёт.</p>}
             {actionError ? <p className={`rounded-xl p-3 text-sm ${actionError.startsWith('Сокращение') ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'}`}>{actionError}</p> : null}
           </CardContent></Card>
-        </aside>
+        </aside> : null}
       </section>
 
       <section className="space-y-4" aria-labelledby="history-title">

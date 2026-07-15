@@ -103,6 +103,50 @@ describe('BillingPage commercial contour', () => {
     expect(screen.getByText(/Доступен просмотр без изменения состава/)).toBeInTheDocument();
   });
 
+  it('для корпоративного уровня оставляет только персональное сопровождение без самостоятельных действий', async () => {
+    accountStatus = 'corporate';
+    let quoteCalls = 0;
+    server.use(http.post(`${baseUrl}/billing/commercial/quote`, () => {
+      quoteCalls += 1;
+      return HttpResponse.json({ success: false }, { status: 500 });
+    }));
+
+    renderPage();
+
+    expect(await screen.findByText(/Персональное сопровождение/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Перейти к оплате/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Попробовать на 72 часа/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Отключить автопродление/ })).not.toBeInTheDocument();
+    screen.getAllByRole('checkbox', { name: /Пакет/ }).forEach((checkbox) => {
+      expect(checkbox).toBeDisabled();
+    });
+    await act(() => new Promise((resolve) => setTimeout(resolve, 300)));
+    expect(quoteCalls).toBe(0);
+  });
+
+  it.each(['paid', 'refunded'] as const)('после terminal статуса %s обновляет историю оплаты', async (status) => {
+    let historyCalls = 0;
+    sessionStorage.setItem('most:pending-commercial-order', 'order-terminal');
+    server.use(
+      http.get(`${baseUrl}/billing/commercial/history`, () => {
+        historyCalls += 1;
+        return HttpResponse.json({ success: true, data: [], meta: { current_page: 1, per_page: 20, last_page: 1, total: 0 } });
+      }),
+      http.get(`${baseUrl}/billing/commercial/orders/order-terminal`, () => HttpResponse.json({ success: true, data: {
+        order_id: 'order-terminal', kind: 'renewal', status,
+        payment_status: status === 'paid' ? 'succeeded' : 'refunded', amount: '1000.00', amount_minor: 100000,
+        currency: 'RUB', selected_package_slugs: [packageSlugs[0]], offer_type: 'packages',
+        period_start_at: null, period_end_at: null, auto_renew_consent: false, test_mode: false,
+        confirmation_url: null, created_at: '2026-07-15T10:00:00Z', paid_at: status === 'paid' ? '2026-07-15T10:01:00Z' : null,
+        canceled_at: null, refunds_summary: { count: status === 'refunded' ? 1 : 0, amount: status === 'refunded' ? '1000.00' : '0.00', amount_minor: status === 'refunded' ? 100000 : 0, currency: 'RUB', fully_refunded: status === 'refunded' },
+      } })),
+    );
+
+    renderPage();
+
+    await waitFor(() => expect(historyCalls).toBeGreaterThanOrEqual(2));
+  });
+
   it('не показывает view-only пользователю CTA ручной оплаты в grace', async () => {
     accountStatus = 'grace';
     access.manage = false;

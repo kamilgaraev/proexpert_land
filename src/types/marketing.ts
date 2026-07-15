@@ -147,18 +147,6 @@ export interface MarketingAdvancedOffer {
   cta: string;
 }
 
-export interface MarketingSalesOffer {
-  title: string;
-  planSlug: 'start' | 'business' | 'profi' | 'enterprise';
-  planName: string;
-  priceLabel: string;
-  audience: string;
-  packageSlugs: string[];
-  outcome: string;
-  comparison: string;
-  isConsultative?: boolean;
-}
-
 export interface MarketingSolutionSegment {
   id: string;
   title: string;

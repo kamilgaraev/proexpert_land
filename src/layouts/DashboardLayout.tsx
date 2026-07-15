@@ -15,8 +15,7 @@ import {
 
 import { useAuth } from '@hooks/useAuth';
 import { useBalance } from '@hooks/useBalance';
-import { useModules } from '@hooks/useModules';
-import { useCanAccess } from '@/hooks/usePermissions';
+import { useActiveModules, useCanAccess } from '@/hooks/usePermissions';
 import { useProfileOnboarding } from '@/hooks/useProfileOnboarding';
 import { useOrganizationProfile } from '@/hooks/useOrganizationProfile';
 
@@ -64,11 +63,7 @@ const DashboardLayout = () => {
     enabled: canViewBilling,
   });
 
-  const { activeModules } = useModules({
-    autoRefresh: true,
-    refreshInterval: 900000,
-    includeBilling: canViewBilling,
-  });
+  const activeModules = useActiveModules();
 
   const canInviteUsers =
     useCanAccess({ permission: 'users.invite' }) ||
@@ -107,7 +102,7 @@ const DashboardLayout = () => {
   );
 
   const activeModuleSlugs = useMemo(
-    () => activeModules.map((module) => module.slug),
+    () => activeModules,
     [activeModules]
   );
 
