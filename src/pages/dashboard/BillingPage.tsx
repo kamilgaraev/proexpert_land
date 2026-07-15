@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, ArrowRight, Check, Clock3, CreditCard, History, Loader2, LockKeyhole, PackageCheck, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
+import { AlertCircle, ArrowRight, Check, CreditCard, History, Loader2, LockKeyhole, PackageCheck, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
+import { CommercialPackageCard } from '@/components/billing/CommercialPackageCard';
+import { CommercialPackageDetailsSheet } from '@/components/billing/CommercialPackageDetailsSheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -63,6 +65,7 @@ const BillingPage = () => {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [autoRenewConsent, setAutoRenewConsent] = useState(false);
+  const [detailsPackage, setDetailsPackage] = useState<CommercialPackage | null>(null);
   const [paymentOrder, setPaymentOrder] = useState<CommercialOrder | null>(null);
   const [paymentState, setPaymentState] = useState<'idle' | 'waiting' | 'success' | 'failed' | 'canceled' | 'refunded' | 'timeout' | 'error'>('idle');
   const [now, setNow] = useState(() => Date.now());
@@ -73,6 +76,11 @@ const BillingPage = () => {
     .filter((item) => item.isActive && ['paid_package', 'full_suite', 'corporate'].includes(item.accessSource ?? ''))
     .map((item) => item.slug)
     .sort(), [packages]);
+  const connectedPackages = useMemo(() => packages.filter((item) => item.isActive), [packages]);
+  const availablePackages = useMemo(() => packages.filter((item) => !item.isActive), [packages]);
+  const currentMonthlyMinor = useMemo(() => packages
+    .filter((item) => currentPaidSlugs.includes(item.slug))
+    .reduce((total, item) => total + item.priceMinor, 0), [currentPaidSlugs, packages]);
 
   const packageNames = useMemo(() => new Map(packages.map((item) => [item.slug, item.name])), [packages]);
   const namesFor = useCallback((slugs: string[]) => slugs.map((slug) => packageNames.get(slug) ?? slug).join(', '), [packageNames]);
@@ -100,6 +108,7 @@ const BillingPage = () => {
       if (packageItems.length !== 10) throw new Error('Каталог пакетов временно недоступен.');
       setPackages(packageItems);
       setRenewal(renewalState);
+      setAutoRenewConsent(renewalState.autoRenewEnabled && renewalState.savedMethodAvailable);
       setHistory(historyData);
       setHistoryPage(1);
       const active = packageItems.filter((item) => item.isActive && ['paid_package', 'full_suite', 'corporate'].includes(item.accessSource ?? '')).map((item) => item.slug);
@@ -126,6 +135,7 @@ const BillingPage = () => {
     ]);
     setPackages(packageItems);
     setRenewal(renewalState);
+    setAutoRenewConsent(renewalState.autoRenewEnabled && renewalState.savedMethodAvailable);
     setSelected(packageItems.filter((item) => item.isActive && ['paid_package', 'full_suite', 'corporate'].includes(item.accessSource ?? '')).map((item) => item.slug));
     setFullSuite(false);
     if (historyData) {
@@ -210,7 +220,7 @@ const BillingPage = () => {
     if (isCorporate) return;
     setFullSuite(false);
     setSelected((current) => current.includes(slug) ? current.filter((item) => item !== slug) : [...current, slug]);
-    setAutoRenewConsent(false);
+    if (!renewal?.autoRenewEnabled || !renewal.savedMethodAvailable) setAutoRenewConsent(false);
     setActionError(null);
   };
 
@@ -218,7 +228,7 @@ const BillingPage = () => {
     if (isCorporate) return;
     setFullSuite(true);
     setSelected(packages.map((item) => item.slug));
-    setAutoRenewConsent(false);
+    if (!renewal?.autoRenewEnabled || !renewal.savedMethodAvailable) setAutoRenewConsent(false);
   };
 
   const startTrial = async (packageSlug: string) => {
@@ -251,7 +261,7 @@ const BillingPage = () => {
         setActionError('Сокращение состава запланировано на конец уже оплаченного периода.');
         return;
       }
-      if (!autoRenewConsent) {
+      if ((!renewal?.autoRenewEnabled || !renewal.savedMethodAvailable) && !autoRenewConsent) {
         setActionError('Подтвердите условия автопродления перед оплатой.');
         return;
       }
@@ -321,7 +331,9 @@ const BillingPage = () => {
   const isGrace = renewal?.status === 'grace';
   const currentPeriodStart = packages.find((item) => item.currentPeriodStartAt)?.currentPeriodStartAt ?? null;
   const currentPeriodEnd = packages.find((item) => item.currentPeriodEndAt)?.currentPeriodEndAt ?? renewal?.nextBillingAt ?? null;
+  const hasChanges = Boolean(quote && (quote.addedPackageSlugs.length > 0 || quote.removedPackageSlugs.length > 0));
   const hasReduction = Boolean(quote && quote.amountDueNowMinor === 0 && quote.removedPackageSlugs.length > 0 && quote.addedPackageSlugs.length === 0);
+  const requiresAutoRenewConsent = !renewal?.autoRenewEnabled || !renewal.savedMethodAvailable;
 
   return (
     <main className="space-y-8 pb-24">
@@ -370,40 +382,113 @@ const BillingPage = () => {
         <Card className="md:col-span-2"><CardContent className="grid gap-5 p-6 sm:grid-cols-3"><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Ваш доступ</span><p className="mt-2 font-semibold">{accessSourceLabel}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Оплачено до</span><p className="mt-2 font-semibold">{formatDateTime(currentPeriodStart)} — {formatDateTime(currentPeriodEnd)}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Автоплатёж</span><p className="mt-2 font-semibold">{renewal?.savedMethodAvailable ? 'Настроен' : 'Не настроен'}</p></div><div className="sm:col-span-3 flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Бонусы и компенсации учитываются отдельно и не используются для покупки пакетов.</p>{!isCorporate && renewal?.autoRenewEnabled && canManage ? <Button variant="outline" onClick={() => void disableRenewal()} disabled={actionBusy === 'renewal'}>Отключить автопродление</Button> : !isCorporate ? <Badge variant="outline">Автопродление отключено</Badge> : null}</div></CardContent></Card>
       </section>
 
-      <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">10 пакетов МОСТ</p><h2 className="mt-2 text-2xl font-semibold">Выберите нужные возможности</h2><p className="mt-1 text-sm text-muted-foreground">Подключите один пакет или соберите полный комплект под задачи команды.</p></div>{!canManage ? <Badge variant="outline">Доступен просмотр без изменения состава</Badge> : null}</div>
-          <div className="grid gap-3 md:grid-cols-2">
-            {packages.map((item, index) => {
-              const checked = fullSuite || selected.includes(item.slug);
-              const trialLeft = remaining(item.trialEndsAt, now);
-              return <article key={item.slug} className={`relative rounded-[22px] border p-5 transition ${checked ? 'border-slate-900 bg-slate-950 text-white shadow-lg' : 'border-slate-200 bg-white hover:border-slate-400'}`}>
-                <label className="flex cursor-pointer items-start gap-4">
-                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-mono text-sm ${checked ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-600'}`}>{String(index + 1).padStart(2, '0')}</span>
-                  <span className="min-w-0 flex-1"><span className="flex items-start justify-between gap-3"><strong className="text-base">{item.name}</strong><span className="whitespace-nowrap text-sm font-semibold">{formatMoney(item.priceMinor, item.currency)}</span></span><span className={`mt-2 block text-sm leading-5 ${checked ? 'text-slate-300' : 'text-muted-foreground'}`}>{item.description}</span><span className={`mt-3 block text-xs ${checked ? 'text-orange-300' : 'text-primary'}`}>{item.businessOutcomes[0] ?? item.highlights[0]}</span></span>
-                  <input type="checkbox" className="mt-1 h-5 w-5 accent-orange-500" checked={checked} disabled={!canManage || isGrace || isCorporate} onChange={() => togglePackage(item.slug)} aria-label={`${item.name}, ${formatMoney(item.priceMinor, item.currency)}`} />
-                </label>
-                {item.status === 'trialing' ? <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900"><Clock3 className="h-4 w-4" />Пробный доступ: {trialLeft ?? 'завершён'}</div> : !isCorporate && !item.isActive && canManage ? <Button variant={checked ? 'secondary' : 'outline'} size="sm" className="mt-4" disabled={!item.trialAvailable || item.trialUsed || actionBusy === `trial:${item.slug}`} onClick={() => void startTrial(item.slug)}>{item.trialUsed ? 'Пробный доступ уже использован' : 'Попробовать 3 дня'}</Button> : null}
-              </article>;
-            })}
+      <section className="rounded-[28px] border border-slate-800 bg-slate-950 p-6 text-white shadow-xl sm:p-8" aria-labelledby="full-suite-title">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-orange-300"><Sparkles className="h-4 w-4" />Все возможности МОСТ</div>
+            <h2 id="full-suite-title" className="text-2xl font-semibold sm:text-3xl">Полный комплект</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-300">Все 10 пакетов в одном составе. Подходит командам, которым нужен единый рабочий контур без выбора отдельных направлений.</p>
           </div>
+          {!isCorporate && canManage ? <Button
+            size="lg"
+            variant={fullSuite ? 'outline' : 'default'}
+            className={fullSuite ? 'border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white' : 'bg-orange-500 text-white hover:bg-orange-600'}
+            disabled={isGrace}
+            onClick={() => {
+              if (fullSuite) {
+                setFullSuite(false);
+                setSelected(currentPaidSlugs);
+              } else {
+                selectFullSuite();
+              }
+            }}
+          >{fullSuite ? 'Оставить текущий состав' : 'Выбрать полный комплект'}</Button> : null}
+        </div>
+      </section>
+
+      <section className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-10">
+          <section className="space-y-4" aria-labelledby="connected-packages-title">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Ваш текущий доступ</p>
+              <h2 id="connected-packages-title" className="mt-2 text-2xl font-semibold">Подключённые пакеты</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Эти возможности уже доступны вашей команде.</p>
+            </div>
+            {connectedPackages.length > 0 ? <div className="grid gap-4 md:grid-cols-2">
+              {connectedPackages.map((item) => {
+                const scheduledForRemoval = scheduledRemoved.includes(item.slug);
+                const pendingRemoval = scheduledForRemoval || (!fullSuite && !selected.includes(item.slug));
+                const canDisconnect = !isCorporate && item.accessSource === 'paid_package' && !scheduledForRemoval;
+                return <CommercialPackageCard
+                  key={item.slug}
+                  packageItem={item}
+                  variant="connected"
+                  pendingAction={pendingRemoval ? 'remove' : null}
+                  primaryActionLabel={canDisconnect ? (pendingRemoval ? 'Оставить подключённым' : 'Отключить со следующего периода') : null}
+                  effectiveDateLabel={pendingRemoval ? `Доступ сохранится до ${formatDateTime(scheduledForRemoval ? renewal?.scheduledChange?.applyAt ?? null : item.currentPeriodEndAt)}` : item.status === 'trialing' ? `Пробный доступ: ${remaining(item.trialEndsAt, now) ?? 'завершён'}` : null}
+                  disabled={!canManage || isGrace || isCorporate}
+                  onPrimaryAction={() => togglePackage(item.slug)}
+                  onDetails={() => setDetailsPackage(item)}
+                />;
+              })}
+            </div> : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-sm text-slate-600">Платные пакеты пока не подключены. Все основные возможности МОСТ остаются доступны без оплаты.</div>}
+          </section>
+
+          <section className="space-y-4" aria-labelledby="available-packages-title">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">Каталог</p>
+                <h2 id="available-packages-title" className="mt-2 text-2xl font-semibold">Добавить возможности</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Выберите направления, которые нужны команде сейчас.</p>
+              </div>
+              {!canManage ? <Badge variant="outline">Доступен просмотр без изменения состава</Badge> : null}
+            </div>
+            {availablePackages.length > 0 ? <div className="grid gap-4 md:grid-cols-2">
+              {availablePackages.map((item) => {
+                const pendingAdd = fullSuite || selected.includes(item.slug);
+                return <CommercialPackageCard
+                  key={item.slug}
+                  packageItem={item}
+                  variant="available"
+                  pendingAction={pendingAdd ? 'add' : null}
+                  primaryActionLabel={isCorporate ? null : pendingAdd ? 'Убрать из изменений' : 'Добавить'}
+                  secondaryActionLabel={isCorporate ? null : item.trialUsed ? 'Пробный доступ уже использован' : 'Попробовать 3 дня'}
+                  secondaryActionDisabled={!item.trialAvailable || item.trialUsed || actionBusy === `trial:${item.slug}`}
+                  disabled={!canManage || isGrace || isCorporate}
+                  onPrimaryAction={() => togglePackage(item.slug)}
+                  onSecondaryAction={() => void startTrial(item.slug)}
+                  onDetails={() => setDetailsPackage(item)}
+                />;
+              })}
+            </div> : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-sm text-slate-600">Все пакеты уже подключены.</div>}
+          </section>
         </div>
 
         {!isCorporate ? <aside id="order-summary" className="space-y-4 xl:sticky xl:top-6">
-          <Card className="overflow-hidden border-slate-300 shadow-xl"><div className="bg-orange-500 px-5 py-3 text-sm font-semibold text-white">Ваш выбор</div><CardContent className="space-y-5 p-5">
-            <div className="flex items-center justify-between"><span className="text-sm text-muted-foreground">Выбрано</span><strong>{fullSuite ? 'Полный комплект' : `${selected.length} из 10`}</strong></div>
+          <Card className="overflow-hidden border-slate-300 shadow-xl"><div className="bg-orange-500 px-5 py-3 text-sm font-semibold text-white">Ваши изменения</div><CardContent className="space-y-5 p-5">
             {quote?.recommendation === 'full_suite' && !fullSuite ? <button type="button" onClick={selectFullSuite} disabled={!canManage || isGrace} className="w-full rounded-2xl border border-orange-300 bg-orange-50 p-4 text-left text-sm text-orange-950"><Sparkles className="mb-2 h-5 w-5 text-orange-600" /><strong>Полный комплект выгоднее</strong><span className="mt-1 block text-xs">Рекомендация не меняет выбор автоматически.</span></button> : null}
             {quoteLoading ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Обновляем стоимость</div> : quoteError ? <p className="text-sm text-red-700">{quoteError}</p> : quote ? <>
-              <div className="space-y-3 border-y py-4"><div className="flex justify-between text-sm"><span>В месяц</span><strong data-testid="monthly-total">{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong></div><div className="flex justify-between text-sm"><span>К оплате сейчас</span><strong className="text-lg">{formatMoney(quote.amountDueNowMinor, quote.currency)}</strong></div>{quote.savingsAmountMinor > 0 ? <div className="flex justify-between text-sm text-emerald-700"><span>Экономия</span><strong>{formatMoney(quote.savingsAmountMinor, quote.currency)} · {quote.savingsPercent}%</strong></div> : null}</div>
-              <div className="space-y-2 text-xs text-muted-foreground"><p>Добавляется: {namesFor(quote.addedPackageSlugs) || 'нет'}</p><p>Убирается со следующего периода: {namesFor(quote.removedPackageSlugs) || 'нет'}</p><p>Следующая дата: {formatDateTime(quote.periodEndAt)}</p></div>
-              {hasReduction ? <p className="rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-900">Сокращение бесплатно и будет применено в следующую фиксированную дату. Уже оплаченный доступ сохранится до конца периода.</p> : null}
-              {canManage && !isGrace && !hasReduction ? <label className="flex items-start gap-3 rounded-xl border p-3 text-xs leading-5"><input type="checkbox" className="mt-1 h-4 w-4" checked={autoRenewConsent} onChange={(event) => setAutoRenewConsent(event.target.checked)} /><span>Согласен на автоматическое списание <strong>{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong> каждые 30 дней. Отключить можно здесь же, в разделе пакетов и оплаты.</span></label> : null}
-              {canManage ? <Button className="w-full" size="lg" onClick={() => void submitContour()} disabled={isGrace || actionBusy === 'checkout' || (!hasReduction && !autoRenewConsent)}>{isGrace ? <><LockKeyhole className="mr-2 h-4 w-4" />Изменение заблокировано</> : hasReduction ? 'Запланировать сокращение' : <><CreditCard className="mr-2 h-4 w-4" />Перейти к оплате</>}</Button> : null}
-            </> : <p className="text-sm text-muted-foreground">Выберите состав, чтобы получить расчёт.</p>}
+              {!hasChanges ? <div className="rounded-2xl bg-emerald-50 p-4"><strong className="text-emerald-900">Изменений нет</strong><p className="mt-1 text-xs leading-5 text-emerald-800">Текущий состав останется без изменений.</p></div> : null}
+              <div className="space-y-3 border-y py-4">
+                <div className="flex justify-between text-sm"><span>Сейчас подключено</span><strong>{formatMoney(currentMonthlyMinor, quote.currency)}</strong></div>
+                {hasChanges ? <><div className="flex justify-between text-sm"><span>Следующий период</span><strong data-testid="monthly-total">{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong></div><div className="flex justify-between text-sm"><span>К оплате сейчас</span><strong className="text-lg">{formatMoney(quote.amountDueNowMinor, quote.currency)}</strong></div></> : <div className="flex justify-between text-sm"><span>Следующий период</span><strong data-testid="monthly-total">{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong></div>}
+                {quote.savingsAmountMinor > 0 ? <div className="flex justify-between text-sm text-emerald-700"><span>Экономия</span><strong>{formatMoney(quote.savingsAmountMinor, quote.currency)} · {quote.savingsPercent}%</strong></div> : null}
+              </div>
+              {hasChanges ? <div className="space-y-2 text-xs text-muted-foreground"><p>Подключаем: {namesFor(quote.addedPackageSlugs) || 'нет'}</p><p>Отключаем со следующего периода: {namesFor(quote.removedPackageSlugs) || 'нет'}</p><p>Дата изменения: {formatDateTime(quote.periodEndAt)}</p></div> : null}
+              {hasReduction ? <p className="rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-900">Уже оплаченный доступ сохранится до конца периода. Затем выбранные пакеты отключатся.</p> : null}
+              {hasChanges && canManage && !isGrace && !hasReduction && requiresAutoRenewConsent ? <label className="flex items-start gap-3 rounded-xl border p-3 text-xs leading-5"><input type="checkbox" className="mt-1 h-4 w-4" checked={autoRenewConsent} onChange={(event) => setAutoRenewConsent(event.target.checked)} aria-label="Согласен на автоматическое списание" /><span>Согласен на автоматическое списание <strong>{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong> каждые 30 дней. Отключить можно здесь же.</span></label> : null}
+              {hasChanges && canManage ? <Button className="w-full" size="lg" onClick={() => void submitContour()} disabled={isGrace || actionBusy === 'checkout' || (!hasReduction && requiresAutoRenewConsent && !autoRenewConsent)}>{isGrace ? <><LockKeyhole className="mr-2 h-4 w-4" />Изменение заблокировано</> : hasReduction ? 'Запланировать сокращение' : <><CreditCard className="mr-2 h-4 w-4" />Перейти к оплате</>}</Button> : null}
+            </> : <p className="text-sm text-muted-foreground">Выберите пакет, чтобы увидеть итог.</p>}
             {actionError ? <p className={`rounded-xl p-3 text-sm ${actionError.startsWith('Сокращение') ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'}`}>{actionError}</p> : null}
           </CardContent></Card>
         </aside> : null}
       </section>
+
+      <CommercialPackageDetailsSheet
+        packageItem={detailsPackage}
+        open={detailsPackage !== null}
+        onOpenChange={(open) => { if (!open) setDetailsPackage(null); }}
+      />
 
       <section className="space-y-4" aria-labelledby="history-title">
         <div className="flex items-center gap-3"><History className="h-6 w-6" /><div><h2 id="history-title" className="text-2xl font-semibold">История оплат</h2><p className="text-sm text-muted-foreground">Безопасный журнал заказов, оплат и возвратов.</p></div></div>

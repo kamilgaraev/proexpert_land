@@ -8,9 +8,12 @@ type CommercialPackageCardProps = {
   variant: 'connected' | 'available';
   pendingAction?: 'add' | 'remove' | null;
   primaryActionLabel?: string | null;
+  secondaryActionLabel?: string | null;
   effectiveDateLabel?: string | null;
+  secondaryActionDisabled?: boolean;
   disabled?: boolean;
   onPrimaryAction: () => void;
+  onSecondaryAction?: () => void;
   onDetails: () => void;
 };
 
@@ -25,9 +28,12 @@ export const CommercialPackageCard = ({
   variant,
   pendingAction = null,
   primaryActionLabel,
+  secondaryActionLabel = null,
   effectiveDateLabel,
+  secondaryActionDisabled = false,
   disabled = false,
   onPrimaryAction,
+  onSecondaryAction,
   onDetails,
 }: CommercialPackageCardProps) => {
   const connected = variant === 'connected';
@@ -97,6 +103,18 @@ export const CommercialPackageCard = ({
           </Button>
         )}
       </div>
+      {secondaryActionLabel && onSecondaryAction && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="mt-2 self-start px-1 text-slate-600"
+          disabled={secondaryActionDisabled || disabled}
+          onClick={onSecondaryAction}
+        >
+          {secondaryActionLabel}
+        </Button>
+      )}
     </article>
   );
 };
