@@ -203,11 +203,13 @@ export class CommercialPollingTimeoutError extends Error {
   }
 }
 
+export const COMMERCIAL_PAYMENT_POLL_DELAYS_MS = [0, 500, 1000, 1500, 2500, 4000, 6000, 9000, 12000, 15000] as const;
+
 export const pollCommercialOrder = async (
   orderId: string,
   options: { delaysMs?: number[]; signal?: AbortSignal } = {},
 ): Promise<CommercialOrder> => {
-  const delays = options.delaysMs ?? [0, 1000, 2000, 3000, 5000, 8000];
+  const delays = options.delaysMs ?? COMMERCIAL_PAYMENT_POLL_DELAYS_MS;
   let latest: CommercialOrder | null = null;
   for (const delayMs of delays) {
     if (delayMs > 0) await new Promise<void>((resolve, reject) => {
