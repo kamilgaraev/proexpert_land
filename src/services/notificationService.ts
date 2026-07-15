@@ -5,6 +5,8 @@ import type {
   NotificationPaginationLinks,
   NotificationPaginationMeta,
   NotificationResponse,
+  MarkAllAsReadResponse,
+  UnreadCountResponse,
 } from '../types/notification';
 import { getJsonAuthHeaders } from '../utils/authTokenStorage';
 
@@ -16,6 +18,14 @@ const isRecord = (value: unknown): value is Record<string, unknown> => (
 
 const isFiniteNumber = (value: unknown): value is number => (
   typeof value === 'number' && Number.isFinite(value)
+);
+
+const isSafePositiveInteger = (value: unknown): value is number => (
+  typeof value === 'number' && Number.isSafeInteger(value) && value > 0
+);
+
+const isSafeNonNegativeInteger = (value: unknown): value is number => (
+  typeof value === 'number' && Number.isSafeInteger(value) && value >= 0
 );
 
 const normalizeCountMap = (value: unknown): Record<string, number> => {
@@ -37,7 +47,8 @@ const normalizeMeta = (value: unknown): NotificationPaginationMeta => {
     || !isFiniteNumber(value.per_page)
     || !isFiniteNumber(value.total)
     || !isFiniteNumber(value.unread_count)
-    || value.unread_count < 0) {
+    || value.unread_count < 0
+    || !isSafeNonNegativeInteger(value.snapshot_sequence)) {
     throw new Error('Некорректный ответ списка уведомлений');
   }
 
@@ -79,6 +90,13 @@ export const normalizeNotificationListResponse = (payload: unknown): Notificatio
 
   const links = normalizeLinks(source.links);
 
+  if (data.some(item => !isRecord(item)
+    || typeof item.id !== 'string'
+    || !item.id.trim()
+    || !isSafePositiveInteger(item.sequence))) {
+    throw new Error('РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РѕС‚РІРµС‚ СЃРїРёСЃРєР° СѓРІРµРґРѕРјР»РµРЅРёР№');
+  }
+
   return {
     data: data as Notification[],
     meta: normalizeMeta(source.meta),
@@ -86,7 +104,7 @@ export const normalizeNotificationListResponse = (payload: unknown): Notificatio
   };
 };
 
-export const normalizeUnreadCountResponse = (payload: unknown): number => {
+export const normalizeUnreadCountResponse = (payload: unknown): UnreadCountResponse => {
   if (!isRecord(payload)) {
     throw new Error('Некорректный ответ счётчика уведомлений');
   }
@@ -97,11 +115,28 @@ export const normalizeUnreadCountResponse = (payload: unknown): number => {
 
   const source = 'success' in payload ? payload.data : payload;
 
-  if (!isRecord(source) || !isFiniteNumber(source.count) || source.count < 0) {
+  if (!isRecord(source)
+    || !isSafeNonNegativeInteger(source.count)
+    || !isSafeNonNegativeInteger(source.snapshot_sequence)) {
     throw new Error('Некорректный ответ счётчика уведомлений');
   }
 
-  return source.count;
+  return source as unknown as UnreadCountResponse;
+};
+
+export const normalizeMarkAllAsReadResponse = (payload: unknown): MarkAllAsReadResponse => {
+  if (!isRecord(payload) || ('success' in payload && payload.success !== true)) {
+    throw new Error('РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РѕС‚РІРµС‚ РѕРїРµСЂР°С†РёРё СЃ СѓРІРµРґРѕРјР»РµРЅРёСЏРјРё');
+  }
+
+  const source = 'success' in payload ? payload.data : payload;
+  if (!isRecord(source)
+    || !isSafeNonNegativeInteger(source.count)
+    || !isSafeNonNegativeInteger(source.sequence_cut)) {
+    throw new Error('РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РѕС‚РІРµС‚ РѕРїРµСЂР°С†РёРё СЃ СѓРІРµРґРѕРјР»РµРЅРёСЏРјРё');
+  }
+
+  return source as unknown as MarkAllAsReadResponse;
 };
 
 export const notificationService = {
@@ -125,7 +160,7 @@ export const notificationService = {
     return normalizeNotificationListResponse(response.data);
   },
 
-  getUnreadCount: async (): Promise<number> => {
+  getUnreadCount: async (): Promise<UnreadCountResponse> => {
     const response = await axios.get<unknown>(
       `${API_BASE_URL}/api/v1/landing/notifications/unread-count`,
       {
@@ -145,12 +180,14 @@ export const notificationService = {
     );
   },
 
-  markAllAsRead: async (): Promise<void> => {
-    await axios.post(
+  markAllAsRead: async (): Promise<MarkAllAsReadResponse> => {
+    const response = await axios.post<unknown>(
       `${API_BASE_URL}/api/v1/landing/notifications/mark-all-read`,
       {},
       { withCredentials: true, headers: getJsonAuthHeaders() },
     );
+
+    return normalizeMarkAllAsReadResponse(response.data);
   },
 
   deleteNotification: async (notificationId: string): Promise<void> => {

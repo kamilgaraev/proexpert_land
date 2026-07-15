@@ -14,6 +14,7 @@ vi.mock('axios', () => ({
 
 const item = (id: string) => ({
   id,
+  sequence: 1,
   type: 'system',
   data: { title: id, message: id, interface: 'lk' as const },
   read_at: null,
@@ -40,6 +41,7 @@ describe('notificationService', () => {
           unread_by_category: { system: 4 },
           unread_by_notification_type: { alert: 3 },
           unread_by_type: { system: 4 },
+          snapshot_sequence: 11,
         },
         links: { first: '/first', last: '/last', prev: '/prev', next: '/next' },
       },
@@ -56,6 +58,7 @@ describe('notificationService', () => {
         unread_by_category: { system: 4 },
         unread_by_notification_type: { alert: 3 },
         unread_by_type: { system: 4 },
+        snapshot_sequence: 11,
       },
       links: { first: '/first', last: '/last', prev: '/prev', next: '/next' },
     });
@@ -74,6 +77,7 @@ describe('notificationService', () => {
           unread_by_category: {},
           unread_by_notification_type: {},
           unread_by_type: {},
+          snapshot_sequence: 2,
         },
       },
     } as never);
@@ -108,6 +112,30 @@ describe('notificationService', () => {
     );
   });
 
+  it.each([undefined, 0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1])(
+    'rejects an unsafe notification sequence %#',
+    async sequence => {
+      vi.mocked(axios.get).mockResolvedValueOnce({
+        data: {
+          data: [{ ...item('one'), sequence }],
+          meta: {
+            current_page: 1,
+            last_page: 1,
+            per_page: 20,
+            total: 1,
+            unread_count: 1,
+            unread_by_category: {},
+            unread_by_notification_type: {},
+            unread_by_type: {},
+            snapshot_sequence: 1,
+          },
+        },
+      } as never);
+
+      await expect(notificationService.getNotifications()).rejects.toThrow();
+    },
+  );
+
   it('normalizes empty PHP aggregate maps encoded as JSON arrays', async () => {
     vi.mocked(axios.get).mockResolvedValueOnce({
       data: {
@@ -122,6 +150,7 @@ describe('notificationService', () => {
           unread_by_category: [],
           unread_by_notification_type: [],
           unread_by_type: [],
+          snapshot_sequence: 0,
         },
       },
     } as never);
@@ -135,10 +164,18 @@ describe('notificationService', () => {
 
   it('normalizes a LandingResponse unread count', async () => {
     vi.mocked(axios.get).mockResolvedValueOnce({
-      data: { success: true, message: null, data: { count: 7 } },
+      data: { success: true, message: null, data: { count: 7, snapshot_sequence: 12 } },
     } as never);
 
-    await expect(notificationService.getUnreadCount()).resolves.toBe(7);
+    await expect(notificationService.getUnreadCount()).resolves.toEqual({ count: 7, snapshot_sequence: 12 });
+  });
+
+  it('normalizes mark-all sequence cut', async () => {
+    vi.mocked(axios.post).mockResolvedValueOnce({
+      data: { success: true, data: { count: 4, sequence_cut: 15 } },
+    } as never);
+
+    await expect(notificationService.markAllAsRead()).resolves.toEqual({ count: 4, sequence_cut: 15 });
   });
 
   it('rejects a malformed unread count', async () => {

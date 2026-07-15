@@ -19,7 +19,7 @@ export const NotificationBell = () => {
     markAllAsRead,
     deleteNotification,
     executeAction
-  } = useNotifications(userId, token);
+  } = useNotifications(userId, token, user?.current_organization_id ?? null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

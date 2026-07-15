@@ -68,10 +68,17 @@ const parseObject = (value: unknown): Record<string, unknown> | null => {
     : null;
 };
 
+const isSafePositiveInteger = (value: unknown): value is number => (
+  typeof value === 'number' && Number.isSafeInteger(value) && value > 0
+);
+
 const normalizeRealtimeNotification = (payload: unknown): Notification | null => {
   const source = parseObject(payload);
 
-  if (!source || source.interface !== 'lk' || typeof source.id !== 'string') {
+  if (!source
+    || source.interface !== 'lk'
+    || typeof source.id !== 'string'
+    || !isSafePositiveInteger(source.sequence)) {
     return null;
   }
 
@@ -82,9 +89,18 @@ const normalizeRealtimeNotification = (payload: unknown): Notification | null =>
     return null;
   }
 
+  const organizationId = source.organization_id;
+  if (organizationId !== undefined
+    && organizationId !== null
+    && !isSafePositiveInteger(organizationId)) {
+    return null;
+  }
+
   return {
     ...source,
     id,
+    sequence: source.sequence,
+    organization_id: organizationId ?? null,
     type: typeof source.type === 'string'
       ? source.type
       : typeof source.notification_type === 'string'
@@ -107,6 +123,7 @@ const normalizeRealtimeNotification = (payload: unknown): Notification | null =>
 export const useNotifications = (
   userId: string | null,
   token: string | null = null,
+  organizationId: number | null = null,
 ): UseNotificationsReturn => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -117,15 +134,19 @@ export const useNotifications = (
   const unreadCountRef = useRef(0);
   const unreadRevisionRef = useRef(0);
   const mutationRevisionRef = useRef(0);
-  const acceptedUnreadTotalRef = useRef(0);
+  const countRequestVersionRef = useRef(0);
   const notificationVersionsRef = useRef<Map<string, number>>(new Map());
   const dedupeCacheRef = useRef<Map<string, true>>(new Map());
   const activeListBuffersRef = useRef<Map<number, Map<string, Notification>>>(new Map());
+  const activeCountBuffersRef = useRef<Map<number, Map<string, Notification>>>(new Map());
+  const activeMarkAllBufferRef = useRef<Map<number, Notification> | null>(null);
   const readOverridesRef = useRef<Map<string, string>>(new Map());
   const deleteTombstonesRef = useRef<Set<string>>(new Set());
   const pendingReadRef = useRef<Map<string, symbol>>(new Map());
   const pendingDeleteRef = useRef<Map<string, symbol>>(new Map());
   const pendingMarkAllRef = useRef<symbol | null>(null);
+  const markAllSequenceCutRef = useRef(0);
+  const markAllReadAtRef = useRef<string | null>(null);
 
   const publishNotifications = useCallback((next: Notification[]): void => {
     notificationsRef.current = next;
@@ -137,22 +158,40 @@ export const useNotifications = (
     setUnreadCount(unreadCountRef.current);
   }, []);
 
+  const applyLocalState = useCallback((notification: Notification): Notification | null => {
+    if (deleteTombstonesRef.current.has(notification.id)) {
+      return null;
+    }
+
+    const readAt = readOverridesRef.current.get(notification.id)
+      ?? (notification.sequence <= markAllSequenceCutRef.current ? markAllReadAtRef.current : null);
+    return readAt && !notification.read_at ? { ...notification, read_at: readAt } : notification;
+  }, []);
+
   const refreshUnreadCount = useCallback(async (): Promise<void> => {
     const epoch = lifecycleEpochRef.current;
-    const revision = unreadRevisionRef.current;
+    const requestVersion = countRequestVersionRef.current + 1;
+    const realtimeBuffer = new Map<string, Notification>();
+    countRequestVersionRef.current = requestVersion;
+    activeCountBuffersRef.current.set(requestVersion, realtimeBuffer);
 
     try {
-      const count = await notificationService.getUnreadCount();
+      const response = await notificationService.getUnreadCount();
 
-      if (lifecycleEpochRef.current === epoch && unreadRevisionRef.current === revision) {
-        publishUnreadCount(count);
+      if (lifecycleEpochRef.current === epoch && countRequestVersionRef.current === requestVersion) {
+        const realtimeUnread = [...realtimeBuffer.values()].filter(notification => (
+          notification.sequence > response.snapshot_sequence && !applyLocalState(notification)?.read_at
+        )).length;
+        publishUnreadCount(response.count + realtimeUnread);
       }
     } catch (error) {
       if (lifecycleEpochRef.current === epoch) {
         console.error('Ошибка при загрузке счётчика уведомлений:', error);
       }
+    } finally {
+      activeCountBuffersRef.current.delete(requestVersion);
     }
-  }, [publishUnreadCount]);
+  }, [applyLocalState, publishUnreadCount]);
 
   const refreshNotifications = useCallback(async (): Promise<void> => {
     const epoch = lifecycleEpochRef.current;
@@ -171,28 +210,27 @@ export const useNotifications = (
         return;
       }
 
-      const fetchedIds = new Set<string>();
       const fetched = response.data
         .filter(notification => typeof notification.id === 'string' && notification.id.trim().length > 0)
         .map(notification => ({ ...notification, id: notification.id.trim() }))
         .filter(notification => {
-          fetchedIds.add(notification.id);
           rememberNotification(dedupeCacheRef.current, `${notification.id}:lk`);
-          return !deleteTombstonesRef.current.has(notification.id);
+          return true;
         })
-        .map(notification => {
-          const readAt = readOverridesRef.current.get(notification.id);
-          return readAt ? { ...notification, read_at: readAt } : notification;
-        });
+        .map(applyLocalState)
+        .filter((notification): notification is Notification => notification !== null);
 
       const realtime = [...realtimeBuffer.values()]
-        .filter(notification => !deleteTombstonesRef.current.has(notification.id))
+        .filter(notification => notification.sequence > response.meta.snapshot_sequence)
+        .map(applyLocalState)
+        .filter((notification): notification is Notification => notification !== null)
         .reverse();
       publishNotifications(mergeVisible(realtime, fetched));
 
       const realtimeOnlyUnread = [...realtimeBuffer.values()].filter(notification => (
-        !notification.read_at && !fetchedIds.has(notification.id)
+        notification.sequence > response.meta.snapshot_sequence && !applyLocalState(notification)?.read_at
       )).length;
+      countRequestVersionRef.current += 1;
       if (mutationRevisionRef.current === mutationRevision) {
         publishUnreadCount(response.meta.unread_count + realtimeOnlyUnread);
       }
@@ -209,7 +247,7 @@ export const useNotifications = (
         setLoading(false);
       }
     }
-  }, [publishNotifications, publishUnreadCount]);
+  }, [applyLocalState, publishNotifications, publishUnreadCount]);
 
   const markAsRead = useCallback(async (notificationId: string): Promise<void> => {
     if (pendingReadRef.current.has(notificationId)) {
@@ -238,6 +276,9 @@ export const useNotifications = (
         unreadRevisionRef.current += 1;
         publishUnreadCount(unreadCountRef.current - 1);
       }
+      if (current) {
+        activeMarkAllBufferRef.current?.delete(current.sequence);
+      }
 
       publishNotifications(notificationsRef.current.map(notification => (
         notification.id === notificationId ? { ...notification, read_at: readAt } : notification
@@ -261,12 +302,12 @@ export const useNotifications = (
 
     const operation = Symbol('mark-all');
     const epoch = lifecycleEpochRef.current;
-    const acceptedUnreadAtStart = acceptedUnreadTotalRef.current;
-    const ids = new Set(notificationsRef.current.map(notification => notification.id));
+    const realtimeBuffer = new Map<number, Notification>();
+    activeMarkAllBufferRef.current = realtimeBuffer;
     pendingMarkAllRef.current = operation;
 
     try {
-      await notificationService.markAllAsRead();
+      const response = await notificationService.markAllAsRead();
 
       if (lifecycleEpochRef.current !== epoch) {
         return;
@@ -274,12 +315,26 @@ export const useNotifications = (
 
       const readAt = new Date().toISOString();
       mutationRevisionRef.current += 1;
-      ids.forEach(id => readOverridesRef.current.set(id, readAt));
+      markAllSequenceCutRef.current = Math.max(markAllSequenceCutRef.current, response.sequence_cut);
+      markAllReadAtRef.current = readAt;
+      notificationsRef.current.forEach(notification => {
+        if (notification.sequence <= markAllSequenceCutRef.current) {
+          readOverridesRef.current.set(notification.id, readAt);
+        }
+      });
+      const buffered = new Map<number, Notification>();
+      activeListBuffersRef.current.forEach(buffer => {
+        buffer.forEach(notification => buffered.set(notification.sequence, notification));
+      });
+      notificationsRef.current.forEach(notification => buffered.set(notification.sequence, notification));
+      realtimeBuffer.forEach(notification => buffered.set(notification.sequence, notification));
       unreadRevisionRef.current += 1;
-      publishUnreadCount(acceptedUnreadTotalRef.current - acceptedUnreadAtStart);
-      publishNotifications(notificationsRef.current.map(notification => (
-        ids.has(notification.id) ? { ...notification, read_at: readAt } : notification
-      )));
+      publishUnreadCount([...buffered.values()].filter(notification => (
+        notification.sequence > markAllSequenceCutRef.current && !notification.read_at
+      )).length);
+      publishNotifications(notificationsRef.current
+        .map(applyLocalState)
+        .filter((notification): notification is Notification => notification !== null));
       toast.success('Все уведомления отмечены прочитанными');
     } catch (error) {
       if (lifecycleEpochRef.current === epoch) {
@@ -289,9 +344,10 @@ export const useNotifications = (
     } finally {
       if (pendingMarkAllRef.current === operation) {
         pendingMarkAllRef.current = null;
+        activeMarkAllBufferRef.current = null;
       }
     }
-  }, [publishNotifications, publishUnreadCount]);
+  }, [applyLocalState, publishNotifications, publishUnreadCount]);
 
   const deleteNotification = useCallback(async (notificationId: string): Promise<void> => {
     if (pendingDeleteRef.current.has(notificationId)) {
@@ -317,6 +373,9 @@ export const useNotifications = (
       if (current && !current.read_at) {
         unreadRevisionRef.current += 1;
         publishUnreadCount(unreadCountRef.current - 1);
+      }
+      if (current) {
+        activeMarkAllBufferRef.current?.delete(current.sequence);
       }
 
       deleteTombstonesRef.current.add(notificationId);
@@ -363,12 +422,15 @@ export const useNotifications = (
     dedupeCacheRef.current.clear();
     notificationVersionsRef.current.clear();
     activeListBuffersRef.current.clear();
+    activeCountBuffersRef.current.clear();
+    activeMarkAllBufferRef.current = null;
     readOverridesRef.current.clear();
     deleteTombstonesRef.current.clear();
     pendingReadRef.current.clear();
     pendingDeleteRef.current.clear();
     pendingMarkAllRef.current = null;
-    acceptedUnreadTotalRef.current = 0;
+    markAllSequenceCutRef.current = 0;
+    markAllReadAtRef.current = null;
     unreadRevisionRef.current = 0;
     mutationRevisionRef.current = 0;
     publishNotifications([]);
@@ -383,10 +445,15 @@ export const useNotifications = (
       };
     }
 
-    const channelName = `App.Models.User.${userId}.lk`;
+    const channelNames = [
+      `App.Models.User.${userId}.lk.global`,
+      ...(isSafePositiveInteger(organizationId)
+        ? [`App.Models.User.${userId}.lk.org.${organizationId}`]
+        : []),
+    ];
     let echo: ReturnType<typeof getEcho> = null;
 
-    const acceptRealtime = (payload: unknown): void => {
+    const acceptRealtime = (payload: unknown, expectedOrganizationId: number | null): void => {
       if (lifecycleEpochRef.current !== epoch) {
         return;
       }
@@ -394,6 +461,10 @@ export const useNotifications = (
       const notification = normalizeRealtimeNotification(payload);
 
       if (!notification) {
+        return;
+      }
+
+      if (notification.organization_id !== expectedOrganizationId) {
         return;
       }
 
@@ -410,17 +481,29 @@ export const useNotifications = (
 
       rememberNotification(dedupeCacheRef.current, key);
       activeListBuffersRef.current.forEach(buffer => buffer.set(key, notification));
-
-      if (!notification.read_at) {
-        acceptedUnreadTotalRef.current += 1;
+      activeCountBuffersRef.current.forEach(buffer => buffer.set(key, notification));
+      const locallyApplied = applyLocalState(notification);
+      if (locallyApplied && !locallyApplied.read_at) {
+        activeMarkAllBufferRef.current?.set(notification.sequence, locallyApplied);
         unreadRevisionRef.current += 1;
         publishUnreadCount(unreadCountRef.current + 1);
       }
 
-      publishNotifications(mergeVisible([notification], notificationsRef.current));
+      if (locallyApplied) {
+        publishNotifications(mergeVisible([locallyApplied], notificationsRef.current));
+      }
       toast.info(`${notification.data.title}: ${notification.data.message}`, {
         position: 'top-right',
         autoClose: 5000,
+      });
+    };
+
+    const leaveChannels = (): void => {
+      channelNames.forEach(channelName => {
+        try {
+          echo?.leave(channelName);
+        } catch {
+        }
       });
     };
 
@@ -428,12 +511,17 @@ export const useNotifications = (
       echo = getEcho(userId);
 
       if (echo) {
-        const channel = echo.private(channelName);
-        channel.notification(acceptRealtime);
-        channel.listen('.notification.new', acceptRealtime);
-        channel.error(() => undefined);
+        channelNames.forEach((channelName, index) => {
+          const expectedOrganizationId = index === 0 ? null : organizationId;
+          const handler = (payload: unknown): void => acceptRealtime(payload, expectedOrganizationId);
+          const channel = echo!.private(channelName);
+          channel.notification(handler);
+          channel.listen('.notification.new', handler);
+          channel.error(() => undefined);
+        });
       }
     } catch {
+      leaveChannels();
     }
 
     void refreshNotifications();
@@ -444,14 +532,10 @@ export const useNotifications = (
       }
 
       activeListBuffersRef.current.clear();
-
-      try {
-        echo?.leave(channelName);
-      } catch {
-        return;
-      }
+      activeCountBuffersRef.current.clear();
+      leaveChannels();
     };
-  }, [publishNotifications, publishUnreadCount, refreshNotifications, token, userId]);
+  }, [applyLocalState, organizationId, publishNotifications, publishUnreadCount, refreshNotifications, token, userId]);
 
   return {
     notifications,

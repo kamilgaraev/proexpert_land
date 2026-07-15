@@ -32,6 +32,8 @@ const deferred = <T,>() => {
 
 const notification = (id: string, overrides: Record<string, unknown> = {}): Notification => ({
   id,
+  sequence: 1,
+  organization_id: null,
   type: 'system',
   interface: 'lk',
   data: { title: id, message: id, interface: 'lk' },
@@ -40,7 +42,11 @@ const notification = (id: string, overrides: Record<string, unknown> = {}): Noti
   ...overrides,
 }) as Notification;
 
-const list = (items: ReturnType<typeof notification>[], unreadCount = 0) => ({
+const list = (
+  items: ReturnType<typeof notification>[],
+  unreadCount = 0,
+  snapshotSequence = items.reduce((maximum, item) => Math.max(maximum, item.sequence), 0),
+) => ({
   data: items,
   meta: {
     current_page: 1,
@@ -48,6 +54,7 @@ const list = (items: ReturnType<typeof notification>[], unreadCount = 0) => ({
     per_page: 20,
     total: items.length,
     unread_count: unreadCount,
+    snapshot_sequence: snapshotSequence,
     unread_by_category: {},
     unread_by_notification_type: {},
     unread_by_type: {},
@@ -83,28 +90,34 @@ describe('useNotifications', () => {
     vi.resetAllMocks();
     configureEcho();
     vi.mocked(notificationService.getNotifications).mockResolvedValue(list([]));
-    vi.mocked(notificationService.getUnreadCount).mockResolvedValue(0);
+    vi.mocked(notificationService.getUnreadCount).mockResolvedValue({ count: 0, snapshot_sequence: 0 });
     vi.mocked(notificationService.markAsRead).mockResolvedValue();
-    vi.mocked(notificationService.markAllAsRead).mockResolvedValue();
+    vi.mocked(notificationService.markAllAsRead).mockResolvedValue({ count: 0, sequence_cut: 0 });
     vi.mocked(notificationService.deleteNotification).mockResolvedValue();
     vi.mocked(notificationService.executeAction).mockResolvedValue(undefined);
   });
 
-  it('subscribes only to the LK private channel and accepts only LK payloads', async () => {
+  it('subscribes to exact global and organization LK channels and enforces their organization scope', async () => {
     const echo = configureEcho();
-    const { result } = renderHook(() => useNotifications('162', 'token-one'));
-    await waitFor(() => expect(echo.private).toHaveBeenCalledWith('App.Models.User.162.lk'));
+    const { result } = renderHook(() => useNotifications('162', 'token-one', 44));
+    await waitFor(() => expect(echo.private).toHaveBeenCalledTimes(2));
+    expect(echo.private).toHaveBeenNthCalledWith(1, 'App.Models.User.162.lk.global');
+    expect(echo.private).toHaveBeenNthCalledWith(2, 'App.Models.User.162.lk.org.44');
 
     act(() => {
       standardHandlers[0](notification('admin', {
         interface: 'admin',
         data: { title: 'admin', message: 'admin', interface: 'admin' },
       }));
-      standardHandlers[0](notification('lk'));
+      standardHandlers[0](notification('cross-on-global', { organization_id: 44 }));
+      standardHandlers[1](notification('global-on-org'));
+      standardHandlers[1](notification('cross-org', { organization_id: 45 }));
+      standardHandlers[0](notification('global'));
+      standardHandlers[1](notification('organization', { sequence: 2, organization_id: 44 }));
     });
 
-    expect(result.current.notifications.map(item => item.id)).toEqual(['lk']);
-    expect(result.current.unreadCount).toBe(1);
+    expect(result.current.notifications.map(item => item.id)).toEqual(['organization', 'global']);
+    expect(result.current.unreadCount).toBe(2);
   });
 
   it('deduplicates simultaneous Echo aliases with a cache independent from the five visible items', async () => {
@@ -146,6 +159,11 @@ describe('useNotifications', () => {
     {},
     notification('', { id: '' }),
     notification('space', { id: '   ' }),
+    notification('missing-sequence', { sequence: undefined }),
+    notification('zero-sequence', { sequence: 0 }),
+    notification('negative-sequence', { sequence: -1 }),
+    notification('fractional-sequence', { sequence: 1.5 }),
+    notification('unsafe-sequence', { sequence: Number.MAX_SAFE_INTEGER + 1 }),
   ])('rejects malformed realtime payload %#', async payload => {
     const { result } = renderHook(() => useNotifications('162', 'token-one'));
     await waitFor(() => expect(standardHandlers).toHaveLength(1));
@@ -165,11 +183,14 @@ describe('useNotifications', () => {
     const { result } = renderHook(() => useNotifications('162', 'token-one'));
     await waitFor(() => expect(standardHandlers).toHaveLength(1));
 
-    act(() => standardHandlers[0](notification('realtime')));
+    act(() => standardHandlers[0](notification('realtime', { sequence: 2 })));
     expect(result.current.unreadCount).toBe(1);
 
     await act(async () => {
-      initialList.resolve(list([notification('server'), notification('realtime')], 2));
+      initialList.resolve(list([
+        notification('realtime', { sequence: 2 }),
+        notification('server', { sequence: 1 }),
+      ], 2, 2));
       await initialList.promise;
     });
 
@@ -184,14 +205,95 @@ describe('useNotifications', () => {
     const { result } = renderHook(() => useNotifications('162', 'token-one'));
     await waitFor(() => expect(standardHandlers).toHaveLength(1));
 
-    act(() => standardHandlers[0](notification('realtime-only')));
+    act(() => standardHandlers[0](notification('realtime-only', { sequence: 2 })));
     await act(async () => {
-      initialList.resolve(list([notification('server')], 1));
+      initialList.resolve(list([notification('server', { sequence: 1 })], 1, 1));
       await initialList.promise;
     });
 
     expect(result.current.unreadCount).toBe(2);
     expect(notificationService.getUnreadCount).not.toHaveBeenCalled();
+  });
+
+  it('uses the snapshot cursor instead of page membership for a six-event five-item page', async () => {
+    const initialList = deferred<ReturnType<typeof list>>();
+    vi.mocked(notificationService.getNotifications).mockReturnValueOnce(initialList.promise);
+    const { result } = renderHook(() => useNotifications('162', 'token-one'));
+    await waitFor(() => expect(standardHandlers).toHaveLength(1));
+
+    act(() => {
+      for (let sequence = 1; sequence <= 6; sequence += 1) {
+        standardHandlers[0](notification(`event-${sequence}`, { sequence }));
+      }
+    });
+    await act(async () => {
+      initialList.resolve(list(
+        [6, 5, 4, 3, 2].map(sequence => notification(`event-${sequence}`, { sequence })),
+        6,
+        6,
+      ));
+      await initialList.promise;
+    });
+
+    expect(result.current.notifications.map(item => item.id)).toEqual([
+      'event-6', 'event-5', 'event-4', 'event-3', 'event-2',
+    ]);
+    expect(result.current.unreadCount).toBe(6);
+  });
+
+  it('drops buffered events at or below the snapshot cursor and merges only later events', async () => {
+    const initialList = deferred<ReturnType<typeof list>>();
+    vi.mocked(notificationService.getNotifications).mockReturnValueOnce(initialList.promise);
+    const { result } = renderHook(() => useNotifications('162', 'token-one'));
+    await waitFor(() => expect(standardHandlers).toHaveLength(1));
+
+    act(() => {
+      standardHandlers[0](notification('outside-page', { sequence: 4 }));
+      standardHandlers[0](notification('after-snapshot', { sequence: 6 }));
+    });
+    await act(async () => {
+      initialList.resolve(list([notification('server', { sequence: 5 })], 5, 5));
+      await initialList.promise;
+    });
+
+    expect(result.current.notifications.map(item => item.id)).toEqual(['after-snapshot', 'server']);
+    expect(result.current.unreadCount).toBe(6);
+  });
+
+  it('does not let an older explicit count overwrite a newer atomic list', async () => {
+    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([], 0, 0));
+    const count = deferred<{ count: number; snapshot_sequence: number }>();
+    vi.mocked(notificationService.getUnreadCount).mockReturnValueOnce(count.promise);
+    const { result } = renderHook(() => useNotifications('162', 'token-one'));
+    await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledOnce());
+    void result.current.refreshUnreadCount();
+    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([], 8, 8));
+    await act(async () => result.current.refreshNotifications());
+
+    await act(async () => {
+      count.resolve({ count: 2, snapshot_sequence: 2 });
+      await count.promise;
+    });
+
+    expect(result.current.unreadCount).toBe(8);
+  });
+
+  it('adds realtime newer than an explicit count snapshot cursor', async () => {
+    const count = deferred<{ count: number; snapshot_sequence: number }>();
+    vi.mocked(notificationService.getUnreadCount).mockReturnValueOnce(count.promise);
+    const { result } = renderHook(() => useNotifications('162', 'token-one'));
+    await waitFor(() => expect(standardHandlers).toHaveLength(1));
+    void result.current.refreshUnreadCount();
+    act(() => {
+      standardHandlers[0](notification('old-count-event', { sequence: 4 }));
+      standardHandlers[0](notification('new-count-event', { sequence: 6 }));
+    });
+    await act(async () => {
+      count.resolve({ count: 5, snapshot_sequence: 5 });
+      await count.promise;
+    });
+
+    expect(result.current.unreadCount).toBe(6);
   });
 
   it('seeds every initial page ID into the dedupe cache, not only five visible items', async () => {
@@ -328,16 +430,16 @@ describe('useNotifications', () => {
   });
 
   it('leaves realtime received during mark-all unread', async () => {
-    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([notification('old')]));
-    const mutation = deferred<void>();
+    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([notification('old', { sequence: 1 })]));
+    const mutation = deferred<{ count: number; sequence_cut: number }>();
     vi.mocked(notificationService.markAllAsRead).mockReturnValueOnce(mutation.promise);
     const { result } = renderHook(() => useNotifications('7', 'token-a'));
     await waitFor(() => expect(result.current.notifications[0]?.id).toBe('old'));
     void result.current.markAllAsRead();
-    act(() => standardHandlers[0](notification('new')));
+    act(() => standardHandlers[0](notification('new', { sequence: 2 })));
 
     await act(async () => {
-      mutation.resolve();
+      mutation.resolve({ count: 1, sequence_cut: 1 });
       await mutation.promise;
     });
 
@@ -347,7 +449,7 @@ describe('useNotifications', () => {
   });
 
   it('counts every realtime event during mark-all even beyond the 200-ID dedupe capacity', async () => {
-    const mutation = deferred<void>();
+    const mutation = deferred<{ count: number; sequence_cut: number }>();
     vi.mocked(notificationService.markAllAsRead).mockReturnValueOnce(mutation.promise);
     const { result } = renderHook(() => useNotifications('7', 'token-a'));
     await waitFor(() => expect(standardHandlers).toHaveLength(1));
@@ -355,12 +457,12 @@ describe('useNotifications', () => {
 
     act(() => {
       for (let index = 0; index < 201; index += 1) {
-        standardHandlers[0](notification(`burst-${index}`));
+        standardHandlers[0](notification(`burst-${index}`, { sequence: index + 1 }));
       }
     });
 
     await act(async () => {
-      mutation.resolve();
+      mutation.resolve({ count: 0, sequence_cut: 0 });
       await mutation.promise;
     });
 
@@ -421,6 +523,7 @@ describe('useNotifications', () => {
   });
 
   it('does not let a stale manual list undo mark-all', async () => {
+    vi.mocked(notificationService.markAllAsRead).mockResolvedValueOnce({ count: 1, sequence_cut: 1 });
     vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([notification('read-all')], 1));
     const staleList = deferred<ReturnType<typeof list>>();
     const { result } = renderHook(() => useNotifications('7', 'token-a'));
@@ -436,6 +539,28 @@ describe('useNotifications', () => {
 
     expect(result.current.notifications.find(item => item.id === 'read-all')?.read_at).not.toBeNull();
     expect(result.current.unreadCount).toBe(0);
+  });
+
+  it('applies the global mark-all cut to fetched and buffered notifications', async () => {
+    const initial = deferred<ReturnType<typeof list>>();
+    vi.mocked(notificationService.getNotifications).mockReturnValueOnce(initial.promise);
+    vi.mocked(notificationService.markAllAsRead).mockResolvedValueOnce({ count: 1, sequence_cut: 5 });
+    const { result } = renderHook(() => useNotifications('7', 'token-a'));
+    await waitFor(() => expect(standardHandlers).toHaveLength(1));
+    act(() => {
+      standardHandlers[0](notification('before-cut', { sequence: 1 }));
+      standardHandlers[0](notification('after-cut', { sequence: 6 }));
+    });
+    await act(async () => result.current.markAllAsRead());
+    await act(async () => {
+      initial.resolve(list([notification('fetched-before-cut', { sequence: 3 })], 3, 3));
+      await initial.promise;
+    });
+
+    expect(result.current.notifications.find(item => item.id === 'before-cut')?.read_at).not.toBeNull();
+    expect(result.current.notifications.find(item => item.id === 'fetched-before-cut')?.read_at).not.toBeNull();
+    expect(result.current.notifications.find(item => item.id === 'after-cut')?.read_at).toBeNull();
+    expect(result.current.unreadCount).toBe(1);
   });
 
   it('ignores an older same-epoch manual list response', async () => {
@@ -490,14 +615,14 @@ describe('useNotifications', () => {
   });
 
   it('deduplicates concurrent mark-all requests', async () => {
-    const mutation = deferred<void>();
+    const mutation = deferred<{ count: number; sequence_cut: number }>();
     vi.mocked(notificationService.markAllAsRead).mockReturnValueOnce(mutation.promise);
     const { result } = renderHook(() => useNotifications('7', 'token-a'));
     const first = result.current.markAllAsRead();
     const second = result.current.markAllAsRead();
 
     expect(notificationService.markAllAsRead).toHaveBeenCalledOnce();
-    mutation.resolve();
+    mutation.resolve({ count: 0, sequence_cut: 0 });
     await act(async () => Promise.all([first, second]));
   });
 
@@ -518,7 +643,7 @@ describe('useNotifications', () => {
   });
 
   it.each(['private', 'notification', 'listen', 'error'] as const)(
-    'leaves the captured channel when %s subscription stage throws',
+    'immediately leaves every intended channel when %s subscription stage throws',
     stage => {
       const stageLeave = vi.fn();
       const channel = {
@@ -538,11 +663,27 @@ describe('useNotifications', () => {
       }
 
       vi.mocked(getEcho).mockReturnValueOnce(echo as never);
-      const view = renderHook(() => useNotifications('7', 'token-a'));
+      const view = renderHook(() => useNotifications('7', 'token-a', 44));
+      expect(stageLeave).toHaveBeenCalledWith('App.Models.User.7.lk.global');
+      expect(stageLeave).toHaveBeenCalledWith('App.Models.User.7.lk.org.44');
       expect(() => view.unmount()).not.toThrow();
-      expect(stageLeave).toHaveBeenCalledWith('App.Models.User.7.lk');
     },
   );
+
+  it('leaves both old channels and reloads when the organization changes', async () => {
+    const echo = configureEcho();
+    const view = renderHook(
+      ({ organizationId }) => useNotifications('7', 'token-a', organizationId),
+      { initialProps: { organizationId: 44 } },
+    );
+    await waitFor(() => expect(echo.private).toHaveBeenCalledTimes(2));
+    view.rerender({ organizationId: 45 });
+    await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledTimes(2));
+
+    expect(leave).toHaveBeenCalledWith('App.Models.User.7.lk.global');
+    expect(leave).toHaveBeenCalledWith('App.Models.User.7.lk.org.44');
+    expect(echo.private).toHaveBeenCalledWith('App.Models.User.7.lk.org.45');
+  });
 
   it('continues with API state when Echo is unavailable', async () => {
     vi.mocked(getEcho).mockReturnValueOnce(null);
@@ -562,6 +703,6 @@ describe('useNotifications', () => {
     leave.mockImplementationOnce(() => { throw new Error('leave'); });
     const second = renderHook(() => useNotifications('8', 'token-b'));
     expect(() => second.unmount()).not.toThrow();
-    expect(leave).toHaveBeenCalledWith('App.Models.User.8.lk');
+    expect(leave).toHaveBeenCalledWith('App.Models.User.8.lk.global');
   });
 });

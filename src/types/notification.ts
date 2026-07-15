@@ -24,6 +24,8 @@ export interface NotificationData {
 
 export interface Notification {
   id: string;
+  sequence: number;
+  organization_id?: number | null;
   type: string;
   interface?: NotificationInterface;
   data: NotificationData;
@@ -42,6 +44,7 @@ export interface NotificationPaginationMeta {
   unread_by_category: Record<string, number>;
   unread_by_notification_type: Record<string, number>;
   unread_by_type: Record<string, number>;
+  snapshot_sequence: number;
   [key: string]: unknown;
 }
 
@@ -60,6 +63,15 @@ export interface NotificationResponse {
 
 export interface UnreadCountResponse {
   count: number;
+  snapshot_sequence: number;
+  by_category?: Record<string, number>;
+  by_notification_type?: Record<string, number>;
+  by_type?: Record<string, number>;
+}
+
+export interface MarkAllAsReadResponse {
+  count: number;
+  sequence_cut: number;
 }
 
 export type NotificationFilter = 'all' | 'unread' | 'read';
