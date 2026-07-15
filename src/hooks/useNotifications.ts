@@ -21,6 +21,13 @@ const MAX_DEDUPE_NOTIFICATIONS = 200;
 const MAX_REALTIME_BUFFER = 200;
 const MAX_LOCAL_METADATA = 200;
 
+interface ActiveMarkAllBuffer {
+  items: Map<number, Notification>;
+  overflowCount: number;
+  overflowMinSequence: number | null;
+  overflowMaxSequence: number | null;
+}
+
 const rememberNotification = (cache: Map<string, true>, key: string): void => {
   if (cache.has(key)) {
     cache.delete(key);
@@ -157,6 +164,8 @@ export const useNotifications = (
   const snapshotRequestVersionRef = useRef(0);
   const lastAppliedSnapshotSequenceRef = useRef(-1);
   const lastAppliedSnapshotRequestVersionRef = useRef(0);
+  const lastAppliedListSequenceRef = useRef(-1);
+  const lastAppliedListRequestVersionRef = useRef(0);
   const notificationsRef = useRef<Notification[]>([]);
   const unreadCountRef = useRef(0);
   const unreadRevisionRef = useRef(0);
@@ -169,7 +178,7 @@ export const useNotifications = (
   const listAbortControllerRef = useRef<AbortController | null>(null);
   const countAbortControllerRef = useRef<AbortController | null>(null);
   const overflowRefreshScheduledRef = useRef(false);
-  const activeMarkAllBufferRef = useRef<Map<number, Notification> | null>(null);
+  const activeMarkAllBufferRef = useRef<ActiveMarkAllBuffer | null>(null);
   const knownNotificationsRef = useRef<Map<string, Notification>>(new Map());
   const readOverridesRef = useRef<Map<string, string>>(new Map());
   const deleteTombstonesRef = useRef<Set<string>>(new Set());
@@ -199,7 +208,7 @@ export const useNotifications = (
     return readAt && !notification.read_at ? { ...notification, read_at: readAt } : notification;
   }, []);
 
-  const canApplySnapshot = useCallback((sequence: number, requestVersion: number): boolean => {
+  const canPublishUnread = useCallback((sequence: number, requestVersion: number): boolean => {
     if (sequence < lastAppliedSnapshotSequenceRef.current
       || (sequence === lastAppliedSnapshotSequenceRef.current
         && requestVersion < lastAppliedSnapshotRequestVersionRef.current)) {
@@ -208,6 +217,19 @@ export const useNotifications = (
 
     lastAppliedSnapshotSequenceRef.current = sequence;
     lastAppliedSnapshotRequestVersionRef.current = requestVersion;
+    return true;
+  }, []);
+
+  const canApplyListContent = useCallback((sequence: number, requestVersion: number): boolean => {
+    if (sequence < lastAppliedSnapshotSequenceRef.current
+      || sequence < lastAppliedListSequenceRef.current
+      || (sequence === lastAppliedListSequenceRef.current
+        && requestVersion < lastAppliedListRequestVersionRef.current)) {
+      return false;
+    }
+
+    lastAppliedListSequenceRef.current = sequence;
+    lastAppliedListRequestVersionRef.current = requestVersion;
     return true;
   }, []);
 
@@ -236,7 +258,7 @@ export const useNotifications = (
         && !controller.signal.aborted
         && mutationRevisionRef.current === mutationRevision
         && unreadRevisionRef.current === unreadRevision + bufferedUnreadChanges
-        && canApplySnapshot(response.snapshot_sequence, snapshotRequestVersion)) {
+        && canPublishUnread(response.snapshot_sequence, snapshotRequestVersion)) {
         const realtimeUnread = [...realtimeBuffer.values()].filter(notification => (
           notification.sequence > response.snapshot_sequence && !applyLocalState(notification)?.read_at
         )).length;
@@ -252,7 +274,7 @@ export const useNotifications = (
         countAbortControllerRef.current = null;
       }
     }
-  }, [applyLocalState, canApplySnapshot, publishUnreadCount]);
+  }, [applyLocalState, canPublishUnread, publishUnreadCount]);
 
   const refreshNotifications = useCallback(async (): Promise<void> => {
     const epoch = lifecycleEpochRef.current;
@@ -286,7 +308,7 @@ export const useNotifications = (
         || controller.signal.aborted
         || mutationRevisionRef.current !== mutationRevision
         || unreadRevisionRef.current !== unreadRevision + bufferedUnreadChanges
-        || !canApplySnapshot(response.meta.snapshot_sequence, snapshotRequestVersion)) {
+        || !canApplyListContent(response.meta.snapshot_sequence, requestVersion)) {
         return;
       }
 
@@ -314,7 +336,9 @@ export const useNotifications = (
         notification.sequence > response.meta.snapshot_sequence && !applyLocalState(notification)?.read_at
       )).length;
       countRequestVersionRef.current += 1;
-      publishUnreadCount(response.meta.unread_count + realtimeOnlyUnread);
+      if (canPublishUnread(response.meta.snapshot_sequence, snapshotRequestVersion)) {
+        publishUnreadCount(response.meta.unread_count + realtimeOnlyUnread);
+      }
       const protectedIds = new Set([
         ...response.data.map(notification => notification.id),
         ...nextNotifications.map(notification => notification.id),
@@ -360,7 +384,7 @@ export const useNotifications = (
         setLoading(false);
       }
     }
-  }, [applyLocalState, canApplySnapshot, organizationId, publishNotifications, publishUnreadCount]);
+  }, [applyLocalState, canApplyListContent, canPublishUnread, organizationId, publishNotifications, publishUnreadCount]);
 
   const markAsRead = useCallback(async (notificationId: string): Promise<void> => {
     if (pendingReadRef.current.has(notificationId)) {
@@ -391,7 +415,7 @@ export const useNotifications = (
         publishUnreadCount(unreadCountRef.current - 1);
       }
       if (targetAtStart) {
-        activeMarkAllBufferRef.current?.delete(targetAtStart.sequence);
+        activeMarkAllBufferRef.current?.items.delete(targetAtStart.sequence);
         knownNotificationsRef.current.set(notificationId, {
           ...targetAtStart,
           read_at: readAt,
@@ -429,7 +453,19 @@ export const useNotifications = (
 
     const operation = Symbol('mark-all');
     const epoch = lifecycleEpochRef.current;
-    const realtimeBuffer = new Map<number, Notification>();
+    const realtimeBuffer: ActiveMarkAllBuffer = {
+      items: new Map<number, Notification>(),
+      overflowCount: 0,
+      overflowMinSequence: null,
+      overflowMaxSequence: null,
+    };
+    const preOperationCandidates = new Map<number, Notification>();
+    activeListBuffersRef.current.forEach(buffer => {
+      buffer.forEach(notification => preOperationCandidates.set(notification.sequence, notification));
+    });
+    notificationsRef.current.forEach(notification => (
+      preOperationCandidates.set(notification.sequence, notification)
+    ));
     activeMarkAllBufferRef.current = realtimeBuffer;
     pendingMarkAllRef.current = operation;
 
@@ -454,16 +490,23 @@ export const useNotifications = (
           knownNotificationsRef.current.set(id, { ...notification, read_at: readAt });
         }
       });
-      const buffered = new Map<number, Notification>();
-      activeListBuffersRef.current.forEach(buffer => {
-        buffer.forEach(notification => buffered.set(notification.sequence, notification));
-      });
-      notificationsRef.current.forEach(notification => buffered.set(notification.sequence, notification));
-      realtimeBuffer.forEach(notification => buffered.set(notification.sequence, notification));
+      realtimeBuffer.items.forEach(notification => (
+        preOperationCandidates.set(notification.sequence, notification)
+      ));
+      let overflowUnread: number | null = 0;
+      if (realtimeBuffer.overflowCount > 0) {
+        if ((realtimeBuffer.overflowMinSequence ?? 0) > markAllSequenceCutRef.current) {
+          overflowUnread = realtimeBuffer.overflowCount;
+        } else if ((realtimeBuffer.overflowMaxSequence ?? 0) > markAllSequenceCutRef.current) {
+          overflowUnread = null;
+        }
+      }
       unreadRevisionRef.current += 1;
-      publishUnreadCount([...buffered.values()].filter(notification => (
-        notification.sequence > markAllSequenceCutRef.current && !applyLocalState(notification)?.read_at
-      )).length);
+      if (overflowUnread !== null) {
+        publishUnreadCount(overflowUnread + [...preOperationCandidates.values()].filter(notification => (
+          notification.sequence > markAllSequenceCutRef.current && !applyLocalState(notification)?.read_at
+        )).length);
+      }
       publishNotifications(notificationsRef.current
         .map(applyLocalState)
         .filter((notification): notification is Notification => notification !== null));
@@ -477,9 +520,12 @@ export const useNotifications = (
       if (pendingMarkAllRef.current === operation) {
         pendingMarkAllRef.current = null;
         activeMarkAllBufferRef.current = null;
+        if (realtimeBuffer.overflowCount > 0) {
+          void refreshNotifications();
+        }
       }
     }
-  }, [applyLocalState, publishNotifications, publishUnreadCount]);
+  }, [applyLocalState, publishNotifications, publishUnreadCount, refreshNotifications]);
 
   const deleteNotification = useCallback(async (notificationId: string): Promise<void> => {
     if (pendingDeleteRef.current.has(notificationId)) {
@@ -508,7 +554,7 @@ export const useNotifications = (
         publishUnreadCount(unreadCountRef.current - 1);
       }
       if (targetAtStart) {
-        activeMarkAllBufferRef.current?.delete(targetAtStart.sequence);
+        activeMarkAllBufferRef.current?.items.delete(targetAtStart.sequence);
       }
 
       deleteTombstonesRef.current.add(notificationId);
@@ -584,6 +630,8 @@ export const useNotifications = (
     markAllReadAtRef.current = null;
     lastAppliedSnapshotSequenceRef.current = -1;
     lastAppliedSnapshotRequestVersionRef.current = 0;
+    lastAppliedListSequenceRef.current = -1;
+    lastAppliedListRequestVersionRef.current = 0;
     overflowRefreshScheduledRef.current = false;
     unreadRevisionRef.current = 0;
     mutationRevisionRef.current = 0;
@@ -667,7 +715,22 @@ export const useNotifications = (
       }
       const locallyApplied = applyLocalState(notification);
       if (locallyApplied && !locallyApplied.read_at) {
-        activeMarkAllBufferRef.current?.set(notification.sequence, locallyApplied);
+        const markAllBuffer = activeMarkAllBufferRef.current;
+        if (markAllBuffer) {
+          if (markAllBuffer.items.size < MAX_REALTIME_BUFFER) {
+            markAllBuffer.items.set(notification.sequence, locallyApplied);
+          } else if (!markAllBuffer.items.has(notification.sequence)) {
+            markAllBuffer.overflowCount += 1;
+            markAllBuffer.overflowMinSequence = Math.min(
+              markAllBuffer.overflowMinSequence ?? notification.sequence,
+              notification.sequence,
+            );
+            markAllBuffer.overflowMaxSequence = Math.max(
+              markAllBuffer.overflowMaxSequence ?? notification.sequence,
+              notification.sequence,
+            );
+          }
+        }
         unreadRevisionRef.current += 1;
         publishUnreadCount(unreadCountRef.current + 1);
       }

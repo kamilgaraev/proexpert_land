@@ -345,6 +345,30 @@ describe('useNotifications', () => {
     expect(result.current.unreadCount).toBe(10);
   });
 
+  it('applies equal-cursor list content while preserving a newer count publication', async () => {
+    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([], 0, 1));
+    const listSnapshot = deferred<ReturnType<typeof list>>();
+    const countSnapshot = deferred<{ count: number; snapshot_sequence: number }>();
+    const { result } = renderHook(() => useNotifications('7', 'token-a'));
+    await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledOnce());
+    vi.mocked(notificationService.getNotifications).mockReturnValueOnce(listSnapshot.promise);
+    void result.current.refreshNotifications();
+    vi.mocked(notificationService.getUnreadCount).mockReturnValueOnce(countSnapshot.promise);
+    void result.current.refreshUnreadCount();
+
+    await act(async () => {
+      countSnapshot.resolve({ count: 20, snapshot_sequence: 10 });
+      await countSnapshot.promise;
+    });
+    await act(async () => {
+      listSnapshot.resolve(list([notification('equal-cursor-list', { sequence: 10 })], 10, 10));
+      await listSnapshot.promise;
+    });
+
+    expect(result.current.notifications.map(item => item.id)).toEqual(['equal-cursor-list']);
+    expect(result.current.unreadCount).toBe(20);
+  });
+
   it.each(['read', 'delete', 'all'] as const)(
     'does not let an in-flight count restore state after %s mutation',
     async operation => {
@@ -595,6 +619,9 @@ describe('useNotifications', () => {
   });
 
   it('counts every realtime event during mark-all even beyond the 200-ID dedupe capacity', async () => {
+    vi.mocked(notificationService.getNotifications)
+      .mockResolvedValueOnce(list([], 0, 0))
+      .mockResolvedValueOnce(list([], 201, 201));
     const mutation = deferred<{ count: number; sequence_cut: number }>();
     vi.mocked(notificationService.markAllAsRead).mockReturnValueOnce(mutation.promise);
     const { result } = renderHook(() => useNotifications('7', 'token-a'));
@@ -613,6 +640,30 @@ describe('useNotifications', () => {
     });
 
     expect(result.current.unreadCount).toBe(201);
+  });
+
+  it('bounds a large mark-all realtime burst and refetches an authoritative snapshot after completion', async () => {
+    vi.mocked(notificationService.getNotifications)
+      .mockResolvedValueOnce(list([], 0, 0))
+      .mockResolvedValueOnce(list([], 1000, 1000));
+    const mutation = deferred<{ count: number; sequence_cut: number }>();
+    vi.mocked(notificationService.markAllAsRead).mockReturnValueOnce(mutation.promise);
+    const { result } = renderHook(() => useNotifications('7', 'token-a'));
+    await waitFor(() => expect(standardHandlers).toHaveLength(1));
+    void result.current.markAllAsRead();
+
+    act(() => {
+      for (let sequence = 1; sequence <= 1000; sequence += 1) {
+        standardHandlers[0](notification(`mark-all-overflow-${sequence}`, { sequence }));
+      }
+    });
+    await act(async () => {
+      mutation.resolve({ count: 0, sequence_cut: 0 });
+      await mutation.promise;
+    });
+
+    await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledTimes(2));
+    expect(result.current.unreadCount).toBe(1000);
   });
 
   it('does not let a stale manual list resurrect a successfully deleted notification', async () => {

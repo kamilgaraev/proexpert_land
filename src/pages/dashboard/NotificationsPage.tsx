@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { notificationService } from '../../services/notificationService';
 import type { Notification, NotificationFilter } from '../../types/notification';
 import { NotificationItem } from '../../components/dashboard/notifications/NotificationItem';
@@ -7,6 +7,7 @@ import { useAuth } from '@hooks/useAuth';
 
 export const Page = () => {
   const { user } = useAuth();
+  const organizationId = user?.current_organization_id ?? null;
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<NotificationFilter>('all');
@@ -14,30 +15,49 @@ export const Page = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const perPage = 15;
+  const requestVersionRef = useRef(0);
+  const requestControllerRef = useRef<AbortController | null>(null);
+  const organizationIdRef = useRef(organizationId);
+  organizationIdRef.current = organizationId;
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
+    const requestVersion = requestVersionRef.current + 1;
+    const controller = new AbortController();
+    requestVersionRef.current = requestVersion;
+    requestControllerRef.current?.abort();
+    requestControllerRef.current = controller;
     try {
       setLoading(true);
       const response = await notificationService.getNotifications(
         currentPage,
         perPage,
         filter,
-        user?.current_organization_id ?? null,
+        organizationId,
+        controller.signal,
       );
+      if (controller.signal.aborted || requestVersionRef.current !== requestVersion) {
+        return;
+      }
       setNotifications(response.data);
       setTotalPages(response.meta.last_page);
       setTotal(response.meta.total);
     } catch (error) {
+      if (controller.signal.aborted || requestVersionRef.current !== requestVersion) {
+        return;
+      }
       console.error('Ошибка при загрузке уведомлений:', error);
       toast.error('Не удалось загрузить уведомления');
     } finally {
-      setLoading(false);
+      if (requestVersionRef.current === requestVersion) {
+        setLoading(false);
+      }
     }
-  };
+  }, [currentPage, filter, organizationId]);
 
   useEffect(() => {
-    fetchNotifications();
-  }, [currentPage, filter, user?.current_organization_id]);
+    void fetchNotifications();
+    return () => requestControllerRef.current?.abort();
+  }, [fetchNotifications]);
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
@@ -54,13 +74,23 @@ export const Page = () => {
   };
 
   const handleMarkAllAsRead = async () => {
+    const requestVersion = requestVersionRef.current;
+    const operationOrganizationId = organizationId;
     try {
       await notificationService.markAllAsRead();
+      if (requestVersionRef.current !== requestVersion
+        || organizationIdRef.current !== operationOrganizationId) {
+        return;
+      }
       setNotifications(prev =>
         prev.map(n => ({ ...n, read_at: new Date().toISOString() }))
       );
       toast.success('Все уведомления отмечены прочитанными');
     } catch (error) {
+      if (requestVersionRef.current !== requestVersion
+        || organizationIdRef.current !== operationOrganizationId) {
+        return;
+      }
       console.error('Ошибка при отметке всех уведомлений:', error);
       toast.error('Не удалось отметить все уведомления');
     }
