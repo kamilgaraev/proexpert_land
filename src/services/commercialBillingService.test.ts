@@ -42,7 +42,12 @@ describe('commercialBillingService', () => {
           price_minor: 790000,
           currency: 'RUB',
           billing_period_days: 30,
-          modules: ['machinery'],
+          modules: [{
+            slug: 'machinery',
+            name: 'Техника',
+            description: 'Учёт техники, рейсов и загрузки.',
+            billing_model: 'subscription',
+          }],
           highlights: ['Рейсы'],
           business_outcomes: ['Меньше простоев'],
           is_active: false,
@@ -66,7 +71,13 @@ describe('commercialBillingService', () => {
       }),
     );
 
-    await expect(commercialBillingService.getPackages()).resolves.toMatchObject([{ trialAvailable: false, trialUsed: true }]);
+    const packages = await commercialBillingService.getPackages();
+    expect(packages[0].modules[0]).toEqual({
+      slug: 'machinery',
+      name: 'Техника',
+      description: 'Учёт техники, рейсов и загрузки.',
+    });
+    expect(packages[0]).toMatchObject({ trialAvailable: false, trialUsed: true });
     await expect(commercialBillingService.getHistory(2)).resolves.toMatchObject({
       items: [{ orderId: 'order-1', status: 'refunded' }],
       meta: { currentPage: 2, total: 41 },
@@ -90,13 +101,14 @@ describe('commercialBillingService', () => {
         quote_version: 1,
         client_idempotency_key: first,
         auto_renew_consent: true,
+        use_balance: false,
       });
       return HttpResponse.json({ success: true, data: { order_id: 'order-1', status: 'pending_payment', amount: '7900.00', amount_minor: 790000, currency: 'RUB', confirmation_url: 'https://yookassa.ru/confirm/safe', payment_status: 'pending', auto_renew_consent: true, test_mode: false } });
     }));
 
     await expect(commercialBillingService.checkout({
       targetPackageSlugs: ['machinery'], currentPackageSlugs: [], fullSuite: false,
-      quoteVersion: 1, clientIdempotencyKey: first, autoRenewConsent: true,
+      quoteVersion: 1, clientIdempotencyKey: first, autoRenewConsent: true, useBalance: false,
     })).resolves.toMatchObject({ orderId: 'order-1', confirmationUrl: 'https://yookassa.ru/confirm/safe' });
   });
 

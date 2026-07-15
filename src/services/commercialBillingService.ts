@@ -52,7 +52,21 @@ const packageFromApi = (item: JsonRecord): CommercialPackage => ({
   priceMinor: item.price_minor,
   currency: item.currency,
   billingPeriodDays: item.billing_period_days,
-  modules: Array.isArray(item.modules) ? item.modules : [],
+  modules: Array.isArray(item.modules)
+    ? item.modules
+      .filter((module: unknown): module is JsonRecord => (
+        typeof module === 'object'
+        && module !== null
+        && typeof (module as JsonRecord).slug === 'string'
+        && typeof (module as JsonRecord).name === 'string'
+        && typeof (module as JsonRecord).description === 'string'
+      ))
+      .map((module: JsonRecord) => ({
+        slug: module.slug,
+        name: module.name,
+        description: module.description,
+      }))
+    : [],
   highlights: Array.isArray(item.highlights) ? item.highlights : [],
   businessOutcomes: Array.isArray(item.business_outcomes) ? item.business_outcomes : [],
   isActive: Boolean(item.is_active),
@@ -111,6 +125,7 @@ const orderFromApi = (item: JsonRecord): CommercialOrder => ({
   kind: item.kind ?? null,
   status: item.status,
   paymentStatus: item.payment_status ?? null,
+  paymentSource: item.payment_source ?? null,
   amount: item.amount,
   amountMinor: item.amount_minor,
   currency: item.currency,
@@ -140,7 +155,7 @@ export const commercialBillingService = {
   quote: async (input: { targetPackageSlugs: string[]; fullSuite: boolean }, signal?: AbortSignal) => quoteFromApi(await request<JsonRecord>('/billing/commercial/quote', {
     method: 'POST', signal, body: JSON.stringify({ target_package_slugs: input.targetPackageSlugs, full_suite: input.fullSuite }),
   })),
-  checkout: async (input: { targetPackageSlugs: string[]; currentPackageSlugs: string[]; fullSuite: boolean; quoteVersion: number; clientIdempotencyKey: string; autoRenewConsent: boolean }) => {
+  checkout: async (input: { targetPackageSlugs: string[]; currentPackageSlugs: string[]; fullSuite: boolean; quoteVersion: number; clientIdempotencyKey: string; autoRenewConsent: boolean; useBalance: boolean }) => {
     const item = await request<JsonRecord>('/billing/commercial/checkout', { method: 'POST', body: JSON.stringify({
       target_package_slugs: input.fullSuite ? [] : input.targetPackageSlugs,
       current_package_slugs: input.currentPackageSlugs,
@@ -148,6 +163,7 @@ export const commercialBillingService = {
       quote_version: input.quoteVersion,
       client_idempotency_key: input.clientIdempotencyKey,
       auto_renew_consent: input.autoRenewConsent,
+      use_balance: input.useBalance,
     }) });
     return {
       orderId: item.order_id as string,
@@ -157,6 +173,7 @@ export const commercialBillingService = {
       currency: item.currency as string,
       confirmationUrl: item.confirmation_url as string | null,
       paymentStatus: item.payment_status as string | null,
+      paymentSource: item.payment_source as 'yookassa' | 'balance' | null,
       autoRenewConsent: Boolean(item.auto_renew_consent),
       testMode: Boolean(item.test_mode),
     };

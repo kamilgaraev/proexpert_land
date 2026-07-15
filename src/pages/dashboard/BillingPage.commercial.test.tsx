@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { delay, http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
@@ -22,7 +22,11 @@ const packages = Array.from({ length: 10 }, (_, index) => ({
   price_minor: (index + 1) * 100000,
   currency: 'RUB',
   billing_period_days: 30,
-  modules: [`module-${index + 1}`],
+  modules: [{
+    slug: `module-${index + 1}`,
+    name: `Возможность ${index + 1}`,
+    description: `Краткое описание возможности ${index + 1}`,
+  }],
   highlights: [`Возможность ${index + 1}`],
   business_outcomes: [`Результат ${index + 1}`],
   is_active: index === 0,
@@ -51,6 +55,13 @@ const server = setupServer(
     scheduled_change: null,
   } })),
   http.get(`${baseUrl}/billing/commercial/history`, () => HttpResponse.json({ success: true, data: [], meta: { current_page: 1, per_page: 20, last_page: 1, total: 0 } })),
+  http.get(`${baseUrl}/billing/balance`, () => HttpResponse.json({
+    organization_id: 1,
+    balance_cents: 5000000,
+    balance_formatted: '50 000 ₽',
+    currency: 'RUB',
+    updated_at: '2026-07-15T09:00:00Z',
+  })),
   http.post(`${baseUrl}/billing/commercial/quote`, async ({ request }) => {
     const body = await request.json() as { target_package_slugs: string[]; full_suite: boolean };
     if (body.target_package_slugs.includes(packageSlugs[1]) && !body.target_package_slugs.includes(packageSlugs[2])) await delay(300);
@@ -85,17 +96,25 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe('BillingPage commercial packages', () => {
-  it('показывает понятный бесплатный доступ, ровно 10 пакетов и применяет intent один раз', async () => {
+  it('разделяет подключённые и доступные пакеты и применяет intent один раз', async () => {
     sessionStorage.setItem('most:commercial-package-intent', packageSlugs[1]);
     renderPage();
     expect(await screen.findByRole('heading', { name: 'Пакеты для вашей команды' })).toBeInTheDocument();
     expect(screen.getAllByText('МОСТ без оплаты').length).toBeGreaterThan(0);
-    expect(screen.getByRole('heading', { name: 'Выберите нужные возможности' })).toBeInTheDocument();
-    expect(screen.getByText('Ваш выбор')).toBeInTheDocument();
+    const connectedHeading = screen.getByRole('heading', { name: 'Подключённые пакеты' });
+    const availableHeading = screen.getByRole('heading', { name: 'Добавить возможности' });
+    const connectedSection = connectedHeading.closest('section');
+    const availableSection = availableHeading.closest('section');
+    expect(connectedSection).not.toBeNull();
+    expect(availableSection).not.toBeNull();
+    expect(within(connectedSection as HTMLElement).getByText('Пакет 1')).toBeInTheDocument();
+    expect(within(availableSection as HTMLElement).queryByText('Пакет 1')).not.toBeInTheDocument();
+    expect(within(connectedSection as HTMLElement).queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(within(availableSection as HTMLElement).getByText('Будет подключён')).toBeInTheDocument();
+    expect(screen.getByText('Ваши изменения')).toBeInTheDocument();
     expect(screen.queryByText('Коммерческий контур')).not.toBeInTheDocument();
     expect(screen.queryByText('Расчёт сервера')).not.toBeInTheDocument();
-    expect(await screen.findAllByRole('checkbox', { name: /Пакет/ })).toHaveLength(10);
-    expect(screen.getByRole('checkbox', { name: /Пакет 2/ })).toBeChecked();
+    expect(screen.queryByRole('checkbox', { name: /Пакет/ })).not.toBeInTheDocument();
     expect(sessionStorage.getItem('most:commercial-package-intent')).toBeNull();
   });
 
@@ -105,6 +124,19 @@ describe('BillingPage commercial packages', () => {
     await screen.findByText('Пакет 1');
     expect(screen.queryByRole('button', { name: /Перейти к оплате/ })).not.toBeInTheDocument();
     expect(screen.getByText(/Доступен просмотр без изменения состава/)).toBeInTheDocument();
+  });
+
+  it('показывает отсутствие изменений и не предлагает повторную оплату', async () => {
+    renderPage();
+    expect(await screen.findByText('Изменений нет')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Перейти к оплате/ })).not.toBeInTheDocument();
+  });
+
+  it('открывает состав пакета с названиями и описаниями возможностей', async () => {
+    renderPage();
+    const packageHeading = await screen.findByRole('heading', { name: 'Пакет 1' });
+    fireEvent.click(within(packageHeading.closest('article') as HTMLElement).getByRole('button', { name: 'Подробнее' }));
+    expect(await screen.findByText('Краткое описание возможности 1')).toBeInTheDocument();
   });
 
   it('для корпоративного уровня оставляет только персональное сопровождение без самостоятельных действий', async () => {
@@ -121,9 +153,7 @@ describe('BillingPage commercial packages', () => {
     expect(screen.queryByRole('button', { name: /Перейти к оплате/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Попробовать 3 дня/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Отключить автопродление/ })).not.toBeInTheDocument();
-    screen.getAllByRole('checkbox', { name: /Пакет/ }).forEach((checkbox) => {
-      expect(checkbox).toBeDisabled();
-    });
+    expect(screen.queryByRole('checkbox', { name: /Пакет/ })).not.toBeInTheDocument();
     await act(() => new Promise((resolve) => setTimeout(resolve, 300)));
     expect(quoteCalls).toBe(0);
   });
@@ -165,7 +195,7 @@ describe('BillingPage commercial packages', () => {
     expect(await screen.findByRole('heading', { name: 'Льготный период' })).toBeInTheDocument();
     expect(screen.getByText(/7 августа 2026/)).toBeInTheDocument();
     expect(screen.getByText(/на шестой день останется около 24 дней/)).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: /Пакет 2/ })).toBeDisabled();
+    expect(within(screen.getByRole('heading', { name: 'Пакет 2' }).closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Оплатить сейчас' })).toBeInTheDocument();
   });
 
@@ -190,22 +220,66 @@ describe('BillingPage commercial packages', () => {
   it('игнорирует запоздавший quote и оставляет итог последнего выбора', async () => {
     renderPage();
     await screen.findByText('Пакет 2');
-    fireEvent.click(screen.getByRole('checkbox', { name: /Пакет 2/ }));
+    fireEvent.click(within(screen.getByRole('heading', { name: 'Пакет 2' }).closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
     await act(() => new Promise((resolve) => setTimeout(resolve, 280)));
-    fireEvent.click(screen.getByRole('checkbox', { name: /Пакет 3/ }));
+    fireEvent.click(within(screen.getByRole('heading', { name: 'Пакет 3' }).closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
     await waitFor(() => expect(screen.getByTestId('monthly-total')).toHaveTextContent('3 000 ₽'));
     await act(() => new Promise((resolve) => setTimeout(resolve, 350)));
     expect(screen.getByTestId('monthly-total')).toHaveTextContent('3 000 ₽');
   });
 
-  it('требует явное согласие на автопродление рядом с оплатой', async () => {
+  it('не требует повторного согласия при уже настроенном автоплатеже', async () => {
     renderPage();
-    fireEvent.click(await screen.findByRole('checkbox', { name: /^Пакет 2,/ }));
+    const packageHeading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(packageHeading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
     const pay = await screen.findByRole('button', { name: /Перейти к оплате/ }, { timeout: 3000 });
-    expect(pay).toBeDisabled();
-    fireEvent.click(screen.getByRole('checkbox', { name: /Согласен на автоматическое списание/ }));
     expect(pay).toBeEnabled();
-    expect(screen.getByText(/каждые 30 дней/)).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: /Согласен на автоматическое списание/ })).not.toBeInTheDocument();
+  });
+
+  it('оплачивает полную сумму с баланса без перехода в платёжный сервис', async () => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
+      checkoutBody = await request.json() as Record<string, unknown>;
+      return HttpResponse.json({ success: true, data: {
+        order_id: 'balance-order', status: 'paid', amount: '2000.00', amount_minor: 200000,
+        currency: 'RUB', confirmation_url: null, payment_status: 'succeeded', payment_source: 'balance',
+        auto_renew_consent: true, test_mode: false,
+      } }, { status: 201 });
+    }));
+
+    renderPage();
+    const packageHeading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(packageHeading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    const balanceOption = await screen.findByRole('checkbox', { name: 'Оплатить с баланса' });
+    expect(balanceOption).toBeEnabled();
+    fireEvent.click(balanceOption);
+    fireEvent.click(screen.getByRole('button', { name: 'Оплатить с баланса' }));
+
+    expect(await screen.findByText(/Средства списаны с баланса организации/)).toBeInTheDocument();
+    expect(checkoutBody).toMatchObject({ use_balance: true, auto_renew_consent: true });
+    expect(sessionStorage.getItem('most:pending-commercial-order')).toBeNull();
+  });
+
+  it('всегда показывает крупной компании способ обсудить подключение', async () => {
+    renderPage();
+    expect(await screen.findByRole('heading', { name: 'Корпоративный уровень' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Обсудить подключение/ })).toHaveAttribute('href', '/contact?type=enterprise');
+  });
+
+  it('требует согласие на автоплатёж перед первой покупкой', async () => {
+    server.use(http.get(`${baseUrl}/billing/commercial/renewal`, () => HttpResponse.json({ success: true, data: {
+      status: 'free', auto_renew_enabled: false, saved_method_available: false,
+      next_billing_at: null, grace_started_at: null, grace_ends_at: null,
+      retry_status: null, attempt_count: 0, next_attempt_at: null, scheduled_change: null,
+    } })));
+    renderPage();
+    const packageHeading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(packageHeading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    const pay = await screen.findByRole('button', { name: /Перейти к оплате/ }, { timeout: 4000 });
+    expect(pay).toBeDisabled();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Согласен на автоматическое списание' }));
+    expect(pay).toBeEnabled();
   });
 
   it('показывает authoritative использованный trial сразу после reload', async () => {
@@ -233,7 +307,8 @@ describe('BillingPage commercial packages', () => {
       return HttpResponse.json({ success: true, data: { change_id: 'change-1', status: 'scheduled', offer_type: 'packages', target_package_slugs: [], current_package_slugs: [packageSlugs[0]], apply_at: '2026-07-31T09:00:00Z' } }, { status: 201 });
     }));
     renderPage();
-    fireEvent.click(await screen.findByRole('checkbox', { name: /^Пакет 1,/ }));
+    const packageHeading = await screen.findByRole('heading', { name: 'Пакет 1' });
+    fireEvent.click(within(packageHeading.closest('article') as HTMLElement).getByRole('button', { name: 'Отключить со следующего периода' }));
     const schedule = await screen.findByRole('button', { name: 'Запланировать сокращение' });
     expect(screen.getByText(/Уже оплаченный доступ сохранится/)).toBeInTheDocument();
     fireEvent.click(schedule);
