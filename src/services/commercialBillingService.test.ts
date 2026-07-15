@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import {
   commercialBillingService,
+  COMMERCIAL_PAYMENT_POLL_DELAYS_MS,
   createCheckoutIntentKey,
   pollCommercialOrder,
 } from './commercialBillingService';
@@ -22,6 +23,11 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe('commercialBillingService', () => {
+  it('повторно проверяет оплату через полсекунды и продолжает проверку около минуты', () => {
+    expect(COMMERCIAL_PAYMENT_POLL_DELAYS_MS.slice(0, 3)).toEqual([0, 500, 1000]);
+    expect(COMMERCIAL_PAYMENT_POLL_DELAYS_MS.reduce((total, delay) => total + delay, 0)).toBeGreaterThanOrEqual(50000);
+  });
+
   it('нормализует LandingResponse каталога и пагинацию истории', async () => {
     saveAuthToken('test-token');
     server.use(
