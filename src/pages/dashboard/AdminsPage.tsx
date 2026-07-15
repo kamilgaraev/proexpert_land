@@ -54,7 +54,6 @@ const AdminsPage = () => {
   const {
     users,
     invitations,
-    capacity,
     loading: userManagementLoading,
     error: userManagementError,
     fetchUsers,
@@ -756,34 +755,6 @@ const AdminsPage = () => {
             </div>
           </motion.div>
         </ProtectedComponent>
-
-        {/* Limits Info */}
-        {capacity && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {capacity.resources.users && (
-                <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-bold text-foreground">Лимит пользователей</h4>
-                    <span className={`px-3 py-1 rounded-lg text-xs font-bold ${
-                      capacity.resources.users.is_unlimited
-                        ? 'bg-emerald-100 text-emerald-700' 
-                        : 'bg-secondary text-muted-foreground'
-                    }`}>
-                      {capacity.resources.users.is_unlimited ? 'БЕЗЛИМИТ' : `${capacity.resources.users.used} / ${capacity.resources.users.limit}`}
-                    </span>
-                  </div>
-                  {!capacity.resources.users.is_unlimited && (
-                    <div className="w-full bg-secondary rounded-full h-3 overflow-hidden">
-                      <div 
-                        className="bg-blue-500 h-full rounded-full transition-all duration-500" 
-                        style={{ width: `${Math.min(capacity.resources.users.percentage_used, 100)}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-          </div>
-        )}
 
         {/* Search Bar */}
         {activeTab === 'admins' && (

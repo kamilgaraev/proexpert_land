@@ -1563,11 +1563,6 @@ export const userManagementService = {
     return response;
   },
 
-  getUserLimits: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
-    const response = await api.get('/user-management/user-limits');
-    return response;
-  },
-
   deleteUser: async (userId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.delete(`/user-management/organization-users/${userId}`);
     return response;

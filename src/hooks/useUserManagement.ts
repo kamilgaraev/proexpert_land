@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   userManagementService,
   customRolesService,
@@ -196,41 +196,10 @@ export interface OrganizationUser {
   created_at: string;
 }
 
-interface UserLimitsApiPayload {
-  has_subscription: boolean;
-  limits: {
-    users: {
-      limit: number;
-      used: number;
-      remaining: number;
-      percentage_used: number;
-      is_unlimited: boolean;
-    };
-  };
-  warnings: Array<{
-    type: string;
-    resource: string;
-    message: string;
-  }>;
-}
-
-export interface UserManagementCapacity {
-  hasAccess: boolean;
-  resources: UserLimitsApiPayload['limits'];
-  warnings: UserLimitsApiPayload['warnings'];
-}
-
-const normalizeUserCapacity = (payload: UserLimitsApiPayload): UserManagementCapacity => ({
-  hasAccess: payload.has_subscription,
-  resources: payload.limits,
-  warnings: payload.warnings,
-});
-
 export const useUserManagement = () => {
   const [roles, setRoles] = useState<OrganizationRole[]>([]);
   const [invitations, setInvitations] = useState<UserInvitation[]>([]);
   const [users, setUsers] = useState<OrganizationUser[]>([]);
-  const [capacity, setCapacity] = useState<UserManagementCapacity | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -307,17 +276,6 @@ export const useUserManagement = () => {
       setError(err.message || 'Ошибка загрузки пользователей');
     } finally {
       setLoading(false);
-    }
-  }, []);
-
-  const fetchCapacity = useCallback(async () => {
-    try {
-      const response = await userManagementService.getUserLimits();
-      if (response.data.success) {
-        setCapacity(normalizeUserCapacity(response.data.data as UserLimitsApiPayload));
-      }
-    } catch (err: any) {
-      setError(err.message || 'Ошибка загрузки лимитов');
     }
   }, []);
 
@@ -492,21 +450,15 @@ export const useUserManagement = () => {
     setError(null);
   }, []);
 
-  useEffect(() => {
-    fetchCapacity();
-  }, [fetchCapacity]);
-
   return {
     roles,
     invitations,
     users,
-    capacity,
     loading,
     error,
     fetchRoles,
     fetchInvitations,
     fetchUsers,
-    fetchCapacity,
     createRole,
     sendInvitation,
     updateUserRoles,
