@@ -296,6 +296,152 @@ describe('useNotifications', () => {
     expect(result.current.unreadCount).toBe(6);
   });
 
+  it('rejects a lower-cursor list that resolves after a newer count snapshot', async () => {
+    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(
+      list([notification('initial', { sequence: 1 })], 1, 1),
+    );
+    const count = deferred<{ count: number; snapshot_sequence: number }>();
+    const olderList = deferred<ReturnType<typeof list>>();
+    vi.mocked(notificationService.getUnreadCount).mockReturnValueOnce(count.promise);
+    const { result } = renderHook(() => useNotifications('7', 'token-a'));
+    await waitFor(() => expect(result.current.notifications[0]?.id).toBe('initial'));
+    void result.current.refreshUnreadCount();
+    vi.mocked(notificationService.getNotifications).mockReturnValueOnce(olderList.promise);
+    void result.current.refreshNotifications();
+
+    await act(async () => {
+      count.resolve({ count: 10, snapshot_sequence: 10 });
+      await count.promise;
+    });
+    await act(async () => {
+      olderList.resolve(list([notification('older-list', { sequence: 5 })], 5, 5));
+      await olderList.promise;
+    });
+
+    expect(result.current.notifications.map(item => item.id)).toEqual(['initial']);
+    expect(result.current.unreadCount).toBe(10);
+  });
+
+  it('rejects a lower-cursor count that resolves after a newer list snapshot', async () => {
+    const newerList = deferred<ReturnType<typeof list>>();
+    const olderCount = deferred<{ count: number; snapshot_sequence: number }>();
+    const { result } = renderHook(() => useNotifications('7', 'token-a'));
+    await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledOnce());
+    vi.mocked(notificationService.getNotifications).mockReturnValueOnce(newerList.promise);
+    void result.current.refreshNotifications();
+    vi.mocked(notificationService.getUnreadCount).mockReturnValueOnce(olderCount.promise);
+    void result.current.refreshUnreadCount();
+
+    await act(async () => {
+      newerList.resolve(list([notification('newer-list', { sequence: 10 })], 10, 10));
+      await newerList.promise;
+    });
+    await act(async () => {
+      olderCount.resolve({ count: 5, snapshot_sequence: 5 });
+      await olderCount.promise;
+    });
+
+    expect(result.current.notifications.map(item => item.id)).toEqual(['newer-list']);
+    expect(result.current.unreadCount).toBe(10);
+  });
+
+  it.each(['read', 'delete', 'all'] as const)(
+    'does not let an in-flight count restore state after %s mutation',
+    async operation => {
+      vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(
+        list([notification('mutation-target', { sequence: 5 })], 1, 5),
+      );
+      vi.mocked(notificationService.markAllAsRead).mockResolvedValueOnce({ count: 1, sequence_cut: 5 });
+      const count = deferred<{ count: number; snapshot_sequence: number }>();
+      vi.mocked(notificationService.getUnreadCount).mockReturnValueOnce(count.promise);
+      const { result } = renderHook(() => useNotifications('7', 'token-a'));
+      await waitFor(() => expect(result.current.unreadCount).toBe(1));
+      void result.current.refreshUnreadCount();
+      await act(async () => {
+        if (operation === 'read') {
+          await result.current.markAsRead('mutation-target');
+        } else if (operation === 'delete') {
+          await result.current.deleteNotification('mutation-target');
+        } else {
+          await result.current.markAllAsRead();
+        }
+      });
+      await act(async () => {
+        count.resolve({ count: 99, snapshot_sequence: 6 });
+        await count.promise;
+      });
+
+      expect(result.current.unreadCount).toBe(0);
+    },
+  );
+
+  it.each(['read', 'delete'] as const)(
+    'uses operation-start metadata when an unread item is displaced before %s completes',
+    async operation => {
+      vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(
+        list([notification('target', { sequence: 1 })], 1, 1),
+      );
+      const mutation = deferred<void>();
+      if (operation === 'read') {
+        vi.mocked(notificationService.markAsRead).mockReturnValueOnce(mutation.promise);
+      } else {
+        vi.mocked(notificationService.deleteNotification).mockReturnValueOnce(mutation.promise);
+      }
+      const { result } = renderHook(() => useNotifications('7', 'token-a'));
+      await waitFor(() => expect(result.current.notifications[0]?.id).toBe('target'));
+      const pending = operation === 'read'
+        ? result.current.markAsRead('target')
+        : result.current.deleteNotification('target');
+      act(() => {
+        for (let sequence = 2; sequence <= 7; sequence += 1) {
+          standardHandlers[0](notification(`burst-${sequence}`, { sequence }));
+        }
+      });
+      mutation.resolve();
+      await act(async () => pending);
+
+      expect(result.current.notifications.find(item => item.id === 'target')).toBeUndefined();
+      expect(result.current.unreadCount).toBe(6);
+    },
+  );
+
+  it('keeps only one active list and count request by aborting predecessors', async () => {
+    const never = new Promise<ReturnType<typeof list>>(() => undefined);
+    const neverCount = new Promise<{ count: number; snapshot_sequence: number }>(() => undefined);
+    vi.mocked(notificationService.getNotifications).mockReturnValue(never);
+    vi.mocked(notificationService.getUnreadCount).mockReturnValue(neverCount);
+    const { result } = renderHook(() => useNotifications('7', 'token-a'));
+    await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledOnce());
+    void result.current.refreshNotifications();
+    void result.current.refreshNotifications();
+    void result.current.refreshUnreadCount();
+    void result.current.refreshUnreadCount();
+
+    const listSignals = vi.mocked(notificationService.getNotifications).mock.calls
+      .map(call => call[4] as AbortSignal);
+    const countSignals = vi.mocked(notificationService.getUnreadCount).mock.calls
+      .map(call => call[0] as AbortSignal);
+    expect(listSignals.slice(0, -1).every(signal => signal.aborted)).toBe(true);
+    expect(listSignals.at(-1)?.aborted).toBe(false);
+    expect(countSignals[0]?.aborted).toBe(true);
+    expect(countSignals.at(-1)?.aborted).toBe(false);
+  });
+
+  it('restarts an atomic snapshot when a realtime request buffer overflows', async () => {
+    const initial = deferred<ReturnType<typeof list>>();
+    vi.mocked(notificationService.getNotifications).mockReturnValueOnce(initial.promise);
+    renderHook(() => useNotifications('7', 'token-a'));
+    await waitFor(() => expect(standardHandlers).toHaveLength(1));
+
+    act(() => {
+      for (let sequence = 1; sequence <= 201; sequence += 1) {
+        standardHandlers[0](notification(`overflow-${sequence}`, { sequence }));
+      }
+    });
+
+    await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledTimes(2));
+  });
+
   it('seeds every initial page ID into the dedupe cache, not only five visible items', async () => {
     const initial = Array.from({ length: 8 }, (_, index) => notification(`initial-${index}`));
     vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list(initial));
@@ -630,7 +776,7 @@ describe('useNotifications', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     vi.mocked(notificationService.getNotifications)
       .mockResolvedValueOnce(list([notification('maybe-deleted')], 1))
-      .mockResolvedValueOnce(list([], 0));
+      .mockResolvedValueOnce(list([], 0, 1));
     vi.mocked(notificationService.deleteNotification).mockRejectedValueOnce(new Error('network'));
     const { result } = renderHook(() => useNotifications('7', 'token-a'));
     await waitFor(() => expect(result.current.notifications[0]?.id).toBe('maybe-deleted'));

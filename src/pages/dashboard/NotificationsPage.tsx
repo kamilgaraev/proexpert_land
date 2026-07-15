@@ -3,8 +3,10 @@ import { notificationService } from '../../services/notificationService';
 import type { Notification, NotificationFilter } from '../../types/notification';
 import { NotificationItem } from '../../components/dashboard/notifications/NotificationItem';
 import { toast } from 'react-toastify';
+import { useAuth } from '@hooks/useAuth';
 
 export const Page = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<NotificationFilter>('all');
@@ -16,7 +18,12 @@ export const Page = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const response = await notificationService.getNotifications(currentPage, perPage, filter);
+      const response = await notificationService.getNotifications(
+        currentPage,
+        perPage,
+        filter,
+        user?.current_organization_id ?? null,
+      );
       setNotifications(response.data);
       setTotalPages(response.meta.last_page);
       setTotal(response.meta.total);
@@ -30,7 +37,7 @@ export const Page = () => {
 
   useEffect(() => {
     fetchNotifications();
-  }, [currentPage, filter]);
+  }, [currentPage, filter, user?.current_organization_id]);
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {

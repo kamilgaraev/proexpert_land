@@ -72,7 +72,10 @@ const normalizeLinks = (value: unknown): NotificationPaginationLinks | undefined
   return value as NotificationPaginationLinks;
 };
 
-export const normalizeNotificationListResponse = (payload: unknown): NotificationResponse => {
+export const normalizeNotificationListResponse = (
+  payload: unknown,
+  expectedOrganizationId: number | null = null,
+): NotificationResponse => {
   if (!isRecord(payload)) {
     throw new Error('Некорректный ответ списка уведомлений');
   }
@@ -94,11 +97,15 @@ export const normalizeNotificationListResponse = (payload: unknown): Notificatio
     || typeof item.id !== 'string'
     || !item.id.trim()
     || !isSafePositiveInteger(item.sequence))) {
-    throw new Error('РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РѕС‚РІРµС‚ СЃРїРёСЃРєР° СѓРІРµРґРѕРјР»РµРЅРёР№');
+    throw new Error('Некорректный ответ списка уведомлений');
   }
 
+  const notifications = data.filter(item => isRecord(item)
+    && item.interface === 'lk'
+    && (item.organization_id === null || item.organization_id === expectedOrganizationId));
+
   return {
-    data: data as Notification[],
+    data: notifications as Notification[],
     meta: normalizeMeta(source.meta),
     ...(links ? { links } : {}),
   };
@@ -126,14 +133,14 @@ export const normalizeUnreadCountResponse = (payload: unknown): UnreadCountRespo
 
 export const normalizeMarkAllAsReadResponse = (payload: unknown): MarkAllAsReadResponse => {
   if (!isRecord(payload) || ('success' in payload && payload.success !== true)) {
-    throw new Error('РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РѕС‚РІРµС‚ РѕРїРµСЂР°С†РёРё СЃ СѓРІРµРґРѕРјР»РµРЅРёСЏРјРё');
+    throw new Error('Некорректный ответ операции с уведомлениями');
   }
 
   const source = 'success' in payload ? payload.data : payload;
   if (!isRecord(source)
     || !isSafeNonNegativeInteger(source.count)
     || !isSafeNonNegativeInteger(source.sequence_cut)) {
-    throw new Error('РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РѕС‚РІРµС‚ РѕРїРµСЂР°С†РёРё СЃ СѓРІРµРґРѕРјР»РµРЅРёСЏРјРё');
+    throw new Error('Некорректный ответ операции с уведомлениями');
   }
 
   return source as unknown as MarkAllAsReadResponse;
@@ -144,6 +151,8 @@ export const notificationService = {
     page: number = 1,
     perPage: number = 15,
     filter: NotificationFilter = 'all',
+    expectedOrganizationId: number | null = null,
+    signal?: AbortSignal,
   ): Promise<NotificationResponse> => {
     const params: Record<string, number | NotificationFilter> = { page, per_page: perPage };
 
@@ -155,17 +164,19 @@ export const notificationService = {
       params,
       withCredentials: true,
       headers: getJsonAuthHeaders(),
+      signal,
     });
 
-    return normalizeNotificationListResponse(response.data);
+    return normalizeNotificationListResponse(response.data, expectedOrganizationId);
   },
 
-  getUnreadCount: async (): Promise<UnreadCountResponse> => {
+  getUnreadCount: async (signal?: AbortSignal): Promise<UnreadCountResponse> => {
     const response = await axios.get<unknown>(
       `${API_BASE_URL}/api/v1/landing/notifications/unread-count`,
       {
         withCredentials: true,
         headers: getJsonAuthHeaders(),
+        signal,
       },
     );
 

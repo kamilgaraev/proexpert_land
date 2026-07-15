@@ -25,9 +25,9 @@ export interface NotificationData {
 export interface Notification {
   id: string;
   sequence: number;
-  organization_id?: number | null;
+  organization_id: number | null;
   type: string;
-  interface?: NotificationInterface;
+  interface: NotificationInterface;
   data: NotificationData;
   read_at: string | null;
   created_at: string;
