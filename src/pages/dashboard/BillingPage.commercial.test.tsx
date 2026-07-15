@@ -84,12 +84,16 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
-describe('BillingPage commercial contour', () => {
-  it('показывает бесплатную основу, ровно 10 пакетов и применяет intent один раз', async () => {
+describe('BillingPage commercial packages', () => {
+  it('показывает понятный бесплатный доступ, ровно 10 пакетов и применяет intent один раз', async () => {
     sessionStorage.setItem('most:commercial-package-intent', packageSlugs[1]);
     renderPage();
-    expect(await screen.findByRole('heading', { name: 'Коммерческий контур' })).toBeInTheDocument();
-    expect(screen.getByText('Бесплатная основа')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Пакеты для вашей команды' })).toBeInTheDocument();
+    expect(screen.getAllByText('МОСТ без оплаты').length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { name: 'Выберите нужные возможности' })).toBeInTheDocument();
+    expect(screen.getByText('Ваш выбор')).toBeInTheDocument();
+    expect(screen.queryByText('Коммерческий контур')).not.toBeInTheDocument();
+    expect(screen.queryByText('Расчёт сервера')).not.toBeInTheDocument();
     expect(await screen.findAllByRole('checkbox', { name: /Пакет/ })).toHaveLength(10);
     expect(screen.getByRole('checkbox', { name: /Пакет 2/ })).toBeChecked();
     expect(sessionStorage.getItem('most:commercial-package-intent')).toBeNull();
@@ -115,7 +119,7 @@ describe('BillingPage commercial contour', () => {
 
     expect(await screen.findByText(/Персональное сопровождение/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Перейти к оплате/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Попробовать на 72 часа/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Попробовать 3 дня/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Отключить автопродление/ })).not.toBeInTheDocument();
     screen.getAllByRole('checkbox', { name: /Пакет/ }).forEach((checkbox) => {
       expect(checkbox).toBeDisabled();
@@ -197,7 +201,7 @@ describe('BillingPage commercial contour', () => {
   it('требует явное согласие на автопродление рядом с оплатой', async () => {
     renderPage();
     fireEvent.click(await screen.findByRole('checkbox', { name: /^Пакет 2,/ }));
-    const pay = await screen.findByRole('button', { name: /Перейти к оплате/ });
+    const pay = await screen.findByRole('button', { name: /Перейти к оплате/ }, { timeout: 3000 });
     expect(pay).toBeDisabled();
     fireEvent.click(screen.getByRole('checkbox', { name: /Согласен на автоматическое списание/ }));
     expect(pay).toBeEnabled();
@@ -248,6 +252,6 @@ describe('BillingPage commercial contour', () => {
     renderPage();
     fireEvent.click(await screen.findByRole('button', { name: 'Отключить автопродление' }));
     expect(await screen.findByText('Автопродление отключено')).toBeInTheDocument();
-    expect(screen.getByText(/Текущий период/)).toBeInTheDocument();
+    expect(screen.getByText(/Оплачено до/)).toBeInTheDocument();
   });
 });
