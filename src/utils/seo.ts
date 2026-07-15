@@ -284,38 +284,36 @@ export const generateOrganizationSchema = () => ({
 });
 
 const buildPackageOffers = () => {
-  const packageOffers = marketingPackages.flatMap((item) =>
-    item.tiers.flatMap((tier) => {
-      const isNonStableTier = tier.maturityNote
-        ? /beta|alpha|early[_\s-]?access|coming[_\s-]?soon|бета|пилот|ранн(?:ий|яя|ее|ие|его|ему|им|их|ими|ем)|по мере готовности/i.test(tier.maturityNote)
-        : false;
+  const packageOffers = marketingPackages.flatMap((item) => {
+    const isNonStablePackage = item.maturityNote
+      ? /beta|alpha|early[_\s-]?access|coming[_\s-]?soon|бета|пилот|ранн(?:ий|яя|ее|ие|его|ему|им|их|ими|ем)|по мере готовности/i.test(item.maturityNote)
+      : false;
 
-      if (isNonStableTier || tier.price <= 0 || tier.billingModel !== 'subscription') {
-        return [];
-      }
+    if (isNonStablePackage || item.price <= 0 || item.billingModel !== 'subscription') {
+      return [];
+    }
 
-      const price = `${tier.price}`;
-      const offer: Record<string, string> = {
-        '@type': 'Offer',
-        name: item.name,
-        availability: 'https://schema.org/InStock',
-        category: item.name,
-        description: tier.description,
+    const price = `${item.price}`;
+    const offer: Record<string, string> = {
+      '@type': 'Offer',
+      name: item.name,
+      availability: 'https://schema.org/InStock',
+      category: item.name,
+      description: item.description,
+      price,
+      priceCurrency: 'RUB',
+    };
+
+    return [{
+      ...offer,
+      priceSpecification: {
+        '@type': 'UnitPriceSpecification',
         price,
         priceCurrency: 'RUB',
-      };
-
-      return [{
-        ...offer,
-        priceSpecification: {
-          '@type': 'UnitPriceSpecification',
-          price,
-          priceCurrency: 'RUB',
-          billingDuration: 'P30D',
-        },
-      }];
-    }),
-  );
+        billingDuration: 'P30D',
+      },
+    }];
+  });
 
   const createOffer = (name: string, description: string, priceValue: number) => {
     const price = `${priceValue}`;

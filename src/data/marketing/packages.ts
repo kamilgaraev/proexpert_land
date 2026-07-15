@@ -1,4 +1,4 @@
-import type { MarketingAdvancedOffer, MarketingPackageFamily } from '@/types/marketing';
+import type { MarketingAdvancedOffer, MarketingPackage } from '@/types/marketing';
 
 export const marketingPackageCatalogSource = 'Backend МОСТ: config/Packages/*.json, config/commercial_offers.php, config/module_packages.php';
 
@@ -14,7 +14,7 @@ export type CommercialPackageSlug =
   | 'machinery'
   | 'sales-contractors';
 
-export interface CommercialPackage extends MarketingPackageFamily {
+export interface CommercialPackage extends MarketingPackage {
   number: number;
   slug: CommercialPackageSlug;
   price: number;
@@ -154,29 +154,18 @@ export const commercialPackages: CommercialPackage[] = definitions.map((item, in
   number: index + 1,
   color: index % 2 === 0 ? 'construction' : 'steel',
   icon: item.slug,
+  standalonePrice: item.price,
+  priceLabel: `${item.price.toLocaleString('ru-RU')} ₽ за 30 дней`,
+  billingModel: 'subscription',
+  durationDays: 30,
+  includedModules: item.moduleSlugs,
+  highlights: item.highlights,
+  businessOutcome: item.outcomes[0],
   foundationModules,
-  integrations: [],
-  recommendedAddons: [],
   businessOutcomes: item.outcomes,
-  dataSources: item.moduleSlugs.map((moduleSlug) => ({ moduleSlug, label: item.highlights[0] })),
-  capabilities: [],
-  tiers: [{
-    key: 'base',
-    label: 'Бизнес-пакет',
-    description: item.description,
-    price: item.price,
-    standalonePrice: item.price,
-    priceLabel: `${item.price.toLocaleString('ru-RU')} ₽ за 30 дней`,
-    billingModel: 'subscription',
-    durationDays: 30,
-    moduleSlugs: item.moduleSlugs,
-    includedModules: item.moduleSlugs,
-    highlights: item.highlights,
-    businessOutcome: item.outcomes[0],
-  }],
 }));
 
-export const marketingPackages: MarketingPackageFamily[] = commercialPackages;
+export const marketingPackages: MarketingPackage[] = commercialPackages;
 
 export const freeFoundationOffer = {
   name: 'Бесплатная база',

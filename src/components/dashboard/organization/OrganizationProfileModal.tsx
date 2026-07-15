@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CapabilitiesSelector } from './CapabilitiesSelector';
 import { BusinessTypeSelector } from './BusinessTypeSelector';
-import { RecommendedModulesCard } from './RecommendedModulesCard';
+import { RecommendedPackagesCard } from './RecommendedPackagesCard';
 import { SpecializationsSelector } from './SpecializationsSelector';
 import { WorkspaceQuickActionsCard } from './WorkspaceQuickActionsCard';
+import { rememberCommercialIntent } from '@/utils/commercialIntent';
+import { getRecommendedPackages } from '@/utils/recommendedPackages';
 
 interface OrganizationProfileModalProps {
   isOpen: boolean;
@@ -43,6 +45,16 @@ export const OrganizationProfileModal = ({
   const [localCapabilities, setLocalCapabilities] = useState<OrganizationCapability[]>([]);
   const [localBusinessType, setLocalBusinessType] = useState<OrganizationCapability | null>(null);
   const [localSpecializations, setLocalSpecializations] = useState<string[]>([]);
+  const recommendedPackages = useMemo(
+    () => getRecommendedPackages(profile?.recommended_modules ?? []),
+    [profile?.recommended_modules],
+  );
+
+  const openPackage = (packageSlug: Parameters<typeof rememberCommercialIntent>[0][number]) => {
+    rememberCommercialIntent([packageSlug]);
+    navigate('/dashboard/billing');
+    onClose();
+  };
 
   useEffect(() => {
     if (!isOpen) {
@@ -90,7 +102,7 @@ export const OrganizationProfileModal = ({
     {
       id: 'workspace',
       title: 'Стартовый раздел',
-      description: 'Быстрые действия и рекомендуемые модули по выбранному режиму',
+      description: 'Быстрые действия и рекомендуемые пакеты по выбранному режиму',
     },
     {
       id: 'complete',
@@ -216,6 +228,7 @@ export const OrganizationProfileModal = ({
                     selectedCapabilities={localCapabilities}
                     availableCapabilities={availableCapabilities}
                     onChange={setLocalCapabilities}
+                    onPackageClick={openPackage}
                     showRecommendations={false}
                   />
                 )}
@@ -245,12 +258,9 @@ export const OrganizationProfileModal = ({
                       }}
                     />
 
-                    <RecommendedModulesCard
-                      modules={profile?.recommended_modules || []}
-                      onModuleClick={() => {
-                        navigate('/dashboard/billing');
-                        onClose();
-                      }}
+                    <RecommendedPackagesCard
+                      packages={recommendedPackages}
+                      onPackageClick={openPackage}
                     />
                   </div>
                 )}

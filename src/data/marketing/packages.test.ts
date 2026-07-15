@@ -40,7 +40,7 @@ describe('коммерческий каталог пакетов', () => {
       'data-filters',
       'brigades',
     ]);
-    expect(commercialPackages.map(({ slug, tiers }) => [slug, tiers[0].moduleSlugs])).toEqual([
+    expect(commercialPackages.map(({ slug, moduleSlugs }) => [slug, moduleSlugs])).toEqual([
       ['projects-processes', ['site-requests', 'file-management']],
       ['planning-schedules', ['schedule-management']],
       ['estimates-norms', ['budget-estimates', 'rate-management']],
@@ -58,7 +58,7 @@ describe('коммерческий каталог пакетов', () => {
     expect(commercialPackages.map((item) => ({
       slug: item.slug,
       description: item.description,
-      highlights: item.tiers[0].highlights,
+      highlights: item.highlights,
       outcomes: item.businessOutcomes,
     }))).toEqual([
       { slug: 'projects-processes', description: 'Управление объектами, рабочими процессами и заявками с площадки в едином контуре.', highlights: ['Заявки с объекта', 'Файлы и документы'], outcomes: ['Единый порядок работы по объектам', 'Связь офиса и строительной площадки'] },

@@ -196,7 +196,7 @@ export interface OrganizationUser {
   created_at: string;
 }
 
-export interface SubscriptionLimits {
+interface UserLimitsApiPayload {
   has_subscription: boolean;
   limits: {
     users: {
@@ -214,11 +214,23 @@ export interface SubscriptionLimits {
   }>;
 }
 
+export interface UserManagementCapacity {
+  hasAccess: boolean;
+  resources: UserLimitsApiPayload['limits'];
+  warnings: UserLimitsApiPayload['warnings'];
+}
+
+const normalizeUserCapacity = (payload: UserLimitsApiPayload): UserManagementCapacity => ({
+  hasAccess: payload.has_subscription,
+  resources: payload.limits,
+  warnings: payload.warnings,
+});
+
 export const useUserManagement = () => {
   const [roles, setRoles] = useState<OrganizationRole[]>([]);
   const [invitations, setInvitations] = useState<UserInvitation[]>([]);
   const [users, setUsers] = useState<OrganizationUser[]>([]);
-  const [limits, setLimits] = useState<SubscriptionLimits | null>(null);
+  const [capacity, setCapacity] = useState<UserManagementCapacity | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -298,11 +310,11 @@ export const useUserManagement = () => {
     }
   }, []);
 
-  const fetchLimits = useCallback(async () => {
+  const fetchCapacity = useCallback(async () => {
     try {
       const response = await userManagementService.getUserLimits();
       if (response.data.success) {
-        setLimits(response.data.data);
+        setCapacity(normalizeUserCapacity(response.data.data as UserLimitsApiPayload));
       }
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки лимитов');
@@ -481,20 +493,20 @@ export const useUserManagement = () => {
   }, []);
 
   useEffect(() => {
-    fetchLimits();
-  }, [fetchLimits]);
+    fetchCapacity();
+  }, [fetchCapacity]);
 
   return {
     roles,
     invitations,
     users,
-    limits,
+    capacity,
     loading,
     error,
     fetchRoles,
     fetchInvitations,
     fetchUsers,
-    fetchLimits,
+    fetchCapacity,
     createRole,
     sendInvitation,
     updateUserRoles,

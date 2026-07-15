@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrganizationProfile } from '@/hooks/useOrganizationProfile';
 import { useOrganizationVerification } from '@/hooks/useOrganizationVerification';
@@ -7,10 +7,12 @@ import { BusinessTypeSelector } from '@/components/dashboard/organization/Busine
 import { SpecializationsSelector } from '@/components/dashboard/organization/SpecializationsSelector';
 import { CertificationsList } from '@/components/dashboard/organization/CertificationsList';
 import { ProfileCompletenessWidget } from '@/components/dashboard/organization/ProfileCompletenessWidget';
-import { RecommendedModulesCard } from '@/components/dashboard/organization/RecommendedModulesCard';
+import { RecommendedPackagesCard } from '@/components/dashboard/organization/RecommendedPackagesCard';
 import { WorkspaceQuickActionsCard } from '@/components/dashboard/organization/WorkspaceQuickActionsCard';
 import type { OrganizationCapability } from '@/types/organization-profile';
 import { BUSINESS_TYPE_LABELS, resolvePrimaryBusinessType } from '@/utils/organizationProfile';
+import { rememberCommercialIntent } from '@/utils/commercialIntent';
+import { getRecommendedPackages } from '@/utils/recommendedPackages';
 import {
   Building2,
   CheckCircle,
@@ -71,6 +73,15 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
   const [localBusinessType, setLocalBusinessType] = useState<OrganizationCapability | null>(null);
   const [localSpecializations, setLocalSpecializations] = useState<string[]>([]);
   const [localCertifications, setLocalCertifications] = useState<string[]>([]);
+  const recommendedPackages = useMemo(
+    () => getRecommendedPackages(profile?.recommended_modules ?? []),
+    [profile?.recommended_modules],
+  );
+
+  const openPackage = (packageSlug: Parameters<typeof rememberCommercialIntent>[0][number]) => {
+    rememberCommercialIntent([packageSlug]);
+    navigate('/dashboard/billing');
+  };
 
   useEffect(() => {
     fetchProfile();
@@ -275,9 +286,9 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
                   </p>
                 </div>
                 <div>
-                  <p className="mb-1 text-xs text-muted-foreground">Рекомендуемые модули</p>
+                  <p className="mb-1 text-xs text-muted-foreground">Рекомендуемые пакеты</p>
                   <p className="text-2xl font-bold">
-                    {profile?.recommended_modules?.length || 0}
+                    {recommendedPackages.length}
                   </p>
                 </div>
               </div>
@@ -293,6 +304,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
                 selectedCapabilities={localCapabilities}
                 availableCapabilities={availableCapabilities || []}
                 onChange={setLocalCapabilities}
+                onPackageClick={openPackage}
                 showRecommendations
               />
             ) : (
@@ -403,12 +415,10 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
             />
           )}
 
-          {profile && profile.recommended_modules && profile.recommended_modules.length > 0 && (
-            <RecommendedModulesCard
-              modules={profile.recommended_modules}
-              onModuleClick={() => {
-                navigate('/dashboard/billing');
-              }}
+          {recommendedPackages.length > 0 && (
+            <RecommendedPackagesCard
+              packages={recommendedPackages}
+              onPackageClick={openPackage}
               showTitle
             />
           )}

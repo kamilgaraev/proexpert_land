@@ -236,7 +236,7 @@ export const PackageIcon = ({
   return <Icon className={className} />;
 };
 
-export const formatPackageTierPrice = ({
+export const formatPackagePrice = ({
   price,
   priceLabel,
   billingModel,

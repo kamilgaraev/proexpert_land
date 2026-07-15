@@ -5,9 +5,11 @@ import { getPrimaryWorkspaceRoute, resolvePrimaryBusinessType } from '@/utils/or
 import { CapabilitiesSelector } from '../organization/CapabilitiesSelector';
 import { BusinessTypeSelector } from '../organization/BusinessTypeSelector';
 import { CertificationsList } from '../organization/CertificationsList';
-import { RecommendedModulesCard } from '../organization/RecommendedModulesCard';
+import { RecommendedPackagesCard } from '../organization/RecommendedPackagesCard';
 import { SpecializationsSelector } from '../organization/SpecializationsSelector';
 import { WorkspaceQuickActionsCard } from '../organization/WorkspaceQuickActionsCard';
+import { rememberCommercialIntent } from '@/utils/commercialIntent';
+import { getRecommendedPackages } from '@/utils/recommendedPackages';
 
 interface OnboardingWizardProps {
   onComplete: (defaultRoute?: string) => void;
@@ -51,6 +53,15 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     () => getPrimaryWorkspaceRoute(profile?.workspace_profile),
     [profile?.workspace_profile]
   );
+  const recommendedPackages = useMemo(
+    () => getRecommendedPackages(profile?.recommended_modules ?? []),
+    [profile?.recommended_modules],
+  );
+
+  const openPackage = (packageSlug: Parameters<typeof rememberCommercialIntent>[0][number]) => {
+    rememberCommercialIntent([packageSlug]);
+    onComplete('/dashboard/billing');
+  };
 
   const canProceed = () => {
     if (onboarding.currentStep === 'capabilities') {
@@ -187,6 +198,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
                 selectedCapabilities={onboarding.data.capabilities}
                 availableCapabilities={availableCapabilities}
                 onChange={(capabilities) => onboarding.updateCapabilities(capabilities)}
+                onPackageClick={openPackage}
                 showRecommendations
               />
             </div>
@@ -197,7 +209,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
               <div className="mb-8 text-center">
                 <h2 className="mb-2 text-2xl font-bold text-gray-900">Основной режим работы</h2>
                 <p className="text-gray-600">
-                  Этот режим будет открываться первым и задаст приоритет рекомендациям по модулям и действиям
+                  Этот режим будет открываться первым и задаст приоритет рекомендациям по пакетам и действиям
                 </p>
               </div>
               <BusinessTypeSelector
@@ -253,9 +265,9 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
                 onActionClick={(action) => onComplete(action.route)}
               />
 
-              <RecommendedModulesCard
-                modules={profile?.recommended_modules || []}
-                onModuleClick={() => onComplete('/dashboard/billing')}
+              <RecommendedPackagesCard
+                packages={recommendedPackages}
+                onPackageClick={openPackage}
               />
             </div>
           )}

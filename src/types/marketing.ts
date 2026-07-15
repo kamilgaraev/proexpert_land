@@ -92,10 +92,13 @@ export interface MarketingCapability {
   cta: string;
 }
 
-export interface MarketingPackageTier {
-  key: 'base' | 'pro' | 'enterprise';
-  label: string;
+export interface MarketingPackage {
+  slug: string;
+  name: string;
   description: string;
+  color: string;
+  icon: string;
+  bestFor: string;
   price: number;
   standalonePrice: number;
   priceLabel?: string;
@@ -106,34 +109,8 @@ export interface MarketingPackageTier {
   highlights: string[];
   businessOutcome: string;
   maturityNote?: string;
-}
-
-export interface MarketingPackageLinkedItem {
-  packageSlug?: string;
-  moduleSlug: string;
-  label: string;
-}
-
-export interface MarketingPackageCapability {
-  key: string;
-  label: string;
-  requiresModules?: string[];
-}
-
-export interface MarketingPackageFamily {
-  slug: string;
-  name: string;
-  description: string;
-  color: string;
-  icon: string;
-  bestFor: string;
   foundationModules: string[];
-  integrations: MarketingPackageLinkedItem[];
-  recommendedAddons: MarketingPackageLinkedItem[];
   businessOutcomes: string[];
-  dataSources: MarketingPackageLinkedItem[];
-  capabilities: MarketingPackageCapability[];
-  tiers: MarketingPackageTier[];
 }
 
 export interface MarketingAdvancedOffer {
