@@ -34,4 +34,3 @@ export const createEnterpriseInquiry = async (input: EnterpriseInquiryInput): Pr
     );
   }
 };
-

@@ -17,4 +17,3 @@ export interface EnterpriseInquiryInput {
   needs: EnterpriseNeed[];
   comment: string;
 }
-
