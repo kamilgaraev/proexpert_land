@@ -14,7 +14,10 @@ vi.mock('@/hooks/usePermissions', async () => {
 
 const notification = {
   id: 'notice-1',
+  sequence: 1,
+  organization_id: null,
   type: 'commercial_trial_ending_1',
+  interface: 'lk' as const,
   data: { title: 'Пробный доступ', message: 'Пробный доступ скоро завершится', interface: 'lk' as const },
   read_at: null,
   created_at: '2026-07-15T10:00:00Z',

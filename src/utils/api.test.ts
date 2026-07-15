@@ -8,6 +8,7 @@ import {
   normalizeBalanceTransactionsResponse,
   normalizeOrganizationBalanceResponse,
 } from './api';
+import api from './api';
 import { clearAuthToken, getAuthToken, saveAuthToken } from './authTokenStorage';
 
 afterEach(() => {
@@ -16,6 +17,13 @@ afterEach(() => {
 });
 
 describe('createFetchResponse', () => {
+  it('accepts the standard AbortSignal in the central axios wrapper config', () => {
+    const signal = new AbortController().signal;
+    const config: Parameters<typeof api.get>[1] = { signal };
+
+    expect(config.signal).toBe(signal);
+  });
+
   it('creates a typed axios-like response for fetch payloads', () => {
     const response = new Response(JSON.stringify({ success: true }), {
       status: 201,
