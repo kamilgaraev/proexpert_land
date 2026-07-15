@@ -129,7 +129,7 @@ export const useNotifications = (userId: string | null): UseNotificationsReturn 
         .error((error: any) => {
           console.warn('⚠️ WebSocket авторизация не удалась (работаем без realtime):', error);
         })
-        .listen('notification.new', (eventData: any) => {
+        .listen('.notification.new', (eventData: any) => {
           let e = eventData;
           if (typeof eventData === 'string') {
             try {
