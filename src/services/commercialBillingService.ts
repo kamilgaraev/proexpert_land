@@ -203,7 +203,7 @@ export class CommercialPollingTimeoutError extends Error {
   }
 }
 
-export const COMMERCIAL_PAYMENT_POLL_DELAYS_MS = [0, 500, 1000, 1500, 2500, 4000, 6000, 9000, 12000, 15000] as const;
+export const COMMERCIAL_PAYMENT_POLL_DELAYS_MS: readonly number[] = [0, 500, 1000, 1500, 2500, 4000, 6000, 9000, 12000, 15000];
 
 export const pollCommercialOrder = async (
   orderId: string,
