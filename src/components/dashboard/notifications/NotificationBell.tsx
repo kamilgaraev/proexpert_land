@@ -7,7 +7,7 @@ import { useAuth } from '@hooks/useAuth';
 export const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
   const userId = user?.id ? String(user.id) : null;
 
@@ -19,7 +19,7 @@ export const NotificationBell = () => {
     markAllAsRead,
     deleteNotification,
     executeAction
-  } = useNotifications(userId);
+  } = useNotifications(userId, token);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

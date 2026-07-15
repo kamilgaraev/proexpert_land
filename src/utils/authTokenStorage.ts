@@ -40,6 +40,14 @@ export const getAuthToken = (): string | null => memoryToken;
 
 export const getAuthTokenPersistence = (): AuthTokenPersistence => memoryPersistence;
 
+export const synchronizeAuthToken = (
+  token: string | null,
+  persistence: AuthTokenPersistence,
+): void => {
+  memoryToken = token;
+  memoryPersistence = token ? persistence : 'memory';
+};
+
 export const saveAuthToken = (
   token: string | null | undefined,
   persistence: AuthTokenPersistence = 'session',
