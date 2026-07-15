@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, ArrowRight, Building2, Check, CreditCard, Headphones, History, Loader2, LockKeyhole, PackageCheck, RefreshCw, ShieldCheck, Sparkles, WalletCards } from 'lucide-react';
 import { CommercialPackageCard } from '@/components/billing/CommercialPackageCard';
 import { CommercialPackageDetailsSheet } from '@/components/billing/CommercialPackageDetailsSheet';
+import { EnterpriseInquiryDialog } from '@/components/billing/EnterpriseInquiryDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -69,6 +70,7 @@ const BillingPage = () => {
   const [autoRenewConsent, setAutoRenewConsent] = useState(false);
   const [payFromBalance, setPayFromBalance] = useState(false);
   const [detailsPackage, setDetailsPackage] = useState<CommercialPackage | null>(null);
+  const [enterpriseInquiryOpen, setEnterpriseInquiryOpen] = useState(false);
   const [paymentOrder, setPaymentOrder] = useState<CommercialOrder | null>(null);
   const [paymentState, setPaymentState] = useState<'idle' | 'waiting' | 'success' | 'failed' | 'canceled' | 'refunded' | 'timeout' | 'error'>('idle');
   const [now, setNow] = useState(() => Date.now());
@@ -440,11 +442,13 @@ const BillingPage = () => {
               <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2">Особые условия оплаты</span>
             </div>
           </div>
-          <Button asChild size="lg" className="w-full bg-blue-700 hover:bg-blue-800 lg:w-auto">
-            <a href="/contact?type=enterprise"><Headphones className="mr-2 h-4 w-4" />Обсудить подключение</a>
+          <Button type="button" size="lg" className="w-full bg-blue-700 hover:bg-blue-800 lg:w-auto" onClick={() => setEnterpriseInquiryOpen(true)}>
+            <Headphones className="mr-2 h-4 w-4" />Обсудить подключение
           </Button>
         </div>
       </section>
+
+      <EnterpriseInquiryDialog open={enterpriseInquiryOpen} onOpenChange={setEnterpriseInquiryOpen} />
 
       <section className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-10">

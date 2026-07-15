@@ -80,6 +80,11 @@ const server = setupServer(
       period_start_at: '2026-07-01T09:00:00Z', period_end_at: '2026-07-31T09:00:00Z',
     } });
   }),
+  http.post(`${baseUrl}/billing/commercial/enterprise-inquiries`, () => HttpResponse.json({
+    success: true,
+    data: { request_id: 101 },
+    message: 'Заявка отправлена.',
+  }, { status: 201 })),
 );
 
 const renderPage = () => render(<MemoryRouter><BillingPage /></MemoryRouter>);
@@ -277,7 +282,34 @@ describe('BillingPage commercial packages', () => {
   it('всегда показывает крупной компании способ обсудить подключение', async () => {
     renderPage();
     expect(await screen.findByRole('heading', { name: 'Корпоративный уровень' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Обсудить подключение/ })).toHaveAttribute('href', '/contact?type=enterprise');
+    const openForm = screen.getByRole('button', { name: /Обсудить подключение/ });
+    fireEvent.click(openForm);
+    expect(await screen.findByRole('dialog', { name: 'Обсудить корпоративное подключение' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Телефон для связи')).toBeInTheDocument();
+    expect(screen.getByText('Что важно для вашей компании')).toBeInTheDocument();
+  });
+
+  it('отправляет корпоративную заявку в рабочее пространство поддержки', async () => {
+    let requestBody: Record<string, unknown> | null = null;
+    server.use(http.post(`${baseUrl}/billing/commercial/enterprise-inquiries`, async ({ request }) => {
+      requestBody = await request.json() as Record<string, unknown>;
+      return HttpResponse.json({ success: true, data: { request_id: 102 }, message: 'Заявка отправлена.' }, { status: 201 });
+    }));
+
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: /Обсудить подключение/ }));
+    fireEvent.change(screen.getByLabelText('Телефон для связи'), { target: { value: '+7 999 123-45-67' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Несколько организаций и филиалов' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Отправить заявку' }));
+
+    expect(await screen.findByText('Заявка отправлена')).toBeInTheDocument();
+    expect(requestBody).toMatchObject({
+      contact_phone: '+7 999 123-45-67',
+      company_size: '51_200',
+      preferred_contact: 'phone',
+      needs: ['multi_organization'],
+    });
+    expect(String((requestBody as unknown as Record<string, unknown>).client_request_id)).toMatch(/^[0-9a-f-]{36}$/i);
   });
 
   it('требует согласие на автоплатёж перед первой покупкой', async () => {
