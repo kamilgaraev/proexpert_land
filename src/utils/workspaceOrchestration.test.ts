@@ -10,7 +10,7 @@ describe('workspaceOrchestration', () => {
   const navigation = [
     { href: '/dashboard', name: 'Обзор' },
     { href: '/dashboard/projects', name: 'Проекты' },
-    { href: '/dashboard/modules', name: 'Разделы и тариф' },
+    { href: '/dashboard/billing', name: 'Пакеты и оплата' },
     { href: '/dashboard/contractor-marketplace', name: 'Подрядчики' },
   ];
 
@@ -38,7 +38,7 @@ describe('workspaceOrchestration', () => {
       '/dashboard',
       '/dashboard/projects',
       '/dashboard/contractor-marketplace',
-      '/dashboard/modules',
+      '/dashboard/billing',
     ]);
   });
 
@@ -51,7 +51,7 @@ describe('workspaceOrchestration', () => {
           {
             value: 'materials_supply',
             label: 'Поставка материалов',
-            default_route: '/dashboard/modules',
+            default_route: '/dashboard/billing',
             interaction_modes: ['procurement_counterparty'],
             allowed_project_roles: ['observer'],
             recommended_modules: [],
@@ -63,7 +63,7 @@ describe('workspaceOrchestration', () => {
     );
 
     expect(prioritized[0].href).toBe('/dashboard');
-    expect(prioritized[1].href).toBe('/dashboard/modules');
+    expect(prioritized[1].href).toBe('/dashboard/billing');
     expect(prioritized.some((item) => item.href === '/dashboard')).toBe(true);
   });
 
@@ -75,7 +75,7 @@ describe('workspaceOrchestration', () => {
           {
             value: 'equipment_rental',
             label: 'Аренда техники',
-            default_route: '/dashboard/modules',
+            default_route: '/dashboard/billing',
             interaction_modes: ['service_counterparty'],
             allowed_project_roles: ['observer'],
             recommended_modules: [],

@@ -145,7 +145,7 @@ const ContractorReferralProgramPage: React.FC = () => {
             </p>
           </div>
           <Button asChild>
-            <Link to="/dashboard/billing?tab=history">Открыть финансы</Link>
+            <Link to="/dashboard/billing">Открыть пакеты и оплату</Link>
           </Button>
         </CardContent>
       </Card>

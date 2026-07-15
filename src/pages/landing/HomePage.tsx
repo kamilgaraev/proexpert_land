@@ -439,11 +439,11 @@ const HomePage = () => {
 
           <CtaBand
             eyebrow="Маршрут запуска"
-            title="Подберем состав решения под ваш процесс и масштаб компании."
-            description="На встрече разложим роли, процессы и ограничения, после чего предложим стартовый контур без лишних направлений."
+            title="Начните с бесплатной базы и добавьте нужные процессы."
+            description="Десять бизнес-пакетов подключаются независимо, а полный комплект выгоден командам, которым нужен весь рабочий контур."
             actions={[
-              { label: 'Зарегистрироваться', href: '/register?plan=business', primary: true },
-              { label: 'Сравнить тарифы', href: marketingPaths.pricing },
+              { label: 'Создать бесплатную базу', href: '/register', primary: true },
+              { label: 'Собрать набор пакетов', href: `${marketingPaths.pricing}#constructor` },
             ]}
             tone="dark"
           />

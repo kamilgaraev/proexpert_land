@@ -3,14 +3,14 @@ import CapabilityCard from '@/components/marketing/blocks/CapabilityCard';
 import { SurfaceBadges } from '@/components/marketing/MarketingPrimitives';
 import type {
   MarketingCapability,
-  MarketingPackageFamily,
+  MarketingPackage,
   MarketingSolutionSegment,
 } from '@/types/marketing';
 
 interface SolutionStoryProps {
   segment: MarketingSolutionSegment;
   capabilities: MarketingCapability[];
-  packages: MarketingPackageFamily[];
+  packages: MarketingPackage[];
   inverted?: boolean;
 }
 
@@ -87,7 +87,7 @@ const SolutionStory = ({
                 <div className="text-sm font-semibold text-steel-950">{item.name}</div>
                 <p className="mt-3 text-sm leading-7 text-steel-600">{item.bestFor}</p>
                 <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-construction-700">
-                  {item.tiers[0]?.label}
+                  {item.priceLabel}
                 </div>
               </div>
             ))}

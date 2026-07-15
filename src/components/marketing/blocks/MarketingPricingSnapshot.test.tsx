@@ -12,20 +12,15 @@ const renderComponent = () =>
   );
 
 describe('MarketingPricingSnapshot', () => {
-  it('renders pricing snapshot links', () => {
+  it('показывает бесплатную базу, пакеты и полный комплект', () => {
     renderComponent();
 
-    expect(screen.getByRole('heading', { name: /Тарифы для самостоятельного старта/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Начать бесплатно' })).toHaveAttribute(
-      'href',
-      '/register?plan=free',
-    );
-    expect(screen.getByRole('link', { name: 'Выбрать Business' })).toHaveAttribute(
-      'href',
-      '/register?plan=business',
-    );
-    expect(screen.getByText('24 900 ₽')).toBeInTheDocument();
-    expect(screen.getByText('до 15 пользователей')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Все тарифы' })).toHaveAttribute('href', '/pricing');
+    expect(screen.getByRole('heading', { name: /Бесплатная база и пакеты под задачи стройки/i })).toBeInTheDocument();
+    expect(screen.getByText('10 бизнес-пакетов')).toBeInTheDocument();
+    expect(screen.getByText('79 900 ₽')).toBeInTheDocument();
+    expect(screen.getByText('экономия 23 100 ₽')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Создать бесплатную базу' })).toHaveAttribute('href', '/register');
+    expect(screen.getByRole('link', { name: 'Собрать свой набор' })).toHaveAttribute('href', '/pricing#constructor');
+    expect(screen.queryByText(/Start|Business|Profi|Enterprise Конструктор/)).not.toBeInTheDocument();
   });
 });

@@ -1,7 +1,7 @@
 import type { WorkspaceAction, WorkspaceProfile } from '@/types/organization-profile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Briefcase, Puzzle, Settings } from 'lucide-react';
+import { ArrowRight, Briefcase, PackageCheck, Settings } from 'lucide-react';
 
 interface WorkspaceQuickActionsCardProps {
   workspaceProfile?: WorkspaceProfile | null;
@@ -13,7 +13,7 @@ const ACTION_ICONS: Record<string, typeof Briefcase> = {
   create_project: Briefcase,
   open_projects: Briefcase,
   open_invitations: Briefcase,
-  open_modules: Puzzle,
+  open_packages: PackageCheck,
   open_settings: Settings,
 };
 

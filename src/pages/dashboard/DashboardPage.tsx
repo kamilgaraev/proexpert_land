@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   Building2,
   Users,
@@ -12,23 +11,17 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   BarChart,
-  File,
   Plus,
-  Ticket
 } from 'lucide-react';
 
-import { landingService, billingService } from '@utils/api';
+import { landingService } from '@utils/api';
 import type { LandingDashboardResponse } from '@utils/api';
 import LineChart from '@components/dashboard/LineChart';
 import DonutStatusChart from '@components/dashboard/DonutStatusChart';
-import { useSubscriptionLimits } from '@hooks/useSubscriptionLimits';
-import { useCanAccess, usePermissionsReady } from '@/hooks/usePermissions';
+import { usePermissionsReady } from '@/hooks/usePermissions';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
 
 const isSuccessfulStatus = (status: number) => status >= 200 && status < 300;
 
@@ -61,28 +54,9 @@ const localizeStatusDistribution = (
 
 const DashboardPage = () => {
   const [landingData, setLandingData] = useState<LandingDashboardResponse | null>(null);
-  const [dashboard, setDashboard] = useState<any>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
   const permissionsReady = usePermissionsReady();
-  const canViewBilling =
-    useCanAccess({ permission: 'billing.manage' }) ||
-    useCanAccess({ permission: 'billing.view' }) ||
-    useCanAccess({ role: 'organization_owner' }) ||
-    useCanAccess({ role: 'accountant' });
-
-  const { 
-    hasWarnings, 
-    criticalWarnings, 
-    // needsUpgrade 
-  } = useSubscriptionLimits({
-    enabled: permissionsReady && canViewBilling,
-    autoRefresh: permissionsReady && canViewBilling,
-    refreshInterval: 300000,
-    onCritical: () => {},
-    onWarning: () => {}
-  });
-
   useEffect(() => {
     if (!permissionsReady) {
       return;
@@ -93,10 +67,9 @@ const DashboardPage = () => {
     (async () => {
       setDashboardLoading(true);
       setDashboardError(null);
-      const [landingResult, billingResult] = await Promise.allSettled([
-        landingService.getLandingDashboard(),
-        canViewBilling ? billingService.getOrgDashboard() : Promise.resolve(null),
-      ]);
+      const landingResult = await landingService.getLandingDashboard()
+        .then((value) => ({ status: 'fulfilled' as const, value }))
+        .catch((reason) => ({ status: 'rejected' as const, reason }));
 
       if (!isMounted) {
         return;
@@ -113,14 +86,13 @@ const DashboardPage = () => {
         setDashboardError('Не удалось загрузить данные дашборда. Попробуйте обновить страницу.');
       }
 
-      setDashboard(billingResult.status === 'fulfilled' ? billingResult.value?.data ?? null : null);
       setDashboardLoading(false);
     })();
 
     return () => {
       isMounted = false;
     };
-  }, [permissionsReady, canViewBilling]);
+  }, [permissionsReady]);
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(val);
   const projectStatusChartData = localizeStatusDistribution(
@@ -171,13 +143,6 @@ const DashboardPage = () => {
       variant: 'outline' as const
     },
     {
-      name: 'Загрузить документы',
-      description: 'Планы и чертежи',
-      href: '/dashboard/modules',
-      icon: File,
-      variant: 'outline' as const
-    },
-    {
       name: 'Партнеры и бонусы',
       description: 'Приглашения подрядчиков',
       href: '/dashboard/contractor-invitations',
@@ -207,26 +172,6 @@ const DashboardPage = () => {
            </Button>
         </div>
       </div>
-
-      {/* Alerts */}
-      {hasWarnings && criticalWarnings.length > 0 && (
-        <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 flex items-center justify-between text-destructive"
-        >
-             <div className="flex items-center gap-3">
-                <AlertTriangle className="h-5 w-5" />
-                <div>
-                    <p className="font-semibold">Внимание: Лимиты подписки исчерпаны</p>
-                    <p className="text-sm opacity-90">У вас {criticalWarnings.length} критических предупреждений. Функционал может быть ограничен.</p>
-                </div>
-             </div>
-             <Button variant="destructive" size="sm" asChild>
-                 <Link to="/dashboard/billing">Обновить тариф</Link>
-             </Button>
-        </motion.div>
-      )}
 
       {dashboardLoading && !landingData && (
         <Card className="border-dashed">
@@ -412,105 +357,8 @@ const DashboardPage = () => {
          </div>
       )}
 
-      {/* Limits & Subscription */}
-      {dashboard && dashboard.plan && (
-        <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <div className="space-y-1">
-                        <CardTitle>Ваш Тариф</CardTitle>
-                        <CardDescription>Информация о подписке</CardDescription>
-                    </div>
-                    <Badge variant="secondary" className="text-lg px-3 py-1">{dashboard.plan.name}</Badge>
-                </CardHeader>
-                <CardContent className="grid gap-4 pt-6">
-                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                             <Clock className="h-4 w-4 text-muted-foreground" />
-                             <span className="text-sm">Истекает</span>
-                        </div>
-                        <span className="font-medium">
-                            {dashboard.plan.ends_at ? new Date(dashboard.plan.ends_at).toLocaleDateString('ru-RU') : 'Бессрочно'}
-                        </span>
-                     </div>
-                     <Separator />
-                     
-                     <div className="space-y-3">
-                         <LimitItem label="Объекты" used={dashboard.plan.used_projects} max={dashboard.plan.max_projects} />
-                         <LimitItem label="Хранилище" used={dashboard.plan.used_storage_gb} max={dashboard.plan.max_storage_gb} unit="ГБ" />
-                     </div>
-                </CardContent>
-                <CardFooter>
-                    <Button variant="outline" className="w-full" asChild>
-                        <Link to="/dashboard/billing">Управление тарифом</Link>
-                    </Button>
-                </CardFooter>
-            </Card>
-            
-            <Card>
-                <CardHeader>
-                    <CardTitle>Дополнительные услуги</CardTitle>
-                    <CardDescription>Активные модули и расширения</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {dashboard.addons && dashboard.addons.length > 0 ? (
-                         <div className="space-y-4">
-                            {dashboard.addons.map((addon: any, idx: number) => (
-                                <div key={idx} className="flex items-center justify-between p-3 border rounded-lg">
-                                    <div>
-                                        <div className="font-medium">{addon.name}</div>
-                                        {addon.expires_at && (
-                                            <div className="text-xs text-muted-foreground">до {new Date(addon.expires_at).toLocaleDateString('ru-RU')}</div>
-                                        )}
-                                    </div>
-                                    <Badge variant={addon.status === 'active' ? 'default' : 'secondary'}>
-                                        {addon.status === 'active' ? 'Активен' : addon.status}
-                                    </Badge>
-                                </div>
-                            ))}
-                         </div>
-                    ) : (
-                        <div className="text-center py-12 text-muted-foreground">
-                            <Ticket className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                            <p>Нет активных услуг</p>
-                        </div>
-                    )}
-                </CardContent>
-                <CardFooter>
-                    <Button className="w-full" asChild>
-                        <Link to="/dashboard/paid-services">Каталог услуг</Link>
-                    </Button>
-                </CardFooter>
-            </Card>
-        </div>
-      )}
     </div>
   );
 };
-
-const LimitItem = ({ label, used, max, unit = '' }: { label: string, used: number, max: number, unit?: string }) => {
-    const percentage = max > 0 ? Math.min((used / max) * 100, 100) : 0;
-    const isWarning = percentage > 80;
-    const isCritical = percentage >= 100;
-
-    return (
-        <div className="space-y-1">
-            <div className="flex justify-between text-sm">
-                <span>{label}</span>
-                <span className="text-muted-foreground">
-                    {used} / {max} {unit}
-                </span>
-            </div>
-            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                <div 
-                    className={cn("h-full transition-all duration-500", 
-                        isCritical ? "bg-destructive" : isWarning ? "bg-yellow-500" : "bg-primary"
-                    )} 
-                    style={{ width: `${percentage}%` }}
-                />
-            </div>
-        </div>
-    )
-}
 
 export default DashboardPage;

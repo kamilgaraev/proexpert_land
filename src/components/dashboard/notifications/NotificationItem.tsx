@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { useCanAccess } from '@/hooks/usePermissions';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -30,6 +32,10 @@ export const NotificationItem = ({
   onExecuteAction
 }: NotificationItemProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const hasBillingView = useCanAccess({ permission: 'billing.view' });
+  const hasBillingManage = useCanAccess({ permission: 'billing.manage' });
+  const canViewBilling = hasBillingView || hasBillingManage;
+  const isCommercialBilling = notification.type.startsWith('commercial_');
 
   const handleAction = async (action: NotificationAction) => {
     if (action.confirm && !window.confirm(action.confirm)) {
@@ -123,6 +129,10 @@ export const NotificationItem = ({
 
   const priority = (notification as any).priority || notification.data?.priority;
 
+  if (isCommercialBilling && !canViewBilling) {
+    return null;
+  }
+
   return (
     <motion.div
       layout
@@ -183,7 +193,13 @@ export const NotificationItem = ({
         </p>
 
         {/* Actions */}
-        {notification.data.actions && notification.data.actions.length > 0 && (
+        {isCommercialBilling ? (
+          <div className="pt-2">
+            <Button asChild size="sm" className="h-8 rounded-lg px-3 text-xs font-bold">
+              <Link to="/dashboard/billing">Открыть пакеты и оплату</Link>
+            </Button>
+          </div>
+        ) : notification.data.actions && notification.data.actions.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-2">
             {notification.data.actions.map((action, index) => (
               <Button

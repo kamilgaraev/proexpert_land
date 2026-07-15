@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   userManagementService,
   customRolesService,
@@ -196,29 +196,10 @@ export interface OrganizationUser {
   created_at: string;
 }
 
-export interface SubscriptionLimits {
-  has_subscription: boolean;
-  limits: {
-    users: {
-      limit: number;
-      used: number;
-      remaining: number;
-      percentage_used: number;
-      is_unlimited: boolean;
-    };
-  };
-  warnings: Array<{
-    type: string;
-    resource: string;
-    message: string;
-  }>;
-}
-
 export const useUserManagement = () => {
   const [roles, setRoles] = useState<OrganizationRole[]>([]);
   const [invitations, setInvitations] = useState<UserInvitation[]>([]);
   const [users, setUsers] = useState<OrganizationUser[]>([]);
-  const [limits, setLimits] = useState<SubscriptionLimits | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -295,17 +276,6 @@ export const useUserManagement = () => {
       setError(err.message || 'Ошибка загрузки пользователей');
     } finally {
       setLoading(false);
-    }
-  }, []);
-
-  const fetchLimits = useCallback(async () => {
-    try {
-      const response = await userManagementService.getUserLimits();
-      if (response.data.success) {
-        setLimits(response.data.data);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Ошибка загрузки лимитов');
     }
   }, []);
 
@@ -480,21 +450,15 @@ export const useUserManagement = () => {
     setError(null);
   }, []);
 
-  useEffect(() => {
-    fetchLimits();
-  }, [fetchLimits]);
-
   return {
     roles,
     invitations,
     users,
-    limits,
     loading,
     error,
     fetchRoles,
     fetchInvitations,
     fetchUsers,
-    fetchLimits,
     createRole,
     sendInvitation,
     updateUserRoles,

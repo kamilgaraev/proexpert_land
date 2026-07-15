@@ -1,9 +1,12 @@
 import type { OrganizationCapability, CapabilityInfo } from '@/types/organization-profile';
+import type { CommercialPackageSlug } from '@/data/marketing/packages';
+import { getRecommendedPackages } from '@/utils/recommendedPackages';
 
 interface CapabilitiesSelectorProps {
   selectedCapabilities: OrganizationCapability[];
   availableCapabilities: CapabilityInfo[];
   onChange: (capabilities: OrganizationCapability[]) => void;
+  onPackageClick: (packageSlug: CommercialPackageSlug) => void;
   showRecommendations?: boolean;
   disabled?: boolean;
 }
@@ -23,6 +26,7 @@ export const CapabilitiesSelector = ({
   selectedCapabilities,
   availableCapabilities,
   onChange,
+  onPackageClick,
   showRecommendations = false,
   disabled = false
 }: CapabilitiesSelectorProps) => {
@@ -59,17 +63,7 @@ export const CapabilitiesSelector = ({
     return info?.recommended_modules || [];
   });
 
-  const uniqueModules = selectedModules.reduce((acc: (string | { value: string; label: string })[], current) => {
-    const currentValue = typeof current === 'string' ? current : current.value;
-    const exists = acc.some(item => {
-      const itemValue = typeof item === 'string' ? item : item.value;
-      return itemValue === currentValue;
-    });
-    if (!exists) {
-      acc.push(current);
-    }
-    return acc;
-  }, []);
+  const recommendedPackages = getRecommendedPackages(selectedModules);
 
   return (
     <div className="space-y-4">
@@ -121,27 +115,28 @@ export const CapabilitiesSelector = ({
         })}
       </div>
 
-      {showRecommendations && safeSelectedCapabilities.length > 0 && uniqueModules.length > 0 && (
+      {showRecommendations && safeSelectedCapabilities.length > 0 && recommendedPackages.length > 0 && (
         <div className="mt-6 p-4 bg-gradient-to-r from-construction-50 to-orange-50 border border-construction-200 rounded-lg">
           <div className="flex items-start space-x-2">
             <svg className="w-5 h-5 text-construction-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div className="flex-1">
-              <h4 className="text-sm font-semibold text-construction-900 mb-2">Рекомендуемые модули</h4>
+              <h4 className="text-sm font-semibold text-construction-900 mb-2">Рекомендуемые пакеты</h4>
               <div className="flex flex-wrap gap-2">
-                {uniqueModules.map((module: string | { value: string; label: string }, index: number) => {
-                  const moduleText = typeof module === 'string' ? module : (module?.label || module?.value || 'Модуль');
-                  const moduleKey = typeof module === 'string' ? module : (module?.value || index);
-                  return (
-                    <span
-                      key={moduleKey}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-construction-700 border border-construction-300"
-                    >
-                      {moduleText}
-                    </span>
-                  );
-                })}
+                {recommendedPackages.map((item) => (
+                  <button
+                    key={item.slug}
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onPackageClick(item.slug);
+                    }}
+                    className="inline-flex items-center rounded-full border border-construction-300 bg-white px-3 py-1 text-xs font-medium text-construction-700 hover:bg-construction-100"
+                  >
+                    {item.name}
+                  </button>
+                ))}
               </div>
             </div>
           </div>

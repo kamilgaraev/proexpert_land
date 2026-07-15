@@ -115,7 +115,7 @@ const Navbar = () => {
                 Войти
               </Link>
               <Link
-                to="/register?plan=free"
+                to="/register"
                 className="inline-flex items-center gap-2 rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-steel-900"
               >
                 Зарегистрироваться
@@ -164,7 +164,7 @@ const Navbar = () => {
 
                 <div className="mt-5 grid gap-3 border-t border-steel-100 pt-5">
                   <Link
-                    to="/register?plan=free"
+                    to="/register"
                     className="inline-flex items-center justify-center rounded-[1.1rem] bg-steel-950 px-4 py-3 text-sm font-semibold text-white"
                   >
                     Зарегистрироваться

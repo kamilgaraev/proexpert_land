@@ -2,13 +2,13 @@ import { ArrowUpRightIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import {
   PackageIcon,
-  formatPackageTierPrice,
+  formatPackagePrice,
 } from '@/components/marketing/MarketingPrimitives';
 import { marketingPaths } from '@/data/marketingRegistry';
-import type { MarketingPackageFamily } from '@/types/marketing';
+import type { MarketingPackage } from '@/types/marketing';
 
 interface PackageFamilyCardProps {
-  item: MarketingPackageFamily;
+  item: MarketingPackage;
   compact?: boolean;
 }
 
@@ -63,8 +63,6 @@ export const getMarketingModuleLabel = (moduleSlug: string): string => (
 );
 
 const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) => {
-  const tiers = compact ? item.tiers.slice(0, 2) : item.tiers;
-
   return (
     <article className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
       <div className="flex flex-col gap-5 border-b border-steel-100 pb-6 lg:flex-row lg:items-start lg:justify-between">
@@ -88,42 +86,41 @@ const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) =>
         </div>
       </div>
 
-      <div className={`mt-6 grid items-start gap-4 ${compact ? 'lg:grid-cols-2' : 'xl:grid-cols-3'}`}>
-        {tiers.map((tier) => (
-          <div key={`${item.slug}-${tier.key}`} className="rounded-[1.35rem] bg-concrete-50 p-5">
+      <div className="mt-6 grid items-start gap-4">
+        <div className="rounded-[1.35rem] bg-concrete-50 p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-                  {tier.label}
+                  Бизнес-пакет
                 </div>
                 <div className="mt-2 text-xl font-bold text-steel-950">
-                  {formatPackageTierPrice(tier)}
+                  {formatPackagePrice(item)}
                 </div>
               </div>
             </div>
-            <p className="mt-3 text-sm leading-7 text-steel-600">{tier.description}</p>
+            <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
             <div className="mt-4 rounded-[1rem] border border-construction-100 bg-white px-4 py-3 text-sm leading-6 text-steel-700">
               <span className="font-semibold text-steel-950">Результат: </span>
-              {tier.businessOutcome}
+              {item.businessOutcome}
             </div>
             <div className="mt-4 grid gap-2 text-sm leading-6 text-steel-700">
               <PackageDetail
                 title="Входит в уровень"
-                items={tier.includedModules.slice(0, 5).map(getMarketingModuleLabel)}
+                items={item.includedModules.slice(0, 5).map(getMarketingModuleLabel)}
               />
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-[0.16em]">
-              {tier.standalonePrice > tier.price ? (
+              {item.standalonePrice > item.price ? (
                 <span className="rounded-full bg-construction-100 px-3 py-1 text-construction-800">
-                  выгоднее на {Math.round((1 - tier.price / tier.standalonePrice) * 100)}%
+                  выгоднее на {Math.round((1 - item.price / item.standalonePrice) * 100)}%
                 </span>
               ) : null}
-              {tier.maturityNote ? (
-                <span className="rounded-full bg-steel-100 px-3 py-1 text-steel-600">{tier.maturityNote}</span>
+              {item.maturityNote ? (
+                <span className="rounded-full bg-steel-100 px-3 py-1 text-steel-600">{item.maturityNote}</span>
               ) : null}
             </div>
             <div className="mt-4 grid gap-3">
-              {tier.highlights.map((highlight) => (
+              {item.highlights.map((highlight) => (
                 <div
                   key={highlight}
                   className="rounded-[1rem] border border-white bg-white px-4 py-3 text-sm leading-6 text-steel-700"
@@ -132,8 +129,7 @@ const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) =>
                 </div>
               ))}
             </div>
-          </div>
-        ))}
+        </div>
       </div>
 
       <div className="mt-6 grid gap-4 border-t border-steel-100 pt-5 lg:grid-cols-2">
@@ -142,18 +138,6 @@ const PackageFamilyCard = ({ item, compact = false }: PackageFamilyCardProps) =>
           items={[`${item.foundationModules.length} возможностей уже в основе`]}
         />
         <PackageDetail title="Что меняется в работе" items={item.businessOutcomes} />
-        {item.integrations.length > 0 ? (
-          <PackageDetail title="Связанные контуры" items={item.integrations.map((entry) => entry.label)} />
-        ) : null}
-        {item.recommendedAddons.length > 0 ? (
-          <PackageDetail title="Что стоит добавить" items={item.recommendedAddons.map((entry) => entry.label)} />
-        ) : null}
-        {item.dataSources.length > 0 ? (
-          <PackageDetail title="Данные для аналитики" items={item.dataSources.map((entry) => entry.label)} />
-        ) : null}
-        {item.capabilities.length > 0 ? (
-          <PackageDetail title="AI-сценарии" items={item.capabilities.map((entry) => entry.label)} />
-        ) : null}
       </div>
 
       <div className="mt-6 flex flex-wrap gap-4 border-t border-steel-100 pt-5">

@@ -9,8 +9,17 @@ export {
 export { marketingCapabilityMatrix } from './capabilities';
 export { marketingFaqs, marketingHeroFacts, marketingLaunchSteps } from './home';
 export { legalDocuments } from './legal';
-export { marketingAdvancedOffers, marketingPackages, marketingSalesOffers } from './packages';
-export * from './pricingPlans';
+export {
+  commercialPackages,
+  commercialTerms,
+  freeFoundationOffer,
+  fullSuiteOffer,
+  getCommercialSelection,
+  marketingAdvancedOffers,
+  marketingPackageCatalogSource,
+  marketingPackages,
+} from './packages';
+export type { CommercialPackage, CommercialPackageSlug } from './packages';
 export {
   marketingBlogEditorialSeries,
   marketingCommercialLandingLinks,

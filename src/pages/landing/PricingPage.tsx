@@ -1,152 +1,46 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import ContactForm from '@/components/landing/ContactForm';
-import CtaBand from '@/components/marketing/blocks/CtaBand';
-import PackageFamilyCard from '@/components/marketing/blocks/PackageFamilyCard';
 import { MarketingLink, PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import {
-  marketingAdvancedOffers,
-  marketingCommercialLandingLinks,
-  marketingPackages,
-  marketingSalesOffers,
+  commercialPackages,
+  commercialTerms,
+  freeFoundationOffer,
+  fullSuiteOffer,
+  getCommercialSelection,
   marketingSeo,
-  marketingTrustFacts,
 } from '@/data/marketingRegistry';
 import useAnalytics from '@/hooks/useAnalytics';
 import { useSEO } from '@/hooks/useSEO';
-
-const pricingPrinciples = [
-  'Стартуем с того контура, где сейчас выше всего ручная нагрузка и потери.',
-  'Не подключаем все направления одновременно, если команда еще не готова к этому процессно.',
-  'Расширяем систему по мере роста числа объектов, ролей, ПИР, качества, безопасности, ресурсов и юридических лиц.',
-];
-
-const basePlans = [
-  {
-    slug: 'start',
-    name: 'Start',
-    price: 9900,
-    fit: 'Первый рабочий контур для небольшой команды.',
-    includedPackageSlugs: ['objects-execution'],
-  },
-  {
-    slug: 'business',
-    name: 'Business',
-    price: 24900,
-    fit: 'Основной выбор: объекты, снабжение, финансы и CRM уже в тарифе.',
-    includedPackageSlugs: ['objects-execution', 'supply-warehouse', 'finance-acts', 'crm'],
-  },
-  {
-    slug: 'profi',
-    name: 'Profi',
-    price: 39900,
-    fit: 'Портфель объектов, ПТО, качество, безопасность, аналитика и AI-возможности в одном тарифе.',
-    includedPackageSlugs: [
-      'objects-execution',
-      'supply-warehouse',
-      'finance-acts',
-      'crm',
-      'estimates-pto',
-      'holding-analytics',
-      'ai-contour',
-      'site-quality-handover',
-      'construction-safety',
-    ],
-  },
-  {
-    slug: 'enterprise',
-    name: 'Enterprise Конструктор',
-    price: 99000,
-    fit: 'Все корпоративные направления, 100 пользователей и расчет конфигурации.',
-    includedPackageSlugs: [
-      'objects-execution',
-      'supply-warehouse',
-      'finance-acts',
-      'crm',
-      'estimates-pto',
-      'holding-analytics',
-      'ai-contour',
-      'site-quality-handover',
-      'construction-safety',
-      'machinery-and-labor',
-      'workforce-management',
-      'change-control',
-    ],
-  },
-];
+import { serializeCommercialIntent } from '@/utils/commercialIntent';
 
 const formatPrice = (value: number) => `${value.toLocaleString('ru-RU')} ₽`;
 
-const formatPlanUsers = (slug: string) => {
-  if (slug === 'enterprise') {
-    return 'от 100 пользователей';
-  }
-
-  const limits: Record<string, number> = {
-    start: 7,
-    business: 15,
-    profi: 40,
-  };
-
-  return `${limits[slug] ?? 3} пользователей`;
-};
+const corporateOptions = [
+  'Несколько организаций',
+  'Сводная отчетность',
+  'Единый вход и аудит действий',
+  'Интеграции с 1С, ERP и BI',
+  'Интеграционный доступ и события',
+  'SLA и выделенный менеджер',
+  'Миграция данных и обучение',
+];
 
 const PricingPage = () => {
-  const [selectedPlanSlug, setSelectedPlanSlug] = useState('business');
-  const [selectedPackageSlugs, setSelectedPackageSlugs] = useState<Set<string>>(
-    new Set(['supply-warehouse', 'finance-acts']),
-  );
+  const [selectedPackageSlugs, setSelectedPackageSlugs] = useState<Set<string>>(new Set());
 
-  useSEO({
-    ...marketingSeo.pricing,
-    type: 'website',
-  });
-
+  useSEO({ ...marketingSeo.pricing, type: 'website' });
   const { trackPageView, trackPricingView } = useAnalytics();
 
   useEffect(() => {
-    trackPageView('marketing_pricing');
-    trackPricingView('package_families');
+    trackPageView('marketing_commercial_packages');
+    trackPricingView('package_constructor');
   }, [trackPageView, trackPricingView]);
 
-  const selectedPlan = basePlans.find((plan) => plan.slug === selectedPlanSlug) ?? basePlans[1];
-  const packageTierBySlug = useMemo(
-    () =>
-      new Map(
-        marketingPackages.map((item) => [
-          item.slug,
-          {
-            family: item,
-            tier: item.tiers[0],
-          },
-        ]),
-      ),
-    [],
-  );
-
-  const calculator = useMemo(() => {
-    const included = new Set(selectedPlan.includedPackageSlugs);
-    const selectedPaidPackages = Array.from(selectedPackageSlugs)
-      .filter((slug) => !included.has(slug))
-      .map((slug) => packageTierBySlug.get(slug))
-      .filter(Boolean) as Array<{ family: (typeof marketingPackages)[number]; tier: (typeof marketingPackages)[number]['tiers'][number] }>;
-
-    const packagesPrice = selectedPaidPackages.reduce((sum, item) => sum + item.tier.price, 0);
-    const standalonePrice = selectedPaidPackages.reduce((sum, item) => sum + item.tier.standalonePrice, 0);
-
-    return {
-      selectedPaidPackages,
-      packagesPrice,
-      standalonePrice,
-      monthly: selectedPlan.price + packagesPrice,
-      saved: Math.max(standalonePrice - packagesPrice, 0),
-    };
-  }, [packageTierBySlug, selectedPackageSlugs, selectedPlan]);
+  const selection = getCommercialSelection(Array.from(selectedPackageSlugs));
+  const intent = serializeCommercialIntent(selection.selectedSlugs);
+  const registrationHref = intent ? `/register?packages=${intent}` : '/register';
 
   const togglePackage = (slug: string) => {
-    if (selectedPlan.includedPackageSlugs.includes(slug)) {
-      return;
-    }
-
     setSelectedPackageSlugs((current) => {
       const next = new Set(current);
       if (next.has(slug)) {
@@ -159,334 +53,185 @@ const PricingPage = () => {
   };
 
   return (
-    <div className="marketing-page-shell">
+    <div className="marketing-page-shell overflow-hidden">
       <PageHero
-        eyebrow="Пакеты"
-        title="Пакеты МОСТ под ваш этап развития."
-        description="Выберите стартовый контур для объекта, ПИР, снабжения, финансов, качества, охраны труда, ресурсов, изменений, отчетности или корпоративного управления."
+        eyebrow="Пакеты МОСТ"
+        title="Соберите рабочий контур из нужных процессов."
+        description="Бесплатная база остается у организации всегда. Подключайте один или несколько бизнес-пакетов на 30 дней либо выбирайте полный комплект из десяти пакетов."
         actions={[
-          { label: 'Начать бесплатно', href: '/register?plan=free', primary: true },
-          { label: 'Запросить демонстрацию', href: '#contact' },
+          { label: 'Создать бесплатную базу', href: '/register', primary: true },
+          { label: 'Собрать набор', href: '#constructor' },
         ]}
         nav={[
-          { label: 'Пакеты', href: '#packages' },
-          { label: 'Как выбираем', href: '#principles' },
-          { label: 'Расширения', href: '#addons' },
-          { label: 'Контакт', href: '#contact' },
+          { label: 'Бесплатная база', href: '#foundation' },
+          { label: 'Конструктор', href: '#constructor' },
+          { label: 'Полный комплект', href: '#full-suite' },
+          { label: 'Условия', href: '#terms' },
+          { label: 'Корпоративный уровень', href: '#corporate' },
         ]}
         aside={
-          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Как выбирать пакет
+          <div className="rounded-[1.75rem] border border-steel-700 bg-steel-950 p-6 text-white shadow-[0_28px_70px_rgba(15,23,42,0.2)]">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">Проектная ведомость</div>
+            <div className="mt-5 grid grid-cols-[auto_1fr_auto] gap-x-4 gap-y-4 text-sm">
+              <span className="font-mono text-construction-200">00</span><span>Бесплатная база</span><strong>0 ₽</strong>
+              <span className="font-mono text-construction-200">01–10</span><span>Бизнес-пакеты</span><strong>7 900–12 900 ₽</strong>
+              <span className="font-mono text-construction-200">Σ</span><span>Полный комплект</span><strong>79 900 ₽</strong>
             </div>
-            <div className="mt-4 grid gap-3">
-              {[
-                'Опираемся на ваш приоритетный процесс.',
-                'Не перегружаем старт лишними направлениями.',
-                'Расширяем систему на ПИР, качество, HSE, ресурсы и изменения по мере роста компании.',
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
+            <div className="mt-6 border-t border-white/10 pt-5 text-sm leading-7 text-white/68">Все цены указаны за одну организацию и 30 дней.</div>
           </div>
         }
       />
 
-      <section className="py-16 lg:py-20">
-        <div className="container-custom">
+      <section id="foundation" className="border-y border-steel-100 bg-white py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] xl:items-center">
           <SectionHeader
-            eyebrow="Готовые офферы"
-            title="Сначала выбираем рабочий сценарий, а не отдельные функции."
-            description="Так клиент сразу видит стоимость закрытого строительного процесса: объект, ПИР, снабжение, финансы, качество, безопасность, ресурсы, изменения или холдинг."
+            eyebrow="Контур 00"
+            title="Бесплатная база — полезный ограниченный старт."
+            description={freeFoundationOffer.description}
           />
-
-          <div className="mt-10 grid gap-5 lg:grid-cols-3">
-            {marketingSalesOffers.map((offer) => (
-              <article
-                key={offer.title}
-                className={`flex h-full flex-col rounded-[1.75rem] border p-6 shadow-sm ${
-                  offer.planSlug === 'business'
-                    ? 'border-construction-300 bg-construction-50'
-                    : 'border-steel-200 bg-white'
-                }`}
-              >
-                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                  {offer.planName}
-                </div>
-                <h2 className="mt-3 text-2xl font-bold text-steel-950">{offer.title}</h2>
-                <div className="mt-4 text-3xl font-bold text-steel-950">{offer.priceLabel}</div>
-                <p className="mt-4 text-sm leading-7 text-steel-700">{offer.audience}</p>
-                <div className="mt-5 rounded-[1.2rem] bg-white/80 px-4 py-4 text-sm leading-7 text-steel-700">
-                  {offer.outcome}
-                </div>
-                <p className="mt-4 text-sm leading-7 text-steel-600">{offer.comparison}</p>
-                <div className="mt-auto pt-5">
-                  <MarketingLink
-                    href={offer.planSlug === 'enterprise' ? '#enterprise-constructor' : `/register?plan=${offer.planSlug}`}
-                    className="inline-flex w-full items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-800"
-                  >
-                    {offer.planSlug === 'enterprise' ? 'Открыть конструктор' : `Выбрать ${offer.planName}`}
-                  </MarketingLink>
-                </div>
-              </article>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {freeFoundationOffer.includes.map((item, index) => (
+              <div key={item} className="rounded-[1.35rem] border border-steel-200 bg-concrete-50 p-5">
+                <div className="font-mono text-xs font-bold text-construction-700">0{index + 1}</div>
+                <div className="mt-3 text-sm font-semibold leading-6 text-steel-800">{item}</div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="packages" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-5">
-          {marketingPackages.map((item) => (
-            <PackageFamilyCard key={item.slug} item={item} />
-          ))}
-        </div>
-      </section>
+      <section id="constructor" className="bg-steel-950 py-16 text-white lg:py-20">
+        <div className="container-custom">
+          <SectionHeader
+            eyebrow="Конструктор"
+            title="Отметьте процессы, которые нужны вашей команде."
+            description="Выбор на сайте сохраняется только как намерение: регистрация создаст бесплатную базу, а подключение и оплата выполняются отдельно в личном кабинете."
+            tone="dark"
+          />
 
-      <section className="bg-steel-950 py-16 text-white lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.96fr)_minmax(360px,0.8fr)] xl:items-start">
-          <div>
-            <SectionHeader
-              eyebrow="Калькулятор"
-              title="Соберите тариф и пакеты без покупки лишнего."
-              description="Пакеты показывают бизнес-результат: от объекта и ПИР до качества, HSE, ресурсов, изменений и корпоративной отчетности."
-              tone="dark"
-            />
-
-            <div className="mt-8 grid gap-4">
-              <div className="grid gap-3 md:grid-cols-2">
-                {basePlans.map((plan) => (
-                  <button
-                    key={plan.slug}
-                    type="button"
-                    onClick={() => setSelectedPlanSlug(plan.slug)}
-                    className={`rounded-[1.35rem] border px-5 py-5 text-left transition ${
-                      selectedPlan.slug === plan.slug
-                        ? 'border-construction-300 bg-construction-500 text-steel-950'
-                        : 'border-white/15 bg-white/5 text-white hover:border-white/35'
+          <div className="mt-10 grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
+            <fieldset className="grid gap-4 sm:grid-cols-2">
+              <legend className="sr-only">Выбор бизнес-пакетов</legend>
+              {commercialPackages.map((item) => {
+                const selected = selectedPackageSlugs.has(item.slug);
+                return (
+                  <label
+                    key={item.slug}
+                    className={`group relative cursor-pointer rounded-[1.45rem] border p-5 transition motion-reduce:transform-none ${
+                      selected
+                        ? 'border-construction-300 bg-white text-steel-950 shadow-[0_18px_50px_rgba(0,0,0,0.2)]'
+                        : 'border-white/15 bg-white/5 text-white hover:border-white/35 hover:bg-white/8'
                     }`}
                   >
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="text-lg font-bold">{plan.name}</span>
-                      <span className="text-sm font-semibold">{formatPrice(plan.price)}</span>
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      onChange={() => togglePackage(item.slug)}
+                      className="absolute right-5 top-5 h-5 w-5 rounded border-white/40 accent-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-construction-300"
+                    />
+                    <div className={`font-mono text-xs font-bold ${selected ? 'text-construction-700' : 'text-construction-200'}`}>
+                      {String(item.number).padStart(2, '0')}
                     </div>
-                    <p className="mt-2 text-sm leading-6 opacity-80">{plan.fit}</p>
-                    <p className="mt-2 text-xs font-semibold opacity-80">{formatPlanUsers(plan.slug)}</p>
-                  </button>
-                ))}
+                    <h2 className="mt-3 pr-10 text-xl font-bold">{item.name}</h2>
+                    <p className={`mt-3 text-sm leading-7 ${selected ? 'text-steel-600' : 'text-white/68'}`}>{item.description}</p>
+                    <div className="mt-5 flex items-end justify-between gap-4 border-t border-current/10 pt-4">
+                      <span className="text-xs opacity-70">за 30 дней</span>
+                      <strong className="text-lg">{formatPrice(item.price)}</strong>
+                    </div>
+                  </label>
+                );
+              })}
+            </fieldset>
+
+            <aside className="rounded-[1.65rem] border border-white/15 bg-white p-6 text-steel-950 shadow-xl xl:sticky xl:top-32">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">Ваш набор</div>
+              <div className="mt-4 flex items-end justify-between gap-4 border-b border-steel-100 pb-5" aria-live="polite">
+                <div>
+                  <div className="text-sm text-steel-500">Выбрано пакетов</div>
+                  <div className="mt-1 text-3xl font-bold">{selection.selectedPackages.length} из 10</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-steel-500">За 30 дней</div>
+                  <div className="mt-1 text-2xl font-bold">{formatPrice(selection.total)}</div>
+                </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                {marketingPackages.map((item) => {
-                  const included = selectedPlan.includedPackageSlugs.includes(item.slug);
-                  const selected = selectedPackageSlugs.has(item.slug) || included;
-                  const tier = item.tiers[0];
-
-                  return (
-                    <button
-                      key={item.slug}
-                      type="button"
-                      onClick={() => togglePackage(item.slug)}
-                      className={`rounded-[1.2rem] border px-4 py-4 text-left transition ${
-                        selected
-                          ? 'border-construction-300 bg-white text-steel-950'
-                          : 'border-white/15 bg-white/5 text-white hover:border-white/35'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="text-sm font-bold">{item.name}</div>
-                          <p className="mt-2 text-xs leading-5 opacity-75">{tier.businessOutcome}</p>
-                        </div>
-                        <span className="shrink-0 text-xs font-semibold">
-                          {included ? 'в тарифе' : formatPrice(tier.price)}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
+              <div className="mt-5 grid gap-2">
+                {selection.selectedPackages.length > 0 ? selection.selectedPackages.map((item) => (
+                  <div key={item.slug} className="flex justify-between gap-3 text-sm">
+                    <span className="text-steel-600">{item.name}</span>
+                    <span className="font-semibold">{formatPrice(item.price)}</span>
+                  </div>
+                )) : (
+                  <p className="text-sm leading-7 text-steel-600">Пока выбран только бесплатный базовый контур.</p>
+                )}
               </div>
-            </div>
-          </div>
 
-          <aside className="rounded-[1.75rem] border border-white/12 bg-white p-6 text-steel-950 shadow-sm">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Расчет в месяц
-            </div>
-            <div className="mt-4 flex items-end justify-between gap-4 border-b border-steel-100 pb-5">
-              <div>
-                <div className="text-sm text-steel-500">Итого</div>
-                <div className="mt-1 text-4xl font-bold">{formatPrice(calculator.monthly)}</div>
-              </div>
-              {calculator.saved > 0 ? (
-                <div className="rounded-full bg-construction-100 px-3 py-1 text-xs font-semibold text-construction-800">
-                  экономия {formatPrice(calculator.saved)}
+              {selection.recommendFullSuite ? (
+                <div className="mt-5 rounded-[1.15rem] border border-construction-200 bg-construction-50 p-4" role="status">
+                  <div className="font-semibold text-steel-950">Полный комплект выгоднее</div>
+                  <p className="mt-2 text-sm leading-6 text-steel-600">При восьми и более пакетах рекомендуем сравнить набор с полным комплектом. Выбор не меняется автоматически.</p>
+                  <MarketingLink href="#full-suite" className="mt-3 inline-flex text-sm font-semibold text-construction-800">Сравнить варианты</MarketingLink>
                 </div>
               ) : null}
-            </div>
 
-            <div className="mt-5 grid gap-3 text-sm">
-              <div className="flex justify-between gap-3">
-                <span className="text-steel-500">Базовый тариф</span>
-                <span className="font-semibold">{formatPrice(selectedPlan.price)}</span>
-              </div>
-              {calculator.selectedPaidPackages.map(({ family, tier }) => (
-                <div key={family.slug} className="flex justify-between gap-3">
-                  <span className="text-steel-500">{family.name}</span>
-                  <span className="font-semibold">{formatPrice(tier.price)}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 rounded-[1.25rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700">
-              Business отмечен как основной выбор: он дает рабочий строительный контур для компании с несколькими объектами, а ПИР, качество, HSE, ресурсы и изменения подключаются по мере готовности процессов.
-            </div>
-            <MarketingLink
-              href={selectedPlan.slug === 'enterprise' ? '#enterprise-constructor' : `/register?plan=${selectedPlan.slug}`}
-              className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-construction-400 px-5 py-3 text-sm font-semibold text-steel-950 transition hover:bg-construction-300"
-            >
-              {selectedPlan.slug === 'enterprise' ? 'Открыть конструктор' : `Зарегистрироваться с тарифом ${selectedPlan.name}`}
-            </MarketingLink>
-          </aside>
-        </div>
-      </section>
-
-      <section id="enterprise-constructor" className="bg-white py-16 lg:py-20">
-        <div className="container-custom grid gap-8 rounded-[1.75rem] border border-steel-200 bg-concrete-50 p-6 shadow-sm lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:p-8">
-          <SectionHeader
-            eyebrow="Enterprise Конструктор"
-            title="Корпоративный тариф считается из выбранной конфигурации."
-            description="Базовая конфигурация от 99 000 ₽/мес включает 100 пользователей, 100 проектов, 50 ГБ хранилища и корпоративные направления."
-          />
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            {[
-              '100 пользователей в базовой конфигурации',
-              '100 проектов',
-              '50 ГБ хранилища и 2 000 AI-запросов',
-              'ПИР, качество, охрана труда и приемка',
-              'Техника, персонал, наряды и выработка',
-              'RFI, изменения, претензии и customer-согласования',
-              'Дополнительные организации и хранилище',
-              'Расширенный AI и приоритетная поддержка',
-              'Проект внедрения для интеграций и переноса данных',
-            ].map((item) => (
-              <div key={item} className="rounded-[1.1rem] border border-white bg-white px-4 py-4 text-sm leading-6 text-steel-700">
-                {item}
-              </div>
-            ))}
-            <MarketingLink
-              href="/register?plan=enterprise"
-              className="inline-flex items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-steel-800 sm:col-span-2"
-            >
-              Зарегистрироваться и открыть конструктор
-            </MarketingLink>
-          </div>
-        </div>
-      </section>
-
-      <section id="principles" className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-          <div>
-            <SectionHeader
-              eyebrow="Как выбираем"
-              title="Как подобрать пакет под вашу компанию."
-              description="Смотрим на текущий процесс, состав команды и организационную структуру."
-            />
-          </div>
-
-          <div className="grid gap-4">
-            {pricingPrinciples.map((item) => (
-              <div key={item} className="rounded-[1.5rem] border border-steel-200 bg-white px-5 py-5 shadow-sm">
-                <div className="text-sm leading-7 text-steel-700">{item}</div>
-              </div>
-            ))}
-            <div className="rounded-[1.5rem] border border-steel-900 bg-steel-950 px-5 py-5 text-white">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
-                Что получает заказчик
-              </div>
-              <div className="mt-4 grid gap-3">
-                {marketingTrustFacts.slice(0, 3).map((fact) => (
-                  <div key={fact.title} className="text-sm leading-7 text-white/76">
-                    <span className="font-semibold text-white">{fact.title}.</span> {fact.text}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="addons" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
-          <div>
-            <SectionHeader
-              eyebrow="Расширения"
-              title="Проектные расширения и пилотные сценарии."
-              description="Дополнительные функции обсуждаются отдельно после выбора базового контура."
-            />
-            <div className="mt-8 grid gap-4">
-              {marketingAdvancedOffers.map((offer) => (
-                <article
-                  key={offer.id}
-                  className="rounded-[1.5rem] border border-steel-200 bg-white p-5 shadow-sm"
-                >
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                    {offer.cta}
-                  </div>
-                  <h2 className="mt-3 text-xl font-bold text-steel-950">{offer.title}</h2>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">{offer.summary}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-
-          <CtaBand
-            eyebrow="Подбор решения"
-            title="Нужна помощь с выбором или внедрением?"
-            description="На встрече покажем, где лучше стартовать, а какие блоки стоит подключать уже после первого рабочего результата."
-            actions={[{ label: 'Запросить демонстрацию', href: '#contact', primary: true }]}
-            tone="light"
-          />
-        </div>
-      </section>
-
-      <section className="py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Подбор по сценарию"
-            title="Стоимость проще обсуждать через конкретную роль, боль или контур запуска."
-            description="Поэтому из пакетов ведем в отдельные посадочные: так пользователь сразу понимает, какой сценарий и какой объем внедрения ему нужен."
-          />
-
-          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {marketingCommercialLandingLinks.slice(0, 6).map((item) => (
               <MarketingLink
-                key={item.href}
-                href={item.href}
-                className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-construction-300"
+                href={registrationHref}
+                className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-construction-400 px-5 py-3 text-center text-sm font-semibold text-steel-950 transition hover:bg-construction-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-construction-500"
               >
-                <div className="text-lg font-bold text-steel-950">{item.label}</div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                {selection.selectedPackages.length > 0 ? 'Продолжить с выбранным набором' : 'Создать бесплатную базу'}
               </MarketingLink>
-            ))}
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="full-suite" className="py-16 lg:py-20">
+        <div className="container-custom">
+          <div className="grid gap-8 rounded-[2rem] border border-construction-300 bg-construction-50 p-6 shadow-sm lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.55fr)] lg:p-9">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-800">Полный комплект</div>
+              <h2 className="mt-4 text-[clamp(2rem,4vw,3.6rem)] font-bold leading-[1.02] text-steel-950">Все десять пакетов за {formatPrice(fullSuiteOffer.price)}.</h2>
+              <p className="mt-5 max-w-3xl text-base leading-8 text-steel-700">По отдельности пакеты стоят {formatPrice(fullSuiteOffer.separatePrice)}. Полный комплект экономит {formatPrice(fullSuiteOffer.savings)} — {fullSuiteOffer.savingsPercent.toLocaleString('ru-RU')}% за каждый 30-дневный период.</p>
+            </div>
+            <div className="flex flex-col justify-between rounded-[1.5rem] bg-steel-950 p-6 text-white">
+              <div>
+                <div className="text-sm text-white/60">Экономия за период</div>
+                <div className="mt-2 text-4xl font-bold text-construction-200">{formatPrice(fullSuiteOffer.savings)}</div>
+                <p className="mt-4 text-sm leading-7 text-white/68">Полный комплект выбирается только явно и не включается автоматически.</p>
+              </div>
+              <MarketingLink href="/register?packages=full-suite" className="mt-6 inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-steel-950">Продолжить с полным комплектом</MarketingLink>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="terms" className="border-y border-steel-100 bg-concrete-50 py-16 lg:py-20">
+        <div className="container-custom">
+          <SectionHeader eyebrow="Понятные условия" title="Пробный период, оплата и продление без скрытой логики." />
+          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+            <article className="rounded-[1.55rem] border border-steel-200 bg-white p-6"><div className="font-mono text-xs font-bold text-construction-700">{commercialTerms.trialHours}H</div><h2 className="mt-3 text-xl font-bold text-steel-950">Пробный период без карты</h2><p className="mt-3 text-sm leading-7 text-steel-600">Каждый пакет можно один раз попробовать в течение 72 часов для одной организации.</p></article>
+            <article className="rounded-[1.55rem] border border-steel-200 bg-white p-6"><div className="font-mono text-xs font-bold text-construction-700">30D</div><h2 className="mt-3 text-xl font-bold text-steel-950">Фиксированный период</h2><p className="mt-3 text-sm leading-7 text-steel-600">Пакеты оплачиваются на 30 дней. Дата следующего периода остается зафиксированной.</p></article>
+            <article className="rounded-[1.55rem] border border-steel-200 bg-white p-6"><div className="font-mono text-xs font-bold text-construction-700">{commercialTerms.graceDays}D</div><h2 className="mt-3 text-xl font-bold text-steel-950">Семь дней на продление</h2><p className="mt-3 text-sm leading-7 text-steel-600">При задержке оплаты доступ можно восстановить до прежней расчетной даты. Поздний платеж не создает новый 30-дневный период.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section id="corporate" className="bg-white py-16 lg:py-20">
+        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+          <div>
+            <SectionHeader eyebrow="Корпоративный уровень" title="Полный комплект для сложной структуры компании." description="Корпоративные условия строятся поверх полного комплекта. Индивидуальность обеспечивают настройки возможностей и интеграции, без отдельной версии продукта." />
+            <MarketingLink href="#contact" className="mt-7 inline-flex rounded-full bg-steel-950 px-5 py-3 text-sm font-semibold text-white">Обсудить корпоративные условия</MarketingLink>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {corporateOptions.map((item, index) => <div key={item} className="rounded-[1.25rem] border border-steel-200 bg-concrete-50 p-5"><span className="font-mono text-xs font-bold text-construction-700">C{String(index + 1).padStart(2, '0')}</span><div className="mt-3 text-sm font-semibold leading-6 text-steel-800">{item}</div></div>)}
           </div>
         </div>
       </section>
 
       <section id="contact" className="bg-concrete-50 py-16 lg:py-20">
         <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.92fr)] xl:items-start">
-          <div>
-            <SectionHeader
-              eyebrow="Контакт"
-              title="Нужна помощь с выбором или внедрением?"
-              description="Оставьте короткую заявку, и мы предложим стартовый пакет под ваш процесс и команду."
-            />
-          </div>
+          <SectionHeader eyebrow="Контакт" title="Обсудим набор пакетов и корпоративные условия." description="Расскажите о процессах и структуре компании — подготовим демонстрацию и маршрут подключения без ложной фиксированной цены для корпоративного уровня." />
           <ContactForm variant="compact" className="shadow-none" />
         </div>
       </section>

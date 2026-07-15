@@ -17,7 +17,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     ],
     surfaces: ['admin', 'mobile', 'lk'],
     capabilityIds: ['project-control', 'site-requests', 'supply-chain', 'finance-control'],
-    recommendedPackageSlugs: ['objects-execution', 'supply-warehouse', 'finance-acts'],
+    recommendedPackageSlugs: ['projects-processes', 'supply-warehouse', 'finance-contracts'],
     cta: 'Показать стартовый контур для подрядчика',
   },
   {
@@ -36,7 +36,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     ],
     surfaces: ['admin', 'mobile', 'lk'],
     capabilityIds: ['project-control', 'supply-chain', 'finance-control', 'quality-handover', 'analytics-control'],
-    recommendedPackageSlugs: ['objects-execution', 'supply-warehouse', 'finance-acts', 'site-quality-handover', 'holding-analytics'],
+    recommendedPackageSlugs: ['projects-processes', 'supply-warehouse', 'finance-contracts', 'quality-safety', 'pto-handover'],
     cta: 'Разобрать сценарий для генподрядчика',
   },
   {
@@ -55,7 +55,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     ],
     surfaces: ['holding', 'admin', 'lk'],
     capabilityIds: ['analytics-control', 'multi-org', 'finance-control', 'pir-project-documentation', 'change-control'],
-    recommendedPackageSlugs: ['holding-analytics', 'finance-acts', 'estimates-pto', 'change-control'],
+    recommendedPackageSlugs: ['projects-processes', 'finance-contracts', 'estimates-norms', 'pto-handover'],
     cta: 'Показать корпоративный контур',
   },
   {
@@ -74,7 +74,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     ],
     surfaces: ['admin', 'lk'],
     capabilityIds: ['pir-project-documentation', 'finance-control', 'project-control', 'change-control'],
-    recommendedPackageSlugs: ['estimates-pto', 'finance-acts', 'objects-execution', 'change-control'],
+    recommendedPackageSlugs: ['estimates-norms', 'finance-contracts', 'projects-processes', 'pto-handover'],
     cta: 'Разобрать инженерный сценарий',
   },
   {
@@ -93,7 +93,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     ],
     surfaces: ['admin', 'mobile', 'lk'],
     capabilityIds: ['quality-handover', 'project-control', 'change-control'],
-    recommendedPackageSlugs: ['site-quality-handover', 'objects-execution', 'change-control'],
+    recommendedPackageSlugs: ['quality-safety', 'pto-handover', 'projects-processes'],
     cta: 'Показать качество и приемку',
   },
   {
@@ -112,7 +112,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     ],
     surfaces: ['admin', 'mobile'],
     capabilityIds: ['construction-safety', 'project-control', 'workforce-control'],
-    recommendedPackageSlugs: ['construction-safety', 'workforce-management', 'objects-execution'],
+    recommendedPackageSlugs: ['quality-safety', 'workforce-output', 'projects-processes'],
     cta: 'Показать охрану труда',
   },
   {
@@ -131,7 +131,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     ],
     surfaces: ['admin', 'mobile'],
     capabilityIds: ['machinery-labor', 'workforce-control', 'finance-control'],
-    recommendedPackageSlugs: ['machinery-and-labor', 'workforce-management', 'finance-acts'],
+    recommendedPackageSlugs: ['machinery', 'workforce-output', 'finance-contracts'],
     cta: 'Показать ресурсный контур',
   },
   {
@@ -150,7 +150,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     ],
     surfaces: ['admin', 'lk'],
     capabilityIds: ['change-control', 'finance-control', 'pir-project-documentation'],
-    recommendedPackageSlugs: ['change-control', 'finance-acts', 'estimates-pto'],
+    recommendedPackageSlugs: ['projects-processes', 'finance-contracts', 'pto-handover'],
     cta: 'Показать контур изменений',
   },
 ];
