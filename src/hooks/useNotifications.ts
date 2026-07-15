@@ -164,7 +164,6 @@ export const useNotifications = (
   const snapshotRequestVersionRef = useRef(0);
   const lastAppliedSnapshotSequenceRef = useRef(-1);
   const lastAppliedSnapshotRequestVersionRef = useRef(0);
-  const lastAppliedListSequenceRef = useRef(-1);
   const lastAppliedListRequestVersionRef = useRef(0);
   const notificationsRef = useRef<Notification[]>([]);
   const unreadCountRef = useRef(0);
@@ -220,15 +219,11 @@ export const useNotifications = (
     return true;
   }, []);
 
-  const canApplyListContent = useCallback((sequence: number, requestVersion: number): boolean => {
-    if (sequence < lastAppliedSnapshotSequenceRef.current
-      || sequence < lastAppliedListSequenceRef.current
-      || (sequence === lastAppliedListSequenceRef.current
-        && requestVersion < lastAppliedListRequestVersionRef.current)) {
+  const canApplyListContent = useCallback((requestVersion: number): boolean => {
+    if (requestVersion < lastAppliedListRequestVersionRef.current) {
       return false;
     }
 
-    lastAppliedListSequenceRef.current = sequence;
     lastAppliedListRequestVersionRef.current = requestVersion;
     return true;
   }, []);
@@ -308,7 +303,7 @@ export const useNotifications = (
         || controller.signal.aborted
         || mutationRevisionRef.current !== mutationRevision
         || unreadRevisionRef.current !== unreadRevision + bufferedUnreadChanges
-        || !canApplyListContent(response.meta.snapshot_sequence, requestVersion)) {
+        || !canApplyListContent(requestVersion)) {
         return;
       }
 
@@ -630,7 +625,6 @@ export const useNotifications = (
     markAllReadAtRef.current = null;
     lastAppliedSnapshotSequenceRef.current = -1;
     lastAppliedSnapshotRequestVersionRef.current = 0;
-    lastAppliedListSequenceRef.current = -1;
     lastAppliedListRequestVersionRef.current = 0;
     overflowRefreshScheduledRef.current = false;
     unreadRevisionRef.current = 0;

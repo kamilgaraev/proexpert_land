@@ -3,6 +3,7 @@ import { act } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { notificationService } from '../../services/notificationService';
+import { toast } from 'react-toastify';
 import type { Notification, NotificationResponse } from '../../types/notification';
 import { Page } from './NotificationsPage';
 
@@ -21,9 +22,21 @@ vi.mock('../../services/notificationService', () => ({
   },
 }));
 vi.mock('../../components/dashboard/notifications/NotificationItem', () => ({
-  NotificationItem: ({ notification }: { notification: Notification }) => (
+  NotificationItem: ({
+    notification,
+    onExecuteAction,
+  }: {
+    notification: Notification;
+    onExecuteAction: (url: string, method: string) => void;
+  }) => (
     <div data-testid={`notification-${notification.id}`} data-read={String(Boolean(notification.read_at))}>
       {notification.data.title}
+      <button
+        data-testid={`action-${notification.id}`}
+        onClick={() => onExecuteAction(`/notifications/${notification.id}`, 'POST')}
+      >
+        action
+      </button>
     </div>
   ),
 }));
@@ -33,8 +46,12 @@ vi.mock('react-toastify', () => ({
 
 const deferred = <T,>() => {
   let resolve!: (value: T) => void;
-  const promise = new Promise<T>(next => { resolve = next; });
-  return { promise, resolve };
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((next, fail) => {
+    resolve = next;
+    reject = fail;
+  });
+  return { promise, reject, resolve };
 };
 
 const notification = (id: string, read = false): Notification => ({
@@ -138,4 +155,36 @@ describe('NotificationsPage lifecycle', () => {
 
     expect(screen.getByTestId('notification-organization-b')).toHaveAttribute('data-read', 'false');
   });
+
+  it.each(['success', 'failure'] as const)(
+    'ignores stale execute-action %s after the organization changes',
+    async outcome => {
+      const action = deferred<unknown>();
+      vi.mocked(notificationService.executeAction).mockReturnValueOnce(action.promise);
+      vi.mocked(notificationService.getNotifications)
+        .mockResolvedValueOnce(response('organization-a'))
+        .mockResolvedValueOnce(response('organization-b'));
+      const view = render(<Page />);
+      await waitFor(() => expect(screen.getByTestId('notification-organization-a')).toBeInTheDocument());
+      fireEvent.click(screen.getByTestId('action-organization-a'));
+
+      organizationId = 45;
+      view.rerender(<Page />);
+      await waitFor(() => expect(screen.getByTestId('notification-organization-b')).toBeInTheDocument());
+      await act(async () => {
+        if (outcome === 'success') {
+          action.resolve(undefined);
+          await action.promise;
+        } else {
+          action.reject(new Error('stale action'));
+          await action.promise.catch(() => undefined);
+        }
+      });
+
+      expect(notificationService.getNotifications).toHaveBeenCalledTimes(2);
+      expect(screen.getByTestId('notification-organization-b')).toBeInTheDocument();
+      expect(toast.success).not.toHaveBeenCalled();
+      expect(toast.error).not.toHaveBeenCalled();
+    },
+  );
 });

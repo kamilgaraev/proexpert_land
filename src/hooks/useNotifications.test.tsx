@@ -296,7 +296,7 @@ describe('useNotifications', () => {
     expect(result.current.unreadCount).toBe(6);
   });
 
-  it('rejects a lower-cursor list that resolves after a newer count snapshot', async () => {
+  it('applies lower-cursor list content without replacing a newer count snapshot', async () => {
     vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(
       list([notification('initial', { sequence: 1 })], 1, 1),
     );
@@ -318,7 +318,7 @@ describe('useNotifications', () => {
       await olderList.promise;
     });
 
-    expect(result.current.notifications.map(item => item.id)).toEqual(['initial']);
+    expect(result.current.notifications.map(item => item.id)).toEqual(['older-list']);
     expect(result.current.unreadCount).toBe(10);
   });
 

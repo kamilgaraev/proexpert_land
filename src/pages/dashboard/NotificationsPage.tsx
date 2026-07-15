@@ -18,7 +18,10 @@ export const Page = () => {
   const requestVersionRef = useRef(0);
   const requestControllerRef = useRef<AbortController | null>(null);
   const organizationIdRef = useRef(organizationId);
+  const contextSignature = `${organizationId ?? 'global'}:${currentPage}:${filter}`;
+  const contextSignatureRef = useRef(contextSignature);
   organizationIdRef.current = organizationId;
+  contextSignatureRef.current = contextSignature;
 
   const fetchNotifications = useCallback(async () => {
     const requestVersion = requestVersionRef.current + 1;
@@ -109,11 +112,21 @@ export const Page = () => {
   };
 
   const handleExecuteAction = async (url: string, method: string) => {
+    const requestVersion = requestVersionRef.current;
+    const operationContextSignature = contextSignature;
     try {
       await notificationService.executeAction(url, method);
+      if (requestVersionRef.current !== requestVersion
+        || contextSignatureRef.current !== operationContextSignature) {
+        return;
+      }
       toast.success('Действие выполнено успешно');
       await fetchNotifications();
     } catch (error) {
+      if (requestVersionRef.current !== requestVersion
+        || contextSignatureRef.current !== operationContextSignature) {
+        return;
+      }
       console.error('Ошибка при выполнении действия:', error);
       toast.error('Не удалось выполнить действие');
     }
