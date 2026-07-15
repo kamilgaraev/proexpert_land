@@ -75,6 +75,7 @@ export interface CommercialOrder {
   kind: string | null;
   status: CommercialOrderStatus;
   paymentStatus: string | null;
+  paymentSource: 'yookassa' | 'balance' | null;
   amount: string;
   amountMinor: number;
   currency: string;

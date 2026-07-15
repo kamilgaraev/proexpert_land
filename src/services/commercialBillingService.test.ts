@@ -101,13 +101,14 @@ describe('commercialBillingService', () => {
         quote_version: 1,
         client_idempotency_key: first,
         auto_renew_consent: true,
+        use_balance: false,
       });
       return HttpResponse.json({ success: true, data: { order_id: 'order-1', status: 'pending_payment', amount: '7900.00', amount_minor: 790000, currency: 'RUB', confirmation_url: 'https://yookassa.ru/confirm/safe', payment_status: 'pending', auto_renew_consent: true, test_mode: false } });
     }));
 
     await expect(commercialBillingService.checkout({
       targetPackageSlugs: ['machinery'], currentPackageSlugs: [], fullSuite: false,
-      quoteVersion: 1, clientIdempotencyKey: first, autoRenewConsent: true,
+      quoteVersion: 1, clientIdempotencyKey: first, autoRenewConsent: true, useBalance: false,
     })).resolves.toMatchObject({ orderId: 'order-1', confirmationUrl: 'https://yookassa.ru/confirm/safe' });
   });
 

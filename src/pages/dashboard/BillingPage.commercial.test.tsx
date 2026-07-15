@@ -55,6 +55,13 @@ const server = setupServer(
     scheduled_change: null,
   } })),
   http.get(`${baseUrl}/billing/commercial/history`, () => HttpResponse.json({ success: true, data: [], meta: { current_page: 1, per_page: 20, last_page: 1, total: 0 } })),
+  http.get(`${baseUrl}/billing/balance`, () => HttpResponse.json({
+    organization_id: 1,
+    balance_cents: 5000000,
+    balance_formatted: '50 000 ₽',
+    currency: 'RUB',
+    updated_at: '2026-07-15T09:00:00Z',
+  })),
   http.post(`${baseUrl}/billing/commercial/quote`, async ({ request }) => {
     const body = await request.json() as { target_package_slugs: string[]; full_suite: boolean };
     if (body.target_package_slugs.includes(packageSlugs[1]) && !body.target_package_slugs.includes(packageSlugs[2])) await delay(300);
@@ -228,6 +235,36 @@ describe('BillingPage commercial packages', () => {
     const pay = await screen.findByRole('button', { name: /Перейти к оплате/ }, { timeout: 3000 });
     expect(pay).toBeEnabled();
     expect(screen.queryByRole('checkbox', { name: /Согласен на автоматическое списание/ })).not.toBeInTheDocument();
+  });
+
+  it('оплачивает полную сумму с баланса без перехода в платёжный сервис', async () => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
+      checkoutBody = await request.json() as Record<string, unknown>;
+      return HttpResponse.json({ success: true, data: {
+        order_id: 'balance-order', status: 'paid', amount: '2000.00', amount_minor: 200000,
+        currency: 'RUB', confirmation_url: null, payment_status: 'succeeded', payment_source: 'balance',
+        auto_renew_consent: true, test_mode: false,
+      } }, { status: 201 });
+    }));
+
+    renderPage();
+    const packageHeading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(packageHeading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    const balanceOption = await screen.findByRole('checkbox', { name: 'Оплатить с баланса' });
+    expect(balanceOption).toBeEnabled();
+    fireEvent.click(balanceOption);
+    fireEvent.click(screen.getByRole('button', { name: 'Оплатить с баланса' }));
+
+    expect(await screen.findByText(/Средства списаны с баланса организации/)).toBeInTheDocument();
+    expect(checkoutBody).toMatchObject({ use_balance: true, auto_renew_consent: true });
+    expect(sessionStorage.getItem('most:pending-commercial-order')).toBeNull();
+  });
+
+  it('всегда показывает крупной компании способ обсудить подключение', async () => {
+    renderPage();
+    expect(await screen.findByRole('heading', { name: 'Корпоративный уровень' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Обсудить подключение/ })).toHaveAttribute('href', '/contact?type=enterprise');
   });
 
   it('требует согласие на автоплатёж перед первой покупкой', async () => {

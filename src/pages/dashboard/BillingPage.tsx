@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, ArrowRight, Check, CreditCard, History, Loader2, LockKeyhole, PackageCheck, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
+import { AlertCircle, ArrowRight, Building2, Check, CreditCard, Headphones, History, Loader2, LockKeyhole, PackageCheck, RefreshCw, ShieldCheck, Sparkles, WalletCards } from 'lucide-react';
 import { CommercialPackageCard } from '@/components/billing/CommercialPackageCard';
 import { CommercialPackageDetailsSheet } from '@/components/billing/CommercialPackageDetailsSheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCanAccess } from '@/hooks/usePermissions';
+import { useBalance } from '@/hooks/useBalance';
 import { consumeCommercialIntent } from '@/utils/commercialIntent';
 import {
   commercialBillingService,
@@ -51,6 +52,7 @@ const orderStatusLabel: Record<string, string> = {
 
 const BillingPage = () => {
   const canManage = useCanAccess({ permission: 'billing.manage' });
+  const { balance, error: balanceError, isLoading: balanceLoading, refresh: refreshBalance } = useBalance();
   const [packages, setPackages] = useState<CommercialPackage[]>([]);
   const [renewal, setRenewal] = useState<CommercialRenewalState | null>(null);
   const [history, setHistory] = useState<CommercialHistoryData | null>(null);
@@ -65,6 +67,7 @@ const BillingPage = () => {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [autoRenewConsent, setAutoRenewConsent] = useState(false);
+  const [payFromBalance, setPayFromBalance] = useState(false);
   const [detailsPackage, setDetailsPackage] = useState<CommercialPackage | null>(null);
   const [paymentOrder, setPaymentOrder] = useState<CommercialOrder | null>(null);
   const [paymentState, setPaymentState] = useState<'idle' | 'waiting' | 'success' | 'failed' | 'canceled' | 'refunded' | 'timeout' | 'error'>('idle');
@@ -81,6 +84,9 @@ const BillingPage = () => {
   const currentMonthlyMinor = useMemo(() => packages
     .filter((item) => currentPaidSlugs.includes(item.slug))
     .reduce((total, item) => total + item.priceMinor, 0), [currentPaidSlugs, packages]);
+  const balanceMinor = balance?.balance_cents ?? 0;
+  const canPayFromBalance = Boolean(quote && quote.amountDueNowMinor > 0 && balanceMinor >= quote.amountDueNowMinor);
+  const useBalanceForCheckout = payFromBalance && canPayFromBalance;
 
   const packageNames = useMemo(() => new Map(packages.map((item) => [item.slug, item.name])), [packages]);
   const namesFor = useCallback((slugs: string[]) => slugs.map((slug) => packageNames.get(slug) ?? slug).join(', '), [packageNames]);
@@ -150,6 +156,10 @@ const BillingPage = () => {
     const timer = window.setInterval(() => setNow(Date.now()), 30000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (payFromBalance && quote && !canPayFromBalance) setPayFromBalance(false);
+  }, [canPayFromBalance, payFromBalance, quote]);
 
   useEffect(() => {
     if (loading || packages.length === 0 || renewal?.status === 'grace' || isCorporate) return;
@@ -251,7 +261,10 @@ const BillingPage = () => {
     if (!quote || !canManage || isCorporate) return;
     setActionBusy('checkout');
     setActionError(null);
-    const fingerprint = JSON.stringify({ target: quote.targetPackageSlugs, current: quote.currentPackageSlugs, fullSuite, quoteVersion: quote.quoteVersion, autoRenewConsent });
+    const effectiveAutoRenewConsent = useBalanceForCheckout
+      ? Boolean(renewal?.autoRenewEnabled && renewal.savedMethodAvailable)
+      : autoRenewConsent;
+    const fingerprint = JSON.stringify({ target: quote.targetPackageSlugs, current: quote.currentPackageSlugs, fullSuite, quoteVersion: quote.quoteVersion, autoRenewConsent: effectiveAutoRenewConsent, payFromBalance: useBalanceForCheckout });
     const key = createCheckoutIntentKey(fingerprint);
     try {
       if (quote.amountDueNowMinor === 0 && quote.removedPackageSlugs.length > 0) {
@@ -261,7 +274,7 @@ const BillingPage = () => {
         setActionError('Сокращение состава запланировано на конец уже оплаченного периода.');
         return;
       }
-      if ((!renewal?.autoRenewEnabled || !renewal.savedMethodAvailable) && !autoRenewConsent) {
+      if (!useBalanceForCheckout && (!renewal?.autoRenewEnabled || !renewal.savedMethodAvailable) && !autoRenewConsent) {
         setActionError('Подтвердите условия автопродления перед оплатой.');
         return;
       }
@@ -271,8 +284,17 @@ const BillingPage = () => {
         fullSuite,
         quoteVersion: quote.quoteVersion,
         clientIdempotencyKey: key,
-        autoRenewConsent,
+        autoRenewConsent: effectiveAutoRenewConsent,
+        useBalance: useBalanceForCheckout,
       });
+      if (checkout.status === 'paid' && checkout.paymentSource === 'balance') {
+        forgetCheckoutIntentKey(fingerprint);
+        setPayFromBalance(false);
+        setPaymentOrder(null);
+        setPaymentState('success');
+        await Promise.all([refreshCommercialState(true), refreshBalance()]);
+        return;
+      }
       if (!checkout.confirmationUrl) throw new Error('Платёжная ссылка ещё не готова. Повторите действие.');
       window.sessionStorage.setItem(pendingOrderStorageKey, checkout.orderId);
       window.location.assign(checkout.confirmationUrl);
@@ -372,14 +394,14 @@ const BillingPage = () => {
 
       {paymentState !== 'idle' ? <section className="rounded-2xl border bg-white p-5" role="status">
         <div className="flex items-center gap-3">{paymentState === 'waiting' ? <Loader2 className="h-5 w-5 animate-spin" /> : paymentState === 'success' ? <Check className="h-5 w-5 text-emerald-600" /> : <AlertCircle className="h-5 w-5 text-orange-600" />}<strong>{paymentState === 'waiting' ? 'Проверяем оплату' : paymentState === 'success' ? 'Оплата подтверждена' : paymentState === 'failed' ? 'Оплата не прошла' : paymentState === 'canceled' ? 'Оплата отменена' : paymentState === 'refunded' ? 'Оплата возвращена' : paymentState === 'timeout' ? 'Подтверждение ещё не получено' : 'Не удалось проверить оплату'}</strong></div>
-        {paymentState === 'success' && paymentOrder ? <p className="mt-2 text-sm text-muted-foreground">Оплачено {formatMoney(paymentOrder.amountMinor, paymentOrder.currency)}. Состав: {namesFor(paymentOrder.selectedPackageSlugs)}. Следующая дата оплаты: {formatDateTime(paymentOrder.periodEndAt)}. Доступ обновлён.</p> : null}
+        {paymentState === 'success' && paymentOrder ? <p className="mt-2 text-sm text-muted-foreground">Оплачено {formatMoney(paymentOrder.amountMinor, paymentOrder.currency)}. Состав: {namesFor(paymentOrder.selectedPackageSlugs)}. Следующая дата оплаты: {formatDateTime(paymentOrder.periodEndAt)}. Доступ обновлён.</p> : paymentState === 'success' ? <p className="mt-2 text-sm text-muted-foreground">Средства списаны с баланса организации. Пакеты уже доступны команде.</p> : null}
         {paymentState === 'refunded' ? <p className="mt-2 text-sm text-muted-foreground">Возврат подтверждён. Оплата не считается успешной.</p> : null}
         {paymentState === 'timeout' && paymentOrder ? <Button className="mt-3" variant="outline" onClick={() => void verifyOrder(paymentOrder.orderId)}>Проверить ещё раз</Button> : null}
       </section> : null}
 
       <section className="grid gap-4 md:grid-cols-3">
         <Card className="md:col-span-1"><CardContent className="p-6"><ShieldCheck className="h-7 w-7 text-emerald-600" /><h2 className="mt-4 text-xl font-semibold">МОСТ без оплаты</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Организация, сотрудники, проекты и основные рабочие данные доступны без оплаты.</p><Badge variant="secondary" className="mt-4">Доступен всегда</Badge></CardContent></Card>
-        <Card className="md:col-span-2"><CardContent className="grid gap-5 p-6 sm:grid-cols-3"><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Ваш доступ</span><p className="mt-2 font-semibold">{accessSourceLabel}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Оплачено до</span><p className="mt-2 font-semibold">{formatDateTime(currentPeriodStart)} — {formatDateTime(currentPeriodEnd)}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Автоплатёж</span><p className="mt-2 font-semibold">{renewal?.savedMethodAvailable ? 'Настроен' : 'Не настроен'}</p></div><div className="sm:col-span-3 flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Бонусы и компенсации учитываются отдельно и не используются для покупки пакетов.</p>{!isCorporate && renewal?.autoRenewEnabled && canManage ? <Button variant="outline" onClick={() => void disableRenewal()} disabled={actionBusy === 'renewal'}>Отключить автопродление</Button> : !isCorporate ? <Badge variant="outline">Автопродление отключено</Badge> : null}</div></CardContent></Card>
+        <Card className="md:col-span-2"><CardContent className="grid gap-5 p-6 sm:grid-cols-3"><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Ваш доступ</span><p className="mt-2 font-semibold">{accessSourceLabel}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Оплачено до</span><p className="mt-2 font-semibold">{formatDateTime(currentPeriodStart)} — {formatDateTime(currentPeriodEnd)}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Автоплатёж</span><p className="mt-2 font-semibold">{renewal?.savedMethodAvailable ? 'Настроен' : 'Не настроен'}</p></div><div className="sm:col-span-3 flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Баланс организации можно использовать, когда на нём достаточно средств для полной оплаты.</p>{!isCorporate && renewal?.autoRenewEnabled && canManage ? <Button variant="outline" onClick={() => void disableRenewal()} disabled={actionBusy === 'renewal'}>Отключить автопродление</Button> : !isCorporate ? <Badge variant="outline">Автопродление отключено</Badge> : null}</div></CardContent></Card>
       </section>
 
       <section className="rounded-[28px] border border-slate-800 bg-slate-950 p-6 text-white shadow-xl sm:p-8" aria-labelledby="full-suite-title">
@@ -403,6 +425,25 @@ const BillingPage = () => {
               }
             }}
           >{fullSuite ? 'Оставить текущий состав' : 'Выбрать полный комплект'}</Button> : null}
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-[28px] border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-orange-50 p-6 shadow-sm sm:p-8" aria-labelledby="enterprise-offer-title">
+        <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+          <div>
+            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-blue-700"><Building2 className="h-4 w-4" />Для крупных компаний</div>
+            <h2 id="enterprise-offer-title" className="text-2xl font-semibold text-slate-950 sm:text-3xl">Корпоративный уровень</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Настроим МОСТ под структуру компании, подключим нужные интеграции и поможем командам перейти на единую систему работы.</p>
+            <div className="mt-5 flex flex-wrap gap-2 text-xs font-medium text-slate-700">
+              <span className="rounded-full border bg-white px-3 py-2">Персональная настройка</span>
+              <span className="rounded-full border bg-white px-3 py-2">Приоритетная поддержка</span>
+              <span className="rounded-full border bg-white px-3 py-2">Обучение и запуск</span>
+              <span className="rounded-full border bg-white px-3 py-2">Особые условия оплаты</span>
+            </div>
+          </div>
+          <Button asChild size="lg" className="w-full bg-blue-700 hover:bg-blue-800 lg:w-auto">
+            <a href="/contact?type=enterprise"><Headphones className="mr-2 h-4 w-4" />Обсудить подключение</a>
+          </Button>
         </div>
       </section>
 
@@ -476,8 +517,9 @@ const BillingPage = () => {
               </div>
               {hasChanges ? <div className="space-y-2 text-xs text-muted-foreground"><p>Подключаем: {namesFor(quote.addedPackageSlugs) || 'нет'}</p><p>Отключаем со следующего периода: {namesFor(quote.removedPackageSlugs) || 'нет'}</p><p>Дата изменения: {formatDateTime(quote.periodEndAt)}</p></div> : null}
               {hasReduction ? <p className="rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-900">Уже оплаченный доступ сохранится до конца периода. Затем выбранные пакеты отключатся.</p> : null}
-              {hasChanges && canManage && !isGrace && !hasReduction && requiresAutoRenewConsent ? <label className="flex items-start gap-3 rounded-xl border p-3 text-xs leading-5"><input type="checkbox" className="mt-1 h-4 w-4" checked={autoRenewConsent} onChange={(event) => setAutoRenewConsent(event.target.checked)} aria-label="Согласен на автоматическое списание" /><span>Согласен на автоматическое списание <strong>{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong> каждые 30 дней. Отключить можно здесь же.</span></label> : null}
-              {hasChanges && canManage ? <Button className="w-full" size="lg" onClick={() => void submitContour()} disabled={isGrace || actionBusy === 'checkout' || (!hasReduction && requiresAutoRenewConsent && !autoRenewConsent)}>{isGrace ? <><LockKeyhole className="mr-2 h-4 w-4" />Изменение заблокировано</> : hasReduction ? 'Запланировать сокращение' : <><CreditCard className="mr-2 h-4 w-4" />Перейти к оплате</>}</Button> : null}
+              {hasChanges && canManage && !isGrace && !hasReduction ? <label className={`flex items-start gap-3 rounded-xl border p-3 text-xs leading-5 ${canPayFromBalance ? 'cursor-pointer border-blue-200 bg-blue-50/60' : 'bg-slate-50 text-muted-foreground'}`}><input type="checkbox" className="mt-1 h-4 w-4" checked={payFromBalance} disabled={!canPayFromBalance || balanceLoading || Boolean(balanceError)} onChange={(event) => setPayFromBalance(event.target.checked)} aria-label="Оплатить с баланса" /><span><strong className="flex items-center gap-1 text-foreground"><WalletCards className="h-4 w-4" />Оплатить с баланса организации</strong><span className="mt-1 block">{balanceLoading ? 'Проверяем доступную сумму…' : balanceError ? 'Баланс временно недоступен.' : canPayFromBalance ? `Доступно ${formatMoney(balanceMinor, quote.currency)}. После оплаты останется ${formatMoney(balanceMinor - quote.amountDueNowMinor, quote.currency)}.` : `Доступно ${formatMoney(balanceMinor, quote.currency)}. Для полной оплаты не хватает ${formatMoney(Math.max(0, quote.amountDueNowMinor - balanceMinor), quote.currency)}.`}</span></span></label> : null}
+              {hasChanges && canManage && !isGrace && !hasReduction && requiresAutoRenewConsent && !useBalanceForCheckout ? <label className="flex items-start gap-3 rounded-xl border p-3 text-xs leading-5"><input type="checkbox" className="mt-1 h-4 w-4" checked={autoRenewConsent} onChange={(event) => setAutoRenewConsent(event.target.checked)} aria-label="Согласен на автоматическое списание" /><span>Согласен на автоматическое списание <strong>{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong> каждые 30 дней. Отключить можно здесь же.</span></label> : null}
+              {hasChanges && canManage ? <Button className="w-full" size="lg" onClick={() => void submitContour()} disabled={isGrace || actionBusy === 'checkout' || (!hasReduction && !useBalanceForCheckout && requiresAutoRenewConsent && !autoRenewConsent)}>{isGrace ? <><LockKeyhole className="mr-2 h-4 w-4" />Изменение заблокировано</> : hasReduction ? 'Запланировать сокращение' : useBalanceForCheckout ? <><WalletCards className="mr-2 h-4 w-4" />Оплатить с баланса</> : <><CreditCard className="mr-2 h-4 w-4" />Перейти к оплате</>}</Button> : null}
             </> : <p className="text-sm text-muted-foreground">Выберите пакет, чтобы увидеть итог.</p>}
             {actionError ? <p className={`rounded-xl p-3 text-sm ${actionError.startsWith('Сокращение') ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'}`}>{actionError}</p> : null}
           </CardContent></Card>
