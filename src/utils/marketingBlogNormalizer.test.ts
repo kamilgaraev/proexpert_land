@@ -77,6 +77,15 @@ describe('normalizeMarketingBlogText', () => {
   ])('заменяет старый собственный origin перед query, fragment и пунктуацией', (source, expected) => {
     expect(normalizeMarketingBlogText(source)).toBe(expected);
   });
+
+  it.each([
+    ['Читайте https://prohelper.pro.', 'Читайте https://1мост.рф.'],
+    ['Читайте https://prohelper.pro...', 'Читайте https://1мост.рф...'],
+    ['https://prohelper.pro.evil', 'https://prohelper.pro.evil'],
+    ['https://prohelper.pro./blog/a', 'https://1мост.рф/blog/a'],
+  ])('отделяет terminal dot от URL и не принимает чужой hostname за старый origin', (source, expected) => {
+    expect(normalizeMarketingBlogText(source)).toBe(expected);
+  });
 });
 
 describe('normalizeMarketingBlogArticle', () => {
