@@ -311,4 +311,38 @@ describe('catch-all blog SSR', () => {
       pageProps: { initialBlogArticle: article },
     });
   });
+
+  it('нормализует старый бренд до формирования HTML-данных и JSON-LD статьи', async () => {
+    const legacyArticle: BlogArticle = {
+      ...article,
+      title: 'ProHelper помогает вести объект',
+      excerpt: 'Команда ProHelper',
+      content: '<p>Читайте https://prohelper.pro/blog/a</p>',
+      meta_title: 'ProHelper — управление стройкой',
+      meta_description: 'Команда ProHelper',
+      og_title: 'ProHelper для команды',
+      og_description: 'Сайт https://prohelper.pro/blog/a',
+      author: { ...article.author, name: 'Команда ProHelper' },
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ success: true, data: legacyArticle })));
+
+    const result = await onBeforeRender({ urlPathname: '/blog/manage-construction' });
+    const serializedPageProps = JSON.stringify(result.pageContext.pageProps);
+    const serializedDocumentProps = JSON.stringify(result.pageContext.documentProps);
+
+    expect(result.pageContext.pageProps?.initialBlogArticle).toMatchObject({
+      title: 'МОСТ помогает вести объект',
+      excerpt: 'Команда МОСТ',
+      content: '<p>Читайте https://1мост.рф/blog/a</p>',
+      author: { name: 'Команда МОСТ' },
+    });
+    expect(result.pageContext.documentProps).toMatchObject({
+      title: 'МОСТ — управление стройкой | МОСТ',
+      description: 'Команда МОСТ',
+    });
+    expect(serializedPageProps).not.toContain('ProHelper');
+    expect(serializedDocumentProps).not.toContain('ProHelper');
+    expect(serializedDocumentProps).toContain('Команда МОСТ');
+    expect(serializedDocumentProps).toContain('https://1мост.рф');
+  });
 });

@@ -7,6 +7,7 @@ import type {
   BlogPaginatedResponse,
   BlogTag,
 } from '../types/blog';
+import { normalizeMarketingBlogArticle } from './marketingBlogNormalizer';
 
 const API_BASE_DOMAIN = (import.meta.env.VITE_API_BASE as string | undefined) ?? 'https://api.1мост.рф';
 const BLOG_PUBLIC_API_URL = `${API_BASE_DOMAIN}/api/v1/blog`;
@@ -48,6 +49,27 @@ const wrapResourceCollectionPayload = <T>(
   data: { data: toCollection(response.data.data) },
 });
 
+const normalizeArticleCollectionPayload = (
+  result: ApiResult<WrappedCollectionPayload<BlogArticle>>,
+): ApiResult<WrappedCollectionPayload<BlogArticle>> => ({
+  data: {
+    ...result.data,
+    data: result.data.data.map(normalizeMarketingBlogArticle),
+  },
+});
+
+const normalizeWrappedArticle = (
+  result: ApiResult<WrappedItemPayload<BlogArticle>>,
+): ApiResult<WrappedItemPayload<BlogArticle>> => ({
+  data: { data: normalizeMarketingBlogArticle(result.data.data) },
+});
+
+const normalizeWrappedArticleCollection = (
+  result: ApiResult<WrappedItemPayload<BlogArticle[]>>,
+): ApiResult<WrappedItemPayload<BlogArticle[]>> => ({
+  data: { data: result.data.data.map(normalizeMarketingBlogArticle) },
+});
+
 export const blogPublicApi = {
   getArticles: async (filters?: BlogArticleFilters): Promise<ApiResult<WrappedCollectionPayload<BlogArticle>>> => {
     const params = new URLSearchParams();
@@ -59,13 +81,17 @@ export const blogPublicApi = {
 
     const response = await api.get(`/articles?${params.toString()}`);
 
-    return unwrapCollectionPayload<BlogArticle>(response as { data: LandingEnvelope<WrappedCollectionPayload<BlogArticle>> });
+    return normalizeArticleCollectionPayload(
+      unwrapCollectionPayload<BlogArticle>(response as { data: LandingEnvelope<WrappedCollectionPayload<BlogArticle>> }),
+    );
   },
 
   getArticle: async (slug: string): Promise<ApiResult<WrappedItemPayload<BlogArticle>>> => {
     const response = await api.get(`/articles/${slug}`);
 
-    return wrapItemPayload<BlogArticle>(response as { data: LandingEnvelope<BlogArticle> });
+    return normalizeWrappedArticle(
+      wrapItemPayload<BlogArticle>(response as { data: LandingEnvelope<BlogArticle> }),
+    );
   },
 
   getPreviewArticle: async (
@@ -75,7 +101,9 @@ export const blogPublicApi = {
     const query = params instanceof URLSearchParams ? params.toString() : new URLSearchParams(params).toString();
     const response = await api.get(`/preview/${articleId}${query ? `?${query}` : ''}`);
 
-    return wrapItemPayload<BlogArticle>(response as { data: LandingEnvelope<BlogArticle> });
+    return normalizeWrappedArticle(
+      wrapItemPayload<BlogArticle>(response as { data: LandingEnvelope<BlogArticle> }),
+    );
   },
 
   getCategories: async (): Promise<ApiResult<WrappedItemPayload<BlogCategory[]>>> => {
@@ -93,18 +121,24 @@ export const blogPublicApi = {
   getPopularArticles: async (limit = 5): Promise<ApiResult<WrappedItemPayload<BlogArticle[]>>> => {
     const response = await api.get(`/articles/popular?limit=${limit}`);
 
-    return wrapResourceCollectionPayload<BlogArticle>(response as { data: LandingEnvelope<{ data: BlogArticle[] }> });
+    return normalizeWrappedArticleCollection(
+      wrapResourceCollectionPayload<BlogArticle>(response as { data: LandingEnvelope<{ data: BlogArticle[] }> }),
+    );
   },
 
   getRelatedArticles: async (articleId: number, limit = 3): Promise<ApiResult<WrappedItemPayload<BlogArticle[]>>> => {
     const response = await api.get(`/articles/${articleId}/related?limit=${limit}`);
 
-    return wrapResourceCollectionPayload<BlogArticle>(response as { data: LandingEnvelope<{ data: BlogArticle[] }> });
+    return normalizeWrappedArticleCollection(
+      wrapResourceCollectionPayload<BlogArticle>(response as { data: LandingEnvelope<{ data: BlogArticle[] }> }),
+    );
   },
 
   searchArticles: async (query: string, limit = 10): Promise<ApiResult<WrappedItemPayload<BlogArticle[]>>> => {
     const response = await api.get(`/search?q=${encodeURIComponent(query)}&limit=${limit}`);
 
-    return wrapResourceCollectionPayload<BlogArticle>(response as { data: LandingEnvelope<{ data: BlogArticle[] }> });
+    return normalizeWrappedArticleCollection(
+      wrapResourceCollectionPayload<BlogArticle>(response as { data: LandingEnvelope<{ data: BlogArticle[] }> }),
+    );
   },
 };

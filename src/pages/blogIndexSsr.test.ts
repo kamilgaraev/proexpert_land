@@ -46,6 +46,40 @@ afterEach(() => {
 });
 
 describe('blog index SSR transport', () => {
+  it('нормализует старый бренд в публичных данных карточек', async () => {
+    const legacyArticle: BlogArticle = {
+      ...article,
+      title: 'ProHelper помогает вести объект',
+      excerpt: 'Команда ProHelper',
+      content: '<p>https://prohelper.pro/blog/a</p>',
+      author: { ...article.author, name: 'Команда ProHelper' },
+    };
+    const fetchImpl = vi.fn((input: string | URL | Request) => Promise.resolve(
+      String(input).includes('/articles?')
+        ? new Response(JSON.stringify({
+            success: true,
+            data: {
+              data: [legacyArticle],
+              meta: { current_page: 1, last_page: 1, per_page: 12, total: 1 },
+            },
+          }), { status: 200 })
+        : new Response(JSON.stringify({ success: true, data: [] }), { status: 200 }),
+    ));
+
+    const result = await fetchBlogIndexForSsr({
+      apiBaseDomain: 'https://api.example.test',
+      fetchImpl: fetchImpl as typeof fetch,
+    });
+
+    expect(result.articles[0]).toMatchObject({
+      title: 'МОСТ помогает вести объект',
+      excerpt: 'Команда МОСТ',
+      content: '<p>https://1мост.рф/blog/a</p>',
+      author: { name: 'Команда МОСТ' },
+    });
+    expect(JSON.stringify(result.articles)).not.toContain('ProHelper');
+  });
+
   it('returns a partial result when one upstream request reaches the deadline', async () => {
     vi.useFakeTimers();
     const fetchImpl = vi.fn((input: string | URL | Request, init?: RequestInit) => {

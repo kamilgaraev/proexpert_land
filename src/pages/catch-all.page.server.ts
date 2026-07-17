@@ -1,5 +1,6 @@
 import { isKnownMarketingPath, normalizeMarketingPath } from '@/data/marketingRegistry';
 import type { BlogArticle } from '@/types/blog';
+import { normalizeMarketingBlogArticle } from '@/utils/marketingBlogNormalizer';
 import { generateArticleSchema, normalizeArticleTitleBrand } from '@/utils/seo';
 import { fetchBlogIndexForSsr } from './blogIndexSsr';
 
@@ -106,7 +107,7 @@ const fetchBlogArticleForSsr = async (slug: string): Promise<BlogArticleSsrResul
       return { notFound: true };
     }
 
-    return { article: payload.data };
+    return { article: normalizeMarketingBlogArticle(payload.data) };
   } catch {
     return {};
   }
