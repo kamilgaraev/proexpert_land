@@ -94,7 +94,7 @@ const BlogArticlePage = ({
           }
         : {
           title: 'Блог МОСТ',
-          description: 'Материалы МОСТ о строительных процессах и цифровом контуре.',
+          description: 'Материалы МОСТ о строительных процессах и управлении проектами.',
           type: 'website',
         },
   );
@@ -214,7 +214,7 @@ const BlogArticlePage = ({
     <BlogPublicLayout
       eyebrow={isPreview ? 'Preview' : article.category.name}
       title={article.title}
-      description={article.excerpt || 'Материал МОСТ о строительных процессах, ролях и цифровом контуре.'}
+      description={article.excerpt || 'Материал МОСТ о строительных процессах, ролях и проектных данных.'}
       nav={[
         { label: 'Содержание', href: '#article-content' },
         { label: isPreview ? 'Предпросмотр' : 'Похожие материалы', href: isPreview ? '#article-content' : '#related-articles' },

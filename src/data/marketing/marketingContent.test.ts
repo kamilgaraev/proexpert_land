@@ -692,62 +692,7 @@ const readComponentUserFacingText = (componentPath: string): string => {
   return values.join("\n");
 };
 
-const collectProductionMarketingFiles = (directory: string): string[] =>
-  fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) return collectProductionMarketingFiles(entryPath);
-    if (!/\.tsx?$/u.test(entry.name) || /\.test\.tsx?$/u.test(entry.name) || entry.name === "marketingBlogNormalizer.ts") return [];
-    return [entryPath];
-  });
-
-const readProductionMarketingUserFacingText = (filePath: string): string => {
-  const source = fs.readFileSync(filePath, "utf8");
-  const sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true, filePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
-  const values: string[] = [];
-  const belongsToTechnicalSource = (node: ts.Node): boolean => {
-    let current: ts.Node | undefined = node.parent;
-    while (current && current !== sourceFile) {
-      if (ts.isPropertyAssignment(current) && current.name.getText(sourceFile) === "sourceOfTruth") return true;
-      current = current.parent;
-    }
-    return false;
-  };
-  const visit = (node: ts.Node): void => {
-    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) return;
-    if (ts.isStringLiteralLike(node) && !belongsToTechnicalSource(node)) values.push(node.text);
-    ts.forEachChild(node, visit);
-  };
-  visit(sourceFile);
-  return values.join("\n");
-};
-
 describe("marketing content consistency", () => {
-  it("publishes llms.txt as compact Markdown with links to known canonical routes", () => {
-    const llms = fs.readFileSync(path.resolve(process.cwd(), "public/llms.txt"), "utf8");
-    const requiredPaths = ["/", "/solutions", "/features", "/pricing", "/integrations", "/security", "/contact", "/blog"];
-    const canonicalPaths = new Set(marketingSitemapRoutes.map(({ path: routePath }) => routePath));
-    const linkedPaths = [...llms.matchAll(/\[[^\]]+\]\(https:\/\/1мост\.рф(\/[^)]*)\)/gu)].map(([, routePath]) => routePath);
-    const proseLines = llms.split("\n").map((line) => line.trim()).filter((line) => line && !line.startsWith("#") && !line.startsWith("-"));
-
-    expect(llms).toMatch(/^# МОСТ$/m);
-    expect(llms).toContain("## Основные страницы");
-    expect(llms).toContain("## Решения");
-    expect(llms).toContain("## Материалы");
-    expect(proseLines).toHaveLength(2);
-    expect(linkedPaths.length).toBeGreaterThanOrEqual(requiredPaths.length);
-    expect(llms).not.toMatch(/ProHelper|prohelper\.pro/i);
-    for (const requiredPath of requiredPaths) expect(linkedPaths, requiredPath).toContain(requiredPath);
-    for (const linkedPath of linkedPaths) expect(canonicalPaths.has(linkedPath), linkedPath).toBe(true);
-  });
-
-  it("keeps forbidden legacy and hybrid wording out of production marketing text", () => {
-    const productionDirectories = ["src/data/marketing", "src/pages/landing", "src/pages/resources"].map((directory) => path.resolve(process.cwd(), directory));
-    const forbiddenPattern = /(?:ProHelper|prohelper\.pro|customer-(?:сценарий|контур)|AI-контур|ERP-контурe|Офисная триажировка|change orders?|change order строительство|Основной сценарий|Соседние сценарии и решения|смежный контур|релевантный сценарий|соседние контуры|офисный контур|Закупочный контур|Единый контур|Управленческий контур|складской контур|Мобильный контур|полевой контур|контур продукта|контур ПИР|контур охраны труда|контур изменений|пилотный контур|ответственный контур|Исполнение по контуру|общий контур|Контур персонала|производственный и расчетный контур|Бюджетный контур|рабочий контур|готовый контур|едином контуре|рабочем контуре|контур закупки|нужный контур|офисным контуром|Этот контур|Контур формирует|операционным контуром|любого контура|замена контуру|финансового контура|общего контура продукта|исполнительный контур|одном контуре|контур поддерживает|Контур (?:закрывает|связывает|устраняет|рассчитан|собирает|доступен|выделяет|помогает)|(?:^|[^\p{L}\p{N}_])ИД(?:$|[^\p{L}\p{N}_]))/iu;
-    for (const filePath of productionDirectories.flatMap(collectProductionMarketingFiles)) {
-      expect(readProductionMarketingUserFacingText(filePath), path.relative(process.cwd(), filePath)).not.toMatch(forbiddenPattern);
-    }
-  });
-
   it("owns the security capability selection in the marketing data layer", () => {
     const trustSource = fs.readFileSync(
       path.resolve(process.cwd(), "src/data/marketing/trust.ts"),

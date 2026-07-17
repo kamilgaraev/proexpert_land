@@ -24,7 +24,7 @@ const sitemapGroups = [
     ],
   },
   {
-    title: 'Роли и сценарии',
+    title: 'Роли и задачи',
     links: [
       { label: 'Программа для прораба', href: marketingPaths.foremanSoftware },
       { label: 'Система для ПТО', href: marketingPaths.ptoSoftware },
@@ -46,7 +46,7 @@ const sitemapGroups = [
     ],
   },
   {
-    title: 'Операционные контуры',
+    title: 'Операционные процессы',
     links: [
       { label: 'Техника и выработка', href: marketingPaths.machineryAndLabor },
       { label: 'RFI и изменения', href: marketingPaths.changeControl },
@@ -75,8 +75,8 @@ const sitemapGroups = [
 ];
 
 const footerNotes = [
-  'Показываем продукт через рабочий сценарий, а не через витрину экранов.',
-  'Запуск можно начать с одного контура и расширять по мере роста процессов.',
+  'Показываем продукт на примере рабочих задач, а не через витрину экранов.',
+  'Запуск можно начать с одного процесса и расширять по мере роста компании.',
   'Материалы по безопасности и юридическому блоку предоставляем по запросу.',
 ];
 
@@ -93,7 +93,7 @@ const Footer = () => {
                 Следующий шаг
               </div>
               <h2 className="mt-4 max-w-4xl text-[clamp(2rem,4.2vw,3.8rem)] font-bold leading-[1.02]">
-                Разберем ваш сценарий и покажем, с какого контура МОСТ лучше стартовать.
+                Разберем вашу задачу и покажем, с какого процесса в МОСТ лучше начать.
               </h2>
               <p className="mt-5 max-w-3xl text-base leading-8 text-white/72">
                 На созвоне раскладываем роли команды, текущий процесс и приоритет запуска.
@@ -185,7 +185,7 @@ const Footer = () => {
 
             <div className="mt-8 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
-                Популярные сценарии
+                Популярные задачи
               </div>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 {marketingRoleLandingLinks.slice(0, 4).map((item) => (
