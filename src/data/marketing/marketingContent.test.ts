@@ -183,6 +183,10 @@ const solutionText = flattenText(
 const trustText = flattenText(
   marketingTrustFacts.map((item) => [item.title, item.text]),
 );
+const resultPhrasePattern =
+  /(?:\b(?:меньше|больше|быстрее|легче|удобнее|лучше|эффективнее)\b|без(?:\s+\S+){0,2}\s+ручн\w*|не\s+(?:теря\w*|распада\w*|оста[её]\w*)|синхрониз\w*|станов\w+\s+управляем\w*|масштабир\w*|сокращ\w*|ускор\w*|оптимиз\w*|довод\w*\s+до\s+результат\w*)/iu;
+const manualWorkPromisePattern =
+  /без(?:\s+\S+){0,2}\s+ручн\w*\s+(?:свод\w*|сбор\w*|консолид\w*)/iu;
 
 interface RouteRegistrySelection {
   capabilityIds: string[];
@@ -247,7 +251,10 @@ const routeRegistrySelections: Record<
     packageSlugs: [],
   },
   about: { capabilityIds: [], packageSlugs: [] },
-  security: { capabilityIds: [], packageSlugs: [] },
+  security: {
+    capabilityIds: marketingCapabilityMatrix.slice(0, 5).map((item) => item.id),
+    packageSlugs: [],
+  },
   contact: { capabilityIds: [], packageSlugs: [] },
   blog: { capabilityIds: [], packageSlugs: [] },
 };
@@ -347,6 +354,7 @@ const routeOwnedDataText: Record<CoreMarketingSeoKey, string> = {
     marketingCompany.hours,
   ]),
   security: flattenText([
+    selectedRegistryText("security"),
     marketingSecuritySections.map((item) => [
       item.title,
       item.description,
@@ -434,6 +442,9 @@ describe("marketing content consistency", () => {
     expect(routeRegistrySelections.pricing.packageSlugs).toEqual(
       commercialPackages.map((item) => item.slug),
     );
+    expect(routeRegistrySelections.security.capabilityIds).toEqual(
+      marketingCapabilityMatrix.slice(0, 5).map((item) => item.id),
+    );
 
     for (const id of routeRegistrySelections.home.capabilityIds) {
       expect(homeSource, `/: ${id}`).toContain(`"${id}"`);
@@ -447,7 +458,6 @@ describe("marketing content consistency", () => {
       "contractors",
       "developers",
       "about",
-      "security",
       "contact",
       "blog",
     ] as const) {
@@ -459,12 +469,18 @@ describe("marketing content consistency", () => {
   });
 
   it("describes every capability claim and outcome through observable mechanisms or available data", () => {
-    const resultDenylistPattern =
-      /(?:\b(?:меньше|больше|быстрее|легче|удобнее|лучше|эффективнее)\b|без(?:\s+\S+){0,2}\s+ручн\w*|не\s+(?:теря\w*|распада\w*|оста[её]\w*)|синхрониз\w*|станов\w+\s+управляем\w*|масштабир\w*|сокращ\w*|ускор\w*|оптимиз\w*|довод\w*\s+до\s+результат\w*)/iu;
     const observableDataPattern =
       /(?:карточк|статус|реестр|роль|команд|руководител|истори|сводк|панел|показател|отч[её]т|данн|документ|задач|заявк|плат[её]ж|акт|потребност|склад|материал|верси|замечан|комплект|дефект|инспекц|нарушен|предписан|допуск|техник|смен|наряд|выработк|сотрудник|бригад|запрос|изменен|претензи|организац|объект|прав|доступ|сопоставлен|сверк|профил|кандидат|приглашен|сигнал).*(?:содерж|показыва|связыва|связан|видит|хран|собира|фиксиру|доступ|привязан|получа|формиру|использ|относ|определя|переда|назнач|вед|отображ|группиру)/iu;
 
     for (const capability of marketingCapabilityMatrix) {
+      const resultFields = [
+        ["summary", capability.summary],
+        ["publicClaim", capability.publicClaim],
+        ...capability.outcomes.map((outcome, index) => [
+          `outcomes[${index}]`,
+          outcome,
+        ]),
+      ] as const;
       const fields = [
         ["publicClaim", capability.publicClaim],
         ...capability.outcomes.map((outcome, index) => [
@@ -473,11 +489,14 @@ describe("marketing content consistency", () => {
         ]),
       ] as const;
 
-      for (const [field, text] of fields) {
+      for (const [field, text] of resultFields) {
         expect(
           text,
           `${capability.id}: ${field} broad result denylist`,
-        ).not.toMatch(resultDenylistPattern);
+        ).not.toMatch(resultPhrasePattern);
+      }
+
+      for (const [field, text] of fields) {
         expect(
           text,
           `${capability.id}: ${field} observable mechanism or data`,
@@ -568,6 +587,9 @@ describe("marketing content consistency", () => {
 
       expect(routeText, `${route}: guaranteed effect`).not.toMatch(
         guaranteedEffectPattern,
+      );
+      expect(routeText, `${route}: manual-work result promise`).not.toMatch(
+        manualWorkPromisePattern,
       );
       expect(routeText, `${route}: percentage`).not.toMatch(percentagePattern);
       expect(routeText, `${route}: old brand or hybrid`).not.toMatch(
