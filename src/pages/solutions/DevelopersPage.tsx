@@ -130,7 +130,7 @@ const DevelopersPage = () => {
         nav={[
           { label: "Данные по объектам", href: "#capabilities" },
           { label: "Модель запуска", href: "#model" },
-          { label: "Доверительный слой", href: "#trust" },
+          { label: "Проверяемые данные", href: "#trust" },
           { label: "Смежные маршруты", href: "#related" },
         ]}
         aside={
@@ -218,7 +218,7 @@ const DevelopersPage = () => {
         <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
           <div>
             <SectionHeader
-              eyebrow="Доверительный слой"
+              eyebrow="Проверяемые данные"
               title="Что нужно согласовать до демонстрации."
               description="Состав портфеля, роли проектных команд, единые статусы, правила замечаний и ожидаемую отчётность."
             />

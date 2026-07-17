@@ -1,9 +1,28 @@
 import fs from "node:fs";
 import path from "node:path";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { marketingBlogArticles } from "./blogArticles";
+import { marketingCapabilityMatrix } from "./capabilities";
 import {
-  marketingCapabilityMatrix,
+  marketingFaqs,
+  marketingHeroFacts,
+  marketingLaunchSteps,
+} from "./home";
+import {
+  commercialPackages,
+  commercialTerms,
+  freeFoundationOffer,
+  fullSuiteOffer,
+  marketingAdvancedOffers,
+} from "./packages";
+import { marketingSolutionSegments } from "./solutions";
+import {
+  marketingAboutSections,
+  marketingSecuritySections,
+  marketingTrustFacts,
+} from "./trust";
+import {
   marketingCommercialLandingLinks,
   marketingCompany,
   marketingModuleLandingLinks,
@@ -13,7 +32,6 @@ import {
   marketingSeo,
   marketingSeoLandingPages,
   marketingSitemapRoutes,
-  marketingSolutionSegments,
 } from "./index";
 
 const workspaceSourceExists = (source: string): boolean =>
@@ -22,99 +40,392 @@ const workspaceSourceExists = (source: string): boolean =>
     path.resolve(process.cwd(), "..", "..", "..", source),
   ].some((candidate) => fs.existsSync(candidate));
 
-const coreMarketingRouteContract = [
-  ["/", "home", ["объект", "задач", "документ", "снабжен", "финанс"]],
-  ["/solutions", "solutions", ["тип компании", "роль"]],
-  ["/features", "features", ["возможност", "функци"]],
-  ["/pricing", "pricing", ["пакет", "пробн", "подключ"]],
-  [
-    "/integrations",
-    "integrations",
-    ["1С", "справочник", "документ", "настройк"],
-  ],
-  [
-    "/contractors",
-    "contractors",
-    ["объект", "бригад", "объём", "документ", "оплат"],
-  ],
-  ["/developers", "developers", ["портфел", "срок", "замечан", "отчётност"]],
-  ["/enterprise", "enterprise", ["организац", "объект", "прав", "сводн"]],
-  ["/about", "about", ["создан", "принцип"]],
-  ["/security", "security", ["рол", "доступ", "файл", "истори"]],
-  ["/contact", "contact", ["заявк", "следующ"]],
-  ["/blog", "blog", ["стать", "управлен", "строй"]],
-] as const;
+type CoreMarketingSeoKey =
+  | "home"
+  | "solutions"
+  | "features"
+  | "pricing"
+  | "integrations"
+  | "contractors"
+  | "developers"
+  | "enterprise"
+  | "about"
+  | "security"
+  | "contact"
+  | "blog";
 
-const coreMarketingRouteSources: Record<
-  (typeof coreMarketingRouteContract)[number][1],
-  string[]
-> = {
-  home: ["src/pages/landing/HomePage.tsx", "src/data/marketing/home.ts"],
-  solutions: [
-    "src/pages/landing/SolutionsPage.tsx",
-    "src/data/marketing/solutions.ts",
-  ],
-  features: [
-    "src/pages/landing/FeaturesPage.tsx",
-    "src/data/marketing/capabilities.ts",
-  ],
-  pricing: ["src/pages/landing/PricingPage.tsx"],
-  integrations: ["src/pages/product/IntegrationsPage.tsx"],
-  contractors: ["src/pages/solutions/ContractorsPage.tsx"],
-  developers: ["src/pages/solutions/DevelopersPage.tsx"],
-  enterprise: ["src/pages/solutions/EnterprisePage.tsx"],
-  about: ["src/pages/company/AboutPage.tsx", "src/data/marketing/trust.ts"],
-  security: [
-    "src/pages/company/SecurityPage.tsx",
-    "src/data/marketing/trust.ts",
-  ],
-  contact: ["src/pages/company/ContactPage.tsx"],
-  blog: ["src/components/blog/public/BlogPublicPage.tsx"],
+interface CoreMarketingRouteContract {
+  route: string;
+  seoKey: CoreMarketingSeoKey;
+  componentName: string;
+  componentPath: string;
+  routeElement: string;
+  requiredTerms: string[];
+}
+
+const coreMarketingRouteContract: CoreMarketingRouteContract[] = [
+  {
+    route: "/",
+    seoKey: "home",
+    componentName: "HomePage",
+    componentPath: "src/pages/landing/HomePage.tsx",
+    routeElement: '<Route path="/" element={<HomePage />} />',
+    requiredTerms: ["объект", "задач", "документ", "снабжен", "финанс"],
+  },
+  {
+    route: "/solutions",
+    seoKey: "solutions",
+    componentName: "SolutionsPage",
+    componentPath: "src/pages/landing/SolutionsPage.tsx",
+    routeElement: '<Route path="/solutions" element={<SolutionsPage />} />',
+    requiredTerms: ["тип компании", "роль"],
+  },
+  {
+    route: "/features",
+    seoKey: "features",
+    componentName: "FeaturesPage",
+    componentPath: "src/pages/landing/FeaturesPage.tsx",
+    routeElement: '<Route path="/features" element={<FeaturesPage />} />',
+    requiredTerms: ["возможност", "функци"],
+  },
+  {
+    route: "/pricing",
+    seoKey: "pricing",
+    componentName: "PricingPage",
+    componentPath: "src/pages/landing/PricingPage.tsx",
+    routeElement: '<Route path="/pricing" element={<PricingPage />} />',
+    requiredTerms: ["пакет", "пробн", "подключ"],
+  },
+  {
+    route: "/integrations",
+    seoKey: "integrations",
+    componentName: "IntegrationsPage",
+    componentPath: "src/pages/product/IntegrationsPage.tsx",
+    routeElement:
+      '<Route path="/integrations" element={<IntegrationsPage />} />',
+    requiredTerms: ["1С", "справочник", "документ", "настройк"],
+  },
+  {
+    route: "/contractors",
+    seoKey: "contractors",
+    componentName: "ContractorsPage",
+    componentPath: "src/pages/solutions/ContractorsPage.tsx",
+    routeElement: '<Route path="/contractors" element={<ContractorsPage />} />',
+    requiredTerms: ["объект", "бригад", "объём", "документ", "оплат"],
+  },
+  {
+    route: "/developers",
+    seoKey: "developers",
+    componentName: "DevelopersPage",
+    componentPath: "src/pages/solutions/DevelopersPage.tsx",
+    routeElement: '<Route path="/developers" element={<DevelopersPage />} />',
+    requiredTerms: ["портфел", "срок", "замечан", "отчётност"],
+  },
+  {
+    route: "/enterprise",
+    seoKey: "enterprise",
+    componentName: "EnterprisePage",
+    componentPath: "src/pages/solutions/EnterprisePage.tsx",
+    routeElement: '<Route path="/enterprise" element={<EnterprisePage />} />',
+    requiredTerms: ["организац", "объект", "прав", "сводн"],
+  },
+  {
+    route: "/about",
+    seoKey: "about",
+    componentName: "AboutPage",
+    componentPath: "src/pages/company/AboutPage.tsx",
+    routeElement: '<Route path="/about" element={<AboutPage />} />',
+    requiredTerms: ["создан", "принцип"],
+  },
+  {
+    route: "/security",
+    seoKey: "security",
+    componentName: "SecurityPage",
+    componentPath: "src/pages/company/SecurityPage.tsx",
+    routeElement: '<Route path="/security" element={<SecurityPage />} />',
+    requiredTerms: ["рол", "доступ", "файл", "истори"],
+  },
+  {
+    route: "/contact",
+    seoKey: "contact",
+    componentName: "ContactPage",
+    componentPath: "src/pages/company/ContactPage.tsx",
+    routeElement: '<Route path="/contact" element={<ContactPage />} />',
+    requiredTerms: ["заявк", "следующ"],
+  },
+  {
+    route: "/blog",
+    seoKey: "blog",
+    componentName: "BlogPublicPage",
+    componentPath: "src/components/blog/public/BlogPublicPage.tsx",
+    routeElement:
+      '<Route path="/blog" element={<BlogPublicPage initialData={initialBlogIndexData} />} />',
+    requiredTerms: ["стать", "управлен", "строй"],
+  },
+];
+
+const flattenText = (values: unknown[]): string =>
+  values
+    .flat(Infinity)
+    .filter((value): value is string => typeof value === "string")
+    .join("\n");
+
+const capabilityText = flattenText(
+  marketingCapabilityMatrix.map((item) => [
+    item.title,
+    item.businessContour,
+    item.summary,
+    item.publicClaim,
+    item.audiences,
+    item.outcomes,
+    item.cta,
+  ]),
+);
+const solutionText = flattenText(
+  marketingSolutionSegments.map((item) => [
+    item.title,
+    item.audience,
+    item.challenge,
+    item.transformation,
+    item.workflows,
+    item.cta,
+  ]),
+);
+const packageText = flattenText(
+  commercialPackages.map((item) => [
+    item.name,
+    item.description,
+    item.bestFor,
+    item.highlights,
+    item.businessOutcomes,
+  ]),
+);
+const trustText = flattenText(
+  marketingTrustFacts.map((item) => [item.title, item.text]),
+);
+
+const routeOwnedDataText: Record<CoreMarketingSeoKey, string> = {
+  home: flattenText([
+    marketingHeroFacts.map((item) => [item.value, item.label, item.detail]),
+    marketingLaunchSteps.map((item) => [item.title, item.description]),
+    marketingFaqs.map((item) => [item.question, item.answer]),
+    solutionText,
+    capabilityText,
+    trustText,
+    packageText,
+  ]),
+  solutions: flattenText([solutionText, capabilityText, packageText]),
+  features: flattenText([
+    capabilityText,
+    marketingAdvancedOffers.map((item) => [item.title, item.summary, item.cta]),
+    marketingSecuritySections.map((item) => [
+      item.title,
+      item.description,
+      item.bullets,
+    ]),
+    trustText,
+  ]),
+  pricing: flattenText([
+    packageText,
+    freeFoundationOffer.name,
+    freeFoundationOffer.description,
+    freeFoundationOffer.includes,
+    fullSuiteOffer.name,
+    `${commercialTerms.trialHours} часов`,
+    `${commercialTerms.graceDays} дней`,
+  ]),
+  integrations: "",
+  contractors: "",
+  developers: "",
+  enterprise: flattenText([capabilityText, trustText]),
+  about: flattenText([
+    marketingAboutSections.map((item) => [
+      item.title,
+      item.description,
+      item.bullets,
+    ]),
+    trustText,
+    marketingCompany.location,
+    marketingCompany.responseTime,
+    marketingCompany.hours,
+  ]),
+  security: flattenText([
+    marketingSecuritySections.map((item) => [
+      item.title,
+      item.description,
+      item.bullets,
+    ]),
+    trustText,
+    capabilityText,
+  ]),
+  contact: flattenText([
+    marketingCompany.email,
+    marketingCompany.location,
+    marketingCompany.responseTime,
+    marketingCompany.hours,
+  ]),
+  blog: flattenText(
+    Object.values(marketingBlogArticles).map((item) => [
+      item.title,
+      item.purpose,
+    ]),
+  ),
+};
+
+const readComponentUserFacingText = (componentPath: string): string => {
+  const absolutePath = path.resolve(process.cwd(), componentPath);
+  const source = fs.readFileSync(absolutePath, "utf8");
+  const sourceFile = ts.createSourceFile(
+    absolutePath,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const values: string[] = [];
+
+  const visit = (node: ts.Node): void => {
+    if (ts.isImportDeclaration(node)) {
+      return;
+    }
+
+    if (ts.isStringLiteralLike(node)) {
+      const parent = node.parent;
+      const jsxAttributeName =
+        ts.isJsxAttribute(parent) && parent.name.getText(sourceFile);
+      const ignoredJsxAttributes = new Set([
+        "className",
+        "id",
+        "href",
+        "to",
+        "src",
+        "key",
+      ]);
+
+      if (!jsxAttributeName || !ignoredJsxAttributes.has(jsxAttributeName)) {
+        values.push(node.text);
+      }
+    }
+
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+  return values.join("\n");
 };
 
 describe("marketing content consistency", () => {
-  it("keeps the 12 core routes distinct, concrete, and free from the retired brand", () => {
+  it("maps the 12 core routes to exact page owners with distinct concrete content", () => {
     const titles = new Set<string>();
     const descriptions = new Set<string>();
+    const appSource = fs.readFileSync(
+      path.resolve(process.cwd(), "src/App.tsx"),
+      "utf8",
+    );
 
-    expect(coreMarketingRouteContract.map(([route]) => route)).toHaveLength(12);
+    expect(coreMarketingRouteContract.map(({ route }) => route)).toHaveLength(
+      12,
+    );
 
-    for (const [, seoKey, requiredTerms] of coreMarketingRouteContract) {
+    for (const contract of coreMarketingRouteContract) {
+      const {
+        componentName,
+        componentPath,
+        requiredTerms,
+        route,
+        routeElement,
+        seoKey,
+      } = contract;
       const meta = marketingSeo[seoKey];
-      const source = coreMarketingRouteSources[seoKey]
-        .map((file) =>
-          fs.readFileSync(path.resolve(process.cwd(), file), "utf8"),
-        )
-        .join("\n");
+      const routeText = [
+        meta.title,
+        meta.description,
+        meta.keywords ?? "",
+        routeOwnedDataText[seoKey],
+        readComponentUserFacingText(componentPath),
+      ].join("\n");
 
-      expect(meta.title.length, `${seoKey}: title`).toBeLessThanOrEqual(60);
+      expect(appSource, `${route}: ${componentName}`).toContain(routeElement);
+      expect(meta.title.length, `${route}: title`).toBeLessThanOrEqual(60);
       expect(
         meta.description.length,
-        `${seoKey}: description`,
+        `${route}: description`,
       ).toBeGreaterThanOrEqual(70);
       expect(
         meta.description.length,
-        `${seoKey}: description`,
+        `${route}: description`,
       ).toBeLessThanOrEqual(160);
-      expect(titles.has(meta.title), `${seoKey}: duplicate title`).toBe(false);
+      expect(titles.has(meta.title), `${route}: duplicate title`).toBe(false);
       expect(
         descriptions.has(meta.description),
-        `${seoKey}: duplicate description`,
+        `${route}: duplicate description`,
       ).toBe(false);
-      expect(
-        `${meta.title}\n${meta.description}\n${meta.keywords ?? ""}`,
-      ).not.toMatch(/prohelper/i);
 
       for (const term of requiredTerms) {
         expect(
-          source.toLocaleLowerCase("ru-RU"),
-          `${seoKey}: ${term}`,
+          routeText.toLocaleLowerCase("ru-RU"),
+          `${route}: ${term}`,
         ).toContain(term.toLocaleLowerCase("ru-RU"));
       }
 
       titles.add(meta.title);
       descriptions.add(meta.description);
     }
+  });
+
+  it("rejects guarantees, unsupported deadlines, old brand, hybrids, and unexplained jargon on core routes", () => {
+    const guaranteedEffectPattern =
+      /(?:не\s+теря(?:ется|ются)|сокращается\s+время|быстрее\s+(?:увидеть|оценить|получить)|отч[её]тность\s+переста[её]т\s+зависеть|ускор(?:яет|яется|ить)|гарантир(?:ует|ован))/iu;
+    const percentagePattern =
+      /(?:\d+(?:[.,]\d+)?\s*%|\bпроцент(?:а|ов|ы)?\b)/iu;
+    const numericDeadlinePattern =
+      /\b\d+\s*(?:минут(?:а|ы)?|час(?:а|ов)?|д(?:ень|ня|ней)|недел(?:я|и|ь)|месяц(?:а|ев)?)\b/iu;
+    const oldBrandOrHybridPattern =
+      /(?:prohelper|про\s*хелпер|про-хелпер|мост\s+(?:prohelper|про\s*хелпер)|(?:prohelper|про\s*хелпер)\s+мост)/iu;
+    const unexplainedJargonPattern =
+      /(?:\bИД\b|\bchange orders?\b|Доверительный слой|cookie-consent|(?<!формат )\bIFC\b|(?<!перечень замечаний при при[её]мке \()punch-list)/iu;
+
+    for (const { componentPath, route, seoKey } of coreMarketingRouteContract) {
+      const meta = marketingSeo[seoKey];
+      const routeText = [
+        meta.title,
+        meta.description,
+        meta.keywords ?? "",
+        routeOwnedDataText[seoKey],
+        readComponentUserFacingText(componentPath),
+      ].join("\n");
+
+      expect(routeText, `${route}: guaranteed effect`).not.toMatch(
+        guaranteedEffectPattern,
+      );
+      expect(routeText, `${route}: percentage`).not.toMatch(percentagePattern);
+      expect(routeText, `${route}: old brand or hybrid`).not.toMatch(
+        oldBrandOrHybridPattern,
+      );
+      expect(
+        routeText,
+        `${route}: unexplained jargon ${routeText.match(unexplainedJargonPattern)?.[0] ?? ""}`,
+      ).not.toMatch(unexplainedJargonPattern);
+
+      if (route !== "/pricing") {
+        expect(routeText, `${route}: numeric deadline`).not.toMatch(
+          numericDeadlinePattern,
+        );
+      }
+    }
+  });
+
+  it("marks document exchange agreement as integration setup, not a ready product capability", () => {
+    const source = fs.readFileSync(
+      path.resolve(process.cwd(), "src/pages/product/IntegrationsPage.tsx"),
+      "utf8",
+    );
+    const documentExchangeCard = source.match(
+      /name:\s*"Документы для обмена"[\s\S]*?status:\s*"([^"]+)"/u,
+    );
+
+    expect(documentExchangeCard?.[1]).toBe("Этап настройки");
+    expect(documentExchangeCard?.[1]).not.toBe("В продукте");
   });
 
   it("keeps construction CRM page focused on CRM semantics", () => {
