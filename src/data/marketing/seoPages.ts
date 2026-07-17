@@ -1,4 +1,6 @@
 import { marketingPaths } from './common';
+import { getMarketingBlogLink } from './blogArticles';
+import type { MarketingBlogArticleKey } from './blogArticles';
 import { marketingProductSeoLandingPages } from './seoProductPages';
 import type {
   MarketingContentLink,
@@ -22,6 +24,16 @@ type ProcessComparisonSource = {
   afterState: string[];
   metrics: Array<{ value: string; label: string; detail: string }>;
 };
+
+const allBlogArticlesLink: MarketingContentLink = {
+  label: 'Все статьи',
+  href: marketingPaths.blog,
+  description: 'Практические материалы команды МОСТ.',
+};
+
+const getMarketingBlogLinks = (
+  ...keys: MarketingBlogArticleKey[]
+): MarketingContentLink[] => keys.map((key) => getMarketingBlogLink(key));
 
 const createProcessComparison = (
   comparison: MarketingSeoLandingPage['processComparison'],
@@ -565,13 +577,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         description: 'Если нужен связанный контур по замечаниям и исполнительной документации.',
       },
     ],
-    blogLinks: marketingBlogEditorialSeries[0].articles
-      .filter((article) => article.relatedPath === marketingPaths.foremanSoftware)
-      .map((article) => ({
-        label: article.title,
-        href: marketingPaths.blog,
-        description: article.summary,
-      })),
+    blogLinks: getMarketingBlogLinks('foremanOrder', 'managerMorning'),
     contactHighlights: [
       'Покажем сценарий работы прораба без перегруза всей платформой.',
       'Разберем, какие данные должен видеть руководитель строительства каждый день.',
@@ -671,13 +677,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         description: 'Если основной риск связан с внешними исполнителями и сроками.',
       },
     ],
-    blogLinks: marketingBlogEditorialSeries[1].articles
-      .filter((article) => article.relatedPath === marketingPaths.constructionCrm)
-      .map((article) => ({
-        label: article.title,
-        href: marketingPaths.blog,
-        description: article.summary,
-      })),
+    blogLinks: getMarketingBlogLinks('managerMorning', 'foremanOrder'),
     contactHighlights: [
       'Покажем, как собрать объекты, договорной контур и исполнение в одном CRM-контуре.',
       'Разложим, где у вас сейчас дублируются данные между таблицами и чатами.',
@@ -777,13 +777,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         description: 'Как связать бюджет, платежи, лимиты и управленческий контроль по объектам.',
       },
     ],
-    blogLinks: marketingBlogEditorialSeries[2].articles
-      .filter((article) => article.relatedPath === marketingPaths.constructionErp)
-      .map((article) => ({
-        label: article.title,
-        href: marketingPaths.blog,
-        description: article.summary,
-      })),
+    blogLinks: getMarketingBlogLinks('managerMorning', 'ptoWorkspace'),
     contactHighlights: [
       'Покажем, с какого контура начинать ERP-сценарий без перегруза команды.',
       'Разложим, какие процессы уже готовы к сквозной автоматизации, а какие еще нет.',
@@ -883,14 +877,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         description: 'Когда нужно увязать снабжение с лимитами и фактическими затратами.',
       },
     ],
-    blogLinks: marketingBlogEditorialSeries[0].articles
-      .concat(marketingBlogEditorialSeries[1].articles)
-      .filter((article) => article.relatedPath === marketingPaths.materialAccounting)
-      .map((article) => ({
-        label: article.title,
-        href: marketingPaths.blog,
-        description: article.summary,
-      })),
+    blogLinks: getMarketingBlogLinks('procurementChats', 'managerMorning'),
     contactHighlights: [
       'Покажем путь заявки на материалы от объекта до поставки.',
       'Разберем, где сейчас теряются статусы и контроль остатков.',
@@ -990,14 +977,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         description: 'Если нужно связать контур ПТО с задачами и фактом на площадке.',
       },
     ],
-    blogLinks: marketingBlogEditorialSeries[0].articles
-      .concat(marketingBlogEditorialSeries[2].articles)
-      .filter((article) => article.relatedPath === marketingPaths.ptoSoftware)
-      .map((article) => ({
-        label: article.title,
-        href: marketingPaths.blog,
-        description: article.summary,
-      })),
+    blogLinks: getMarketingBlogLinks('ptoWorkspace', 'managerMorning'),
     contactHighlights: [
       'Покажем, как связать замечания, акты и комплектность документов в одном процессе.',
       'Разберем, где ПТО сейчас теряет время на ручной контроль и дублирование файлов.',
@@ -1097,13 +1077,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         description: 'Если подрядный контур должен быть частью общей системы управления стройкой.',
       },
     ],
-    blogLinks: marketingBlogEditorialSeries[1].articles
-      .filter((article) => article.relatedPath === marketingPaths.contractorControl)
-      .map((article) => ({
-        label: article.title,
-        href: marketingPaths.blog,
-        description: article.summary,
-      })),
+    blogLinks: getMarketingBlogLinks('contractorControl', 'managerMorning'),
     contactHighlights: [
       'Покажем, как контролировать подрядчиков не по отчетам в конце недели, а по факту исполнения.',
       'Разберем, какие сигналы срыва сроков должны появляться раньше всего.',
@@ -1203,13 +1177,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         description: 'Чтобы связать документы и акты с фактом затрат и платежей.',
       },
     ],
-    blogLinks: marketingBlogEditorialSeries[2].articles
-      .filter((article) => article.relatedPath === marketingPaths.constructionDocuments)
-      .map((article) => ({
-        label: article.title,
-        href: marketingPaths.blog,
-        description: article.summary,
-      })),
+    blogLinks: getMarketingBlogLinks('ptoWorkspace', 'managerMorning'),
     contactHighlights: [
       'Покажем, как собрать исполнительную документацию в один управляемый контур.',
       'Разберем, где сегодня теряются версии, замечания и сроки согласования.',
@@ -1309,14 +1277,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         description: 'Когда нужно видеть связь между сроками исполнения и оплатами подрядчиков.',
       },
     ],
-    blogLinks: marketingBlogEditorialSeries[0].articles
-      .concat(marketingBlogEditorialSeries[1].articles)
-      .filter((article) => article.relatedPath === marketingPaths.constructionBudgetControl)
-      .map((article) => ({
-        label: article.title,
-        href: marketingPaths.blog,
-        description: article.summary,
-      })),
+    blogLinks: getMarketingBlogLinks('managerMorning', 'procurementChats'),
     contactHighlights: [
       'Покажем, как выстроить контроль бюджета не в конце месяца, а по ходу объекта.',
       'Разберем, какие сигналы перерасхода важно видеть в одной панели ежедневно.',
@@ -1416,18 +1377,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         description: 'Если мобильный контур нужен прежде всего для снабжения и приемки.',
       },
     ],
-    blogLinks: [
-      {
-        label: 'Как прорабу вести объект без хаоса',
-        href: marketingPaths.blog,
-        description: 'Материал о том, какие данные площадка должна фиксировать ежедневно.',
-      },
-      {
-        label: 'Как снабженцу контролировать материалы без Excel',
-        href: marketingPaths.blog,
-        description: 'Разбор полевого контура по заявкам, поставкам и приемке материалов.',
-      },
-    ],
+    blogLinks: getMarketingBlogLinks('foremanOrder', 'procurementChats'),
     contactHighlights: [
       'Покажем, как мобильный контур связывает площадку и офис без двойного ввода.',
       'Разберем, какие сценарии команда должна закрывать на телефоне, а какие — в офисе.',
@@ -1527,18 +1477,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         description: 'Смотреть, как AI-контур стыкуется с объектом, документами и аналитикой.',
       },
     ],
-    blogLinks: [
-      {
-        label: 'Как подготовить стройку к ERP-контурe',
-        href: marketingPaths.blog,
-        description: 'Материал о зрелости процессов и подготовке данных к более сложной автоматизации.',
-      },
-      {
-        label: 'Как убрать Excel из стройки без стресса для команды',
-        href: marketingPaths.blog,
-        description: 'Полезно для понимания, как AI и системный контур дополняют друг друга.',
-      },
-    ],
+    blogLinks: [{ ...allBlogArticlesLink }],
     contactHighlights: [
       'Покажем, где AI реально ускоряет сметный процесс, а где все еще нужна ручная экспертиза.',
       'Разберем, как использовать AI-сценарий без отрыва от общего контура продукта.',
@@ -1626,10 +1565,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       { label: 'Система для ПТО', href: marketingPaths.ptoSoftware, description: 'Сметы, документы, шаблоны отчетов и инженерная подготовка.' },
       { label: 'RFI и изменения', href: marketingPaths.changeControl, description: 'Изменения и решения заказчика, связанные с проектной базой.' },
     ],
-    blogLinks: [
-      { label: 'Как проектной команде управлять ПД и РД без потери версий', href: marketingPaths.blog, description: 'Разбор проектных версий, замечаний и нормоконтроля.' },
-      { label: 'Как подготовить стройку к ERP-контурe', href: marketingPaths.blog, description: 'Когда проектная база становится частью управленческого контура.' },
-    ],
+    blogLinks: getMarketingBlogLinks('ptoWorkspace', 'managerMorning'),
     contactHighlights: [
       'Покажем управление ПД, РД, IFC и проектными версиями.',
       'Разберем маршрут замечаний, нормоконтроля и выпуска комплектов.',
@@ -1708,10 +1644,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       { label: 'Мобильное приложение', href: marketingPaths.mobileApp, description: 'Фиксация событий с площадки.' },
       { label: 'Контроль качества', href: marketingPaths.constructionQualityControl, description: 'Смежный контур дефектов и проверок.' },
     ],
-    blogLinks: [
-      { label: 'Что специалист ОТ должен видеть по объектам каждый день', href: marketingPaths.blog, description: 'Разбор ежедневных сигналов безопасности.' },
-      { label: 'Как прорабу вести объект без хаоса', href: marketingPaths.blog, description: 'Как площадка фиксирует факт без потерь.' },
-    ],
+    blogLinks: getMarketingBlogLinks('foremanOrder', 'managerMorning'),
     contactHighlights: [
       'Покажем фиксацию нарушений и инцидентов.',
       'Разберем роли специалиста ОТ, прораба и руководителя.',
@@ -1790,10 +1723,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       { label: 'Приемка зон', href: marketingPaths.handoverAcceptance, description: 'Передача результата после устранения замечаний.' },
       { label: 'Исполнительная документация', href: marketingPaths.constructionDocuments, description: 'Документы, связанные с качеством и сдачей.' },
     ],
-    blogLinks: [
-      { label: 'Как дефекты доходят до повторной проверки и приемки', href: marketingPaths.blog, description: 'Путь замечания от фиксации до сдачи.' },
-      { label: 'Как подготовить объект к передаче заказчику', href: marketingPaths.blog, description: 'Связь качества, punch-list и приемки.' },
-    ],
+    blogLinks: getMarketingBlogLinks('foremanOrder', 'managerMorning'),
     contactHighlights: [
       'Покажем путь дефекта от фиксации до проверки.',
       'Разберем роли стройконтроля, прораба и ПТО.',
@@ -1872,10 +1802,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       { label: 'Контроль качества', href: marketingPaths.constructionQualityControl, description: 'Дефекты и повторные проверки до приемки.' },
       { label: 'RFI и изменения', href: marketingPaths.changeControl, description: 'Решения заказчика и изменения, влияющие на сдачу.' },
     ],
-    blogLinks: [
-      { label: 'Как подготовить объект к передаче заказчику', href: marketingPaths.blog, description: 'Что проверить по зонам, punch-list и комплекту сдачи.' },
-      { label: 'Как вести исполнительную документацию без потерь', href: marketingPaths.blog, description: 'Документная база для передачи результата.' },
-    ],
+    blogLinks: getMarketingBlogLinks('foremanOrder', 'managerMorning'),
     contactHighlights: [
       'Покажем приемку зон и punch-list.',
       'Разберем связь замечаний, качества и ИД.',
@@ -1954,10 +1881,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       { label: 'Контроль бюджета', href: marketingPaths.constructionBudgetControl, description: 'Финансовая связь ресурса и объекта.' },
       { label: 'Мобильное приложение', href: marketingPaths.mobileApp, description: 'Фиксация факта с площадки.' },
     ],
-    blogLinks: [
-      { label: 'Как учитывать технику, смены и выработку без ручного свода', href: marketingPaths.blog, description: 'Практика ресурсного учета по объектам.' },
-      { label: 'Как контролировать график производства работ', href: marketingPaths.blog, description: 'Связь ресурса, факта и графика.' },
-    ],
+    blogLinks: getMarketingBlogLinks('managerMorning'),
     contactHighlights: [
       'Покажем сменный рапорт и простой техники.',
       'Разберем наряды и фактическую выработку.',
@@ -2037,10 +1961,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       { label: 'ПИР и проектная документация', href: marketingPaths.pirProjectDocumentation, description: 'Проектная база и замечания.' },
       { label: 'Project Pulse', href: marketingPaths.projectPulse, description: 'Управленческие сигналы по изменениям, бюджету и срокам объекта.' },
     ],
-    blogLinks: [
-      { label: 'Почему RFI и изменения нельзя вести только в переписке', href: marketingPaths.blog, description: 'Основания, влияние и решение заказчика.' },
-      { label: 'Как сократить перерасход на стройке', href: marketingPaths.blog, description: 'Как изменения влияют на деньги и сроки.' },
-    ],
+    blogLinks: getMarketingBlogLinks('ptoWorkspace', 'managerMorning'),
     contactHighlights: [
       'Покажем RFI и изменение с влиянием на сроки.',
       'Разберем связь изменения со сметой и платежами.',

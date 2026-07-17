@@ -1,4 +1,6 @@
 import { marketingPaths } from './common';
+import { getMarketingBlogLink } from './blogArticles';
+import type { MarketingBlogArticleKey } from './blogArticles';
 import type {
   MarketingContentLink,
   MarketingFaqItem,
@@ -20,6 +22,16 @@ type ProductSeoPageConfig = {
   workflow: MarketingWorkflow;
   relatedLinks: MarketingContentLink[];
   faq: MarketingFaqItem[];
+};
+
+const productBlogArticlesByPath: Readonly<Record<string, readonly MarketingBlogArticleKey[]>> = {
+  [marketingPaths.constructionProcurement]: ['procurementChats', 'managerMorning'],
+  [marketingPaths.siteRequests]: ['procurementChats', 'foremanOrder'],
+  [marketingPaths.workforceManagement]: ['managerMorning', 'foremanOrder'],
+  [marketingPaths.constructionPayments]: ['procurementChats', 'managerMorning'],
+  [marketingPaths.oneCIntegration]: ['procurementChats', 'managerMorning'],
+  [marketingPaths.contractorMarketplace]: ['contractorControl', 'managerMorning'],
+  [marketingPaths.projectPulse]: ['managerMorning', 'foremanOrder'],
 };
 
 const createProductSeoPage = (config: ProductSeoPageConfig): MarketingSeoLandingPage => ({
@@ -58,23 +70,7 @@ const createProductSeoPage = (config: ProductSeoPageConfig): MarketingSeoLanding
   visibilityDescription: 'Каждая роль получает рабочий вид процесса без доступа к лишней информации.',
   roleViews: config.roleViews,
   relatedLinks: config.relatedLinks,
-  blogLinks: [
-    {
-      label: 'Как начать с одного рабочего контура',
-      href: marketingPaths.solutions,
-      description: 'Выберите процесс, который сейчас сильнее всего влияет на сроки, деньги или качество данных по объектам.',
-    },
-    {
-      label: 'Возможности платформы',
-      href: marketingPaths.features,
-      description: 'Посмотрите, какие роли и смежные процессы можно соединить после первого запуска.',
-    },
-    {
-      label: 'Пакеты для строительной команды',
-      href: marketingPaths.pricing,
-      description: 'Сопоставьте набор возможностей с этапом развития компании и составом команды.',
-    },
-  ],
+  blogLinks: (productBlogArticlesByPath[config.path] ?? []).map((key) => getMarketingBlogLink(key)),
   contactHighlights: [
     `Разберем текущий маршрут: ${config.workflow.stages.map((stage) => stage.label).join(' - ')}.`,
     'Определим, какие роли, статусы и документы нужны на первом этапе.',

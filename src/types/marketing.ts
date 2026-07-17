@@ -26,6 +26,12 @@ export interface MarketingContentLink {
   description: string;
 }
 
+export interface MarketingBlogArticleReference {
+  readonly title: string;
+  readonly href: `/blog/${string}`;
+  readonly purpose: string;
+}
+
 export interface MarketingRoleView {
   role: string;
   description: string;

@@ -1,18 +1,25 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { marketingBlogArticles } from './blogArticles';
 import {
   marketingCapabilityMatrix,
   marketingCommercialLandingLinks,
   marketingCompany,
   marketingModuleLandingLinks,
   marketingPackages,
+  marketingPaths,
   marketingRoleLandingLinks,
   marketingSeo,
   marketingSeoLandingPages,
   marketingSitemapRoutes,
   marketingSolutionSegments,
 } from './index';
+
+const workspaceSourceExists = (source: string): boolean => [
+  path.resolve(process.cwd(), '..', source),
+  path.resolve(process.cwd(), '..', '..', '..', source),
+].some((candidate) => fs.existsSync(candidate));
 
 describe('marketing content consistency', () => {
   it('keeps construction CRM page focused on CRM semantics', () => {
@@ -131,7 +138,7 @@ describe('marketing content consistency', () => {
       'prohelper/app/Services/AccountingIntegrationService.php',
     ]));
     for (const source of integration?.sourceOfTruth ?? []) {
-      expect(fs.existsSync(path.resolve(process.cwd(), '..', source))).toBe(true);
+      expect(workspaceSourceExists(source)).toBe(true);
     }
     expect(marketplace?.sourceOfTruth.some((source) => source.includes('ContractorMarketplace'))).toBe(true);
     expect(pulse?.maturity).toBe('early_access');
@@ -186,5 +193,21 @@ describe('marketing content consistency', () => {
     expect(procurementLinks).toEqual([
       expect.objectContaining({ href: '/construction-procurement' }),
     ]);
+  });
+
+  it('resolves article-title links only through the published blog registry', () => {
+    const publishedTitleByHref = new Map<string, string>(
+      Object.values(marketingBlogArticles).map((article) => [article.href, article.title]),
+    );
+    const blogLinks = Object.values(marketingSeoLandingPages).flatMap((page) => page.blogLinks);
+
+    for (const link of blogLinks) {
+      if (link.href === marketingPaths.blog) {
+        expect(['Все статьи', 'Блог МОСТ']).toContain(link.label);
+        continue;
+      }
+
+      expect(publishedTitleByHref.get(link.href)).toBe(link.label);
+    }
   });
 });
