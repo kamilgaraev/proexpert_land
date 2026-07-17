@@ -1,47 +1,53 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import {
   BuildingOffice2Icon,
   ClockIcon,
   EnvelopeIcon,
   ShieldCheckIcon,
-} from '@heroicons/react/24/outline';
-import ContactForm from '@/components/landing/ContactForm';
-import { MarketingLink, PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
+} from "@heroicons/react/24/outline";
+import ContactForm from "@/components/landing/ContactForm";
+import {
+  MarketingLink,
+  PageHero,
+  SectionHeader,
+} from "@/components/marketing/MarketingPrimitives";
 import {
   marketingCommercialLandingLinks,
   marketingCompany,
   marketingPaths,
   marketingSeo,
-} from '@/data/marketingRegistry';
-import { useSEO } from '@/hooks/useSEO';
+} from "@/data/marketingRegistry";
+import { useSEO } from "@/hooks/useSEO";
 
 const contactCards = [
   {
-    title: 'Демонстрация и консультация',
+    title: "Прямой контакт",
     value: marketingCompany.email,
     href: marketingCompany.emailHref,
     description:
-      'Напишите, если хотите разобрать свой сценарий, состав решения и этап запуска.',
+      "Можно отправить заявку через форму или написать на общую почту команды МОСТ.",
     icon: EnvelopeIcon,
   },
   {
-    title: 'Скорость ответа',
-    value: marketingCompany.responseTime,
-    description: marketingCompany.hours,
+    title: "Состав заявки",
+    value: "Контакты, компания и задача",
+    description:
+      "Этих данных достаточно, чтобы изучить запрос и определить следующий шаг.",
     icon: ClockIcon,
   },
   {
-    title: 'Формат работы',
-    value: 'Онлайн и рабочие сессии',
-    description: marketingCompany.location,
+    title: "Следующий шаг",
+    value: "Уточнение или демонстрация",
+    description:
+      "Команда проверит вводные и предложит подходящий формат продолжения без обещания фиксированного срока.",
     icon: BuildingOffice2Icon,
   },
   {
-    title: 'Безопасность и документы',
-    value: 'Отдельно по запросу',
+    title: "Безопасность и документы",
+    value: "Отдельно по запросу",
     href: marketingPaths.security,
     description:
-      'При необходимости подключаем обсуждение юридических документов и базовых материалов по безопасности.',
+      "При необходимости подключаем обсуждение юридических документов и базовых материалов по безопасности.",
     icon: ShieldCheckIcon,
   },
 ];
@@ -49,31 +55,31 @@ const contactCards = [
 const ContactPage = () => {
   useSEO({
     ...marketingSeo.contact,
-    type: 'website',
+    type: "website",
   });
 
   return (
     <div className="marketing-page-shell">
       <PageHero
         eyebrow="Контакты"
-        title="Запросите демонстрацию МОСТ под ваш строительный процесс."
-        description="Обсудим роли команды, текущий контур работы, пакет запуска и соседние сценарии, которые стоит показать на встрече."
+        title="Что произойдёт после обращения в МОСТ."
+        description="Оставьте контакты, укажите тип компании и кратко опишите задачу. Команда изучит заявку, при необходимости уточнит вводные и предложит следующий шаг."
         nav={[
-          { label: 'Формат работы', href: '#contact-cards' },
-          { label: 'Связанные маршруты', href: '#related-routes' },
-          { label: 'Что дальше', href: '#next-step' },
-          { label: 'Форма', href: '#contact-form' },
+          { label: "Формат работы", href: "#contact-cards" },
+          { label: "Связанные маршруты", href: "#related-routes" },
+          { label: "Что дальше", href: "#next-step" },
+          { label: "Форма", href: "#contact-form" },
         ]}
         aside={
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Как мы работаем
+              Как обрабатывается заявка
             </div>
             <div className="mt-4 grid gap-3">
               {[
-                'Сначала коротко уточняем роль, процесс и текущую проблему.',
-                'Затем показываем только релевантный контур: объект, снабжение, документы, бюджет или AI-сценарий.',
-                'При необходимости отдельно подключаем блок безопасности, интеграций и договорных материалов.',
+                "Проверяем контакты, тип компании и описание задачи.",
+                "Если данных недостаточно, уточняем роли и нужные разделы.",
+                "Следующим шагом может быть демонстрация или отдельный разговор об интеграции, доступе и документах.",
               ].map((item) => (
                 <div
                   key={item}
@@ -100,19 +106,31 @@ const ContactPage = () => {
                 <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-construction-50 text-construction-700">
                   <Icon className="h-6 w-6" />
                 </div>
-                <div className="mt-5 text-lg font-bold text-steel-950">{item.title}</div>
-                {item.href?.startsWith('mailto:') ? (
-                  <a href={item.href} className="mt-3 block text-base font-semibold text-construction-700">
+                <div className="mt-5 text-lg font-bold text-steel-950">
+                  {item.title}
+                </div>
+                {item.href?.startsWith("mailto:") ? (
+                  <a
+                    href={item.href}
+                    className="mt-3 block text-base font-semibold text-construction-700"
+                  >
                     {item.value}
                   </a>
                 ) : item.href ? (
-                  <Link to={item.href} className="mt-3 block text-base font-semibold text-construction-700">
+                  <Link
+                    to={item.href}
+                    className="mt-3 block text-base font-semibold text-construction-700"
+                  >
                     {item.value}
                   </Link>
                 ) : (
-                  <div className="mt-3 text-base font-semibold text-steel-950">{item.value}</div>
+                  <div className="mt-3 text-base font-semibold text-steel-950">
+                    {item.value}
+                  </div>
                 )}
-                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                <p className="mt-3 text-sm leading-7 text-steel-600">
+                  {item.description}
+                </p>
               </article>
             );
           })}
@@ -123,8 +141,8 @@ const ContactPage = () => {
         <div className="container-custom">
           <SectionHeader
             eyebrow="Связанные маршруты"
-            title="Популярные направления для первого разговора."
-            description="Если вы уже понимаете свою роль или ключевую боль, можно сразу открыть профильную посадочную и затем вернуться к заявке."
+            title="Страницы, которые помогут уточнить запрос."
+            description="Перед заявкой можно выбрать тип компании, роль или конкретную задачу и приложить ссылку в описании."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -134,8 +152,12 @@ const ContactPage = () => {
                 href={item.href}
                 className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-construction-300"
               >
-                <div className="text-lg font-bold text-steel-950">{item.label}</div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                <div className="text-lg font-bold text-steel-950">
+                  {item.label}
+                </div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">
+                  {item.description}
+                </p>
               </MarketingLink>
             ))}
           </div>
@@ -145,14 +167,22 @@ const ContactPage = () => {
       <section id="next-step" className="py-16 lg:py-20">
         <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)]">
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-            <h2 className="text-3xl font-bold text-steel-950">Что происходит после отправки формы</h2>
+            <h2 className="text-3xl font-bold text-steel-950">
+              Что происходит после отправки формы
+            </h2>
             <div className="mt-6 space-y-4 text-sm leading-7 text-steel-600">
-              <p>Сначала уточняем роли команды, текущий процесс и желаемый контур запуска.</p>
               <p>
-                Затем готовим рабочий созвон под ваш сценарий, без шаблонной экскурсии по всему интерфейсу.
+                Команда читает описание задачи и проверяет, достаточно ли
+                вводных для предметного ответа.
               </p>
               <p>
-                Если нужно, отдельно подключаем обсуждение безопасности, пакетов, интеграций и юридических материалов.
+                Если нужны детали, уточняет тип компании, роли участников,
+                состав данных или интересующие функции.
+              </p>
+              <p>
+                После уточнения предлагает следующий шаг: демонстрацию нужных
+                разделов или отдельное обсуждение пакетов, интеграций, доступа и
+                документов.
               </p>
             </div>
           </div>
@@ -187,8 +217,8 @@ const ContactPage = () => {
           <div>
             <SectionHeader
               eyebrow="Форма"
-              title="Оставьте заявку на демонстрацию или консультацию."
-              description="Достаточно контактов и краткого описания задачи, чтобы мы подготовили предметный созвон под вашу строительную команду."
+              title="Оставьте контакты и кратко опишите задачу."
+              description="Укажите тип компании, свою роль и разделы МОСТ, которые хотите обсудить. Точный срок ответа заранее не обещается."
             />
           </div>
           <ContactForm variant="full" className="shadow-none" />

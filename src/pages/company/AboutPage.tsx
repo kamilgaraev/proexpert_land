@@ -1,41 +1,48 @@
-import CtaBand from '@/components/marketing/blocks/CtaBand';
-import TrustFactList from '@/components/marketing/blocks/TrustFactList';
-import { PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
+import CtaBand from "@/components/marketing/blocks/CtaBand";
+import TrustFactList from "@/components/marketing/blocks/TrustFactList";
+import {
+  PageHero,
+  SectionHeader,
+} from "@/components/marketing/MarketingPrimitives";
 import {
   marketingAboutSections,
   marketingCompany,
   marketingPaths,
   marketingSeo,
   marketingTrustFacts,
-} from '@/data/marketingRegistry';
-import { useSEO } from '@/hooks/useSEO';
+} from "@/data/marketingRegistry";
+import { useSEO } from "@/hooks/useSEO";
 
 const valueHighlights = [
-  'Единый рабочий контур без разрыва между офисом, объектом и руководителем.',
-  'Поэтапный запуск: сначала ключевой сценарий, затем расширение по мере зрелости процесса.',
-  'Понятная модель внедрения, доступа и работы с документами для корпоративной команды.',
+  "Рабочие данные относятся к объектам, этапам и ответственным.",
+  "Роли определяют доступные пользователю разделы и действия.",
+  "Готовые и пилотные функции обозначаются разными статусами.",
 ];
 
 const AboutPage = () => {
   useSEO({
     ...marketingSeo.about,
-    type: 'website',
+    type: "website",
   });
 
   return (
     <div className="marketing-page-shell">
       <PageHero
         eyebrow="О продукте"
-        title="МОСТ для управления строительной компанией."
-        description="Единый рабочий контур для офиса, площадки, снабжения, финансового блока и руководителя."
+        title="МОСТ создан для связи объекта и офиса."
+        description="Площадка фиксирует ход работ, задачи, заявки и замечания. ПТО, снабжение и финансовая служба дополняют эти данные, а руководитель использует их для управления."
         actions={[
-          { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
-          { label: 'Посмотреть возможности', href: marketingPaths.features },
+          {
+            label: "Связаться с нами",
+            href: marketingPaths.contact,
+            primary: true,
+          },
+          { label: "Посмотреть возможности", href: marketingPaths.features },
         ]}
         nav={[
-          { label: 'Подход', href: '#approach' },
-          { label: 'Принципы', href: '#principles' },
-          { label: 'Доверие', href: '#trust' },
+          { label: "Подход", href: "#approach" },
+          { label: "Принципы", href: "#principles" },
+          { label: "Доверие", href: "#trust" },
         ]}
         aside={
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
@@ -46,7 +53,10 @@ const AboutPage = () => {
               <p>{marketingCompany.location}</p>
               <p>{marketingCompany.responseTime}</p>
               <p>{marketingCompany.hours}</p>
-              <a href={marketingCompany.emailHref} className="block font-semibold text-construction-700">
+              <a
+                href={marketingCompany.emailHref}
+                className="block font-semibold text-construction-700"
+              >
                 {marketingCompany.email}
               </a>
             </div>
@@ -64,8 +74,12 @@ const AboutPage = () => {
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
                 Подход
               </div>
-              <h2 className="mt-3 text-2xl font-bold text-steel-950">{section.title}</h2>
-              <p className="mt-4 text-sm leading-7 text-steel-600">{section.description}</p>
+              <h2 className="mt-3 text-2xl font-bold text-steel-950">
+                {section.title}
+              </h2>
+              <p className="mt-4 text-sm leading-7 text-steel-600">
+                {section.description}
+              </p>
               <div className="mt-5 grid gap-3">
                 {section.bullets.map((bullet) => (
                   <div
@@ -86,8 +100,8 @@ const AboutPage = () => {
           <div>
             <SectionHeader
               eyebrow="Принципы"
-              title="Как мы подходим к внедрению и развитию продукта."
-              description="МОСТ запускается поэтапно и масштабируется вместе с компанией."
+              title="Принципы разработки МОСТ."
+              description="Понятные обязанности, связанные данные, проверяемые права и честное обозначение готовности функций."
             />
           </div>
           <div className="rounded-[1.75rem] border border-steel-900 bg-steel-950 p-6 text-white">
@@ -112,9 +126,9 @@ const AboutPage = () => {
         <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
           <div>
             <SectionHeader
-              eyebrow="Доверие"
-              title="Почему МОСТ удобен для корпоративного клиента."
-              description="Понятные роли, прозрачные процессы и управляемый формат запуска."
+              eyebrow="Как устроен продукт"
+              title="Доступ, данные и действия остаются связанными."
+              description="Пользователь видит разрешённые организации и объекты, работает с прикреплёнными файлами и доступной историей операций."
             />
           </div>
           <TrustFactList items={marketingTrustFacts} />
@@ -124,12 +138,16 @@ const AboutPage = () => {
       <section className="pb-16 lg:pb-20">
         <div className="container-custom">
           <CtaBand
-            eyebrow="Следующий шаг"
-            title="Если хотите увидеть МОСТ на своем процессе, проведем прицельную демонстрацию."
-            description="Покажем релевантный контур, обсудим этап внедрения и отдельно ответим на вопросы по безопасности и документам."
+            eyebrow="Демонстрация"
+            title="Посмотрите МОСТ на задачах вашей команды."
+            description="На встрече покажем нужные разделы, разберём роли и отдельно ответим на вопросы о доступе и документах."
             actions={[
-              { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
-              { label: 'Безопасность', href: marketingPaths.security },
+              {
+                label: "Связаться с нами",
+                href: marketingPaths.contact,
+                primary: true,
+              },
+              { label: "Безопасность", href: marketingPaths.security },
             ]}
             tone="light"
           />

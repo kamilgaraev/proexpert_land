@@ -1,12 +1,12 @@
-import { useEffect } from 'react';
-import ContactForm from '@/components/landing/ContactForm';
-import CtaBand from '@/components/marketing/blocks/CtaBand';
+import { useEffect } from "react";
+import ContactForm from "@/components/landing/ContactForm";
+import CtaBand from "@/components/marketing/blocks/CtaBand";
 import {
   MarketingLink,
   PageHero,
   SectionHeader,
   SurfaceBadges,
-} from '@/components/marketing/MarketingPrimitives';
+} from "@/components/marketing/MarketingPrimitives";
 import {
   marketingCapabilityMatrix,
   marketingPackages,
@@ -14,9 +14,9 @@ import {
   marketingRoleLandingLinks,
   marketingSeo,
   marketingSolutionSegments,
-} from '@/data/marketingRegistry';
-import useAnalytics from '@/hooks/useAnalytics';
-import { useSEO } from '@/hooks/useSEO';
+} from "@/data/marketingRegistry";
+import useAnalytics from "@/hooks/useAnalytics";
+import { useSEO } from "@/hooks/useSEO";
 
 const solutionNav = marketingSolutionSegments.map((segment) => ({
   label: segment.title,
@@ -26,31 +26,33 @@ const solutionNav = marketingSolutionSegments.map((segment) => ({
 const SolutionsPage = () => {
   useSEO({
     ...marketingSeo.solutions,
-    type: 'website',
+    type: "website",
   });
 
   const { trackPageView } = useAnalytics();
 
   useEffect(() => {
-    trackPageView('marketing_solutions');
+    trackPageView("marketing_solutions");
   }, [trackPageView]);
 
   const capabilityMap = new Map(
     marketingCapabilityMatrix.map((capability) => [capability.id, capability]),
   );
-  const packageMap = new Map(marketingPackages.map((item) => [item.slug, item]));
+  const packageMap = new Map(
+    marketingPackages.map((item) => [item.slug, item]),
+  );
 
   return (
     <div className="marketing-page-shell">
       <PageHero
         eyebrow="Решения"
-        title="Решения МОСТ для подрядчика, генподрядчика, девелопера и ПТО."
-        description="Выберите сценарий, который соответствует вашей структуре, задачам и этапу развития компании."
+        title="Выберите решение по типу компании и роли сотрудника."
+        description="Отдельные страницы помогают подрядчику, генподрядчику, девелоперу и техническому заказчику найти функции для своей работы. Ниже — задачи руководителя, ПТО, площадки, снабжения и других ролей."
         actions={[
-          { label: 'Подобрать сценарий запуска', href: '#solutions', primary: true },
-          { label: 'Открыть пакеты', href: marketingPaths.pricing },
+          { label: "Выбрать решение", href: "#solutions", primary: true },
+          { label: "Посмотреть пакеты", href: marketingPaths.pricing },
         ]}
-        nav={[...solutionNav, { label: 'Контакт', href: '#contact' }]}
+        nav={[...solutionNav, { label: "Контакт", href: "#contact" }]}
         aside={
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
@@ -58,9 +60,9 @@ const SolutionsPage = () => {
             </div>
             <div className="mt-4 space-y-3">
               {[
-                'Типовой сценарий вашей команды.',
-                'Контуры и рабочие потоки в системе.',
-                'Рекомендуемые пакеты и следующий шаг.',
+                "Задачи каждого типа компании.",
+                "Работа конкретных ролей в системе.",
+                "Связанные функции и подходящие пакеты.",
               ].map((item) => (
                 <div
                   key={item}
@@ -79,10 +81,14 @@ const SolutionsPage = () => {
           {marketingSolutionSegments.map((segment) => {
             const capabilities = segment.capabilityIds
               .map((capabilityId) => capabilityMap.get(capabilityId))
-              .filter((item): item is NonNullable<typeof item> => Boolean(item));
+              .filter((item): item is NonNullable<typeof item> =>
+                Boolean(item),
+              );
             const packages = segment.recommendedPackageSlugs
               .map((packageSlug) => packageMap.get(packageSlug))
-              .filter((item): item is NonNullable<typeof item> => Boolean(item));
+              .filter((item): item is NonNullable<typeof item> =>
+                Boolean(item),
+              );
 
             return (
               <section
@@ -99,11 +105,15 @@ const SolutionsPage = () => {
                       {segment.title}
                     </h2>
                     <p className="mt-5 text-sm leading-7 text-steel-600">
-                      <span className="font-semibold text-steel-950">Текущая проблема:</span>{' '}
+                      <span className="font-semibold text-steel-950">
+                        Текущая проблема:
+                      </span>{" "}
                       {segment.challenge}
                     </p>
                     <p className="mt-3 text-sm leading-7 text-steel-600">
-                      <span className="font-semibold text-steel-950">Целевой сценарий:</span>{' '}
+                      <span className="font-semibold text-steel-950">
+                        Как устроена работа:
+                      </span>{" "}
                       {segment.transformation}
                     </p>
 
@@ -132,7 +142,7 @@ const SolutionsPage = () => {
                     <div className="grid gap-6 lg:grid-cols-2">
                       <div>
                         <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-                          Связанные контуры
+                          Связанные функции
                         </div>
                         <div className="mt-4 grid gap-3">
                           {capabilities.map((capability) => (
@@ -157,8 +167,13 @@ const SolutionsPage = () => {
                         </div>
                         <div className="mt-4 grid gap-3">
                           {packages.map((item) => (
-                            <div key={item.slug} className="rounded-[1.2rem] bg-concrete-50 px-4 py-4">
-                              <div className="text-base font-semibold text-steel-950">{item.name}</div>
+                            <div
+                              key={item.slug}
+                              className="rounded-[1.2rem] bg-concrete-50 px-4 py-4"
+                            >
+                              <div className="text-base font-semibold text-steel-950">
+                                {item.name}
+                              </div>
                               <p className="mt-2 text-sm leading-7 text-steel-600">
                                 {item.bestFor}
                               </p>
@@ -179,8 +194,8 @@ const SolutionsPage = () => {
         <div className="container-custom">
           <SectionHeader
             eyebrow="Роли"
-            title="Отдельные страницы под прораба, ПТО, снабжение и руководство стройкой."
-            description="Здесь каждая роль вынесена в отдельный сценарий, чтобы команде было проще увидеть свой рабочий контур без смешения задач."
+            title="Задачи прораба, ПТО, снабжения и руководителя стройки."
+            description="Ролевые страницы объясняют, какие данные вводит сотрудник, что получает от коллег и за какой результат отвечает."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -190,8 +205,12 @@ const SolutionsPage = () => {
                 href={item.href}
                 className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-construction-300"
               >
-                <div className="text-lg font-bold text-steel-950">{item.label}</div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                <div className="text-lg font-bold text-steel-950">
+                  {item.label}
+                </div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">
+                  {item.description}
+                </p>
               </MarketingLink>
             ))}
           </div>
@@ -201,12 +220,16 @@ const SolutionsPage = () => {
       <section className="bg-concrete-50 py-16 lg:py-20">
         <div className="container-custom">
           <CtaBand
-            eyebrow="Следующий шаг"
-            title="Если ваш сценарий смешанный, соберем демонстрацию под структуру команды и текущий масштаб."
-            description="Разберем роли, процессы и приоритетные точки контроля, после чего предложим понятный маршрут запуска."
+            eyebrow="Не нашли свой вариант"
+            title="Запросите демонстрацию для нескольких ролей или типов работ."
+            description="На встрече разберём структуру компании, обязанности сотрудников и данные, которыми они обмениваются."
             actions={[
-              { label: 'Перейти к пакетам', href: marketingPaths.pricing, primary: true },
-              { label: 'О продукте', href: marketingPaths.about },
+              {
+                label: "Запросить демонстрацию",
+                href: marketingPaths.contact,
+                primary: true,
+              },
+              { label: "Посмотреть пакеты", href: marketingPaths.pricing },
             ]}
             tone="light"
           />
@@ -218,14 +241,14 @@ const SolutionsPage = () => {
           <div>
             <SectionHeader
               eyebrow="Контакт"
-              title="Обсудим ваш сценарий и покажем релевантную демонстрацию."
-              description="Достаточно нескольких вводных о компании, роли и процессе, чтобы подготовить предметный созвон."
+              title="Расскажите о компании и ролях, которые участвуют в работе."
+              description="Для подготовки демонстрации достаточно указать тип компании, свою роль и задачу, которую нужно разобрать."
             />
             <div className="mt-8 grid gap-3">
               {[
-                'Уточняем роли команды и текущий этап компании.',
-                'Выбираем приоритетный контур для первого запуска.',
-                'При необходимости отдельно подключаем блок безопасности и документов.',
+                "Уточняем роли команды и текущий этап компании.",
+                "Определяем данные и функции для демонстрации.",
+                "При необходимости включаем вопросы доступа, документов и интеграций.",
               ].map((item) => (
                 <div
                   key={item}

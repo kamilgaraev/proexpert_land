@@ -6,120 +6,132 @@ import {
   CogIcon,
   ShieldCheckIcon,
   UsersIcon,
-} from '@heroicons/react/24/outline';
-import CtaBand from '@/components/marketing/blocks/CtaBand';
-import { MarketingLink, PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
-import { marketingPaths, marketingSeo } from '@/data/marketingRegistry';
-import { useSEO } from '@/hooks/useSEO';
+} from "@heroicons/react/24/outline";
+import CtaBand from "@/components/marketing/blocks/CtaBand";
+import {
+  MarketingLink,
+  PageHero,
+  SectionHeader,
+} from "@/components/marketing/MarketingPrimitives";
+import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
+import { useSEO } from "@/hooks/useSEO";
 
 const capabilityCards = [
   {
-    title: 'Управленческая картина по портфелю',
+    title: "Портфель объектов",
     description:
-      'Руководство видит стадии проектов, проблемные зоны и приоритеты по объектам без отдельной ручной сводки.',
+      "Руководитель сравнивает стадии, сроки и открытые вопросы по объектам портфеля.",
     icon: ChartBarIcon,
   },
   {
-    title: 'Бюджет и финансовый контур',
+    title: "Сроки и бюджет",
     description:
-      'Бюджеты, обязательства и платежная дисциплина обсуждаются в контексте объекта, а не в отрыве от хода работ.',
+      "Плановые сроки, обязательства и платежи рассматриваются по конкретному объекту и этапу.",
     icon: BanknotesIcon,
   },
   {
-    title: 'Подрядчики и исполнительская дисциплина',
+    title: "Подрядчики и замечания",
     description:
-      'Контроль сроков, статусов и договорных обязательств по внешним исполнителям собирается в одном рабочем сценарии.',
+      "Сроки, статусы, замечания и ответственность внешних исполнителей доступны проектной команде.",
     icon: UsersIcon,
   },
   {
-    title: 'Готовность объекта',
+    title: "Документы и готовность",
     description:
-      'Документы, замечания и фактический прогресс привязываются к этапу реализации и подготовке к следующему шагу.',
+      "Документы, замечания и фактический прогресс относятся к этапу реализации объекта.",
     icon: BuildingStorefrontIcon,
   },
   {
-    title: 'Проектные расширения',
+    title: "Отчётность",
     description:
-      'Дополнительные интеграции и корпоративные сценарии подключаются только после согласования базового контура.',
+      "Сводные данные формируются из статусов объектов, сроков, замечаний и финансовых записей.",
     icon: CogIcon,
   },
   {
-    title: 'Корпоративные правила доступа',
+    title: "Права доступа",
     description:
-      'Роли, зоны ответственности и управленческий уровень контроля не смешиваются в один неуправляемый слой.',
+      "Команда объекта и руководители получают разные права в зависимости от своих обязанностей.",
     icon: ShieldCheckIcon,
   },
 ];
 
 const operatingModel = [
   {
-    title: 'Сначала приоритетный сценарий',
+    title: "Сначала данные по портфелю",
     bullets: [
-      'На старте определяем, какой блок сейчас критичнее: объект, подрядчики, документы или бюджет.',
-      'Не перегружаем запуск всем каталогом возможностей сразу.',
-      'Доводим основные процессы до рабочего состояния, а затем масштабируем.',
+      "Определяется состав объектов и ответственные со стороны заказчика.",
+      "Для объектов согласуется единый набор статусов и сроков.",
+      "Отдельно фиксируются правила работы с замечаниями и отчётностью.",
     ],
   },
   {
-    title: 'Разделяем проектный и управленческий слой',
+    title: "Разделяем работу объекта и портфеля",
     bullets: [
-      'Офис, объект и руководство видят одну систему, но в разных управляемых разрезах.',
-      'Руководитель получает прозрачность без необходимости вручную собирать статусы.',
-      'Проектная команда работает с операционным контуром без лишнего визуального шума.',
+      "Команда объекта ведёт сроки, задачи, замечания и документы.",
+      "Руководитель сравнивает объекты по согласованным показателям.",
+      "Права пользователей ограничивают доступ к организациям и объектам.",
     ],
   },
 ];
 
 const trustList = [
-  'Портфель проектов, документы и подрядчики обсуждаются в одном управленческом сценарии.',
-  'Финансовый и проектный контуры увязываются с реальным ходом работ.',
-  'Интеграции и дополнительные расширения не обещаются вслепую, а проектируются под ваш ландшафт.',
+  "Состав портфеля, объектов и ответственных фиксируется до настройки.",
+  "Сроки и замечания ведутся по единым правилам для выбранных объектов.",
+  "Состав сводной отчётности определяется из доступных в МОСТ данных.",
 ];
 
 const relatedScenarios = [
   {
-    label: 'ERP для строительства',
+    label: "Управление ресурсами строительства",
     href: marketingPaths.constructionErp,
-    description: 'Если нужен сквозной сценарий по объектам, документам, снабжению и финансовому управлению.',
+    description:
+      "Если нужно связать объекты, документы, снабжение и финансовое управление.",
   },
   {
-    label: 'Контроль бюджета стройки',
+    label: "Контроль бюджета стройки",
     href: marketingPaths.constructionBudgetControl,
-    description: 'Подходит, когда главный вопрос сейчас в лимитах, платежах и отклонениях по бюджету.',
+    description:
+      "Подходит, когда главный вопрос сейчас в лимитах, платежах и отклонениях по бюджету.",
   },
   {
-    label: 'Контроль подрядчиков',
+    label: "Контроль подрядчиков",
     href: marketingPaths.contractorControl,
-    description: 'Когда узкое место сосредоточено в сроках, дисциплине исполнения и договорных обязательствах.',
+    description:
+      "Когда узкое место сосредоточено в сроках, дисциплине исполнения и договорных обязательствах.",
   },
   {
-    label: 'Интеграции и расширения',
+    label: "Интеграции и расширения",
     href: marketingPaths.integrations,
-    description: 'Если сразу важно обсудить обмен данными с корпоративным ландшафтом и проектные расширения.',
+    description:
+      "Если нужно обсудить обмен данными с другими системами и дополнительные функции.",
   },
 ];
 
 const DevelopersPage = () => {
   useSEO({
     ...marketingSeo.developers,
-    type: 'website',
+    type: "website",
   });
 
   return (
     <div className="marketing-page-shell">
       <PageHero
-        eyebrow="Контур девелопера"
-        title="МОСТ для девелопера: объекты, подрядчики, документы и бюджет под единым контролем."
-        description="Маршрут для девелоперской команды, которой нужна управляемая картина по проектам, срокам, бюджету и исполнителям без разрыва между офисом и объектом."
+        eyebrow="Девелопер и технический заказчик"
+        title="Портфель объектов, сроки, замечания и отчётность."
+        description="МОСТ собирает сведения по объектам в портфель: стадии, сроки, открытые замечания, документы и доступные финансовые данные. Команда объекта ведёт работу, руководство сравнивает проекты."
         actions={[
-          { label: 'Обсудить сценарий', href: marketingPaths.contact, primary: true },
-          { label: 'Корпоративный контур', href: marketingPaths.enterprise },
+          {
+            label: "Связаться с командой",
+            href: marketingPaths.contact,
+            primary: true,
+          },
+          { label: "Группа компаний", href: marketingPaths.enterprise },
         ]}
         nav={[
-          { label: 'Контуры', href: '#capabilities' },
-          { label: 'Модель запуска', href: '#model' },
-          { label: 'Доверительный слой', href: '#trust' },
-          { label: 'Смежные маршруты', href: '#related' },
+          { label: "Данные по объектам", href: "#capabilities" },
+          { label: "Модель запуска", href: "#model" },
+          { label: "Доверительный слой", href: "#trust" },
+          { label: "Смежные маршруты", href: "#related" },
         ]}
         aside={
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
@@ -128,9 +140,9 @@ const DevelopersPage = () => {
             </div>
             <div className="mt-4 grid gap-3">
               {[
-                'Держать сроки, подрядчиков и документы в одном управленческом контуре.',
-                'Понимать фактическую картину по портфелю, а не собирать ее вручную.',
-                'Запускать систему поэтапно, не ломая текущую структуру работы команды.',
+                "Сравнивать стадии и сроки объектов портфеля.",
+                "Видеть открытые замечания и ответственных.",
+                "Получать отчётность из данных проектных команд.",
               ].map((item) => (
                 <div
                   key={item}
@@ -147,9 +159,9 @@ const DevelopersPage = () => {
       <section id="capabilities" className="py-16 lg:py-20">
         <div className="container-custom">
           <SectionHeader
-            eyebrow="Контуры"
-            title="Какие блоки чаще всего нужны девелоперской команде."
-            description="Собрали рабочие участки, через которые девелопер обычно выстраивает контроль по объектам."
+            eyebrow="Данные по объектам"
+            title="Что видит девелопер и технический заказчик."
+            description="Карточки показывают данные для управления портфелем и работы команды каждого объекта."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -164,8 +176,12 @@ const DevelopersPage = () => {
                   <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-construction-50 text-construction-700">
                     <Icon className="h-6 w-6" />
                   </div>
-                  <h2 className="mt-5 text-xl font-bold text-steel-950">{item.title}</h2>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                  <h2 className="mt-5 text-xl font-bold text-steel-950">
+                    {item.title}
+                  </h2>
+                  <p className="mt-3 text-sm leading-7 text-steel-600">
+                    {item.description}
+                  </p>
                 </article>
               );
             })}
@@ -203,8 +219,8 @@ const DevelopersPage = () => {
           <div>
             <SectionHeader
               eyebrow="Доверительный слой"
-              title="Как обсуждаем запуск с девелопером."
-              description="На встрече разбираем структуру команды, уровень управленческого контроля и приоритетный сценарий запуска, а не просто перечисляем функции."
+              title="Что нужно согласовать до демонстрации."
+              description="Состав портфеля, роли проектных команд, единые статусы, правила замечаний и ожидаемую отчётность."
             />
           </div>
 
@@ -231,8 +247,8 @@ const DevelopersPage = () => {
         <div className="container-custom">
           <SectionHeader
             eyebrow="Смежные маршруты"
-            title="Если хотите сразу перейти в более узкий сценарий."
-            description="Из девелоперского контура можно быстро перейти туда, где сейчас находится основная операционная боль."
+            title="Подробнее о бюджете, подрядчиках и интеграциях."
+            description="Выберите профильную страницу, если основной вопрос относится к одному процессу."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-2">
@@ -242,8 +258,12 @@ const DevelopersPage = () => {
                 href={item.href}
                 className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
               >
-                <div className="text-xl font-bold text-steel-950">{item.label}</div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                <div className="text-xl font-bold text-steel-950">
+                  {item.label}
+                </div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">
+                  {item.description}
+                </p>
               </MarketingLink>
             ))}
           </div>
@@ -253,12 +273,19 @@ const DevelopersPage = () => {
       <section className="pb-16 pt-16 lg:pb-20 lg:pt-20">
         <div className="container-custom">
           <CtaBand
-            eyebrow="Следующий шаг"
-            title="Если нужен управляемый запуск для девелоперской команды, соберем релевантный контур под ваш портфель и структуру."
-            description="Покажем, с какого блока лучше стартовать, как разделить управленческий и проектный слой и какие расширения действительно стоит обсуждать отдельно."
+            eyebrow="Демонстрация"
+            title="Посмотрите, как данные объектов собираются на уровне портфеля."
+            description="На встрече покажем сроки, замечания и отчётность с учётом ролей проектной и управляющей команды."
             actions={[
-              { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
-              { label: 'ERP для строительства', href: marketingPaths.constructionErp },
+              {
+                label: "Связаться с нами",
+                href: marketingPaths.contact,
+                primary: true,
+              },
+              {
+                label: "Управление ресурсами строительства",
+                href: marketingPaths.constructionErp,
+              },
             ]}
             tone="dark"
           />

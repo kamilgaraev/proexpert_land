@@ -1,94 +1,84 @@
-import PageLayout from '../../components/shared/PageLayout';
+import PageLayout from "../../components/shared/PageLayout";
 import {
   DocumentTextIcon,
   CalendarDaysIcon,
   UserIcon,
-  ArrowRightIcon
-} from '@heroicons/react/24/outline';
+  ArrowRightIcon,
+} from "@heroicons/react/24/outline";
+import { marketingBlogArticles } from "@/data/marketing/blogArticles";
 
 const BlogPage = () => {
   const categories = [
-    { name: 'Управление проектами', count: 15, color: 'construction' },
-    { name: 'Технологии', count: 12, color: 'safety' },
-    { name: 'Кейсы клиентов', count: 8, color: 'earth' },
-    { name: 'Обновления', count: 6, color: 'steel' }
+    { name: "Работа на объекте", count: "Статьи", color: "construction" },
+    { name: "ПТО и документы", count: "Статьи", color: "safety" },
+    { name: "Снабжение и подрядчики", count: "Статьи", color: "earth" },
+    { name: "Управление проектами", count: "Статьи", color: "steel" },
   ];
 
   const featuredPost = {
-    title: 'Как цифровизация изменила строительную отрасль в 2024 году',
-    excerpt: 'Обзор ключевых трендов и технологий, которые трансформируют способы управления строительными проектами',
-    author: 'Алексей Петров',
-    date: '15 января 2024',
-    category: 'Управление проектами',
-    readTime: '8 мин',
-    image: '/api/placeholder/600/300'
+    title: marketingBlogArticles.foremanOrder.title,
+    excerpt: marketingBlogArticles.foremanOrder.purpose,
+    author: "Редакция МОСТ",
+    date: "Практическое руководство",
+    category: "Работа на объекте",
+    readTime: "Статья",
+    image: "/api/placeholder/600/300",
   };
 
   const posts = [
     {
-      title: '10 ошибок в управлении строительными проектами',
-      excerpt: 'Разбираем самые частые ошибки и способы их избежать',
-      author: 'Мария Сидорова',
-      date: '12 января 2024',
-      category: 'Управление проектами',
-      readTime: '6 мин'
+      title: marketingBlogArticles.ptoWorkspace.title,
+      excerpt: marketingBlogArticles.ptoWorkspace.purpose,
+      author: "Редакция МОСТ",
+      date: "Практическое руководство",
+      category: "ПТО и документы",
+      readTime: "Статья",
     },
     {
-      title: 'Интеграция BIM с системами управления проектами',
-      excerpt: 'Как совместить 3D моделирование с планированием работ',
-      author: 'Дмитрий Козлов',
-      date: '10 января 2024',
-      category: 'Технологии',
-      readTime: '12 мин'
+      title: marketingBlogArticles.managerMorning.title,
+      excerpt: marketingBlogArticles.managerMorning.purpose,
+      author: "Редакция МОСТ",
+      date: "Практическое руководство",
+      category: "Управление проектами",
+      readTime: "Статья",
     },
     {
-      title: 'Кейс: Экономия 2.5 млн рублей на проекте ЖК "Северный"',
-      excerpt: 'История успешного внедрения МОСТ в крупном жилом комплексе',
-      author: 'Елена Волкова',
-      date: '8 января 2024',
-      category: 'Кейсы клиентов',
-      readTime: '10 мин'
+      title: marketingBlogArticles.procurementChats.title,
+      excerpt: marketingBlogArticles.procurementChats.purpose,
+      author: "Редакция МОСТ",
+      date: "Практическое руководство",
+      category: "Снабжение и подрядчики",
+      readTime: "Статья",
     },
     {
-      title: 'Мобильное приложение МОСТ 2.0',
-      excerpt: 'Обзор новых возможностей и улучшений в последней версии',
-      author: 'Игорь Смирнов',
-      date: '5 января 2024',
-      category: 'Обновления',
-      readTime: '4 мин'
+      title: marketingBlogArticles.contractorControl.title,
+      excerpt: marketingBlogArticles.contractorControl.purpose,
+      author: "Редакция МОСТ",
+      date: "Практическое руководство",
+      category: "Снабжение и подрядчики",
+      readTime: "Статья",
     },
-    {
-      title: 'Безопасность данных в строительстве',
-      excerpt: 'Как защитить конфиденциальную информацию проектов',
-      author: 'Анна Николаева',
-      date: '3 января 2024',
-      category: 'Технологии',
-      readTime: '7 мин'
-    },
-    {
-      title: 'Автоматизация отчетности для прорабов',
-      excerpt: 'Сокращаем время на бумажную работу в 3 раза',
-      author: 'Петр Иванов',
-      date: '1 января 2024',
-      category: 'Управление проектами',
-      readTime: '5 мин'
-    }
   ];
 
   const getCategoryColor = (color: string) => {
     switch (color) {
-      case 'construction': return 'bg-construction-100 text-construction-800';
-      case 'safety': return 'bg-safety-100 text-safety-800';
-      case 'earth': return 'bg-earth-100 text-earth-800';
-      case 'steel': return 'bg-steel-100 text-steel-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "construction":
+        return "bg-construction-100 text-construction-800";
+      case "safety":
+        return "bg-safety-100 text-safety-800";
+      case "earth":
+        return "bg-earth-100 text-earth-800";
+      case "steel":
+        return "bg-steel-100 text-steel-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   return (
     <PageLayout
       title="Блог МОСТ"
-      subtitle="Экспертные статьи о строительстве и управлении проектами"
+      subtitle="Практические статьи об управлении стройкой"
     >
       <div className="mb-16">
         <div className="grid lg:grid-cols-4 gap-8 mb-16">
@@ -106,14 +96,20 @@ const BlogPage = () => {
                     <CalendarDaysIcon className="w-4 h-4" />
                     {featuredPost.date}
                   </div>
-                  <div className="text-steel-500 text-sm">{featuredPost.readTime}</div>
+                  <div className="text-steel-500 text-sm">
+                    {featuredPost.readTime}
+                  </div>
                 </div>
-                <h2 className="text-2xl font-bold text-steel-900 mb-4">{featuredPost.title}</h2>
+                <h2 className="text-2xl font-bold text-steel-900 mb-4">
+                  {featuredPost.title}
+                </h2>
                 <p className="text-steel-600 mb-6">{featuredPost.excerpt}</p>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <UserIcon className="w-5 h-5 text-steel-400" />
-                    <span className="text-steel-600">{featuredPost.author}</span>
+                    <span className="text-steel-600">
+                      {featuredPost.author}
+                    </span>
                   </div>
                   <button className="flex items-center gap-2 text-construction-600 hover:text-construction-700 font-medium">
                     Читать далее
@@ -125,7 +121,10 @@ const BlogPage = () => {
 
             <div className="grid md:grid-cols-2 gap-8">
               {posts.map((post, index) => (
-                <div key={index} className="bg-white rounded-xl p-6 shadow-lg border border-concrete-100 hover:shadow-xl transition-shadow">
+                <div
+                  key={index}
+                  className="bg-white rounded-xl p-6 shadow-lg border border-concrete-100 hover:shadow-xl transition-shadow"
+                >
                   <div className="flex items-center gap-3 mb-4">
                     <span className="px-2 py-1 bg-steel-100 text-steel-800 rounded text-xs font-medium">
                       {post.category}
@@ -135,14 +134,20 @@ const BlogPage = () => {
                       {post.date}
                     </div>
                   </div>
-                  <h3 className="text-lg font-bold text-steel-900 mb-3">{post.title}</h3>
-                  <p className="text-steel-600 text-sm mb-4 line-clamp-2">{post.excerpt}</p>
+                  <h3 className="text-lg font-bold text-steel-900 mb-3">
+                    {post.title}
+                  </h3>
+                  <p className="text-steel-600 text-sm mb-4 line-clamp-2">
+                    {post.excerpt}
+                  </p>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs text-steel-500">
                       <UserIcon className="w-4 h-4" />
                       {post.author}
                     </div>
-                    <div className="text-xs text-steel-500">{post.readTime}</div>
+                    <div className="text-xs text-steel-500">
+                      {post.readTime}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -151,12 +156,19 @@ const BlogPage = () => {
 
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl p-6 shadow-lg border border-concrete-100 mb-8">
-              <h3 className="text-lg font-bold text-steel-900 mb-6">Категории</h3>
+              <h3 className="text-lg font-bold text-steel-900 mb-6">
+                Категории
+              </h3>
               <div className="space-y-3">
                 {categories.map((category, index) => (
-                  <div key={index} className="flex items-center justify-between">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between"
+                  >
                     <span className="text-steel-700">{category.name}</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(category.color)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(category.color)}`}
+                    >
                       {category.count}
                     </span>
                   </div>
@@ -165,27 +177,41 @@ const BlogPage = () => {
             </div>
 
             <div className="bg-gradient-to-br from-construction-600 to-safety-600 rounded-xl p-6 text-white">
-              <h3 className="text-lg font-bold mb-4">Подпишитесь на рассылку</h3>
+              <h3 className="text-lg font-bold mb-4">Найдите нужную тему</h3>
               <p className="text-sm opacity-90 mb-4">
-                Получайте свежие статьи и новости индустрии первыми
+                Используйте поиск в опубликованном блоге МОСТ
               </p>
               <div className="space-y-3">
                 <input
                   type="email"
-                  placeholder="Ваш email"
+                  placeholder="Тема статьи"
                   className="w-full px-3 py-2 rounded-lg text-steel-900 text-sm"
                 />
                 <button className="w-full bg-white text-construction-600 font-semibold py-2 rounded-lg hover:shadow-lg transition-all text-sm">
-                  Подписаться
+                  Найти статьи
                 </button>
               </div>
             </div>
 
             <div className="bg-white rounded-xl p-6 shadow-lg border border-concrete-100 mt-8">
-              <h3 className="text-lg font-bold text-steel-900 mb-6">Популярные теги</h3>
+              <h3 className="text-lg font-bold text-steel-900 mb-6">
+                Популярные теги
+              </h3>
               <div className="flex flex-wrap gap-2">
-                {['BIM', 'Управление проектами', 'Цифровизация', 'Планирование', 'Контроль качества', 'Безопасность', 'ROI', 'Автоматизация'].map((tag, index) => (
-                  <span key={index} className="px-3 py-1 bg-concrete-100 text-steel-700 rounded-full text-xs hover:bg-construction-100 hover:text-construction-800 cursor-pointer transition-colors">
+                {[
+                  "Прораб",
+                  "ПТО",
+                  "Заявки",
+                  "Снабжение",
+                  "Подрядчики",
+                  "Документы",
+                  "Планирование",
+                  "Отчётность",
+                ].map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-concrete-100 text-steel-700 rounded-full text-xs hover:bg-construction-100 hover:text-construction-800 cursor-pointer transition-colors"
+                  >
                     {tag}
                   </span>
                 ))}
@@ -204,4 +230,4 @@ const BlogPage = () => {
   );
 };
 
-export default BlogPage; 
+export default BlogPage;

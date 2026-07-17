@@ -4,125 +4,137 @@ import {
   ShieldCheckIcon,
   UsersIcon,
   WrenchScrewdriverIcon,
-} from '@heroicons/react/24/outline';
-import CtaBand from '@/components/marketing/blocks/CtaBand';
-import { MarketingLink, PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
-import { marketingPaths, marketingSeo } from '@/data/marketingRegistry';
-import { useSEO } from '@/hooks/useSEO';
+} from "@heroicons/react/24/outline";
+import CtaBand from "@/components/marketing/blocks/CtaBand";
+import {
+  MarketingLink,
+  PageHero,
+  SectionHeader,
+} from "@/components/marketing/MarketingPrimitives";
+import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
+import { useSEO } from "@/hooks/useSEO";
 
 const focusAreas = [
   {
-    title: 'Сроки и этапы',
+    title: "Объект и этапы",
     description:
-      'Видно, где работа идет по плану, а где подрядный контур начинает проседать по срокам и зависимостям.',
+      "Работы, сроки и ответственные относятся к конкретному объекту и этапу.",
     icon: ClockIcon,
   },
   {
-    title: 'Бригады и роли',
+    title: "Бригады и роли",
     description:
-      'Руководитель видит распределение задач, ответственных и текущую загрузку без ручной сборки отчетов.',
+      "Задачи и фактический объём распределяются по бригадам и ответственным.",
     icon: UsersIcon,
   },
   {
-    title: 'Акты и документы',
+    title: "Документы и оплата",
     description:
-      'Исполнение, замечания и комплектность документов держатся в одном рабочем сценарии.',
+      "Выполненный объём, подтверждающие документы и подготовка к оплате рассматриваются вместе.",
     icon: DocumentTextIcon,
   },
   {
-    title: 'Качество работ',
+    title: "Замечания и приёмка",
     description:
-      'Замечания, проверки и корректирующие действия остаются привязанными к реальному этапу работ.',
+      "Замечания, проверки и корректирующие действия остаются привязанными к реальному этапу работ.",
     icon: ShieldCheckIcon,
   },
 ];
 
 const workflowTracks = [
   {
-    title: 'Планирование подрядного контура',
+    title: "Планирование работ",
     bullets: [
-      'Формируем этапы и зоны ответственности по объекту.',
-      'Раздаем задачи по бригадам и подрядным ролям.',
-      'Держим сроки и факт исполнения в одной логике.',
+      "Этапы и зоны ответственности задаются по объекту.",
+      "Задачи распределяются по бригадам и ответственным.",
+      "Плановый и фактический объём фиксируются по работам.",
     ],
   },
   {
-    title: 'Работа с площадкой',
+    title: "Работа с площадкой",
     bullets: [
-      'Фиксируем статусы и замечания прямо по ходу работ.',
-      'Подтягиваем документы и вложения к конкретному этапу.',
-      'Убираем разрыв между офисом, площадкой и руководителем.',
+      "Площадка фиксирует статус, объём и замечания по ходу работ.",
+      "Документы и вложения прикрепляются к конкретному этапу.",
+      "Офис работает с теми же данными, которые передала площадка.",
     ],
   },
   {
-    title: 'Материалы и снабжение',
+    title: "Материалы и снабжение",
     bullets: [
-      'Связываем заявки, поставки и приемку с фактическим ходом работ.',
-      'Показываем, где снабжение тормозит подрядный сценарий.',
-      'Убираем хаос из переписок и разрозненных таблиц.',
+      "Заявки, поставки и приёмка материалов относятся к объекту.",
+      "Ответственный видит статус потребности и поставки.",
+      "Документы по материалам хранятся рядом с заявкой.",
     ],
   },
   {
-    title: 'Исполнение и приемка',
+    title: "Закрытие и оплата",
     bullets: [
-      'Собираем замечания, исправления и документы по месту возникновения.',
-      'Ускоряем переход от выполнения к закрытию этапа.',
-      'Даем руководителю прозрачную картину по готовности подрядчика.',
+      "Замечания и исправления относятся к выполненной работе.",
+      "Подтверждённый объём дополняется закрывающими документами.",
+      "После проверки документы используются при подготовке оплаты.",
     ],
   },
 ];
 
 const resultOutcomes = [
-  'Оперативный контроль по бригадам, срокам и замечаниям.',
-  'Меньше ручных созвонов и сборки статусов из мессенджеров.',
-  'Понятный путь от задачи до документа и приемки.',
-  'Единый сценарий для объекта, подрядчика и офиса.',
+  "Объём работ связан с объектом, этапом и бригадой.",
+  "Замечания остаются рядом с работой и ответственным.",
+  "Документы подтверждают выполнение и готовность к оплате.",
+  "Офис и площадка используют одни и те же статусы.",
 ];
 
 const relatedSolutions = [
   {
-    label: 'Программа для прораба',
+    label: "Программа для прораба",
     href: marketingPaths.foremanSoftware,
-    description: 'Если ключевая точка управления находится на площадке и нужна полная картина по задачам и факту.',
+    description:
+      "Если ключевая точка управления находится на площадке и нужна полная картина по задачам и факту.",
   },
   {
-    label: 'Контроль подрядчиков',
+    label: "Контроль подрядчиков",
     href: marketingPaths.contractorControl,
-    description: 'Когда нужно отдельно разобрать сроки, объемы, ответственность и исполнительскую дисциплину.',
+    description:
+      "Когда нужно отдельно разобрать сроки, объемы, ответственность и исполнительскую дисциплину.",
   },
   {
-    label: 'Учет материалов',
+    label: "Учет материалов",
     href: marketingPaths.materialAccounting,
-    description: 'Если подрядный процесс упирается в заявки, поставки, приемку и остатки материалов.',
+    description:
+      "Если подрядный процесс упирается в заявки, поставки, приемку и остатки материалов.",
   },
   {
-    label: 'Исполнительная документация',
+    label: "Исполнительная документация",
     href: marketingPaths.constructionDocuments,
-    description: 'Подходит, если узкое место сейчас в актах, замечаниях и комплектности документов.',
+    description:
+      "Подходит, если узкое место сейчас в актах, замечаниях и комплектности документов.",
   },
 ];
 
 const ContractorsPage = () => {
   useSEO({
     ...marketingSeo.contractors,
-    type: 'website',
+    type: "website",
   });
 
   return (
     <div className="marketing-page-shell">
       <PageHero
-        eyebrow="Подрядный контур"
-        title="МОСТ для подрядчика: сроки, бригады, документы и качество в одном сценарии."
-        description="Для подрядных команд, которым нужно связать объект, исполнителей, замечания, снабжение и закрывающие документы без ручной сборки статусов."
+        eyebrow="Подрядная организация"
+        title="От объекта и бригады — к документам и оплате."
+        description="МОСТ связывает задачу, фактический объём, исполнителя, замечания и закрывающие документы. Руководитель видит, что выполнено и что мешает закрыть этап."
         actions={[
-          { label: 'Запросить демонстрацию', href: marketingPaths.contact, primary: true },
-          { label: 'Открыть все решения', href: marketingPaths.solutions },
+          {
+            label: "Запросить демонстрацию",
+            href: marketingPaths.contact,
+            primary: true,
+          },
+          { label: "Открыть все решения", href: marketingPaths.solutions },
         ]}
         nav={[
-          { label: 'Фокус', href: '#focus' },
-          { label: 'Сценарий работы', href: '#workflow' },
-          { label: 'Результат', href: '#result' },
-          { label: 'Смежные страницы', href: '#related' },
+          { label: "Фокус", href: "#focus" },
+          { label: "Порядок работы", href: "#workflow" },
+          { label: "Результат", href: "#result" },
+          { label: "Смежные страницы", href: "#related" },
         ]}
         aside={
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
@@ -131,9 +143,9 @@ const ContractorsPage = () => {
             </div>
             <div className="mt-4 grid gap-3">
               {[
-                'Понимать, где тормозит объект и кто отвечает за следующий шаг.',
-                'Держать замечания, документы и статус работ в одном контуре.',
-                'Показывать руководителю факт исполнения без ручной сводки.',
+                "Видеть работу по объекту, этапу и бригаде.",
+                "Сопоставлять плановый и фактический объём.",
+                "Подтверждать выполнение документами перед оплатой.",
               ].map((item) => (
                 <div
                   key={item}
@@ -151,8 +163,8 @@ const ContractorsPage = () => {
         <div className="container-custom">
           <SectionHeader
             eyebrow="Фокус"
-            title="Какие зоны подрядный контур держит под контролем."
-            description="Собрали участки, где подрядная команда чаще всего теряет управляемость: сроки, замечания, снабжение и документы."
+            title="Какие данные нужны подрядной организации каждый день."
+            description="Объект и этап, бригада, объём работ, замечания, документы и статус подготовки к оплате."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -167,8 +179,12 @@ const ContractorsPage = () => {
                   <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-construction-50 text-construction-700">
                     <Icon className="h-6 w-6" />
                   </div>
-                  <h2 className="mt-5 text-xl font-bold text-steel-950">{item.title}</h2>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                  <h2 className="mt-5 text-xl font-bold text-steel-950">
+                    {item.title}
+                  </h2>
+                  <p className="mt-3 text-sm leading-7 text-steel-600">
+                    {item.description}
+                  </p>
                 </article>
               );
             })}
@@ -179,9 +195,9 @@ const ContractorsPage = () => {
       <section id="workflow" className="bg-concrete-50 py-16 lg:py-20">
         <div className="container-custom">
           <SectionHeader
-            eyebrow="Сценарий работы"
-            title="Как подрядный маршрут собирается в один рабочий контур."
-            description="На встрече разбираем путь подрядной команды от планирования до закрытия этапа."
+            eyebrow="Порядок работы"
+            title="Как проходит работа от задания до закрытия этапа."
+            description="Последовательность связывает план, факт на площадке, проверку и документы для оплаты."
           />
 
           <div className="mt-10 grid gap-5 xl:grid-cols-2">
@@ -194,7 +210,9 @@ const ContractorsPage = () => {
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-steel-950 text-construction-200">
                     <WrenchScrewdriverIcon className="h-5 w-5" />
                   </div>
-                  <h2 className="text-xl font-bold text-steel-950">{item.title}</h2>
+                  <h2 className="text-xl font-bold text-steel-950">
+                    {item.title}
+                  </h2>
                 </div>
 
                 <div className="mt-5 grid gap-3">
@@ -218,8 +236,8 @@ const ContractorsPage = () => {
           <div>
             <SectionHeader
               eyebrow="Результат"
-              title="Что получает подрядчик после запуска рабочего контура."
-              description="Главная ценность здесь не в отдельных экранах, а в том, что команда перестает жить между мессенджерами, файлами и разрозненными статусами."
+              title="Какие связи сохраняются в системе."
+              description="По каждой работе можно проверить объект, бригаду, объём, замечания и подтверждающие документы."
             />
             <div className="mt-8 grid gap-3">
               {resultOutcomes.map((item) => (
@@ -239,9 +257,9 @@ const ContractorsPage = () => {
             </div>
             <div className="mt-5 grid gap-3">
               {[
-                'Как подрядная команда видит план, факт, замечания и документы без лишних переключений.',
-                'Как связать площадку, снабжение и приемку в одной логике исполнения.',
-                'Какой набор возможностей нужен именно вашему объекту и роли команды.',
+                "Как подрядная команда видит план, факт, замечания и документы без лишних переключений.",
+                "Как связать площадку, снабжение и приемку в одной логике исполнения.",
+                "Какой набор возможностей нужен именно вашему объекту и роли команды.",
               ].map((item) => (
                 <div
                   key={item}
@@ -259,8 +277,8 @@ const ContractorsPage = () => {
         <div className="container-custom">
           <SectionHeader
             eyebrow="Смежные страницы"
-            title="Куда перейти, если задача выходит за рамки подрядного контура."
-            description="Из этой страницы удобно перейти в профильный сценарий по роли, материалам или документам."
+            title="Подробнее о работе прораба, материалах и документах."
+            description="Выберите профильную страницу, если основной вопрос относится к конкретной роли или процессу."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-2">
@@ -270,8 +288,12 @@ const ContractorsPage = () => {
                 href={item.href}
                 className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
               >
-                <div className="text-xl font-bold text-steel-950">{item.label}</div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                <div className="text-xl font-bold text-steel-950">
+                  {item.label}
+                </div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">
+                  {item.description}
+                </p>
               </MarketingLink>
             ))}
           </div>
@@ -281,12 +303,19 @@ const ContractorsPage = () => {
       <section className="pb-16 pt-16 lg:pb-20 lg:pt-20">
         <div className="container-custom">
           <CtaBand
-            eyebrow="Следующий шаг"
-            title="Если хотите собрать подрядный контур без лишней ручной работы, покажем релевантный сценарий на вашем процессе."
-            description="Разберем роль команды, структуру объекта и текущие узкие места, после чего покажем только тот маршрут запуска, который реально имеет смысл на старте."
+            eyebrow="Демонстрация"
+            title="Посмотрите работу подрядной организации в МОСТ."
+            description="На встрече разберём структуру объекта и покажем путь от задачи и объёма до документа и подготовки к оплате."
             actions={[
-              { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
-              { label: 'Контроль подрядчиков', href: marketingPaths.contractorControl },
+              {
+                label: "Связаться с нами",
+                href: marketingPaths.contact,
+                primary: true,
+              },
+              {
+                label: "Контроль подрядчиков",
+                href: marketingPaths.contractorControl,
+              },
             ]}
             tone="dark"
           />

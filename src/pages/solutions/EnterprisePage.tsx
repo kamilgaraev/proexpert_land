@@ -1,100 +1,113 @@
-import CtaBand from '@/components/marketing/blocks/CtaBand';
+import CtaBand from "@/components/marketing/blocks/CtaBand";
 import {
   MarketingLink,
   PageHero,
   SectionHeader,
   SurfaceBadges,
-} from '@/components/marketing/MarketingPrimitives';
+} from "@/components/marketing/MarketingPrimitives";
 import {
   marketingCapabilityMatrix,
   marketingPaths,
   marketingSeo,
   marketingTrustFacts,
-} from '@/data/marketingRegistry';
-import { useSEO } from '@/hooks/useSEO';
+} from "@/data/marketingRegistry";
+import { useSEO } from "@/hooks/useSEO";
 
 const enterpriseHighlights = [
-  'Единые правила доступа для офиса, площадки и корпоративного контура.',
-  'Запуск поэтапно: пилот, тиражирование, управленческая отчетность.',
-  'Контроль группы компаний без ручной сборки статусов из разных систем.',
+  "Организации и объекты разделены внутри группы компаний.",
+  "Права пользователей назначаются по роли и зоне ответственности.",
+  "Управляющая команда работает со сводными данными доступных организаций.",
 ];
 
 const enterpriseOperatingModel = [
   {
-    title: 'Корпоративный контур',
+    title: "Структура группы компаний",
     description:
-      'Собираем единые правила ролей, доступа, отчетности и работы с документами для нескольких компаний и проектов.',
+      "Организации, объекты, пользователи и документы сохраняют свои границы внутри общей структуры.",
     bullets: [
-      'Разделяем операционный и управленческий слой.',
-      'Фиксируем, кто и на каком уровне принимает решения.',
-      'Подключаем аналитику только после определения базового контура.',
+      "Определяется иерархия организаций и объектов.",
+      "Для каждой роли задаётся доступ к нужным данным и действиям.",
+      "Сводные показатели строятся из доступных руководителю данных.",
     ],
   },
   {
-    title: 'Масштабирование запуска',
+    title: "Подключение организаций",
     description:
-      'Не разворачиваем все сразу. Сначала согласуем пилотный сценарий, затем тиражируем рабочую модель по подразделениям и объектам.',
+      "Состав организаций, объектов и пользователей можно добавлять поэтапно, сохраняя принятые правила доступа.",
     bullets: [
-      'Пилот на одном блоке процессов или группе команд.',
-      'Расширение после подтвержденного рабочего результата.',
-      'Отдельная настройка для корпоративных требований и отчетности.',
+      "Начало работы с выбранной организацией или группой объектов.",
+      "Проверка ролей и доступов на реальных обязанностях сотрудников.",
+      "Добавление следующих организаций и сводной отчётности.",
     ],
   },
 ];
 
 const enterpriseTrustLayer = [
-  'Показываем, как разграничиваются офис, объект, подрядчик и корпоративный уровень.',
-  'На встрече разбираем роли и процессы, которые важны именно вашей структуре.',
-  'Безопасность, документы и проектные материалы обсуждаем с учетом ваших внутренних требований.',
+  "На демонстрации показываем разделение организаций, объектов и пользовательских прав.",
+  "Разбираем роли, которым нужны операционные или сводные данные.",
+  "Отдельно фиксируем требования к файлам, документам и интеграциям.",
 ];
 
 const featuredCapabilities = marketingCapabilityMatrix.filter((capability) =>
-  ['multi-org', 'finance-control', 'project-control', 'document-control'].includes(capability.id),
+  [
+    "multi-org",
+    "finance-control",
+    "project-control",
+    "document-control",
+  ].includes(capability.id),
 );
 
 const enterpriseRelatedLinks = [
   {
-    label: 'ERP для строительства',
+    label: "Управление ресурсами строительства",
     href: marketingPaths.constructionErp,
-    description: 'Если нужен единый слой по объектам, финансам и документам для нескольких команд и юридических контуров.',
+    description:
+      "Если нужно связать объекты, финансы и документы нескольких организаций.",
   },
   {
-    label: 'Интеграции и расширения',
+    label: "Интеграции и расширения",
     href: marketingPaths.integrations,
-    description: 'Подходит, когда корпоративный запуск требует внешнего обмена данными, пилотов или согласованных сценариев интеграции.',
+    description:
+      "Подходит, когда группе компаний нужен внешний обмен согласованным набором данных.",
   },
   {
-    label: 'Контроль бюджета стройки',
+    label: "Контроль бюджета стройки",
     href: marketingPaths.constructionBudgetControl,
-    description: 'Для компаний, которым важно вынести в отдельный контур лимиты, платежный календарь и управленческую аналитику.',
+    description:
+      "Для компаний, которым нужно отдельно вести лимиты, платежный календарь и финансовые показатели.",
   },
   {
-    label: 'Безопасность и доступ',
+    label: "Безопасность и доступ",
     href: marketingPaths.security,
-    description: 'Если в обсуждении на первом месте роли, разграничение доступа, журнал действий и требования корпоративной безопасности.',
+    description:
+      "Если в обсуждении на первом месте роли, разграничение доступа, журнал действий и требования корпоративной безопасности.",
   },
 ];
 
 const EnterprisePage = () => {
   useSEO({
     ...marketingSeo.enterprise,
-    type: 'website',
+    type: "website",
   });
 
   return (
     <div className="marketing-page-shell">
       <PageHero
-        eyebrow="Корпоративный контур"
-        title="МОСТ для группы компаний, корпоративного контроля и поэтапного запуска."
-        description="Подходит командам, которым нужен единый рабочий контур между объектами, офисом и управленческим уровнем без ручной склейки процессов и отчетов."
+        eyebrow="Группа компаний"
+        title="Организации, объекты, права и сводные данные в МОСТ."
+        description="Каждая организация сохраняет свои объекты и пользователей. Права ограничивают доступ к данным, а управляющая команда видит разрешённую сводную информацию по группе."
         actions={[
-          { label: 'Обсудить корпоративный сценарий', href: marketingPaths.contact, primary: true },
-          { label: 'Безопасность и доступ', href: marketingPaths.security },
+          {
+            label: "Связаться с командой",
+            href: marketingPaths.contact,
+            primary: true,
+          },
+          { label: "Безопасность и доступ", href: marketingPaths.security },
         ]}
         nav={[
-          { label: 'Модель запуска', href: '#operating-model' },
-          { label: 'Контуры', href: '#enterprise-capabilities' },
-          { label: 'Следующий шаг', href: '#enterprise-cta' },
+          { label: "Модель запуска", href: "#operating-model" },
+          { label: "Корпоративные функции", href: "#enterprise-capabilities" },
+          { label: "Следующий шаг", href: "#enterprise-cta" },
         ]}
         aside={
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
@@ -103,7 +116,10 @@ const EnterprisePage = () => {
             </div>
             <div className="mt-4 grid gap-3">
               {enterpriseHighlights.map((item) => (
-                <div key={item} className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700">
+                <div
+                  key={item}
+                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                >
                   {item}
                 </div>
               ))}
@@ -122,7 +138,9 @@ const EnterprisePage = () => {
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
                 {item.title}
               </div>
-              <p className="mt-4 text-sm leading-7 text-steel-600">{item.description}</p>
+              <p className="mt-4 text-sm leading-7 text-steel-600">
+                {item.description}
+              </p>
               <div className="mt-5 grid gap-3">
                 {item.bullets.map((bullet) => (
                   <div
@@ -138,12 +156,15 @@ const EnterprisePage = () => {
         </div>
       </section>
 
-      <section id="enterprise-capabilities" className="bg-concrete-50 py-16 lg:py-20">
+      <section
+        id="enterprise-capabilities"
+        className="bg-concrete-50 py-16 lg:py-20"
+      >
         <div className="container-custom">
           <SectionHeader
-            eyebrow="Контуры"
-            title="Берем в запуск только те продуктовые блоки, которые поддерживают корпоративную модель."
-            description="Ниже не общий каталог функций, а те контуры, которые чаще всего нужны группе компаний и крупным строительным командам."
+            eyebrow="Корпоративные функции"
+            title="Разделение данных и управление на уровне группы."
+            description="Ниже функции, связанные со структурой организаций, объектами, правами пользователей, финансами и сводной информацией."
           />
 
           <div className="mt-10 grid gap-5 xl:grid-cols-2">
@@ -157,11 +178,15 @@ const EnterprisePage = () => {
                     <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
                       {capability.businessContour}
                     </div>
-                    <h2 className="mt-2 text-2xl font-bold text-steel-950">{capability.title}</h2>
+                    <h2 className="mt-2 text-2xl font-bold text-steel-950">
+                      {capability.title}
+                    </h2>
                   </div>
                   <SurfaceBadges surfaces={capability.surfaces} />
                 </div>
-                <p className="mt-5 text-sm leading-7 text-steel-600">{capability.publicClaim}</p>
+                <p className="mt-5 text-sm leading-7 text-steel-600">
+                  {capability.publicClaim}
+                </p>
                 <div className="mt-5 grid gap-3">
                   {capability.outcomes.slice(0, 3).map((highlight) => (
                     <div
@@ -183,12 +208,15 @@ const EnterprisePage = () => {
           <div>
             <SectionHeader
               eyebrow="Как мы это обсуждаем"
-              title="Разговор о корпоративном запуске начинается не с лицензий, а с модели управления."
-              description="На первой встрече разбираем роли, уровень стандартизации, структуру команд и последовательность запуска."
+              title="Для демонстрации нужна схема организаций и ролей."
+              description="На встрече разбираем структуру группы, доступ пользователей к объектам и состав сводных данных для руководителей."
             />
             <div className="mt-8 grid gap-3">
               {enterpriseTrustLayer.map((item) => (
-                <div key={item} className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700">
+                <div
+                  key={item}
+                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+                >
                   {item}
                 </div>
               ))}
@@ -197,13 +225,20 @@ const EnterprisePage = () => {
 
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-              Почему этому сценарию доверяют
+              На чём строится разделение данных
             </div>
             <div className="mt-5 grid gap-3">
               {marketingTrustFacts.slice(0, 4).map((fact) => (
-                <article key={fact.title} className="rounded-[1.15rem] bg-concrete-50 px-4 py-4">
-                  <div className="text-base font-semibold text-steel-950">{fact.title}</div>
-                  <p className="mt-2 text-sm leading-7 text-steel-600">{fact.text}</p>
+                <article
+                  key={fact.title}
+                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4"
+                >
+                  <div className="text-base font-semibold text-steel-950">
+                    {fact.title}
+                  </div>
+                  <p className="mt-2 text-sm leading-7 text-steel-600">
+                    {fact.text}
+                  </p>
                 </article>
               ))}
             </div>
@@ -214,9 +249,9 @@ const EnterprisePage = () => {
       <section className="bg-concrete-50 py-16 lg:py-20">
         <div className="container-custom">
           <SectionHeader
-            eyebrow="Смежные сценарии"
-            title="Если корпоративный контур нужно уточнить, переходите в профильную страницу"
-            description="Эти направления чаще всего идут рядом с enterprise-запуском и помогают быстрее сузить предмет разговора."
+            eyebrow="Связанные страницы"
+            title="Подробнее о финансах, интеграциях и доступе."
+            description="Выберите профильную страницу, если основной вопрос относится к одному процессу."
           />
 
           <div className="mt-10 grid gap-5 xl:grid-cols-2">
@@ -226,8 +261,12 @@ const EnterprisePage = () => {
                 href={item.href}
                 className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
               >
-                <div className="text-xl font-bold text-steel-950">{item.label}</div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                <div className="text-xl font-bold text-steel-950">
+                  {item.label}
+                </div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">
+                  {item.description}
+                </p>
               </MarketingLink>
             ))}
           </div>
@@ -237,12 +276,16 @@ const EnterprisePage = () => {
       <section id="enterprise-cta" className="pb-16 pt-16 lg:pb-20 lg:pt-20">
         <div className="container-custom">
           <CtaBand
-            eyebrow="Следующий шаг"
-            title="Если нужен корпоративный разбор, соберем релевантный сценарий запуска без лишних обещаний."
-            description="На встрече покажем подходящий контур, обсудим роли, модель доступа, поэтапное внедрение и отдельные требования по безопасности или документам."
+            eyebrow="Демонстрация"
+            title="Посмотрите управление группой компаний в МОСТ."
+            description="На встрече покажем разделение организаций, объектов и прав, затем разберём требования к сводным данным и документам."
             actions={[
-              { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
-              { label: 'О продукте', href: marketingPaths.about },
+              {
+                label: "Связаться с нами",
+                href: marketingPaths.contact,
+                primary: true,
+              },
+              { label: "О продукте", href: marketingPaths.about },
             ]}
             tone="dark"
           />

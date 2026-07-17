@@ -1,50 +1,54 @@
-import CtaBand from '@/components/marketing/blocks/CtaBand';
-import TrustFactList from '@/components/marketing/blocks/TrustFactList';
+import CtaBand from "@/components/marketing/blocks/CtaBand";
+import TrustFactList from "@/components/marketing/blocks/TrustFactList";
 import {
   PageHero,
   SectionHeader,
   SurfaceBadges,
-} from '@/components/marketing/MarketingPrimitives';
+} from "@/components/marketing/MarketingPrimitives";
 import {
   marketingCapabilityMatrix,
   marketingPaths,
   marketingSecuritySections,
   marketingSeo,
   marketingTrustFacts,
-} from '@/data/marketingRegistry';
-import { useSEO } from '@/hooks/useSEO';
+} from "@/data/marketingRegistry";
+import { useSEO } from "@/hooks/useSEO";
 
 const SecurityPage = () => {
   useSEO({
     ...marketingSeo.security,
-    type: 'website',
+    type: "website",
   });
 
   return (
     <div className="marketing-page-shell">
       <PageHero
         eyebrow="Безопасность"
-        title="Безопасность МОСТ для корпоративных клиентов."
-        description="Роли, доступ, документы, прозрачность действий и поддержка проектного запуска."
+        title="Как МОСТ ограничивает доступ к рабочим данным."
+        description="Права пользователя зависят от роли, организации и доступных объектов. Файлы связаны с рабочими записями, а предусмотренные продуктом действия и изменения доступны в защищённых журналах."
         actions={[
-          { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
-          { label: 'О продукте', href: marketingPaths.about },
+          {
+            label: "Связаться с нами",
+            href: marketingPaths.contact,
+            primary: true,
+          },
+          { label: "О продукте", href: marketingPaths.about },
         ]}
         nav={[
-          { label: 'Принципы', href: '#principles' },
-          { label: 'Роли', href: '#roles' },
-          { label: 'Доверие', href: '#trust' },
+          { label: "Принципы", href: "#principles" },
+          { label: "Роли", href: "#roles" },
+          { label: "Доверие", href: "#trust" },
         ]}
         aside={
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Что важно клиенту
+              Подтверждённые механизмы
             </div>
             <div className="mt-4 grid gap-3">
               {[
-                'Понятная модель ролей и доступа.',
-                'Централизованная работа с документами.',
-                'Прозрачность действий и процессов.',
+                "Проверка ролей и прав перед действием.",
+                "Ограничение данных по организациям и объектам.",
+                "Привязка файлов и доступная история изменений.",
               ].map((item) => (
                 <div
                   key={item}
@@ -68,7 +72,9 @@ const SecurityPage = () => {
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
                 {section.title}
               </div>
-              <p className="mt-4 text-sm leading-7 text-steel-600">{section.description}</p>
+              <p className="mt-4 text-sm leading-7 text-steel-600">
+                {section.description}
+              </p>
               <div className="mt-5 grid gap-3">
                 {section.bullets.map((bullet) => (
                   <div
@@ -89,8 +95,8 @@ const SecurityPage = () => {
           <div>
             <SectionHeader
               eyebrow="Роли"
-              title="Офис, площадка, кабинет и корпоративный контур разделены по задачам."
-              description="Показываем это на примерах из продуктовых контуров МОСТ."
+              title="Интерфейсы и действия доступны по правам."
+              description="Офис, мобильное приложение, кабинеты и управление группой компаний используют общую систему ролей и разрешений."
             />
             <div className="mt-8 grid gap-4">
               {marketingCapabilityMatrix.slice(0, 5).map((capability) => (
@@ -98,8 +104,12 @@ const SecurityPage = () => {
                   key={capability.id}
                   className="rounded-[1.5rem] border border-steel-200 bg-white px-5 py-5 shadow-sm"
                 >
-                  <div className="text-lg font-bold text-steel-950">{capability.title}</div>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">{capability.publicClaim}</p>
+                  <div className="text-lg font-bold text-steel-950">
+                    {capability.title}
+                  </div>
+                  <p className="mt-3 text-sm leading-7 text-steel-600">
+                    {capability.publicClaim}
+                  </p>
                   <div className="mt-4">
                     <SurfaceBadges surfaces={capability.surfaces} />
                   </div>
@@ -110,9 +120,9 @@ const SecurityPage = () => {
 
           <div>
             <SectionHeader
-              eyebrow="Доверительный слой"
-              title="Безопасность поддерживает управляемость, а не мешает работе."
-              description="Акцент на ролях, прозрачности процессов и понятной модели запуска."
+              eyebrow="Проверка доступа"
+              title="Ограничения применяются к рабочим действиям."
+              description="Права определяют, какие разделы пользователь открывает, какие операции выполняет и какие журналы просматривает."
             />
             <div className="mt-8">
               <TrustFactList items={marketingTrustFacts} />
@@ -124,12 +134,16 @@ const SecurityPage = () => {
       <section id="trust" className="pb-16 pt-16 lg:pb-20 lg:pt-20">
         <div className="container-custom">
           <CtaBand
-            eyebrow="Обсуждение проекта"
-            title="Если нужна оценка безопасности до старта, подключим этот блок отдельно и пройдемся по материалам."
-            description="На встрече покажем релевантный контур, расскажем о принципах доступа и обсудим, какие публичные и проектные материалы нужны вашей стороне."
+            eyebrow="Демонстрация доступа"
+            title="Проверьте роли и права на примере вашей команды."
+            description="На встрече покажем доступ к разделам и объектам, работу с файлами и доступные журналы действий. Дополнительные требования зафиксируем отдельно."
             actions={[
-              { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
-              { label: 'Публичная оферта', href: marketingPaths.offer },
+              {
+                label: "Связаться с нами",
+                href: marketingPaths.contact,
+                primary: true,
+              },
+              { label: "Публичная оферта", href: marketingPaths.offer },
             ]}
             tone="light"
           />

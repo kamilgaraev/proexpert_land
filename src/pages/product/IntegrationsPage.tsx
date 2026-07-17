@@ -3,13 +3,17 @@ import {
   CloudIcon,
   CogIcon,
   DevicePhoneMobileIcon,
-} from '@heroicons/react/24/outline';
-import CtaBand from '@/components/marketing/blocks/CtaBand';
-import { MarketingLink, PageHero, SectionHeader } from '@/components/marketing/MarketingPrimitives';
-import { marketingPaths, marketingSeo } from '@/data/marketingRegistry';
-import { useSEO } from '@/hooks/useSEO';
+} from "@heroicons/react/24/outline";
+import CtaBand from "@/components/marketing/blocks/CtaBand";
+import {
+  MarketingLink,
+  PageHero,
+  SectionHeader,
+} from "@/components/marketing/MarketingPrimitives";
+import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
+import { useSEO } from "@/hooks/useSEO";
 
-type IntegrationStatus = 'Базовый контур' | 'Базовый этап' | 'По запросу';
+type IntegrationStatus = "В продукте" | "Этап настройки" | "По запросу";
 
 interface IntegrationItem {
   name: string;
@@ -25,107 +29,119 @@ interface IntegrationCategory {
 
 const principles = [
   {
-    title: 'Честный контур',
+    title: "Состав данных до настройки",
     description:
-      'Публично показываем только те сценарии интеграции и расширений, которые действительно обсуждаем в проектной работе.',
+      "До начала работ стороны фиксируют системы, справочники, документы, направление обмена и правила сверки.",
     icon: CogIcon,
   },
   {
-    title: 'Проектная проработка',
+    title: "Владелец каждого справочника",
     description:
-      'Сначала проверяем реальный бизнес-сценарий, и только потом определяем формат обмена данными, пилота или расширения.',
+      "Для юридических лиц, контрагентов и номенклатуры определяется система-источник и сотрудник, который отвечает за качество данных.",
     icon: CloudIcon,
   },
   {
-    title: 'Запуск без лишнего шума',
+    title: "Проверка после обмена",
     description:
-      'Не подключаем все внешние системы сразу. Оставляем только то, что поддерживает рабочий процесс.',
+      "Результат сверяется по согласованным полям. Расхождения разбираются до расширения обмена на новые данные.",
     icon: DevicePhoneMobileIcon,
   },
 ];
 
 const integrationCategories: IntegrationCategory[] = [
   {
-    category: 'Обмен данными',
+    category: "1С и ключевые справочники",
     icon: BuildingOfficeIcon,
     items: [
       {
-        name: 'API и webhooks',
-        description: 'Проектируем обмен событиями и данными по согласованному сценарию работы команды.',
-        status: 'По запросу',
+        name: "Профиль подключения к 1С",
+        description:
+          "Настройки подключения и направление обмена согласуются для конкретной базы и организации.",
+        status: "По запросу",
       },
       {
-        name: 'Выгрузки и загрузки',
-        description: 'Используем CSV, Excel и другие форматы там, где они реально закрывают операционный обмен.',
-        status: 'По запросу',
+        name: "Сопоставление справочников",
+        description:
+          "Юридические лица, контрагенты и номенклатура сопоставляются по правилам, которые утверждает владелец данных.",
+        status: "По запросу",
       },
       {
-        name: 'Контур под текущий ландшафт',
-        description: 'Подбираем формат обмена под вашу структуру процессов и состав систем.',
-        status: 'По запросу',
+        name: "Сверка и расхождения",
+        description:
+          "После обмена ответственные проверяют результат и разбирают записи, которые не удалось сопоставить автоматически.",
+        status: "По запросу",
       },
     ],
   },
   {
-    category: 'Документы и файлы',
+    category: "Документы и файлы",
     icon: CogIcon,
     items: [
       {
-        name: 'Чертежи и вложения',
-        description: 'Работаем с файлами в контексте проекта, а не через разрозненные переписки и папки.',
-        status: 'Базовый контур',
+        name: "Файлы в МОСТ",
+        description:
+          "Файлы прикрепляются к объектам и рабочим записям внутри системы. Это базовая функция, а не внешняя интеграция.",
+        status: "В продукте",
       },
       {
-        name: 'Версионирование',
-        description: 'Фиксируем актуальность документов и маршрут согласования внутри рабочего процесса.',
-        status: 'Базовый контур',
+        name: "Документы для обмена",
+        description:
+          "До настройки составляется перечень документов, полей и статусов, которые должны передаваться между системами.",
+        status: "В продукте",
       },
       {
-        name: 'Внешние источники',
-        description: 'Если нужен обмен со сторонним архивом или хранилищем, проектируем его как отдельный этап.',
-        status: 'По запросу',
+        name: "Внешнее хранилище",
+        description:
+          "Обмен со сторонним архивом или хранилищем оценивается отдельно: универсальное подключение не заявляется.",
+        status: "По запросу",
       },
     ],
   },
   {
-    category: 'Уведомления и внешние сценарии',
+    category: "Файловый обмен и другие системы",
     icon: CloudIcon,
     items: [
       {
-        name: 'Почта и уведомления',
-        description: 'Настраиваем служебные уведомления в составе целевого рабочего сценария.',
-        status: 'По запросу',
+        name: "Выгрузка и загрузка файлов",
+        description:
+          "CSV и Excel используются, если согласованного файлового обмена достаточно для задачи.",
+        status: "По запросу",
       },
       {
-        name: 'Мессенджеры и боты',
-        description: 'Отдельно оцениваем, нужен ли внешний канал уведомлений или лучше оставить сценарий внутри продукта.',
-        status: 'По запросу',
+        name: "Программный интерфейс",
+        description:
+          "Программный интерфейс (API) обсуждается для конкретного набора данных и операций. Публичного каталога готовых подключений нет.",
+        status: "По запросу",
       },
       {
-        name: 'Проектные автоматизации',
-        description: 'Нет публичного каталога «магических коннекторов»: расширения делаем под согласованный запрос.',
-        status: 'По запросу',
+        name: "Почта, мессенджеры и боты",
+        description:
+          "Внешние каналы уведомлений оцениваются отдельно после проверки, что их нельзя заменить настройками внутри МОСТ.",
+        status: "По запросу",
       },
     ],
   },
   {
-    category: 'Проектное внедрение',
+    category: "Ответственность за настройку",
     icon: DevicePhoneMobileIcon,
     items: [
       {
-        name: 'Оценка текущего процесса',
-        description: 'На старте определяем, где нужен реальный обмен данными, а где достаточно внутреннего контура МОСТ.',
-        status: 'Базовый этап',
+        name: "Заказчик",
+        description:
+          "Назначает владельцев данных, предоставляет доступ к тестовой среде и утверждает правила сопоставления и сверки.",
+        status: "Этап настройки",
       },
       {
-        name: 'Пилот для расширений',
-        description: 'Если нужен нетиповой сценарий, выносим его в отдельный пилот, а не смешиваем с базовым запуском.',
-        status: 'По запросу',
+        name: "Команда МОСТ",
+        description:
+          "Фиксирует согласованный состав обмена, настраивает поддерживаемую часть и передает результат на проверку.",
+        status: "По запросу",
       },
       {
-        name: 'Корпоративный сценарий',
-        description: 'Для сложной схемы обмена согласуем объем, границы и ответственный маршрут внедрения.',
-        status: 'По запросу',
+        name: "Совместная приемка",
+        description:
+          "Стороны проверяют контрольный набор данных, фиксируют расхождения и только затем переходят к рабочему обмену.",
+        status: "По запросу",
       },
     ],
   },
@@ -133,58 +149,66 @@ const integrationCategories: IntegrationCategory[] = [
 
 const relatedScenarios = [
   {
-    label: 'ERP для строительства',
+    label: "Управление ресурсами строительства",
     href: marketingPaths.constructionErp,
-    description: 'Когда интеграции обсуждаются как часть общего управленческого контура по объектам, документам и финансам.',
+    description:
+      "Когда обмен данными связан с объектами, документами и финансами.",
   },
   {
-    label: 'CRM для строительной компании',
+    label: "CRM для строительной компании",
     href: marketingPaths.constructionCrm,
-    description: 'Если сначала нужно собрать единый рабочий процесс, а уже затем подключать внешние связи.',
+    description:
+      "Если сначала нужно упорядочить объекты и задачи, а затем подключать внешние связи.",
   },
   {
-    label: 'Enterprise',
+    label: "Enterprise",
     href: marketingPaths.enterprise,
-    description: 'Подходит, если важно заранее обсудить корпоративные правила доступа, пилоты и архитектуру запуска.',
+    description:
+      "Подходит, если важно заранее обсудить корпоративные правила доступа, пилоты и архитектуру запуска.",
   },
   {
-    label: 'Связаться с нами',
+    label: "Связаться с нами",
     href: marketingPaths.contact,
-    description: 'Если хотите быстро сверить, что можно запускать уже сейчас, а что лучше вынести в отдельный этап.',
+    description:
+      "Если хотите быстро сверить, что можно запускать уже сейчас, а что лучше вынести в отдельный этап.",
   },
 ];
 
 const getStatusTone = (status: IntegrationStatus) => {
   switch (status) {
-    case 'Базовый контур':
-      return 'bg-emerald-100 text-emerald-800';
-    case 'Базовый этап':
-      return 'bg-sky-100 text-sky-800';
+    case "В продукте":
+      return "bg-emerald-100 text-emerald-800";
+    case "Этап настройки":
+      return "bg-sky-100 text-sky-800";
     default:
-      return 'bg-amber-100 text-amber-800';
+      return "bg-amber-100 text-amber-800";
   }
 };
 
 const IntegrationsPage = () => {
   useSEO({
     ...marketingSeo.integrations,
-    type: 'website',
+    type: "website",
   });
 
   return (
     <div className="marketing-page-shell">
       <PageHero
-        eyebrow="Интеграции и расширения"
-        title="Интеграции МОСТ: только те внешние связи, которые поддерживают реальный процесс."
-        description="Страница для команд, которым важно понять, как МОСТ стыкуется с текущим ландшафтом, документным контуром и проектными расширениями без избыточных обещаний."
+        eyebrow="Обмен данными"
+        title="Как МОСТ обменивается данными с 1С и другими системами."
+        description="Интеграция начинается с перечня справочников и документов. Для каждого набора данных стороны определяют источник, направление обмена, правила сопоставления и ответственного за проверку."
         actions={[
-          { label: 'Обсудить сценарий', href: marketingPaths.contact, primary: true },
-          { label: 'Страница безопасности', href: marketingPaths.security },
+          {
+            label: "Связаться с командой",
+            href: marketingPaths.contact,
+            primary: true,
+          },
+          { label: "Интеграция с 1С", href: marketingPaths.oneCIntegration },
         ]}
         nav={[
-          { label: 'Принципы', href: '#principles' },
-          { label: 'Категории', href: '#categories' },
-          { label: 'Куда идти дальше', href: '#related' },
+          { label: "Принципы", href: "#principles" },
+          { label: "Категории", href: "#categories" },
+          { label: "Куда идти дальше", href: "#related" },
         ]}
         aside={
           <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
@@ -193,9 +217,9 @@ const IntegrationsPage = () => {
             </div>
             <div className="mt-4 grid gap-3">
               {[
-                'Где действительно нужен внешний обмен данными, а где достаточно внутреннего контура.',
-                'Какие расширения можно считать базовым этапом, а какие требуют отдельного проекта.',
-                'Как не перегрузить запуск лишними интеграциями на первом шаге.',
+                "Какие справочники и документы нужно передавать.",
+                "Какая система считается источником каждого поля.",
+                "Кто на стороне заказчика проверяет результат обмена.",
               ].map((item) => (
                 <div
                   key={item}
@@ -213,8 +237,8 @@ const IntegrationsPage = () => {
         <div className="container-custom">
           <SectionHeader
             eyebrow="Принципы"
-            title="Как мы подходим к интеграциям и проектным расширениям."
-            description="Сначала определяем рабочий сценарий, затем формат обмена и только после этого обсуждаем архитектуру расширения."
+            title="Что нужно определить до технической настройки."
+            description="Интеграция не исправляет исходные справочники сама. Нужны согласованные правила, владельцы данных и контрольный набор для проверки."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -229,8 +253,12 @@ const IntegrationsPage = () => {
                   <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-construction-50 text-construction-700">
                     <Icon className="h-6 w-6" />
                   </div>
-                  <h2 className="mt-5 text-xl font-bold text-steel-950">{item.title}</h2>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                  <h2 className="mt-5 text-xl font-bold text-steel-950">
+                    {item.title}
+                  </h2>
+                  <p className="mt-3 text-sm leading-7 text-steel-600">
+                    {item.description}
+                  </p>
                 </article>
               );
             })}
@@ -252,7 +280,9 @@ const IntegrationsPage = () => {
                   <div className="flex h-11 w-11 items-center justify-center rounded-[1rem] bg-steel-950 text-construction-200">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <h2 className="text-2xl font-bold text-steel-950">{category.category}</h2>
+                  <h2 className="text-2xl font-bold text-steel-950">
+                    {category.category}
+                  </h2>
                 </div>
 
                 <div className="mt-6 grid gap-5 xl:grid-cols-3">
@@ -262,14 +292,18 @@ const IntegrationsPage = () => {
                       className="rounded-[1.5rem] border border-steel-200 bg-concrete-50 px-5 py-5"
                     >
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <h3 className="text-lg font-bold text-steel-950">{item.name}</h3>
+                        <h3 className="text-lg font-bold text-steel-950">
+                          {item.name}
+                        </h3>
                         <span
                           className={`inline-flex w-fit rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${getStatusTone(item.status)}`}
                         >
                           {item.status}
                         </span>
                       </div>
-                      <p className="mt-4 text-sm leading-7 text-steel-600">{item.description}</p>
+                      <p className="mt-4 text-sm leading-7 text-steel-600">
+                        {item.description}
+                      </p>
                     </article>
                   ))}
                 </div>
@@ -283,8 +317,8 @@ const IntegrationsPage = () => {
         <div className="container-custom">
           <SectionHeader
             eyebrow="Куда идти дальше"
-            title="Если вопрос интеграций связан с более широким сценарием запуска."
-            description="Из этой страницы удобно перейти в связанный маршрут по ERP, корпоративному контуру или первичному контакту."
+            title="Подробнее о данных, группе компаний и доступе."
+            description="Выберите профильную страницу, если обмен относится к управлению объектами, корпоративной структуре или безопасности."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-2">
@@ -294,8 +328,12 @@ const IntegrationsPage = () => {
                 href={item.href}
                 className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
               >
-                <div className="text-xl font-bold text-steel-950">{item.label}</div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">{item.description}</p>
+                <div className="text-xl font-bold text-steel-950">
+                  {item.label}
+                </div>
+                <p className="mt-3 text-sm leading-7 text-steel-600">
+                  {item.description}
+                </p>
               </MarketingLink>
             ))}
           </div>
@@ -305,12 +343,16 @@ const IntegrationsPage = () => {
       <section className="pb-16 pt-16 lg:pb-20 lg:pt-20">
         <div className="container-custom">
           <CtaBand
-            eyebrow="Следующий шаг"
-            title="Если нужен нетиповой сценарий, разберем текущий ландшафт и честно скажем, что стоит запускать сейчас."
-            description="На встрече отделим основные возможности от дополнительных, оценим приоритеты и соберем понятный маршрут запуска."
+            eyebrow="Обсуждение интеграции"
+            title="Подготовьте перечень систем, справочников и документов."
+            description="На встрече разберём направление обмена, владельцев данных, контрольную сверку и границы ответственности сторон."
             actions={[
-              { label: 'Связаться с нами', href: marketingPaths.contact, primary: true },
-              { label: 'Enterprise', href: marketingPaths.enterprise },
+              {
+                label: "Связаться с командой",
+                href: marketingPaths.contact,
+                primary: true,
+              },
+              { label: "Enterprise", href: marketingPaths.enterprise },
             ]}
             tone="dark"
           />

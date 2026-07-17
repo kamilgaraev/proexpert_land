@@ -1,21 +1,24 @@
-import { FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import BlogArticleCard from './BlogArticleCard';
-import BlogPublicLayout from './BlogPublicLayout';
-import BlogSidebar from './BlogSidebar';
-import { getBlogListMeta } from './blogPresentation';
-import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
-import { marketingPaths, marketingSeo } from '@/data/marketingRegistry';
-import { useSEO } from '@/hooks/useSEO';
+import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import BlogArticleCard from "./BlogArticleCard";
+import BlogPublicLayout from "./BlogPublicLayout";
+import BlogSidebar from "./BlogSidebar";
+import { getBlogListMeta } from "./blogPresentation";
+import { SectionHeader } from "@/components/marketing/MarketingPrimitives";
+import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
+import { useSEO } from "@/hooks/useSEO";
 import type {
   BlogArticle,
   BlogCategory,
   BlogIndexInitialData,
   BlogPaginationMeta,
-} from '@/types/blog';
-import { BLOG_INDEX_BASE_QUERY_KEY, buildBlogIndexQueryKey } from '@/utils/blogIndexQuery';
-import { blogPublicApi } from '@/utils/blogPublicApi';
+} from "@/types/blog";
+import {
+  BLOG_INDEX_BASE_QUERY_KEY,
+  buildBlogIndexQueryKey,
+} from "@/utils/blogIndexQuery";
+import { blogPublicApi } from "@/utils/blogPublicApi";
 
 interface BlogPublicPageProps {
   initialData?: BlogIndexInitialData;
@@ -29,28 +32,46 @@ interface ArticlesRequest {
 
 const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const selectedCategory = searchParams.get('category');
-  const searchQuery = searchParams.get('search');
+  const selectedCategory = searchParams.get("category");
+  const searchQuery = searchParams.get("search");
   const queryKey = useMemo(
-    () => buildBlogIndexQueryKey({ category: selectedCategory, search: searchQuery }),
+    () =>
+      buildBlogIndexQueryKey({
+        category: selectedCategory,
+        search: searchQuery,
+      }),
     [searchQuery, selectedCategory],
   );
-  const [articles, setArticles] = useState<BlogArticle[]>(() => initialData?.articles ?? []);
-  const [categories, setCategories] = useState<BlogCategory[]>(() => initialData?.categories ?? []);
-  const [categoriesLoaded, setCategoriesLoaded] = useState(initialData?.categoriesLoaded ?? false);
-  const [loading, setLoading] = useState(() => !(initialData?.articlesLoaded ?? false));
+  const [articles, setArticles] = useState<BlogArticle[]>(
+    () => initialData?.articles ?? [],
+  );
+  const [categories, setCategories] = useState<BlogCategory[]>(
+    () => initialData?.categories ?? [],
+  );
+  const [categoriesLoaded, setCategoriesLoaded] = useState(
+    initialData?.categoriesLoaded ?? false,
+  );
+  const [loading, setLoading] = useState(
+    () => !(initialData?.articlesLoaded ?? false),
+  );
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(() => initialData?.articlesLoaded
-    ? initialData.pagination.current_page < initialData.pagination.last_page
-    : true);
-  const [loadedPage, setLoadedPage] = useState(() => initialData?.articlesLoaded
-    ? initialData.pagination.current_page
-    : 0);
+  const [hasMore, setHasMore] = useState(() =>
+    initialData?.articlesLoaded
+      ? initialData.pagination.current_page < initialData.pagination.last_page
+      : true,
+  );
+  const [loadedPage, setLoadedPage] = useState(() =>
+    initialData?.articlesLoaded ? initialData.pagination.current_page : 0,
+  );
   const [error, setError] = useState<string | null>(null);
-  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
-  const appliedQueryKeyRef = useRef(initialData?.articlesLoaded
-    ? initialData.queryKey ?? BLOG_INDEX_BASE_QUERY_KEY
-    : null);
+  const [searchInput, setSearchInput] = useState(
+    searchParams.get("search") || "",
+  );
+  const appliedQueryKeyRef = useRef(
+    initialData?.articlesLoaded
+      ? (initialData.queryKey ?? BLOG_INDEX_BASE_QUERY_KEY)
+      : null,
+  );
   const articlesRequestRef = useRef<ArticlesRequest | null>(null);
   const articlesGenerationRef = useRef(0);
   const categoriesRequestRef = useRef<Promise<BlogCategory[]> | null>(null);
@@ -61,7 +82,7 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
 
   useSEO({
     ...marketingSeo.blog,
-    type: 'website',
+    type: "website",
   });
 
   useEffect(() => {
@@ -73,13 +94,13 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
   }, []);
 
   useEffect(() => {
-    setSearchInput(searchQuery || '');
+    setSearchInput(searchQuery || "");
   }, [searchQuery]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const normalizedValue = searchInput.trim();
-      const previousValue = searchParams.get('search') || '';
+      const previousValue = searchParams.get("search") || "";
 
       if (normalizedValue === previousValue) {
         return;
@@ -89,12 +110,12 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
         const next = new URLSearchParams(prev);
 
         if (normalizedValue) {
-          next.set('search', normalizedValue);
+          next.set("search", normalizedValue);
         } else {
-          next.delete('search');
+          next.delete("search");
         }
 
-        next.delete('page');
+        next.delete("page");
         return next;
       });
     }, 350);
@@ -110,7 +131,8 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
     let active = true;
 
     if (!categoriesRequestRef.current) {
-      categoriesRequestRef.current = blogPublicApi.getCategories()
+      categoriesRequestRef.current = blogPublicApi
+        .getCategories()
         .then((response) => response.data.data);
     }
 
@@ -128,7 +150,7 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
           return;
         }
 
-        console.error('Error fetching categories:', fetchError);
+        console.error("Error fetching categories:", fetchError);
       });
 
     return () => {
@@ -141,7 +163,10 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
       return undefined;
     }
 
-    return categories.find((category) => category.slug === selectedCategory)?.id ?? undefined;
+    return (
+      categories.find((category) => category.slug === selectedCategory)?.id ??
+      undefined
+    );
   }, [categories, selectedCategory]);
 
   useEffect(() => {
@@ -157,7 +182,7 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
       setHasMore(false);
       setLoading(false);
       setLoadingMore(false);
-      setError('Категория не найдена.');
+      setError("Категория не найдена.");
       return;
     }
 
@@ -180,12 +205,14 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
       request = {
         generation,
         key: queryKey,
-        promise: blogPublicApi.getArticles({
-          page: 1,
-          per_page: 12,
-          category_id: categoryId,
-          search: searchQuery || undefined,
-        }).then((response) => response.data),
+        promise: blogPublicApi
+          .getArticles({
+            page: 1,
+            per_page: 12,
+            category_id: categoryId,
+            search: searchQuery || undefined,
+          })
+          .then((response) => response.data),
       };
       articlesRequestRef.current = request;
     }
@@ -195,9 +222,9 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
     request.promise
       .then((payload) => {
         if (
-          !active
-          || currentQueryKeyRef.current !== queryKey
-          || articlesGenerationRef.current !== generation
+          !active ||
+          currentQueryKeyRef.current !== queryKey ||
+          articlesGenerationRef.current !== generation
         ) {
           return;
         }
@@ -211,21 +238,23 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
       })
       .catch((fetchError) => {
         if (
-          !active
-          || currentQueryKeyRef.current !== queryKey
-          || articlesGenerationRef.current !== generation
+          !active ||
+          currentQueryKeyRef.current !== queryKey ||
+          articlesGenerationRef.current !== generation
         ) {
           return;
         }
 
-        console.error('Error fetching articles:', fetchError);
-        setError('Не удалось загрузить статьи. Попробуйте обновить страницу позже.');
+        console.error("Error fetching articles:", fetchError);
+        setError(
+          "Не удалось загрузить статьи. Попробуйте обновить страницу позже.",
+        );
       })
       .finally(() => {
         if (
-          !active
-          || currentQueryKeyRef.current !== queryKey
-          || articlesGenerationRef.current !== generation
+          !active ||
+          currentQueryKeyRef.current !== queryKey ||
+          articlesGenerationRef.current !== generation
         ) {
           return;
         }
@@ -243,12 +272,12 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
       const next = new URLSearchParams(prev);
 
       if (categorySlug) {
-        next.set('category', categorySlug);
+        next.set("category", categorySlug);
       } else {
-        next.delete('category');
+        next.delete("category");
       }
 
-      next.delete('page');
+      next.delete("page");
       return next;
     });
   };
@@ -274,9 +303,9 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
       });
 
       if (
-        !mountedRef.current
-        || currentQueryKeyRef.current !== requestQueryKey
-        || articlesGenerationRef.current !== requestGeneration
+        !mountedRef.current ||
+        currentQueryKeyRef.current !== requestQueryKey ||
+        articlesGenerationRef.current !== requestGeneration
       ) {
         return;
       }
@@ -290,25 +319,33 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
 
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
-        next.set('page', String(currentPage));
+        next.set("page", String(currentPage));
         return next;
       });
     } catch (fetchError) {
-      if (!mountedRef.current || currentQueryKeyRef.current !== requestQueryKey) {
+      if (
+        !mountedRef.current ||
+        currentQueryKeyRef.current !== requestQueryKey
+      ) {
         return;
       }
 
-      console.error('Error loading more articles:', fetchError);
-      setError('Не удалось загрузить следующую страницу статей.');
+      console.error("Error loading more articles:", fetchError);
+      setError("Не удалось загрузить следующую страницу статей.");
     } finally {
-      if (mountedRef.current && currentQueryKeyRef.current === requestQueryKey) {
+      if (
+        mountedRef.current &&
+        currentQueryKeyRef.current === requestQueryKey
+      ) {
         loadingMoreRef.current = false;
         setLoadingMore(false);
       }
     }
   };
 
-  const selectedCategoryMeta = categories.find((category) => category.slug === selectedCategory);
+  const selectedCategoryMeta = categories.find(
+    (category) => category.slug === selectedCategory,
+  );
   const heroAside = (
     <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
       <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
@@ -316,11 +353,14 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
       </div>
       <div className="mt-4 grid gap-3">
         {[
-          'Разборы графиков работ, заявок и снабжения.',
-          'Материалы о запуске цифрового контура в строительной команде.',
-          'Пояснения по ролям, документам и управленческой отчетности.',
+          "Организация ежедневной работы на объекте.",
+          "Документы, заявки, снабжение и подрядчики.",
+          "Данные для руководителя и подготовка отчётности.",
         ].map((item) => (
-          <div key={item} className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700">
+          <div
+            key={item}
+            className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
+          >
             {item}
           </div>
         ))}
@@ -331,12 +371,12 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
   return (
     <BlogPublicLayout
       eyebrow="Блог МОСТ"
-      title="Публикуем материалы о строительных процессах и запуске системы."
-      description="Здесь собраны статьи о графиках работ, снабжении, документах, финансах и организации цифрового контура строительной команды."
+      title="Практические статьи об управлении стройкой."
+      description="В блоге опубликованы материалы о работе прораба и ПТО, графиках, заявках на материалы, подрядчиках, документах и ежедневной проверке объектов руководителем."
       nav={[
-        { label: 'Лента статей', href: '#blog-feed' },
-        { label: 'Фильтры', href: '#blog-filters' },
-        { label: 'Контакты', href: '#blog-cta' },
+        { label: "Лента статей", href: "#blog-feed" },
+        { label: "Фильтры", href: "#blog-filters" },
+        { label: "Контакты", href: "#blog-cta" },
       ]}
       aside={heroAside}
     >
@@ -345,8 +385,8 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
           <div>
             <SectionHeader
               eyebrow="Лента"
-              title="Подберите статьи по теме, роли или текущему вопросу."
-              description="Фильтры и поиск помогают быстро собрать релевантные материалы перед демонстрацией или запуском."
+              title="Найдите материал по теме или роли."
+              description="Используйте поиск по словам или выберите категорию. В ленте остаются только опубликованные статьи."
             />
           </div>
 
@@ -373,7 +413,9 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
                 type="button"
                 onClick={() => handleCategoryFilter(null)}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  !selectedCategory ? 'bg-steel-950 text-white' : 'border border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
+                  !selectedCategory
+                    ? "bg-steel-950 text-white"
+                    : "border border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700"
                 }`}
               >
                 Все статьи
@@ -385,8 +427,8 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
                   onClick={() => handleCategoryFilter(category.slug)}
                   className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                     selectedCategory === category.slug
-                      ? 'border-transparent text-white'
-                      : 'border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
+                      ? "border-transparent text-white"
+                      : "border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700"
                   }`}
                   style={
                     selectedCategory === category.slug
@@ -412,14 +454,21 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
                     Подборка материалов
                   </div>
                   <h2 className="mt-2 text-3xl font-bold text-steel-950">
-                    {selectedCategoryMeta ? selectedCategoryMeta.name : 'Все статьи'}
+                    {selectedCategoryMeta
+                      ? selectedCategoryMeta.name
+                      : "Все статьи"}
                   </h2>
                 </div>
-                <div className="text-sm text-steel-500">{getBlogListMeta(articles.length)}</div>
+                <div className="text-sm text-steel-500">
+                  {getBlogListMeta(articles.length)}
+                </div>
               </div>
               {searchQuery ? (
                 <p className="mt-4 text-sm leading-7 text-steel-600">
-                  Поиск по запросу: <span className="font-semibold text-steel-950">{searchQuery}</span>
+                  Поиск по запросу:{" "}
+                  <span className="font-semibold text-steel-950">
+                    {searchQuery}
+                  </span>
                 </p>
               ) : null}
             </div>
@@ -427,7 +476,10 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
             {loading ? (
               <div className="mt-6 grid gap-5 md:grid-cols-2">
                 {Array.from({ length: 6 }).map((_, index) => (
-                  <div key={index} className="rounded-[1.75rem] border border-steel-200 bg-white p-5 shadow-sm">
+                  <div
+                    key={index}
+                    className="rounded-[1.75rem] border border-steel-200 bg-white p-5 shadow-sm"
+                  >
                     <div className="aspect-[16/10] animate-pulse rounded-[1.35rem] bg-concrete-100" />
                     <div className="mt-5 h-4 w-32 animate-pulse rounded bg-concrete-100" />
                     <div className="mt-4 h-8 w-4/5 animate-pulse rounded bg-concrete-100" />
@@ -441,9 +493,12 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
               </div>
             ) : articles.length === 0 ? (
               <div className="mt-6 rounded-[1.75rem] border border-steel-200 bg-white p-8 shadow-sm">
-                <h3 className="text-2xl font-bold text-steel-950">Статьи не найдены</h3>
+                <h3 className="text-2xl font-bold text-steel-950">
+                  Статьи не найдены
+                </h3>
                 <p className="mt-4 text-sm leading-7 text-steel-600">
-                  Попробуйте изменить запрос, снять фильтр по категории или перейти к общей ленте.
+                  Попробуйте изменить запрос, снять фильтр по категории или
+                  перейти к общей ленте.
                 </p>
                 <a
                   href={marketingPaths.blog}
@@ -468,11 +523,11 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
                       disabled={loadingMore}
                       className={`inline-flex w-full min-w-0 flex-wrap items-center justify-center rounded-full px-5 py-3 text-center text-sm font-semibold whitespace-normal [overflow-wrap:anywhere] transition sm:w-auto ${
                         loadingMore
-                          ? 'cursor-not-allowed bg-steel-300 text-white'
-                          : 'bg-steel-950 text-white hover:bg-steel-900'
+                          ? "cursor-not-allowed bg-steel-300 text-white"
+                          : "bg-steel-950 text-white hover:bg-steel-900"
                       }`}
                     >
-                      {loadingMore ? 'Загружаем статьи' : 'Показать еще'}
+                      {loadingMore ? "Загружаем статьи" : "Показать еще"}
                     </button>
                   </div>
                 ) : null}
