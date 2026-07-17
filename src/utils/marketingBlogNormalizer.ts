@@ -1,11 +1,12 @@
-import type { BlogArticle } from '@/types/blog';
+import type { BlogArticle } from "@/types/blog";
 
 const MARKETING_TEXT_TOKEN_PATTERN = /https?:\/\/[^\s<>"']+|ProHelper/gi;
-const OLD_SITE_HOSTNAMES = new Set(['prohelper.pro', 'www.prohelper.pro']);
+const OLD_SITE_HOSTNAMES = new Set(["prohelper.pro", "www.prohelper.pro"]);
 const TERMINAL_PUNCTUATION_PATTERN = /[.,;:!?()[\]{}]+$/;
 
 const normalizeMarketingUrlToken = (token: string): string => {
-  const terminalPunctuation = token.match(TERMINAL_PUNCTUATION_PATTERN)?.[0] ?? '';
+  const terminalPunctuation =
+    token.match(TERMINAL_PUNCTUATION_PATTERN)?.[0] ?? "";
   const urlValue = terminalPunctuation
     ? token.slice(0, -terminalPunctuation.length)
     : token;
@@ -17,16 +18,15 @@ const normalizeMarketingUrlToken = (token: string): string => {
     return token;
   }
 
-  const hostname = parsedUrl.hostname.toLowerCase().replace(/\.$/, '');
+  const hostname = parsedUrl.hostname.toLowerCase().replace(/\.$/, "");
   if (!OLD_SITE_HOSTNAMES.has(hostname)) {
     return token;
   }
 
-  const authorityStart = urlValue.indexOf('://') + 3;
+  const authorityStart = urlValue.indexOf("://") + 3;
   const suffixOffset = urlValue.slice(authorityStart).search(/[/?#]/);
-  const suffix = suffixOffset === -1
-    ? ''
-    : urlValue.slice(authorityStart + suffixOffset);
+  const suffix =
+    suffixOffset === -1 ? "" : urlValue.slice(authorityStart + suffixOffset);
 
   return `https://1мост.рф${suffix}${terminalPunctuation}`;
 };
@@ -37,13 +37,17 @@ export const normalizeMarketingBlogText = (value: string): string =>
       return normalizeMarketingUrlToken(token);
     }
 
-    return 'МОСТ';
+    return "МОСТ";
   });
 
-const normalizeOptionalText = <T extends string | null | undefined>(value: T): T =>
-  (typeof value === 'string' ? normalizeMarketingBlogText(value) : value) as T;
+const normalizeOptionalText = <T extends string | null | undefined>(
+  value: T,
+): T =>
+  (typeof value === "string" ? normalizeMarketingBlogText(value) : value) as T;
 
-export const normalizeMarketingBlogArticle = <T extends BlogArticle>(article: T): T => ({
+export const normalizeMarketingBlogArticle = <T extends BlogArticle>(
+  article: T,
+): T => ({
   ...article,
   title: normalizeMarketingBlogText(article.title),
   meta_title: normalizeOptionalText(article.meta_title),
