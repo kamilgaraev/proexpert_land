@@ -57,6 +57,26 @@ describe('normalizeMarketingBlogText', () => {
   ])('нормализует только старый бренд и его собственный домен', (source, expected) => {
     expect(normalizeMarketingBlogText(source)).toBe(expected);
   });
+
+  it.each([
+    ['https://example.com/docs/ProHelper', 'https://example.com/docs/ProHelper'],
+    ['https://example.com/search?product=ProHelper#ProHelper', 'https://example.com/search?product=ProHelper#ProHelper'],
+    [
+      '<a href="https://example.com/docs/ProHelper?product=ProHelper">ProHelper</a>',
+      '<a href="https://example.com/docs/ProHelper?product=ProHelper">МОСТ</a>',
+    ],
+  ])('сохраняет старый бренд внутри постороннего URL побайтно', (source, expected) => {
+    expect(normalizeMarketingBlogText(source)).toBe(expected);
+  });
+
+  it.each([
+    ['https://prohelper.pro?utm=x', 'https://1мост.рф?utm=x'],
+    ['http://www.prohelper.pro#section', 'https://1мост.рф#section'],
+    ['https://prohelper.pro,', 'https://1мост.рф,'],
+    ['Сайт (https://prohelper.pro).', 'Сайт (https://1мост.рф).'],
+  ])('заменяет старый собственный origin перед query, fragment и пунктуацией', (source, expected) => {
+    expect(normalizeMarketingBlogText(source)).toBe(expected);
+  });
 });
 
 describe('normalizeMarketingBlogArticle', () => {
