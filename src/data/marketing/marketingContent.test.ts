@@ -170,17 +170,6 @@ const flattenText = (values: unknown[]): string =>
     .filter((value): value is string => typeof value === "string")
     .join("\n");
 
-const capabilityText = flattenText(
-  marketingCapabilityMatrix.map((item) => [
-    item.title,
-    item.businessContour,
-    item.summary,
-    item.publicClaim,
-    item.audiences,
-    item.outcomes,
-    item.cta,
-  ]),
-);
 const solutionText = flattenText(
   marketingSolutionSegments.map((item) => [
     item.title,
@@ -191,18 +180,127 @@ const solutionText = flattenText(
     item.cta,
   ]),
 );
-const packageText = flattenText(
-  commercialPackages.map((item) => [
-    item.name,
-    item.description,
-    item.bestFor,
-    item.highlights,
-    item.businessOutcomes,
-  ]),
-);
 const trustText = flattenText(
   marketingTrustFacts.map((item) => [item.title, item.text]),
 );
+
+interface RouteRegistrySelection {
+  capabilityIds: string[];
+  packageSlugs: string[];
+}
+
+const solutionCapabilityIds = [
+  ...new Set(
+    marketingSolutionSegments.flatMap((segment) => segment.capabilityIds),
+  ),
+];
+const solutionPackageSlugs = [
+  ...new Set(
+    marketingSolutionSegments.flatMap(
+      (segment) => segment.recommendedPackageSlugs,
+    ),
+  ),
+];
+
+const routeRegistrySelections: Record<
+  CoreMarketingSeoKey,
+  RouteRegistrySelection
+> = {
+  home: {
+    capabilityIds: [
+      "project-control",
+      "supply-chain",
+      "finance-control",
+      "pir-project-documentation",
+      "quality-handover",
+      "construction-safety",
+      "machinery-labor",
+      "change-control",
+      "multi-org",
+    ],
+    packageSlugs: [
+      "projects-processes",
+      "planning-schedules",
+      "estimates-norms",
+      "quality-safety",
+      "pto-handover",
+      "supply-warehouse",
+    ],
+  },
+  solutions: {
+    capabilityIds: solutionCapabilityIds,
+    packageSlugs: solutionPackageSlugs,
+  },
+  features: {
+    capabilityIds: marketingCapabilityMatrix.map((item) => item.id),
+    packageSlugs: [],
+  },
+  pricing: {
+    capabilityIds: [],
+    packageSlugs: commercialPackages.map((item) => item.slug),
+  },
+  integrations: { capabilityIds: [], packageSlugs: [] },
+  contractors: { capabilityIds: [], packageSlugs: [] },
+  developers: { capabilityIds: [], packageSlugs: [] },
+  enterprise: {
+    capabilityIds: ["multi-org", "finance-control", "project-control"],
+    packageSlugs: [],
+  },
+  about: { capabilityIds: [], packageSlugs: [] },
+  security: { capabilityIds: [], packageSlugs: [] },
+  contact: { capabilityIds: [], packageSlugs: [] },
+  blog: { capabilityIds: [], packageSlugs: [] },
+};
+
+const selectedCapabilityText = (ids: string[]): string =>
+  flattenText(
+    ids.map((id) => {
+      const item = marketingCapabilityMatrix.find(
+        (capability) => capability.id === id,
+      );
+
+      return item
+        ? [
+            item.title,
+            item.businessContour,
+            item.summary,
+            item.publicClaim,
+            item.audiences,
+            item.outcomes,
+            item.cta,
+          ]
+        : [];
+    }),
+  );
+
+const selectedPackageText = (slugs: string[]): string => {
+  return flattenText(
+    slugs.map((slug) => {
+      const item = commercialPackages.find(
+        (candidate) => candidate.slug === slug,
+      );
+
+      return item
+        ? [
+            item.name,
+            item.description,
+            item.bestFor,
+            item.highlights,
+            item.businessOutcomes,
+          ]
+        : [];
+    }),
+  );
+};
+
+const selectedRegistryText = (seoKey: CoreMarketingSeoKey): string => {
+  const selection = routeRegistrySelections[seoKey];
+
+  return flattenText([
+    selectedCapabilityText(selection.capabilityIds),
+    selectedPackageText(selection.packageSlugs),
+  ]);
+};
 
 const routeOwnedDataText: Record<CoreMarketingSeoKey, string> = {
   home: flattenText([
@@ -210,13 +308,12 @@ const routeOwnedDataText: Record<CoreMarketingSeoKey, string> = {
     marketingLaunchSteps.map((item) => [item.title, item.description]),
     marketingFaqs.map((item) => [item.question, item.answer]),
     solutionText,
-    capabilityText,
+    selectedRegistryText("home"),
     trustText,
-    packageText,
   ]),
-  solutions: flattenText([solutionText, capabilityText, packageText]),
+  solutions: flattenText([solutionText, selectedRegistryText("solutions")]),
   features: flattenText([
-    capabilityText,
+    selectedRegistryText("features"),
     marketingAdvancedOffers.map((item) => [item.title, item.summary, item.cta]),
     marketingSecuritySections.map((item) => [
       item.title,
@@ -226,7 +323,7 @@ const routeOwnedDataText: Record<CoreMarketingSeoKey, string> = {
     trustText,
   ]),
   pricing: flattenText([
-    packageText,
+    selectedRegistryText("pricing"),
     freeFoundationOffer.name,
     freeFoundationOffer.description,
     freeFoundationOffer.includes,
@@ -237,7 +334,7 @@ const routeOwnedDataText: Record<CoreMarketingSeoKey, string> = {
   integrations: "",
   contractors: "",
   developers: "",
-  enterprise: flattenText([capabilityText, trustText]),
+  enterprise: flattenText([selectedRegistryText("enterprise"), trustText]),
   about: flattenText([
     marketingAboutSections.map((item) => [
       item.title,
@@ -256,7 +353,6 @@ const routeOwnedDataText: Record<CoreMarketingSeoKey, string> = {
       item.bullets,
     ]),
     trustText,
-    capabilityText,
   ]),
   contact: flattenText([
     marketingCompany.email,
@@ -315,6 +411,81 @@ const readComponentUserFacingText = (componentPath: string): string => {
 };
 
 describe("marketing content consistency", () => {
+  it("maps each route only to registry entries selected by its page", () => {
+    const homeSource = fs.readFileSync(
+      path.resolve(process.cwd(), "src/pages/landing/HomePage.tsx"),
+      "utf8",
+    );
+    const enterpriseSource = fs.readFileSync(
+      path.resolve(process.cwd(), "src/pages/solutions/EnterprisePage.tsx"),
+      "utf8",
+    );
+
+    expect(routeRegistrySelections.home.packageSlugs).toEqual(
+      marketingPackages.slice(0, 6).map((item) => item.slug),
+    );
+    expect(routeRegistrySelections.solutions).toEqual({
+      capabilityIds: solutionCapabilityIds,
+      packageSlugs: solutionPackageSlugs,
+    });
+    expect(routeRegistrySelections.features.capabilityIds).toEqual(
+      marketingCapabilityMatrix.map((item) => item.id),
+    );
+    expect(routeRegistrySelections.pricing.packageSlugs).toEqual(
+      commercialPackages.map((item) => item.slug),
+    );
+
+    for (const id of routeRegistrySelections.home.capabilityIds) {
+      expect(homeSource, `/: ${id}`).toContain(`"${id}"`);
+    }
+    for (const id of routeRegistrySelections.enterprise.capabilityIds) {
+      expect(enterpriseSource, `/enterprise: ${id}`).toContain(`"${id}"`);
+    }
+
+    for (const seoKey of [
+      "integrations",
+      "contractors",
+      "developers",
+      "about",
+      "security",
+      "contact",
+      "blog",
+    ] as const) {
+      expect(routeRegistrySelections[seoKey]).toEqual({
+        capabilityIds: [],
+        packageSlugs: [],
+      });
+    }
+  });
+
+  it("describes every capability claim and outcome through observable mechanisms or available data", () => {
+    const resultDenylistPattern =
+      /(?:\b(?:меньше|больше|быстрее|легче|удобнее|лучше|эффективнее)\b|без(?:\s+\S+){0,2}\s+ручн\w*|не\s+(?:теря\w*|распада\w*|оста[её]\w*)|синхрониз\w*|станов\w+\s+управляем\w*|масштабир\w*|сокращ\w*|ускор\w*|оптимиз\w*|довод\w*\s+до\s+результат\w*)/iu;
+    const observableDataPattern =
+      /(?:карточк|статус|реестр|роль|команд|руководител|истори|сводк|панел|показател|отч[её]т|данн|документ|задач|заявк|плат[её]ж|акт|потребност|склад|материал|верси|замечан|комплект|дефект|инспекц|нарушен|предписан|допуск|техник|смен|наряд|выработк|сотрудник|бригад|запрос|изменен|претензи|организац|объект|прав|доступ|сопоставлен|сверк|профил|кандидат|приглашен|сигнал).*(?:содерж|показыва|связыва|связан|видит|хран|собира|фиксиру|доступ|привязан|получа|формиру|использ|относ|определя|переда|назнач|вед|отображ|группиру)/iu;
+
+    for (const capability of marketingCapabilityMatrix) {
+      const fields = [
+        ["publicClaim", capability.publicClaim],
+        ...capability.outcomes.map((outcome, index) => [
+          `outcomes[${index}]`,
+          outcome,
+        ]),
+      ] as const;
+
+      for (const [field, text] of fields) {
+        expect(
+          text,
+          `${capability.id}: ${field} broad result denylist`,
+        ).not.toMatch(resultDenylistPattern);
+        expect(
+          text,
+          `${capability.id}: ${field} observable mechanism or data`,
+        ).toMatch(observableDataPattern);
+      }
+    }
+  });
+
   it("maps the 12 core routes to exact page owners with distinct concrete content", () => {
     const titles = new Set<string>();
     const descriptions = new Set<string>();
