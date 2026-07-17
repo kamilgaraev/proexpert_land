@@ -16,9 +16,9 @@ type SeoClusterPageProps = {
 const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
   const page = marketingSeoLandingPages[pageKey];
   const trustProfile = page.trust ?? {
-    title: 'Когда этот сценарий дает лучший результат',
+    title: 'Когда решение подходит вашей команде',
     description:
-      'Собрали ориентиры, которые помогают быстро понять, подходит ли этот контур вашей команде и с чего разумно начать запуск.',
+      'Эти ориентиры помогут понять, подходит ли решение вашей команде и с чего начать запуск.',
     fitForTitle: 'Подходит, если',
     fitFor: page.audiences.slice(0, 3),
     cautionTitle: 'Важно обсудить заранее',
@@ -55,7 +55,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
           <div className="space-y-4">
             <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
               <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                Основной сценарий
+                Основная задача
               </div>
               <div className="mt-4 rounded-[1.2rem] bg-concrete-50 px-4 py-4 text-sm font-semibold leading-7 text-steel-950">
                 {page.supportingQueries[0]}
@@ -268,8 +268,8 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
           <div className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
             <SectionHeader
               eyebrow="Связанные решения"
-              title="Соседние сценарии и решения"
-              description="Если ваша задача затрагивает несколько ролей или процессов, здесь можно быстро перейти в смежный контур."
+              title="Решения для связанных задач"
+              description="Если задача затрагивает несколько ролей или процессов, здесь можно перейти к подходящему решению."
             />
             <div className="mt-8 grid gap-4">
               {page.relatedLinks.map((link) => (
@@ -289,7 +289,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
             <SectionHeader
               eyebrow="Что еще изучить"
               title="Материалы, которые помогают подготовиться к демонстрации"
-              description="Если хотите заранее посмотреть смежные разборы и практические сценарии, отсюда удобно перейти в тематические материалы."
+              description="Здесь собраны материалы по связанным ролям и рабочим процессам."
             />
             <div className="mt-8 grid gap-4">
               {page.blogLinks.map((link) => (
@@ -312,7 +312,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
           <div>
             <SectionHeader
               eyebrow="FAQ"
-              title="Частые вопросы по этому сценарию"
+              title="Частые вопросы по решению"
               description="Отвечаем на запросы, которые чаще всего возникают до демонстрации и старта пилота."
             />
           </div>
@@ -326,7 +326,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
             <SectionHeader
               eyebrow="Контакт"
               title="Запросите демонстрацию под ваш процесс"
-              description="Покажем только релевантный сценарий, роли, отчеты и соседние контуры, которые действительно важны для запуска."
+              description="Покажем подходящие функции, роли и отчеты для вашего процесса."
             />
             <div className="mt-8 grid gap-3">
               {page.contactHighlights.map((item) => (

@@ -76,7 +76,7 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     rows: [
       { title: 'Монтаж стояков ВК', meta: 'Корпус 2, секции 4-6', status: 'Ждет материалы', progress: 38, linkedTo: ['warehouse', 'procurement'] },
       { title: 'Устройство стяжки', meta: 'Этажи 8-10, бригада Смирнова', status: 'В графике', progress: 74, linkedTo: ['contractors', 'acts'] },
-      { title: 'Проверка исполнительной схемы', meta: 'ПТО, комплект ИД-24', status: 'На согласовании', progress: 56, linkedTo: ['documentsAnalytics'] },
+      { title: 'Проверка исполнительной схемы', meta: 'ПТО, комплект исполнительной документации № 24', status: 'На согласовании', progress: 56, linkedTo: ['documentsAnalytics'] },
     ],
   },
   {
@@ -84,7 +84,7 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Заявки с объекта',
     shortTitle: 'Заявки',
     contour: 'Поле',
-    businessOutcome: 'Прораб передает потребности с площадки в офисный контур, а снабжение и финансы видят источник запроса.',
+    businessOutcome: 'Прораб передает потребности с площадки в офис, а снабжение и финансы видят источник запроса.',
     activeTab: 'Новые и в работе',
     notification: 'Заявка на арматуру передана в закупку.',
     stats: [
@@ -104,7 +104,7 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     shortTitle: 'Снабжение',
     contour: 'Закупки',
     businessOutcome: 'Потребность превращается в закупочную заявку, запрос поставщикам, сравнение предложений и заказ.',
-    activeTab: 'Закупочный контур',
+    activeTab: 'Закупки',
     notification: 'По заявке на арматуру выбран поставщик с поставкой за 2 дня.',
     stats: [
       { label: 'Заявок', value: '27', tone: 'neutral' },
@@ -222,12 +222,12 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     notification: 'Проектный пульс обновил сводку по рискам и документам.',
     stats: [
       { label: 'Отчетов', value: '28', tone: 'neutral' },
-      { label: 'Комплектов ИД', value: '17', tone: 'success' },
+      { label: 'Комплектов документации', value: '17', tone: 'success' },
       { label: 'Рисков', value: '6', tone: 'warning' },
     ],
     rows: [
       { title: 'Сводка по срокам проектов', meta: 'План-факт, риски, ответственные', status: 'Обновлено', progress: 100, linkedTo: ['projects', 'schedule'] },
-      { title: 'Исполнительная документация', meta: 'Комплект ИД-24, БЦ "Меридиан"', status: 'На согласовании', progress: 62, linkedTo: ['acts', 'estimates'] },
+      { title: 'Исполнительная документация', meta: 'Комплект № 24, БЦ "Меридиан"', status: 'На согласовании', progress: 62, linkedTo: ['acts', 'estimates'] },
       { title: 'Отчет по материалам', meta: 'Остатки, движения, критичные позиции', status: 'Есть отклонения', progress: 73, linkedTo: ['warehouse', 'procurement'] },
     ],
   },

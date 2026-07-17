@@ -89,7 +89,7 @@ describe('buildServerSeoPayload', () => {
     const payload = buildServerSeoPayload('/features');
 
     expect(payload.statusCode).toBe(200);
-    expect(payload.title).toContain('Возможности МОСТ');
+    expect(payload.title).toBe('Функции системы управления строительством | МОСТ');
     expect(payload.canonicalUrl).toBe('https://1мост.рф/features');
     expect(payload.allMeta).toContain('index, follow');
     expect(payload.structuredDataTag).toContain('application/ld+json');
