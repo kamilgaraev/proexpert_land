@@ -80,7 +80,7 @@ Concerns: нет.
 
 ### Route-level semantic pass
 
-- `/security` теперь получает фактически отображаемые первые пять capability IDs. Контракт сравнивает mapping с `marketingCapabilityMatrix.slice(0, 5).map((item) => item.id)` и защищает выборку от дрейфа.
+- Набор карточек `/security` принадлежит production-данным `marketingSecurityCapabilities`, а `SecurityPage.tsx` рендерит его напрямую. Контракт независимо фиксирует пять ожидаемых ID и их порядок, защищая выборку от дрейфа.
 - Route-owned проверка анализирует локальные строки компонентов, hero-тексты, выбранные capabilities и пакеты. Отдельный запрет ловит обещания вида «без ручного свода/сбора/консолидации» и близкие варианты.
 - Структурный denylist применяется также ко всем capability summaries, а не только к `publicClaim` и `outcomes`.
 - RED подтверждён на пустом security mapping, `analytics-control.summary` и route-level текстах главной страницы. GREEN: `marketingContent.test.ts` — 16/16.
