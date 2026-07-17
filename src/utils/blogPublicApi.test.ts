@@ -203,4 +203,51 @@ describe('blogPublicApi', () => {
 
     expect(response.data.data[0]?.name).toBe('50');
   });
+
+  it('normalizes public category and tag names without changing ids or slugs', async () => {
+    server.use(
+      http.get(apiUrl('/api/v1/blog/categories'), () =>
+        HttpResponse.json({
+          success: true,
+          data: {
+            data: [
+              {
+                ...articleFixture.category,
+                name: 'Блог ProHelper',
+                description: 'Материалы команды ProHelper',
+                meta_title: 'Блог ProHelper о стройке',
+                meta_description: 'Читайте ProHelper на https://prohelper.pro/blog',
+              },
+            ],
+          },
+        }),
+      ),
+      http.get(apiUrl('/api/v1/blog/tags'), () =>
+        HttpResponse.json({
+          success: true,
+          data: { data: [{ id: 5, name: 'ProHelper', slug: 'prohelper' }] },
+        }),
+      ),
+    );
+
+    const categoriesResponse = await blogPublicApi.getCategories();
+    const tagsResponse = await blogPublicApi.getTags();
+
+    expect(categoriesResponse.data.data[0]).toMatchObject({
+      id: 7,
+      slug: 'operations',
+      name: 'Блог МОСТ',
+      description: 'Материалы команды МОСТ',
+      meta_title: 'Блог МОСТ о стройке',
+      meta_description: 'Читайте МОСТ на https://1мост.рф/blog',
+    });
+    expect(tagsResponse.data.data[0]).toEqual({ id: 5, name: 'МОСТ', slug: 'prohelper' });
+    expect([
+      categoriesResponse.data.data[0]?.name,
+      categoriesResponse.data.data[0]?.description,
+      categoriesResponse.data.data[0]?.meta_title,
+      categoriesResponse.data.data[0]?.meta_description,
+      tagsResponse.data.data[0]?.name,
+    ].join('\n')).not.toMatch(/ProHelper|prohelper\.pro/i);
+  });
 });

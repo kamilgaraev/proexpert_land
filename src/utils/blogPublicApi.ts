@@ -7,7 +7,11 @@ import type {
   BlogPaginatedResponse,
   BlogTag,
 } from '../types/blog';
-import { normalizeMarketingBlogArticle } from './marketingBlogNormalizer';
+import {
+  normalizeMarketingBlogArticle,
+  normalizeMarketingBlogCategory,
+  normalizeMarketingBlogTag,
+} from './marketingBlogNormalizer';
 
 const API_BASE_DOMAIN = (import.meta.env.VITE_API_BASE as string | undefined) ?? 'https://api.1мост.рф';
 const BLOG_PUBLIC_API_URL = `${API_BASE_DOMAIN}/api/v1/blog`;
@@ -109,13 +113,25 @@ export const blogPublicApi = {
   getCategories: async (): Promise<ApiResult<WrappedItemPayload<BlogCategory[]>>> => {
     const response = await api.get('/categories');
 
-    return wrapResourceCollectionPayload<BlogCategory>(response as { data: LandingEnvelope<{ data: BlogCategory[] }> });
+    const result = wrapResourceCollectionPayload<BlogCategory>(
+      response as { data: LandingEnvelope<{ data: BlogCategory[] }> },
+    );
+
+    return {
+      data: { data: result.data.data.map(normalizeMarketingBlogCategory) },
+    };
   },
 
   getTags: async (limit = 20): Promise<ApiResult<WrappedItemPayload<BlogTag[]>>> => {
     const response = await api.get(`/tags?limit=${limit}`);
 
-    return wrapResourceCollectionPayload<BlogTag>(response as { data: LandingEnvelope<{ data: BlogTag[] }> });
+    const result = wrapResourceCollectionPayload<BlogTag>(
+      response as { data: LandingEnvelope<{ data: BlogTag[] }> },
+    );
+
+    return {
+      data: { data: result.data.data.map(normalizeMarketingBlogTag) },
+    };
   },
 
   getPopularArticles: async (limit = 5): Promise<ApiResult<WrappedItemPayload<BlogArticle[]>>> => {

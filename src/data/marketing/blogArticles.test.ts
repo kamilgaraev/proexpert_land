@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import publishedBlogTitles from "./fixtures/publishedBlogTitles.json";
 import { marketingBlogArticles } from "./blogArticles";
 
 describe("marketing blog article registry", () => {
@@ -18,11 +19,14 @@ describe("marketing blog article registry", () => {
     ).toEqual(expectedPaths.sort());
   });
 
-  it("keeps a substantial published title for every article", () => {
-    expect(
-      Object.values(marketingBlogArticles).every(
-        ({ title }) => title.length > 20,
-      ),
-    ).toBe(true);
+  it("uses the exact titles returned by the production public API", () => {
+    const registryTitles = Object.fromEntries(
+      Object.values(marketingBlogArticles).map(({ href, title }) => [
+        href.replace("/blog/", ""),
+        title,
+      ]),
+    );
+
+    expect(registryTitles).toEqual(publishedBlogTitles);
   });
 });

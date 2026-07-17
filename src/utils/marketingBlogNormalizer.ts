@@ -1,4 +1,4 @@
-import type { BlogArticle } from "@/types/blog";
+import type { BlogArticle, BlogCategory, BlogTag } from "@/types/blog";
 
 const MARKETING_TEXT_TOKEN_PATTERN = /https?:\/\/[^\s<>"']+|ProHelper/gi;
 const OLD_SITE_HOSTNAMES = new Set(["prohelper.pro", "www.prohelper.pro"]);
@@ -45,6 +45,21 @@ const normalizeOptionalText = <T extends string | null | undefined>(
 ): T =>
   (typeof value === "string" ? normalizeMarketingBlogText(value) : value) as T;
 
+export const normalizeMarketingBlogCategory = <T extends BlogCategory>(
+  category: T,
+): T => ({
+  ...category,
+  name: normalizeMarketingBlogText(category.name),
+  description: normalizeOptionalText(category.description),
+  meta_title: normalizeOptionalText(category.meta_title),
+  meta_description: normalizeOptionalText(category.meta_description),
+});
+
+export const normalizeMarketingBlogTag = <T extends BlogTag>(tag: T): T => ({
+  ...tag,
+  name: normalizeMarketingBlogText(tag.name),
+});
+
 export const normalizeMarketingBlogArticle = <T extends BlogArticle>(
   article: T,
 ): T => ({
@@ -60,4 +75,6 @@ export const normalizeMarketingBlogArticle = <T extends BlogArticle>(
     ...article.author,
     name: normalizeMarketingBlogText(article.author.name),
   },
+  category: normalizeMarketingBlogCategory(article.category),
+  tags: article.tags.map(normalizeMarketingBlogTag),
 });

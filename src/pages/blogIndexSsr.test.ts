@@ -80,6 +80,56 @@ describe('blog index SSR transport', () => {
     expect(JSON.stringify(result.articles)).not.toContain('ProHelper');
   });
 
+  it('нормализует публичные поля категорий и тегов в SSR-данных', async () => {
+    const legacyCategory: BlogCategory = {
+      ...category,
+      name: 'Блог ProHelper',
+      description: 'Материалы команды ProHelper',
+      meta_title: 'Блог ProHelper о стройке',
+      meta_description: 'Читайте ProHelper на https://prohelper.pro/blog',
+    };
+    const legacyArticle: BlogArticle = {
+      ...article,
+      category: legacyCategory,
+      tags: [{ id: 5, name: 'ProHelper', slug: 'prohelper' }],
+    };
+    const fetchImpl = vi.fn((input: string | URL | Request) => Promise.resolve(
+      String(input).includes('/articles?')
+        ? new Response(JSON.stringify({
+            success: true,
+            data: {
+              data: [legacyArticle],
+              meta: { current_page: 1, last_page: 1, per_page: 12, total: 1 },
+            },
+          }), { status: 200 })
+        : new Response(JSON.stringify({ success: true, data: [legacyCategory] }), { status: 200 }),
+    ));
+
+    const result = await fetchBlogIndexForSsr({
+      apiBaseDomain: 'https://api.example.test',
+      fetchImpl: fetchImpl as typeof fetch,
+    });
+
+    expect(result.categories[0]).toMatchObject({
+      id: 7,
+      slug: 'management',
+      name: 'Блог МОСТ',
+      meta_title: 'Блог МОСТ о стройке',
+    });
+    expect(result.articles[0]).toMatchObject({
+      category: { id: 7, slug: 'management', name: 'Блог МОСТ' },
+      tags: [{ id: 5, slug: 'prohelper', name: 'МОСТ' }],
+    });
+    expect([
+      result.categories[0]?.name,
+      result.categories[0]?.description,
+      result.categories[0]?.meta_title,
+      result.categories[0]?.meta_description,
+      result.articles[0]?.category.name,
+      ...result.articles.flatMap(({ tags }) => tags.map(({ name }) => name)),
+    ].join('\n')).not.toMatch(/ProHelper|prohelper\.pro/i);
+  });
+
   it('returns a partial result when one upstream request reaches the deadline', async () => {
     vi.useFakeTimers();
     const fetchImpl = vi.fn((input: string | URL | Request, init?: RequestInit) => {

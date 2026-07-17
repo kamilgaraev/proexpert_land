@@ -323,6 +323,14 @@ describe('catch-all blog SSR', () => {
       og_title: 'ProHelper для команды',
       og_description: 'Сайт https://prohelper.pro/blog/a',
       author: { ...article.author, name: 'Команда ProHelper' },
+      category: {
+        ...article.category,
+        name: 'Блог ProHelper',
+        description: 'Материалы команды ProHelper',
+        meta_title: 'Блог ProHelper о стройке',
+        meta_description: 'Читайте ProHelper на https://prohelper.pro/blog',
+      },
+      tags: [{ id: 5, name: 'ProHelper', slug: 'prohelper' }],
     };
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ success: true, data: legacyArticle })));
 
@@ -335,6 +343,8 @@ describe('catch-all blog SSR', () => {
       excerpt: 'Команда МОСТ',
       content: '<p>Читайте https://1мост.рф/blog/a</p>',
       author: { name: 'Команда МОСТ' },
+      category: { id: 7, slug: 'management', name: 'Блог МОСТ' },
+      tags: [{ id: 5, slug: 'prohelper', name: 'МОСТ' }],
     });
     expect(result.pageContext.documentProps).toMatchObject({
       title: 'МОСТ — управление стройкой | МОСТ',

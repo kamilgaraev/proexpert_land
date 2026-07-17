@@ -5,12 +5,13 @@ import type {
 
 export const marketingBlogArticles = {
   foremanOrder: {
-    title: "Как прорабу держать объект без хаоса",
+    title: "Как прорабу держать объект под контролем без хаоса в чатах",
     href: "/blog/kak-prorabu-derzhat-obekt-bez-haosa",
     purpose: "Организация ежедневных задач и фиксации факта на площадке.",
   },
   ptoWorkspace: {
-    title: "Что должно быть у ПТО в одной системе",
+    title:
+      "Что должно быть у ПТО в одной системе, чтобы документы не догоняли стройку",
     href: "/blog/chto-dolzhno-byt-u-pto-v-odnoy-sisteme",
     purpose: "Рабочее пространство ПТО для документов, статусов и замечаний.",
   },
@@ -20,13 +21,14 @@ export const marketingBlogArticles = {
     purpose: "Набор данных для ежедневной управленческой проверки объектов.",
   },
   procurementChats: {
-    title: "Как снабженцу перестать собирать заявки из чатов",
+    title:
+      "Как снабженцу перестать собирать заявки из чатов и не срывать поставки",
     href: "/blog/kak-snabzhentsu-perestat-sobirat-zayavki-iz-chatov",
     purpose:
       "Порядок обработки заявок на материалы вне разрозненной переписки.",
   },
   contractorControl: {
-    title: "Как контролировать подрядчиков на объекте без разборок",
+    title: "Как контролировать подрядчиков на объекте без ежедневных разборок",
     href: "/blog/kak-kontrolirovat-podryadchikov-na-obekte-bez-razborok",
     purpose: "Фиксация объёмов, сроков и замечаний в работе подрядчиков.",
   },

@@ -140,18 +140,59 @@ describe("normalizeMarketingBlogArticle", () => {
       og_title: "МОСТ для команды",
       og_description: "Сайт https://1мост.рф/blog/a",
       author: { name: "Команда МОСТ" },
+      category: {
+        id: 7,
+        name: "МОСТ",
+        slug: "prohelper",
+      },
+      tags: [{ id: 1, name: "МОСТ", slug: "prohelper" }],
     });
     expect(normalized).toMatchObject({
       slug: article.slug,
       url: article.url,
       featured_image: article.featured_image,
       og_image: article.og_image,
-      category: article.category,
-      tags: article.tags,
+      category: {
+        id: article.category.id,
+        slug: article.category.slug,
+      },
+      tags: article.tags.map(({ id, slug }) => ({ id, slug })),
       published_at: article.published_at,
     });
     expect(normalized).not.toBe(article);
     expect(article.title).toBe("ProHelper помогает вести объект");
     expect(article.author.name).toBe("Команда ProHelper");
+    expect(article.category.name).toBe("ProHelper");
+    expect(article.tags[0]?.name).toBe("ProHelper");
+  });
+
+  it("нормализует production-shaped поля категории без изменения технических идентификаторов", () => {
+    const normalized = normalizeMarketingBlogArticle({
+      ...article,
+      category: {
+        ...article.category,
+        name: "Блог ProHelper",
+        description: "Материалы команды ProHelper",
+        meta_title: "Блог ProHelper о стройке",
+        meta_description: "Читайте ProHelper на https://prohelper.pro/blog",
+      },
+    });
+
+    expect(normalized.category).toMatchObject({
+      id: article.category.id,
+      slug: article.category.slug,
+      name: "Блог МОСТ",
+      description: "Материалы команды МОСТ",
+      meta_title: "Блог МОСТ о стройке",
+      meta_description: "Читайте МОСТ на https://1мост.рф/blog",
+    });
+    expect(
+      [
+        normalized.category.name,
+        normalized.category.description,
+        normalized.category.meta_title,
+        normalized.category.meta_description,
+      ].join("\n"),
+    ).not.toMatch(/ProHelper|prohelper\.pro/i);
   });
 });

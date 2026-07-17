@@ -8,7 +8,10 @@ import type {
   BlogTag,
 } from '@/types/blog';
 import { BLOG_INDEX_BASE_QUERY_KEY } from '@/utils/blogIndexQuery';
-import { normalizeMarketingBlogArticle } from '@/utils/marketingBlogNormalizer';
+import {
+  normalizeMarketingBlogArticle,
+  normalizeMarketingBlogCategory,
+} from '@/utils/marketingBlogNormalizer';
 
 const DEFAULT_API_BASE_DOMAIN = process.env.VITE_API_BASE
   ?? process.env.API_BASE_URL
@@ -235,7 +238,7 @@ const normalizeCategoriesEnvelope = (value: unknown): BlogCategory[] | null => {
     return null;
   }
 
-  return collection;
+  return collection.map(normalizeMarketingBlogCategory);
 };
 
 const normalizeApiBase = (apiBase: string) => apiBase.replace(/\/+$/, '');
