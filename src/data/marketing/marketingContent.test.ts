@@ -669,6 +669,65 @@ describe("marketing content consistency", () => {
     ).toContain("erp");
   });
 
+  it("does not repeat long semantic passages between manually written SEO pages", () => {
+    const pageKeys = [
+      "foreman-software",
+      "construction-crm",
+      "construction-erp",
+      "material-accounting",
+      "pto-software",
+      "contractor-control",
+      "construction-documents",
+      "construction-budget-control",
+    ];
+    const collectStrings = (value: unknown): string[] => {
+      if (typeof value === "string") {
+        return [value.replace(/\s+/gu, " ").trim()];
+      }
+      if (Array.isArray(value)) {
+        return value.flatMap(collectStrings);
+      }
+      if (value && typeof value === "object") {
+        return Object.values(value).flatMap(collectStrings);
+      }
+      return [];
+    };
+    const passages = pageKeys.flatMap((pageKey) =>
+      collectStrings(marketingSeoLandingPages[pageKey])
+        .filter((text) => text.length >= 120)
+        .map((text) => ({ pageKey, text })),
+    );
+    const tokenize = (text: string): Set<string> =>
+      new Set(text.toLocaleLowerCase("ru-RU").match(/[а-яёa-z0-9]+/gu) ?? []);
+
+    for (let leftIndex = 0; leftIndex < passages.length; leftIndex += 1) {
+      for (
+        let rightIndex = leftIndex + 1;
+        rightIndex < passages.length;
+        rightIndex += 1
+      ) {
+        const left = passages[leftIndex];
+        const right = passages[rightIndex];
+        if (left.pageKey === right.pageKey) {
+          continue;
+        }
+
+        const leftTokens = tokenize(left.text);
+        const rightTokens = tokenize(right.text);
+        const union = new Set([...leftTokens, ...rightTokens]);
+        const sharedTokenCount = [...leftTokens].filter((token) =>
+          rightTokens.has(token),
+        ).length;
+        const similarity = sharedTokenCount / union.size;
+
+        expect(
+          similarity,
+          `${left.pageKey} duplicates ${right.pageKey}: ${left.text} / ${right.text}`,
+        ).toBeLessThan(0.65);
+      }
+    }
+  });
+
   it("has a clear public contact channel", () => {
     expect(marketingCompany.email).toMatch(/@1мост\.рф$/);
     expect(marketingCompany.responseTime.length).toBeGreaterThan(0);
