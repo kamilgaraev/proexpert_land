@@ -19,6 +19,7 @@ import {
 import { marketingSolutionSegments } from "./solutions";
 import {
   marketingAboutSections,
+  marketingSecurityCapabilities,
   marketingSecuritySections,
   marketingTrustFacts,
 } from "./trust";
@@ -252,32 +253,35 @@ const routeRegistrySelections: Record<
   },
   about: { capabilityIds: [], packageSlugs: [] },
   security: {
-    capabilityIds: marketingCapabilityMatrix.slice(0, 5).map((item) => item.id),
+    capabilityIds: [],
     packageSlugs: [],
   },
   contact: { capabilityIds: [], packageSlugs: [] },
   blog: { capabilityIds: [], packageSlugs: [] },
 };
 
-const selectedCapabilityText = (ids: string[]): string =>
+const capabilityRecordsText = (
+  capabilities: typeof marketingCapabilityMatrix,
+): string =>
   flattenText(
-    ids.map((id) => {
-      const item = marketingCapabilityMatrix.find(
-        (capability) => capability.id === id,
-      );
+    capabilities.map((item) => [
+      item.title,
+      item.businessContour,
+      item.summary,
+      item.publicClaim,
+      item.audiences,
+      item.outcomes,
+      item.cta,
+    ]),
+  );
 
-      return item
-        ? [
-            item.title,
-            item.businessContour,
-            item.summary,
-            item.publicClaim,
-            item.audiences,
-            item.outcomes,
-            item.cta,
-          ]
-        : [];
-    }),
+const selectedCapabilityText = (ids: string[]): string =>
+  capabilityRecordsText(
+    ids
+      .map((id) =>
+        marketingCapabilityMatrix.find((capability) => capability.id === id),
+      )
+      .filter((item): item is NonNullable<typeof item> => Boolean(item)),
   );
 
 const selectedPackageText = (slugs: string[]): string => {
@@ -354,7 +358,7 @@ const routeOwnedDataText: Record<CoreMarketingSeoKey, string> = {
     marketingCompany.hours,
   ]),
   security: flattenText([
-    selectedRegistryText("security"),
+    capabilityRecordsText(marketingSecurityCapabilities),
     marketingSecuritySections.map((item) => [
       item.title,
       item.description,
@@ -419,6 +423,23 @@ const readComponentUserFacingText = (componentPath: string): string => {
 };
 
 describe("marketing content consistency", () => {
+  it("owns the security capability selection in the marketing data layer", () => {
+    const trustSource = fs.readFileSync(
+      path.resolve(process.cwd(), "src/data/marketing/trust.ts"),
+      "utf8",
+    );
+    const securityPageSource = fs.readFileSync(
+      path.resolve(process.cwd(), "src/pages/company/SecurityPage.tsx"),
+      "utf8",
+    );
+
+    expect(trustSource).toContain("export const marketingSecurityCapabilities");
+    expect(securityPageSource).toContain("marketingSecurityCapabilities.map");
+    expect(securityPageSource).not.toContain(
+      "marketingCapabilityMatrix.slice(0, 5)",
+    );
+  });
+
   it("maps each route only to registry entries selected by its page", () => {
     const homeSource = fs.readFileSync(
       path.resolve(process.cwd(), "src/pages/landing/HomePage.tsx"),
@@ -442,9 +463,14 @@ describe("marketing content consistency", () => {
     expect(routeRegistrySelections.pricing.packageSlugs).toEqual(
       commercialPackages.map((item) => item.slug),
     );
-    expect(routeRegistrySelections.security.capabilityIds).toEqual(
-      marketingCapabilityMatrix.slice(0, 5).map((item) => item.id),
-    );
+    expect(marketingSecurityCapabilities).toHaveLength(5);
+    expect(marketingSecurityCapabilities.map((item) => item.id)).toEqual([
+      "project-control",
+      "site-requests",
+      "supply-chain",
+      "finance-control",
+      "pir-project-documentation",
+    ]);
 
     for (const id of routeRegistrySelections.home.capabilityIds) {
       expect(homeSource, `/: ${id}`).toContain(`"${id}"`);
@@ -458,6 +484,7 @@ describe("marketing content consistency", () => {
       "contractors",
       "developers",
       "about",
+      "security",
       "contact",
       "blog",
     ] as const) {

@@ -86,3 +86,10 @@ Concerns: нет.
 - RED подтверждён на пустом security mapping, `analytics-control.summary` и route-level текстах главной страницы. GREEN: `marketingContent.test.ts` — 16/16.
 - Три обещания заменены наблюдаемыми данными: сводка руководителя перечисляет объекты, платежи, сроки, риски и отклонения; hero-сводка — сроки, ответственных, материалы, платежи и отклонения; аналитическая панель — статусы, отклонения и сигналы.
 - Humanizer-pass ближайших массивов HomePage и всех capability summaries не выявил других сравнительных или результатных формул из semantic denylist.
+
+### Production-owned security selection
+
+- Выбор пяти карточек `/security` перенесён в `trust.ts`: `marketingSecurityCapabilities` имеет явный тип `MarketingCapability[]`, а порядок задаёт типизированный список `MarketingSecurityCapabilityId`.
+- `SecurityPage.tsx` рендерит exported selection и больше не использует локальный `marketingCapabilityMatrix.slice(0, 5)`.
+- Route-owned контракт анализирует тот же production selection как массив объектов. Отдельная проверка фиксирует длину 5 и стабильный порядок ID без повторения production-выражения.
+- RED подтверждён отсутствием exported selector в `trust.ts`. GREEN: `marketingContent.test.ts` — 17/17.

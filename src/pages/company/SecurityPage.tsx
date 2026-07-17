@@ -5,8 +5,8 @@ import {
   SectionHeader,
   SurfaceBadges,
 } from "@/components/marketing/MarketingPrimitives";
+import { marketingSecurityCapabilities } from "@/data/marketing/trust";
 import {
-  marketingCapabilityMatrix,
   marketingPaths,
   marketingSecuritySections,
   marketingSeo,
@@ -99,7 +99,7 @@ const SecurityPage = () => {
               description="Офис, мобильное приложение, кабинеты и управление группой компаний используют общую систему ролей и разрешений."
             />
             <div className="mt-8 grid gap-4">
-              {marketingCapabilityMatrix.slice(0, 5).map((capability) => (
+              {marketingSecurityCapabilities.map((capability) => (
                 <article
                   key={capability.id}
                   className="rounded-[1.5rem] border border-steel-200 bg-white px-5 py-5 shadow-sm"

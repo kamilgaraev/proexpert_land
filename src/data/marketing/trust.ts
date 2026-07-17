@@ -1,8 +1,32 @@
 import type {
   MarketingAboutSection,
+  MarketingCapability,
   MarketingSecuritySection,
   MarketingTrustFact,
 } from "@/types/marketing";
+import { marketingCapabilityMatrix } from "./capabilities";
+
+type MarketingSecurityCapabilityId =
+  | "project-control"
+  | "site-requests"
+  | "supply-chain"
+  | "finance-control"
+  | "pir-project-documentation";
+
+const marketingSecurityCapabilityIds = [
+  "project-control",
+  "site-requests",
+  "supply-chain",
+  "finance-control",
+  "pir-project-documentation",
+] as const satisfies readonly MarketingSecurityCapabilityId[];
+
+export const marketingSecurityCapabilities: MarketingCapability[] =
+  marketingSecurityCapabilityIds.flatMap((id) => {
+    const capability = marketingCapabilityMatrix.find((item) => item.id === id);
+
+    return capability ? [capability] : [];
+  });
 
 export const marketingTrustFacts: MarketingTrustFact[] = [
   {
