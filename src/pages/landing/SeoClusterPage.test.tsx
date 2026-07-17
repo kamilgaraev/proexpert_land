@@ -54,4 +54,29 @@ describe('SeoClusterPage workflow', () => {
     expect(screen.getByRole('heading', { name: 'Заявка проходит один понятный маршрут' })).toBeInTheDocument();
     expect(screen.queryByText(/доказательств/i)).not.toBeInTheDocument();
   });
+
+  it('uses verifiable process properties instead of result promises', () => {
+    for (const page of Object.values(marketingSeoLandingPages)) {
+      const comparisonText = [
+        page.processComparison.title,
+        page.processComparison.description,
+        page.processComparison.note,
+        ...page.processComparison.metrics.flatMap((metric) => [
+          metric.value,
+          metric.label,
+          metric.description,
+        ]),
+      ].join(' ');
+
+      expect(comparisonText).not.toMatch(
+        /в тот же день|сильно (?:ниже|меньше)|минуты|до срыва срока|раньше заметен|ежедневный контроль|сразу с объекта|готовятся быстрее|видны быстрее|риск.{0,30}ниже|скорост.{0,30}выше|нагрузк.{0,30}ниже/iu,
+      );
+
+      for (const metric of page.processComparison.metrics) {
+        expect(metric.value).toMatch(
+          /карточ|запис|статус|ответствен|связь|истори|маршрут|объект|документ|рол/iu,
+        );
+      }
+    }
+  });
 });
