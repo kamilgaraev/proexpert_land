@@ -1068,6 +1068,109 @@ describe("marketing content consistency", () => {
         /\.map\(|\.slice\(|\.toLowerCase\(|createProcessComparisonFromSource/u,
       );
     }
+
+    const seoPagesSource = fs.readFileSync(
+      path.resolve(process.cwd(), "src/data/marketing/seoPages.ts"),
+      "utf8",
+    );
+    expect(seoPagesSource).not.toContain("createProcessComparisonFromSource");
+  });
+
+  it("keeps mobile and AI process comparisons fully declarative", () => {
+    expect(marketingSeoLandingPages["mobile-app"].processComparison).toEqual({
+      eyebrow: "Работа с телефона",
+      title: "Полевое действие сохраняет связь с объектом",
+      description:
+        "Сотрудник фиксирует событие на телефоне, а офис получает автора, время, объект и назначенное действие.",
+      metrics: [
+        {
+          value: "Карточка объекта",
+          label: "Полевой факт",
+          description: "Фото, замечание и статус относятся к выбранной задаче.",
+        },
+        {
+          value: "Ответственная роль",
+          label: "Следующий шаг",
+          description:
+            "Запись передаётся участнику с доступом к этому процессу.",
+        },
+      ],
+      note: "Доступность функций зависит от роли пользователя и качества связи.",
+    });
+    expect(marketingSeoLandingPages["ai-estimates"].processComparison).toEqual({
+      eyebrow: "Разбор чертежа",
+      title: "Предварительный результат передаётся сметчику",
+      description:
+        "Система выделяет доступные элементы чертежа и формирует рабочую структуру для экспертной проверки.",
+      metrics: [
+        {
+          value: "Исходный документ",
+          label: "Основание",
+          description: "Результат сохраняет связь с загруженным чертежом.",
+        },
+        {
+          value: "Экспертная проверка",
+          label: "Обязательный этап",
+          description: "Сметчик сверяет позиции, объёмы и единицы измерения.",
+        },
+      ],
+      note: "Предварительный разбор не является готовой сметой.",
+    });
+  });
+
+  it("keeps related links unique on every commercial cluster page", () => {
+    for (const pageKey of commercialClusterPageKeys) {
+      const links = marketingSeoLandingPages[pageKey].relatedLinks;
+      expect(new Set(links.map(({ href }) => href)).size, pageKey).toBe(
+        links.length,
+      );
+    }
+  });
+
+  it("uses plain Russian and rejects promises across all commercial cluster pages", () => {
+    const forbiddenPattern =
+      /(?:Офисная триажировка|change orders?|change order строительство|customer-|AI-контур|ERP-контур|\bИД\b|ускор(?:яет|ить|ение)|сокращ(?:ает|ение)|гарантир(?:ует|ован)|\d+(?:[.,]\d+)?\s*%)/iu;
+
+    for (const pageKey of commercialClusterPageKeys) {
+      const pageText = collectSectionStrings(
+        marketingSeoLandingPages[pageKey],
+      ).join(" ");
+      expect(pageText, pageKey).not.toMatch(forbiddenPattern);
+    }
+
+    const firstUseContracts = [
+      [
+        "construction-safety",
+        "охрана труда, промышленная и экологическая безопасность",
+        "HSE",
+      ],
+      ["change-control", "запрос информации (RFI)", "RFI"],
+      ["pir-project-documentation", "формата отраслевой модели (IFC)", "IFC"],
+      [
+        "handover-acceptance",
+        "перечень замечаний при приёмке (punch-list)",
+        "punch-list",
+      ],
+      ["construction-documents", "электронной подписи (ЭП)", "ЭП"],
+    ] as const;
+
+    for (const [pageKey, expansion, abbreviation] of firstUseContracts) {
+      const pageText = collectSectionStrings(marketingSeoLandingPages[pageKey])
+        .join(" ")
+        .toLocaleLowerCase("ru-RU");
+      const normalizedExpansion = expansion.toLocaleLowerCase("ru-RU");
+      const normalizedAbbreviation = abbreviation.toLocaleLowerCase("ru-RU");
+      expect(pageText, `${pageKey}: expansion`).toContain(normalizedExpansion);
+      expect(
+        pageText.indexOf(normalizedExpansion),
+        `${pageKey}: first use`,
+      ).toBeLessThanOrEqual(pageText.indexOf(normalizedAbbreviation));
+    }
+    expect(
+      collectSectionStrings(marketingSeoLandingPages["1c-integration"]).join(
+        " ",
+      ),
+    ).toContain("1С");
   });
 
   it("publishes complete and distinct content for the 15 rewritten routes", () => {
@@ -1246,7 +1349,7 @@ describe("marketing content consistency", () => {
         "/construction-procurement",
         "Заявка на закупку",
       ],
-      ["site-requests", "/site-requests", "Офисная триажировка"],
+      ["site-requests", "/site-requests", "Проверка заявки офисом"],
       ["workforce-management", "/workforce-management", "Смены и время"],
       [
         "construction-payments",
