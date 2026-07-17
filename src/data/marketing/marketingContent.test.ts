@@ -38,24 +38,33 @@ import {
 
 type SemanticSectionName =
   | "hero"
+  | "audience"
   | "problem"
+  | "automation"
   | "workflow"
   | "roleViews"
   | "processComparison"
   | "limitations"
+  | "relatedLinks"
   | "faq";
 
 type SemanticSectionSources = Partial<Record<SemanticSectionName, unknown>>;
 
 const semanticSectionNames: SemanticSectionName[] = [
   "hero",
+  "audience",
   "problem",
+  "automation",
   "workflow",
   "roleViews",
   "processComparison",
   "limitations",
+  "relatedLinks",
   "faq",
 ];
+
+const MIN_EXACT_CONTIGUOUS_WORDS = 14;
+const MIN_WORDS_FOR_SHINGLE_SIMILARITY = 10;
 
 const collectSectionStrings = (value: unknown): string[] => {
   if (typeof value === "string") {
@@ -112,26 +121,41 @@ const longestCommonContiguousWordSequence = (
 const findSemanticSectionDuplicates = (
   sectionsByRoute: Record<string, SemanticSectionSources>,
 ): string[] => {
-  const routes = Object.keys(sectionsByRoute);
+  const sections = Object.entries(sectionsByRoute).flatMap(
+    ([route, routeSections]) =>
+      semanticSectionNames.flatMap((sectionName) => {
+        const source = routeSections[sectionName];
+        return source === undefined
+          ? []
+          : [{ route, sectionName, words: normalizeSectionWords(source) }];
+      }),
+  );
   const duplicates: string[] = [];
 
-  for (const sectionName of semanticSectionNames) {
-    for (let leftIndex = 0; leftIndex < routes.length; leftIndex += 1) {
-      for (
-        let rightIndex = leftIndex + 1;
-        rightIndex < routes.length;
-        rightIndex += 1
-      ) {
-        const leftRoute = routes[leftIndex];
-        const rightRoute = routes[rightIndex];
-        const leftSource = sectionsByRoute[leftRoute][sectionName];
-        const rightSource = sectionsByRoute[rightRoute][sectionName];
-        if (leftSource === undefined || rightSource === undefined) {
-          continue;
-        }
+  for (let leftIndex = 0; leftIndex < sections.length; leftIndex += 1) {
+    for (
+      let rightIndex = leftIndex + 1;
+      rightIndex < sections.length;
+      rightIndex += 1
+    ) {
+      const left = sections[leftIndex];
+      const right = sections[rightIndex];
+      if (left.route === right.route) {
+        continue;
+      }
 
-        const leftWords = normalizeSectionWords(leftSource);
-        const rightWords = normalizeSectionWords(rightSource);
+      const leftWords = left.words;
+      const rightWords = right.words;
+      const shorterWordCount = Math.min(leftWords.length, rightWords.length);
+      const longestSequence = longestCommonContiguousWordSequence(
+        leftWords,
+        rightWords,
+      );
+      const hasExactContiguousDuplicate =
+        longestSequence >= MIN_EXACT_CONTIGUOUS_WORDS;
+      let shingleSimilarity = 0;
+
+      if (shorterWordCount >= MIN_WORDS_FOR_SHINGLE_SIMILARITY) {
         const leftShingles = createWordShingles(leftWords);
         const rightShingles = createWordShingles(rightWords);
         const smallerShingleCount = Math.min(
@@ -141,27 +165,17 @@ const findSemanticSectionDuplicates = (
         const sharedShingleCount = [...leftShingles].filter((shingle) =>
           rightShingles.has(shingle),
         ).length;
-        const shingleSimilarity =
+        shingleSimilarity =
           smallerShingleCount === 0
             ? 0
             : sharedShingleCount / smallerShingleCount;
-        const longestSequence = longestCommonContiguousWordSequence(
-          leftWords,
-          rightWords,
-        );
-        const shorterWordCount = Math.min(leftWords.length, rightWords.length);
-        const contiguousSimilarity =
-          shorterWordCount === 0 ? 0 : longestSequence / shorterWordCount;
+      }
 
-        if (
-          shingleSimilarity >= 0.65 ||
-          (longestSequence >= 10 && contiguousSimilarity >= 0.45)
-        ) {
-          duplicates.push(
-            `${leftRoute}/${sectionName} <-> ${rightRoute}/${sectionName} ` +
-              `(shingles=${shingleSimilarity.toFixed(2)}, contiguous=${contiguousSimilarity.toFixed(2)}, words=${longestSequence})`,
-          );
-        }
+      if (shingleSimilarity >= 0.65 || hasExactContiguousDuplicate) {
+        duplicates.push(
+          `${left.route}/${left.sectionName} <-> ${right.route}/${right.sectionName} ` +
+            `(shingles=${shingleSimilarity.toFixed(2)}, contiguousWords=${longestSequence})`,
+        );
       }
     }
   }
@@ -173,14 +187,23 @@ const collectSemanticSections = (
   page: MarketingSeoLandingPage,
 ): SemanticSectionSources => ({
   hero: [page.eyebrow, page.title, page.description, page.supportingQueries],
+  audience: [page.audienceTitle, page.audienceDescription, page.audiences],
   problem: [page.problemTitle, page.problemDescription, page.problems],
+  automation: [
+    page.automationTitle,
+    page.automationDescription,
+    page.automations,
+  ],
   workflow: page.workflow,
   roleViews: [page.visibilityTitle, page.visibilityDescription, page.roleViews],
   processComparison: page.processComparison,
   limitations: [
-    page.description,
-    page.faq.filter(({ answer }) => /^(?:да|нет)\./iu.test(answer)),
+    page.description.split(/(?<=[.!?])\s+/u).slice(1),
+    page.faq.filter(({ answer }) =>
+      /^(?:нет\.|точность|полнота|юридическая)/iu.test(answer),
+    ),
   ],
+  relatedLinks: page.relatedLinks.map(({ description }) => description),
   faq: page.faq,
 });
 
@@ -838,6 +861,44 @@ describe("marketing content consistency", () => {
     expect(duplicates).toEqual([
       expect.stringContaining("/route-a/hero <-> /route-b/hero"),
     ]);
+  });
+
+  it("detects a fixed common fragment moved between diluted section types", () => {
+    const sharedFragment =
+      "команда фиксирует запрос по объекту назначает ответственного сохраняет дату решение и подтверждение чтобы руководитель видел статус без поиска в переписке";
+    const duplicates = findSemanticSectionDuplicates({
+      "/route-a": {
+        problem: [
+          "Материалы поступают на несколько участков, поэтому кладовщик сначала сверяет поставку, количество, единицы измерения и место хранения по заявке.",
+          sharedFragment,
+          "После этого снабженец отдельно проверяет расхождения и передаёт документы в финансовую службу для дальнейшей обработки и сверки.",
+        ],
+      },
+      "/route-b": {
+        faq: [
+          "Как инженерная служба отслеживает согласование документа, если над выпуском одновременно работают проектировщик, заказчик и технический специалист?",
+          sharedFragment,
+          "История версии остаётся доступной в архиве, а участники получают только те материалы, которые разрешены их ролью на выбранном объекте.",
+        ],
+      },
+    });
+
+    expect(duplicates).toEqual([
+      expect.stringContaining("/route-a/problem <-> /route-b/faq"),
+    ]);
+  });
+
+  it("does not treat generic navigation labels alone as semantic content", () => {
+    const duplicates = findSemanticSectionDuplicates({
+      "/route-a": {
+        relatedLinks: [{ label: "Подробнее", href: "/route-a" }],
+      },
+      "/route-b": {
+        relatedLinks: [{ label: "Подробнее", href: "/route-b" }],
+      },
+    });
+
+    expect(duplicates).toEqual([]);
   });
 
   it("does not flag subject-specific sections as semantic duplicates", () => {
