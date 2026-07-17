@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildServerSeoPayload } from '@/renderer/serverSeo';
+import { generateArticleSchema } from '@/utils/seo';
 
 type StructuredDataNode = Record<string, unknown>;
 
@@ -48,6 +49,7 @@ describe('buildServerSeoPayload', () => {
 
     expect(getGraphTypes(payloads.pricing.structuredDataTag)).toEqual([
       'Organization',
+      'WebSite',
       'BreadcrumbList',
       'WebPage',
       'Product',
@@ -70,15 +72,15 @@ describe('buildServerSeoPayload', () => {
     expect(payload.statusCode).toBe(200);
     expect(payload.allMeta).toContain('https://1мост.рф/og/construction-crm.png');
     expect(payload.structuredDataTag).toContain('"@type":"Service"');
-    expect(payload.structuredDataTag).toContain('"@type":"HowTo"');
+    expect(payload.structuredDataTag).not.toContain('"@type":"HowTo"');
     expect(payload.structuredDataTag).toContain('"@type":"FAQPage"');
     expect(getGraphTypes(payload.structuredDataTag)).toEqual([
       'Organization',
+      'WebSite',
       'BreadcrumbList',
       'WebPage',
       'Service',
       'ItemList',
-      'HowTo',
       'FAQPage',
     ]);
   });
@@ -93,6 +95,7 @@ describe('buildServerSeoPayload', () => {
     expect(payload.structuredDataTag).toContain('application/ld+json');
     expect(getGraphTypes(payload.structuredDataTag)).toEqual([
       'Organization',
+      'WebSite',
       'BreadcrumbList',
       'WebPage',
     ]);
@@ -106,6 +109,7 @@ describe('buildServerSeoPayload', () => {
     expect(payload.allMeta).toContain('<meta name="robots" content="index, follow');
     expect(getGraphTypes(payload.structuredDataTag)).toEqual([
       'Organization',
+      'WebSite',
       'BreadcrumbList',
       'CollectionPage',
     ]);
@@ -119,11 +123,15 @@ describe('buildServerSeoPayload', () => {
       ogImage: 'https://1мост.рф/og/contractor-control.svg',
       type: 'article',
       statusCode: 200,
-      structuredData: [{
-        '@context': 'https://schema.org',
-        '@type': 'BlogPosting',
-        headline: 'Тестовая статья',
-      }],
+      structuredData: [
+        generateArticleSchema({
+          title: 'Тестовая статья',
+          description: 'Описание тестовой статьи для поисковой выдачи.',
+          author: 'ProHelper',
+          category: 'Управление строительством',
+          url: 'https://1мост.рф/blog/test-article',
+        }),
+      ],
     });
 
     expect(payload.statusCode).toBe(200);
@@ -135,11 +143,18 @@ describe('buildServerSeoPayload', () => {
     expect(payload.structuredDataTag).toContain('"@type":"BlogPosting"');
     expect(getGraphTypes(payload.structuredDataTag)).toEqual([
       'Organization',
+      'WebSite',
       'BreadcrumbList',
       'WebPage',
       'BlogPosting',
     ]);
-    expect(parseStructuredDataGraph(payload.structuredDataTag)['@graph']).toHaveLength(4);
+    const article = parseStructuredDataGraph(payload.structuredDataTag)['@graph'].find(
+      (node) => node['@type'] === 'BlogPosting',
+    );
+
+    expect(article?.publisher).toEqual(expect.objectContaining({ name: 'МОСТ' }));
+    expect(article?.mainEntityOfPage).toBe('https://1мост.рф/blog/test-article');
+    expect(parseStructuredDataGraph(payload.structuredDataTag)['@graph']).toHaveLength(5);
   });
 
   it('escapes tag-opening characters in the SSR graph', () => {
@@ -157,7 +172,11 @@ describe('buildServerSeoPayload', () => {
     });
 
     expect(payload.structuredDataTag).not.toContain('</script><div>');
-    expect(parseStructuredDataGraph(payload.structuredDataTag)['@graph'][3].headline).toBe(
+    expect(
+      parseStructuredDataGraph(payload.structuredDataTag)['@graph'].find(
+        (node) => node['@type'] === 'BlogPosting',
+      )?.headline,
+    ).toBe(
       '</script><div>Тест</div>',
     );
   });

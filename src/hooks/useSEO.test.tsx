@@ -79,7 +79,7 @@ describe('useSEO structured data policy', () => {
     );
 
     await waitFor(() => {
-      expect(graphTypes()).toEqual(['Organization', 'BreadcrumbList', 'WebPage']);
+      expect(graphTypes()).toEqual(['Organization', 'WebSite', 'BreadcrumbList', 'WebPage']);
     });
 
     expect(document.querySelectorAll('#ld-json')).toHaveLength(1);
@@ -87,6 +87,25 @@ describe('useSEO structured data policy', () => {
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
       'https://1мост.рф/features',
     );
+  });
+
+  it('keeps visible cluster FAQ without publishing HowTo', async () => {
+    renderSeo('/construction-crm');
+
+    await waitFor(() => {
+      expect(graphTypes()).toEqual([
+        'Organization',
+        'WebSite',
+        'BreadcrumbList',
+        'WebPage',
+        'Service',
+        'ItemList',
+        'FAQPage',
+      ]);
+    });
+
+    expect(graphTypes()).not.toContain('HowTo');
+    expect(graphNode('FAQPage')).toHaveProperty('mainEntity');
   });
 
   it('removes article timestamps and structured data after leaving an article', async () => {
@@ -116,7 +135,7 @@ describe('useSEO structured data policy', () => {
     );
 
     await waitFor(() => {
-      expect(graphTypes()).toEqual(['Organization', 'BreadcrumbList', 'WebPage']);
+      expect(graphTypes()).toEqual(['Organization', 'WebSite', 'BreadcrumbList', 'WebPage']);
     });
     expect(document.querySelector('meta[property="article:published_time"]')).toBeNull();
     expect(document.querySelector('meta[property="article:modified_time"]')).toBeNull();

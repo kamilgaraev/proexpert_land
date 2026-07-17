@@ -165,12 +165,6 @@ const resolveClusterStructuredData = (pageKey: string, canonicalUrl: string) => 
     return [];
   }
 
-  const trustProfile = clusterPage.trust ?? {
-    description:
-      'Собрали ориентиры, которые помогают быстро понять, подходит ли этот контур вашей команде и с чего разумно начать запуск.',
-    firstStep: clusterPage.contactHighlights.slice(0, 3),
-  };
-
   return [
     generateCommercialPageSchema({
       name: clusterPage.title,
@@ -187,12 +181,6 @@ const resolveClusterStructuredData = (pageKey: string, canonicalUrl: string) => 
         url: `${BASE_URL}${link.href}`,
         description: link.description,
       })),
-    }),
-    generateHowToSchema({
-      name: `Как запускают ${clusterPage.title}`,
-      description: trustProfile.description,
-      url: canonicalUrl,
-      steps: trustProfile.firstStep,
     }),
     generateFAQSchema(clusterPage.faq),
   ];
@@ -442,26 +430,6 @@ export const generateItemListSchema = (list: {
   })),
 });
 
-export const generateHowToSchema = (guide: {
-  name: string;
-  description: string;
-  url: string;
-  steps: string[];
-}) => ({
-  '@context': 'https://schema.org',
-  '@type': 'HowTo',
-  name: guide.name,
-  description: guide.description,
-  url: guide.url,
-  inLanguage: 'ru-RU',
-  step: guide.steps.map((step, index) => ({
-    '@type': 'HowToStep',
-    position: index + 1,
-    name: `Шаг ${index + 1}`,
-    text: step,
-  })),
-});
-
 export const generateArticleSchema = (article: {
   title: string;
   description: string;
@@ -653,11 +621,10 @@ export const buildStructuredDataGraph = ({
     description,
     url: normalizedCanonicalUrl,
   });
-  const nodes: unknown[] = [generateOrganizationSchema()];
+  const nodes: unknown[] = [generateOrganizationSchema(), generateWebSiteSchema()];
 
   if (normalizedPath === marketingPaths.home) {
     nodes.push(
-      generateWebSiteSchema(),
       generateSoftwareSchema(),
       webPage,
       generateFAQSchema(marketingFaqs),
@@ -698,7 +665,9 @@ export const buildStructuredDataGraph = ({
     .filter((node) => {
       const nodeType = node['@type'];
       return nodeType !== 'AggregateRating'
+        && nodeType !== 'HowTo'
         && !(Array.isArray(nodeType) && nodeType.includes('AggregateRating'))
+        && !(Array.isArray(nodeType) && nodeType.includes('HowTo'))
         && (allowOffers || nodeType !== 'Offer');
     })
     .map((node) => sanitizeStructuredDataValue(node, allowOffers) as StructuredDataNode);

@@ -47,11 +47,40 @@ describe('getPageSEOData', () => {
 
   it('returns cluster structured data and route-specific og image', () => {
     const seoData = getPageSEOData('/construction-crm');
+    const types = seoData.structuredData.map((node) => (node as Record<string, unknown>)['@type']);
 
     expect(seoData.statusCode).toBe(200);
     expect(seoData.noIndex).toBe(false);
     expect(seoData.ogImage).toBe('https://1мост.рф/og/construction-crm.png');
-    expect(seoData.structuredData).toHaveLength(4);
+    expect(types).toEqual(['Service', 'ItemList', 'FAQPage']);
+    expect(types).not.toContain('HowTo');
+  });
+
+  it('does not expose HowTo on either SEO contract level for all sitemap routes', () => {
+    expect(marketingSitemapRoutes).toHaveLength(35);
+
+    for (const { path: pathname } of marketingSitemapRoutes) {
+      const seoData = getPageSEOData(pathname);
+      const graph = buildStructuredDataGraph({
+        pathname,
+        title: seoData.title,
+        description: seoData.description,
+        canonicalUrl: seoData.canonicalUrl,
+        noIndex: seoData.noIndex,
+        statusCode: seoData.statusCode,
+        structuredData: seoData.structuredData,
+      });
+
+      expect(JSON.stringify(seoData.structuredData), `${pathname}: getPageSEOData`).not.toContain(
+        '"@type":"HowTo"',
+      );
+      expect(JSON.stringify(graph), `${pathname}: buildStructuredDataGraph`).not.toContain(
+        '"@type":"HowTo"',
+      );
+      expect(seoData.canonicalUrl, pathname).toBe(
+        `https://1мост.рф${pathname === '/' ? '/' : pathname}`,
+      );
+    }
   });
 });
 
@@ -89,6 +118,7 @@ describe('buildStructuredDataGraph', () => {
     expect(graph['@graph'].filter((node) => node['@type'] === 'Thing')).toHaveLength(1);
     expect(graph['@graph'].map((node) => node['@type'])).toEqual([
       'Organization',
+      'WebSite',
       'BreadcrumbList',
       'WebPage',
       'Thing',
@@ -114,6 +144,19 @@ describe('buildStructuredDataGraph', () => {
   it('returns an empty graph for noindex and non-success pages', () => {
     expect(buildStructuredDataGraph({ ...baseInput, noIndex: true })['@graph']).toEqual([]);
     expect(buildStructuredDataGraph({ ...baseInput, statusCode: 404 })['@graph']).toEqual([]);
+  });
+
+  it('rejects injected HowTo nodes from the final commercial graph', () => {
+    const graph = buildStructuredDataGraph({
+      ...baseInput,
+      structuredData: {
+        '@context': 'https://schema.org',
+        '@type': 'HowTo',
+        name: 'Скрытая инструкция',
+      },
+    });
+
+    expect(graph['@graph'].map((node) => node['@type'])).not.toContain('HowTo');
   });
 
   it('keeps software offers opt-in', () => {
