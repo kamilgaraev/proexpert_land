@@ -86,6 +86,18 @@ describe('normalizeMarketingBlogText', () => {
   ])('отделяет terminal dot от URL и не принимает чужой hostname за старый origin', (source, expected) => {
     expect(normalizeMarketingBlogText(source)).toBe(expected);
   });
+
+  it.each([
+    ['https://prohelper.pro@evil.example/path', 'https://prohelper.pro@evil.example/path'],
+    ['https://prohelper.pro:secret@evil.example/path', 'https://prohelper.pro:secret@evil.example/path'],
+    [
+      'https://www.prohelper.pro/blog/a?utm=ProHelper#section',
+      'https://1мост.рф/blog/a?utm=ProHelper#section',
+    ],
+    ['https://[ProHelper', 'https://[ProHelper'],
+  ])('классифицирует URL по фактическому hostname и безопасно сохраняет malformed token', (source, expected) => {
+    expect(normalizeMarketingBlogText(source)).toBe(expected);
+  });
 });
 
 describe('normalizeMarketingBlogArticle', () => {

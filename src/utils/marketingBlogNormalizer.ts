@@ -1,35 +1,34 @@
 import type { BlogArticle } from '@/types/blog';
 
 const MARKETING_TEXT_TOKEN_PATTERN = /https?:\/\/[^\s<>"']+|ProHelper/gi;
-const OLD_SITE_ORIGIN_PATTERN = /^https?:\/\/(?:www\.)?prohelper\.pro/i;
-const TERMINAL_PUNCTUATION_PATTERN = /^[.,;:!?()[\]{}]+$/;
+const OLD_SITE_HOSTNAMES = new Set(['prohelper.pro', 'www.prohelper.pro']);
+const TERMINAL_PUNCTUATION_PATTERN = /[.,;:!?()[\]{}]+$/;
 
 const normalizeMarketingUrlToken = (token: string): string => {
-  const originMatch = token.match(OLD_SITE_ORIGIN_PATTERN);
+  const terminalPunctuation = token.match(TERMINAL_PUNCTUATION_PATTERN)?.[0] ?? '';
+  const urlValue = terminalPunctuation
+    ? token.slice(0, -terminalPunctuation.length)
+    : token;
+  let parsedUrl: URL;
 
-  if (!originMatch) {
+  try {
+    parsedUrl = new URL(urlValue);
+  } catch {
     return token;
   }
 
-  const suffix = token.slice(originMatch[0].length);
-
-  if (suffix.startsWith('.')) {
-    if (TERMINAL_PUNCTUATION_PATTERN.test(suffix)) {
-      return `https://1мост.рф${suffix}`;
-    }
-
-    if (/^\.(?=\/|[?#])/.test(suffix)) {
-      return `https://1мост.рф${suffix.slice(1)}`;
-    }
-
+  const hostname = parsedUrl.hostname.toLowerCase().replace(/\.$/, '');
+  if (!OLD_SITE_HOSTNAMES.has(hostname)) {
     return token;
   }
 
-  if (/^[a-z0-9-]/i.test(suffix)) {
-    return token;
-  }
+  const authorityStart = urlValue.indexOf('://') + 3;
+  const suffixOffset = urlValue.slice(authorityStart).search(/[/?#]/);
+  const suffix = suffixOffset === -1
+    ? ''
+    : urlValue.slice(authorityStart + suffixOffset);
 
-  return `https://1мост.рф${suffix}`;
+  return `https://1мост.рф${suffix}${terminalPunctuation}`;
 };
 
 export const normalizeMarketingBlogText = (value: string): string =>
