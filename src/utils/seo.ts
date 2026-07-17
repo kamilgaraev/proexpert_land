@@ -524,6 +524,63 @@ const normalizeStructuredDataNodes = (value: unknown): StructuredDataNode[] => {
   return [node];
 };
 
+const hasStructuredDataType = (node: StructuredDataNode, type: string) => {
+  const nodeType = node['@type'];
+
+  return nodeType === type || (Array.isArray(nodeType) && nodeType.includes(type));
+};
+
+const customForbiddenNodeTypes = new Set(['HowTo', 'AggregateRating', 'FAQPage']);
+const customForbiddenProperties = new Set(['aggregateRating', 'review', 'reviews']);
+
+const sanitizeCustomStructuredDataValue = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => sanitizeCustomStructuredDataValue(item))
+      .filter((item) => item !== undefined);
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  const node = value as StructuredDataNode;
+  const nodeType = node['@type'];
+  const isForbiddenNode = typeof nodeType === 'string'
+    ? customForbiddenNodeTypes.has(nodeType)
+    : Array.isArray(nodeType) && nodeType.some((type) => customForbiddenNodeTypes.has(type));
+
+  if (isForbiddenNode) {
+    return undefined;
+  }
+
+  return Object.fromEntries(
+    Object.entries(node).flatMap(([key, item]) => {
+      if (customForbiddenProperties.has(key)) {
+        return [];
+      }
+
+      const sanitizedItem = sanitizeCustomStructuredDataValue(item);
+
+      return sanitizedItem === undefined ? [] : [[key, sanitizedItem]];
+    }),
+  );
+};
+
+const normalizeCustomArticleSchema = (
+  node: StructuredDataNode,
+  canonicalUrl: string,
+): StructuredDataNode => ({
+  ...node,
+  publisher: {
+    '@type': 'Organization',
+    '@id': `${BASE_URL}/#organization`,
+    name: marketingCompany.brand,
+    url: BASE_URL,
+  },
+  mainEntityOfPage: canonicalUrl,
+});
+
 const sanitizeStructuredDataValue = (value: unknown, allowOffers: boolean): unknown => {
   if (Array.isArray(value)) {
     return value.map((item) => sanitizeStructuredDataValue(item, allowOffers));
@@ -650,12 +707,19 @@ export const buildStructuredDataGraph = ({
     nodes.push(generateBreadcrumbSchema(breadcrumbItems), webPage);
   }
 
-  const customNodes = normalizeStructuredDataNodes(structuredData);
+  const customNodes = normalizeStructuredDataNodes(structuredData)
+    .filter((node) => !hasStructuredDataType(node, 'Organization') && !hasStructuredDataType(node, 'WebSite'))
+    .map((node) => sanitizeCustomStructuredDataValue(node))
+    .filter((node): node is StructuredDataNode => Boolean(node) && typeof node === 'object')
+    .map((node) => (
+      hasStructuredDataType(node, 'BlogPosting')
+        ? normalizeCustomArticleSchema(node, normalizedCanonicalUrl)
+        : node
+    ));
   nodes.push(
     ...(isBlogArticle
       ? customNodes.filter((node) => {
-          const nodeType = node['@type'];
-          return nodeType === 'BlogPosting' || (Array.isArray(nodeType) && nodeType.includes('BlogPosting'));
+          return hasStructuredDataType(node, 'BlogPosting');
         }).slice(0, 1)
       : customNodes),
   );

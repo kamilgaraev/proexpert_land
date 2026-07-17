@@ -90,3 +90,64 @@ exit 0
 
 - Полный exact Vitest остаётся красным из-за одного существующего deploy/nginx теста вне scope Task 5. SEO, hook, SSR и catch-all проверки проходят при исключении только этого теста.
 - Исторический baseline `TS7006` в linked worktree зависел от неполного `node_modules`; после безопасного восстановления зависимостей текущий точный `tsc` завершился с `exit 0` без правок `BlogPublicPage.tsx`.
+
+## Review Fixes
+
+### Исправления
+
+- Добавлена чистая рекурсивная sanitization только для внешних structured-data узлов: запрещённые typed nodes `HowTo`, `AggregateRating` и `FAQPage` удаляются целиком на любой глубине.
+- Поля `aggregateRating`, `review` и `reviews` всегда удаляются из внешних узлов рекурсивно; разрешённые вложенные schema objects сохраняются.
+- Внешний `BlogPosting` после очистки всегда получает системный publisher `Organization` МОСТ и текущий canonical URL в `mainEntityOfPage`, независимо от переданных или отсутствующих значений.
+- Внешние корневые `Organization` и `WebSite` не добавляются в граф независимо от `@id`; системные базовые узлы остаются единственными.
+- Системный `FAQPage`, route-specific `Service`, `Product` с `Offer` и `BlogPosting` не менялись.
+
+### RED evidence
+
+```text
+npx vitest run src/utils/seo.test.ts src/renderer/serverSeo.test.ts -t "recursively removes forbidden custom schema|keeps only system Organization|normalizes custom BlogPosting"
+exit 1
+Test Files: 2 failed
+Tests: 4 failed, 44 skipped
+```
+
+Падения подтвердили все замечания review: вложенные запрещённые узлы и отзывы проходили, подменные `Organization`/`WebSite` дублировали системные, malicious/missing `BlogPosting` не нормализовались.
+
+### GREEN evidence
+
+```text
+npx vitest run src/utils/seo.test.ts src/renderer/serverSeo.test.ts -t "recursively removes forbidden custom schema|keeps only system Organization|normalizes custom BlogPosting"
+exit 0
+Test Files: 2 passed
+Tests: 4 passed, 44 skipped
+```
+
+Focused SEO и SSR без существующего deploy baseline:
+
+```text
+npx vitest run src/utils/seo.test.ts src/renderer/serverSeo.test.ts -t "^(?!.*deploys the versioned nginx config).*"
+exit 0
+Test Files: 2 passed
+Tests: 47 passed, 1 skipped
+```
+
+Точный focused-набор без исключения снова подтвердил только известный baseline:
+
+```text
+npx vitest run src/utils/seo.test.ts src/renderer/serverSeo.test.ts
+exit 1
+Test Files: 1 passed, 1 failed
+Tests: 47 passed, 1 failed
+```
+
+Единственное падение — прежний `deploys the versioned nginx config through guarded validation and rollback`; deploy baseline не изменялся.
+
+```text
+npx eslint src/utils/seo.ts src/utils/seo.test.ts src/renderer/serverSeo.test.ts
+exit 0
+
+npx tsc --noEmit --pretty false
+exit 0
+
+git diff --check
+exit 0
+```

@@ -157,6 +157,52 @@ describe('buildServerSeoPayload', () => {
     expect(parseStructuredDataGraph(payload.structuredDataTag)['@graph']).toHaveLength(5);
   });
 
+  it.each([
+    [
+      'malicious fields',
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: 'Статья с подменой',
+        publisher: {
+          '@type': 'Organization',
+          name: 'Подменённое издательство',
+          url: 'https://example.test',
+        },
+        mainEntityOfPage: 'https://api.example.test/articles/42',
+      },
+    ],
+    [
+      'missing fields',
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: 'Статья без издательства',
+      },
+    ],
+  ])('normalizes custom BlogPosting with %s', (_case, structuredData) => {
+    const canonicalUrl = 'https://1мост.рф/blog/secure-article';
+    const payload = buildServerSeoPayload('/blog/secure-article', {
+      title: 'Безопасная статья | МОСТ',
+      description: 'Описание безопасной статьи.',
+      canonicalUrl,
+      type: 'article',
+      statusCode: 200,
+      structuredData,
+    });
+    const article = parseStructuredDataGraph(payload.structuredDataTag)['@graph'].find(
+      (node) => node['@type'] === 'BlogPosting',
+    );
+
+    expect(article?.publisher).toEqual({
+      '@type': 'Organization',
+      '@id': 'https://1мост.рф/#organization',
+      name: 'МОСТ',
+      url: 'https://1мост.рф',
+    });
+    expect(article?.mainEntityOfPage).toBe(canonicalUrl);
+  });
+
   it('escapes tag-opening characters in the SSR graph', () => {
     const payload = buildServerSeoPayload('/blog/test-article', {
       title: 'Тестовая статья | МОСТ',

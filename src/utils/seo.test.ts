@@ -159,6 +159,79 @@ describe('buildStructuredDataGraph', () => {
     expect(graph['@graph'].map((node) => node['@type'])).not.toContain('HowTo');
   });
 
+  it('recursively removes forbidden custom schema while preserving allowed nested objects', () => {
+    const graph = buildStructuredDataGraph({
+      ...baseInput,
+      structuredData: {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: 'Допустимый продукт',
+        aggregateRating: { '@type': 'AggregateRating', ratingValue: 5 },
+        review: { '@type': 'Review', reviewBody: 'Скрытый отзыв' },
+        reviews: [{ '@type': 'Review', reviewBody: 'Ещё один скрытый отзыв' }],
+        subjectOf: {
+          '@type': 'CreativeWork',
+          mentions: [
+            { '@type': 'HowTo', name: 'Скрытая инструкция' },
+            { '@type': 'FAQPage', name: 'Скрытый FAQ' },
+            {
+              '@type': 'Thing',
+              name: 'Допустимый вложенный узел',
+              review: { '@type': 'Review', reviewBody: 'Вложенный отзыв' },
+            },
+          ],
+        },
+      },
+    });
+    const serialized = JSON.stringify(graph);
+
+    expect(serialized).not.toContain('HowTo');
+    expect(serialized).not.toContain('AggregateRating');
+    expect(serialized).not.toContain('FAQPage');
+    expect(serialized).not.toContain('"aggregateRating"');
+    expect(serialized).not.toContain('"review"');
+    expect(serialized).not.toContain('"reviews"');
+    expect(serialized).toContain('Допустимый вложенный узел');
+  });
+
+  it('keeps only system Organization and WebSite nodes regardless of injected ids', () => {
+    const graph = buildStructuredDataGraph({
+      ...baseInput,
+      structuredData: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          '@id': 'https://example.test/#organization',
+          name: 'Подменённая организация',
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'Подменённый сайт',
+        },
+        { '@context': 'https://schema.org', '@type': 'Thing', name: 'Допустимый узел' },
+      ],
+    });
+    const organizations = graph['@graph'].filter((node) => node['@type'] === 'Organization');
+    const webSites = graph['@graph'].filter((node) => node['@type'] === 'WebSite');
+
+    expect(organizations).toEqual([
+      expect.objectContaining({
+        '@id': 'https://1мост.рф/#organization',
+        name: 'МОСТ',
+      }),
+    ]);
+    expect(webSites).toEqual([
+      expect.objectContaining({
+        '@id': 'https://1мост.рф/#website',
+        name: 'МОСТ',
+      }),
+    ]);
+    expect(graph['@graph']).toEqual(
+      expect.arrayContaining([expect.objectContaining({ '@type': 'Thing', name: 'Допустимый узел' })]),
+    );
+  });
+
   it('keeps software offers opt-in', () => {
     expect(generateSoftwareSchema()).not.toHaveProperty('offers');
     expect(generateSoftwareSchema(true)).toHaveProperty('offers');
