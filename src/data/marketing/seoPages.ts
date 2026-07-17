@@ -1,18 +1,17 @@
-import { marketingPaths } from "./common";
-import { getMarketingBlogLink } from "./blogArticles";
-import type { MarketingBlogArticleKey } from "./blogArticles";
-import { marketingProductSeoLandingPages } from "./seoProductPages";
+import { marketingPaths } from './common';
+import { getMarketingBlogLink } from './blogArticles';
+import type { MarketingBlogArticleKey } from './blogArticles';
+import { marketingProductSeoLandingPages } from './seoProductPages';
 import type {
   MarketingContentLink,
   MarketingEditorialSeries,
   MarketingSeoLandingPage,
-} from "@/types/marketing";
+} from '@/types/marketing';
 
 const contactLink: MarketingContentLink = {
-  label: "Запросить демонстрацию",
+  label: 'Запросить демонстрацию',
   href: marketingPaths.contact,
-  description:
-    "Покажем подходящий сценарий, роли и набор возможностей для вашей компании.",
+  description: 'Покажем подходящий сценарий, роли и набор возможностей для вашей компании.',
 };
 
 type ProcessComparisonSource = {
@@ -27,9 +26,9 @@ type ProcessComparisonSource = {
 };
 
 const allBlogArticlesLink: MarketingContentLink = {
-  label: "Все статьи",
+  label: 'Все статьи',
   href: marketingPaths.blog,
-  description: "Практические материалы команды МОСТ.",
+  description: 'Практические материалы команды МОСТ.',
 };
 
 const getMarketingBlogLinks = (
@@ -37,39 +36,33 @@ const getMarketingBlogLinks = (
 ): MarketingContentLink[] => keys.map((key) => getMarketingBlogLink(key));
 
 const createProcessComparison = (
-  comparison: MarketingSeoLandingPage["processComparison"],
+  comparison: MarketingSeoLandingPage['processComparison'],
 ) => comparison;
 
 const createProcessComparisonFromSource = (
   comparison: ProcessComparisonSource,
-): MarketingSeoLandingPage["processComparison"] =>
-  createProcessComparison({
-    eyebrow: "Как меняется работа",
-    title: comparison.title,
-    description: comparison.description,
-    metrics: comparison.metrics.map(({ value, label, detail }) => ({
-      value,
-      label,
-      description: detail,
-    })),
-    note: "Это описание процесса, а не обещание результата.",
-  });
+): MarketingSeoLandingPage['processComparison'] => createProcessComparison({
+  eyebrow: 'Как меняется работа',
+  title: comparison.title,
+  description: comparison.description,
+  metrics: comparison.metrics.map(({ value, label, detail }) => ({
+    value,
+    label,
+    description: detail,
+  })),
+  note: 'Это описание процесса, а не обещание результата.',
+});
 
-type OperationalSeoPageConfig = Omit<
-  MarketingSeoLandingPage,
-  "processComparison"
-> & {
+type OperationalSeoPageConfig = Omit<MarketingSeoLandingPage, 'processComparison'> & {
   processComparisonTitle: string;
   processComparisonDescription: string;
   signals: string[];
   beforeState: string[];
   afterState: string[];
-  metrics: ProcessComparisonSource["metrics"];
+  metrics: ProcessComparisonSource['metrics'];
 };
 
-const createOperationalSeoPage = (
-  config: OperationalSeoPageConfig,
-): MarketingSeoLandingPage => ({
+const createOperationalSeoPage = (config: OperationalSeoPageConfig): MarketingSeoLandingPage => ({
   path: config.path,
   eyebrow: config.eyebrow,
   title: config.title,
@@ -79,9 +72,9 @@ const createOperationalSeoPage = (
     title: config.processComparisonTitle,
     description: config.processComparisonDescription,
     signals: config.signals,
-    beforeLabel: "До запуска",
+    beforeLabel: 'До запуска',
     beforeState: config.beforeState,
-    afterLabel: "После запуска",
+    afterLabel: 'После запуска',
     afterState: config.afterState,
     metrics: config.metrics,
   }),
@@ -106,133 +99,119 @@ const createOperationalSeoPage = (
 
 export const marketingCommercialLandingLinks: MarketingContentLink[] = [
   {
-    label: "Программа для прораба",
+    label: 'Программа для прораба',
     href: marketingPaths.foremanSoftware,
-    description: "Контроль задач, работ, замечаний и отчетности на объекте.",
+    description: 'Контроль задач, работ, замечаний и отчетности на объекте.',
   },
   {
-    label: "ERP для строительной компании",
+    label: 'CRM для строительной компании',
     href: marketingPaths.constructionCrm,
-    description:
-      "Единый контур по клиентам, объектам, задачам и статусам исполнения.",
+    description: 'Единый контур по клиентам, объектам, задачам и статусам исполнения.',
   },
   {
-    label: "ERP для строительства",
+    label: 'ERP для строительства',
     href: marketingPaths.constructionErp,
-    description:
-      "Связка объекта, снабжения, финансов, документов и управленческой аналитики.",
+    description: 'Связка объекта, снабжения, финансов, документов и управленческой аналитики.',
   },
   {
-    label: "Учет материалов",
+    label: 'Учет материалов',
     href: marketingPaths.materialAccounting,
-    description: "Заявки, поставки, остатки и движение материалов по объектам.",
+    description: 'Заявки, поставки, остатки и движение материалов по объектам.',
   },
   {
-    label: "Система для ПТО",
+    label: 'Система для ПТО',
     href: marketingPaths.ptoSoftware,
-    description:
-      "Исполнительная документация, контроль замечаний и комплектности.",
+    description: 'Исполнительная документация, контроль замечаний и комплектности.',
   },
   {
-    label: "Контроль подрядчиков",
+    label: 'Контроль подрядчиков',
     href: marketingPaths.contractorControl,
-    description:
-      "Сроки, объемы, ответственность и прозрачность исполнения по подрядчикам.",
+    description: 'Сроки, объемы, ответственность и прозрачность исполнения по подрядчикам.',
   },
   {
-    label: "Исполнительная документация",
+    label: 'Исполнительная документация',
     href: marketingPaths.constructionDocuments,
-    description:
-      "Структурированная работа с актами, реестрами и комплектами документов.",
+    description: 'Структурированная работа с актами, реестрами и комплектами документов.',
   },
   {
-    label: "Контроль бюджета стройки",
+    label: 'Контроль бюджета стройки',
     href: marketingPaths.constructionBudgetControl,
-    description:
-      "Платежи, лимиты, фактические затраты и отклонения по объектам.",
+    description: 'Платежи, лимиты, фактические затраты и отклонения по объектам.',
   },
   {
-    label: "Мобильное приложение",
+    label: 'Мобильное приложение',
     href: marketingPaths.mobileApp,
-    description:
-      "Работа прораба, снабженца и инженерной команды прямо на площадке.",
+    description: 'Работа прораба, снабженца и инженерной команды прямо на площадке.',
   },
   {
-    label: "AI сметы по чертежам",
+    label: 'AI сметы по чертежам',
     href: marketingPaths.aiEstimates,
-    description: "Быстрый старт оценки объемов и сметного сценария на базе AI.",
+    description: 'Быстрый старт оценки объемов и сметного сценария на базе AI.',
   },
   {
-    label: "ПИР и проектная документация",
+    label: 'ПИР и проектная документация',
     href: marketingPaths.pirProjectDocumentation,
-    description: "ПД, РД, IFC, замечания, нормоконтроль и выпуск комплектов.",
+    description: 'ПД, РД, IFC, замечания, нормоконтроль и выпуск комплектов.',
   },
   {
-    label: "Охрана труда на стройке",
+    label: 'Охрана труда на стройке',
     href: marketingPaths.constructionSafety,
-    description: "Инструктажи, допуски, инциденты, нарушения и предписания.",
+    description: 'Инструктажи, допуски, инциденты, нарушения и предписания.',
   },
   {
-    label: "Контроль качества строительства",
+    label: 'Контроль качества строительства',
     href: marketingPaths.constructionQualityControl,
-    description:
-      "Инспекции, дефекты, ответственные, сроки и повторная проверка.",
+    description: 'Инспекции, дефекты, ответственные, сроки и повторная проверка.',
   },
   {
-    label: "Приемка и punch-list",
+    label: 'Приемка и punch-list',
     href: marketingPaths.handoverAcceptance,
-    description:
-      "Передача зон заказчику, замечания и статус готовности к сдаче.",
+    description: 'Передача зон заказчику, замечания и статус готовности к сдаче.',
   },
   {
-    label: "Техника и выработка",
+    label: 'Техника и выработка',
     href: marketingPaths.machineryAndLabor,
-    description:
-      "Техника, смены, простои, наряды, ГСМ и фактическая выработка.",
+    description: 'Техника, смены, простои, наряды, ГСМ и фактическая выработка.',
   },
   {
-    label: "RFI и изменения",
+    label: 'RFI и изменения',
     href: marketingPaths.changeControl,
-    description:
-      "Изменения, дополнительные работы, претензии и влияние на сроки.",
+    description: 'Изменения, дополнительные работы, претензии и влияние на сроки.',
   },
   {
-    label: "Строительные закупки",
+    label: 'Строительные закупки',
     href: marketingPaths.constructionProcurement,
-    description:
-      "Потребность объекта, поставщики, заказ, оплата и приемка в одном маршруте.",
+    description: 'Потребность объекта, поставщики, заказ, оплата и приемка в одном маршруте.',
   },
   {
-    label: "Заявки с объекта",
+    label: 'Заявки с объекта',
     href: marketingPaths.siteRequests,
-    description:
-      "Материалы, техника, люди и финансовые обращения из площадки в офис.",
+    description: 'Материалы, техника, люди и финансовые обращения из площадки в офис.',
   },
   {
-    label: "Управление персоналом",
+    label: 'Управление персоналом',
     href: marketingPaths.workforceManagement,
-    description: "Бригады, смены, время и производственный факт по объектам.",
+    description: 'Бригады, смены, время и производственный факт по объектам.',
   },
   {
-    label: "Платежи в строительстве",
+    label: 'Платежи в строительстве',
     href: marketingPaths.constructionPayments,
-    description: "Счета, согласование, календарь, оплата и сверка по объекту.",
+    description: 'Счета, согласование, календарь, оплата и сверка по объекту.',
   },
   {
-    label: "Интеграция с 1С",
+    label: 'Интеграция с 1С',
     href: marketingPaths.oneCIntegration,
-    description: "Согласованный сценарий обмена, мастер-данные и сверка.",
+    description: 'Согласованный сценарий обмена, мастер-данные и сверка.',
   },
   {
-    label: "Маркетплейс подрядчиков",
+    label: 'Маркетплейс подрядчиков',
     href: marketingPaths.contractorMarketplace,
-    description: "Поиск исполнителей, шорт-лист и контролируемое приглашение.",
+    description: 'Поиск исполнителей, шорт-лист и контролируемое приглашение.',
   },
   {
-    label: "Project Pulse",
+    label: 'Project Pulse',
     href: marketingPaths.projectPulse,
-    description:
-      "Пилотная ежедневная сводка и сигналы для управленческой проверки.",
+    description: 'Пилотная ежедневная сводка и сигналы для управленческой проверки.',
   },
 ];
 
@@ -240,320 +219,285 @@ export const marketingRoleLandingLinks: MarketingContentLink[] = [
   marketingCommercialLandingLinks[0],
   marketingCommercialLandingLinks[4],
   {
-    label: "Для снабженца",
+    label: 'Для снабженца',
     href: marketingPaths.materialAccounting,
-    description:
-      "Управление заявками, закупками, поставками и складом без Excel-хаоса.",
+    description: 'Управление заявками, закупками, поставками и складом без Excel-хаоса.',
   },
   {
-    label: "Для руководителя строительства",
+    label: 'Для руководителя строительства',
     href: marketingPaths.constructionBudgetControl,
-    description:
-      "Сводная картина по срокам, бюджету, подрядчикам и критическим отклонениям.",
+    description: 'Сводная картина по срокам, бюджету, подрядчикам и критическим отклонениям.',
   },
   {
-    label: "Для генподрядчика",
+    label: 'Для генподрядчика',
     href: marketingPaths.contractorControl,
-    description:
-      "Контроль субподрядчиков, графика, актов и исполнения договорных обязательств.",
+    description: 'Контроль субподрядчиков, графика, актов и исполнения договорных обязательств.',
   },
   {
-    label: "Для девелопера",
+    label: 'Для девелопера',
     href: marketingPaths.constructionErp,
-    description:
-      "Управленческий контур по объектам, бюджетам, подрядчикам и пакетам отчетности.",
+    description: 'Управленческий контур по объектам, бюджетам, подрядчикам и пакетам отчетности.',
   },
   {
-    label: "Для проектной команды",
+    label: 'Для проектной команды',
     href: marketingPaths.pirProjectDocumentation,
-    description: "ПИР, проектные версии, замечания и выпуск комплектов ПД/РД.",
+    description: 'ПИР, проектные версии, замечания и выпуск комплектов ПД/РД.',
   },
   {
-    label: "Для специалиста ОТ",
+    label: 'Для специалиста ОТ',
     href: marketingPaths.constructionSafety,
-    description: "Инструктажи, допуски, нарушения и устранение предписаний.",
+    description: 'Инструктажи, допуски, нарушения и устранение предписаний.',
   },
   {
-    label: "Для стройконтроля",
+    label: 'Для стройконтроля',
     href: marketingPaths.constructionQualityControl,
-    description:
-      "Дефекты, инспекции, фотофиксация и повторная проверка качества.",
+    description: 'Дефекты, инспекции, фотофиксация и повторная проверка качества.',
   },
 ];
 
 export const marketingModuleLandingLinks: MarketingContentLink[] = [
   {
-    label: "Строительный склад",
+    label: 'Строительный склад',
     href: marketingPaths.materialAccounting,
-    description:
-      "Остатки, движения, поставки и контроль материалов по объектам.",
+    description: 'Остатки, движения, поставки и контроль материалов по объектам.',
   },
   {
-    label: "Учет материалов",
+    label: 'Учет материалов',
     href: marketingPaths.materialAccounting,
-    description: "Остатки, движения, поставки и складской контур по объектам.",
+    description: 'Остатки, движения, поставки и складской контур по объектам.',
   },
   {
-    label: "Акты КС-2 и КС-3",
+    label: 'Акты КС-2 и КС-3',
     href: marketingPaths.constructionDocuments,
-    description:
-      "Подготовка пакетов документов и контроль комплектности по объекту.",
+    description: 'Подготовка пакетов документов и контроль комплектности по объекту.',
   },
   {
-    label: "Платежи и лимиты",
+    label: 'Платежи и лимиты',
     href: marketingPaths.constructionBudgetControl,
-    description:
-      "Контроль бюджета, платежного календаря и исполнения финансовых обязательств.",
+    description: 'Контроль бюджета, платежного календаря и исполнения финансовых обязательств.',
   },
   {
-    label: "Мобильный контур",
+    label: 'Мобильный контур',
     href: marketingPaths.mobileApp,
-    description:
-      "Рабочие сценарии для площадки, фотофиксации и согласований в поле.",
+    description: 'Рабочие сценарии для площадки, фотофиксации и согласований в поле.',
   },
   {
-    label: "AI-сметы",
+    label: 'AI-сметы',
     href: marketingPaths.aiEstimates,
-    description: "Сценарий предварительной оценки объемов и смет по чертежам.",
+    description: 'Сценарий предварительной оценки объемов и смет по чертежам.',
   },
   {
-    label: "ПИР",
+    label: 'ПИР',
     href: marketingPaths.pirProjectDocumentation,
-    description: "ПД, РД, IFC, нормоконтроль, версии и выпуск комплектов.",
+    description: 'ПД, РД, IFC, нормоконтроль, версии и выпуск комплектов.',
   },
   {
-    label: "Охрана труда",
+    label: 'Охрана труда',
     href: marketingPaths.constructionSafety,
-    description: "Инструктажи, допуски, инциденты и контроль устранения.",
+    description: 'Инструктажи, допуски, инциденты и контроль устранения.',
   },
   {
-    label: "Качество и приемка",
+    label: 'Качество и приемка',
     href: marketingPaths.constructionQualityControl,
-    description: "Дефекты, повторная проверка, punch-list и сдача результата.",
+    description: 'Дефекты, повторная проверка, punch-list и сдача результата.',
   },
   {
-    label: "Ресурсы и выработка",
+    label: 'Ресурсы и выработка',
     href: marketingPaths.machineryAndLabor,
-    description: "Техника, смены, простои, наряды и фактическая выработка.",
+    description: 'Техника, смены, простои, наряды и фактическая выработка.',
   },
   {
-    label: "Изменения и RFI",
+    label: 'Изменения и RFI',
     href: marketingPaths.changeControl,
-    description: "RFI, дополнительные работы, претензии и решения заказчика.",
+    description: 'RFI, дополнительные работы, претензии и решения заказчика.',
   },
   {
-    label: "Закупочный контур",
+    label: 'Закупочный контур',
     href: marketingPaths.constructionProcurement,
-    description: "Потребность, запрос поставщикам, выбор, заказ и приемка.",
+    description: 'Потребность, запрос поставщикам, выбор, заказ и приемка.',
   },
   {
-    label: "Заявки с площадки",
+    label: 'Заявки с площадки',
     href: marketingPaths.siteRequests,
-    description:
-      "Маршрутизация обращений в снабжение, склад, финансы и кадровую команду.",
+    description: 'Маршрутизация обращений в снабжение, склад, финансы и кадровую команду.',
   },
   {
-    label: "Персонал и смены",
+    label: 'Персонал и смены',
     href: marketingPaths.workforceManagement,
-    description:
-      "Сотрудники, бригады, время и производственная основа для выгрузки.",
+    description: 'Сотрудники, бригады, время и производственная основа для выгрузки.',
   },
   {
-    label: "Платежный календарь",
+    label: 'Платежный календарь',
     href: marketingPaths.constructionPayments,
-    description: "Согласование счета, лимит, оплата и сверка по объекту.",
+    description: 'Согласование счета, лимит, оплата и сверка по объекту.',
   },
   {
-    label: "Интеграция с 1С и MDM",
+    label: 'Интеграция с 1С и MDM',
     href: marketingPaths.oneCIntegration,
-    description:
-      "Сопоставление справочников и контролируемый обмен по согласованному сценарию.",
+    description: 'Сопоставление справочников и контролируемый обмен по согласованному сценарию.',
   },
   {
-    label: "Подбор подрядчиков",
+    label: 'Подбор подрядчиков',
     href: marketingPaths.contractorMarketplace,
-    description:
-      "Категории, поиск, шорт-лист, приглашение и решение по кандидату.",
+    description: 'Категории, поиск, шорт-лист, приглашение и решение по кандидату.',
   },
   {
-    label: "Project Pulse для руководителя",
+    label: 'Project Pulse для руководителя',
     href: marketingPaths.projectPulse,
-    description:
-      "Сигналы риска, ежедневная сводка и дальнейшее действие руководителя.",
+    description: 'Сигналы риска, ежедневная сводка и дальнейшее действие руководителя.',
   },
 ];
 
 export const marketingBlogEditorialSeries: MarketingEditorialSeries[] = [
   {
-    id: "roles",
-    title: "Серия по ролям",
-    description:
-      "Материалы под рабочие сценарии ключевых участников строительной команды.",
+    id: 'roles',
+    title: 'Серия по ролям',
+    description: 'Материалы под рабочие сценарии ключевых участников строительной команды.',
     articles: [
       {
-        title: "Как прорабу вести объект без хаоса",
-        cluster: "программа для прораба",
-        intent: "informational",
+        title: 'Как прорабу вести объект без хаоса',
+        cluster: 'программа для прораба',
+        intent: 'informational',
         relatedPath: marketingPaths.foremanSoftware,
-        summary:
-          "Разбираем, какие данные прорабу нужны каждый день и как собрать их в одной системе.",
+        summary: 'Разбираем, какие данные прорабу нужны каждый день и как собрать их в одной системе.',
       },
       {
-        title: "Что должно быть у ПТО в одной системе",
-        cluster: "система для ПТО",
-        intent: "informational",
+        title: 'Что должно быть у ПТО в одной системе',
+        cluster: 'система для ПТО',
+        intent: 'informational',
         relatedPath: marketingPaths.ptoSoftware,
-        summary:
-          "Показываем состав контура ПТО: замечания, акты, комплектность и согласования.",
+        summary: 'Показываем состав контура ПТО: замечания, акты, комплектность и согласования.',
       },
       {
-        title: "Как снабженцу контролировать материалы без Excel",
-        cluster: "учет материалов в строительстве",
-        intent: "informational",
+        title: 'Как снабженцу контролировать материалы без Excel',
+        cluster: 'учет материалов в строительстве',
+        intent: 'informational',
         relatedPath: marketingPaths.materialAccounting,
-        summary: "Путь от заявки до поставки, остатков и сверки по объектам.",
+        summary: 'Путь от заявки до поставки, остатков и сверки по объектам.',
       },
       {
-        title: "Что должен видеть руководитель строительства каждое утро",
-        cluster: "контроль бюджета стройки",
-        intent: "informational",
+        title: 'Что должен видеть руководитель строительства каждое утро',
+        cluster: 'контроль бюджета стройки',
+        intent: 'informational',
         relatedPath: marketingPaths.constructionBudgetControl,
-        summary:
-          "Ключевые показатели по срокам, бюджету и рискам без ручной консолидации отчетов.",
+        summary: 'Ключевые показатели по срокам, бюджету и рискам без ручной консолидации отчетов.',
       },
       {
-        title: "Как проектной команде управлять ПД и РД без потери версий",
-        cluster: "пир в строительстве",
-        intent: "informational",
+        title: 'Как проектной команде управлять ПД и РД без потери версий',
+        cluster: 'пир в строительстве',
+        intent: 'informational',
         relatedPath: marketingPaths.pirProjectDocumentation,
-        summary:
-          "Разбираем контур ПИР: версии, замечания, нормоконтроль и выпуск комплектов.",
+        summary: 'Разбираем контур ПИР: версии, замечания, нормоконтроль и выпуск комплектов.',
       },
       {
-        title: "Что специалист ОТ должен видеть по объектам каждый день",
-        cluster: "охрана труда на стройке",
-        intent: "informational",
+        title: 'Что специалист ОТ должен видеть по объектам каждый день',
+        cluster: 'охрана труда на стройке',
+        intent: 'informational',
         relatedPath: marketingPaths.constructionSafety,
-        summary:
-          "Какие события безопасности важно фиксировать в объектном контексте.",
+        summary: 'Какие события безопасности важно фиксировать в объектном контексте.',
       },
     ],
   },
   {
-    id: "pain-points",
-    title: "Серия по болям",
-    description:
-      "Контент под запросы, где клиент ищет решение конкретной операционной проблемы.",
+    id: 'pain-points',
+    title: 'Серия по болям',
+    description: 'Контент под запросы, где клиент ищет решение конкретной операционной проблемы.',
     articles: [
       {
-        title: "Как сократить перерасход на стройке",
-        cluster: "контроль бюджета стройки",
-        intent: "informational",
+        title: 'Как сократить перерасход на стройке',
+        cluster: 'контроль бюджета стройки',
+        intent: 'informational',
         relatedPath: marketingPaths.constructionBudgetControl,
-        summary:
-          "Практика контроля лимитов, заявок, платежей и отклонений по объекту.",
+        summary: 'Практика контроля лимитов, заявок, платежей и отклонений по объекту.',
       },
       {
-        title: "Почему срываются сроки поставок в строительстве",
-        cluster: "контроль поставок",
-        intent: "informational",
+        title: 'Почему срываются сроки поставок в строительстве',
+        cluster: 'контроль поставок',
+        intent: 'informational',
         relatedPath: marketingPaths.materialAccounting,
-        summary:
-          "Разбираем узкие места цепочки снабжения и точки контроля для команды.",
+        summary: 'Разбираем узкие места цепочки снабжения и точки контроля для команды.',
       },
       {
-        title: "Как убрать Excel из стройки без стресса для команды",
-        cluster: "альтернатива Excel для стройки",
-        intent: "informational",
+        title: 'Как убрать Excel из стройки без стресса для команды',
+        cluster: 'альтернатива Excel для стройки',
+        intent: 'informational',
         relatedPath: marketingPaths.constructionCrm,
-        summary:
-          "Как переводить объект, заявки и статусы в единую систему без большого Big Bang.",
+        summary: 'Как переводить объект, заявки и статусы в единую систему без большого Big Bang.',
       },
       {
-        title: "Как наладить контроль подрядчиков на объекте",
-        cluster: "контроль подрядчиков",
-        intent: "informational",
+        title: 'Как наладить контроль подрядчиков на объекте',
+        cluster: 'контроль подрядчиков',
+        intent: 'informational',
         relatedPath: marketingPaths.contractorControl,
-        summary:
-          "Что фиксировать по подрядчику, чтобы вовремя видеть просадку по срокам и объемам.",
+        summary: 'Что фиксировать по подрядчику, чтобы вовремя видеть просадку по срокам и объемам.',
       },
       {
-        title: "Как дефекты доходят до повторной проверки и приемки",
-        cluster: "контроль качества строительства",
-        intent: "informational",
+        title: 'Как дефекты доходят до повторной проверки и приемки',
+        cluster: 'контроль качества строительства',
+        intent: 'informational',
         relatedPath: marketingPaths.constructionQualityControl,
-        summary:
-          "Путь замечания от фиксации на площадке до устранения и готовности к сдаче.",
+        summary: 'Путь замечания от фиксации на площадке до устранения и готовности к сдаче.',
       },
       {
-        title: "Почему RFI и изменения нельзя вести только в переписке",
-        cluster: "rfi в строительстве",
-        intent: "informational",
+        title: 'Почему RFI и изменения нельзя вести только в переписке',
+        cluster: 'rfi в строительстве',
+        intent: 'informational',
         relatedPath: marketingPaths.changeControl,
-        summary:
-          "Как сохранить основания, влияние на сроки и решение заказчика по изменениям.",
+        summary: 'Как сохранить основания, влияние на сроки и решение заказчика по изменениям.',
       },
     ],
   },
   {
-    id: "documents-and-processes",
-    title: "Серия по документам и процессам",
-    description:
-      "Материалы для запросов вокруг исполнительной документации, графиков и отчетности.",
+    id: 'documents-and-processes',
+    title: 'Серия по документам и процессам',
+    description: 'Материалы для запросов вокруг исполнительной документации, графиков и отчетности.',
     articles: [
       {
-        title: "Как вести исполнительную документацию без потерь",
-        cluster: "исполнительная документация в строительстве",
-        intent: "informational",
+        title: 'Как вести исполнительную документацию без потерь',
+        cluster: 'исполнительная документация в строительстве',
+        intent: 'informational',
         relatedPath: marketingPaths.constructionDocuments,
-        summary:
-          "Какие документы чаще всего теряются и как собрать их в управляемый комплект.",
+        summary: 'Какие документы чаще всего теряются и как собрать их в управляемый комплект.',
       },
       {
-        title: "Как автоматизировать КС-2 и КС-3",
-        cluster: "акты КС-2 и КС-3",
-        intent: "informational",
+        title: 'Как автоматизировать КС-2 и КС-3',
+        cluster: 'акты КС-2 и КС-3',
+        intent: 'informational',
         relatedPath: marketingPaths.constructionDocuments,
-        summary:
-          "Связка актов, объемов, замечаний и финансового контура в одном процессе.",
+        summary: 'Связка актов, объемов, замечаний и финансового контура в одном процессе.',
       },
       {
-        title: "Как контролировать график производства работ",
-        cluster: "график работ",
-        intent: "informational",
+        title: 'Как контролировать график производства работ',
+        cluster: 'график работ',
+        intent: 'informational',
         relatedPath: marketingPaths.foremanSoftware,
-        summary:
-          "Как вести график, фактическое исполнение и отклонения без ручной пересборки данных.",
+        summary: 'Как вести график, фактическое исполнение и отклонения без ручной пересборки данных.',
       },
       {
-        title: "Как подготовить стройку к ERP-контурe",
-        cluster: "erp для строительства",
-        intent: "informational",
+        title: 'Как подготовить стройку к ERP-контурe',
+        cluster: 'erp для строительства',
+        intent: 'informational',
         relatedPath: marketingPaths.constructionErp,
-        summary:
-          "Когда компании нужен ERP-подход и какие процессы должны быть готовы к внедрению.",
+        summary: 'Когда компании нужен ERP-подход и какие процессы должны быть готовы к внедрению.',
       },
       {
-        title: "Как подготовить объект к передаче заказчику",
-        cluster: "приемка зон строительство",
-        intent: "informational",
+        title: 'Как подготовить объект к передаче заказчику',
+        cluster: 'приемка зон строительство',
+        intent: 'informational',
         relatedPath: marketingPaths.handoverAcceptance,
-        summary:
-          "Что должно быть видно по зонам, punch-list и комплекту сдачи до финальной приемки.",
+        summary: 'Что должно быть видно по зонам, punch-list и комплекту сдачи до финальной приемки.',
       },
       {
-        title: "Как учитывать технику, смены и выработку без ручного свода",
-        cluster: "учет техники на стройке",
-        intent: "informational",
+        title: 'Как учитывать технику, смены и выработку без ручного свода',
+        cluster: 'учет техники на стройке',
+        intent: 'informational',
         relatedPath: marketingPaths.machineryAndLabor,
-        summary:
-          "Контроль смен, простоев, ГСМ, нарядов и фактических объемов по объектам.",
+        summary: 'Контроль смен, простоев, ГСМ, нарядов и фактических объемов по объектам.',
       },
     ],
   },
 ];
-export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
-  {
+export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> = {
     "foreman-software": {
       path: marketingPaths.foremanSoftware,
       eyebrow: "Работа прораба",
@@ -1177,7 +1121,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         {
           question: "Закупка и складской учёт отличаются?",
           answer:
-            "Нет. Закупка ведёт потребность до поставки, а складской учёт отражает приход и последующее движение.",
+            "Да. Закупка ведёт потребность до поставки, а складской учёт отражает приход и последующее движение.",
         },
       ],
     },
@@ -1496,7 +1440,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       eyebrow: "Версии и согласование",
       title: "Строительные документы: версии, доступ и архив",
       description:
-        "МОСТ организует версию, согласование, доступ и архив строительных документов. Юридическая значимость зависит от принятого регламента и ЭП.",
+        "МОСТ организует версию, согласование, доступ и архив строительных документов. Юридическая значимость зависит от принятого регламента и электронной подписи (ЭП).",
       supportingQueries: [
         "управление строительными документами",
         "версии проектных документов",
@@ -2071,807 +2015,491 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         },
       ],
     },
-    "pir-project-documentation": createOperationalSeoPage({
-      path: marketingPaths.pirProjectDocumentation,
-      eyebrow: "ПИР",
-      title:
-        "ПИР и проектная документация с ПД, РД, IFC, замечаниями и нормоконтролем",
-      description:
-        "МОСТ помогает вести ПИР, проектные версии, ПД, РД, BIM/IFC, замечания, нормоконтроль, статусы и выпуск комплектов в одном рабочем контуре.",
-      supportingQueries: [
-        "пир в строительстве",
-        "проектная документация пд рд",
-        "управление проектированием",
-        "нормоконтроль проектной документации",
-      ],
-      processComparisonTitle: "Порядок работы с проектной документацией",
-      processComparisonDescription:
-        "Контур ПИР связывает проектные файлы, замечания, ответственных и выпуск комплектов с объектом.",
-      signals: [
-        "ПД и РД хранятся в разных папках, а актуальная версия уточняется вручную.",
-        "Замечания по проекту живут в письмах и не имеют единого статуса.",
-        "Нормоконтроль и выпуск комплектов сложно связать с управленческой картиной проекта.",
-      ],
-      beforeState: [
-        "Проектная команда сверяет версии по переписке и локальным файлам.",
-        "ПТО и руководитель не видят, какие замечания блокируют выпуск комплекта.",
-        "История решений теряется между BIM/IFC, PDF, таблицами и письмами.",
-      ],
-      afterState: [
-        "ПД, РД, IFC, замечания и комплекты связаны с объектом и разделами.",
-        "У каждого замечания есть статус, ответственный и срок реакции.",
-        "Выпуск комплектов опирается на прозрачную историю версий и нормоконтроля.",
-      ],
-      metrics: [
-        {
-          label: "Рабочий контекст",
-          value: "Связь с документом",
-          detail: "Версии и замечания остаются у проектного документа.",
-        },
-        {
-          label: "Контроль этапа",
-          value: "Видимый статус",
-          detail: "Раздел и комплект имеют текущий статус.",
-        },
-        {
-          label: "Следующее действие",
-          value: "Назначенный ответственный",
-          detail: "Для замечания указана ответственная роль.",
-        },
-      ],
-      audienceTitle: "Кому подходит контур ПИР",
-      audienceDescription:
-        "Для команд, где проектирование, ПТО и заказчик регулярно работают с версиями, замечаниями и комплектами документации.",
-      audiences: [
-        "Проектным офисам, которым нужно управлять ПД, РД, IFC и версиями по объектам.",
-        "ПТО и генподрядчикам, которые связывают проектные решения со сметами, ИД и приемкой.",
-        "Девелоперам, которым важно видеть историю замечаний и готовность комплектов.",
-      ],
-      problemTitle: "Какие задачи решает",
-      problemDescription:
-        "Контур закрывает разрыв между проектными файлами, замечаниями и реальным управлением объектом.",
-      problems: [
-        "Собирает проектные материалы, версии, замечания и нормоконтроль в одном реестре.",
-        "Помогает видеть, какие разделы и комплекты готовы к выпуску.",
-        "Связывает ПИР со сметами, изменениями, ИД и сдачей результата.",
-      ],
-      automationTitle: "Что автоматизирует",
-      automationDescription:
-        "Фокус на управляемом жизненном цикле проектной документации.",
-      automations: [
-        "Регистрацию ПД, РД, IFC и связанных файлов по объектам и разделам.",
-        "Маршрут замечаний, нормоконтроля, ответственных и статусов реакции.",
-        "Подготовку комплектов и передачу проектной базы в сметный и исполнительный контур.",
-      ],
-      visibilityTitle: "Что видит команда",
-      visibilityDescription:
-        "Каждая роль получает свой срез проектной готовности без перегруза лишними файлами.",
-      roleViews: [
-        {
-          role: "Проектная команда",
-          description:
-            "Версии, замечания, разделы, статусы и готовность комплектов.",
-        },
-        {
-          role: "ПТО",
-          description:
-            "Связь проектной базы со сметами, ИД, изменениями и приемкой.",
-        },
-        {
-          role: "Руководитель проекта",
-          description:
-            "Блокирующие замечания, сроки реакции и готовность выпуска документации.",
-        },
-      ],
-      relatedLinks: [
-        { ...contactLink },
-        {
-          label: "Система для ПТО",
-          href: marketingPaths.ptoSoftware,
-          description:
-            "Сметы, документы, шаблоны отчетов и инженерная подготовка.",
-        },
-        {
-          label: "RFI и изменения",
-          href: marketingPaths.changeControl,
-          description:
-            "Изменения и решения заказчика, связанные с проектной базой.",
-        },
-      ],
-      blogLinks: getMarketingBlogLinks("ptoWorkspace", "managerMorning"),
-      contactHighlights: [
-        "Покажем управление ПД, РД, IFC и проектными версиями.",
-        "Разберем маршрут замечаний, нормоконтроля и выпуска комплектов.",
-        "Свяжем ПИР со сметами, ИД, изменениями и приемкой.",
-      ],
-      faq: [
-        {
-          question: "Можно ли вести ПД и РД в одном контуре?",
-          answer:
-            "Да, ПД, РД, IFC, файлы, замечания и комплекты можно связывать с объектом, разделами и статусами.",
-        },
-        {
-          question: "Поддерживаются ли замечания и нормоконтроль?",
-          answer:
-            "Да, замечания получают статус, ответственного и срок реакции, а нормоконтроль становится частью маршрута документации.",
-        },
-        {
-          question: "ПИР связан со сметами и ИД?",
-          answer:
-            "Да, проектная база может связываться со сметным, исполнительным и контуром изменений.",
-        },
-      ],
-    }),
-    "construction-safety": createOperationalSeoPage({
-      path: marketingPaths.constructionSafety,
-      eyebrow: "Охрана труда",
-      title: "Охрана труда на стройке с инструктажами, допусками и инцидентами",
-      description:
-        "МОСТ помогает вести инструктажи, наряды-допуски, нарушения, инциденты, предписания и контроль устранения в проектном контексте.",
-      supportingQueries: [
-        "охрана труда на стройке",
-        "безопасность в строительстве",
-        "инструктажи и допуски",
-        "инциденты на объекте",
-      ],
-      processComparisonTitle: "Порядок работы с охраной труда",
-      processComparisonDescription:
-        "События охраны труда получают статус, ответственных и связь с проектом.",
-      signals: [
-        "Инструктажи и допуски ведутся отдельно от объекта.",
-        "Нарушения фиксируются в журналах без прозрачного статуса устранения.",
-        "Инциденты не попадают в ежедневную управленческую картину.",
-      ],
-      beforeState: [
-        "Специалист ОТ вручную собирает журналы и файлы.",
-        "Прораб передает фото и объяснения в переписках.",
-        "Руководитель видит проблему после отдельного отчета.",
-      ],
-      afterState: [
-        "Инструктажи, допуски, нарушения и инциденты связаны с проектом.",
-        "У каждого события есть статус, ответственный и срок реакции.",
-        "Риски безопасности видны рядом с другими проектными рисками.",
-      ],
-      metrics: [
-        {
-          label: "Рабочий контекст",
-          value: "Связь с объектом",
-          detail: "Инцидент и предписание связаны с площадкой.",
-        },
-        {
-          label: "Контроль этапа",
-          value: "Видимый статус",
-          detail: "Нарушение имеет текущий статус обработки.",
-        },
-        {
-          label: "Следующее действие",
-          value: "Назначенный ответственный",
-          detail: "Для предписания указана ответственная роль.",
-        },
-      ],
-      audienceTitle: "Кому подходит контур охраны труда",
-      audienceDescription:
-        "Для команд, которым нужно видеть безопасность как часть операционного контроля стройки.",
-      audiences: [
-        "Специалистам по охране труда, которые ведут инструктажи, допуски и инциденты.",
-        "Генподрядчикам, которые отвечают за подрядчиков и безопасность на нескольких объектах.",
-        "Руководителям проектов, которым нужна видимость рисков безопасности рядом со сроками и качеством.",
-      ],
-      problemTitle: "Какие задачи решает",
-      problemDescription:
-        "Контур закрывает разрыв между журналами охраны труда и реальным управлением объектом.",
-      problems: [
-        "Связывает инструктажи и допуски с участниками и объектом.",
-        "Фиксирует нарушения, инциденты, предписания и контроль устранения.",
-        "Показывает риски безопасности руководителю без ручной пересборки.",
-      ],
-      automationTitle: "Что автоматизирует",
-      automationDescription:
-        "Фокус на статусах, ответственных и контроле устранения.",
-      automations: [
-        "Учет инструктажей, допусков, нарушений и инцидентов.",
-        "Маршрут предписания от фиксации до устранения.",
-        "Отчетность по открытым событиям безопасности.",
-      ],
-      visibilityTitle: "Что видит команда",
-      visibilityDescription:
-        "Каждая роль получает свой срез безопасности без перегруза лишними данными.",
-      roleViews: [
-        {
-          role: "Специалист ОТ",
-          description:
-            "Инструктажи, допуски, нарушения, инциденты и предписания.",
-        },
-        {
-          role: "Прораб",
-          description:
-            "События на объекте, фотофиксация, сроки устранения и ответственные.",
-        },
-        {
-          role: "Руководитель проекта",
-          description:
-            "Открытые риски безопасности и статус устранения по объектам.",
-        },
-      ],
-      relatedLinks: [
-        { ...contactLink },
-        {
-          label: "Мобильное приложение",
-          href: marketingPaths.mobileApp,
-          description: "Фиксация событий с площадки.",
-        },
-        {
-          label: "Контроль качества",
-          href: marketingPaths.constructionQualityControl,
-          description: "Смежный контур дефектов и проверок.",
-        },
-      ],
-      blogLinks: getMarketingBlogLinks("foremanOrder", "managerMorning"),
-      contactHighlights: [
-        "Покажем фиксацию нарушений и инцидентов.",
-        "Разберем роли специалиста ОТ, прораба и руководителя.",
-        "Обсудим отчеты и контроль устранения.",
-      ],
-      faq: [
-        {
-          question: "Можно ли вести инструктажи?",
-          answer:
-            "Да, контур рассчитан на инструктажи, допуски и связь с участниками работ.",
-        },
-        {
-          question: "Инциденты видны руководителю?",
-          answer:
-            "Да, открытые инциденты и нарушения можно выводить в управленческий обзор.",
-        },
-        {
-          question: "Можно ли фиксировать фото?",
-          answer:
-            "Да, события безопасности можно связывать с файлами и материалами проверки.",
-        },
-      ],
-    }),
-    "construction-quality-control": createOperationalSeoPage({
-      path: marketingPaths.constructionQualityControl,
-      eyebrow: "Стройконтроль",
-      title:
-        "Контроль качества строительства с дефектами, инспекциями и повторной проверкой",
-      description:
-        "МОСТ помогает вести инспекции, дефекты, ответственных, сроки устранения, фотофиксацию, повторную проверку и связь с приемкой.",
-      supportingQueries: [
-        "контроль качества строительства",
-        "строительный контроль дефекты",
-        "инспекции качества на объекте",
-        "учет замечаний на стройке",
-      ],
-      processComparisonTitle: "Порядок работы с дефектами до сдачи этапа",
-      processComparisonDescription:
-        "Контур качества показывает путь от обнаружения дефекта до повторной проверки и готовности к приемке.",
-      signals: [
-        "Замечания фиксируются в чатах и фотоальбомах.",
-        "Ответственный и срок устранения не всегда понятны.",
-        "Повторная проверка зависит от ручного напоминания.",
-      ],
-      beforeState: [
-        "Стройконтроль собирает дефекты в таблицах и переписках.",
-        "ПТО не всегда видит связь замечаний с документами и зонами.",
-        "Руководитель узнает о проблеме при сдаче этапа.",
-      ],
-      afterState: [
-        "Дефект имеет объект, зону, ответственного, срок и статус.",
-        "Фото, комментарии и повторная проверка связаны с карточкой.",
-        "Приемка опирается на понятную готовность качества.",
-      ],
-      metrics: [
-        {
-          label: "Рабочий контекст",
-          value: "Единая карточка",
-          detail: "Дефект, зона и материалы проверки собраны в карточке.",
-        },
-        {
-          label: "Контроль этапа",
-          value: "Видимый статус",
-          detail: "Дефект имеет статус устранения и проверки.",
-        },
-        {
-          label: "Следующее действие",
-          value: "Назначенный ответственный",
-          detail: "Для устранения указана ответственная роль.",
-        },
-      ],
-      audienceTitle: "Кому подходит контроль качества",
-      audienceDescription:
-        "Для стройконтроля, генподрядчика и ПТО, которым важно видеть качество закрытия этапа.",
-      audiences: [
-        "Стройконтролю, который фиксирует дефекты и повторные проверки.",
-        "Генподрядчику, который отвечает за качество работы подрядчиков.",
-        "ПТО и руководителю проекта, которым нужна связь качества, ИД и приемки.",
-      ],
-      problemTitle: "Какие задачи решает",
-      problemDescription:
-        "Контур устраняет разрыв между замечанием на площадке и управленческим решением.",
-      problems: [
-        "Собирает дефекты, инспекции и фотофиксацию в одном реестре.",
-        "Назначает ответственных и сроки устранения.",
-        "Связывает качество с приемкой зон и исполнительной документацией.",
-      ],
-      automationTitle: "Что автоматизирует",
-      automationDescription:
-        "Фокус на жизненном цикле дефекта и повторной проверке.",
-      automations: [
-        "Создание дефекта с зоной, фото, ответственным и сроком.",
-        "Статусы устранения, проверки и отклонения.",
-        "Отчеты по критичным и просроченным замечаниям.",
-      ],
-      visibilityTitle: "Что видит команда",
-      visibilityDescription:
-        "Качество становится видимым процессом для площадки, ПТО и руководителя.",
-      roleViews: [
-        {
-          role: "Стройконтроль",
-          description: "Дефекты, инспекции, повторные проверки и критичность.",
-        },
-        {
-          role: "Прораб",
-          description: "Назначенные замечания, сроки устранения и комментарии.",
-        },
-        {
-          role: "Руководитель проекта",
-          description: "Критичные дефекты, просрочки и готовность к приемке.",
-        },
-      ],
-      relatedLinks: [
-        { ...contactLink },
-        {
-          label: "Приемка зон",
-          href: marketingPaths.handoverAcceptance,
-          description: "Передача результата после устранения замечаний.",
-        },
-        {
-          label: "Исполнительная документация",
-          href: marketingPaths.constructionDocuments,
-          description: "Документы, связанные с качеством и сдачей.",
-        },
-      ],
-      blogLinks: getMarketingBlogLinks("foremanOrder", "managerMorning"),
-      contactHighlights: [
-        "Покажем путь дефекта от фиксации до проверки.",
-        "Разберем роли стройконтроля, прораба и ПТО.",
-        "Обсудим связь качества с приемкой и ИД.",
-      ],
-      faq: [
-        {
-          question: "Можно ли назначать ответственных?",
-          answer:
-            "Да, дефект получает ответственного, срок устранения и статус.",
-        },
-        {
-          question: "Есть повторная проверка?",
-          answer:
-            "Да, контур поддерживает устранение, повторную проверку и отклонение.",
-        },
-        {
-          question: "Качество связано с приемкой?",
-          answer:
-            "Да, замечания и дефекты можно связывать с зонами, punch-list и готовностью передачи результата.",
-        },
-      ],
-    }),
-    "handover-acceptance": createOperationalSeoPage({
-      path: marketingPaths.handoverAcceptance,
-      eyebrow: "Сдача результата",
-      title: "Приемка зон и punch-list для передачи результата заказчику",
-      description:
-        "МОСТ помогает вести приемку зон, punch-list, замечания заказчика, готовность передачи, статусы устранения и комплект сдачи объекта.",
-      supportingQueries: [
-        "приемка зон строительство",
-        "punch list стройка",
-        "сдача объекта заказчику",
-        "контроль замечаний при приемке",
-      ],
-      processComparisonTitle: "Порядок работы при сдаче результата",
-      processComparisonDescription:
-        "Приемка связывает зоны, замечания, готовность качества и комплект документов.",
-      signals: [
-        "Замечания заказчика собираются в письмах, таблицах и чатах.",
-        "Готовность зон сложно связать с дефектами и исполнительной документацией.",
-        "Руководитель видит риски сдачи слишком поздно.",
-      ],
-      beforeState: [
-        "ПТО вручную сверяет зоны, замечания, фото и документы.",
-        "Прораб не всегда понимает, что именно блокирует передачу результата.",
-        "Заказчик получает неполную картину по готовности и срокам устранения.",
-      ],
-      afterState: [
-        "Зона имеет статус, punch-list, ответственных и сроки устранения.",
-        "Качество, ИД и замечания заказчика связаны с передачей результата.",
-        "Команда видит готовность сдачи до финальной приемки.",
-      ],
-      metrics: [
-        {
-          label: "Рабочий контекст",
-          value: "Единая запись",
-          detail: "Замечания заказчика связаны с зоной и объектом.",
-        },
-        {
-          label: "Контроль этапа",
-          value: "Видимый статус",
-          detail: "Зона имеет текущий статус передачи.",
-        },
-        {
-          label: "Основание решения",
-          value: "История решений",
-          detail: "Решения по замечаниям сохраняются в истории.",
-        },
-      ],
-      audienceTitle: "Кому подходит приемка и punch-list",
-      audienceDescription:
-        "Для команд, которые передают результат заказчику и хотят видеть готовность сдачи до финального этапа.",
-      audiences: [
-        "ПТО и стройконтролю, которые закрывают замечания и готовят комплект передачи.",
-        "Генподрядчикам, которые отвечают за сдачу зон и работу подрядчиков.",
-        "Девелоперам и заказчикам, которым нужна прозрачная история приемки.",
-      ],
-      problemTitle: "Какие задачи решает",
-      problemDescription:
-        "Контур связывает качество, замечания заказчика и комплект сдачи.",
-      problems: [
-        "Ведет зоны, punch-list, статусы устранения и повторные проверки.",
-        "Показывает готовность передачи результата по объекту.",
-        "Связывает замечания с ИД, качеством и решениями заказчика.",
-      ],
-      automationTitle: "Что автоматизирует",
-      automationDescription:
-        "Фокус на управляемой передаче результата и контроле замечаний.",
-      automations: [
-        "Создание punch-list по зонам, объектам и участникам приемки.",
-        "Маршрут устранения замечаний и повторной проверки.",
-        "Подготовку прозрачной картины готовности к сдаче.",
-      ],
-      visibilityTitle: "Что видит команда",
-      visibilityDescription:
-        "Приемка становится рабочим маршрутом для ПТО, площадки и заказчика.",
-      roleViews: [
-        {
-          role: "ПТО",
-          description: "Зоны, punch-list, статусы, ИД и готовность передачи.",
-        },
-        {
-          role: "Прораб",
-          description:
-            "Назначенные замечания, сроки устранения и блокирующие зоны.",
-        },
-        {
-          role: "Заказчик",
-          description: "Статус приемки, открытые замечания и историю решений.",
-        },
-      ],
-      relatedLinks: [
-        { ...contactLink },
-        {
-          label: "Контроль качества",
-          href: marketingPaths.constructionQualityControl,
-          description: "Дефекты и повторные проверки до приемки.",
-        },
-        {
-          label: "RFI и изменения",
-          href: marketingPaths.changeControl,
-          description: "Решения заказчика и изменения, влияющие на сдачу.",
-        },
-      ],
-      blogLinks: getMarketingBlogLinks("foremanOrder", "managerMorning"),
-      contactHighlights: [
-        "Покажем приемку зон и punch-list.",
-        "Разберем связь замечаний, качества и ИД.",
-        "Обсудим сценарий видимости для заказчика.",
-      ],
-      faq: [
-        {
-          question: "Можно ли вести punch-list?",
-          answer:
-            "Да, punch-list можно вести по зонам, объектам, ответственным и статусам устранения.",
-        },
-        {
-          question: "Приемка связана с дефектами?",
-          answer:
-            "Да, дефекты и замечания качества можно доводить до повторной проверки и передачи результата.",
-        },
-        {
-          question: "Можно ли показать статус заказчику?",
-          answer:
-            "Да, customer-сценарий обсуждается как часть контура сдачи и согласований.",
-        },
-      ],
-    }),
-    "machinery-and-labor": createOperationalSeoPage({
-      path: marketingPaths.machineryAndLabor,
-      eyebrow: "Ресурсы",
-      title: "Учет техники, механизмов, нарядов и выработки на объекте",
-      description:
-        "МОСТ помогает вести технику, механизмы, смены, простои, ГСМ, наряды, бригады, фактическую выработку и подготовку начислений.",
-      supportingQueries: [
-        "учет техники на стройке",
-        "учет механизмов",
-        "наряды в строительстве",
-        "выработка бригад",
-      ],
-      processComparisonTitle: "Порядок учета ресурсов и себестоимости",
-      processComparisonDescription:
-        "Техника, смены, простои и наряды становятся частью ежедневного производственного факта.",
-      signals: [
-        "Сменные рапорты и простои техники собираются после факта.",
-        "ГСМ, техника и наряды не связаны с реальными объемами работ.",
-        "Начисления готовятся на базе ручных таблиц и уточнений.",
-      ],
-      beforeState: [
-        "Прораб и механик ведут ресурсный факт в отдельных файлах.",
-        "Финансовый блок получает данные после ручной сверки.",
-        "Руководитель не видит, где техника простаивает и где падает выработка.",
-      ],
-      afterState: [
-        "Техника, смена, простой, ГСМ и наряд связаны с объектом.",
-        "Фактическая выработка видна рядом с объемами и сроками.",
-        "Начисления готовятся на проверяемой производственной базе.",
-      ],
-      metrics: [
-        {
-          label: "Рабочий контекст",
-          value: "Связь с объектом",
-          detail: "Техника, смена и наряд связаны с объектом.",
-        },
-        {
-          label: "Контроль этапа",
-          value: "Видимый статус",
-          detail: "Наряд имеет текущий статус обработки.",
-        },
-        {
-          label: "Основание решения",
-          value: "Единая запись",
-          detail: "Факт смены сохраняется в рабочей записи.",
-        },
-      ],
-      audienceTitle: "Кому подходит учет техники и выработки",
-      audienceDescription:
-        "Для проектов, где техника, бригады и фактическая выработка влияют на сроки и себестоимость.",
-      audiences: [
-        "Руководителям проектов, которым нужно видеть ресурсные отклонения.",
-        "Прорабам и механикам, которые фиксируют технику, смены и простои.",
-        "Финансовому блоку, который сверяет выработку и начисления.",
-      ],
-      problemTitle: "Какие задачи решает",
-      problemDescription:
-        "Контур связывает ресурсный факт с объектом, объемами и закрытием периода.",
-      problems: [
-        "Ведет технику, назначения, сменные рапорты, простои и ГСМ.",
-        "Фиксирует наряды, выработку и отклонения по бригадам.",
-        "Готовит основу для начислений без ручной пересборки.",
-      ],
-      automationTitle: "Что автоматизирует",
-      automationDescription:
-        "Фокус на ежедневном факте ресурсов и производственной проверке.",
-      automations: [
-        "Заявки и назначения техники на объект.",
-        "Сменные рапорты, простои, ГСМ и статусы техники.",
-        "Наряды, фактическую выработку и подготовку начислений.",
-      ],
-      visibilityTitle: "Что видит команда",
-      visibilityDescription:
-        "Ресурсы становятся видимой частью исполнения, а не отдельным набором отчетов.",
-      roleViews: [
-        {
-          role: "Прораб",
-          description: "Наряды, выработка, смены и фактические объемы.",
-        },
-        {
-          role: "Механик",
-          description: "Техника, назначения, простои, сменные рапорты и ГСМ.",
-        },
-        {
-          role: "Руководитель проекта",
-          description:
-            "Недовыработка, простои и ресурсные отклонения по объектам.",
-        },
-      ],
-      relatedLinks: [
-        { ...contactLink },
-        {
-          label: "Контроль бюджета",
-          href: marketingPaths.constructionBudgetControl,
-          description: "Финансовая связь ресурса и объекта.",
-        },
-        {
-          label: "Мобильное приложение",
-          href: marketingPaths.mobileApp,
-          description: "Фиксация факта с площадки.",
-        },
-      ],
-      blogLinks: getMarketingBlogLinks("managerMorning"),
-      contactHighlights: [
-        "Покажем сменный рапорт и простой техники.",
-        "Разберем наряды и фактическую выработку.",
-        "Обсудим подготовку начислений по вашему процессу.",
-      ],
-      faq: [
-        {
-          question: "Можно ли учитывать простои?",
-          answer:
-            "Да, простой остается открытым до закрытия с фактическим временем и причиной.",
-        },
-        {
-          question: "Выработка связана с нарядами?",
-          answer:
-            "Да, контур рассчитан на наряды, объемы, факт выработки и проверку.",
-        },
-        {
-          question: "Можно ли связать технику со сметами?",
-          answer:
-            "Да, техника и механизмы могут связываться со сметными механизмами и выполненными работами.",
-        },
-      ],
-    }),
-    "change-control": createOperationalSeoPage({
-      path: marketingPaths.changeControl,
-      eyebrow: "Изменения и претензии",
-      title:
-        "RFI, изменения, дополнительные работы и претензии в строительстве",
-      description:
-        "МОСТ связывает запросы информации, change orders, влияние на сроки и бюджет, претензии, документы и решения заказчика.",
-      supportingQueries: [
-        "RFI в строительстве",
-        "изменения объемов строительства",
-        "change order строительство",
-        "претензии подрядчика",
-      ],
-      processComparisonTitle: "Порядок работы с изменениями",
-      processComparisonDescription:
-        "Контур изменений показывает путь от вопроса или претензии до решения заказчика и влияния на проект.",
-      signals: [
-        "RFI и ответы уходят в письма и чаты.",
-        "Дополнительные работы утверждаются без прозрачного влияния на бюджет.",
-        "Претензии собирают доказательства вручную перед спором.",
-      ],
-      beforeState: [
-        "Изменения фиксируются после факта и без единого статуса.",
-        "ПТО, финансы и руководитель смотрят разные версии влияния.",
-        "Решение заказчика сложно найти в истории переписки.",
-      ],
-      afterState: [
-        "RFI, изменение или претензия имеют статус, основание и ответственного.",
-        "Влияние на сроки и бюджет видно до утверждения.",
-        "Решение заказчика сохраняется в customer-сценарии и истории проекта.",
-      ],
-      metrics: [
-        {
-          label: "Рабочий контекст",
-          value: "Единая карточка",
-          detail: "Запрос и изменение собраны в одной карточке.",
-        },
-        {
-          label: "Контроль этапа",
-          value: "Видимый статус",
-          detail: "Запрос имеет текущий статус ответа.",
-        },
-        {
-          label: "Основание решения",
-          value: "История решений",
-          detail: "Основания и решения сохраняются в истории.",
-        },
-      ],
-      audienceTitle: "Кому подходит контур изменений",
-      audienceDescription:
-        "Для проектов, где изменения, дополнительные работы и решения заказчика влияют на сроки и деньги.",
-      audiences: [
-        "Генподрядчикам, которым нужно контролировать RFI и изменения объемов.",
-        "Девелоперам и заказчикам, которым важна прозрачная история решений.",
-        "ПТО и финансовому блоку, которые оценивают влияние на документы, сроки и бюджет.",
-      ],
-      problemTitle: "Какие задачи решает",
-      problemDescription:
-        "Контур связывает коммерческие изменения с проектным фактом, документами и заказчиком.",
-      problems: [
-        "Ведет RFI, ответы, change orders, дополнительные работы и претензии.",
-        "Показывает влияние изменения на сроки, бюджет и документы.",
-        "Сохраняет решение заказчика и историю согласования.",
-      ],
-      automationTitle: "Что автоматизирует",
-      automationDescription:
-        "Фокус на маршруте решения, влиянии и доказательной базе.",
-      automations: [
-        "Создание RFI, ответа, изменения или претензии.",
-        "Оценку влияния на сроки, смету и финансовую модель.",
-        "Согласование с заказчиком и сохранение решения.",
-      ],
-      visibilityTitle: "Что видит команда",
-      visibilityDescription:
-        "Изменение становится общим объектом работы для ПТО, руководителя, финансов и заказчика.",
-      roleViews: [
-        {
-          role: "ПТО",
-          description:
-            "RFI, документы, основания, замечания и влияние на комплект.",
-        },
-        {
-          role: "Финансовый блок",
-          description: "Сумму, бюджетное влияние и связь с платежами.",
-        },
-        {
-          role: "Заказчик",
-          description:
-            "Запросы на согласовании, влияние по дням и сумму решения.",
-        },
-      ],
-      relatedLinks: [
-        { ...contactLink },
-        {
-          label: "Контроль бюджета",
-          href: marketingPaths.constructionBudgetControl,
-          description: "Финансовое влияние изменений.",
-        },
-        {
-          label: "ПИР и проектная документация",
-          href: marketingPaths.pirProjectDocumentation,
-          description: "Проектная база и замечания.",
-        },
-        {
-          label: "Project Pulse",
-          href: marketingPaths.projectPulse,
-          description:
-            "Управленческие сигналы по изменениям, бюджету и срокам объекта.",
-        },
-      ],
-      blogLinks: getMarketingBlogLinks("ptoWorkspace", "managerMorning"),
-      contactHighlights: [
-        "Покажем RFI и изменение с влиянием на сроки.",
-        "Разберем связь изменения со сметой и платежами.",
-        "Обсудим customer-согласование и историю решений.",
-      ],
-      faq: [
-        {
-          question: "RFI и изменение — это разные сценарии?",
-          answer:
-            "Да. RFI фиксирует запрос информации и ответ, а изменение может учитывать влияние на сроки, бюджет и документы.",
-        },
-        {
-          question: "Можно ли фиксировать претензии?",
-          answer:
-            "Да, контур поддерживает претензии, основания, доказательства и решения.",
-        },
-        {
-          question: "Заказчик может согласовывать изменения?",
-          answer:
-            "Да, если изменение требует решения заказчика, его можно вывести в customer-контур.",
-        },
-      ],
-      workflow: {
-        title: "Как изменение проходит от RFI до закрытия",
-        description:
-          "Контур связывает инженерное основание, решение заказчика и последствия для сроков, денег и документов.",
-        stages: [
-          {
-            label: "RFI",
-            description:
-              "Команда фиксирует запрос, основание и срок ответа по объекту.",
-          },
-          {
-            label: "Решение и изменение",
-            description:
-              "Ответ заказчика превращается в согласованное изменение или основание для претензии.",
-          },
-          {
-            label: "Влияние на проект",
-            description: "ПТО оценивает влияние на смету, график и бюджет.",
-          },
-          {
-            label: "Согласование и оплата",
-            description:
-              "Решение связывается с платежом и необходимым комплектом документов.",
-          },
-          {
-            label: "Претензия или закрытие",
-            description:
-              "История решения и доказательства остаются доступными для дальнейшего действия.",
-          },
-        ],
-      },
-    }),
-    ...marketingProductSeoLandingPages,
-  };
+  'pir-project-documentation': createOperationalSeoPage({
+    path: marketingPaths.pirProjectDocumentation,
+    eyebrow: 'ПИР',
+    title: 'ПИР и проектная документация с ПД, РД, IFC, замечаниями и нормоконтролем',
+    description:
+      'МОСТ помогает вести ПИР, проектные версии, ПД, РД, BIM/IFC, замечания, нормоконтроль, статусы и выпуск комплектов в одном рабочем контуре.',
+    supportingQueries: [
+      'пир в строительстве',
+      'проектная документация пд рд',
+      'управление проектированием',
+      'нормоконтроль проектной документации',
+    ],
+    processComparisonTitle: 'Порядок работы с проектной документацией',
+    processComparisonDescription: 'Контур ПИР связывает проектные файлы, замечания, ответственных и выпуск комплектов с объектом.',
+    signals: [
+      'ПД и РД хранятся в разных папках, а актуальная версия уточняется вручную.',
+      'Замечания по проекту живут в письмах и не имеют единого статуса.',
+      'Нормоконтроль и выпуск комплектов сложно связать с управленческой картиной проекта.',
+    ],
+    beforeState: [
+      'Проектная команда сверяет версии по переписке и локальным файлам.',
+      'ПТО и руководитель не видят, какие замечания блокируют выпуск комплекта.',
+      'История решений теряется между BIM/IFC, PDF, таблицами и письмами.',
+    ],
+    afterState: [
+      'ПД, РД, IFC, замечания и комплекты связаны с объектом и разделами.',
+      'У каждого замечания есть статус, ответственный и срок реакции.',
+      'Выпуск комплектов опирается на прозрачную историю версий и нормоконтроля.',
+    ],
+    metrics: [
+      { label: 'Рабочий контекст', value: 'Связь с документом', detail: 'Версии и замечания остаются у проектного документа.' },
+      { label: 'Контроль этапа', value: 'Видимый статус', detail: 'Раздел и комплект имеют текущий статус.' },
+      { label: 'Следующее действие', value: 'Назначенный ответственный', detail: 'Для замечания указана ответственная роль.' },
+    ],
+    audienceTitle: 'Кому подходит контур ПИР',
+    audienceDescription: 'Для команд, где проектирование, ПТО и заказчик регулярно работают с версиями, замечаниями и комплектами документации.',
+    audiences: [
+      'Проектным офисам, которым нужно управлять ПД, РД, IFC и версиями по объектам.',
+      'ПТО и генподрядчикам, которые связывают проектные решения со сметами, ИД и приемкой.',
+      'Девелоперам, которым важно видеть историю замечаний и готовность комплектов.',
+    ],
+    problemTitle: 'Какие задачи решает',
+    problemDescription: 'Контур закрывает разрыв между проектными файлами, замечаниями и реальным управлением объектом.',
+    problems: [
+      'Собирает проектные материалы, версии, замечания и нормоконтроль в одном реестре.',
+      'Помогает видеть, какие разделы и комплекты готовы к выпуску.',
+      'Связывает ПИР со сметами, изменениями, ИД и сдачей результата.',
+    ],
+    automationTitle: 'Что автоматизирует',
+    automationDescription: 'Фокус на управляемом жизненном цикле проектной документации.',
+    automations: [
+      'Регистрацию ПД, РД, IFC и связанных файлов по объектам и разделам.',
+      'Маршрут замечаний, нормоконтроля, ответственных и статусов реакции.',
+      'Подготовку комплектов и передачу проектной базы в сметный и исполнительный контур.',
+    ],
+    visibilityTitle: 'Что видит команда',
+    visibilityDescription: 'Каждая роль получает свой срез проектной готовности без перегруза лишними файлами.',
+    roleViews: [
+      { role: 'Проектная команда', description: 'Версии, замечания, разделы, статусы и готовность комплектов.' },
+      { role: 'ПТО', description: 'Связь проектной базы со сметами, ИД, изменениями и приемкой.' },
+      { role: 'Руководитель проекта', description: 'Блокирующие замечания, сроки реакции и готовность выпуска документации.' },
+    ],
+    relatedLinks: [
+      { ...contactLink },
+      { label: 'Система для ПТО', href: marketingPaths.ptoSoftware, description: 'Сметы, документы, шаблоны отчетов и инженерная подготовка.' },
+      { label: 'RFI и изменения', href: marketingPaths.changeControl, description: 'Изменения и решения заказчика, связанные с проектной базой.' },
+    ],
+    blogLinks: getMarketingBlogLinks('ptoWorkspace', 'managerMorning'),
+    contactHighlights: [
+      'Покажем управление ПД, РД, IFC и проектными версиями.',
+      'Разберем маршрут замечаний, нормоконтроля и выпуска комплектов.',
+      'Свяжем ПИР со сметами, ИД, изменениями и приемкой.',
+    ],
+    faq: [
+      { question: 'Можно ли вести ПД и РД в одном контуре?', answer: 'Да, ПД, РД, IFC, файлы, замечания и комплекты можно связывать с объектом, разделами и статусами.' },
+      { question: 'Поддерживаются ли замечания и нормоконтроль?', answer: 'Да, замечания получают статус, ответственного и срок реакции, а нормоконтроль становится частью маршрута документации.' },
+      { question: 'ПИР связан со сметами и ИД?', answer: 'Да, проектная база может связываться со сметным, исполнительным и контуром изменений.' },
+    ],
+  }),
+  'construction-safety': createOperationalSeoPage({
+    path: marketingPaths.constructionSafety,
+    eyebrow: 'Охрана труда',
+    title: 'Охрана труда на стройке с инструктажами, допусками и инцидентами',
+    description:
+      'МОСТ помогает вести инструктажи, наряды-допуски, нарушения, инциденты, предписания и контроль устранения в проектном контексте.',
+    supportingQueries: [
+      'охрана труда на стройке',
+      'безопасность в строительстве',
+      'инструктажи и допуски',
+      'инциденты на объекте',
+    ],
+    processComparisonTitle: 'Порядок работы с охраной труда',
+    processComparisonDescription: 'События охраны труда получают статус, ответственных и связь с проектом.',
+    signals: [
+      'Инструктажи и допуски ведутся отдельно от объекта.',
+      'Нарушения фиксируются в журналах без прозрачного статуса устранения.',
+      'Инциденты не попадают в ежедневную управленческую картину.',
+    ],
+    beforeState: [
+      'Специалист ОТ вручную собирает журналы и файлы.',
+      'Прораб передает фото и объяснения в переписках.',
+      'Руководитель видит проблему после отдельного отчета.',
+    ],
+    afterState: [
+      'Инструктажи, допуски, нарушения и инциденты связаны с проектом.',
+      'У каждого события есть статус, ответственный и срок реакции.',
+      'Риски безопасности видны рядом с другими проектными рисками.',
+    ],
+    metrics: [
+      { label: 'Рабочий контекст', value: 'Связь с объектом', detail: 'Инцидент и предписание связаны с площадкой.' },
+      { label: 'Контроль этапа', value: 'Видимый статус', detail: 'Нарушение имеет текущий статус обработки.' },
+      { label: 'Следующее действие', value: 'Назначенный ответственный', detail: 'Для предписания указана ответственная роль.' },
+    ],
+    audienceTitle: 'Кому подходит контур охраны труда',
+    audienceDescription: 'Для команд, которым нужно видеть безопасность как часть операционного контроля стройки.',
+    audiences: [
+      'Специалистам по охране труда, которые ведут инструктажи, допуски и инциденты.',
+      'Генподрядчикам, которые отвечают за подрядчиков и безопасность на нескольких объектах.',
+      'Руководителям проектов, которым нужна видимость рисков безопасности рядом со сроками и качеством.',
+    ],
+    problemTitle: 'Какие задачи решает',
+    problemDescription: 'Контур закрывает разрыв между журналами охраны труда и реальным управлением объектом.',
+    problems: [
+      'Связывает инструктажи и допуски с участниками и объектом.',
+      'Фиксирует нарушения, инциденты, предписания и контроль устранения.',
+      'Показывает риски безопасности руководителю без ручной пересборки.',
+    ],
+    automationTitle: 'Что автоматизирует',
+    automationDescription: 'Фокус на статусах, ответственных и контроле устранения.',
+    automations: [
+      'Учет инструктажей, допусков, нарушений и инцидентов.',
+      'Маршрут предписания от фиксации до устранения.',
+      'Отчетность по открытым событиям безопасности.',
+    ],
+    visibilityTitle: 'Что видит команда',
+    visibilityDescription: 'Каждая роль получает свой срез безопасности без перегруза лишними данными.',
+    roleViews: [
+      { role: 'Специалист ОТ', description: 'Инструктажи, допуски, нарушения, инциденты и предписания.' },
+      { role: 'Прораб', description: 'События на объекте, фотофиксация, сроки устранения и ответственные.' },
+      { role: 'Руководитель проекта', description: 'Открытые риски безопасности и статус устранения по объектам.' },
+    ],
+    relatedLinks: [
+      { ...contactLink },
+      { label: 'Мобильное приложение', href: marketingPaths.mobileApp, description: 'Фиксация событий с площадки.' },
+      { label: 'Контроль качества', href: marketingPaths.constructionQualityControl, description: 'Смежный контур дефектов и проверок.' },
+    ],
+    blogLinks: getMarketingBlogLinks('foremanOrder', 'managerMorning'),
+    contactHighlights: [
+      'Покажем фиксацию нарушений и инцидентов.',
+      'Разберем роли специалиста ОТ, прораба и руководителя.',
+      'Обсудим отчеты и контроль устранения.',
+    ],
+    faq: [
+      { question: 'Можно ли вести инструктажи?', answer: 'Да, контур рассчитан на инструктажи, допуски и связь с участниками работ.' },
+      { question: 'Инциденты видны руководителю?', answer: 'Да, открытые инциденты и нарушения можно выводить в управленческий обзор.' },
+      { question: 'Можно ли фиксировать фото?', answer: 'Да, события безопасности можно связывать с файлами и материалами проверки.' },
+    ],
+  }),
+  'construction-quality-control': createOperationalSeoPage({
+    path: marketingPaths.constructionQualityControl,
+    eyebrow: 'Стройконтроль',
+    title: 'Контроль качества строительства с дефектами, инспекциями и повторной проверкой',
+    description:
+      'МОСТ помогает вести инспекции, дефекты, ответственных, сроки устранения, фотофиксацию, повторную проверку и связь с приемкой.',
+    supportingQueries: [
+      'контроль качества строительства',
+      'строительный контроль дефекты',
+      'инспекции качества на объекте',
+      'учет замечаний на стройке',
+    ],
+    processComparisonTitle: 'Порядок работы с дефектами до сдачи этапа',
+    processComparisonDescription: 'Контур качества показывает путь от обнаружения дефекта до повторной проверки и готовности к приемке.',
+    signals: [
+      'Замечания фиксируются в чатах и фотоальбомах.',
+      'Ответственный и срок устранения не всегда понятны.',
+      'Повторная проверка зависит от ручного напоминания.',
+    ],
+    beforeState: [
+      'Стройконтроль собирает дефекты в таблицах и переписках.',
+      'ПТО не всегда видит связь замечаний с документами и зонами.',
+      'Руководитель узнает о проблеме при сдаче этапа.',
+    ],
+    afterState: [
+      'Дефект имеет объект, зону, ответственного, срок и статус.',
+      'Фото, комментарии и повторная проверка связаны с карточкой.',
+      'Приемка опирается на понятную готовность качества.',
+    ],
+    metrics: [
+      { label: 'Рабочий контекст', value: 'Единая карточка', detail: 'Дефект, зона и материалы проверки собраны в карточке.' },
+      { label: 'Контроль этапа', value: 'Видимый статус', detail: 'Дефект имеет статус устранения и проверки.' },
+      { label: 'Следующее действие', value: 'Назначенный ответственный', detail: 'Для устранения указана ответственная роль.' },
+    ],
+    audienceTitle: 'Кому подходит контроль качества',
+    audienceDescription: 'Для стройконтроля, генподрядчика и ПТО, которым важно видеть качество закрытия этапа.',
+    audiences: [
+      'Стройконтролю, который фиксирует дефекты и повторные проверки.',
+      'Генподрядчику, который отвечает за качество работы подрядчиков.',
+      'ПТО и руководителю проекта, которым нужна связь качества, ИД и приемки.',
+    ],
+    problemTitle: 'Какие задачи решает',
+    problemDescription: 'Контур устраняет разрыв между замечанием на площадке и управленческим решением.',
+    problems: [
+      'Собирает дефекты, инспекции и фотофиксацию в одном реестре.',
+      'Назначает ответственных и сроки устранения.',
+      'Связывает качество с приемкой зон и исполнительной документацией.',
+    ],
+    automationTitle: 'Что автоматизирует',
+    automationDescription: 'Фокус на жизненном цикле дефекта и повторной проверке.',
+    automations: [
+      'Создание дефекта с зоной, фото, ответственным и сроком.',
+      'Статусы устранения, проверки и отклонения.',
+      'Отчеты по критичным и просроченным замечаниям.',
+    ],
+    visibilityTitle: 'Что видит команда',
+    visibilityDescription: 'Качество становится видимым процессом для площадки, ПТО и руководителя.',
+    roleViews: [
+      { role: 'Стройконтроль', description: 'Дефекты, инспекции, повторные проверки и критичность.' },
+      { role: 'Прораб', description: 'Назначенные замечания, сроки устранения и комментарии.' },
+      { role: 'Руководитель проекта', description: 'Критичные дефекты, просрочки и готовность к приемке.' },
+    ],
+    relatedLinks: [
+      { ...contactLink },
+      { label: 'Приемка зон', href: marketingPaths.handoverAcceptance, description: 'Передача результата после устранения замечаний.' },
+      { label: 'Исполнительная документация', href: marketingPaths.constructionDocuments, description: 'Документы, связанные с качеством и сдачей.' },
+    ],
+    blogLinks: getMarketingBlogLinks('foremanOrder', 'managerMorning'),
+    contactHighlights: [
+      'Покажем путь дефекта от фиксации до проверки.',
+      'Разберем роли стройконтроля, прораба и ПТО.',
+      'Обсудим связь качества с приемкой и ИД.',
+    ],
+    faq: [
+      { question: 'Можно ли назначать ответственных?', answer: 'Да, дефект получает ответственного, срок устранения и статус.' },
+      { question: 'Есть повторная проверка?', answer: 'Да, контур поддерживает устранение, повторную проверку и отклонение.' },
+      { question: 'Качество связано с приемкой?', answer: 'Да, замечания и дефекты можно связывать с зонами, punch-list и готовностью передачи результата.' },
+    ],
+  }),
+  'handover-acceptance': createOperationalSeoPage({
+    path: marketingPaths.handoverAcceptance,
+    eyebrow: 'Сдача результата',
+    title: 'Приемка зон и punch-list для передачи результата заказчику',
+    description:
+      'МОСТ помогает вести приемку зон, punch-list, замечания заказчика, готовность передачи, статусы устранения и комплект сдачи объекта.',
+    supportingQueries: [
+      'приемка зон строительство',
+      'punch list стройка',
+      'сдача объекта заказчику',
+      'контроль замечаний при приемке',
+    ],
+    processComparisonTitle: 'Порядок работы при сдаче результата',
+    processComparisonDescription: 'Приемка связывает зоны, замечания, готовность качества и комплект документов.',
+    signals: [
+      'Замечания заказчика собираются в письмах, таблицах и чатах.',
+      'Готовность зон сложно связать с дефектами и исполнительной документацией.',
+      'Руководитель видит риски сдачи слишком поздно.',
+    ],
+    beforeState: [
+      'ПТО вручную сверяет зоны, замечания, фото и документы.',
+      'Прораб не всегда понимает, что именно блокирует передачу результата.',
+      'Заказчик получает неполную картину по готовности и срокам устранения.',
+    ],
+    afterState: [
+      'Зона имеет статус, punch-list, ответственных и сроки устранения.',
+      'Качество, ИД и замечания заказчика связаны с передачей результата.',
+      'Команда видит готовность сдачи до финальной приемки.',
+    ],
+    metrics: [
+      { label: 'Рабочий контекст', value: 'Единая запись', detail: 'Замечания заказчика связаны с зоной и объектом.' },
+      { label: 'Контроль этапа', value: 'Видимый статус', detail: 'Зона имеет текущий статус передачи.' },
+      { label: 'Основание решения', value: 'История решений', detail: 'Решения по замечаниям сохраняются в истории.' },
+    ],
+    audienceTitle: 'Кому подходит приемка и punch-list',
+    audienceDescription: 'Для команд, которые передают результат заказчику и хотят видеть готовность сдачи до финального этапа.',
+    audiences: [
+      'ПТО и стройконтролю, которые закрывают замечания и готовят комплект передачи.',
+      'Генподрядчикам, которые отвечают за сдачу зон и работу подрядчиков.',
+      'Девелоперам и заказчикам, которым нужна прозрачная история приемки.',
+    ],
+    problemTitle: 'Какие задачи решает',
+    problemDescription: 'Контур связывает качество, замечания заказчика и комплект сдачи.',
+    problems: [
+      'Ведет зоны, punch-list, статусы устранения и повторные проверки.',
+      'Показывает готовность передачи результата по объекту.',
+      'Связывает замечания с ИД, качеством и решениями заказчика.',
+    ],
+    automationTitle: 'Что автоматизирует',
+    automationDescription: 'Фокус на управляемой передаче результата и контроле замечаний.',
+    automations: [
+      'Создание punch-list по зонам, объектам и участникам приемки.',
+      'Маршрут устранения замечаний и повторной проверки.',
+      'Подготовку прозрачной картины готовности к сдаче.',
+    ],
+    visibilityTitle: 'Что видит команда',
+    visibilityDescription: 'Приемка становится рабочим маршрутом для ПТО, площадки и заказчика.',
+    roleViews: [
+      { role: 'ПТО', description: 'Зоны, punch-list, статусы, ИД и готовность передачи.' },
+      { role: 'Прораб', description: 'Назначенные замечания, сроки устранения и блокирующие зоны.' },
+      { role: 'Заказчик', description: 'Статус приемки, открытые замечания и историю решений.' },
+    ],
+    relatedLinks: [
+      { ...contactLink },
+      { label: 'Контроль качества', href: marketingPaths.constructionQualityControl, description: 'Дефекты и повторные проверки до приемки.' },
+      { label: 'RFI и изменения', href: marketingPaths.changeControl, description: 'Решения заказчика и изменения, влияющие на сдачу.' },
+    ],
+    blogLinks: getMarketingBlogLinks('foremanOrder', 'managerMorning'),
+    contactHighlights: [
+      'Покажем приемку зон и punch-list.',
+      'Разберем связь замечаний, качества и ИД.',
+      'Обсудим сценарий видимости для заказчика.',
+    ],
+    faq: [
+      { question: 'Можно ли вести punch-list?', answer: 'Да, punch-list можно вести по зонам, объектам, ответственным и статусам устранения.' },
+      { question: 'Приемка связана с дефектами?', answer: 'Да, дефекты и замечания качества можно доводить до повторной проверки и передачи результата.' },
+      { question: 'Можно ли показать статус заказчику?', answer: 'Да, customer-сценарий обсуждается как часть контура сдачи и согласований.' },
+    ],
+  }),
+  'machinery-and-labor': createOperationalSeoPage({
+    path: marketingPaths.machineryAndLabor,
+    eyebrow: 'Ресурсы',
+    title: 'Учет техники, механизмов, нарядов и выработки на объекте',
+    description:
+      'МОСТ помогает вести технику, механизмы, смены, простои, ГСМ, наряды, бригады, фактическую выработку и подготовку начислений.',
+    supportingQueries: [
+      'учет техники на стройке',
+      'учет механизмов',
+      'наряды в строительстве',
+      'выработка бригад',
+    ],
+    processComparisonTitle: 'Порядок учета ресурсов и себестоимости',
+    processComparisonDescription: 'Техника, смены, простои и наряды становятся частью ежедневного производственного факта.',
+    signals: [
+      'Сменные рапорты и простои техники собираются после факта.',
+      'ГСМ, техника и наряды не связаны с реальными объемами работ.',
+      'Начисления готовятся на базе ручных таблиц и уточнений.',
+    ],
+    beforeState: [
+      'Прораб и механик ведут ресурсный факт в отдельных файлах.',
+      'Финансовый блок получает данные после ручной сверки.',
+      'Руководитель не видит, где техника простаивает и где падает выработка.',
+    ],
+    afterState: [
+      'Техника, смена, простой, ГСМ и наряд связаны с объектом.',
+      'Фактическая выработка видна рядом с объемами и сроками.',
+      'Начисления готовятся на проверяемой производственной базе.',
+    ],
+    metrics: [
+      { label: 'Рабочий контекст', value: 'Связь с объектом', detail: 'Техника, смена и наряд связаны с объектом.' },
+      { label: 'Контроль этапа', value: 'Видимый статус', detail: 'Наряд имеет текущий статус обработки.' },
+      { label: 'Основание решения', value: 'Единая запись', detail: 'Факт смены сохраняется в рабочей записи.' },
+    ],
+    audienceTitle: 'Кому подходит учет техники и выработки',
+    audienceDescription: 'Для проектов, где техника, бригады и фактическая выработка влияют на сроки и себестоимость.',
+    audiences: [
+      'Руководителям проектов, которым нужно видеть ресурсные отклонения.',
+      'Прорабам и механикам, которые фиксируют технику, смены и простои.',
+      'Финансовому блоку, который сверяет выработку и начисления.',
+    ],
+    problemTitle: 'Какие задачи решает',
+    problemDescription: 'Контур связывает ресурсный факт с объектом, объемами и закрытием периода.',
+    problems: [
+      'Ведет технику, назначения, сменные рапорты, простои и ГСМ.',
+      'Фиксирует наряды, выработку и отклонения по бригадам.',
+      'Готовит основу для начислений без ручной пересборки.',
+    ],
+    automationTitle: 'Что автоматизирует',
+    automationDescription: 'Фокус на ежедневном факте ресурсов и производственной проверке.',
+    automations: [
+      'Заявки и назначения техники на объект.',
+      'Сменные рапорты, простои, ГСМ и статусы техники.',
+      'Наряды, фактическую выработку и подготовку начислений.',
+    ],
+    visibilityTitle: 'Что видит команда',
+    visibilityDescription: 'Ресурсы становятся видимой частью исполнения, а не отдельным набором отчетов.',
+    roleViews: [
+      { role: 'Прораб', description: 'Наряды, выработка, смены и фактические объемы.' },
+      { role: 'Механик', description: 'Техника, назначения, простои, сменные рапорты и ГСМ.' },
+      { role: 'Руководитель проекта', description: 'Недовыработка, простои и ресурсные отклонения по объектам.' },
+    ],
+    relatedLinks: [
+      { ...contactLink },
+      { label: 'Контроль бюджета', href: marketingPaths.constructionBudgetControl, description: 'Финансовая связь ресурса и объекта.' },
+      { label: 'Мобильное приложение', href: marketingPaths.mobileApp, description: 'Фиксация факта с площадки.' },
+    ],
+    blogLinks: getMarketingBlogLinks('managerMorning'),
+    contactHighlights: [
+      'Покажем сменный рапорт и простой техники.',
+      'Разберем наряды и фактическую выработку.',
+      'Обсудим подготовку начислений по вашему процессу.',
+    ],
+    faq: [
+      { question: 'Можно ли учитывать простои?', answer: 'Да, простой остается открытым до закрытия с фактическим временем и причиной.' },
+      { question: 'Выработка связана с нарядами?', answer: 'Да, контур рассчитан на наряды, объемы, факт выработки и проверку.' },
+      { question: 'Можно ли связать технику со сметами?', answer: 'Да, техника и механизмы могут связываться со сметными механизмами и выполненными работами.' },
+    ],
+  }),
+  'change-control': createOperationalSeoPage({
+    path: marketingPaths.changeControl,
+    eyebrow: 'Изменения и претензии',
+    title: 'RFI, изменения, дополнительные работы и претензии в строительстве',
+    description:
+      'МОСТ связывает запросы информации, change orders, влияние на сроки и бюджет, претензии, документы и решения заказчика.',
+    supportingQueries: [
+      'RFI в строительстве',
+      'изменения объемов строительства',
+      'change order строительство',
+      'претензии подрядчика',
+    ],
+    processComparisonTitle: 'Порядок работы с изменениями',
+    processComparisonDescription: 'Контур изменений показывает путь от вопроса или претензии до решения заказчика и влияния на проект.',
+    signals: [
+      'RFI и ответы уходят в письма и чаты.',
+      'Дополнительные работы утверждаются без прозрачного влияния на бюджет.',
+      'Претензии собирают доказательства вручную перед спором.',
+    ],
+    beforeState: [
+      'Изменения фиксируются после факта и без единого статуса.',
+      'ПТО, финансы и руководитель смотрят разные версии влияния.',
+      'Решение заказчика сложно найти в истории переписки.',
+    ],
+    afterState: [
+      'RFI, изменение или претензия имеют статус, основание и ответственного.',
+      'Влияние на сроки и бюджет видно до утверждения.',
+      'Решение заказчика сохраняется в customer-сценарии и истории проекта.',
+    ],
+    metrics: [
+      { label: 'Рабочий контекст', value: 'Единая карточка', detail: 'Запрос и изменение собраны в одной карточке.' },
+      { label: 'Контроль этапа', value: 'Видимый статус', detail: 'Запрос имеет текущий статус ответа.' },
+      { label: 'Основание решения', value: 'История решений', detail: 'Основания и решения сохраняются в истории.' },
+    ],
+    audienceTitle: 'Кому подходит контур изменений',
+    audienceDescription: 'Для проектов, где изменения, дополнительные работы и решения заказчика влияют на сроки и деньги.',
+    audiences: [
+      'Генподрядчикам, которым нужно контролировать RFI и изменения объемов.',
+      'Девелоперам и заказчикам, которым важна прозрачная история решений.',
+      'ПТО и финансовому блоку, которые оценивают влияние на документы, сроки и бюджет.',
+    ],
+    problemTitle: 'Какие задачи решает',
+    problemDescription: 'Контур связывает коммерческие изменения с проектным фактом, документами и заказчиком.',
+    problems: [
+      'Ведет RFI, ответы, change orders, дополнительные работы и претензии.',
+      'Показывает влияние изменения на сроки, бюджет и документы.',
+      'Сохраняет решение заказчика и историю согласования.',
+    ],
+    automationTitle: 'Что автоматизирует',
+    automationDescription: 'Фокус на маршруте решения, влиянии и доказательной базе.',
+    automations: [
+      'Создание RFI, ответа, изменения или претензии.',
+      'Оценку влияния на сроки, смету и финансовую модель.',
+      'Согласование с заказчиком и сохранение решения.',
+    ],
+    visibilityTitle: 'Что видит команда',
+    visibilityDescription: 'Изменение становится общим объектом работы для ПТО, руководителя, финансов и заказчика.',
+    roleViews: [
+      { role: 'ПТО', description: 'RFI, документы, основания, замечания и влияние на комплект.' },
+      { role: 'Финансовый блок', description: 'Сумму, бюджетное влияние и связь с платежами.' },
+      { role: 'Заказчик', description: 'Запросы на согласовании, влияние по дням и сумму решения.' },
+    ],
+    relatedLinks: [
+      { ...contactLink },
+      { label: 'Контроль бюджета', href: marketingPaths.constructionBudgetControl, description: 'Финансовое влияние изменений.' },
+      { label: 'ПИР и проектная документация', href: marketingPaths.pirProjectDocumentation, description: 'Проектная база и замечания.' },
+      { label: 'Project Pulse', href: marketingPaths.projectPulse, description: 'Управленческие сигналы по изменениям, бюджету и срокам объекта.' },
+    ],
+    blogLinks: getMarketingBlogLinks('ptoWorkspace', 'managerMorning'),
+    contactHighlights: [
+      'Покажем RFI и изменение с влиянием на сроки.',
+      'Разберем связь изменения со сметой и платежами.',
+      'Обсудим customer-согласование и историю решений.',
+    ],
+    faq: [
+      { question: 'RFI и изменение — это разные сценарии?', answer: 'Да. RFI фиксирует запрос информации и ответ, а изменение может учитывать влияние на сроки, бюджет и документы.' },
+      { question: 'Можно ли фиксировать претензии?', answer: 'Да, контур поддерживает претензии, основания, доказательства и решения.' },
+      { question: 'Заказчик может согласовывать изменения?', answer: 'Да, если изменение требует решения заказчика, его можно вывести в customer-контур.' },
+    ],
+    workflow: {
+      title: 'Как изменение проходит от RFI до закрытия',
+      description: 'Контур связывает инженерное основание, решение заказчика и последствия для сроков, денег и документов.',
+      stages: [
+        { label: 'RFI', description: 'Команда фиксирует запрос, основание и срок ответа по объекту.' },
+        { label: 'Решение и изменение', description: 'Ответ заказчика превращается в согласованное изменение или основание для претензии.' },
+        { label: 'Влияние на проект', description: 'ПТО оценивает влияние на смету, график и бюджет.' },
+        { label: 'Согласование и оплата', description: 'Решение связывается с платежом и необходимым комплектом документов.' },
+        { label: 'Претензия или закрытие', description: 'История решения и доказательства остаются доступными для дальнейшего действия.' },
+      ],
+    },
+  }),
+  ...marketingProductSeoLandingPages,
+};

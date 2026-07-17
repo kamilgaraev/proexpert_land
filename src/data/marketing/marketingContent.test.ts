@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+import type { MarketingSeoLandingPage } from "@/types/marketing";
 import { marketingBlogArticles } from "./blogArticles";
 import { marketingCapabilityMatrix } from "./capabilities";
 import {
@@ -34,6 +35,154 @@ import {
   marketingSeoLandingPages,
   marketingSitemapRoutes,
 } from "./index";
+
+type SemanticSectionName =
+  | "hero"
+  | "problem"
+  | "workflow"
+  | "roleViews"
+  | "processComparison"
+  | "limitations"
+  | "faq";
+
+type SemanticSectionSources = Partial<Record<SemanticSectionName, unknown>>;
+
+const semanticSectionNames: SemanticSectionName[] = [
+  "hero",
+  "problem",
+  "workflow",
+  "roleViews",
+  "processComparison",
+  "limitations",
+  "faq",
+];
+
+const collectSectionStrings = (value: unknown): string[] => {
+  if (typeof value === "string") {
+    return [value];
+  }
+  if (Array.isArray(value)) {
+    return value.flatMap(collectSectionStrings);
+  }
+  if (value && typeof value === "object") {
+    return Object.values(value).flatMap(collectSectionStrings);
+  }
+  return [];
+};
+
+const normalizeSectionWords = (value: unknown): string[] =>
+  collectSectionStrings(value)
+    .join(" ")
+    .toLocaleLowerCase("ru-RU")
+    .match(/[а-яёa-z0-9]+/gu) ?? [];
+
+const createWordShingles = (words: string[], size = 3): Set<string> => {
+  if (words.length < size) {
+    return new Set(words.length > 0 ? [words.join(" ")] : []);
+  }
+
+  return new Set(
+    Array.from({ length: words.length - size + 1 }, (_, index) =>
+      words.slice(index, index + size).join(" "),
+    ),
+  );
+};
+
+const longestCommonContiguousWordSequence = (
+  left: string[],
+  right: string[],
+): number => {
+  const previous = new Array<number>(right.length + 1).fill(0);
+  let longest = 0;
+
+  for (const leftWord of left) {
+    const current = new Array<number>(right.length + 1).fill(0);
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      if (leftWord === right[rightIndex - 1]) {
+        current[rightIndex] = previous[rightIndex - 1] + 1;
+        longest = Math.max(longest, current[rightIndex]);
+      }
+    }
+    previous.splice(0, previous.length, ...current);
+  }
+
+  return longest;
+};
+
+const findSemanticSectionDuplicates = (
+  sectionsByRoute: Record<string, SemanticSectionSources>,
+): string[] => {
+  const routes = Object.keys(sectionsByRoute);
+  const duplicates: string[] = [];
+
+  for (const sectionName of semanticSectionNames) {
+    for (let leftIndex = 0; leftIndex < routes.length; leftIndex += 1) {
+      for (
+        let rightIndex = leftIndex + 1;
+        rightIndex < routes.length;
+        rightIndex += 1
+      ) {
+        const leftRoute = routes[leftIndex];
+        const rightRoute = routes[rightIndex];
+        const leftSource = sectionsByRoute[leftRoute][sectionName];
+        const rightSource = sectionsByRoute[rightRoute][sectionName];
+        if (leftSource === undefined || rightSource === undefined) {
+          continue;
+        }
+
+        const leftWords = normalizeSectionWords(leftSource);
+        const rightWords = normalizeSectionWords(rightSource);
+        const leftShingles = createWordShingles(leftWords);
+        const rightShingles = createWordShingles(rightWords);
+        const smallerShingleCount = Math.min(
+          leftShingles.size,
+          rightShingles.size,
+        );
+        const sharedShingleCount = [...leftShingles].filter((shingle) =>
+          rightShingles.has(shingle),
+        ).length;
+        const shingleSimilarity =
+          smallerShingleCount === 0
+            ? 0
+            : sharedShingleCount / smallerShingleCount;
+        const longestSequence = longestCommonContiguousWordSequence(
+          leftWords,
+          rightWords,
+        );
+        const shorterWordCount = Math.min(leftWords.length, rightWords.length);
+        const contiguousSimilarity =
+          shorterWordCount === 0 ? 0 : longestSequence / shorterWordCount;
+
+        if (
+          shingleSimilarity >= 0.65 ||
+          (longestSequence >= 10 && contiguousSimilarity >= 0.45)
+        ) {
+          duplicates.push(
+            `${leftRoute}/${sectionName} <-> ${rightRoute}/${sectionName} ` +
+              `(shingles=${shingleSimilarity.toFixed(2)}, contiguous=${contiguousSimilarity.toFixed(2)}, words=${longestSequence})`,
+          );
+        }
+      }
+    }
+  }
+
+  return duplicates;
+};
+
+const collectSemanticSections = (
+  page: MarketingSeoLandingPage,
+): SemanticSectionSources => ({
+  hero: [page.eyebrow, page.title, page.description, page.supportingQueries],
+  problem: [page.problemTitle, page.problemDescription, page.problems],
+  workflow: page.workflow,
+  roleViews: [page.visibilityTitle, page.visibilityDescription, page.roleViews],
+  processComparison: page.processComparison,
+  limitations: [
+    page.description,
+    page.faq.filter(({ answer }) => /^(?:да|нет)\./iu.test(answer)),
+  ],
+  faq: page.faq,
+});
 
 const workspaceSourceExists = (source: string): boolean =>
   [
@@ -669,7 +818,48 @@ describe("marketing content consistency", () => {
     ).toContain("erp");
   });
 
-  it("does not repeat long semantic passages between manually written SEO pages", () => {
+  it("detects a duplicated section even when the same text is split into short strings", () => {
+    const duplicates = findSemanticSectionDuplicates({
+      "/route-a": {
+        hero: [
+          "Заявка на материал проходит проверку потребности.",
+          "Снабженец выбирает поставщика, а кладовщик фиксирует приход на объект.",
+        ],
+      },
+      "/route-b": {
+        hero: [
+          "Заявка на материал проходит",
+          "проверку потребности. Снабженец выбирает поставщика,",
+          "а кладовщик фиксирует приход на объект.",
+        ],
+      },
+    });
+
+    expect(duplicates).toEqual([
+      expect.stringContaining("/route-a/hero <-> /route-b/hero"),
+    ]);
+  });
+
+  it("does not flag subject-specific sections as semantic duplicates", () => {
+    const duplicates = findSemanticSectionDuplicates({
+      "/materials": {
+        workflow: [
+          "Кладовщик принимает поставку, сверяет количество и фиксирует приход.",
+          "После выдачи в работу система показывает остаток материала на объекте.",
+        ],
+      },
+      "/documents": {
+        workflow: [
+          "Инженер загружает новую версию документа и направляет её на согласование.",
+          "После проверки утверждённая версия попадает в архив с историей доступа.",
+        ],
+      },
+    });
+
+    expect(duplicates).toEqual([]);
+  });
+
+  it("does not repeat semantic sections between manually written SEO pages", () => {
     const pageKeys = [
       "foreman-software",
       "construction-crm",
@@ -680,52 +870,48 @@ describe("marketing content consistency", () => {
       "construction-documents",
       "construction-budget-control",
     ];
-    const collectStrings = (value: unknown): string[] => {
-      if (typeof value === "string") {
-        return [value.replace(/\s+/gu, " ").trim()];
-      }
-      if (Array.isArray(value)) {
-        return value.flatMap(collectStrings);
-      }
-      if (value && typeof value === "object") {
-        return Object.values(value).flatMap(collectStrings);
-      }
-      return [];
-    };
-    const passages = pageKeys.flatMap((pageKey) =>
-      collectStrings(marketingSeoLandingPages[pageKey])
-        .filter((text) => text.length >= 120)
-        .map((text) => ({ pageKey, text })),
+    const sectionsByRoute = Object.fromEntries(
+      pageKeys.map((pageKey) => [
+        `/${pageKey}`,
+        collectSemanticSections(marketingSeoLandingPages[pageKey]),
+      ]),
     );
-    const tokenize = (text: string): Set<string> =>
-      new Set(text.toLocaleLowerCase("ru-RU").match(/[а-яёa-z0-9]+/gu) ?? []);
+    const duplicates = findSemanticSectionDuplicates(sectionsByRoute);
 
-    for (let leftIndex = 0; leftIndex < passages.length; leftIndex += 1) {
-      for (
-        let rightIndex = leftIndex + 1;
-        rightIndex < passages.length;
-        rightIndex += 1
-      ) {
-        const left = passages[leftIndex];
-        const right = passages[rightIndex];
-        if (left.pageKey === right.pageKey) {
-          continue;
-        }
+    expect(duplicates, duplicates.join("\n")).toEqual([]);
+  });
 
-        const leftTokens = tokenize(left.text);
-        const rightTokens = tokenize(right.text);
-        const union = new Set([...leftTokens, ...rightTokens]);
-        const sharedTokenCount = [...leftTokens].filter((token) =>
-          rightTokens.has(token),
-        ).length;
-        const similarity = sharedTokenCount / union.size;
+  it("keeps CRM and ERP anchors on their respective routes", () => {
+    expect(marketingCommercialLandingLinks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "CRM для строительной компании",
+          href: "/construction-crm",
+        }),
+        expect.objectContaining({
+          label: "ERP для строительства",
+          href: "/construction-erp",
+        }),
+      ]),
+    );
+  });
 
-        expect(
-          similarity,
-          `${left.pageKey} duplicates ${right.pageKey}: ${left.text} / ${right.text}`,
-        ).toBeLessThan(0.65);
-      }
-    }
+  it("states that procurement and warehouse accounting are different processes", () => {
+    const faq = marketingSeoLandingPages["material-accounting"].faq.find(
+      ({ question }) => question === "Закупка и складской учёт отличаются?",
+    );
+
+    expect(faq?.answer).toBe(
+      "Да. Закупка ведёт потребность до поставки, а складской учёт отражает приход и последующее движение.",
+    );
+  });
+
+  it("expands the first public use of the electronic signature abbreviation", () => {
+    const page = marketingSeoLandingPages["construction-documents"];
+
+    expect(page.description).toContain("электронной подписи (ЭП)");
+    expect(page.contactHighlights.join(" ")).toContain("ЭП");
+    expect(page.faq.map(({ answer }) => answer).join(" ")).toContain("ЭП");
   });
 
   it("has a clear public contact channel", () => {
