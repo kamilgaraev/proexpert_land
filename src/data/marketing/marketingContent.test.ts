@@ -207,6 +207,104 @@ const collectSemanticSections = (
   faq: page.faq,
 });
 
+const commercialClusterPageKeys = [
+  "foreman-software",
+  "construction-crm",
+  "construction-erp",
+  "material-accounting",
+  "pto-software",
+  "contractor-control",
+  "construction-documents",
+  "construction-budget-control",
+  "mobile-app",
+  "ai-estimates",
+  "pir-project-documentation",
+  "construction-safety",
+  "construction-quality-control",
+  "handover-acceptance",
+  "machinery-and-labor",
+  "change-control",
+  "construction-procurement",
+  "site-requests",
+  "workforce-management",
+  "construction-payments",
+  "1c-integration",
+  "contractor-marketplace",
+  "project-pulse",
+] as const;
+
+const rewrittenClusterContracts = {
+  "pir-project-documentation": [
+    "проектн",
+    "рабоч",
+    "замечан",
+    "комплект",
+    "инженерн",
+  ],
+  "construction-safety": [
+    "охран",
+    "труд",
+    "промышлен",
+    "эколог",
+    "инструктаж",
+    "нарушен",
+  ],
+  "construction-quality-control": [
+    "дефект",
+    "провер",
+    "устран",
+    "ответственн",
+    "специалист",
+  ],
+  "handover-acceptance": ["приём", "зон", "перечень", "замечан"],
+  "machinery-and-labor": ["техник", "смен", "выработ", "телематик", "табел"],
+  "change-control": [
+    "запрос",
+    "информац",
+    "изменен",
+    "дополнительн",
+    "уполномочен",
+  ],
+  "mobile-app": ["телефон", "роль", "связ"],
+  "ai-estimates": [
+    "предварительн",
+    "чертеж",
+    "экспертн",
+    "не является готовой сметой",
+  ],
+  "construction-procurement": [
+    "потребност",
+    "предложен",
+    "поставщик",
+    "сотрудник",
+  ],
+  "site-requests": ["заявк", "поставк", "приём", "маршрут", "согласован"],
+  "workforce-management": [
+    "бригад",
+    "смен",
+    "допуск",
+    "рабоч",
+    "кадров",
+    "зарплат",
+  ],
+  "construction-payments": [
+    "заявк",
+    "оплат",
+    "лимит",
+    "согласован",
+    "внешн",
+    "финансов",
+  ],
+  "1c-integration": ["1с", "справочник", "документ", "проект", "интеграц"],
+  "contractor-marketplace": [
+    "поиск",
+    "приглашен",
+    "подрядчик",
+    "не является гарантией",
+  ],
+  "project-pulse": ["сигнал", "ежедневн", "исходн", "управленческ", "решен"],
+} as const;
+
 const workspaceSourceExists = (source: string): boolean =>
   [
     path.resolve(process.cwd(), "..", source),
@@ -920,17 +1018,8 @@ describe("marketing content consistency", () => {
     expect(duplicates).toEqual([]);
   });
 
-  it("does not repeat semantic sections between manually written SEO pages", () => {
-    const pageKeys = [
-      "foreman-software",
-      "construction-crm",
-      "construction-erp",
-      "material-accounting",
-      "pto-software",
-      "contractor-control",
-      "construction-documents",
-      "construction-budget-control",
-    ];
+  it("does not repeat semantic sections between all commercial cluster pages", () => {
+    const pageKeys = commercialClusterPageKeys;
     const sectionsByRoute = Object.fromEntries(
       pageKeys.map((pageKey) => [
         `/${pageKey}`,
@@ -940,6 +1029,115 @@ describe("marketing content consistency", () => {
     const duplicates = findSemanticSectionDuplicates(sectionsByRoute);
 
     expect(duplicates, duplicates.join("\n")).toEqual([]);
+  });
+
+  it("keeps SEO factories structural and free from route-specific prose", () => {
+    const factoryFiles = [
+      "src/data/marketing/seoPages.ts",
+      "src/data/marketing/seoProductPages.ts",
+    ];
+
+    for (const factoryFile of factoryFiles) {
+      const sourceFile = ts.createSourceFile(
+        factoryFile,
+        fs.readFileSync(path.resolve(process.cwd(), factoryFile), "utf8"),
+        ts.ScriptTarget.Latest,
+        true,
+      );
+      const factories = sourceFile.statements.filter(
+        (statement): statement is ts.VariableStatement =>
+          ts.isVariableStatement(statement) &&
+          statement.declarationList.declarations.some(
+            ({ name }) =>
+              ts.isIdentifier(name) &&
+              ["createOperationalSeoPage", "createProductSeoPage"].includes(
+                name.text,
+              ),
+          ),
+      );
+
+      expect(factories, factoryFile).toHaveLength(1);
+      const factoryText = factories[0].getText(sourceFile);
+      expect(factoryText, `${factoryFile}: user-facing prose`).not.toMatch(
+        /[А-Яа-яЁё]/u,
+      );
+      expect(factoryText, `${factoryFile}: route branch`).not.toMatch(
+        /config\.path\s*===|productBlogArticlesByPath/u,
+      );
+      expect(factoryText, `${factoryFile}: generated semantics`).not.toMatch(
+        /\.map\(|\.slice\(|\.toLowerCase\(|createProcessComparisonFromSource/u,
+      );
+    }
+  });
+
+  it("publishes complete and distinct content for the 15 rewritten routes", () => {
+    for (const [pageKey, requiredTerms] of Object.entries(
+      rewrittenClusterContracts,
+    )) {
+      const page = marketingSeoLandingPages[pageKey];
+      const pageText = collectSectionStrings(collectSemanticSections(page))
+        .join(" ")
+        .toLocaleLowerCase("ru-RU");
+
+      expect(page, pageKey).toBeDefined();
+      expect(
+        page.processComparison.metrics.length,
+        `${pageKey}: process comparison`,
+      ).toBeGreaterThan(0);
+      expect(
+        page.workflow?.stages.length,
+        `${pageKey}: workflow`,
+      ).toBeGreaterThanOrEqual(4);
+      expect(
+        page.roleViews.length,
+        `${pageKey}: role views`,
+      ).toBeGreaterThanOrEqual(3);
+      expect(
+        page.relatedLinks.length,
+        `${pageKey}: related links`,
+      ).toBeGreaterThanOrEqual(3);
+      expect(page.blogLinks.length, `${pageKey}: blog links`).toBeGreaterThan(
+        0,
+      );
+      expect(page.faq.length, `${pageKey}: faq`).toBeGreaterThanOrEqual(3);
+      expect(
+        page.contactHighlights.length,
+        `${pageKey}: next step`,
+      ).toBeGreaterThanOrEqual(2);
+
+      for (const term of requiredTerms) {
+        expect(pageText, `${pageKey}: ${term}`).toContain(term);
+      }
+    }
+  });
+
+  it("keeps all sitemap metadata unique and within search snippet limits", () => {
+    const titles = new Set<string>();
+    const descriptions = new Set<string>();
+
+    expect(marketingSitemapRoutes).toHaveLength(35);
+
+    for (const { pageKey, path: route } of marketingSitemapRoutes) {
+      const meta = marketingSeo[pageKey];
+
+      expect(meta, `${route}: metadata`).toBeDefined();
+      expect(meta.title.length, `${route}: title`).toBeLessThanOrEqual(60);
+      expect(
+        meta.description.length,
+        `${route}: description`,
+      ).toBeGreaterThanOrEqual(70);
+      expect(
+        meta.description.length,
+        `${route}: description`,
+      ).toBeLessThanOrEqual(160);
+      expect(titles.has(meta.title), `${route}: duplicate title`).toBe(false);
+      expect(
+        descriptions.has(meta.description),
+        `${route}: duplicate description`,
+      ).toBe(false);
+      titles.add(meta.title);
+      descriptions.add(meta.description);
+    }
   });
 
   it("keeps CRM and ERP anchors on their respective routes", () => {
