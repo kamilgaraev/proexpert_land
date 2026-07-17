@@ -31,21 +31,18 @@ export interface MarketingRoleView {
   description: string;
 }
 
-export interface MarketingProofMetric {
-  label: string;
+export interface MarketingProcessIndicator {
   value: string;
-  detail: string;
+  label: string;
+  description: string;
 }
 
-export interface MarketingProofBlock {
+export interface MarketingProcessComparison {
+  eyebrow: string;
   title: string;
   description: string;
-  signals: string[];
-  beforeLabel: string;
-  beforeState: string[];
-  afterLabel: string;
-  afterState: string[];
-  metrics: MarketingProofMetric[];
+  metrics: MarketingProcessIndicator[];
+  note: string;
 }
 
 export interface MarketingTrustProfile {
@@ -169,7 +166,7 @@ export interface MarketingSeoLandingPage {
   title: string;
   description: string;
   supportingQueries: string[];
-  proof: MarketingProofBlock;
+  processComparison: MarketingProcessComparison;
   trust?: MarketingTrustProfile;
   audienceTitle: string;
   audienceDescription: string;

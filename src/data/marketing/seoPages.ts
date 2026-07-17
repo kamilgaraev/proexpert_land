@@ -12,15 +12,42 @@ const contactLink: MarketingContentLink = {
   description: 'Покажем подходящий сценарий, роли и набор возможностей для вашей компании.',
 };
 
-const createProof = (proof: MarketingSeoLandingPage['proof']) => proof;
+type ProcessComparisonSource = {
+  title: string;
+  description: string;
+  signals: string[];
+  beforeLabel?: string;
+  beforeState: string[];
+  afterLabel?: string;
+  afterState: string[];
+  metrics: Array<{ value: string; label: string; detail: string }>;
+};
 
-type OperationalSeoPageConfig = Omit<MarketingSeoLandingPage, 'proof'> & {
-  proofTitle: string;
-  proofDescription: string;
+const createProcessComparison = (
+  comparison: MarketingSeoLandingPage['processComparison'],
+) => comparison;
+
+const createProcessComparisonFromSource = (
+  comparison: ProcessComparisonSource,
+): MarketingSeoLandingPage['processComparison'] => createProcessComparison({
+  eyebrow: 'Как меняется работа',
+  title: comparison.title,
+  description: comparison.description,
+  metrics: comparison.metrics.map(({ value, label, detail }) => ({
+    value,
+    label,
+    description: detail,
+  })),
+  note: 'Это описание процесса, а не обещание результата.',
+});
+
+type OperationalSeoPageConfig = Omit<MarketingSeoLandingPage, 'processComparison'> & {
+  processComparisonTitle: string;
+  processComparisonDescription: string;
   signals: string[];
   beforeState: string[];
   afterState: string[];
-  metrics: MarketingSeoLandingPage['proof']['metrics'];
+  metrics: ProcessComparisonSource['metrics'];
 };
 
 const createOperationalSeoPage = (config: OperationalSeoPageConfig): MarketingSeoLandingPage => ({
@@ -29,9 +56,9 @@ const createOperationalSeoPage = (config: OperationalSeoPageConfig): MarketingSe
   title: config.title,
   description: config.description,
   supportingQueries: config.supportingQueries,
-  proof: createProof({
-    title: config.proofTitle,
-    description: config.proofDescription,
+    processComparison: createProcessComparisonFromSource({
+    title: config.processComparisonTitle,
+    description: config.processComparisonDescription,
     signals: config.signals,
     beforeLabel: 'До запуска',
     beforeState: config.beforeState,
@@ -471,9 +498,9 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'контроль графика работ',
       'мобильное приложение для прораба',
     ],
-    proof: createProof({
+    processComparison: createProcessComparisonFromSource({
       title: 'Как выглядит проблема и что меняется после запуска',
-      description: 'Схема помогает быстро увидеть типичные сигналы хаоса на объекте, состояние процесса до запуска и результат после внедрения.',
+      description: 'Сравнение показывает типичные сигналы хаоса на объекте и порядок работы в общем контуре.',
       signals: [
         'Статусы работ уточняются в чатах и звонках, а не в одной системе.',
         'Замечания теряются между прорабом, офисом и инженерной командой.',
@@ -577,7 +604,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'замена excel для стройки',
       'управление объектами и задачами',
     ],
-    proof: createProof({
+    processComparison: createProcessComparisonFromSource({
       title: 'Как выглядит CRM-контур в стройке',
       description: 'Здесь важно не только фиксировать объект и договорной процесс, но и вести исполнение, статусы и управленческий контур в одном рабочем слое.',
       signals: [
@@ -683,7 +710,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'программа для строительной компании',
       'интеграция с 1с и erp',
     ],
-    proof: createProof({
+    processComparison: createProcessComparisonFromSource({
       title: 'Что меняется, когда компания переходит к сквозному контуру',
       description: 'ERP-сценарий нужен там, где уже недостаточно точечных инструментов и важно связать объект, снабжение, документы и финансы.',
       signals: [
@@ -789,7 +816,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'заявки на материалы',
       'контроль поставок',
     ],
-    proof: createProof({
+    processComparison: createProcessComparisonFromSource({
       title: 'Как видно, что снабжение уже мешает графику работ',
       description: 'Блок показывает типовые симптомы потери контроля над заявками, поставками и остатками.',
       signals: [
@@ -896,7 +923,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'акты кс-2 кс-3',
       'контроль замечаний',
     ],
-    proof: createProof({
+    processComparison: createProcessComparisonFromSource({
       title: 'Когда ПТО выходит из режима постоянного догоняющего контроля',
       description: 'Смотрим на симптомы перегруженного инженерного контура и на то, как выглядит управляемый процесс после запуска.',
       signals: [
@@ -1003,7 +1030,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'система для генподрядчика',
       'контроль сроков и объемов',
     ],
-    proof: createProof({
+    processComparison: createProcessComparisonFromSource({
       title: 'Как выглядит управляемый подрядный контур',
       description: 'Блок показывает, как компания переходит от реактивного контроля к раннему выявлению риска по подрядчикам.',
       signals: [
@@ -1109,7 +1136,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'строительные документы',
       'комплектность документов',
     ],
-    proof: createProof({
+    processComparison: createProcessComparisonFromSource({
       title: 'Как меняется документный контур после наведения порядка',
       description: 'Показываем не просто хранение файлов, а управляемый процесс по комплектности, согласованиям и актам.',
       signals: [
@@ -1215,7 +1242,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'контроль затрат по объекту',
       'платежи и лимиты в строительстве',
     ],
-    proof: createProof({
+    processComparison: createProcessComparisonFromSource({
       title: 'Как выглядит финансовый контроль, когда бюджет виден заранее',
       description: 'Схема показывает переход от реактивного разбора перерасхода к ежедневному контролю отклонений по объекту.',
       signals: [
@@ -1322,7 +1349,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'мобильное приложение для прораба',
       'полевой контур стройки',
     ],
-    proof: createProof({
+    processComparison: createProcessComparisonFromSource({
       title: 'Что меняется, когда площадка подключается к единому контуру',
       description: 'Мобильный блок нужен для того, чтобы событие на объекте сразу становилось частью рабочего процесса, а не терялось по дороге в офис.',
       signals: [
@@ -1433,7 +1460,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'ai для строительства',
       'предварительная оценка объемов',
     ],
-    proof: createProof({
+    processComparison: createProcessComparisonFromSource({
       title: 'Как AI помогает ускорить первый шаг, а не заменить эксперта',
       description: 'AI помогает быстрее пройти первый разбор чертежей и перейти к рабочей оценке проекта.',
       signals: [
@@ -1544,8 +1571,8 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'управление проектированием',
       'нормоконтроль проектной документации',
     ],
-    proofTitle: 'Как проектная документация перестает распадаться на версии и письма',
-    proofDescription: 'Контур ПИР связывает проектные файлы, замечания, ответственных и выпуск комплектов с объектом.',
+    processComparisonTitle: 'Порядок работы с проектной документацией',
+    processComparisonDescription: 'Контур ПИР связывает проектные файлы, замечания, ответственных и выпуск комплектов с объектом.',
     signals: [
       'ПД и РД хранятся в разных папках, а актуальная версия уточняется вручную.',
       'Замечания по проекту живут в письмах и не имеют единого статуса.',
@@ -1626,8 +1653,8 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'инструктажи и допуски',
       'инциденты на объекте',
     ],
-    proofTitle: 'Как безопасность становится частью объектного контроля',
-    proofDescription: 'События охраны труда получают статус, ответственных и связь с проектом.',
+    processComparisonTitle: 'Порядок работы с охраной труда',
+    processComparisonDescription: 'События охраны труда получают статус, ответственных и связь с проектом.',
     signals: [
       'Инструктажи и допуски ведутся отдельно от объекта.',
       'Нарушения фиксируются в журналах без прозрачного статуса устранения.',
@@ -1708,8 +1735,8 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'инспекции качества на объекте',
       'учет замечаний на стройке',
     ],
-    proofTitle: 'Как дефекты перестают теряться до сдачи этапа',
-    proofDescription: 'Контур качества показывает путь от обнаружения дефекта до повторной проверки и готовности к приемке.',
+    processComparisonTitle: 'Порядок работы с дефектами до сдачи этапа',
+    processComparisonDescription: 'Контур качества показывает путь от обнаружения дефекта до повторной проверки и готовности к приемке.',
     signals: [
       'Замечания фиксируются в чатах и фотоальбомах.',
       'Ответственный и срок устранения не всегда понятны.',
@@ -1790,8 +1817,8 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'сдача объекта заказчику',
       'контроль замечаний при приемке',
     ],
-    proofTitle: 'Как сдача результата становится управляемой',
-    proofDescription: 'Приемка связывает зоны, замечания, готовность качества и комплект документов.',
+    processComparisonTitle: 'Порядок работы при сдаче результата',
+    processComparisonDescription: 'Приемка связывает зоны, замечания, готовность качества и комплект документов.',
     signals: [
       'Замечания заказчика собираются в письмах, таблицах и чатах.',
       'Готовность зон сложно связать с дефектами и исполнительной документацией.',
@@ -1872,8 +1899,8 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'наряды в строительстве',
       'выработка бригад',
     ],
-    proofTitle: 'Как ресурсный факт связывается с объектом и себестоимостью',
-    proofDescription: 'Техника, смены, простои и наряды становятся частью ежедневного производственного факта.',
+    processComparisonTitle: 'Порядок учета ресурсов и себестоимости',
+    processComparisonDescription: 'Техника, смены, простои и наряды становятся частью ежедневного производственного факта.',
     signals: [
       'Сменные рапорты и простои техники собираются после факта.',
       'ГСМ, техника и наряды не связаны с реальными объемами работ.',
@@ -1954,8 +1981,8 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       'change order строительство',
       'претензии подрядчика',
     ],
-    proofTitle: 'Как изменения перестают теряться в переписке',
-    proofDescription: 'Контур изменений показывает путь от вопроса или претензии до решения заказчика и влияния на проект.',
+    processComparisonTitle: 'Порядок работы с изменениями',
+    processComparisonDescription: 'Контур изменений показывает путь от вопроса или претензии до решения заказчика и влияния на проект.',
     signals: [
       'RFI и ответы уходят в письма и чаты.',
       'Дополнительные работы утверждаются без прозрачного влияния на бюджет.',

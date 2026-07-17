@@ -1,5 +1,6 @@
+import { cleanup, render, screen } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/components/landing/ContactForm', () => ({ default: () => <div /> }));
 vi.mock('@/components/marketing/blocks/FaqAccordion', () => ({ default: () => <div /> }));
@@ -12,6 +13,9 @@ vi.mock('@/components/marketing/MarketingPrimitives', () => ({
 vi.mock('@/hooks/useSEO', () => ({ useSEO: () => undefined }));
 
 import SeoClusterPage from './SeoClusterPage';
+import { marketingSeoLandingPages } from '@/data/marketingRegistry';
+
+afterEach(cleanup);
 
 describe('SeoClusterPage workflow', () => {
   it('renders configured workflow heading and stages for a product page', () => {
@@ -26,5 +30,28 @@ describe('SeoClusterPage workflow', () => {
     const html = renderToStaticMarkup(<SeoClusterPage pageKey="foreman-software" />);
 
     expect(html).not.toContain('Как проходит закупка по объекту');
+  });
+
+  it('renders an honest process comparison without proof terminology', () => {
+    const page = marketingSeoLandingPages['construction-procurement'];
+
+    expect(page.processComparison).toEqual({
+      eyebrow: 'Как меняется работа',
+      title: 'Заявка проходит один понятный маршрут',
+      description: 'Сотрудники видят ответственного, статус и следующий шаг.',
+      metrics: [
+        {
+          value: 'Одна карточка',
+          label: 'Вместо переписки',
+          description: 'История решения остаётся у заявки.',
+        },
+      ],
+      note: 'Это описание процесса, а не обещание результата.',
+    });
+
+    render(<SeoClusterPage pageKey="construction-procurement" />);
+
+    expect(screen.getByRole('heading', { name: 'Заявка проходит один понятный маршрут' })).toBeInTheDocument();
+    expect(screen.queryByText(/доказательств/i)).not.toBeInTheDocument();
   });
 });

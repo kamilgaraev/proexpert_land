@@ -28,23 +28,22 @@ const createProductSeoPage = (config: ProductSeoPageConfig): MarketingSeoLanding
   title: config.title,
   description: config.description,
   supportingQueries: config.supportingQueries,
-  proof: {
-    title: `Что меняется в процессе ${config.eyebrow.toLowerCase()}`,
-    description: 'Рабочие статусы, ответственные и документы остаются в контексте объекта и доступны тем, кто принимает следующее решение.',
-    signals: config.problems.slice(0, 3),
-    beforeLabel: 'До запуска',
-    beforeState: [
-      'Статусы собираются в переписке, таблицах и отдельных файлах.',
-      'Следующее действие и ответственный определяются вручную.',
-      'Контекст объекта приходится восстанавливать при каждой проверке.',
-    ],
-    afterLabel: 'В рабочем контуре',
-    afterState: config.workflow.stages.slice(0, 3).map((stage) => stage.description),
-    metrics: [
-      { label: 'Контекст', value: 'Объект', detail: 'Заявки, документы и решения сохраняют связь с конкретным проектом.' },
-      { label: 'Контроль', value: 'Статусы', detail: 'Команда видит, на каком этапе находится рабочая задача.' },
-      { label: 'Действие', value: 'Роли', detail: 'Следующий шаг получает понятного ответственного и доступ по роли.' },
-    ],
+  processComparison: {
+    eyebrow: 'Как меняется работа',
+    title: config.path === marketingPaths.constructionProcurement
+      ? 'Заявка проходит один понятный маршрут'
+      : `Порядок работы: ${config.eyebrow.toLowerCase()}`,
+    description: config.path === marketingPaths.constructionProcurement
+      ? 'Сотрудники видят ответственного, статус и следующий шаг.'
+      : 'Рабочие статусы, ответственные и документы остаются в контексте объекта и доступны тем, кто принимает следующее решение.',
+    metrics: config.path === marketingPaths.constructionProcurement
+      ? [{ value: 'Одна карточка', label: 'Вместо переписки', description: 'История решения остаётся у заявки.' }]
+      : [
+          { label: 'Контекст', value: 'Объект', description: 'Заявки, документы и решения сохраняют связь с конкретным проектом.' },
+          { label: 'Контроль', value: 'Статусы', description: 'Команда видит, на каком этапе находится рабочая задача.' },
+          { label: 'Действие', value: 'Роли', description: 'Следующий шаг получает понятного ответственного и доступ по роли.' },
+        ],
+    note: 'Это описание процесса, а не обещание результата.',
   },
   audienceTitle: `Кому нужен контур ${config.eyebrow.toLowerCase()}`,
   audienceDescription: 'Страница помогает сопоставить реальный порядок работы команды с тем, какие статусы, документы и роли стоит запускать первыми.',
