@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
-import { marketingSitemapRoutes } from "./siteIndex";
+import { marketingNoIndexPaths, marketingSitemapRoutes } from "./siteIndex";
 
 const productionDirectoryPaths = [
   "src/data/marketing",
@@ -13,24 +13,17 @@ const productionDirectoryPaths = [
   "src/components/landing",
 ];
 
-const publicRouteFilePaths = [
-  "src/pages/company/AboutPage.tsx",
-  "src/pages/company/ContactPage.tsx",
-  "src/pages/company/SecurityPage.tsx",
-  "src/pages/legal/PrivacyPage.tsx",
-  "src/pages/legal/OfferPage.tsx",
-  "src/pages/legal/CookiesPage.tsx",
-  "src/pages/solutions/ContractorsPage.tsx",
-  "src/pages/solutions/DevelopersPage.tsx",
-  "src/pages/solutions/EnterprisePage.tsx",
-  "src/pages/product/IntegrationsPage.tsx",
-];
-
-const requiredManifestPaths = [
+const requiredRecursiveManifestPaths = [
   "src/components/marketing/blocks/AdminProductDemo.tsx",
   "src/components/blog/public/BlogCategoryPage.tsx",
   "src/components/landing/Footer.tsx",
-  ...publicRouteFilePaths,
+  "src/pages/resources/DocsPage.tsx",
+];
+
+const publicBlogDynamicPaths = [
+  "/blog/preview/:articleId",
+  "/blog/category/:slug",
+  "/blog/tag/:slug",
 ];
 
 const forbiddenPublicWording = new RegExp(
@@ -104,6 +97,7 @@ const collectProductionFiles = (directory: string): string[] =>
     if (
       !/\.tsx?$/u.test(entry.name) ||
       /\.test\.tsx?$/u.test(entry.name) ||
+      /\.fixture\.tsx?$/u.test(entry.name) ||
       entry.name === "marketingBlogNormalizer.ts"
     ) {
       return [];
@@ -152,6 +146,17 @@ const readUserFacingText = (filePath: string): string => {
       !isTechnicalSourceLiteral(node, sourceFile)
     ) {
       values.push(node.text);
+    } else if (
+      ts.isTemplateLiteralToken(node) &&
+      !isTechnicalSourceLiteral(node, sourceFile)
+    ) {
+      values.push(node.text);
+    } else if (ts.isJsxText(node)) {
+      const normalizedText = node.text.replace(/\s+/gu, " ").trim();
+
+      if (normalizedText) {
+        values.push(normalizedText);
+      }
     }
 
     ts.forEachChild(node, visit);
@@ -161,16 +166,166 @@ const readUserFacingText = (filePath: string): string => {
   return values.join("\n");
 };
 
+interface PublicRouteOwner {
+  routePath: string;
+  componentName: string;
+  filePath: string;
+}
+
+const resolveImportedModulePath = (moduleSpecifier: string): string | null => {
+  const aliases = [
+    ["@pages/", "src/pages/"],
+    ["@components/", "src/components/"],
+    ["@/", "src/"],
+  ] as const;
+  const alias = aliases.find(([prefix]) => moduleSpecifier.startsWith(prefix));
+
+  if (!alias) {
+    return null;
+  }
+
+  const [prefix, replacement] = alias;
+  const relativeModulePath = `${replacement}${moduleSpecifier.slice(prefix.length)}`;
+  const candidates = [
+    `${relativeModulePath}.tsx`,
+    `${relativeModulePath}.ts`,
+    `${relativeModulePath}/index.tsx`,
+    `${relativeModulePath}/index.ts`,
+  ];
+  const resolvedPath = candidates.find((candidate) =>
+    fs.existsSync(path.resolve(process.cwd(), candidate)),
+  );
+
+  return resolvedPath ?? null;
+};
+
+const readJsxComponentName = (
+  expression: ts.Expression | undefined,
+): string | null => {
+  if (expression && ts.isJsxSelfClosingElement(expression)) {
+    return ts.isIdentifier(expression.tagName) ? expression.tagName.text : null;
+  }
+
+  if (expression && ts.isJsxElement(expression)) {
+    return ts.isIdentifier(expression.openingElement.tagName)
+      ? expression.openingElement.tagName.text
+      : null;
+  }
+
+  return null;
+};
+
+const derivePublicRouteOwners = (
+  expectedRoutePaths: ReadonlySet<string>,
+): PublicRouteOwner[] => {
+  const appPath = path.resolve(process.cwd(), "src/App.tsx");
+  const source = fs.readFileSync(appPath, "utf8");
+  const sourceFile = ts.createSourceFile(
+    appPath,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const importedModuleByComponent = new Map<string, string>();
+  const owners: PublicRouteOwner[] = [];
+
+  sourceFile.forEachChild((node) => {
+    if (
+      ts.isImportDeclaration(node) &&
+      ts.isStringLiteral(node.moduleSpecifier) &&
+      node.importClause?.name
+    ) {
+      importedModuleByComponent.set(
+        node.importClause.name.text,
+        node.moduleSpecifier.text,
+      );
+    }
+  });
+
+  const visit = (node: ts.Node): void => {
+    if (
+      ts.isJsxSelfClosingElement(node) &&
+      ts.isIdentifier(node.tagName) &&
+      node.tagName.text === "Route"
+    ) {
+      const attributes = new Map(
+        node.attributes.properties
+          .filter(ts.isJsxAttribute)
+          .flatMap((attribute) =>
+            ts.isIdentifier(attribute.name)
+              ? [[attribute.name.text, attribute] as const]
+              : [],
+          ),
+      );
+      const pathAttribute = attributes.get("path");
+      const elementAttribute = attributes.get("element");
+      const routePath =
+        pathAttribute?.initializer &&
+        ts.isStringLiteral(pathAttribute.initializer)
+          ? pathAttribute.initializer.text
+          : null;
+      const componentName =
+        elementAttribute?.initializer &&
+        ts.isJsxExpression(elementAttribute.initializer)
+          ? readJsxComponentName(elementAttribute.initializer.expression)
+          : null;
+
+      if (routePath && componentName && expectedRoutePaths.has(routePath)) {
+        const moduleSpecifier = importedModuleByComponent.get(componentName);
+        const filePath = moduleSpecifier
+          ? resolveImportedModulePath(moduleSpecifier)
+          : null;
+
+        if (filePath) {
+          owners.push({ routePath, componentName, filePath });
+        }
+      }
+    }
+
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+  return owners;
+};
+
+const expectedPublicRoutePaths = new Set([
+  ...marketingSitemapRoutes.map(({ path: routePath }) => routePath),
+  ...marketingNoIndexPaths,
+  ...publicBlogDynamicPaths,
+]);
+
+const activePublicRouteOwners = derivePublicRouteOwners(
+  expectedPublicRoutePaths,
+);
+
+const recursiveProductionFiles = productionDirectoryPaths.flatMap((directory) =>
+  collectProductionFiles(path.resolve(process.cwd(), directory)),
+);
+
 const productionFiles = [
-  ...productionDirectoryPaths.flatMap((directory) =>
-    collectProductionFiles(path.resolve(process.cwd(), directory)),
-  ),
-  ...publicRouteFilePaths.map((filePath) =>
-    path.resolve(process.cwd(), filePath),
-  ),
+  ...new Set([
+    ...recursiveProductionFiles,
+    ...activePublicRouteOwners.map(({ filePath }) =>
+      path.resolve(process.cwd(), filePath),
+    ),
+  ]),
 ];
 
 describe("public marketing source content", () => {
+  it("collects normalized JSX text and ignores whitespace-only JSX", () => {
+    const fixtureText = readUserFacingText(
+      path.resolve(
+        process.cwd(),
+        "src/data/marketing/publicSourceContent.fixture.tsx",
+      ),
+    );
+
+    expect(fixtureText).toBe("Рабочий контур");
+    expect(fixtureText).toMatch(forbiddenPublicWording);
+  });
+
   it("publishes llms.txt as compact Markdown with known canonical routes", () => {
     const llms = fs.readFileSync(
       path.resolve(process.cwd(), "public/llms.txt"),
@@ -214,13 +369,43 @@ describe("public marketing source content", () => {
     }
   });
 
+  it("derives every active public route owner from App.tsx", () => {
+    const ownerByRoute = new Map(
+      activePublicRouteOwners.map((owner) => [owner.routePath, owner]),
+    );
+
+    expect(new Set(ownerByRoute.keys())).toEqual(expectedPublicRoutePaths);
+    expect(ownerByRoute.get("/about")?.filePath).toBe(
+      "src/pages/company/AboutPage.tsx",
+    );
+    expect(ownerByRoute.get("/integrations")?.filePath).toBe(
+      "src/pages/product/IntegrationsPage.tsx",
+    );
+    expect(ownerByRoute.get("/contractors")?.filePath).toBe(
+      "src/pages/solutions/ContractorsPage.tsx",
+    );
+    expect(ownerByRoute.get("/blog")?.filePath).toBe(
+      "src/components/blog/public/BlogPublicPage.tsx",
+    );
+
+    for (const owner of activePublicRouteOwners) {
+      expect(owner.routePath).not.toMatch(/^\/(?:dashboard|login|register)/u);
+      expect(owner.filePath).not.toMatch(
+        /(?:pages\/dashboard|components\/multi-org)/u,
+      );
+      expect(productionFiles).toContain(
+        path.resolve(process.cwd(), owner.filePath),
+      );
+    }
+  });
+
   it("covers rendered public sources and rejects legacy or hybrid wording", () => {
     const relativePaths = productionFiles.map((filePath) =>
       path.relative(process.cwd(), filePath).replace(/\\/gu, "/"),
     );
 
     expect(relativePaths).toEqual(
-      expect.arrayContaining(requiredManifestPaths),
+      expect.arrayContaining(requiredRecursiveManifestPaths),
     );
 
     for (const filePath of productionFiles) {
