@@ -78,10 +78,10 @@ export const HoldingContractDetails = () => {
                     {file.versions.map((version) => (
                       <li key={version.id} className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
                         <span className="text-sm text-slate-700">Версия {version.version_number}: {version.original_filename}</span>
-                        <div className="flex gap-2">
-                          {version.preview_available && <button type="button" onClick={() => void openFile(version.id, 'preview')} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"><DocumentMagnifyingGlassIcon className="h-4 w-4" />Просмотр</button>}
+                        {version.preview_available ? <div className="flex gap-2">
+                          <button type="button" onClick={() => void openFile(version.id, 'preview')} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"><DocumentMagnifyingGlassIcon className="h-4 w-4" />Просмотр</button>
                           <button type="button" onClick={() => void openFile(version.id, 'download')} className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-2 text-sm text-white"><ArrowDownTrayIcon className="h-4 w-4" />Скачать</button>
-                        </div>
+                        </div> : <span className="text-sm text-slate-500">Версия обрабатывается</span>}
                       </li>
                     ))}
                   </ul>

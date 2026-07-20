@@ -73,17 +73,18 @@ describe('HoldingContractDetails', () => {
     expect(screen.getByText('Версия 2: contract-v2.pdf')).toBeInTheDocument();
     expect(screen.getByText('У вас нет права просмотра финансовых показателей этого досье.')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Просмотр' })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: 'Скачать' })).toHaveLength(1);
   });
 
-  it('requests a secure download URL for the selected historical version', async () => {
-    serviceMocks.getDownloadUrl.mockResolvedValue('https://storage.example.test/contract-v1.docx');
+  it('requests a secure download URL only for a ready historical version', async () => {
+    serviceMocks.getDownloadUrl.mockResolvedValue('https://storage.example.test/contract-v2.pdf');
     const target = { opener: null, location: { replace: vi.fn() }, close: vi.fn() };
     vi.spyOn(window, 'open').mockReturnValue(target as unknown as Window);
     renderPage();
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Скачать' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Скачать' }));
 
-    await vi.waitFor(() => expect(serviceMocks.getDownloadUrl).toHaveBeenCalledWith(7, 10));
-    expect(target.location.replace).toHaveBeenCalledWith('https://storage.example.test/contract-v1.docx');
+    await vi.waitFor(() => expect(serviceMocks.getDownloadUrl).toHaveBeenCalledWith(7, 12));
+    expect(target.location.replace).toHaveBeenCalledWith('https://storage.example.test/contract-v2.pdf');
   });
 });
