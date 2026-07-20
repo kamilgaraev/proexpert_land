@@ -22,13 +22,24 @@ export const HoldingContractDetails = () => {
 
   const openFile = async (versionId: number, mode: 'preview' | 'download') => {
     if (!data?.contract) return;
+
+    const target = window.open('about:blank', '_blank');
+    if (target === null) {
+      setFileError('Разрешите открытие нового окна для просмотра документа.');
+
+      return;
+    }
+
+    target.opener = null;
+
     try {
       setFileError(null);
       const url = mode === 'preview'
         ? await holdingLegalArchiveService.getPreviewUrl(data.contract.id, versionId)
         : await holdingLegalArchiveService.getDownloadUrl(data.contract.id, versionId);
-      window.open(url, '_blank', 'noopener,noreferrer');
+      target.location.replace(url);
     } catch {
+      target.close();
       setFileError('Не удалось подготовить безопасную ссылку на файл.');
     }
   };
@@ -49,7 +60,36 @@ export const HoldingContractDetails = () => {
         </section>
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="text-lg font-semibold">Подписание и проверка</h2><p className="mt-2 text-sm text-slate-600">Подписей: {data.signature_summary.total}; проверено: {data.signature_summary.verified}. Статус: {data.signature_summary.status ?? 'не указан'}.</p><p className="mt-3 inline-flex items-center gap-2 text-sm text-slate-500"><LockClosedIcon className="h-4 w-4" />Архив доступен только для просмотра: действия согласования здесь не выполняются.</p></section>
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="text-lg font-semibold">Финансовая сводка</h2>{data.financial_summary.visible ? <div className="mt-4 grid gap-4 sm:grid-cols-3"><div><p className="text-sm text-slate-500">Сумма</p><p className="font-semibold">{formatAmount(data.financial_summary.total_amount)}</p></div><div><p className="text-sm text-slate-500">Оплачено</p><p className="font-semibold">{formatAmount(data.financial_summary.paid_amount)}</p></div><div><p className="text-sm text-slate-500">Остаток</p><p className="font-semibold">{formatAmount(data.financial_summary.remaining_amount)}</p></div></div> : <p className="mt-2 text-sm text-slate-500">У вас нет права просмотра финансовых показателей этого досье.</p>}</section>
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="text-lg font-semibold">Файлы и версии</h2>{fileError && <p className="mt-3 text-sm text-red-700">{fileError}</p>}{!data.permissions.can_preview_download ? <p className="mt-2 text-sm text-slate-500">У вас нет права просмотра и скачивания файлов этого досье.</p> : data.files.length === 0 ? <p className="mt-2 text-sm text-slate-500">Файлы пока не добавлены.</p> : <ul className="mt-4 divide-y divide-slate-100">{data.files.map((file) => <li key={file.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-3"><DocumentTextIcon className="h-5 w-5 text-slate-500" /><div><p className="font-medium">{file.title}</p><p className="text-sm text-slate-500">{file.current_version?.original_filename ?? 'Версия обрабатывается'}</p></div></div>{file.current_version && <div className="flex gap-2"><button onClick={() => void openFile(file.current_version!.id, 'preview')} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"><DocumentMagnifyingGlassIcon className="h-4 w-4" />Просмотр</button><button onClick={() => void openFile(file.current_version!.id, 'download')} className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-2 text-sm text-white"><ArrowDownTrayIcon className="h-4 w-4" />Скачать</button></div>}</li>)}</ul>}</section>
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold">Файлы и версии</h2>
+          {fileError && <p className="mt-3 text-sm text-red-700">{fileError}</p>}
+          {!data.permissions.can_preview_download ? <p className="mt-2 text-sm text-slate-500">У вас нет права просмотра и скачивания файлов этого досье.</p> : data.files.length === 0 ? <p className="mt-2 text-sm text-slate-500">Файлы пока не добавлены.</p> : (
+            <ul className="mt-4 divide-y divide-slate-100">
+              {data.files.map((file) => (
+                <li key={file.id} className="py-4">
+                  <div className="flex items-center gap-3">
+                    <DocumentTextIcon className="h-5 w-5 text-slate-500" />
+                    <div>
+                      <p className="font-medium">{file.title}</p>
+                      <p className="text-sm text-slate-500">{file.current_version?.original_filename ?? 'Версия обрабатывается'}</p>
+                    </div>
+                  </div>
+                  <ul className="mt-3 space-y-2 pl-8">
+                    {file.versions.map((version) => (
+                      <li key={version.id} className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="text-sm text-slate-700">Версия {version.version_number}: {version.original_filename}</span>
+                        <div className="flex gap-2">
+                          {version.preview_available && <button type="button" onClick={() => void openFile(version.id, 'preview')} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"><DocumentMagnifyingGlassIcon className="h-4 w-4" />Просмотр</button>}
+                          <button type="button" onClick={() => void openFile(version.id, 'download')} className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-2 text-sm text-white"><ArrowDownTrayIcon className="h-4 w-4" />Скачать</button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     </main>
   );

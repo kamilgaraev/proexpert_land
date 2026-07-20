@@ -12,6 +12,7 @@ export interface HoldingLegalArchiveFile {
   title: string;
   role: string;
   current_version: HoldingLegalArchiveVersion | null;
+  versions: HoldingLegalArchiveVersion[];
 }
 
 export interface HoldingLegalArchiveDossier {

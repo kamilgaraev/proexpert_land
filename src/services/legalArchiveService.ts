@@ -13,7 +13,11 @@ export const normalizeHoldingLegalArchiveDossier = (value: HoldingLegalArchiveDo
   document_number: value.document_number ?? null,
   counterparty_name: value.counterparty_name ?? null,
   legal_significance_status: value.legal_significance_status ?? null,
-  files: Array.isArray(value.files) ? value.files : [],
+  files: Array.isArray(value.files) ? value.files.map((file) => ({
+    ...file,
+    current_version: file.current_version ?? null,
+    versions: Array.isArray(file.versions) ? file.versions : file.current_version ? [file.current_version] : [],
+  })) : [],
   workflow_summary: { status: 'read_only', available_action_details: [] },
   permissions: { can_preview_download: Boolean(value.permissions?.can_preview_download), read_only: true },
   financial_summary: {
