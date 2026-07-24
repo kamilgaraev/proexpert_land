@@ -82,10 +82,19 @@ const server = setupServer(
     updated_at: '2026-07-15T09:00:00Z',
   })),
   http.post(`${baseUrl}/billing/commercial/quote`, async ({ request }) => {
-    const body = await request.json() as { target_package_slugs: string[]; full_suite: boolean };
+    const body = await request.json() as { target_package_slugs: string[]; full_suite: boolean; resources?: Array<{ slug: string; quantity: number }> };
     if (body.target_package_slugs.includes(packageSlugs[1]) && !body.target_package_slugs.includes(packageSlugs[2])) await delay(300);
     if (body.target_package_slugs.includes(packageSlugs[2])) await delay(10);
-    const total = body.full_suite ? 7990000 : body.target_package_slugs.length * 100000;
+    const extraUsers = body.resources?.find((item) => item.slug === 'extra_users')?.quantity ?? 0;
+    const documentPages = body.resources?.find((item) => item.slug === 'extra_document_pages')?.quantity ?? 0;
+    if (extraUsers === 13) return HttpResponse.json({ success: false, message: 'Не удалось рассчитать дополнительный объём.' }, { status: 422 });
+    const resourceItems = [
+      ...(extraUsers > 0 ? [{ slug: 'extra_users', limit_key: 'users', quantity: extraUsers, amount_minor: extraUsers * 30000, amount: (extraUsers * 300).toFixed(2), currency: 'RUB', status: extraUsers > 200 ? 'requires_manager' : 'ok', requires_package: null }] : []),
+      ...(documentPages > 0 ? [{ slug: 'extra_document_pages', limit_key: 'document_pages_month', quantity: documentPages, amount_minor: documentPages * 1000, amount: (documentPages * 10).toFixed(2), currency: 'RUB', status: body.target_package_slugs.includes(packageSlugs[2]) ? 'ok' : 'package_required', requires_package: packageSlugs[2] }] : []),
+    ];
+    const resourceTotal = resourceItems.reduce((sum, item) => sum + item.amount_minor, 0);
+    const packageTotal = body.full_suite ? 7990000 : body.target_package_slugs.length * 100000;
+    const total = packageTotal + resourceTotal;
     return HttpResponse.json({ success: true, data: {
       quote_version: 1, currency: 'RUB', billing_period_days: 30,
       offer_type: body.full_suite ? 'full_suite' : 'packages',
@@ -97,19 +106,15 @@ const server = setupServer(
       savings_amount: '0.00', savings_amount_minor: 0, savings_percent: 0,
       recommendation: body.target_package_slugs.length >= 8 ? 'full_suite' : null,
       period_start_at: '2026-07-01T09:00:00Z', period_end_at: '2026-07-31T09:00:00Z',
-    } });
-  }),
-  http.post(`${baseUrl}/billing/commercial/resource-addons/quote`, async ({ request }) => {
-    const body = await request.json() as { resources: Array<{ slug: string; quantity: number }> };
-    const extraUsers = body.resources.find((item) => item.slug === 'extra_users')?.quantity ?? 0;
-    if (extraUsers === 13) return HttpResponse.json({ success: false, message: 'Не удалось рассчитать дополнительный объём.' }, { status: 422 });
-    return HttpResponse.json({ success: true, data: {
-      amount_minor: extraUsers * 30000,
-      amount: (extraUsers * 300).toFixed(2),
-      currency: 'RUB',
-      requires_manager: extraUsers > 200,
-      quote_version: 1,
-      items: [{ slug: 'extra_users', limit_key: 'users', quantity: extraUsers, amount_minor: extraUsers * 30000, amount: (extraUsers * 300).toFixed(2), currency: 'RUB', status: extraUsers > 200 ? 'requires_manager' : 'ok', requires_package: null }],
+      resource_quote_version: 1,
+      resource_addons_quote: resourceItems.length > 0 ? {
+        amount_minor: resourceTotal,
+        amount: (resourceTotal / 100).toFixed(2),
+        currency: 'RUB',
+        requires_manager: resourceItems.some((item) => item.status !== 'ok'),
+        quote_version: 1,
+        items: resourceItems,
+      } : null,
     } });
   }),
   http.post(`${baseUrl}/billing/commercial/enterprise-inquiries`, () => HttpResponse.json({
@@ -185,11 +190,12 @@ describe('BillingPage commercial packages', () => {
   it('показывает лимиты и дополнительный объём без слова тариф', async () => {
     renderPage();
 
-    expect(await screen.findByRole('heading', { name: 'Лимиты и ресурсы' })).toBeInTheDocument();
-    expect(screen.getByText('Пользователи')).toBeInTheDocument();
-    expect(screen.getByText('2 из 3')).toBeInTheDocument();
-    expect(screen.getByText('Проекты')).toBeInTheDocument();
-    expect(screen.getByText('8 из 12')).toBeInTheDocument();
+    await screen.findByText('Изменений нет');
+    const summary = screen.getByLabelText('Лимиты организации');
+    expect(within(summary).getByText('Пользователи')).toBeInTheDocument();
+    expect(within(summary).getByText('2 из 3')).toBeInTheDocument();
+    expect(within(summary).getByText('Проекты')).toBeInTheDocument();
+    expect(within(summary).getByText('8 из 12')).toBeInTheDocument();
     expect(screen.getByText('Дополнительные пользователи')).toBeInTheDocument();
     expect(screen.queryByText(/тариф/i)).not.toBeInTheDocument();
   });
@@ -205,6 +211,29 @@ describe('BillingPage commercial packages', () => {
     expect(
       resourcePurchaseSection?.compareDocumentPosition(historySection as HTMLElement),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('не показывает пустой каталог пакетов перед дополнительными ресурсами', async () => {
+    server.use(
+      http.get(`${baseUrl}/packages`, () => HttpResponse.json({
+        success: true,
+        data: packages.map((item) => ({
+          ...item,
+          is_active: true,
+          status: 'active',
+          access_source: 'paid_package',
+          current_period_start_at: '2026-07-01T09:00:00Z',
+          current_period_end_at: '2026-07-31T09:00:00Z',
+        })),
+      })),
+    );
+
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Купить дополнительный объём' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Добавить возможности' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Все пакеты уже подключены.')).not.toBeInTheDocument();
+    expect(screen.getByText('Каталог · дополнительные ресурсы')).toBeInTheDocument();
   });
 
   it('пересчитывает стоимость дополнительных пользователей через stepper', async () => {
@@ -361,6 +390,70 @@ describe('BillingPage commercial packages', () => {
     expect(await screen.findByText(/Средства списаны с баланса организации/)).toBeInTheDocument();
     expect(checkoutBody).toMatchObject({ use_balance: true, auto_renew_consent: true });
     expect(sessionStorage.getItem('most:pending-commercial-order')).toBeNull();
+  });
+
+  it('отправляет пакет и дополнительный объём в один checkout', async () => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
+      checkoutBody = await request.json() as Record<string, unknown>;
+
+      return HttpResponse.json({ success: true, data: {
+        order_id: 'combined-order', status: 'pending_payment', amount: '5200.00', amount_minor: 520000,
+        currency: 'RUB', confirmation_url: 'https://yookassa.ru/confirm/combined', payment_status: 'pending',
+        payment_source: 'yookassa', auto_renew_consent: true, test_mode: false,
+      } }, { status: 201 });
+    }));
+
+    renderPage();
+    const packageHeading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(packageHeading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    const usersResource = await screen.findByRole('group', { name: 'Дополнительные пользователи' });
+    fireEvent.change(within(usersResource).getByLabelText('Количество Дополнительные пользователи'), { target: { value: '10' } });
+    expect(await screen.findByText('3 000 ₽/мес')).toBeInTheDocument();
+    const pay = screen.getAllByRole('button', { name: /Перейти к оплате/ }).find((button) => !button.hasAttribute('disabled'));
+    expect(pay).toBeDefined();
+    fireEvent.click(pay as HTMLElement);
+
+    await waitFor(() => expect(checkoutBody).not.toBeNull());
+    expect(checkoutBody).toMatchObject({
+      target_package_slugs: [packageSlugs[0], packageSlugs[1]],
+      current_package_slugs: [packageSlugs[0]],
+      resources: [{ slug: 'extra_users', quantity: 10 }],
+      resource_quote_version: 1,
+    });
+  });
+
+  it('разрешает купить ресурс, который открывается выбранным пакетом', async () => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
+      checkoutBody = await request.json() as Record<string, unknown>;
+
+      return HttpResponse.json({ success: true, data: {
+        order_id: 'package-resource-order', status: 'pending_payment', amount: '4000.00', amount_minor: 400000,
+        currency: 'RUB', confirmation_url: 'https://yookassa.ru/confirm/package-resource', payment_status: 'pending',
+        payment_source: 'yookassa', auto_renew_consent: true, test_mode: false,
+      } }, { status: 201 });
+    }));
+
+    renderPage();
+    const packageHeading = await screen.findByRole('heading', { name: 'Пакет 3' });
+    const resource = await screen.findByRole('group', { name: 'Дополнительные страницы распознавания' });
+    expect(within(resource).getByLabelText('Количество Дополнительные страницы распознавания')).toBeDisabled();
+
+    fireEvent.click(within(packageHeading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    await waitFor(() => expect(within(resource).getByLabelText('Количество Дополнительные страницы распознавания')).not.toBeDisabled());
+    fireEvent.change(within(resource).getByLabelText('Количество Дополнительные страницы распознавания'), { target: { value: '100' } });
+    expect(await screen.findByText('1 000 ₽/мес')).toBeInTheDocument();
+    const pay = screen.getAllByRole('button', { name: /Перейти к оплате/ }).find((button) => !button.hasAttribute('disabled'));
+    expect(pay).toBeDefined();
+    fireEvent.click(pay as HTMLElement);
+
+    await waitFor(() => expect(checkoutBody).not.toBeNull());
+    expect(checkoutBody).toMatchObject({
+      target_package_slugs: [packageSlugs[0], packageSlugs[2]],
+      resources: [{ slug: 'extra_document_pages', quantity: 100 }],
+      resource_quote_version: 1,
+    });
   });
 
   it('всегда показывает крупной компании способ обсудить подключение', async () => {

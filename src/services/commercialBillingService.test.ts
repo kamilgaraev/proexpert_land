@@ -99,9 +99,11 @@ describe('commercialBillingService', () => {
         current_package_slugs: [],
         full_suite: false,
         quote_version: 1,
+        resource_quote_version: 1,
         client_idempotency_key: first,
         auto_renew_consent: true,
         use_balance: false,
+        resources: [],
       });
       return HttpResponse.json({ success: true, data: { order_id: 'order-1', status: 'pending_payment', amount: '7900.00', amount_minor: 790000, currency: 'RUB', confirmation_url: 'https://yookassa.ru/confirm/safe', payment_status: 'pending', auto_renew_consent: true, test_mode: false } });
     }));
@@ -112,41 +114,101 @@ describe('commercialBillingService', () => {
     })).resolves.toMatchObject({ orderId: 'order-1', confirmationUrl: 'https://yookassa.ru/confirm/safe' });
   });
 
-  it('рассчитывает дополнительный объём через общий commercial billing endpoint', async () => {
+  it('считает пакеты и дополнительный объём одним commercial quote', async () => {
     saveAuthToken('test-token');
-    server.use(http.post(`${baseUrl}/billing/commercial/resource-addons/quote`, async ({ request }) => {
+    server.use(http.post(`${baseUrl}/billing/commercial/quote`, async ({ request }) => {
       expect(await request.json()).toEqual({
+        target_package_slugs: ['machinery'],
+        full_suite: false,
         resources: [{ slug: 'extra_users', quantity: 2 }],
       });
 
       return HttpResponse.json({
         success: true,
         data: {
-          amount_minor: 60000,
-          amount: '600.00',
-          currency: 'RUB',
-          requires_manager: false,
           quote_version: 1,
-          items: [{
-            slug: 'extra_users',
-            limit_key: 'users',
-            quantity: 2,
+          currency: 'RUB',
+          billing_period_days: 30,
+          offer_type: 'packages',
+          target_package_slugs: ['machinery'],
+          current_package_slugs: [],
+          added_package_slugs: ['machinery'],
+          removed_package_slugs: [],
+          monthly_total: '8500.00',
+          monthly_total_minor: 850000,
+          amount_due_now: '8500.00',
+          amount_due_now_minor: 850000,
+          savings_amount: '0.00',
+          savings_amount_minor: 0,
+          savings_percent: 0,
+          recommendation: null,
+          period_start_at: '2026-07-15T10:00:00Z',
+          period_end_at: '2026-08-14T10:00:00Z',
+          resource_quote_version: 1,
+          resource_addons_quote: {
             amount_minor: 60000,
             amount: '600.00',
             currency: 'RUB',
-            status: 'ok',
-            requires_package: null,
-          }],
+            requires_manager: false,
+            quote_version: 1,
+            items: [{
+              slug: 'extra_users',
+              limit_key: 'users',
+              quantity: 2,
+              amount_minor: 60000,
+              amount: '600.00',
+              currency: 'RUB',
+              status: 'ok',
+              requires_package: null,
+            }],
+          },
         },
       });
     }));
 
-    await expect(commercialBillingService.quoteResourceAddons({
+    await expect(commercialBillingService.quote({
+      targetPackageSlugs: ['machinery'],
+      fullSuite: false,
       resources: [{ slug: 'extra_users', quantity: 2 }],
     })).resolves.toMatchObject({
-      amountMinor: 60000,
-      items: [{ slug: 'extra_users', quantity: 2 }],
+      amountDueNowMinor: 850000,
+      resourceAddonQuote: {
+        amountMinor: 60000,
+        items: [{ slug: 'extra_users', quantity: 2 }],
+      },
     });
+  });
+
+  it('передает ресурсы в общий checkout payload', async () => {
+    saveAuthToken('test-token');
+    const key = '77777777-7777-4777-8777-777777777777';
+    server.use(http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
+      expect(await request.json()).toMatchObject({
+        target_package_slugs: ['machinery'],
+        current_package_slugs: [],
+        full_suite: false,
+        quote_version: 1,
+        resource_quote_version: 1,
+        client_idempotency_key: key,
+        auto_renew_consent: true,
+        use_balance: false,
+        resources: [{ slug: 'extra_users', quantity: 10 }],
+      });
+
+      return HttpResponse.json({ success: true, data: { order_id: 'combined-order', status: 'pending_payment', amount: '10900.00', amount_minor: 1090000, currency: 'RUB', confirmation_url: 'https://yookassa.ru/confirm/combined', payment_status: 'pending', auto_renew_consent: true, test_mode: false } });
+    }));
+
+    await expect(commercialBillingService.checkout({
+      targetPackageSlugs: ['machinery'],
+      currentPackageSlugs: [],
+      fullSuite: false,
+      quoteVersion: 1,
+      resourceQuoteVersion: 1,
+      clientIdempotencyKey: key,
+      autoRenewConsent: true,
+      useBalance: false,
+      resources: [{ slug: 'extra_users', quantity: 10 }],
+    })).resolves.toMatchObject({ orderId: 'combined-order', amountMinor: 1090000 });
   });
 
   it('считает оплату успешной только после authoritative order status', async () => {

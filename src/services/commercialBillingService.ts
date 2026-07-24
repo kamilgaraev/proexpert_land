@@ -100,6 +100,8 @@ const quoteFromApi = (item: JsonRecord): CommercialQuote => ({
   recommendation: item.recommendation ?? null,
   periodStartAt: item.period_start_at,
   periodEndAt: item.period_end_at,
+  resourceQuoteVersion: Number(item.resource_quote_version ?? 1),
+  resourceAddonQuote: item.resource_addons_quote ? resourceAddonQuoteFromApi(item.resource_addons_quote) : null,
 });
 
 const renewalFromApi = (item: JsonRecord): CommercialRenewalState => ({
@@ -225,18 +227,20 @@ export const commercialBillingService = {
   quoteResourceAddons: async (input: { resources: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => resourceAddonQuoteFromApi(await request<JsonRecord>('/billing/commercial/resource-addons/quote', {
     method: 'POST', signal, body: JSON.stringify({ resources: input.resources }),
   })),
-  quote: async (input: { targetPackageSlugs: string[]; fullSuite: boolean }, signal?: AbortSignal) => quoteFromApi(await request<JsonRecord>('/billing/commercial/quote', {
-    method: 'POST', signal, body: JSON.stringify({ target_package_slugs: input.targetPackageSlugs, full_suite: input.fullSuite }),
+  quote: async (input: { targetPackageSlugs: string[]; fullSuite: boolean; resources?: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => quoteFromApi(await request<JsonRecord>('/billing/commercial/quote', {
+    method: 'POST', signal, body: JSON.stringify({ target_package_slugs: input.targetPackageSlugs, full_suite: input.fullSuite, resources: input.resources ?? [] }),
   })),
-  checkout: async (input: { targetPackageSlugs: string[]; currentPackageSlugs: string[]; fullSuite: boolean; quoteVersion: number; clientIdempotencyKey: string; autoRenewConsent: boolean; useBalance: boolean }) => {
+  checkout: async (input: { targetPackageSlugs: string[]; currentPackageSlugs: string[]; fullSuite: boolean; quoteVersion: number; resourceQuoteVersion?: number; clientIdempotencyKey: string; autoRenewConsent: boolean; useBalance: boolean; resources?: Array<{ slug: string; quantity: number }> }) => {
     const item = await request<JsonRecord>('/billing/commercial/checkout', { method: 'POST', body: JSON.stringify({
       target_package_slugs: input.fullSuite ? [] : input.targetPackageSlugs,
       current_package_slugs: input.currentPackageSlugs,
       full_suite: input.fullSuite,
       quote_version: input.quoteVersion,
+      resource_quote_version: input.resourceQuoteVersion ?? 1,
       client_idempotency_key: input.clientIdempotencyKey,
       auto_renew_consent: input.autoRenewConsent,
       use_balance: input.useBalance,
+      resources: input.resources ?? [],
     }) });
     return {
       orderId: item.order_id as string,
