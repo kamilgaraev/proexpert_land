@@ -222,7 +222,7 @@ const resourceAddonQuoteFromApi = (item: JsonRecord): CommercialResourceAddonQuo
 export const commercialBillingService = {
   getPackages: async (signal?: AbortSignal) => (await request<JsonRecord[]>('/packages', { signal })).map(packageFromApi),
   getLimits: async (signal?: AbortSignal) => limitsFromApi(await request<JsonRecord>('/billing/limits', { signal })),
-  quoteResourceAddons: async (input: { resources: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => resourceAddonQuoteFromApi(await request<JsonRecord>('/billing/resource-addons/quote', {
+  quoteResourceAddons: async (input: { resources: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => resourceAddonQuoteFromApi(await request<JsonRecord>('/billing/commercial/resource-addons/quote', {
     method: 'POST', signal, body: JSON.stringify({ resources: input.resources }),
   })),
   quote: async (input: { targetPackageSlugs: string[]; fullSuite: boolean }, signal?: AbortSignal) => quoteFromApi(await request<JsonRecord>('/billing/commercial/quote', {

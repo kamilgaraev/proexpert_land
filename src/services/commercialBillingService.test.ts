@@ -112,6 +112,43 @@ describe('commercialBillingService', () => {
     })).resolves.toMatchObject({ orderId: 'order-1', confirmationUrl: 'https://yookassa.ru/confirm/safe' });
   });
 
+  it('рассчитывает дополнительный объём через общий commercial billing endpoint', async () => {
+    saveAuthToken('test-token');
+    server.use(http.post(`${baseUrl}/billing/commercial/resource-addons/quote`, async ({ request }) => {
+      expect(await request.json()).toEqual({
+        resources: [{ slug: 'extra_users', quantity: 2 }],
+      });
+
+      return HttpResponse.json({
+        success: true,
+        data: {
+          amount_minor: 60000,
+          amount: '600.00',
+          currency: 'RUB',
+          requires_manager: false,
+          quote_version: 1,
+          items: [{
+            slug: 'extra_users',
+            limit_key: 'users',
+            quantity: 2,
+            amount_minor: 60000,
+            amount: '600.00',
+            currency: 'RUB',
+            status: 'ok',
+            requires_package: null,
+          }],
+        },
+      });
+    }));
+
+    await expect(commercialBillingService.quoteResourceAddons({
+      resources: [{ slug: 'extra_users', quantity: 2 }],
+    })).resolves.toMatchObject({
+      amountMinor: 60000,
+      items: [{ slug: 'extra_users', quantity: 2 }],
+    });
+  });
+
   it('считает оплату успешной только после authoritative order status', async () => {
     saveAuthToken('test-token');
     let attempts = 0;

@@ -99,7 +99,7 @@ const server = setupServer(
       period_start_at: '2026-07-01T09:00:00Z', period_end_at: '2026-07-31T09:00:00Z',
     } });
   }),
-  http.post(`${baseUrl}/billing/resource-addons/quote`, async ({ request }) => {
+  http.post(`${baseUrl}/billing/commercial/resource-addons/quote`, async ({ request }) => {
     const body = await request.json() as { resources: Array<{ slug: string; quantity: number }> };
     const extraUsers = body.resources.find((item) => item.slug === 'extra_users')?.quantity ?? 0;
     if (extraUsers === 13) return HttpResponse.json({ success: false, message: 'Не удалось рассчитать дополнительный объём.' }, { status: 422 });
@@ -192,6 +192,19 @@ describe('BillingPage commercial packages', () => {
     expect(screen.getByText('8 из 12')).toBeInTheDocument();
     expect(screen.getByText('Дополнительные пользователи')).toBeInTheDocument();
     expect(screen.queryByText(/тариф/i)).not.toBeInTheDocument();
+  });
+
+  it('размещает покупку дополнительного объёма перед историей оплат', async () => {
+    renderPage();
+
+    const historySection = (await screen.findByRole('heading', { name: 'История оплат' })).closest('section');
+    const resourcePurchaseSection = screen.getByRole('heading', { name: 'Купить дополнительный объём' }).closest('section');
+
+    expect(historySection).not.toBeNull();
+    expect(resourcePurchaseSection).not.toBeNull();
+    expect(
+      resourcePurchaseSection?.compareDocumentPosition(historySection as HTMLElement),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   it('пересчитывает стоимость дополнительных пользователей через stepper', async () => {

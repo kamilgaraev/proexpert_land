@@ -415,6 +415,10 @@ const BillingPage = () => {
   const hasChanges = Boolean(quote && (quote.addedPackageSlugs.length > 0 || quote.removedPackageSlugs.length > 0));
   const hasReduction = Boolean(quote && quote.amountDueNowMinor === 0 && quote.removedPackageSlugs.length > 0 && quote.addedPackageSlugs.length === 0);
   const requiresAutoRenewConsent = !renewal?.autoRenewEnabled || !renewal.savedMethodAvailable;
+  const changedResourceCount = limitsSummary?.resourceAddons.filter((resource) => (
+    resource.available
+    && (resourceQuantities[resource.slug] ?? resource.currentQuantity) !== resource.currentQuantity
+  )).length ?? 0;
 
   return (
     <main className="mx-auto max-w-7xl space-y-6 pb-24">
@@ -488,48 +492,8 @@ const BillingPage = () => {
           </article>)}
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="grid gap-3 md:grid-cols-2">
-            {limitsSummary.resourceAddons.map((resource) => {
-              const quantity = resourceQuantities[resource.slug] ?? resource.currentQuantity;
-              const quoteItem = resourceQuote?.items.find((item) => item.slug === resource.slug);
-              const needsManager = quantity > resource.maxSelfService || quoteItem?.status === 'requires_manager';
-              return <article key={resource.slug} role="group" aria-label={resource.name} className={`rounded-xl border p-4 ${resource.available ? 'border-slate-200 bg-white' : 'border-slate-200 bg-slate-50'}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-semibold text-slate-950">{resource.name}</h3>
-                    <p className="mt-1 text-xs text-slate-500">Сейчас дополнительно: +{quotaValue(resource.currentQuantity, resource.unit)}</p>
-                  </div>
-                  {!resource.available ? <Badge variant="outline">Нужен пакет</Badge> : null}
-                </div>
-                <div className="mt-4 flex items-center gap-2">
-                  <Button type="button" variant="outline" size="icon" disabled={!resource.available || quantity <= resource.min} aria-label={`Уменьшить ${resource.name}`} onClick={() => setResourceQuantity(resource.slug, quantity - resource.step, resource.min)}><Minus className="h-4 w-4" /></Button>
-                  <input
-                    aria-label={`Количество ${resource.name}`}
-                    className="h-10 w-24 rounded-md border border-slate-200 px-3 text-center text-sm font-semibold"
-                    type="number"
-                    min={resource.min}
-                    step={resource.step}
-                    value={quantity}
-                    disabled={!resource.available}
-                    onChange={(event) => setResourceQuantity(resource.slug, Number(event.target.value), resource.min)}
-                  />
-                  <Button type="button" variant="outline" size="icon" disabled={!resource.available} aria-label={`Увеличить ${resource.name}`} onClick={() => setResourceQuantity(resource.slug, quantity + resource.step, resource.min)}><Plus className="h-4 w-4" /></Button>
-                </div>
-                <p className="mt-3 text-sm text-slate-700">{compactMoney(resource.pricing.priceMinor, resource.pricing.currency)} за единицу</p>
-                {resource.requiresPackage && !resource.available ? <p className="mt-2 text-xs leading-5 text-slate-600">Нужен пакет: {packageNames.get(resource.requiresPackage) ?? resource.requiresPackage}</p> : null}
-                {needsManager ? <p className="mt-3 rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-900">Для такого объёма менеджер подготовит индивидуальные условия.</p> : null}
-              </article>;
-            })}
-          </div>
-          <aside className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <h3 className="font-semibold text-slate-950">Расчёт ресурсов</h3>
-            {resourceQuoteLoading ? <p className="mt-3 flex items-center gap-2 text-sm text-slate-600"><Loader2 className="h-4 w-4 animate-spin" />Обновляем стоимость</p> : resourceQuoteError ? <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-800">{resourceQuoteError}</p> : resourceQuote ? <>
-              <p className="mt-3 text-2xl font-semibold text-slate-950">{compactMoney(resourceQuote.amountMinor, resourceQuote.currency)}</p>
-              {resourceQuote.requiresManager ? <p className="mt-3 rounded-xl bg-blue-50 p-3 text-sm leading-5 text-blue-900">Для такого объёма менеджер подготовит индивидуальные условия.</p> : <p className="mt-3 text-sm leading-6 text-slate-600">Стоимость рассчитана по выбранному дополнительному объёму.</p>}
-              <Button className="mt-4 w-full" disabled>{resourceQuote.requiresManager ? 'Обсудить условия' : 'Оплата будет доступна позже'}</Button>
-            </> : <p className="mt-3 text-sm leading-6 text-slate-600">Измените дополнительный объём, чтобы увидеть ежемесячную стоимость.</p>}
-          </aside>
+        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          Дополнительный объём покупается ниже пакетов, перед историей оплат.
         </div>
       </section> : null}
 
@@ -662,6 +626,67 @@ const BillingPage = () => {
         open={detailsPackage !== null}
         onOpenChange={(open) => { if (!open) setDetailsPackage(null); }}
       />
+
+      {limitsSummary ? <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]" aria-labelledby="resource-purchase-title">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700"><SlidersHorizontal className="h-4 w-4" />Дополнительные ресурсы</div>
+            <h2 id="resource-purchase-title" className="text-2xl font-semibold text-slate-950">Купить дополнительный объём</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Выберите только тот объём, который нужен сверх подключённых пакетов. Стоимость обновляется автоматически.</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+            <span className="block text-xs text-slate-500">Сейчас оплачено сверх пакетов</span>
+            <strong className="mt-1 block text-slate-950">{formatMoney(limitsSummary.monthlyResourceAmountMinor, limitsSummary.currency)}</strong>
+          </div>
+        </div>
+
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="divide-y overflow-hidden rounded-xl border border-slate-200">
+            {limitsSummary.resourceAddons.map((resource) => {
+              const quantity = resourceQuantities[resource.slug] ?? resource.currentQuantity;
+              const quoteItem = resourceQuote?.items.find((item) => item.slug === resource.slug);
+              const needsManager = quantity > resource.maxSelfService || quoteItem?.status === 'requires_manager';
+              const changed = resource.available && quantity !== resource.currentQuantity;
+
+              return <article key={resource.slug} role="group" aria-label={resource.name} className={`grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center ${resource.available ? 'bg-white' : 'bg-slate-50'}`}>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-semibold text-slate-950">{resource.name}</h3>
+                    {!resource.available ? <Badge variant="outline">Нужен пакет</Badge> : changed ? <Badge variant="secondary">Изменено</Badge> : null}
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">Сейчас дополнительно: +{quotaValue(resource.currentQuantity, resource.unit)} · {compactMoney(resource.pricing.priceMinor, resource.pricing.currency)} за единицу</p>
+                  {resource.requiresPackage && !resource.available ? <p className="mt-2 text-xs leading-5 text-slate-600">Нужен пакет: {packageNames.get(resource.requiresPackage) ?? resource.requiresPackage}</p> : null}
+                  {needsManager ? <p className="mt-3 rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-900">Для такого объёма менеджер подготовит индивидуальные условия.</p> : null}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button type="button" variant="outline" size="icon" disabled={!resource.available || quantity <= resource.min} aria-label={`Уменьшить ${resource.name}`} onClick={() => setResourceQuantity(resource.slug, quantity - resource.step, resource.min)}><Minus className="h-4 w-4" /></Button>
+                  <input
+                    aria-label={`Количество ${resource.name}`}
+                    className="h-10 w-24 rounded-md border border-slate-200 px-3 text-center text-sm font-semibold"
+                    type="number"
+                    min={resource.min}
+                    step={resource.step}
+                    value={quantity}
+                    disabled={!resource.available}
+                    onChange={(event) => setResourceQuantity(resource.slug, Number(event.target.value), resource.min)}
+                  />
+                  <Button type="button" variant="outline" size="icon" disabled={!resource.available} aria-label={`Увеличить ${resource.name}`} onClick={() => setResourceQuantity(resource.slug, quantity + resource.step, resource.min)}><Plus className="h-4 w-4" /></Button>
+                </div>
+              </article>;
+            })}
+          </div>
+
+          <aside className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <h3 className="font-semibold text-slate-950">Расчёт ресурсов</h3>
+            <p className="mt-1 text-xs text-slate-500">Позиций изменено: {changedResourceCount}</p>
+            {resourceQuoteLoading ? <p className="mt-3 flex items-center gap-2 text-sm text-slate-600"><Loader2 className="h-4 w-4 animate-spin" />Обновляем стоимость</p> : resourceQuoteError ? <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-800">{resourceQuoteError}</p> : resourceQuote ? <>
+              <p className="mt-4 text-3xl font-semibold text-slate-950">{compactMoney(resourceQuote.amountMinor, resourceQuote.currency)}</p>
+              {resourceQuote.requiresManager ? <p className="mt-3 rounded-xl bg-blue-50 p-3 text-sm leading-5 text-blue-900">Для такого объёма менеджер подготовит индивидуальные условия.</p> : <p className="mt-3 text-sm leading-6 text-slate-600">Стоимость рассчитана по выбранному дополнительному объёму.</p>}
+              <Button className="mt-4 w-full" disabled>{resourceQuote.requiresManager ? 'Обсудить условия' : <><CreditCard className="mr-2 h-4 w-4" />Оплата будет доступна позже</>}</Button>
+            </> : <p className="mt-3 text-sm leading-6 text-slate-600">Измените дополнительный объём, чтобы увидеть ежемесячную стоимость.</p>}
+          </aside>
+        </div>
+      </section> : null}
 
       <section className="space-y-4" aria-labelledby="history-title">
         <div className="flex items-center gap-3"><History className="h-6 w-6" /><div><h2 id="history-title" className="text-2xl font-semibold">История оплат</h2><p className="text-sm text-muted-foreground">Безопасный журнал заказов, оплат и возвратов.</p></div></div>
