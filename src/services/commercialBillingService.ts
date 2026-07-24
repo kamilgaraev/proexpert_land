@@ -2,9 +2,11 @@ import { API_URL } from '@/utils/api';
 import { getJsonAuthHeaders } from '@/utils/authTokenStorage';
 import type {
   CommercialHistory,
+  CommercialLimitsSummary,
   CommercialOrder,
   CommercialPackage,
   CommercialQuote,
+  CommercialResourceAddonQuote,
   CommercialRenewalState,
 } from '@/types/commercialBilling';
 import { CommercialApiError } from '@/types/commercialBilling';
@@ -150,8 +152,79 @@ const orderFromApi = (item: JsonRecord): CommercialOrder => ({
   refunds: item.refunds,
 });
 
+const limitsFromApi = (item: JsonRecord): CommercialLimitsSummary => ({
+  accountStatus: item.account_status,
+  offerType: item.offer_type,
+  monthlyPackageAmountMinor: item.monthly_package_amount_minor ?? 0,
+  monthlyPackageAmount: item.monthly_package_amount ?? '0.00',
+  monthlyResourceAmountMinor: item.monthly_resource_amount_minor ?? 0,
+  monthlyResourceAmount: item.monthly_resource_amount ?? '0.00',
+  currency: item.currency ?? 'RUB',
+  period: {
+    startAt: item.period?.start_at ?? null,
+    endAt: item.period?.end_at ?? null,
+  },
+  limits: Array.isArray(item.limits) ? item.limits.map((limit: JsonRecord) => ({
+    key: limit.key,
+    name: limit.name,
+    unit: limit.unit,
+    used: Number(limit.used ?? 0),
+    limit: limit.limit === null ? null : Number(limit.limit ?? 0),
+    remaining: limit.remaining === null ? null : Number(limit.remaining ?? 0),
+    percent: Number(limit.percent ?? 0),
+    status: limit.status,
+    enforcement: limit.enforcement,
+    sources: {
+      freeBase: Number(limit.sources?.free_base ?? 0),
+      packages: Number(limit.sources?.packages ?? 0),
+      paidAddons: Number(limit.sources?.paid_addons ?? 0),
+      corporateOverride: limit.sources?.corporate_override === null ? null : Number(limit.sources?.corporate_override ?? 0),
+    },
+  })) : [],
+  resourceAddons: Array.isArray(item.resource_addons) ? item.resource_addons.map((resource: JsonRecord) => ({
+    slug: resource.slug,
+    limitKey: resource.limit_key,
+    name: resource.name,
+    unit: resource.unit,
+    currentQuantity: Number(resource.current_quantity ?? 0),
+    step: Number(resource.step ?? 1),
+    min: Number(resource.min ?? 0),
+    maxSelfService: Number(resource.max_self_service ?? 0),
+    requiresPackage: resource.requires_package ?? null,
+    available: Boolean(resource.available),
+    pricing: {
+      model: resource.pricing?.model ?? 'linear',
+      currency: resource.pricing?.currency ?? 'RUB',
+      priceMinor: Number(resource.pricing?.price_minor ?? 0),
+      amount: resource.pricing?.amount ?? '0.00',
+    },
+  })) : [],
+});
+
+const resourceAddonQuoteFromApi = (item: JsonRecord): CommercialResourceAddonQuote => ({
+  amountMinor: Number(item.amount_minor ?? 0),
+  amount: item.amount ?? '0.00',
+  currency: item.currency ?? 'RUB',
+  requiresManager: Boolean(item.requires_manager),
+  quoteVersion: Number(item.quote_version ?? 1),
+  items: Array.isArray(item.items) ? item.items.map((quoteItem: JsonRecord) => ({
+    slug: quoteItem.slug,
+    limitKey: quoteItem.limit_key,
+    quantity: Number(quoteItem.quantity ?? 0),
+    amountMinor: Number(quoteItem.amount_minor ?? 0),
+    amount: quoteItem.amount ?? '0.00',
+    currency: quoteItem.currency ?? item.currency ?? 'RUB',
+    status: quoteItem.status,
+    requiresPackage: quoteItem.requires_package ?? null,
+  })) : [],
+});
+
 export const commercialBillingService = {
   getPackages: async (signal?: AbortSignal) => (await request<JsonRecord[]>('/packages', { signal })).map(packageFromApi),
+  getLimits: async (signal?: AbortSignal) => limitsFromApi(await request<JsonRecord>('/billing/limits', { signal })),
+  quoteResourceAddons: async (input: { resources: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => resourceAddonQuoteFromApi(await request<JsonRecord>('/billing/resource-addons/quote', {
+    method: 'POST', signal, body: JSON.stringify({ resources: input.resources }),
+  })),
   quote: async (input: { targetPackageSlugs: string[]; fullSuite: boolean }, signal?: AbortSignal) => quoteFromApi(await request<JsonRecord>('/billing/commercial/quote', {
     method: 'POST', signal, body: JSON.stringify({ target_package_slugs: input.targetPackageSlugs, full_suite: input.fullSuite }),
   })),
