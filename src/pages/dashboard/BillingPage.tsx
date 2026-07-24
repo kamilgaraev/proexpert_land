@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, ArrowRight, Building2, Check, CreditCard, Headphones, History, Loader2, LockKeyhole, PackageCheck, RefreshCw, ShieldCheck, Sparkles, WalletCards } from 'lucide-react';
+import { AlertCircle, ArrowRight, Building2, Check, CreditCard, Headphones, History, Loader2, LockKeyhole, Minus, PackageCheck, Plus, RefreshCw, ShieldCheck, SlidersHorizontal, Sparkles, WalletCards } from 'lucide-react';
 import { CommercialPackageCard } from '@/components/billing/CommercialPackageCard';
 import { CommercialPackageDetailsSheet } from '@/components/billing/CommercialPackageDetailsSheet';
 import { EnterpriseInquiryDialog } from '@/components/billing/EnterpriseInquiryDialog';
@@ -16,7 +16,7 @@ import {
   pollCommercialOrder,
   CommercialPollingTimeoutError,
 } from '@/services/commercialBillingService';
-import type { CommercialHistory as CommercialHistoryData, CommercialOrder, CommercialPackage, CommercialQuote, CommercialRenewalState } from '@/types/commercialBilling';
+import type { CommercialHistory as CommercialHistoryData, CommercialLimitsSummary, CommercialOrder, CommercialPackage, CommercialQuote, CommercialResourceAddonQuote, CommercialRenewalState } from '@/types/commercialBilling';
 import { CommercialApiError } from '@/types/commercialBilling';
 
 const pendingOrderStorageKey = 'most:pending-commercial-order';
@@ -24,6 +24,8 @@ const pendingOrderStorageKey = 'most:pending-commercial-order';
 const formatMoney = (minor: number, currency = 'RUB') => new Intl.NumberFormat('ru-RU', {
   style: 'currency', currency, maximumFractionDigits: 0,
 }).format(minor / 100);
+
+const compactMoney = (minor: number, currency = 'RUB') => `${formatMoney(minor, currency)}/мес`;
 
 const formatDateTime = (value: string | null) => value
   ? new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' }).format(new Date(value))
@@ -51,11 +53,18 @@ const orderStatusLabel: Record<string, string> = {
   pending_payment: 'Ожидает оплаты', paid: 'Оплачен', canceled: 'Отменён', refunded: 'Возврат', failed: 'Ошибка оплаты',
 };
 
+const quotaValue = (value: number | null, unit?: string) => {
+  if (value === null) return 'без ограничения';
+  const formatted = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(value);
+  return unit === 'gb' ? `${formatted} ГБ` : formatted;
+};
+
 const BillingPage = () => {
   const canManage = useCanAccess({ permission: 'billing.manage' });
   const { balance, error: balanceError, isLoading: balanceLoading, refresh: refreshBalance } = useBalance();
   const [packages, setPackages] = useState<CommercialPackage[]>([]);
   const [renewal, setRenewal] = useState<CommercialRenewalState | null>(null);
+  const [limitsSummary, setLimitsSummary] = useState<CommercialLimitsSummary | null>(null);
   const [history, setHistory] = useState<CommercialHistoryData | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
   const [selected, setSelected] = useState<string[]>([]);
@@ -63,8 +72,12 @@ const BillingPage = () => {
   const [quote, setQuote] = useState<CommercialQuote | null>(null);
   const [loading, setLoading] = useState(true);
   const [quoteLoading, setQuoteLoading] = useState(false);
+  const [resourceQuote, setResourceQuote] = useState<CommercialResourceAddonQuote | null>(null);
+  const [resourceQuoteLoading, setResourceQuoteLoading] = useState(false);
+  const [resourceQuantities, setResourceQuantities] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
   const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [resourceQuoteError, setResourceQuoteError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [autoRenewConsent, setAutoRenewConsent] = useState(false);
@@ -75,6 +88,7 @@ const BillingPage = () => {
   const [paymentState, setPaymentState] = useState<'idle' | 'waiting' | 'success' | 'failed' | 'canceled' | 'refunded' | 'timeout' | 'error'>('idle');
   const [now, setNow] = useState(() => Date.now());
   const quoteSequence = useRef(0);
+  const resourceQuoteSequence = useRef(0);
   const isCorporate = renewal?.status === 'corporate';
 
   const currentPaidSlugs = useMemo(() => packages
@@ -108,14 +122,17 @@ const BillingPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const [packageItems, renewalState, historyData] = await Promise.all([
+      const [packageItems, renewalState, historyData, limitsData] = await Promise.all([
         commercialBillingService.getPackages(),
         commercialBillingService.getRenewal(),
         commercialBillingService.getHistory(1),
+        commercialBillingService.getLimits(),
       ]);
       if (packageItems.length !== 10) throw new Error('Каталог пакетов временно недоступен.');
       setPackages(packageItems);
       setRenewal(renewalState);
+      setLimitsSummary(limitsData);
+      setResourceQuantities(Object.fromEntries(limitsData.resourceAddons.map((item) => [item.slug, item.currentQuantity])));
       setAutoRenewConsent(renewalState.autoRenewEnabled && renewalState.savedMethodAvailable);
       setHistory(historyData);
       setHistoryPage(1);
@@ -136,13 +153,16 @@ const BillingPage = () => {
   }, []);
 
   const refreshCommercialState = useCallback(async (refreshHistory = false) => {
-    const [packageItems, renewalState, historyData] = await Promise.all([
+    const [packageItems, renewalState, limitsData, historyData] = await Promise.all([
       commercialBillingService.getPackages(),
       commercialBillingService.getRenewal(),
+      commercialBillingService.getLimits(),
       refreshHistory ? commercialBillingService.getHistory(1) : Promise.resolve(null),
     ]);
     setPackages(packageItems);
     setRenewal(renewalState);
+    setLimitsSummary(limitsData);
+    setResourceQuantities(Object.fromEntries(limitsData.resourceAddons.map((item) => [item.slug, item.currentQuantity])));
     setAutoRenewConsent(renewalState.autoRenewEnabled && renewalState.savedMethodAvailable);
     setSelected(packageItems.filter((item) => item.isActive && ['paid_package', 'full_suite', 'corporate'].includes(item.accessSource ?? '')).map((item) => item.slug));
     setFullSuite(false);
@@ -185,6 +205,38 @@ const BillingPage = () => {
     }, 220);
     return () => { window.clearTimeout(timer); controller.abort(); };
   }, [fullSuite, isCorporate, loading, packages.length, renewal?.status, selected]);
+
+  useEffect(() => {
+    if (loading || !limitsSummary || renewal?.status === 'grace' || isCorporate) return;
+    const selectedResources = limitsSummary.resourceAddons
+      .filter((resource) => resource.available && (resourceQuantities[resource.slug] ?? resource.currentQuantity) !== resource.currentQuantity)
+      .map((resource) => ({ slug: resource.slug, quantity: resourceQuantities[resource.slug] ?? resource.currentQuantity }));
+    if (selectedResources.length === 0) {
+      setResourceQuote(null);
+      setResourceQuoteError(null);
+      setResourceQuoteLoading(false);
+      return;
+    }
+    const controller = new AbortController();
+    const sequence = ++resourceQuoteSequence.current;
+    const timer = window.setTimeout(async () => {
+      setResourceQuoteLoading(true);
+      setResourceQuoteError(null);
+      try {
+        const result = await commercialBillingService.quoteResourceAddons({ resources: selectedResources }, controller.signal);
+        if (sequence === resourceQuoteSequence.current) setResourceQuote(result);
+      } catch (requestError) {
+        if (controller.signal.aborted) return;
+        if (sequence === resourceQuoteSequence.current) {
+          setResourceQuote(null);
+          setResourceQuoteError(errorText(requestError));
+        }
+      } finally {
+        if (sequence === resourceQuoteSequence.current) setResourceQuoteLoading(false);
+      }
+    }, 180);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [isCorporate, limitsSummary, loading, renewal?.status, resourceQuantities]);
 
   const verifyOrder = useCallback(async (orderId: string, signal?: AbortSignal) => {
     setPaymentState('waiting');
@@ -337,6 +389,11 @@ const BillingPage = () => {
     }
   };
 
+  const setResourceQuantity = (slug: string, value: number, min: number) => {
+    setResourceQuantities((current) => ({ ...current, [slug]: Math.max(min, Number.isFinite(value) ? value : min) }));
+    setResourceQuoteError(null);
+  };
+
   const loadHistoryPage = async (page: number) => {
     setActionBusy('history');
     try {
@@ -404,6 +461,77 @@ const BillingPage = () => {
         <Card className="md:col-span-1"><CardContent className="p-6"><ShieldCheck className="h-7 w-7 text-emerald-600" /><h2 className="mt-4 text-xl font-semibold">МОСТ без оплаты</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Организация, сотрудники, проекты и основные рабочие данные доступны без оплаты.</p><Badge variant="secondary" className="mt-4">Доступен всегда</Badge></CardContent></Card>
         <Card className="md:col-span-2"><CardContent className="grid gap-5 p-6 sm:grid-cols-3"><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Ваш доступ</span><p className="mt-2 font-semibold">{accessSourceLabel}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Оплачено до</span><p className="mt-2 font-semibold">{formatDateTime(currentPeriodStart)} — {formatDateTime(currentPeriodEnd)}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Автоплатёж</span><p className="mt-2 font-semibold">{renewal?.savedMethodAvailable ? 'Настроен' : 'Не настроен'}</p></div><div className="sm:col-span-3 flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Баланс организации можно использовать, когда на нём достаточно средств для полной оплаты.</p>{!isCorporate && renewal?.autoRenewEnabled && canManage ? <Button variant="outline" onClick={() => void disableRenewal()} disabled={actionBusy === 'renewal'}>Отключить автопродление</Button> : !isCorporate ? <Badge variant="outline">Автопродление отключено</Badge> : null}</div></CardContent></Card>
       </section>
+
+      {limitsSummary ? <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]" aria-labelledby="commercial-limits-title">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700"><SlidersHorizontal className="h-4 w-4" />Ресурсы организации</div>
+            <h2 id="commercial-limits-title" className="text-2xl font-semibold text-slate-950">Лимиты и ресурсы</h2>
+          </div>
+          <div className="grid gap-2 text-sm sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><span className="block text-xs text-slate-500">Пакеты</span><strong>{formatMoney(limitsSummary.monthlyPackageAmountMinor, limitsSummary.currency)}</strong></div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><span className="block text-xs text-slate-500">Дополнительный объём</span><strong>{formatMoney(limitsSummary.monthlyResourceAmountMinor, limitsSummary.currency)}</strong></div>
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          {limitsSummary.limits.map((limit) => <article key={limit.key} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="font-semibold text-slate-950">{limit.name}</h3>
+              <Badge variant={limit.status === 'exceeded' || limit.status === 'critical' ? 'destructive' : 'outline'}>{limit.enforcement === 'hard' ? 'Жёсткий' : 'Мягкий'}</Badge>
+            </div>
+            <p className="mt-3 text-lg font-semibold text-slate-950">{quotaValue(limit.used, limit.unit)} из {quotaValue(limit.limit, limit.unit)}</p>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+              <div className={`h-full ${limit.status === 'exceeded' || limit.status === 'critical' ? 'bg-red-500' : limit.status === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(100, limit.percent)}%` }} />
+            </div>
+            <p className="mt-3 text-xs leading-5 text-slate-600">База: {quotaValue(limit.sources.freeBase, limit.unit)} · пакеты: {quotaValue(limit.sources.packages, limit.unit)} · дополнительный объём: {quotaValue(limit.sources.paidAddons, limit.unit)}</p>
+          </article>)}
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="grid gap-3 md:grid-cols-2">
+            {limitsSummary.resourceAddons.map((resource) => {
+              const quantity = resourceQuantities[resource.slug] ?? resource.currentQuantity;
+              const quoteItem = resourceQuote?.items.find((item) => item.slug === resource.slug);
+              const needsManager = quantity > resource.maxSelfService || quoteItem?.status === 'requires_manager';
+              return <article key={resource.slug} role="group" aria-label={resource.name} className={`rounded-xl border p-4 ${resource.available ? 'border-slate-200 bg-white' : 'border-slate-200 bg-slate-50'}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold text-slate-950">{resource.name}</h3>
+                    <p className="mt-1 text-xs text-slate-500">Сейчас дополнительно: +{quotaValue(resource.currentQuantity, resource.unit)}</p>
+                  </div>
+                  {!resource.available ? <Badge variant="outline">Нужен пакет</Badge> : null}
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <Button type="button" variant="outline" size="icon" disabled={!resource.available || quantity <= resource.min} aria-label={`Уменьшить ${resource.name}`} onClick={() => setResourceQuantity(resource.slug, quantity - resource.step, resource.min)}><Minus className="h-4 w-4" /></Button>
+                  <input
+                    aria-label={`Количество ${resource.name}`}
+                    className="h-10 w-24 rounded-md border border-slate-200 px-3 text-center text-sm font-semibold"
+                    type="number"
+                    min={resource.min}
+                    step={resource.step}
+                    value={quantity}
+                    disabled={!resource.available}
+                    onChange={(event) => setResourceQuantity(resource.slug, Number(event.target.value), resource.min)}
+                  />
+                  <Button type="button" variant="outline" size="icon" disabled={!resource.available} aria-label={`Увеличить ${resource.name}`} onClick={() => setResourceQuantity(resource.slug, quantity + resource.step, resource.min)}><Plus className="h-4 w-4" /></Button>
+                </div>
+                <p className="mt-3 text-sm text-slate-700">{compactMoney(resource.pricing.priceMinor, resource.pricing.currency)} за единицу</p>
+                {resource.requiresPackage && !resource.available ? <p className="mt-2 text-xs leading-5 text-slate-600">Нужен пакет: {packageNames.get(resource.requiresPackage) ?? resource.requiresPackage}</p> : null}
+                {needsManager ? <p className="mt-3 rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-900">Для такого объёма менеджер подготовит индивидуальные условия.</p> : null}
+              </article>;
+            })}
+          </div>
+          <aside className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <h3 className="font-semibold text-slate-950">Расчёт ресурсов</h3>
+            {resourceQuoteLoading ? <p className="mt-3 flex items-center gap-2 text-sm text-slate-600"><Loader2 className="h-4 w-4 animate-spin" />Обновляем стоимость</p> : resourceQuoteError ? <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-800">{resourceQuoteError}</p> : resourceQuote ? <>
+              <p className="mt-3 text-2xl font-semibold text-slate-950">{compactMoney(resourceQuote.amountMinor, resourceQuote.currency)}</p>
+              {resourceQuote.requiresManager ? <p className="mt-3 rounded-xl bg-blue-50 p-3 text-sm leading-5 text-blue-900">Для такого объёма менеджер подготовит индивидуальные условия.</p> : <p className="mt-3 text-sm leading-6 text-slate-600">Стоимость рассчитана по выбранному дополнительному объёму.</p>}
+              <Button className="mt-4 w-full" disabled>{resourceQuote.requiresManager ? 'Обсудить условия' : 'Оплата будет доступна позже'}</Button>
+            </> : <p className="mt-3 text-sm leading-6 text-slate-600">Измените дополнительный объём, чтобы увидеть ежемесячную стоимость.</p>}
+          </aside>
+        </div>
+      </section> : null}
 
       <section className="rounded-2xl border border-orange-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]" aria-labelledby="full-suite-title">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
