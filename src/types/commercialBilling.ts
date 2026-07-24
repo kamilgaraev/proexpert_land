@@ -99,6 +99,77 @@ export interface CommercialHistory {
   meta: { currentPage: number; perPage: number; lastPage: number; total: number };
 }
 
+export type CommercialQuotaStatus = 'ok' | 'warning' | 'critical' | 'exceeded';
+export type CommercialQuotaEnforcement = 'hard' | 'soft';
+
+export interface CommercialLimitItem {
+  key: string;
+  name: string;
+  unit: string;
+  used: number;
+  limit: number | null;
+  remaining: number | null;
+  percent: number;
+  status: CommercialQuotaStatus;
+  enforcement: CommercialQuotaEnforcement;
+  sources: {
+    freeBase: number;
+    packages: number;
+    paidAddons: number;
+    corporateOverride: number | null;
+  };
+}
+
+export interface CommercialResourceAddon {
+  slug: string;
+  limitKey: string;
+  name: string;
+  unit: string;
+  currentQuantity: number;
+  step: number;
+  min: number;
+  maxSelfService: number;
+  requiresPackage: string | null;
+  available: boolean;
+  pricing: {
+    model: string;
+    currency: string;
+    priceMinor: number;
+    amount: string;
+  };
+}
+
+export interface CommercialLimitsSummary {
+  accountStatus: CommercialAccountStatus;
+  offerType: 'packages' | 'full_suite' | 'corporate';
+  monthlyPackageAmountMinor: number;
+  monthlyPackageAmount: string;
+  monthlyResourceAmountMinor: number;
+  monthlyResourceAmount: string;
+  currency: string;
+  period: { startAt: string | null; endAt: string | null };
+  limits: CommercialLimitItem[];
+  resourceAddons: CommercialResourceAddon[];
+}
+
+export interface CommercialResourceAddonQuote {
+  amountMinor: number;
+  amount: string;
+  currency: string;
+  requiresManager: boolean;
+  quoteVersion: number;
+  items: Array<{
+    slug: string;
+    limitKey: string;
+    quantity: number;
+    amountMinor: number;
+    amount: string;
+    currency: string;
+    status: 'ok' | 'package_required' | 'requires_manager';
+    requiresPackage: string | null;
+  }>;
+}
+
 export class CommercialApiError extends Error {
   constructor(message: string, public readonly status: number, public readonly errors?: unknown) {
     super(message);

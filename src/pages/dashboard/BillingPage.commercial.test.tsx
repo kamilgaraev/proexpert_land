@@ -55,6 +55,25 @@ const server = setupServer(
     scheduled_change: null,
   } })),
   http.get(`${baseUrl}/billing/commercial/history`, () => HttpResponse.json({ success: true, data: [], meta: { current_page: 1, per_page: 20, last_page: 1, total: 0 } })),
+  http.get(`${baseUrl}/billing/limits`, () => HttpResponse.json({ success: true, data: {
+    account_status: accountStatus,
+    offer_type: 'packages',
+    monthly_package_amount_minor: 100000,
+    monthly_package_amount: '1000.00',
+    monthly_resource_amount_minor: 0,
+    monthly_resource_amount: '0.00',
+    currency: 'RUB',
+    period: { start_at: '2026-07-01T09:00:00Z', end_at: '2026-07-31T09:00:00Z' },
+    limits: [
+      { key: 'users', name: 'Пользователи', unit: 'user', used: 2, limit: 3, remaining: 1, percent: 67, status: 'warning', enforcement: 'hard', sources: { free_base: 3, packages: 0, paid_addons: 0, corporate_override: null } },
+      { key: 'projects', name: 'Проекты', unit: 'project', used: 8, limit: 12, remaining: 4, percent: 67, status: 'warning', enforcement: 'hard', sources: { free_base: 2, packages: 10, paid_addons: 0, corporate_override: null } },
+      { key: 'storage_gb', name: 'Хранилище', unit: 'gb', used: 11.4, limit: 22, remaining: 10.6, percent: 52, status: 'warning', enforcement: 'hard', sources: { free_base: 2, packages: 20, paid_addons: 0, corporate_override: null } },
+    ],
+    resource_addons: [
+      { slug: 'extra_users', limit_key: 'users', name: 'Дополнительные пользователи', unit: 'user', current_quantity: 0, step: 1, min: 0, max_self_service: 200, requires_package: null, available: true, pricing: { model: 'linear', currency: 'RUB', price_minor: 30000, amount: '300.00' } },
+      { slug: 'extra_document_pages', limit_key: 'document_pages_month', name: 'Дополнительные страницы распознавания', unit: 'page', current_quantity: 0, step: 100, min: 0, max_self_service: 5000, requires_package: 'estimates-norms', available: false, pricing: { model: 'linear', currency: 'RUB', price_minor: 1000, amount: '10.00' } },
+    ],
+  } })),
   http.get(`${baseUrl}/billing/balance`, () => HttpResponse.json({
     organization_id: 1,
     balance_cents: 5000000,
@@ -78,6 +97,19 @@ const server = setupServer(
       savings_amount: '0.00', savings_amount_minor: 0, savings_percent: 0,
       recommendation: body.target_package_slugs.length >= 8 ? 'full_suite' : null,
       period_start_at: '2026-07-01T09:00:00Z', period_end_at: '2026-07-31T09:00:00Z',
+    } });
+  }),
+  http.post(`${baseUrl}/billing/resource-addons/quote`, async ({ request }) => {
+    const body = await request.json() as { resources: Array<{ slug: string; quantity: number }> };
+    const extraUsers = body.resources.find((item) => item.slug === 'extra_users')?.quantity ?? 0;
+    if (extraUsers === 13) return HttpResponse.json({ success: false, message: 'Не удалось рассчитать дополнительный объём.' }, { status: 422 });
+    return HttpResponse.json({ success: true, data: {
+      amount_minor: extraUsers * 30000,
+      amount: (extraUsers * 300).toFixed(2),
+      currency: 'RUB',
+      requires_manager: extraUsers > 200,
+      quote_version: 1,
+      items: [{ slug: 'extra_users', limit_key: 'users', quantity: extraUsers, amount_minor: extraUsers * 30000, amount: (extraUsers * 300).toFixed(2), currency: 'RUB', status: extraUsers > 200 ? 'requires_manager' : 'ok', requires_package: null }],
     } });
   }),
   http.post(`${baseUrl}/billing/commercial/enterprise-inquiries`, () => HttpResponse.json({
@@ -148,6 +180,45 @@ describe('BillingPage commercial packages', () => {
     renderPage();
     expect(await screen.findByText('Изменений нет')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Перейти к оплате/ })).not.toBeInTheDocument();
+  });
+
+  it('показывает лимиты и дополнительный объём без слова тариф', async () => {
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Лимиты и ресурсы' })).toBeInTheDocument();
+    expect(screen.getByText('Пользователи')).toBeInTheDocument();
+    expect(screen.getByText('2 из 3')).toBeInTheDocument();
+    expect(screen.getByText('Проекты')).toBeInTheDocument();
+    expect(screen.getByText('8 из 12')).toBeInTheDocument();
+    expect(screen.getByText('Дополнительные пользователи')).toBeInTheDocument();
+    expect(screen.queryByText(/тариф/i)).not.toBeInTheDocument();
+  });
+
+  it('пересчитывает стоимость дополнительных пользователей через stepper', async () => {
+    renderPage();
+
+    const usersResource = await screen.findByRole('group', { name: 'Дополнительные пользователи' });
+    fireEvent.click(within(usersResource).getByRole('button', { name: 'Увеличить Дополнительные пользователи' }));
+
+    expect(await screen.findByText('300 ₽/мес')).toBeInTheDocument();
+  });
+
+  it('показывает, что ресурс требует подключенный пакет', async () => {
+    renderPage();
+
+    const pagesResource = await screen.findByRole('group', { name: 'Дополнительные страницы распознавания' });
+    expect(within(pagesResource).getAllByText(/Нужен пакет/).length).toBeGreaterThan(0);
+    expect(within(pagesResource).getByRole('button', { name: 'Увеличить Дополнительные страницы распознавания' })).toBeDisabled();
+  });
+
+  it('переводит большой дополнительный объём в обращение к менеджеру', async () => {
+    renderPage();
+
+    const usersResource = await screen.findByRole('group', { name: 'Дополнительные пользователи' });
+    const input = within(usersResource).getByLabelText('Количество Дополнительные пользователи');
+    fireEvent.change(input, { target: { value: '201' } });
+
+    expect(await screen.findByText(/индивидуальные условия/)).toBeInTheDocument();
   });
 
   it('открывает состав пакета с названиями и описаниями возможностей', async () => {
