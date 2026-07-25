@@ -46,7 +46,7 @@ const errorText = (error: unknown) => {
   if (error.status === 409) return 'Состав пакетов уже изменился или сейчас действует льготный период. Обновите данные.';
   if (error.status === 422) return 'Проверьте выбранные пакеты и повторите действие.';
   if (error.status === 502) return 'Платёжный сервис временно недоступен. Повторите оплату позже.';
-  return error.message;
+  return 'Сервис временно недоступен. Попробуйте ещё раз.';
 };
 
 const orderStatusLabel: Record<string, string> = {

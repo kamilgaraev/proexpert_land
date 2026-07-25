@@ -154,6 +154,20 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe('BillingPage commercial packages', () => {
+  it('не показывает технический текст ошибки авторизации при загрузке пакетов', async () => {
+    server.use(
+      http.get(`${baseUrl}/packages`, () => HttpResponse.json({
+        success: false,
+        message: 'Token Signature could not be verified.',
+      }, { status: 401 })),
+    );
+
+    renderPage();
+
+    expect(await screen.findByText('Сервис временно недоступен. Попробуйте ещё раз.')).toBeInTheDocument();
+    expect(screen.queryByText('Token Signature could not be verified.')).not.toBeInTheDocument();
+  });
+
   it('разделяет подключённые и доступные пакеты и применяет intent один раз', async () => {
     sessionStorage.setItem('most:commercial-package-intent', packageSlugs[1]);
     renderPage();
