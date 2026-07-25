@@ -239,6 +239,7 @@ describe('commercialBillingService', () => {
       currency: 'RUB',
       selected_package_slugs: ['machinery', 'planning-schedules'],
       current_package_slugs: ['machinery'],
+      paid_composition_items: [{ type: 'package', slug: 'planning-schedules', label: 'Графики и планирование', quantity: null }],
       offer_type: 'packages',
       period_start_at: '2026-07-15T10:00:00Z', period_end_at: '2026-08-14T10:00:00Z',
       auto_renew_consent: true, test_mode: false, confirmation_url: null,
@@ -248,8 +249,10 @@ describe('commercialBillingService', () => {
 
     await expect(commercialBillingService.getOrder('order-added')).resolves.toMatchObject({
       selectedPackageSlugs: ['machinery', 'planning-schedules'],
+      targetPackageSlugs: ['machinery', 'planning-schedules'],
       currentPackageSlugs: ['machinery'],
       paidPackageSlugs: ['planning-schedules'],
+      paidCompositionItems: [{ type: 'package', slug: 'planning-schedules', label: 'Графики и планирование', quantity: null }],
     });
   });
 
@@ -260,8 +263,10 @@ describe('commercialBillingService', () => {
       payment_status: 'succeeded', amount: '1000.00', amount_minor: 100000,
       currency: 'RUB',
       selected_package_slugs: ['machinery', 'planning-schedules'],
+      target_package_slugs: ['machinery', 'planning-schedules'],
       current_package_slugs: ['machinery', 'planning-schedules'],
       selected_resource_addons: [{ slug: 'extra_projects', limit_key: 'projects', quantity: 2, amount_minor: 100000, amount: '1000.00', currency: 'RUB', status: 'ok', requires_package: null }],
+      paid_composition_items: [{ type: 'resource', slug: 'extra_projects', label: 'Дополнительные проекты', quantity: 2 }],
       offer_type: 'packages',
       period_start_at: '2026-07-15T10:00:00Z', period_end_at: '2026-08-14T10:00:00Z',
       auto_renew_consent: true, test_mode: false, confirmation_url: null,
@@ -271,7 +276,9 @@ describe('commercialBillingService', () => {
 
     await expect(commercialBillingService.getOrder('order-resource-only')).resolves.toMatchObject({
       paidPackageSlugs: [],
+      targetPackageSlugs: ['machinery', 'planning-schedules'],
       selectedResourceAddons: [{ slug: 'extra_projects', quantity: 2 }],
+      paidCompositionItems: [{ type: 'resource', slug: 'extra_projects', label: 'Дополнительные проекты', quantity: 2 }],
     });
   });
 

@@ -105,6 +105,12 @@ const BillingPage = () => {
   const resourceNames = useMemo(() => new Map(limitsSummary?.resourceAddons.map((item) => [item.slug, item.name]) ?? []), [limitsSummary]);
   const quantityFor = useCallback((value: number) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(value), []);
   const orderComposition = useCallback((order: CommercialOrder) => {
+    if (order.paidCompositionItems.length > 0) {
+      return order.paidCompositionItems
+        .map((item) => item.type === 'resource' && item.quantity !== null ? `${item.label}: +${quantityFor(item.quantity)}` : item.label)
+        .join(', ');
+    }
+
     const paidPackages = namesFor(order.paidPackageSlugs);
     const resources = order.selectedResourceAddons
       .filter((resource) => resource.quantity > 0)
