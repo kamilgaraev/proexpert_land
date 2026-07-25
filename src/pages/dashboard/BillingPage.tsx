@@ -102,6 +102,17 @@ const BillingPage = () => {
 
   const packageNames = useMemo(() => new Map(packages.map((item) => [item.slug, item.name])), [packages]);
   const namesFor = useCallback((slugs: string[]) => slugs.map((slug) => packageNames.get(slug) ?? slug).join(', '), [packageNames]);
+  const resourceNames = useMemo(() => new Map(limitsSummary?.resourceAddons.map((item) => [item.slug, item.name]) ?? []), [limitsSummary]);
+  const quantityFor = useCallback((value: number) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(value), []);
+  const orderComposition = useCallback((order: CommercialOrder) => {
+    const paidPackages = namesFor(order.paidPackageSlugs);
+    const resources = order.selectedResourceAddons
+      .filter((resource) => resource.quantity > 0)
+      .map((resource) => `${resourceNames.get(resource.slug) ?? resource.slug}: +${quantityFor(resource.quantity)}`)
+      .join(', ');
+
+    return [paidPackages, resources].filter(Boolean).join(', ') || 'оплаченные возможности';
+  }, [namesFor, quantityFor, resourceNames]);
   const targetPackageSlugs = useMemo(() => fullSuite ? packages.map((item) => item.slug) : selected, [fullSuite, packages, selected]);
   const targetPackageSlugSet = useMemo(() => new Set(targetPackageSlugs), [targetPackageSlugs]);
   const resourceAvailableForCheckout = useCallback((resource: { available: boolean; requiresPackage: string | null }) => (
@@ -441,7 +452,7 @@ const BillingPage = () => {
 
       {paymentState !== 'idle' ? <section className="rounded-2xl border bg-white p-5" role="status">
         <div className="flex items-center gap-3">{paymentState === 'waiting' ? <Loader2 className="h-5 w-5 animate-spin" /> : paymentState === 'success' ? <Check className="h-5 w-5 text-emerald-600" /> : <AlertCircle className="h-5 w-5 text-orange-600" />}<strong>{paymentState === 'waiting' ? 'Проверяем оплату' : paymentState === 'success' ? 'Оплата подтверждена' : paymentState === 'failed' ? 'Оплата не прошла' : paymentState === 'canceled' ? 'Оплата отменена' : paymentState === 'refunded' ? 'Оплата возвращена' : paymentState === 'timeout' ? 'Подтверждение ещё не получено' : 'Не удалось проверить оплату'}</strong></div>
-        {paymentState === 'success' && paymentOrder ? <p className="mt-2 text-sm text-muted-foreground">Оплачено {formatMoney(paymentOrder.amountMinor, paymentOrder.currency)}. Состав: {namesFor(paymentOrder.paidPackageSlugs)}. Следующая дата оплаты: {formatDateTime(paymentOrder.periodEndAt)}. Доступ обновлён.</p> : paymentState === 'success' ? <p className="mt-2 text-sm text-muted-foreground">Средства списаны с баланса организации. Пакеты уже доступны команде.</p> : null}
+        {paymentState === 'success' && paymentOrder ? <p className="mt-2 text-sm text-muted-foreground">Оплачено {formatMoney(paymentOrder.amountMinor, paymentOrder.currency)}. Состав: {orderComposition(paymentOrder)}. Следующая дата оплаты: {formatDateTime(paymentOrder.periodEndAt)}. Доступ обновлён.</p> : paymentState === 'success' ? <p className="mt-2 text-sm text-muted-foreground">Средства списаны с баланса организации. Пакеты уже доступны команде.</p> : null}
         {paymentState === 'refunded' ? <p className="mt-2 text-sm text-muted-foreground">Возврат подтверждён. Оплата не считается успешной.</p> : null}
         {paymentState === 'timeout' && paymentOrder ? <Button className="mt-3" variant="outline" onClick={() => void verifyOrder(paymentOrder.orderId)}>Проверить ещё раз</Button> : null}
       </section> : null}

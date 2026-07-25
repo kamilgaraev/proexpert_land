@@ -127,8 +127,8 @@ const renewalFromApi = (item: JsonRecord): CommercialRenewalState => ({
 const orderFromApi = (item: JsonRecord): CommercialOrder => {
   const selectedPackageSlugs = (item.selected_package_slugs ?? []) as string[];
   const currentPackageSlugs = (item.current_package_slugs ?? []) as string[];
-  const addedPackageSlugs = selectedPackageSlugs.filter((slug) => !currentPackageSlugs.includes(slug));
-  const paidPackageSlugs = (item.paid_package_slugs ?? (addedPackageSlugs.length > 0 ? addedPackageSlugs : selectedPackageSlugs)) as string[];
+  const selectedResourceAddons = resourceAddonsFromApi(item.selected_resource_addons);
+  const paidPackageSlugs = paidPackageSlugsFromApi(item, selectedPackageSlugs, currentPackageSlugs, selectedResourceAddons);
 
   return {
     orderId: item.order_id,
@@ -142,6 +142,7 @@ const orderFromApi = (item: JsonRecord): CommercialOrder => {
     selectedPackageSlugs,
     currentPackageSlugs,
     paidPackageSlugs,
+    selectedResourceAddons,
     offerType: item.offer_type,
     periodStartAt: item.period_start_at ?? null,
     periodEndAt: item.period_end_at ?? null,
@@ -230,6 +231,33 @@ const resourceAddonQuoteFromApi = (item: JsonRecord): CommercialResourceAddonQuo
   })) : [],
 });
 
+const resourceAddonsFromApi = (items: unknown): CommercialOrder['selectedResourceAddons'] => (
+  Array.isArray(items) ? items.map((resource: JsonRecord) => ({
+    slug: resource.slug,
+    limitKey: resource.limit_key,
+    quantity: Number(resource.quantity ?? 0),
+    amountMinor: Number(resource.amount_minor ?? 0),
+    amount: resource.amount ?? '0.00',
+    currency: resource.currency ?? 'RUB',
+    status: resource.status,
+    requiresPackage: resource.requires_package ?? null,
+  })) : []
+);
+
+const paidPackageSlugsFromApi = (
+  item: JsonRecord,
+  selectedPackageSlugs: string[],
+  currentPackageSlugs: string[],
+  selectedResourceAddons: CommercialOrder['selectedResourceAddons'],
+): string[] => {
+  if (Array.isArray(item.paid_package_slugs)) return item.paid_package_slugs as string[];
+  const addedPackageSlugs = selectedPackageSlugs.filter((slug) => !currentPackageSlugs.includes(slug));
+
+  if (addedPackageSlugs.length > 0) return addedPackageSlugs;
+
+  return selectedResourceAddons.length > 0 ? [] : selectedPackageSlugs;
+};
+
 export const commercialBillingService = {
   getPackages: async (signal?: AbortSignal) => (await request<JsonRecord[]>('/packages', { signal })).map(packageFromApi),
   getLimits: async (signal?: AbortSignal) => limitsFromApi(await request<JsonRecord>('/billing/limits', { signal })),
@@ -281,6 +309,9 @@ export const commercialBillingService = {
     const item = await request<JsonRecord>('/billing/commercial/renewal/manual-payment', {
       method: 'POST', body: JSON.stringify({ client_idempotency_key: clientIdempotencyKey }),
     });
+    const selectedPackageSlugs = (item.selected_package_slugs ?? []) as string[];
+    const currentPackageSlugs = (item.current_package_slugs ?? []) as string[];
+    const selectedResourceAddons = resourceAddonsFromApi(item.selected_resource_addons);
     return {
       orderId: item.order_id as string,
       status: item.status as string,
@@ -289,9 +320,10 @@ export const commercialBillingService = {
       amountMinor: item.amount_minor as number,
       currency: item.currency as string,
       confirmationUrl: item.confirmation_url as string | null,
-      selectedPackageSlugs: (item.selected_package_slugs ?? []) as string[],
-      currentPackageSlugs: (item.current_package_slugs ?? []) as string[],
-      paidPackageSlugs: (item.paid_package_slugs ?? item.selected_package_slugs ?? []) as string[],
+      selectedPackageSlugs,
+      currentPackageSlugs,
+      paidPackageSlugs: paidPackageSlugsFromApi(item, selectedPackageSlugs, currentPackageSlugs, selectedResourceAddons),
+      selectedResourceAddons,
       periodStartAt: item.period_start_at as string | null,
       periodEndAt: item.period_end_at as string | null,
       graceDeadlineAt: item.grace_deadline_at as string | null,

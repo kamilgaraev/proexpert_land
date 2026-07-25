@@ -335,6 +335,30 @@ describe('BillingPage commercial packages', () => {
     }
   });
 
+  it('после оплаты дополнительного ресурса показывает ресурс вместо всего списка пакетов', async () => {
+    sessionStorage.setItem('most:pending-commercial-order', 'order-resource-only');
+    server.use(
+      http.get(`${baseUrl}/billing/commercial/orders/order-resource-only`, () => HttpResponse.json({ success: true, data: {
+        order_id: 'order-resource-only', kind: 'initial', status: 'paid',
+        payment_status: 'succeeded', amount: '1000.00', amount_minor: 100000,
+        currency: 'RUB',
+        selected_package_slugs: [packageSlugs[0], packageSlugs[1], packageSlugs[2]],
+        current_package_slugs: [packageSlugs[0], packageSlugs[1], packageSlugs[2]],
+        paid_package_slugs: [],
+        selected_resource_addons: [{ slug: 'extra_projects', limit_key: 'projects', quantity: 2, amount_minor: 100000, amount: '1000.00', currency: 'RUB', status: 'ok', requires_package: null }],
+        offer_type: 'packages',
+        period_start_at: null, period_end_at: '2026-08-22T16:56:00Z', auto_renew_consent: true, test_mode: false,
+        confirmation_url: null, created_at: '2026-07-23T16:56:00Z', paid_at: '2026-07-23T16:57:00Z',
+        canceled_at: null, refunds_summary: { count: 0, amount: '0.00', amount_minor: 0, currency: 'RUB', fully_refunded: false },
+      } })),
+    );
+
+    renderPage();
+
+    expect(await screen.findByText(/Состав: Дополнительные проекты: \+2\./)).toBeInTheDocument();
+    expect(screen.queryByText(/Состав: Пакет 1, Пакет 2, Пакет 3/)).not.toBeInTheDocument();
+  });
+
   it('не показывает view-only пользователю CTA ручной оплаты в grace', async () => {
     accountStatus = 'grace';
     access.manage = false;

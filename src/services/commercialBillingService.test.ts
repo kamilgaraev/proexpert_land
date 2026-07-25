@@ -253,6 +253,28 @@ describe('commercialBillingService', () => {
     });
   });
 
+  it('не подставляет текущие пакеты как оплаченные при заказе только на ресурсы', async () => {
+    saveAuthToken('test-token');
+    server.use(http.get(`${baseUrl}/billing/commercial/orders/order-resource-only`, () => HttpResponse.json({ success: true, data: {
+      order_id: 'order-resource-only', kind: 'initial', status: 'paid',
+      payment_status: 'succeeded', amount: '1000.00', amount_minor: 100000,
+      currency: 'RUB',
+      selected_package_slugs: ['machinery', 'planning-schedules'],
+      current_package_slugs: ['machinery', 'planning-schedules'],
+      selected_resource_addons: [{ slug: 'extra_projects', limit_key: 'projects', quantity: 2, amount_minor: 100000, amount: '1000.00', currency: 'RUB', status: 'ok', requires_package: null }],
+      offer_type: 'packages',
+      period_start_at: '2026-07-15T10:00:00Z', period_end_at: '2026-08-14T10:00:00Z',
+      auto_renew_consent: true, test_mode: false, confirmation_url: null,
+      created_at: '2026-07-15T10:00:00Z', paid_at: '2026-07-15T10:01:00Z',
+      canceled_at: null, refunds_summary: { count: 0, amount: '0.00', amount_minor: 0, currency: 'RUB', fully_refunded: false },
+    } })));
+
+    await expect(commercialBillingService.getOrder('order-resource-only')).resolves.toMatchObject({
+      paidPackageSlugs: [],
+      selectedResourceAddons: [{ slug: 'extra_projects', quantity: 2 }],
+    });
+  });
+
   it('создаёт ручную оплату grace с UUID без передачи состава или периода', async () => {
     saveAuthToken('test-token');
     const key = '33333333-3333-4333-8333-333333333333';

@@ -84,6 +84,16 @@ export interface CommercialOrder {
   selectedPackageSlugs: string[];
   currentPackageSlugs: string[];
   paidPackageSlugs: string[];
+  selectedResourceAddons: Array<{
+    slug: string;
+    limitKey: string;
+    quantity: number;
+    amountMinor: number;
+    amount: string;
+    currency: string;
+    status: string;
+    requiresPackage: string | null;
+  }>;
   offerType: 'packages' | 'full_suite';
   periodStartAt: string | null;
   periodEndAt: string | null;
