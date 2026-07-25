@@ -84,6 +84,138 @@ describe('commercialBillingService', () => {
     });
   });
 
+  it('нормализует пакеты, лимиты и дополнительные ресурсы без потери состава', async () => {
+    saveAuthToken('test-token');
+    server.use(
+      http.get(`${baseUrl}/packages`, () => HttpResponse.json({
+        success: true,
+        data: [
+          {
+            slug: 'projects-processes',
+            name: 'Проекты и процессы',
+            description: 'Проектный контур',
+            sort_order: 1,
+            price: '990.00',
+            price_minor: 99000,
+            currency: 'RUB',
+            billing_period_days: 30,
+            modules: [{ slug: 'projects', name: 'Проекты', description: 'Работа с проектами' }],
+            highlights: ['Проекты'],
+            business_outcomes: ['Контроль портфеля'],
+            is_active: true,
+            status: 'active',
+            access_source: 'paid_package',
+            current_period_start_at: '2026-07-22T16:56:00Z',
+            current_period_end_at: '2026-08-22T16:56:00Z',
+            trial_ends_at: null,
+            trial_available: false,
+            trial_used: true,
+          },
+          {
+            slug: 'planning-schedules',
+            name: 'Графики и планирование',
+            description: 'Графики работ',
+            sort_order: 2,
+            price: '990.00',
+            price_minor: 99000,
+            currency: 'RUB',
+            billing_period_days: 30,
+            modules: [{ slug: 'schedules', name: 'Графики', description: 'Календарное планирование' }],
+            highlights: [],
+            business_outcomes: [],
+            is_active: false,
+            status: null,
+            access_source: null,
+            current_period_start_at: null,
+            current_period_end_at: null,
+            trial_ends_at: null,
+            trial_available: true,
+            trial_used: false,
+          },
+        ],
+      })),
+      http.get(`${baseUrl}/billing/limits`, () => HttpResponse.json({
+        success: true,
+        data: {
+          account_status: 'active',
+          offer_type: 'packages',
+          monthly_package_amount_minor: 99000,
+          monthly_package_amount: '990.00',
+          monthly_resource_amount_minor: 20000,
+          monthly_resource_amount: '200.00',
+          currency: 'RUB',
+          period: { start_at: '2026-07-22T16:56:00Z', end_at: '2026-08-22T16:56:00Z' },
+          limits: [
+            { key: 'projects', name: 'Проекты', unit: 'project', used: 2, limit: 12, remaining: 10, percent: 17, status: 'ok', enforcement: 'hard', sources: { free_base: 2, packages: 10, paid_addons: 0, corporate_override: null } },
+            { key: 'storage_gb', name: 'Хранилище', unit: 'gb', used: 1.5, limit: 32, remaining: 30.5, percent: 5, status: 'ok', enforcement: 'hard', sources: { free_base: 2, packages: 20, paid_addons: 10, corporate_override: null } },
+          ],
+          resource_addons: [
+            { slug: 'storage_gb', limit_key: 'storage_gb', name: 'Дополнительное хранилище', unit: 'gb', current_quantity: 10, step: 10, min: 0, max_self_service: 1000, requires_package: null, available: true, pricing: { model: 'linear', currency: 'RUB', price_minor: 2000, amount: '20.00' } },
+            { slug: 'extra_document_pages', limit_key: 'document_pages_month', name: 'Дополнительные страницы распознавания', unit: 'page', current_quantity: 0, step: 100, min: 0, max_self_service: 5000, requires_package: 'estimates-norms', available: false, pricing: { model: 'linear', currency: 'RUB', price_minor: 1000, amount: '10.00' } },
+          ],
+        },
+      })),
+    );
+
+    await expect(commercialBillingService.getPackages()).resolves.toMatchObject([
+      {
+        slug: 'projects-processes',
+        name: 'Проекты и процессы',
+        priceMinor: 99000,
+        isActive: true,
+        accessSource: 'paid_package',
+        modules: [{ slug: 'projects', name: 'Проекты' }],
+      },
+      {
+        slug: 'planning-schedules',
+        name: 'Графики и планирование',
+        isActive: false,
+        trialAvailable: true,
+      },
+    ]);
+
+    await expect(commercialBillingService.getLimits()).resolves.toMatchObject({
+      accountStatus: 'active',
+      offerType: 'packages',
+      monthlyPackageAmountMinor: 99000,
+      monthlyResourceAmountMinor: 20000,
+      limits: [
+        {
+          key: 'projects',
+          name: 'Проекты',
+          unit: 'project',
+          limit: 12,
+          sources: { freeBase: 2, packages: 10, paidAddons: 0, corporateOverride: null },
+        },
+        {
+          key: 'storage_gb',
+          name: 'Хранилище',
+          unit: 'gb',
+          limit: 32,
+          sources: { freeBase: 2, packages: 20, paidAddons: 10, corporateOverride: null },
+        },
+      ],
+      resourceAddons: [
+        {
+          slug: 'storage_gb',
+          limitKey: 'storage_gb',
+          name: 'Дополнительное хранилище',
+          currentQuantity: 10,
+          step: 10,
+          available: true,
+          pricing: { priceMinor: 2000, amount: '20.00' },
+        },
+        {
+          slug: 'extra_document_pages',
+          limitKey: 'document_pages_month',
+          name: 'Дополнительные страницы распознавания',
+          requiresPackage: 'estimates-norms',
+          available: false,
+        },
+      ],
+    });
+  });
+
   it('передает точный checkout payload и повторно использует UUID одного намерения', async () => {
     saveAuthToken('test-token');
     const first = createCheckoutIntentKey('machinery|1|renew');
