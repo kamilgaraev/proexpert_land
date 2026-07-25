@@ -258,8 +258,10 @@ const paidCompositionItemsFromApi = (items: unknown): CommercialOrder['paidCompo
     .map((item: JsonRecord) => {
       const slug = stringFromApi(item.slug);
       const label = stringFromApi(item.label) || slug;
+      const type: 'resource' | 'package' = item.type === 'resource' ? 'resource' : 'package';
+
       return {
-        type: item.type === 'resource' ? 'resource' : 'package',
+        type,
         slug,
         label,
         quantity: item.quantity == null ? null : Number(item.quantity),
