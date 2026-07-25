@@ -207,6 +207,7 @@ const limitsFromApi = (item: JsonRecord): CommercialLimitsSummary => ({
     min: Number(resource.min ?? 0),
     maxSelfService: Number(resource.max_self_service ?? 0),
     requiresPackage: resource.requires_package ?? null,
+    requiresModule: resource.requires_module ?? null,
     available: Boolean(resource.available),
     pricing: {
       model: resource.pricing?.model ?? 'linear',
@@ -232,6 +233,7 @@ const resourceAddonQuoteFromApi = (item: JsonRecord): CommercialResourceAddonQuo
     currency: quoteItem.currency ?? item.currency ?? 'RUB',
     status: quoteItem.status,
     requiresPackage: quoteItem.requires_package ?? null,
+    requiresModule: quoteItem.requires_module ?? null,
   })) : [],
 });
 
@@ -245,6 +247,7 @@ const resourceAddonsFromApi = (items: unknown): CommercialOrder['selectedResourc
     currency: resource.currency ?? 'RUB',
     status: resource.status,
     requiresPackage: resource.requires_package ?? null,
+    requiresModule: resource.requires_module ?? null,
   })) : []
 );
 

@@ -94,6 +94,7 @@ export interface CommercialOrder {
     currency: string;
     status: string;
     requiresPackage: string | null;
+    requiresModule: string | null;
   }>;
   paidCompositionItems: Array<{
     type: 'package' | 'resource';
@@ -151,6 +152,7 @@ export interface CommercialResourceAddon {
   min: number;
   maxSelfService: number;
   requiresPackage: string | null;
+  requiresModule: string | null;
   available: boolean;
   pricing: {
     model: string;
@@ -186,8 +188,9 @@ export interface CommercialResourceAddonQuote {
     amountMinor: number;
     amount: string;
     currency: string;
-    status: 'ok' | 'package_required' | 'requires_manager';
+    status: 'ok' | 'package_required' | 'module_required' | 'requires_manager';
     requiresPackage: string | null;
+    requiresModule: string | null;
   }>;
 }
 
