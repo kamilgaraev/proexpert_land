@@ -489,17 +489,6 @@ const AdminsPage = () => {
                 <div className="absolute top-0 right-0 -mt-8 -mr-8 w-24 h-24 bg-primary/10 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
 
                 <div className="relative z-10">
-                   {canGrantOwnerToAdmin(admin) && (
-                     <button
-                       type="button"
-                       onClick={() => openGrantOwnerModal(admin)}
-                       className="mb-5 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-amber-300 bg-amber-500 px-4 py-3 text-sm font-extrabold text-white shadow-lg shadow-amber-100 transition-all hover:border-amber-400 hover:bg-amber-600"
-                     >
-                       <ShieldCheckIcon className="h-5 w-5" />
-                       Сделать владельцем
-                     </button>
-                   )}
-
                    <div className="flex items-center space-x-4 mb-6">
                      <div className="relative">
                         <div className="w-16 h-16 rounded-2xl overflow-hidden bg-secondary p-1 ring-2 ring-background shadow-md">
@@ -584,6 +573,18 @@ const AdminsPage = () => {
                              Отправить письмо повторно
                            </>
                          )}
+                       </button>
+                     </div>
+                   )}
+                   {canGrantOwnerToAdmin(admin) && (
+                     <div className="mb-3 flex justify-end">
+                       <button
+                         type="button"
+                         onClick={() => openGrantOwnerModal(admin)}
+                         className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-muted-foreground shadow-sm transition-all hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700"
+                       >
+                         <ShieldCheckIcon className="h-4 w-4" />
+                         Сделать владельцем
                        </button>
                      </div>
                    )}

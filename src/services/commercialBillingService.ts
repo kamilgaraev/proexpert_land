@@ -100,6 +100,8 @@ const quoteFromApi = (item: JsonRecord): CommercialQuote => ({
   recommendation: item.recommendation ?? null,
   periodStartAt: item.period_start_at,
   periodEndAt: item.period_end_at,
+  resourceQuoteVersion: Number(item.resource_quote_version ?? 1),
+  resourceAddonQuote: item.resource_addons_quote ? resourceAddonQuoteFromApi(item.resource_addons_quote) : null,
 });
 
 const renewalFromApi = (item: JsonRecord): CommercialRenewalState => ({
@@ -122,35 +124,44 @@ const renewalFromApi = (item: JsonRecord): CommercialRenewalState => ({
   } : null,
 });
 
-const orderFromApi = (item: JsonRecord): CommercialOrder => ({
-  orderId: item.order_id,
-  kind: item.kind ?? null,
-  status: item.status,
-  paymentStatus: item.payment_status ?? null,
-  paymentSource: item.payment_source ?? null,
-  amount: item.amount,
-  amountMinor: item.amount_minor,
-  currency: item.currency,
-  selectedPackageSlugs: item.selected_package_slugs ?? [],
-  offerType: item.offer_type,
-  periodStartAt: item.period_start_at ?? null,
-  periodEndAt: item.period_end_at ?? null,
-  autoRenewConsent: Boolean(item.auto_renew_consent),
-  testMode: Boolean(item.test_mode),
-  confirmationUrl: item.confirmation_url ?? null,
-  createdAt: item.created_at ?? null,
-  paidAt: item.paid_at ?? null,
-  canceledAt: item.canceled_at ?? null,
-  refundsSummary: {
-    count: item.refunds_summary?.count ?? 0,
-    amount: item.refunds_summary?.amount ?? '0.00',
-    amountMinor: item.refunds_summary?.amount_minor ?? 0,
-    currency: item.refunds_summary?.currency ?? item.currency,
-    fullyRefunded: Boolean(item.refunds_summary?.fully_refunded),
-  },
-  payments: item.payments,
-  refunds: item.refunds,
-});
+const orderFromApi = (item: JsonRecord): CommercialOrder => {
+  const selectedPackageSlugs = (item.selected_package_slugs ?? []) as string[];
+  const currentPackageSlugs = (item.current_package_slugs ?? []) as string[];
+  const addedPackageSlugs = selectedPackageSlugs.filter((slug) => !currentPackageSlugs.includes(slug));
+  const paidPackageSlugs = (item.paid_package_slugs ?? (addedPackageSlugs.length > 0 ? addedPackageSlugs : selectedPackageSlugs)) as string[];
+
+  return {
+    orderId: item.order_id,
+    kind: item.kind ?? null,
+    status: item.status,
+    paymentStatus: item.payment_status ?? null,
+    paymentSource: item.payment_source ?? null,
+    amount: item.amount,
+    amountMinor: item.amount_minor,
+    currency: item.currency,
+    selectedPackageSlugs,
+    currentPackageSlugs,
+    paidPackageSlugs,
+    offerType: item.offer_type,
+    periodStartAt: item.period_start_at ?? null,
+    periodEndAt: item.period_end_at ?? null,
+    autoRenewConsent: Boolean(item.auto_renew_consent),
+    testMode: Boolean(item.test_mode),
+    confirmationUrl: item.confirmation_url ?? null,
+    createdAt: item.created_at ?? null,
+    paidAt: item.paid_at ?? null,
+    canceledAt: item.canceled_at ?? null,
+    refundsSummary: {
+      count: item.refunds_summary?.count ?? 0,
+      amount: item.refunds_summary?.amount ?? '0.00',
+      amountMinor: item.refunds_summary?.amount_minor ?? 0,
+      currency: item.refunds_summary?.currency ?? item.currency,
+      fullyRefunded: Boolean(item.refunds_summary?.fully_refunded),
+    },
+    payments: item.payments,
+    refunds: item.refunds,
+  };
+};
 
 const limitsFromApi = (item: JsonRecord): CommercialLimitsSummary => ({
   accountStatus: item.account_status,
@@ -222,21 +233,23 @@ const resourceAddonQuoteFromApi = (item: JsonRecord): CommercialResourceAddonQuo
 export const commercialBillingService = {
   getPackages: async (signal?: AbortSignal) => (await request<JsonRecord[]>('/packages', { signal })).map(packageFromApi),
   getLimits: async (signal?: AbortSignal) => limitsFromApi(await request<JsonRecord>('/billing/limits', { signal })),
-  quoteResourceAddons: async (input: { resources: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => resourceAddonQuoteFromApi(await request<JsonRecord>('/billing/resource-addons/quote', {
+  quoteResourceAddons: async (input: { resources: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => resourceAddonQuoteFromApi(await request<JsonRecord>('/billing/commercial/resource-addons/quote', {
     method: 'POST', signal, body: JSON.stringify({ resources: input.resources }),
   })),
-  quote: async (input: { targetPackageSlugs: string[]; fullSuite: boolean }, signal?: AbortSignal) => quoteFromApi(await request<JsonRecord>('/billing/commercial/quote', {
-    method: 'POST', signal, body: JSON.stringify({ target_package_slugs: input.targetPackageSlugs, full_suite: input.fullSuite }),
+  quote: async (input: { targetPackageSlugs: string[]; fullSuite: boolean; resources?: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => quoteFromApi(await request<JsonRecord>('/billing/commercial/quote', {
+    method: 'POST', signal, body: JSON.stringify({ target_package_slugs: input.targetPackageSlugs, full_suite: input.fullSuite, resources: input.resources ?? [] }),
   })),
-  checkout: async (input: { targetPackageSlugs: string[]; currentPackageSlugs: string[]; fullSuite: boolean; quoteVersion: number; clientIdempotencyKey: string; autoRenewConsent: boolean; useBalance: boolean }) => {
+  checkout: async (input: { targetPackageSlugs: string[]; currentPackageSlugs: string[]; fullSuite: boolean; quoteVersion: number; resourceQuoteVersion?: number; clientIdempotencyKey: string; autoRenewConsent: boolean; useBalance: boolean; resources?: Array<{ slug: string; quantity: number }> }) => {
     const item = await request<JsonRecord>('/billing/commercial/checkout', { method: 'POST', body: JSON.stringify({
       target_package_slugs: input.fullSuite ? [] : input.targetPackageSlugs,
       current_package_slugs: input.currentPackageSlugs,
       full_suite: input.fullSuite,
       quote_version: input.quoteVersion,
+      resource_quote_version: input.resourceQuoteVersion ?? 1,
       client_idempotency_key: input.clientIdempotencyKey,
       auto_renew_consent: input.autoRenewConsent,
       use_balance: input.useBalance,
+      resources: input.resources ?? [],
     }) });
     return {
       orderId: item.order_id as string,
@@ -277,6 +290,8 @@ export const commercialBillingService = {
       currency: item.currency as string,
       confirmationUrl: item.confirmation_url as string | null,
       selectedPackageSlugs: (item.selected_package_slugs ?? []) as string[],
+      currentPackageSlugs: (item.current_package_slugs ?? []) as string[],
+      paidPackageSlugs: (item.paid_package_slugs ?? item.selected_package_slugs ?? []) as string[],
       periodStartAt: item.period_start_at as string | null,
       periodEndAt: item.period_end_at as string | null,
       graceDeadlineAt: item.grace_deadline_at as string | null,

@@ -48,6 +48,8 @@ export interface CommercialQuote {
   recommendation: 'full_suite' | null;
   periodStartAt: string;
   periodEndAt: string;
+  resourceQuoteVersion: number;
+  resourceAddonQuote: CommercialResourceAddonQuote | null;
 }
 
 export interface CommercialRenewalState {
@@ -80,6 +82,8 @@ export interface CommercialOrder {
   amountMinor: number;
   currency: string;
   selectedPackageSlugs: string[];
+  currentPackageSlugs: string[];
+  paidPackageSlugs: string[];
   offerType: 'packages' | 'full_suite';
   periodStartAt: string | null;
   periodEndAt: string | null;
