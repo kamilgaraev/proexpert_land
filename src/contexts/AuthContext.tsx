@@ -2,10 +2,12 @@ import { createContext, useCallback, useEffect, useRef, useState, type ReactNode
 import { authService, type LandingUser } from '@utils/api';
 import {
   clearAuthToken,
+  clearCsrfToken,
   getAuthToken,
-  getAuthTokenPersistence,
+  invalidateAuthSession,
   saveAuthToken,
-  synchronizeAuthToken,
+  saveCsrfToken,
+  subscribeAuthSessionInvalidation,
 } from '@utils/authTokenStorage';
 import { disconnectEcho } from '../services/echo';
 
@@ -27,7 +29,7 @@ export interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   register: (formData: FormData) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
 }
 
@@ -38,7 +40,7 @@ export const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => {},
   register: async () => {},
-  logout: () => {},
+  logout: async () => {},
   fetchUser: async () => {},
 });
 
@@ -60,11 +62,55 @@ const extractUser = (response: Awaited<ReturnType<typeof authService.getCurrentU
   return nextUser as unknown as User;
 };
 
+const extractToken = (payload: unknown): string | null => {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const response = payload as {
+    token?: unknown;
+    data?: { token?: unknown };
+  };
+
+  return typeof response.token === 'string'
+    ? response.token
+    : typeof response.data?.token === 'string'
+      ? response.data.token
+      : null;
+};
+
+const extractCsrfToken = (payload: unknown): string | null => {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const response = payload as {
+    csrf_token?: unknown;
+    data?: { csrf_token?: unknown };
+  };
+
+  return typeof response.csrf_token === 'string'
+    ? response.csrf_token
+    : typeof response.data?.csrf_token === 'string'
+      ? response.data.csrf_token
+      : null;
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => getAuthToken());
   const [isLoading, setIsLoading] = useState(true);
   const lifecycleEpochRef = useRef(0);
+  const logoutPromiseRef = useRef<Promise<void> | null>(null);
+
+  const clearLocalState = useCallback((): void => {
+    disconnectEchoSafely();
+    clearAuthToken();
+    clearCsrfToken();
+    setToken(null);
+    setUser(null);
+    setIsLoading(false);
+  }, []);
 
   const loadUser = useCallback(async (epoch: number): Promise<void> => {
     const response = await authService.getCurrentUser();
@@ -77,105 +123,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const fetchUser = useCallback(async (): Promise<void> => {
-    const epoch = lifecycleEpochRef.current;
-    await loadUser(epoch);
+    await loadUser(lifecycleEpochRef.current);
   }, [loadUser]);
 
   useEffect(() => {
+    const handleSessionInvalidation = (): void => {
+      lifecycleEpochRef.current += 1;
+      disconnectEchoSafely();
+      setToken(null);
+      setUser(null);
+      setIsLoading(false);
+      window.dispatchEvent(new CustomEvent('user-logout'));
+    };
+
+    const unsubscribe = subscribeAuthSessionInvalidation(handleSessionInvalidation);
     const epoch = lifecycleEpochRef.current + 1;
     lifecycleEpochRef.current = epoch;
 
-    const handleStorageChange = (event: StorageEvent): void => {
-      if (event.key !== 'authToken' && event.key !== 'token') {
-        return;
-      }
-
-      disconnectEchoSafely();
-      const nextEpoch = lifecycleEpochRef.current + 1;
-      lifecycleEpochRef.current = nextEpoch;
-      synchronizeAuthToken(event.newValue, event.newValue ? 'local' : 'memory');
-      setToken(event.newValue);
-      setUser(null);
-
-      if (!event.newValue) {
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      void loadUser(nextEpoch)
-        .catch(() => {
-          if (lifecycleEpochRef.current === nextEpoch) {
-            clearAuthToken();
-            setToken(null);
-            setUser(null);
-          }
-        })
-        .finally(() => {
-          if (lifecycleEpochRef.current === nextEpoch) {
-            setIsLoading(false);
-          }
-        });
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    const checkAuth = async (): Promise<void> => {
-      if (window.location.pathname.includes('/login')
-        || window.location.pathname.includes('/register')) {
+    const bootstrapSession = async (): Promise<void> => {
+      if (window.location.pathname.includes('/login') || window.location.pathname.includes('/register')) {
         if (lifecycleEpochRef.current === epoch) {
           setIsLoading(false);
         }
         return;
       }
-
-      const existingToken = getAuthToken();
-
-      if (!existingToken) {
-        if (lifecycleEpochRef.current === epoch) {
-          setToken(null);
-          setUser(null);
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      const persistence = getAuthTokenPersistence();
 
       try {
-        setToken(existingToken);
-        await loadUser(epoch);
-      } catch {
+        const refreshedSession = await authService.refreshToken();
+
         if (lifecycleEpochRef.current !== epoch) {
           return;
         }
 
-        try {
-          const refreshResponse = await authService.refreshToken();
+        saveAuthToken(refreshedSession.token);
+        saveCsrfToken(refreshedSession.csrfToken);
+        setToken(refreshedSession.token);
+        setUser(null);
+        await loadUser(epoch);
 
-          if (lifecycleEpochRef.current !== epoch) {
-            return;
-          }
-
-          const refreshPayload = refreshResponse.data as { token?: string; data?: { token?: string } };
-          const refreshedToken = refreshPayload.data?.token || refreshPayload.token;
-
-          if (!refreshedToken) {
-            throw new Error('Токен не получен от сервера.');
-          }
-
-          disconnectEchoSafely();
-          saveAuthToken(refreshedToken, persistence);
-          setToken(refreshedToken);
-          setUser(null);
-          await loadUser(epoch);
-        } catch {
-          if (lifecycleEpochRef.current === epoch) {
-            disconnectEchoSafely();
-            clearAuthToken();
-            setToken(null);
-            setUser(null);
-          }
+        if (lifecycleEpochRef.current === epoch) {
+          window.dispatchEvent(new CustomEvent('user-login'));
+        }
+      } catch {
+        if (lifecycleEpochRef.current === epoch) {
+          invalidateAuthSession(true);
         }
       } finally {
         if (lifecycleEpochRef.current === epoch) {
@@ -184,11 +175,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    void checkAuth();
+    void bootstrapSession();
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       lifecycleEpochRef.current += 1;
+      unsubscribe();
     };
   }, [loadUser]);
 
@@ -199,20 +190,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     disconnectEchoSafely();
 
     try {
-      const response = await authService.login({ email, password });
+      const response = await authService.login({ email, password, remember_me: rememberMe });
 
       if (lifecycleEpochRef.current !== epoch) {
         return;
       }
 
-      const apiToken = response.data?.token || response.data?.data?.token;
+      const apiToken = extractToken(response.data);
+      const csrfToken = extractCsrfToken(response.data);
       const nextUser = response.data?.user || response.data?.data?.user;
 
-      if (!apiToken) {
-        throw new Error('Токен не получен от сервера.');
+      if (!apiToken || !csrfToken) {
+        throw new Error('Сервер не вернул сессию.');
       }
 
-      saveAuthToken(apiToken, rememberMe ? 'local' : 'session');
+      saveAuthToken(apiToken);
+      saveCsrfToken(csrfToken);
       setToken(apiToken);
       setUser(nextUser ? nextUser as unknown as User : null);
 
@@ -225,9 +218,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       if (lifecycleEpochRef.current === epoch) {
-        clearAuthToken();
-        setToken(null);
-        setUser(null);
+        clearLocalState();
       }
       throw error;
     } finally {
@@ -251,18 +242,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const payload = response.data?.data || response.data;
-      clearAuthToken();
-      setToken(null);
-      setUser(null);
+      clearLocalState();
 
       if (payload?.status !== 'verification_required') {
         throw new Error('Регистрация завершена, но статус подтверждения email не получен.');
       }
     } catch (error) {
       if (lifecycleEpochRef.current === epoch) {
-        clearAuthToken();
-        setToken(null);
-        setUser(null);
+        clearLocalState();
       }
       throw error;
     } finally {
@@ -272,23 +259,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = (): void => {
-    lifecycleEpochRef.current += 1;
-    const tokenSnapshot = getAuthToken();
-    disconnectEchoSafely();
-
-    try {
-      const logoutRequest = authService.logout(tokenSnapshot);
-      void Promise.resolve(logoutRequest).catch(() => undefined);
-    } catch {
-    } finally {
-      clearAuthToken();
-      setToken(null);
-      setUser(null);
-      setIsLoading(false);
-      window.dispatchEvent(new CustomEvent('user-logout'));
+  const logout = useCallback((): Promise<void> => {
+    if (logoutPromiseRef.current) {
+      return logoutPromiseRef.current;
     }
-  };
+
+    const operation = (async (): Promise<void> => {
+      lifecycleEpochRef.current += 1;
+      const tokenSnapshot = getAuthToken();
+      disconnectEchoSafely();
+
+      try {
+        await authService.logout(tokenSnapshot);
+      } catch {
+      } finally {
+        invalidateAuthSession(true);
+      }
+    })();
+    const trackedOperation = operation.finally(() => {
+      if (logoutPromiseRef.current === trackedOperation) {
+        logoutPromiseRef.current = null;
+      }
+    });
+    logoutPromiseRef.current = trackedOperation;
+
+    return trackedOperation;
+  }, []);
 
   return (
     <AuthContext.Provider value={{

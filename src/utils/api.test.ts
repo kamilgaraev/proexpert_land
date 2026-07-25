@@ -2,18 +2,23 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   authService,
+  authApi,
+  authorizedFetch,
   createFetchResponse,
   getBalanceTransactionDescription,
   landingService,
   normalizeBalanceTransactionsResponse,
   normalizeOrganizationBalanceResponse,
+  refreshAccessTokenOnce,
 } from './api';
 import api from './api';
-import { clearAuthToken, getAuthToken, saveAuthToken } from './authTokenStorage';
+import { clearAuthToken, clearCsrfToken, getAuthToken, getCsrfToken, saveAuthToken, saveCsrfToken } from './authTokenStorage';
 
 afterEach(() => {
   clearAuthToken();
+  clearCsrfToken();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe('createFetchResponse', () => {
@@ -76,11 +81,16 @@ describe('authService.login', () => {
     const result = await authService.login({
       email: 'user@example.com',
       password: 'secret-password',
+      remember_me: true,
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(result.data.data?.token).toBe('login-token');
-    expect(getAuthToken()).toBe('login-token');
+    expect(getAuthToken()).toBeNull();
+    expect(JSON.parse(fetchMock.mock.calls[1][1]?.body as string)).toMatchObject({
+      email: 'user@example.com',
+      remember_me: true,
+    });
   });
 
   it('converts persistent fetch transport failures to a user-facing Russian error', async () => {
@@ -92,6 +102,54 @@ describe('authService.login', () => {
     })).rejects.toMatchObject({
       message: 'Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.',
       status: 0,
+    });
+  });
+});
+
+describe('refreshAccessTokenOnce', () => {
+  it('объединяет параллельные refresh-запросы и заменяет токены в памяти', async () => {
+    const csrfRequest = vi.spyOn(authApi, 'get').mockResolvedValue({
+      data: { data: { csrf_token: 'csrf-before-refresh' } },
+    } as never);
+    const refreshRequest = vi.spyOn(authApi, 'post').mockResolvedValue({
+      data: { data: { token: 'refreshed-access-token', csrf_token: 'csrf-after-refresh' } },
+    } as never);
+
+    const [first, second] = await Promise.all([
+      refreshAccessTokenOnce(),
+      refreshAccessTokenOnce(),
+    ]);
+
+    expect(first).toEqual({ token: 'refreshed-access-token', csrfToken: 'csrf-after-refresh' });
+    expect(second).toEqual(first);
+    expect(csrfRequest).toHaveBeenCalledOnce();
+    expect(refreshRequest).toHaveBeenCalledOnce();
+    expect(refreshRequest).toHaveBeenCalledWith('/auth/refresh', undefined, {
+      headers: { 'X-CSRF-Token': 'csrf-before-refresh' },
+    });
+    expect(getAuthToken()).toBe('refreshed-access-token');
+    expect(getCsrfToken()).toBe('csrf-after-refresh');
+  });
+
+  it('повторяет bearer-запрос после единого refresh при ответе 401', async () => {
+    saveAuthToken('expired-access-token');
+    saveCsrfToken('csrf-before-refresh');
+    vi.spyOn(authApi, 'post').mockResolvedValue({
+      data: { data: { token: 'fresh-access-token', csrf_token: 'fresh-csrf-token' } },
+    } as never);
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const response = await authorizedFetch('https://api.1мост.рф/api/v1/landing/projects');
+
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(new Headers(fetchMock.mock.calls[0]?.[1]?.headers).get('Authorization')).toBe('Bearer expired-access-token');
+    expect(new Headers(fetchMock.mock.calls[1]?.[1]?.headers).get('Authorization')).toBe('Bearer fresh-access-token');
+    expect(authApi.post).toHaveBeenCalledWith('/auth/refresh', undefined, {
+      headers: { 'X-CSRF-Token': 'csrf-before-refresh' },
     });
   });
 });

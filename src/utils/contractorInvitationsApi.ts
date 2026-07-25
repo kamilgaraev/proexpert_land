@@ -2,7 +2,6 @@
  * API утилиты для работы с приглашениями подрядчиков
  */
 
-import axios from 'axios';
 import type {
   ContractorInvitation,
   InvitationListResponse,
@@ -12,45 +11,7 @@ import type {
   InvitationDeclineRequest
 } from '../types/contractor-invitations';
 import { normalizeInvitationListResponse } from './contractorInvitationResponseNormalizer';
-import { attachAuthorizationHeader, clearAuthToken } from './authTokenStorage';
-
-// Базовый URL для API личного кабинета
-const API_BASE_DOMAIN = 'https://api.1мост.рф';
-const API_URL = `${API_BASE_DOMAIN}/api/v1/landing`;
-
-// Создаем экземпляр axios с базовой конфигурацией
-const contractorInvitationsApi = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-});
-
-// Добавляем интерцептор для автоматического добавления токена авторизации
-contractorInvitationsApi.interceptors.request.use(
-  attachAuthorizationHeader,
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-contractorInvitationsApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('Ошибка API приглашений подрядчиков:', error);
-    
-    if (error.response?.status === 401) {
-      // Токен истек или недействителен
-      clearAuthToken();
-      if (!window.location.pathname.includes('/login')) {
-        window.location.replace('/login');
-      }
-    }
-    
-    return Promise.reject(error);
-  }
-);
+import api from './api';
 
 export const contractorInvitationsService = {
   /**
@@ -75,7 +36,7 @@ export const contractorInvitationsService = {
     const queryString = params.toString();
     const endpoint = queryString ? `/contractor-invitations?${queryString}` : '/contractor-invitations';
 
-    const response = await contractorInvitationsApi.get(endpoint);
+    const response = await api.get(endpoint);
     
     return normalizeInvitationListResponse(response.data);
   },
@@ -84,7 +45,7 @@ export const contractorInvitationsService = {
    * Получить детали приглашения по токену
    */
   async getInvitationByToken(token: string): Promise<ContractorInvitation> {
-    const response = await contractorInvitationsApi.get(
+    const response = await api.get(
       `/contractor-invitations/${token}`
     );
     
@@ -95,7 +56,7 @@ export const contractorInvitationsService = {
    * Принять приглашение
    */
   async acceptInvitation(token: string): Promise<InvitationAcceptResponse> {
-    const response = await contractorInvitationsApi.post(
+    const response = await api.post(
       `/contractor-invitations/${token}/accept`
     );
     
@@ -111,7 +72,7 @@ export const contractorInvitationsService = {
       data.reason = reason;
     }
 
-    const response = await contractorInvitationsApi.post(
+    const response = await api.post(
       `/contractor-invitations/${token}/decline`,
       data
     );
@@ -123,7 +84,7 @@ export const contractorInvitationsService = {
    * Получить статистику приглашений
    */
   async getInvitationStats(): Promise<InvitationStats> {
-    const response = await contractorInvitationsApi.get(
+    const response = await api.get(
       '/contractor-invitations/stats'
     );
     
@@ -134,7 +95,7 @@ export const contractorInvitationsService = {
    * Получить детали приглашения по ID (для авторизованного пользователя)
    */
   async getInvitationById(id: number): Promise<ContractorInvitation> {
-    const response = await contractorInvitationsApi.get(
+    const response = await api.get(
       `/contractor-invitations/id/${id}`
     );
     

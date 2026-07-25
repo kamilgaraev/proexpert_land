@@ -178,20 +178,11 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
     return () => clearInterval(interval);
   }, [refreshInterval, isLoaded, isLoading, error, reload]);
 
-  // Обработка событий смены организации/входа/выхода
   useEffect(() => {
     // Проверка на SSR
     if (typeof window === 'undefined') {
       return;
     }
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'organization_id' || e.key === 'token' || e.key === 'authToken') {
-        debugPermissions('Storage changed, reloading permissions...');
-        hasAutoLoaded.current = false;
-        reload();
-      }
-    };
 
     const handleOrganizationChange = () => {
       debugPermissions('Organization changed, reloading permissions...');
@@ -209,16 +200,12 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
       clear();
     };
 
-    // Слушаем изменения localStorage
-    window.addEventListener('storage', handleStorageChange);
-    
     // Слушаем кастомные события
     window.addEventListener('organization-changed', handleOrganizationChange);
     window.addEventListener('user-login', handleLogin);
     window.addEventListener('user-logout', handleLogout);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('organization-changed', handleOrganizationChange);
       window.removeEventListener('user-login', handleLogin);
       window.removeEventListener('user-logout', handleLogout);

@@ -1,67 +1,38 @@
 // @vitest-environment happy-dom
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   attachAuthorizationHeader,
   clearAuthToken,
   clearAuthTokenIfCurrent,
+  clearCsrfToken,
   getAuthToken,
   getAuthTokenPersistence,
+  getCsrfToken,
+  invalidateAuthSession,
   saveAuthToken,
+  saveCsrfToken,
+  subscribeAuthSessionInvalidation,
 } from './authTokenStorage';
 
 afterEach(() => {
   clearAuthToken();
-  window.localStorage.clear();
-  window.sessionStorage.clear();
+  clearCsrfToken();
 });
 
 describe('authTokenStorage', () => {
-  it('persists token in session storage by default', () => {
-    saveAuthToken('session-token');
+  it('держит access- и CSRF-токены только в памяти', () => {
+    saveAuthToken('access-token');
+    saveCsrfToken('csrf-token');
 
-    expect(getAuthToken()).toBe('session-token');
-    expect(getAuthTokenPersistence()).toBe('session');
-    expect(window.sessionStorage.getItem('authToken')).toBe('session-token');
-    expect(window.localStorage.getItem('authToken')).toBeNull();
-  });
-
-  it('persists token in local storage when remember me is enabled', () => {
-    saveAuthToken('local-token', 'local');
-
-    expect(getAuthToken()).toBe('local-token');
-    expect(getAuthTokenPersistence()).toBe('local');
-    expect(window.localStorage.getItem('authToken')).toBe('local-token');
-    expect(window.sessionStorage.getItem('authToken')).toBeNull();
-  });
-
-  it('keeps the selected persistence when replacing an active token', () => {
-    saveAuthToken('local-token', 'local');
-    saveAuthToken('refreshed-token', getAuthTokenPersistence());
-
-    expect(getAuthToken()).toBe('refreshed-token');
-    expect(getAuthTokenPersistence()).toBe('local');
-    expect(window.localStorage.getItem('authToken')).toBe('refreshed-token');
-    expect(window.sessionStorage.getItem('authToken')).toBeNull();
-  });
-
-  it('clears active and legacy token keys', () => {
-    window.localStorage.setItem('token', 'legacy-local');
-    window.localStorage.setItem('authToken', 'active-local');
-    window.sessionStorage.setItem('token', 'legacy-session');
-    window.sessionStorage.setItem('authToken', 'active-session');
-
-    clearAuthToken();
-
-    expect(getAuthToken()).toBeNull();
+    expect(getAuthToken()).toBe('access-token');
+    expect(getCsrfToken()).toBe('csrf-token');
     expect(getAuthTokenPersistence()).toBe('memory');
-    expect(window.localStorage.getItem('token')).toBeNull();
     expect(window.localStorage.getItem('authToken')).toBeNull();
-    expect(window.sessionStorage.getItem('token')).toBeNull();
     expect(window.sessionStorage.getItem('authToken')).toBeNull();
   });
 
-  it('does not clear a newer token from a stale logout snapshot', () => {
+  it('не очищает более новый токен по устаревшему снимку logout', () => {
     saveAuthToken('old-token');
     const logoutSnapshot = getAuthToken();
 
@@ -69,10 +40,23 @@ describe('authTokenStorage', () => {
 
     expect(clearAuthTokenIfCurrent(logoutSnapshot)).toBe(false);
     expect(getAuthToken()).toBe('new-token');
-    expect(window.sessionStorage.getItem('authToken')).toBe('new-token');
   });
 
-  it('keeps explicit authorization headers for snapshot logout requests', () => {
+  it('оповещает подписчиков и очищает память при инвалидировании сессии', () => {
+    const listener = vi.fn();
+    const unsubscribe = subscribeAuthSessionInvalidation(listener);
+    saveAuthToken('access-token');
+    saveCsrfToken('csrf-token');
+
+    invalidateAuthSession();
+    unsubscribe();
+
+    expect(listener).toHaveBeenCalledOnce();
+    expect(getAuthToken()).toBeNull();
+    expect(getCsrfToken()).toBeNull();
+  });
+
+  it('сохраняет явный Authorization для snapshot logout-запроса', () => {
     saveAuthToken('new-token');
     const config = {
       headers: {
@@ -85,7 +69,7 @@ describe('authTokenStorage', () => {
     expect(config.headers.Authorization).toBe('Bearer old-token');
   });
 
-  it('does not attach the current token when auth is explicitly skipped', () => {
+  it('не добавляет токен, когда авторизация явно отключена', () => {
     saveAuthToken('new-token');
     const config = {
       headers: {},

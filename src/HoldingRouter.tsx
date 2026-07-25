@@ -15,6 +15,7 @@ import NotFoundPage from '@pages/NotFoundPage';
 import { ThemeProvider } from '@components/shared/ThemeProvider';
 import { HoldingPanelLayout } from '@layouts/HoldingPanelLayout';
 import { HoldingProjectsList, HoldingProjectDetails } from '@/components/holding';
+import { HoldingPanelRouteGuard } from '@/components/multi-org/HoldingPanelRouteGuard';
 
 const HoldingRouter = () => {
   return (
@@ -23,7 +24,11 @@ const HoldingRouter = () => {
         <Route path="/" element={<HoldingLandingRuntimePage />} />
         <Route path="/login" element={<HoldingLoginPage />} />
         
-        <Route element={<HoldingPanelLayout />}>
+        <Route element={(
+          <HoldingPanelRouteGuard deniedPath="/">
+            <HoldingPanelLayout />
+          </HoldingPanelRouteGuard>
+        )}>
           <Route path="/dashboard" element={<HoldingDashboardPage />} />
           <Route path="/organizations" element={<HoldingOrganizationsPage />} />
             <Route path="/reports" element={<HoldingReportsIndexPage />} />
@@ -41,7 +46,14 @@ const HoldingRouter = () => {
           <Route path="/settings" element={<Navigate to="/dashboard" replace />} />
         </Route>
         
-        <Route path="/holding/:holdingId/landing/edit" element={<LandingEditorPage />} />
+        <Route
+          path="/holding/:holdingId/landing/edit"
+          element={(
+            <HoldingPanelRouteGuard deniedPath="/">
+              <LandingEditorPage />
+            </HoldingPanelRouteGuard>
+          )}
+        />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </ThemeProvider>

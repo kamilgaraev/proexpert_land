@@ -7,6 +7,7 @@ import { HoldingPanelRouteGuard } from './HoldingPanelRouteGuard';
 const mocks = vi.hoisted(() => ({
   auth: {
     user: null as any,
+    isAuthenticated: false,
     isLoading: false,
   },
 }));
@@ -27,6 +28,7 @@ const renderGuard = () => render(
         )}
       />
       <Route path="/dashboard/multi-organization" element={<div>Создание холдинга</div>} />
+      <Route path="/login" element={<div>Вход</div>} />
     </Routes>
   </MemoryRouter>,
 );
@@ -35,6 +37,7 @@ describe('HoldingPanelRouteGuard', () => {
   beforeEach(() => {
     mocks.auth.isLoading = false;
     mocks.auth.user = null;
+    mocks.auth.isAuthenticated = false;
   });
 
   it('renders holding panel for a parent organization', () => {
@@ -44,6 +47,7 @@ describe('HoldingPanelRouteGuard', () => {
         is_holding: true,
       },
     };
+    mocks.auth.isAuthenticated = true;
 
     renderGuard();
 
@@ -57,11 +61,21 @@ describe('HoldingPanelRouteGuard', () => {
         is_holding: false,
       },
     };
+    mocks.auth.isAuthenticated = true;
 
     renderGuard();
 
     await waitFor(() => {
       expect(screen.getByText('Создание холдинга')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Панель холдинга')).not.toBeInTheDocument();
+  });
+
+  it('redirects unauthenticated users to the holding login page', async () => {
+    renderGuard();
+
+    await waitFor(() => {
+      expect(screen.getByText('Вход')).toBeInTheDocument();
     });
     expect(screen.queryByText('Панель холдинга')).not.toBeInTheDocument();
   });

@@ -9,7 +9,7 @@ import {
 
 vi.mock('@/utils/api', () => ({
   API_URL: 'https://api.example.test/api/v1/landing',
-  getTokenFromStorages: () => 'test-token',
+  authorizedFetch: (input: RequestInfo | URL, init?: RequestInit) => fetch(input, init),
 }));
 
 import {

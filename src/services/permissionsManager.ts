@@ -10,7 +10,7 @@ import {
   ActiveModule
 } from '@/types/permissions';
 import { debugPermissions, isPermissionsDebugEnabled } from '@/services/debugPermissions';
-import { getTokenFromStorages } from '@/utils/api';
+import { authorizedFetch, getTokenFromStorages } from '@/utils/api';
 
 /**
  * Централизованный менеджер для управления правами пользователей
@@ -99,10 +99,9 @@ export class PermissionsManager {
 
       debugPermissions(`Loading permissions from: ${endpoint}`);
 
-      const response = await fetch(endpoint, {
+      const response = await authorizedFetch(endpoint, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         signal: controller.signal
@@ -359,10 +358,9 @@ export class PermissionsManager {
       const token = this.getToken();
       if (!token) return false;
 
-      const response = await fetch('https://api.1мост.рф/api/lk/v1/permissions/check', {
+      const response = await authorizedFetch(`${this.getEndpoint(interfaceType)}/check`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({

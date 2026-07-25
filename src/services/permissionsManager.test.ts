@@ -2,13 +2,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PermissionsManager } from './permissionsManager';
 
+const api = vi.hoisted(() => ({
+  getTokenFromStorages: vi.fn(() => 'token'),
+  authorizedFetch: vi.fn(),
+}));
+
 vi.mock('@/services/debugPermissions', () => ({
   debugPermissions: vi.fn(),
   isPermissionsDebugEnabled: vi.fn(() => false),
 }));
 
 vi.mock('@/utils/api', () => ({
-  getTokenFromStorages: vi.fn(() => 'token'),
+  getTokenFromStorages: api.getTokenFromStorages,
+  authorizedFetch: api.authorizedFetch,
 }));
 
 const permissionsResponse = (overrides: Record<string, unknown> = {}) => ({
@@ -30,11 +36,12 @@ const permissionsResponse = (overrides: Record<string, unknown> = {}) => ({
 
 describe('PermissionsManager', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn());
+    vi.clearAllMocks();
+    vi.mocked(api.getTokenFromStorages).mockReturnValue('token');
   });
 
   it('allows contractor marketplace permissions from contractor portal wildcard', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce({
+    vi.mocked(api.authorizedFetch).mockResolvedValueOnce({
       ok: true,
       json: async () => permissionsResponse({
         permissions: {
@@ -56,5 +63,27 @@ describe('PermissionsManager', () => {
     expect(manager.can('contractor_marketplace.offers.view')).toBe(true);
     expect(manager.hasRole('organization_owner')).toBe(true);
     expect(manager.hasModule('contractor_marketplace')).toBe(true);
+    expect(api.authorizedFetch).toHaveBeenCalledWith(
+      'https://api.1мост.рф/api/lk/v1/permissions',
+      expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
+  it('uses the interface-specific permissions check endpoint through the central auth flow', async () => {
+    vi.mocked(api.authorizedFetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true, data: { has_permission: true } }),
+    } as Response);
+
+    const manager = new PermissionsManager();
+
+    await expect(manager.checkPermission('users.view', undefined, 'admin')).resolves.toBe(true);
+    expect(api.authorizedFetch).toHaveBeenCalledWith(
+      'https://api.1мост.рф/api/admin/v1/permissions/check',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
   });
 });

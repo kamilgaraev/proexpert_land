@@ -1,4 +1,3 @@
-import axios from 'axios';
 import type {
   Notification,
   NotificationFilter,
@@ -8,9 +7,7 @@ import type {
   MarkAllAsReadResponse,
   UnreadCountResponse,
 } from '../types/notification';
-import { getJsonAuthHeaders } from '../utils/authTokenStorage';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.1мост.рф';
+import api, { API_URL } from '../utils/api';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => (
   value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -27,6 +24,18 @@ const isSafePositiveInteger = (value: unknown): value is number => (
 const isSafeNonNegativeInteger = (value: unknown): value is number => (
   typeof value === 'number' && Number.isSafeInteger(value) && value >= 0
 );
+
+const resolveNotificationActionUrl = (url: string): string => {
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+
+  if (url.startsWith('/api/')) {
+    return `${new URL(API_URL).origin}${url}`;
+  }
+
+  return `${API_URL}${url.startsWith('/') ? url : `/${url}`}`;
+};
 
 const normalizeCountMap = (value: unknown): Record<string, number> => {
   if (Array.isArray(value) && value.length === 0) {
@@ -160,10 +169,8 @@ export const notificationService = {
       params.filter = filter;
     }
 
-    const response = await axios.get<unknown>(`${API_BASE_URL}/api/v1/landing/notifications`, {
+    const response = await api.get<unknown>('/notifications', {
       params,
-      withCredentials: true,
-      headers: getJsonAuthHeaders(),
       signal,
     });
 
@@ -171,50 +178,37 @@ export const notificationService = {
   },
 
   getUnreadCount: async (signal?: AbortSignal): Promise<UnreadCountResponse> => {
-    const response = await axios.get<unknown>(
-      `${API_BASE_URL}/api/v1/landing/notifications/unread-count`,
-      {
-        withCredentials: true,
-        headers: getJsonAuthHeaders(),
-        signal,
-      },
-    );
+    const response = await api.get<unknown>('/notifications/unread-count', { signal });
 
     return normalizeUnreadCountResponse(response.data);
   },
 
   markAsRead: async (notificationId: string): Promise<void> => {
-    await axios.patch(
-      `${API_BASE_URL}/api/v1/landing/notifications/${notificationId}/read`,
-      {},
-      { withCredentials: true, headers: getJsonAuthHeaders() },
-    );
+    await api.patch(`/notifications/${notificationId}/read`, {});
   },
 
   markAllAsRead: async (): Promise<MarkAllAsReadResponse> => {
-    const response = await axios.post<unknown>(
-      `${API_BASE_URL}/api/v1/landing/notifications/mark-all-read`,
-      {},
-      { withCredentials: true, headers: getJsonAuthHeaders() },
-    );
+    const response = await api.post<unknown>('/notifications/mark-all-read', {});
 
     return normalizeMarkAllAsReadResponse(response.data);
   },
 
   deleteNotification: async (notificationId: string): Promise<void> => {
-    await axios.delete(
-      `${API_BASE_URL}/api/v1/landing/notifications/${notificationId}`,
-      { withCredentials: true, headers: getJsonAuthHeaders() },
-    );
+    await api.delete(`/notifications/${notificationId}`);
   },
 
   executeAction: async (url: string, method: string = 'POST'): Promise<unknown> => {
-    const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
-    const response = await axios({
+    const fullUrl = resolveNotificationActionUrl(url);
+    const parsedUrl = new URL(fullUrl);
+    const apiUrl = new URL(API_URL);
+
+    if (parsedUrl.origin !== apiUrl.origin || !parsedUrl.pathname.startsWith('/api/v1/landing/')) {
+      throw new Error('Недопустимый адрес действия уведомления.');
+    }
+
+    const response = await api({
       method: method.toLowerCase(),
       url: fullUrl,
-      withCredentials: true,
-      headers: getJsonAuthHeaders(),
     });
 
     return response.data;

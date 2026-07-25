@@ -1,4 +1,4 @@
-import { API_URL, getTokenFromStorages } from '@/utils/api';
+import { API_URL, authorizedFetch } from '@/utils/api';
 import type {
   ApiEnvelope,
   BuilderWorkspaceData,
@@ -37,17 +37,10 @@ const parseEnvelope = async <T>(response: Response): Promise<T> => {
 };
 
 const requestAuth = async <T>(path: string, init?: RequestInit): Promise<T> => {
-  const token = getTokenFromStorages();
-
-  if (!token) {
-    throw new BuilderApiError('Требуется авторизация', 401);
-  }
-
   const headers = new Headers(init?.headers);
-  headers.set('Authorization', `Bearer ${token}`);
   headers.set('Accept', 'application/json');
 
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await authorizedFetch(`${API_URL}${path}`, {
     ...init,
     headers,
   });
@@ -118,12 +111,6 @@ export const holdingSiteBuilderService = {
     requestAuth<SiteBlogArticle[]>(`/holding/site/blog/articles/${articleId}`, { method: 'DELETE' }),
   getAssets: () => requestAuth<EditorAsset[]>('/holding/site/assets'),
   uploadAsset: async (file: File, usageContext: string, metadata?: Record<string, unknown>) => {
-    const token = getTokenFromStorages();
-
-    if (!token) {
-      throw new BuilderApiError('Требуется авторизация', 401);
-    }
-
     const formData = new FormData();
     formData.append('file', file);
     formData.append('usage_context', usageContext);
@@ -131,10 +118,9 @@ export const holdingSiteBuilderService = {
       formData.append('metadata', JSON.stringify(metadata));
     }
 
-    const response = await fetch(`${API_URL}/holding/site/assets`, {
+    const response = await authorizedFetch(`${API_URL}/holding/site/assets`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
         Accept: 'application/json',
       },
       body: formData,

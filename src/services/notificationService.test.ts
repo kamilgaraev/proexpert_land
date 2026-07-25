@@ -1,15 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import axios from 'axios';
 import { notificationService } from './notificationService';
 
-vi.mock('axios', () => ({
-  default: {
-    get: vi.fn(),
-    patch: vi.fn(),
-    post: vi.fn(),
-    delete: vi.fn(),
-  },
+const api = vi.hoisted(() => Object.assign(vi.fn(), {
+  get: vi.fn(),
+  patch: vi.fn(),
+  post: vi.fn(),
+  delete: vi.fn(),
+}));
+
+vi.mock('../utils/api', () => ({
+  default: api,
+  API_URL: 'https://api.1мост.рф/api/v1/landing',
 }));
 
 const item = (id: string) => ({
@@ -29,7 +31,7 @@ describe('notificationService', () => {
   });
 
   it('normalizes a LandingResponse paginated notification list', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({
+    vi.mocked(api.get).mockResolvedValueOnce({
       data: {
         success: true,
         message: null,
@@ -67,7 +69,7 @@ describe('notificationService', () => {
   });
 
   it('accepts the already-unwrapped paginated shape without losing metadata', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({
+    vi.mocked(api.get).mockResolvedValueOnce({
       data: {
         data: [item('one'), item('two')],
         meta: {
@@ -95,7 +97,7 @@ describe('notificationService', () => {
     { interface: 'lk', organization_id: 45 },
     { interface: 'lk', organization_id: undefined },
   ])('drops an item outside the expected LK organization scope %#', async mismatch => {
-    vi.mocked(axios.get).mockResolvedValueOnce({
+    vi.mocked(api.get).mockResolvedValueOnce({
       data: {
         data: [{ ...item('one'), ...mismatch }],
         meta: {
@@ -117,7 +119,7 @@ describe('notificationService', () => {
 
   it('accepts global and current-organization items and forwards AbortSignal', async () => {
     const controller = new AbortController();
-    vi.mocked(axios.get).mockResolvedValueOnce({
+    vi.mocked(api.get).mockResolvedValueOnce({
       data: {
         data: [
           item('global'),
@@ -141,13 +143,13 @@ describe('notificationService', () => {
     const response = await notificationService.getNotifications(1, 20, 'all', 44, controller.signal);
 
     expect(response.data.map(notification => notification.id)).toEqual(['global', 'organization']);
-    expect(axios.get).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
+    expect(api.get).toHaveBeenCalledWith('/notifications', expect.objectContaining({
       signal: controller.signal,
     }));
   });
 
   it('rejects malformed successful list contracts instead of masking them as an empty list', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({
+    vi.mocked(api.get).mockResolvedValueOnce({
       data: { success: true, data: { unexpected: true } },
     } as never);
 
@@ -157,7 +159,7 @@ describe('notificationService', () => {
   });
 
   it('rejects list metadata without the atomic unread snapshot', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({
+    vi.mocked(api.get).mockResolvedValueOnce({
       data: {
         success: true,
         data: [item('one')],
@@ -173,7 +175,7 @@ describe('notificationService', () => {
   it.each([undefined, 0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1])(
     'rejects an unsafe notification sequence %#',
     async sequence => {
-      vi.mocked(axios.get).mockResolvedValueOnce({
+      vi.mocked(api.get).mockResolvedValueOnce({
         data: {
           data: [{ ...item('one'), sequence }],
           meta: {
@@ -195,7 +197,7 @@ describe('notificationService', () => {
   );
 
   it('normalizes empty PHP aggregate maps encoded as JSON arrays', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({
+    vi.mocked(api.get).mockResolvedValueOnce({
       data: {
         success: true,
         data: [],
@@ -221,7 +223,7 @@ describe('notificationService', () => {
   });
 
   it('normalizes a LandingResponse unread count', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({
+    vi.mocked(api.get).mockResolvedValueOnce({
       data: { success: true, message: null, data: { count: 7, snapshot_sequence: 12 } },
     } as never);
 
@@ -229,7 +231,7 @@ describe('notificationService', () => {
   });
 
   it('normalizes mark-all sequence cut', async () => {
-    vi.mocked(axios.post).mockResolvedValueOnce({
+    vi.mocked(api.post).mockResolvedValueOnce({
       data: { success: true, data: { count: 4, sequence_cut: 15 } },
     } as never);
 
@@ -237,12 +239,27 @@ describe('notificationService', () => {
   });
 
   it('rejects a malformed unread count', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({
+    vi.mocked(api.get).mockResolvedValueOnce({
       data: { success: true, data: { count: 'seven' } },
     } as never);
 
     await expect(notificationService.getUnreadCount()).rejects.toThrow(
       'Некорректный ответ счётчика уведомлений',
+    );
+  });
+
+  it('executes only same-origin landing notification actions', async () => {
+    vi.mocked(api).mockResolvedValueOnce({ data: { success: true } } as never);
+
+    await expect(notificationService.executeAction('/api/v1/landing/projects/7')).resolves.toEqual({
+      success: true,
+    });
+    expect(api).toHaveBeenCalledWith({
+      method: 'post',
+      url: `${new URL('https://api.1мост.рф').origin}/api/v1/landing/projects/7`,
+    });
+    await expect(notificationService.executeAction('https://attacker.example/steal')).rejects.toThrow(
+      'Недопустимый адрес действия уведомления.',
     );
   });
 });

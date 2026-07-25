@@ -1,4 +1,3 @@
-import axios from 'axios';
 import type {
   HoldingDashboardData,
   ProjectWithOrganization,
@@ -9,47 +8,9 @@ import type {
   PaginatedData,
   ApiResponse,
 } from '@/types/multi-organization-v2';
-import { getTokenFromStorages } from './api';
+import api from './api';
 
-const API_BASE_DOMAIN = 'https://api.1мост.рф';
-const MULTI_ORG_API_URL = `${API_BASE_DOMAIN}/api/v1/landing/multi-organization`;
-
-const createApiClient = () => {
-  const client = axios.create({
-    baseURL: MULTI_ORG_API_URL,
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-  });
-
-  client.interceptors.request.use((config) => {
-    const token = getTokenFromStorages();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  });
-
-  client.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      if (error.response?.status === 403) {
-        const message = error.response?.data?.message || error.response?.data?.error;
-        if (message?.includes('holding')) {
-          console.error('Access denied: Not a holding organization');
-        } else if (message?.includes('module')) {
-          console.error('Access denied: Multi-organization module not active');
-        }
-      }
-      return Promise.reject(error);
-    }
-  );
-
-  return client;
-};
-
-const api = createApiClient();
+const MULTI_ORG_PATH = '/multi-organization';
 
 const buildQueryParams = (filters?: HoldingFilters, page?: number, perPage?: number): string => {
   const params = new URLSearchParams();
@@ -103,33 +64,33 @@ const buildQueryParams = (filters?: HoldingFilters, page?: number, perPage?: num
 
 export const multiOrgApiV2 = {
   getDashboard: async () => {
-    const response = await api.get<ApiResponse<HoldingDashboardData>>('/dashboard-v2');
+    const response = await api.get<ApiResponse<HoldingDashboardData>>(`${MULTI_ORG_PATH}/dashboard-v2`);
     return response.data;
   },
 
   getProjects: async (filters?: HoldingFilters, page = 1, perPage = 50) => {
     const queryString = buildQueryParams(filters, page, perPage);
     const response = await api.get<ApiResponse<PaginatedData<ProjectWithOrganization>>>(
-      `/projects${queryString ? '?' + queryString : ''}`
+      `${MULTI_ORG_PATH}/projects${queryString ? '?' + queryString : ''}`
     );
     return response.data;
   },
 
   getProject: async (projectId: number) => {
-    const response = await api.get<ApiResponse<ProjectDetailV2>>(`/projects/${projectId}`);
+    const response = await api.get<ApiResponse<ProjectDetailV2>>(`${MULTI_ORG_PATH}/projects/${projectId}`);
     return response.data;
   },
 
   getContracts: async (filters?: HoldingFilters, page = 1, perPage = 50) => {
     const queryString = buildQueryParams(filters, page, perPage);
     const response = await api.get<ApiResponse<PaginatedData<ContractWithOrganization>>>(
-      `/contracts-v2${queryString ? '?' + queryString : ''}`
+      `${MULTI_ORG_PATH}/contracts-v2${queryString ? '?' + queryString : ''}`
     );
     return response.data;
   },
 
   getFilterOptions: async () => {
-    const response = await api.get<ApiResponse<FilterOptions>>('/filter-options');
+    const response = await api.get<ApiResponse<FilterOptions>>(`${MULTI_ORG_PATH}/filter-options`);
     return response.data;
   },
 };

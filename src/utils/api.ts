@@ -10,11 +10,13 @@ import {
   attachAuthorizationHeader,
   clearAuthToken,
   clearAuthTokenIfCurrent,
+  clearCsrfToken,
   getAuthorizationHeaderForToken,
   getAuthToken,
-  getAuthTokenPersistence,
+  getCsrfToken,
+  invalidateAuthSession,
   saveAuthToken,
-  type AuthTokenPersistence,
+  saveCsrfToken,
 } from './authTokenStorage';
 import type { AdminFormData as AdminFormDataExternal, AdminUsersListResponse, AdminUserDetailResponse, AdminUserDeleteResponse } from '../types/admin';
 import NotificationService from '@components/shared/NotificationService';
@@ -45,21 +47,23 @@ const redirectToLogin = (): void => {
   }
 };
 
-// Создаем экземпляр axios с базовым URL
-// Этот экземпляр axios используется для старых сервисов, которые ожидают /landing в пути.
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
+  withCredentials: false,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   }
 });
 
-// Дополнительная функция для работы с токеном через разные типы хранилищ
-const saveTokenToMultipleStorages = (token: string, persistence: AuthTokenPersistence = 'session') => {
-  saveAuthToken(token, persistence);
-};
+export const authApi = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+});
 
 export const getTokenFromStorages = (): string | null => {
   return getAuthToken();
@@ -68,10 +72,16 @@ export const getTokenFromStorages = (): string | null => {
 const clearTokenFromStorages = (expectedToken?: string | null) => {
   if (expectedToken === undefined) {
     clearAuthToken();
+    clearCsrfToken();
     return true;
   }
 
-  return clearAuthTokenIfCurrent(expectedToken);
+  const cleared = clearAuthTokenIfCurrent(expectedToken);
+  if (cleared) {
+    clearCsrfToken();
+  }
+
+  return cleared;
 };
 
 export type FetchApiResponse<T> = {
@@ -108,14 +118,15 @@ type ApiRequestError = Error & {
   originalError?: unknown;
 };
 
-type AuthPatchedWindow = Window & typeof globalThis & {
-  __authFetchPatched?: boolean;
-};
-
 type AuthPayload = Partial<AuthResponseData> & {
   data?: Partial<AuthResponseData> & {
     data?: Partial<AuthResponseData>;
   };
+};
+
+export type RefreshedAuthSession = {
+  token: string;
+  csrfToken: string;
 };
 
 type UserPayload = Partial<UserResponseData> & {
@@ -151,6 +162,116 @@ const extractTokenFromPayload = (payload: unknown): string | null => {
     ?? root.data?.token
     ?? root.data?.data?.token
     ?? null;
+};
+
+const extractCsrfTokenFromPayload = (payload: unknown): string | null => {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const root = payload as AuthPayload;
+
+  return root.csrf_token
+    ?? root.data?.csrf_token
+    ?? root.data?.data?.csrf_token
+    ?? null;
+};
+
+const csrfHeaders = (): Record<string, string> => {
+  const csrfToken = getCsrfToken();
+
+  return csrfToken ? { 'X-CSRF-Token': csrfToken } : {};
+};
+
+let refreshPromise: Promise<RefreshedAuthSession> | null = null;
+
+const requestCsrfToken = async (): Promise<string> => {
+  const response = await authApi.get('/auth/csrf');
+  const csrfToken = extractCsrfTokenFromPayload(response.data);
+
+  if (!csrfToken) {
+    throw new Error('Сервер не выдал защитный токен сессии.');
+  }
+
+  saveCsrfToken(csrfToken);
+
+  return csrfToken;
+};
+
+export const refreshAccessTokenOnce = async (): Promise<RefreshedAuthSession> => {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  refreshPromise = (async () => {
+    if (!getCsrfToken()) {
+      await requestCsrfToken();
+    }
+
+    const response = await authApi.post('/auth/refresh', undefined, {
+      headers: csrfHeaders(),
+    });
+    const token = extractTokenFromPayload(response.data);
+    const csrfToken = extractCsrfTokenFromPayload(response.data);
+
+    if (!token || !csrfToken) {
+      throw new Error('Сервер не вернул обновлённую сессию.');
+    }
+
+    saveAuthToken(token);
+    saveCsrfToken(csrfToken);
+
+    return { token, csrfToken };
+  })().finally(() => {
+    refreshPromise = null;
+  });
+
+  return refreshPromise;
+};
+
+const invalidateAndRedirect = (): void => {
+  invalidateAuthSession(true);
+  redirectToLogin();
+};
+
+export const authorizedFetch = async (
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+): Promise<Response> => {
+  const makeRequest = (): Promise<Response> => {
+    const headers = new Headers(init.headers);
+    const token = getAuthToken();
+
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    return fetch(input, {
+      ...init,
+      credentials: init.credentials ?? 'omit',
+      headers,
+    });
+  };
+
+  let response = await makeRequest();
+
+  if (response.status !== 401) {
+    return response;
+  }
+
+  try {
+    await refreshAccessTokenOnce();
+    response = await makeRequest();
+  } catch (error) {
+    invalidateAndRedirect();
+    throw error;
+  }
+
+  if (response.status === 401) {
+    invalidateAndRedirect();
+  }
+
+  return response;
 };
 
 const LOGIN_NETWORK_ERROR_MESSAGE = 'Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.';
@@ -248,40 +369,23 @@ api.interceptors.response.use(
   (response: Axios.AxiosXHR<unknown>) => response,
   async (error: ApiClientError) => {
     const originalRequest = error.config;
-    const isRefreshRequest = originalRequest?.url === '/auth/refresh';
-    // Обработка ошибки 401 (Unauthorized)
-    // Добавляем проверку, чтобы не попасть в цикл, если сам /auth/refresh вернул 401
-    if (error.response?.status === 401 && originalRequest && !isRefreshRequest && !originalRequest._retry) {
+    const isAuthRequest = originalRequest?.url?.startsWith('/auth/') === true;
+
+    if (error.response?.status === 401 && originalRequest && !isAuthRequest && !originalRequest._retry) {
       originalRequest._retry = true;
-      // Попытка обновить токен
+
       try {
-        const refreshResponse = await api.post('/auth/refresh'); // Предполагается, что refresh-токен обрабатывается бэкендом через httpOnly cookie или сессию
-        const token = extractTokenFromPayload(refreshResponse.data);
+        const { token } = await refreshAccessTokenOnce();
 
-        if (!token) {
-          console.error('Refresh response did not contain a token.');
-          clearTokenFromStorages();
-          redirectToLogin();
-          return Promise.reject(new Error('Refresh response did not contain a token.'));
-        }
-
-        saveTokenToMultipleStorages(token, getAuthTokenPersistence());
-
-        // Повторяем оригинальный запрос с новым токеном
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${token}`;
         }
+
         return api(originalRequest);
-      } catch (refreshError: unknown) {
-        clearTokenFromStorages();
-        redirectToLogin();
+      } catch (refreshError) {
+        invalidateAndRedirect();
         return Promise.reject(refreshError);
       }
-    } else if (error.response?.status === 401 && isRefreshRequest) {
-      // Если /auth/refresh сам вернул 401, значит refresh token невалиден или истек
-      console.error('Refresh token is invalid or expired. Logging out.');
-      clearTokenFromStorages();
-      return Promise.reject(error); // Важно отклонить промис, чтобы вызывающий код мог обработать ошибку
     }
 
     // Обработка 403 (Forbidden / insufficient permissions)
@@ -317,6 +421,7 @@ export interface ApiResponse<T> {
 // Интерфейсы для данных ответов
 export interface AuthResponseData {
   token?: string;
+  csrf_token?: string;
   user?: LandingUser;
   status?: 'verification_required';
   email_verified?: boolean;
@@ -364,47 +469,22 @@ export const authService = {
       throw createApiRequestError(data?.message || 'Ошибка входа', response.status, data);
     }
 
-    // Сразу сохраняем токен в хранилище
-    const token = extractTokenFromPayload(data);
-
-    if (token) {
-      saveTokenToMultipleStorages(token);
-    }
-
-    // Создаем объект, имитирующий ответ Axios
     return createFetchResponse(data, response);
   },
 
-  // Выход из системы
-  logout: async (tokenSnapshot: string | null = getTokenFromStorages()) => {
-    const logoutConfig = {
-      headers: getAuthorizationHeaderForToken(tokenSnapshot),
-      skipAuth: tokenSnapshot === null,
-    } as RetriableRequestConfig;
-
-    try {
-      return await api.post<ApiResponse<null>>('/auth/logout', undefined, logoutConfig);
-    } finally {
-      clearTokenFromStorages(tokenSnapshot);
-    }
+  logout: async (tokenSnapshot: string | null = getAuthToken()) => {
+    return authApi.post<ApiResponse<null>>('/auth/logout', undefined, {
+      headers: {
+        ...getAuthorizationHeaderForToken(tokenSnapshot),
+        ...csrfHeaders(),
+      },
+    });
   },
 
-  // Получение данных текущего пользователя
   getCurrentUser: async (): Promise<FetchApiResponse<UserPayload>> => {
-    const token = getTokenFromStorages();
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${API_URL}/auth/me`, {
+    const response = await authorizedFetch(`${API_URL}/auth/me`, {
       method: 'GET',
-      headers,
-      credentials: 'include',
+      headers: { Accept: 'application/json' },
     });
 
     const data = await response.json() as UserPayload;
@@ -413,17 +493,7 @@ export const authService = {
     return createFetchResponse(data, response);
   },
 
-  // Обновление токена
-  refreshToken: async () => {
-    const response = await api.post<ApiResponse<{ token: string }>>('/auth/refresh');
-    const token = extractTokenFromPayload(response.data);
-
-    if (token) {
-      saveTokenToMultipleStorages(token, getAuthTokenPersistence());
-    }
-
-    return response;
-  },
+  refreshToken: refreshAccessTokenOnce,
 
   // Запрос на сброс пароля
   requestPasswordReset: (email: string) =>
@@ -856,6 +926,7 @@ export interface RegisterRequest {
 export interface LoginRequest {
   email: string;
   password: string;
+  remember_me?: boolean;
 }
 
 export interface UpdateProfileRequest {
@@ -2440,51 +2511,6 @@ export const holdingReportsService = {
     return await response.blob();
   }
 };
-
-// --- Глобальный перехват fetch, чтобы при любом 401/419 делать redirect на /login ---
-if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-  const authWindow = window as AuthPatchedWindow;
-  if (!authWindow.__authFetchPatched) {
-  const nativeFetch = window.fetch.bind(window);
-  authWindow.__authFetchPatched = true;
-  window.fetch = async (...args: Parameters<typeof nativeFetch>): Promise<Response> => {
-    const resp = await nativeFetch(...(args as Parameters<typeof nativeFetch>));
-    if (resp.status === 401 || resp.status === 419) {
-      try { clearTokenFromStorages(); } catch { }
-      if (!window.location.pathname.includes('/login')) {
-        window.location.replace('/login');
-      }
-    }
-    if (resp.status === 403) {
-      try {
-        const cloned = resp.clone();
-        let apiMessage = 'У вас нет доступа к этому ресурсу.';
-        try {
-          const body = await cloned.json();
-          apiMessage = body?.message || apiMessage;
-        } catch { }
-
-        // Не показываем уведомление для ошибок верификации email при логине
-        const isEmailVerificationError = apiMessage.includes('подтвердите ваш email') ||
-          apiMessage.includes('подтвердите email') ||
-          apiMessage.includes('Пожалуйста, подтвердите ваш email адрес');
-
-        if (!isEmailVerificationError) {
-          NotificationService.show({
-            type: 'error',
-            title: 'Недостаточно прав',
-            message: apiMessage,
-            duration: 7000,
-          });
-        }
-      } catch { }
-    }
-    return resp;
-  };
-  }
-}
-// --- конец перехвата ---
-
 
 // API сервис для управления лендингами холдингов
 export const holdingLandingService = {

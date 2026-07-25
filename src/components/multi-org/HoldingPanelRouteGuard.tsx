@@ -6,21 +6,29 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface HoldingPanelRouteGuardProps {
   children: ReactNode;
+  deniedPath?: string;
 }
 
-export const HoldingPanelRouteGuard = ({ children }: HoldingPanelRouteGuardProps) => {
-  const { user, isLoading } = useAuth();
+export const HoldingPanelRouteGuard = ({
+  children,
+  deniedPath = '/dashboard/multi-organization',
+}: HoldingPanelRouteGuardProps) => {
+  const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
     return <PageLoading message="Загрузка панели холдинга..." />;
   }
 
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
   const organization = user && 'organization' in user ? (user.organization as any) : null;
   const isHoldingOrganization = organization?.organization_type === 'parent' || organization?.is_holding === true;
 
   if (!isHoldingOrganization) {
-    return <Navigate to="/dashboard/multi-organization" replace state={{ from: location }} />;
+    return <Navigate to={deniedPath} replace state={{ from: location }} />;
   }
 
   return <>{children}</>;

@@ -1,31 +1,5 @@
 import { useState, useCallback } from 'react';
-import axios from 'axios';
-import { getTokenFromStorages } from '@/utils/api';
-
-const API_BASE_DOMAIN = 'https://api.1мост.рф';
-const MULTI_ORG_API_URL = `${API_BASE_DOMAIN}/api/v1/landing/multi-organization`;
-
-const createApiClient = () => {
-  const client = axios.create({
-    baseURL: MULTI_ORG_API_URL,
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-  });
-
-  client.interceptors.request.use((config) => {
-    const token = getTokenFromStorages();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  });
-
-  return client;
-};
-
-const api = createApiClient();
+import api from '@/utils/api';
 
 interface Contract {
   id: number;
@@ -133,7 +107,7 @@ export const useHoldingContracts = () => {
             from: number;
             to: number;
           };
-        }>('/contracts-v2', {
+        }>('/multi-organization/contracts-v2', {
           params,
         });
 

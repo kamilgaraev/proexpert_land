@@ -1,81 +1,70 @@
-export type AuthTokenPersistence = 'memory' | 'session' | 'local';
+export type AuthTokenPersistence = 'memory';
 
-const legacyCookieName = 'authToken';
-const primaryStorageKey = 'authToken';
-const legacyStorageKeys = ['token', primaryStorageKey];
-
-type PersistedAuthToken = {
-  token: string | null;
-  persistence: AuthTokenPersistence;
+type AuthSessionSignal = {
+  type: 'logout';
 };
 
-const readPersistedAuthToken = (): PersistedAuthToken => {
-  if (typeof window === 'undefined') {
-    return { token: null, persistence: 'memory' };
-  }
+type AuthSessionListener = () => void;
 
-  for (const key of legacyStorageKeys) {
-    const sessionToken = window.sessionStorage.getItem(key);
+const AUTH_SESSION_CHANNEL = 'most-lk-auth';
 
-    if (sessionToken) {
-      return { token: sessionToken, persistence: 'session' };
-    }
+let memoryToken: string | null = null;
+let memoryCsrfToken: string | null = null;
+let authChannel: BroadcastChannel | null = null;
+const sessionListeners = new Set<AuthSessionListener>();
 
-    const localToken = window.localStorage.getItem(key);
-
-    if (localToken) {
-      return { token: localToken, persistence: 'local' };
-    }
-  }
-
-  return { token: null, persistence: 'memory' };
+const notifySessionInvalidated = (): void => {
+  sessionListeners.forEach((listener) => listener());
 };
 
-const initialAuthToken = readPersistedAuthToken();
+const getAuthChannel = (): BroadcastChannel | null => {
+  if (typeof window === 'undefined' || typeof BroadcastChannel === 'undefined') {
+    return null;
+  }
 
-let memoryToken: string | null = initialAuthToken.token;
-let memoryPersistence: AuthTokenPersistence = initialAuthToken.persistence;
+  if (authChannel) {
+    return authChannel;
+  }
+
+  authChannel = new BroadcastChannel(AUTH_SESSION_CHANNEL);
+  authChannel.addEventListener('message', (event: MessageEvent<AuthSessionSignal>) => {
+    if (event.data?.type === 'logout') {
+      clearAuthToken();
+      clearCsrfToken();
+      notifySessionInvalidated();
+    }
+  });
+
+  return authChannel;
+};
 
 export const getAuthToken = (): string | null => memoryToken;
 
-export const getAuthTokenPersistence = (): AuthTokenPersistence => memoryPersistence;
+export const getAuthTokenPersistence = (): AuthTokenPersistence => 'memory';
 
-export const synchronizeAuthToken = (
-  token: string | null,
-  persistence: AuthTokenPersistence,
-): void => {
+export const synchronizeAuthToken = (token: string | null): void => {
   memoryToken = token;
-  memoryPersistence = token ? persistence : 'memory';
 };
 
 export const saveAuthToken = (
   token: string | null | undefined,
-  persistence: AuthTokenPersistence = 'session',
+  _persistence: AuthTokenPersistence = 'memory',
 ): void => {
   memoryToken = token || null;
-  memoryPersistence = memoryToken ? persistence : 'memory';
+};
 
-  if (typeof window === 'undefined') {
-    return;
-  }
+export const getCsrfToken = (): string | null => memoryCsrfToken;
 
-  for (const key of legacyStorageKeys) {
-    window.localStorage.removeItem(key);
-    window.sessionStorage.removeItem(key);
-  }
+export const saveCsrfToken = (token: string | null | undefined): void => {
+  memoryCsrfToken = token || null;
+};
 
-  if (!memoryToken || persistence === 'memory') {
-    return;
-  }
-
-  const storage = persistence === 'local' ? window.localStorage : window.sessionStorage;
-  storage.setItem(primaryStorageKey, memoryToken);
+export const clearCsrfToken = (): void => {
+  memoryCsrfToken = null;
 };
 
 export const clearAuthToken = (): void => {
   memoryToken = null;
-  memoryPersistence = 'memory';
-  clearPersistedAuthToken();
 };
 
 export const clearAuthTokenIfCurrent = (expectedToken: string | null): boolean => {
@@ -88,17 +77,23 @@ export const clearAuthTokenIfCurrent = (expectedToken: string | null): boolean =
   return true;
 };
 
-export const clearPersistedAuthToken = (): void => {
-  if (typeof window === 'undefined') {
-    return;
-  }
+export const subscribeAuthSessionInvalidation = (
+  listener: AuthSessionListener,
+): (() => void) => {
+  sessionListeners.add(listener);
+  getAuthChannel();
 
-  for (const key of legacyStorageKeys) {
-    window.localStorage.removeItem(key);
-    window.sessionStorage.removeItem(key);
-  }
+  return () => sessionListeners.delete(listener);
+};
 
-  document.cookie = `${legacyCookieName}=; path=/; max-age=0`;
+export const invalidateAuthSession = (broadcast = false): void => {
+  clearAuthToken();
+  clearCsrfToken();
+  notifySessionInvalidated();
+
+  if (broadcast) {
+    getAuthChannel()?.postMessage({ type: 'logout' } satisfies AuthSessionSignal);
+  }
 };
 
 export const getAuthorizationHeader = (): Record<string, string> => {
@@ -127,22 +122,20 @@ const hasAuthorizationHeader = (headers: any): boolean => {
 };
 
 export const attachAuthorizationHeader = <T extends { headers?: any; skipAuth?: boolean }>(config: T): T => {
-  if (config.skipAuth) {
+  if (config.skipAuth || !memoryToken) {
     return config;
   }
 
-  if (memoryToken) {
-    config.headers = config.headers || {};
+  config.headers = config.headers || {};
 
-    if (hasAuthorizationHeader(config.headers)) {
-      return config;
-    }
+  if (hasAuthorizationHeader(config.headers)) {
+    return config;
+  }
 
-    if (typeof config.headers.set === 'function') {
-      config.headers.set('Authorization', `Bearer ${memoryToken}`);
-    } else {
-      config.headers.Authorization = `Bearer ${memoryToken}`;
-    }
+  if (typeof config.headers.set === 'function') {
+    config.headers.set('Authorization', `Bearer ${memoryToken}`);
+  } else {
+    config.headers.Authorization = `Bearer ${memoryToken}`;
   }
 
   return config;
