@@ -340,14 +340,14 @@ describe('BillingPage commercial packages', () => {
     server.use(
       http.get(`${baseUrl}/billing/commercial/orders/order-resource-only`, () => HttpResponse.json({ success: true, data: {
         order_id: 'order-resource-only', kind: 'initial', status: 'paid',
-        payment_status: 'succeeded', amount: '1000.00', amount_minor: 100000,
+        payment_status: 'succeeded', amount: '200.00', amount_minor: 20000,
         currency: 'RUB',
         selected_package_slugs: [],
         target_package_slugs: [packageSlugs[0], packageSlugs[1], packageSlugs[2]],
         current_package_slugs: [packageSlugs[0], packageSlugs[1], packageSlugs[2]],
         paid_package_slugs: [],
-        selected_resource_addons: [{ slug: 'extra_projects', limit_key: 'projects', quantity: 2, amount_minor: 100000, amount: '1000.00', currency: 'RUB', status: 'ok', requires_package: null }],
-        paid_composition_items: [{ type: 'resource', slug: 'extra_projects', label: 'Дополнительные проекты', quantity: 2 }],
+        selected_resource_addons: [{ slug: 'storage_gb', limit_key: 'storage_gb', quantity: 10, amount_minor: 20000, amount: '200.00', currency: 'RUB', status: 'ok', requires_package: null }],
+        paid_composition_items: [{ type: 'resource', slug: 'storage_gb', label: '', quantity: 10 }],
         offer_type: 'packages',
         period_start_at: null, period_end_at: '2026-08-22T16:56:00Z', auto_renew_consent: true, test_mode: false,
         confirmation_url: null, created_at: '2026-07-23T16:56:00Z', paid_at: '2026-07-23T16:57:00Z',
@@ -357,7 +357,7 @@ describe('BillingPage commercial packages', () => {
 
     renderPage();
 
-    expect(await screen.findByText(/Состав: Дополнительные проекты: \+2\./)).toBeInTheDocument();
+    expect(await screen.findByText((content) => content.includes('Состав: Дополнительное хранилище: +10.'))).toBeInTheDocument();
     expect(screen.queryByText(/Состав: Пакет 1, Пакет 2, Пакет 3/)).not.toBeInTheDocument();
   });
 

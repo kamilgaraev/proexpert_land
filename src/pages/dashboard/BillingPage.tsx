@@ -53,6 +53,19 @@ const orderStatusLabel: Record<string, string> = {
   pending_payment: 'Ожидает оплаты', paid: 'Оплачен', canceled: 'Отменён', refunded: 'Возврат', failed: 'Ошибка оплаты',
 };
 
+const resourceFallbackNames: Record<string, string> = {
+  extra_users: '\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0438',
+  extra_projects: '\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u043f\u0440\u043e\u0435\u043a\u0442\u044b',
+  storage_gb: '\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0435 \u0445\u0440\u0430\u043d\u0438\u043b\u0438\u0449\u0435',
+  extra_holding_organizations: '\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u043e\u0440\u0433\u0430\u043d\u0438\u0437\u0430\u0446\u0438\u0438 \u0445\u043e\u043b\u0434\u0438\u043d\u0433\u0430',
+  extra_contractors: '\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u043f\u043e\u0434\u0440\u044f\u0434\u0447\u0438\u043a\u0438',
+  extra_ai_requests: '\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 AI-\u0437\u0430\u043f\u0440\u043e\u0441\u044b',
+  extra_ai_estimates: '\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 AI-\u0441\u043c\u0435\u0442\u044b',
+  extra_document_pages: '\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u044b \u0440\u0430\u0441\u043f\u043e\u0437\u043d\u0430\u0432\u0430\u043d\u0438\u044f',
+  extra_exports: '\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u044d\u043a\u0441\u043f\u043e\u0440\u0442\u044b',
+  extra_commercial_proposals: '\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u043a\u043e\u043c\u043c\u0435\u0440\u0447\u0435\u0441\u043a\u0438\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u044f',
+};
+
 const quotaValue = (value: number | null, unit?: string) => {
   if (value === null) return 'без ограничения';
   const formatted = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(value);
@@ -106,19 +119,33 @@ const BillingPage = () => {
   const quantityFor = useCallback((value: number) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }).format(value), []);
   const orderComposition = useCallback((order: CommercialOrder) => {
     if (order.paidCompositionItems.length > 0) {
-      return order.paidCompositionItems
-        .map((item) => item.type === 'resource' && item.quantity !== null ? `${item.label}: +${quantityFor(item.quantity)}` : item.label)
+      const paidComposition = order.paidCompositionItems
+        .map((item) => {
+          const rawLabel = item.label.trim();
+          const label = item.type === 'resource'
+            ? (rawLabel && rawLabel !== item.slug ? rawLabel : resourceNames.get(item.slug) ?? resourceFallbackNames[item.slug] ?? rawLabel)
+            : (rawLabel || packageNames.get(item.slug) || item.slug);
+
+          if (!label) return null;
+
+          return item.type === 'resource' && item.quantity !== null
+            ? `${label}: +${quantityFor(item.quantity)}`
+            : label;
+        })
+        .filter((item): item is string => Boolean(item))
         .join(', ');
+
+      if (paidComposition) return paidComposition;
     }
 
     const paidPackages = namesFor(order.paidPackageSlugs);
     const resources = order.selectedResourceAddons
       .filter((resource) => resource.quantity > 0)
-      .map((resource) => `${resourceNames.get(resource.slug) ?? resource.slug}: +${quantityFor(resource.quantity)}`)
+      .map((resource) => `${resourceNames.get(resource.slug) ?? resourceFallbackNames[resource.slug] ?? resource.slug}: +${quantityFor(resource.quantity)}`)
       .join(', ');
 
     return [paidPackages, resources].filter(Boolean).join(', ') || 'оплаченные возможности';
-  }, [namesFor, quantityFor, resourceNames]);
+  }, [namesFor, packageNames, quantityFor, resourceNames]);
   const targetPackageSlugs = useMemo(() => fullSuite ? packages.map((item) => item.slug) : selected, [fullSuite, packages, selected]);
   const targetPackageSlugSet = useMemo(() => new Set(targetPackageSlugs), [targetPackageSlugs]);
   const resourceAvailableForCheckout = useCallback((resource: { available: boolean; requiresPackage: string | null }) => (

@@ -248,13 +248,24 @@ const resourceAddonsFromApi = (items: unknown): CommercialOrder['selectedResourc
   })) : []
 );
 
+const stringFromApi = (value: unknown): string => (
+  typeof value === 'string' ? value.trim() : ''
+);
+
 const paidCompositionItemsFromApi = (items: unknown): CommercialOrder['paidCompositionItems'] => (
-  Array.isArray(items) ? items.map((item: JsonRecord) => ({
-    type: item.type === 'resource' ? 'resource' : 'package',
-    slug: item.slug,
-    label: item.label ?? item.slug,
-    quantity: item.quantity == null ? null : Number(item.quantity),
-  })) : []
+  Array.isArray(items) ? items
+    .filter((item: unknown): item is JsonRecord => typeof item === 'object' && item !== null)
+    .map((item: JsonRecord) => {
+      const slug = stringFromApi(item.slug);
+      const label = stringFromApi(item.label) || slug;
+      return {
+        type: item.type === 'resource' ? 'resource' : 'package',
+        slug,
+        label,
+        quantity: item.quantity == null ? null : Number(item.quantity),
+      };
+    })
+    .filter((item) => item.slug !== '' || item.label !== '') : []
 );
 
 const paidPackageSlugsFromApi = (
