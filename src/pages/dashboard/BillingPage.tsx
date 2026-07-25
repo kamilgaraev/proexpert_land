@@ -119,8 +119,13 @@ const BillingPage = () => {
     return 'МОСТ без оплаты';
   }, [packages]);
   const selectedResourceAddons = useMemo(() => limitsSummary?.resourceAddons
-    .filter((resource) => resourceAvailableForCheckout(resource) && (resourceQuantities[resource.slug] ?? resource.currentQuantity) !== resource.currentQuantity)
-    .map((resource) => ({ slug: resource.slug, quantity: resourceQuantities[resource.slug] ?? resource.currentQuantity })) ?? [], [limitsSummary, resourceAvailableForCheckout, resourceQuantities]);
+    .map((resource) => ({
+      slug: resource.slug,
+      quantity: Math.max(0, (resourceQuantities[resource.slug] ?? resource.currentQuantity) - resource.currentQuantity),
+      available: resourceAvailableForCheckout(resource),
+    }))
+    .filter((resource) => resource.available && resource.quantity > 0)
+    .map(({ slug, quantity }) => ({ slug, quantity })) ?? [], [limitsSummary, resourceAvailableForCheckout, resourceQuantities]);
 
   const loadOverview = useCallback(async () => {
     setLoading(true);

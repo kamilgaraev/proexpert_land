@@ -71,6 +71,7 @@ const server = setupServer(
     ],
     resource_addons: [
       { slug: 'extra_users', limit_key: 'users', name: 'Дополнительные пользователи', unit: 'user', current_quantity: 0, step: 1, min: 0, max_self_service: 200, requires_package: null, available: true, pricing: { model: 'linear', currency: 'RUB', price_minor: 30000, amount: '300.00' } },
+      { slug: 'extra_projects', limit_key: 'projects', name: 'Дополнительные проекты', unit: 'project', current_quantity: 1, step: 1, min: 0, max_self_service: 100, requires_package: null, available: true, pricing: { model: 'linear', currency: 'RUB', price_minor: 50000, amount: '500.00' } },
       { slug: 'extra_document_pages', limit_key: 'document_pages_month', name: 'Дополнительные страницы распознавания', unit: 'page', current_quantity: 0, step: 100, min: 0, max_self_service: 5000, requires_package: 'estimates-norms', available: false, pricing: { model: 'linear', currency: 'RUB', price_minor: 1000, amount: '10.00' } },
     ],
   } })),
@@ -86,10 +87,12 @@ const server = setupServer(
     if (body.target_package_slugs.includes(packageSlugs[1]) && !body.target_package_slugs.includes(packageSlugs[2])) await delay(300);
     if (body.target_package_slugs.includes(packageSlugs[2])) await delay(10);
     const extraUsers = body.resources?.find((item) => item.slug === 'extra_users')?.quantity ?? 0;
+    const extraProjects = body.resources?.find((item) => item.slug === 'extra_projects')?.quantity ?? 0;
     const documentPages = body.resources?.find((item) => item.slug === 'extra_document_pages')?.quantity ?? 0;
     if (extraUsers === 13) return HttpResponse.json({ success: false, message: 'Не удалось рассчитать дополнительный объём.' }, { status: 422 });
     const resourceItems = [
       ...(extraUsers > 0 ? [{ slug: 'extra_users', limit_key: 'users', quantity: extraUsers, amount_minor: extraUsers * 30000, amount: (extraUsers * 300).toFixed(2), currency: 'RUB', status: extraUsers > 200 ? 'requires_manager' : 'ok', requires_package: null }] : []),
+      ...(extraProjects > 0 ? [{ slug: 'extra_projects', limit_key: 'projects', quantity: extraProjects, amount_minor: extraProjects * 50000, amount: (extraProjects * 500).toFixed(2), currency: 'RUB', status: extraProjects > 100 ? 'requires_manager' : 'ok', requires_package: null }] : []),
       ...(documentPages > 0 ? [{ slug: 'extra_document_pages', limit_key: 'document_pages_month', quantity: documentPages, amount_minor: documentPages * 1000, amount: (documentPages * 10).toFixed(2), currency: 'RUB', status: body.target_package_slugs.includes(packageSlugs[2]) ? 'ok' : 'package_required', requires_package: packageSlugs[2] }] : []),
     ];
     const resourceTotal = resourceItems.reduce((sum, item) => sum + item.amount_minor, 0);
@@ -440,6 +443,66 @@ describe('BillingPage commercial packages', () => {
       current_package_slugs: [packageSlugs[0]],
       resources: [{ slug: 'extra_users', quantity: 10 }],
       resource_quote_version: 1,
+    });
+  });
+
+  it('оплачивает только прирост дополнительного объёма, а не итоговое значение поля', async () => {
+    let quoteBody: Record<string, unknown> | null = null;
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(
+      http.post(`${baseUrl}/billing/commercial/quote`, async ({ request }) => {
+        quoteBody = await request.json() as Record<string, unknown>;
+        const resources = (quoteBody.resources ?? []) as Array<{ slug: string; quantity: number }>;
+        const extraProjects = resources.find((item) => item.slug === 'extra_projects')?.quantity ?? 0;
+
+        return HttpResponse.json({ success: true, data: {
+          quote_version: 1, currency: 'RUB', billing_period_days: 30,
+          offer_type: 'packages',
+          target_package_slugs: [packageSlugs[0]],
+          current_package_slugs: [packageSlugs[0]], added_package_slugs: [], removed_package_slugs: [],
+          monthly_total: (extraProjects * 500).toFixed(2), monthly_total_minor: extraProjects * 50000,
+          amount_due_now: (extraProjects * 500).toFixed(2), amount_due_now_minor: extraProjects * 50000,
+          savings_amount: '0.00', savings_amount_minor: 0, savings_percent: 0,
+          recommendation: null,
+          period_start_at: '2026-07-01T09:00:00Z', period_end_at: '2026-07-31T09:00:00Z',
+          resource_quote_version: 1,
+          resource_addons_quote: {
+            amount_minor: extraProjects * 50000,
+            amount: (extraProjects * 500).toFixed(2),
+            currency: 'RUB',
+            requires_manager: false,
+            quote_version: 1,
+            items: [{ slug: 'extra_projects', limit_key: 'projects', quantity: extraProjects, amount_minor: extraProjects * 50000, amount: (extraProjects * 500).toFixed(2), currency: 'RUB', status: 'ok', requires_package: null }],
+          },
+        } });
+      }),
+      http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
+        checkoutBody = await request.json() as Record<string, unknown>;
+
+        return HttpResponse.json({ success: true, data: {
+          order_id: 'extra-projects-order', status: 'pending_payment', amount: '1000.00', amount_minor: 100000,
+          currency: 'RUB', confirmation_url: 'https://yookassa.ru/confirm/extra-projects', payment_status: 'pending',
+          payment_source: 'yookassa', auto_renew_consent: true, test_mode: false,
+        } }, { status: 201 });
+      }),
+    );
+
+    renderPage();
+    const projectsResource = await screen.findByRole('group', { name: 'Дополнительные проекты' });
+    fireEvent.change(within(projectsResource).getByLabelText('Количество Дополнительные проекты'), { target: { value: '3' } });
+
+    expect(await screen.findByText('1 000 ₽/мес')).toBeInTheDocument();
+    expect(quoteBody).toMatchObject({
+      resources: [{ slug: 'extra_projects', quantity: 2 }],
+    });
+
+    const pay = screen.getAllByRole('button', { name: /Перейти к оплате/ }).find((button) => !button.hasAttribute('disabled'));
+    expect(pay).toBeDefined();
+    fireEvent.click(pay as HTMLElement);
+
+    await waitFor(() => expect(checkoutBody).not.toBeNull());
+    expect(checkoutBody).toMatchObject({
+      resources: [{ slug: 'extra_projects', quantity: 2 }],
     });
   });
 
