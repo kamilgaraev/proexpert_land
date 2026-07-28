@@ -135,6 +135,10 @@ const resolveOgImageKey = (pageKey: string) => {
     return '404';
   }
 
+  if (pageKey === 'construction-orders' || pageKey === 'construction-tenders') {
+    return 'default';
+  }
+
   if (pageKey in marketingSeo || pageKey in marketingSeoLandingPages) {
     return pageKey;
   }

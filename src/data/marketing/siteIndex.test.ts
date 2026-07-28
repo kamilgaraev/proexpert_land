@@ -81,6 +81,8 @@ describe('marketing site index', () => {
       ['/construction-payments', 'construction-payments'],
       ['/1c-integration', '1c-integration'],
       ['/contractor-marketplace', 'contractor-marketplace'],
+      ['/construction-orders', 'construction-orders'],
+      ['/construction-tenders', 'construction-tenders'],
       ['/project-pulse', 'project-pulse'],
     ] as const;
 
