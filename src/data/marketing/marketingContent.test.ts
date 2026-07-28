@@ -1370,7 +1370,7 @@ describe("marketing content consistency", () => {
       [
         "construction-tenders",
         "/construction-tenders",
-        "Шорт-лист подрядчиков",
+        "Сроки подачи",
       ],
       ["project-pulse", "/project-pulse", "Сигналы риска"],
     ] as const;
