@@ -35,5 +35,9 @@
   { "path": "/contractor-marketplace", "pageKey": "contractor-marketplace", "priority": 0.85, "changefreq": "weekly" },
   { "path": "/construction-orders", "pageKey": "construction-orders", "priority": 0.86, "changefreq": "weekly" },
   { "path": "/construction-tenders", "pageKey": "construction-tenders", "priority": 0.86, "changefreq": "weekly" },
-  { "path": "/project-pulse", "pageKey": "project-pulse", "priority": 0.83, "changefreq": "weekly" }
+  { "path": "/project-pulse", "pageKey": "project-pulse", "priority": 0.83, "changefreq": "weekly" },
+  { "path": "/subcontracting", "pageKey": "subcontracting", "priority": 0.85, "changefreq": "weekly" },
+  { "path": "/find-contractor", "pageKey": "find-contractor", "priority": 0.86, "changefreq": "weekly" },
+  { "path": "/construction-brigades", "pageKey": "construction-brigades", "priority": 0.84, "changefreq": "weekly" },
+  { "path": "/renovation-orders", "pageKey": "renovation-orders", "priority": 0.83, "changefreq": "weekly" }
 ]

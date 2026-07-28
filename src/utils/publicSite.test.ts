@@ -29,7 +29,16 @@ describe('isPrimaryMarketingHost', () => {
 });
 
 describe('isMarketingPublicPath', () => {
-  it.each(['/', '/features', '/solutions', '/blog/article']) (
+  it.each([
+    '/',
+    '/features',
+    '/solutions',
+    '/blog/article',
+    '/subcontracting',
+    '/find-contractor',
+    '/construction-brigades',
+    '/renovation-orders',
+  ])(
     'разрешает публичный маркетинговый маршрут %s',
     (pathname) => {
       expect(isMarketingPublicPath(pathname)).toBe(true);
