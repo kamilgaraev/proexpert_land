@@ -96,6 +96,24 @@ describe('marketing site index', () => {
     }
   });
 
+  it('publishes contractor intent routes as indexable sitemap routes', () => {
+    const expectedRoutes = [
+      ['/subcontracting', 'subcontracting'],
+      ['/find-contractor', 'find-contractor'],
+      ['/construction-brigades', 'construction-brigades'],
+      ['/renovation-orders', 'renovation-orders'],
+    ] as const;
+
+    for (const [path, pageKey] of expectedRoutes) {
+      expect(isKnownMarketingPath(path)).toBe(true);
+      expect(isMarketingNoIndexPath(path)).toBe(false);
+      expect(findMarketingSitemapRoute(path)).toMatchObject({
+        pageKey,
+        changefreq: 'weekly',
+      });
+    }
+  });
+
   it('recognizes noindex service routes', () => {
     expect(isKnownMarketingPath('/login')).toBe(true);
     expect(isMarketingNoIndexPath('/login')).toBe(true);

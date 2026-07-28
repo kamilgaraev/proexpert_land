@@ -85,13 +85,27 @@ describe('buildServerSeoPayload', () => {
     ]);
   });
 
-  it('renders the new construction routes with a safe default OG image', () => {
+  it('renders construction routes with a safe default OG image and service schema', () => {
     for (const path of ['/construction-orders', '/construction-tenders']) {
       const payload = buildServerSeoPayload(path);
 
       expect(payload.statusCode).toBe(200);
       expect(payload.allMeta).toContain('https://1мост.рф/og/default.png');
       expect(payload.structuredDataTag).toContain('"@type":"Service"');
+    }
+  });
+
+  it('renders contractor intent routes with a safe default OG image', () => {
+    for (const path of [
+      '/subcontracting',
+      '/find-contractor',
+      '/construction-brigades',
+      '/renovation-orders',
+    ]) {
+      const payload = buildServerSeoPayload(path);
+
+      expect(payload.statusCode).toBe(200);
+      expect(payload.allMeta).toContain('https://1мост.рф/og/default.png');
     }
   });
 

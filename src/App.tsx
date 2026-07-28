@@ -246,6 +246,10 @@ function App({
           <Route path="/construction-orders" element={<SeoClusterPage pageKey="construction-orders" />} />
           <Route path="/construction-tenders" element={<SeoClusterPage pageKey="construction-tenders" />} />
           <Route path="/project-pulse" element={<SeoClusterPage pageKey="project-pulse" />} />
+          <Route path="/subcontracting" element={<SeoClusterPage pageKey="subcontracting" />} />
+          <Route path="/find-contractor" element={<SeoClusterPage pageKey="find-contractor" />} />
+          <Route path="/construction-brigades" element={<SeoClusterPage pageKey="construction-brigades" />} />
+          <Route path="/renovation-orders" element={<SeoClusterPage pageKey="renovation-orders" />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/security" element={<SecurityPage />} />
