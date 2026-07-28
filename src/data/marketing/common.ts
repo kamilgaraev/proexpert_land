@@ -40,6 +40,8 @@ export const marketingPaths = {
   constructionPayments: "/construction-payments",
   oneCIntegration: "/1c-integration",
   contractorMarketplace: "/contractor-marketplace",
+  constructionOrders: "/construction-orders",
+  constructionTenders: "/construction-tenders",
   projectPulse: "/project-pulse",
   privacy: "/privacy",
   offer: "/offer",
@@ -284,6 +286,20 @@ export const marketingSeo: Record<string, MarketingSeoMeta> = {
       "Маркетплейс подрядчиков МОСТ: профиль, категории, поиск исполнителей, шорт-лист, приглашения и контролируемый выбор.",
     keywords:
       "маркетплейс подрядчиков для строительства, поиск подрядчиков на стройку, подбор субподрядчиков, приглашение подрядчиков",
+  },
+  "construction-orders": {
+    title: "Строительные заказы и подряды для подрядчиков | МОСТ",
+    description:
+      "МОСТ помогает заказчику направить подрядчику приглашение по объекту, а подрядчику увидеть пакет работ, сроки, бюджет и ответить принятием или отказом.",
+    keywords:
+      "строительные заказы, заказы на строительные работы, заказы на строительство, строительные подряды, заказы для строителей, МОСТ",
+  },
+  "construction-tenders": {
+    title: "Строительные тендеры: учет участия и сроков | МОСТ",
+    description:
+      "МОСТ помогает вести участие в строительных тендерах: источник, заказчик, сроки, требования, решение go/no-go, коммерческое предложение и связь с проектом.",
+    keywords:
+      "строительные тендеры, тендеры на строительство, тендеры на строительные работы, участие в тендерах, учет тендеров, МОСТ",
   },
   "project-pulse": {
     title: "Project Pulse: сигналы по строительным проектам | МОСТ",

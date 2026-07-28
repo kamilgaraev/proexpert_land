@@ -1218,7 +1218,7 @@ describe("marketing content consistency", () => {
     const titles = new Set<string>();
     const descriptions = new Set<string>();
 
-    expect(marketingSitemapRoutes).toHaveLength(35);
+    expect(marketingSitemapRoutes).toHaveLength(37);
 
     for (const { pageKey, path: route } of marketingSitemapRoutes) {
       const meta = marketingSeo[pageKey];
@@ -1362,6 +1362,16 @@ describe("marketing content consistency", () => {
         "/contractor-marketplace",
         "Поиск подрядчиков",
       ],
+      [
+        "construction-orders",
+        "/construction-orders",
+        "Приглашение на объект",
+      ],
+      [
+        "construction-tenders",
+        "/construction-tenders",
+        "Сроки подачи",
+      ],
       ["project-pulse", "/project-pulse", "Сигналы риска"],
     ] as const;
     const sitemapPageKeys = new Set(
@@ -1383,6 +1393,16 @@ describe("marketing content consistency", () => {
       expect(page.workflow?.stages.map((stage) => stage.label)).toContain(
         workflowAnchor,
       );
+      if (
+        pageKey === "construction-orders" ||
+        pageKey === "construction-tenders"
+      ) {
+        expect(page.relatedLinks).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ href: "/contractor-marketplace" }),
+          ]),
+        );
+      }
     }
   });
 

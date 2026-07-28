@@ -33,5 +33,7 @@
   { "path": "/construction-payments", "pageKey": "construction-payments", "priority": 0.87, "changefreq": "weekly" },
   { "path": "/1c-integration", "pageKey": "1c-integration", "priority": 0.82, "changefreq": "weekly" },
   { "path": "/contractor-marketplace", "pageKey": "contractor-marketplace", "priority": 0.85, "changefreq": "weekly" },
+  { "path": "/construction-orders", "pageKey": "construction-orders", "priority": 0.86, "changefreq": "weekly" },
+  { "path": "/construction-tenders", "pageKey": "construction-tenders", "priority": 0.86, "changefreq": "weekly" },
   { "path": "/project-pulse", "pageKey": "project-pulse", "priority": 0.83, "changefreq": "weekly" }
 ]
