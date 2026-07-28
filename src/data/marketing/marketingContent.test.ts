@@ -3,6 +3,8 @@ import path from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import type { MarketingSeoLandingPage } from "@/types/marketing";
+import { getPageSEOData } from "@/utils/seo";
+import { isMarketingPublicPath } from "@/utils/publicSite";
 import { marketingBlogArticles } from "./blogArticles";
 import { marketingCapabilityMatrix } from "./capabilities";
 import {
@@ -35,6 +37,14 @@ import {
   marketingSeoLandingPages,
   marketingSitemapRoutes,
 } from "./index";
+import { findMarketingSitemapRoute } from "./siteIndex";
+
+const newIntentPages = [
+  ["subcontracting", "/subcontracting"],
+  ["find-contractor", "/find-contractor"],
+  ["construction-brigades", "/construction-brigades"],
+  ["renovation-orders", "/renovation-orders"],
+] as const;
 
 type SemanticSectionName =
   | "hero"
@@ -1218,7 +1228,7 @@ describe("marketing content consistency", () => {
     const titles = new Set<string>();
     const descriptions = new Set<string>();
 
-    expect(marketingSitemapRoutes).toHaveLength(37);
+    expect(marketingSitemapRoutes).toHaveLength(41);
 
     for (const { pageKey, path: route } of marketingSitemapRoutes) {
       const meta = marketingSeo[pageKey];
@@ -1342,6 +1352,76 @@ describe("marketing content consistency", () => {
     }
   });
 
+  it("keeps contractor intent pages registered across public SEO contracts", () => {
+    for (const [pageKey, path] of newIntentPages) {
+      const page = marketingSeoLandingPages[pageKey];
+      const metadata = marketingSeo[pageKey];
+      const seoData = getPageSEOData(path);
+
+      expect(metadata, `${pageKey}: metadata`).toBeDefined();
+      expect(page, `${pageKey}: landing page`).toBeDefined();
+      expect(page.path, `${pageKey}: landing path`).toBe(path);
+      expect(
+        findMarketingSitemapRoute(path),
+        `${pageKey}: sitemap`,
+      ).toBeDefined();
+      expect(metadata.noIndex, `${pageKey}: indexability`).not.toBe(true);
+      expect(
+        seoData.canonicalUrl.endsWith(path),
+        `${pageKey}: canonical URL`,
+      ).toBe(true);
+      expect(seoData.ogImage, `${pageKey}: OG fallback`).toBe(
+        "https://1мост.рф/og/default.png",
+      );
+      expect(
+        isMarketingPublicPath(path),
+        `${pageKey}: public marketing path`,
+      ).toBe(true);
+    }
+  });
+
+  it("keeps contractor and customer intent language separate", () => {
+    const pageText = (pageKey: (typeof newIntentPages)[number][0]): string =>
+      collectSectionStrings(marketingSeoLandingPages[pageKey])
+        .join(" ")
+        .toLocaleLowerCase("ru-RU");
+
+    for (const pageKey of ["subcontracting", "renovation-orders"] as const) {
+      const text = pageText(pageKey);
+
+      expect(text, `${pageKey}: invitation language`).toContain("приглаш");
+      expect(text, `${pageKey}: response language`).toContain("ответ");
+      expect(text, `${pageKey}: guaranteed orders`).not.toContain(
+        "гарантированные заказы",
+      );
+      expect(text, `${pageKey}: order catalog`).not.toContain(
+        "каталог заказов",
+      );
+    }
+
+    for (const pageKey of [
+      "find-contractor",
+      "construction-brigades",
+    ] as const) {
+      const text = pageText(pageKey);
+
+      expect(text, `${pageKey}: profile language`).toContain("профил");
+      expect(text, `${pageKey}: category language`).toContain("категор");
+      expect(text, `${pageKey}: invitation language`).toContain("приглаш");
+
+      for (const forbiddenPromise of [
+        "автоматический подбор",
+        "гарантия качества",
+        "юридическая проверка",
+        "проверенные исполнители",
+      ]) {
+        expect(text, `${pageKey}: ${forbiddenPromise}`).not.toContain(
+          forbiddenPromise,
+        );
+      }
+    }
+  });
+
   it("publishes product workflow pages with complete SEO and internal-link contracts", () => {
     const expectedPages = [
       [
@@ -1362,16 +1442,8 @@ describe("marketing content consistency", () => {
         "/contractor-marketplace",
         "Поиск подрядчиков",
       ],
-      [
-        "construction-orders",
-        "/construction-orders",
-        "Приглашение на объект",
-      ],
-      [
-        "construction-tenders",
-        "/construction-tenders",
-        "Сроки подачи",
-      ],
+      ["construction-orders", "/construction-orders", "Приглашение на объект"],
+      ["construction-tenders", "/construction-tenders", "Сроки подачи"],
       ["project-pulse", "/project-pulse", "Сигналы риска"],
     ] as const;
     const sitemapPageKeys = new Set(
