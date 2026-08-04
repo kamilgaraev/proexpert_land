@@ -60,6 +60,7 @@ yarn-error.log*
 logs
 *.log
 *.md
+!AGENTS.md
 # Runtime data
 pids
 *.pid
