@@ -137,13 +137,45 @@
   @apply border-l-4 border-blue-500 pl-4 italic text-gray-600 bg-blue-50 py-2 my-4;
 }
 
-.blog-content ul,
+.blog-content ul {
+  @apply mb-5 list-disc space-y-2 pl-7;
+}
+
 .blog-content ol {
-  @apply pl-6 mb-4;
+  @apply mb-5 list-decimal space-y-2 pl-7;
 }
 
 .blog-content li {
-  @apply mb-2;
+  @apply pl-1 leading-relaxed text-gray-700;
+}
+
+.blog-content li::marker {
+  @apply font-semibold text-orange-600;
+}
+
+.blog-content li > ul,
+.blog-content li > ol {
+  @apply mb-0 mt-2;
+}
+
+.blog-content figure {
+  @apply my-8;
+}
+
+.blog-content figcaption {
+  @apply mt-3 text-center text-sm leading-6 text-gray-500;
+}
+
+.blog-content small {
+  @apply block text-sm leading-6 text-gray-500;
+}
+
+.blog-content hr {
+  @apply my-8 border-0 border-t border-gray-200;
+}
+
+.blog-content strong {
+  @apply font-semibold text-gray-900;
 }
 
 .blog-content code {
