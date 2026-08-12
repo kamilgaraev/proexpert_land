@@ -949,6 +949,106 @@ describe("marketing content consistency", () => {
     ).toContain("erp");
   });
 
+  it("assigns one commercial search intent to each priority landing page", () => {
+    const intentContracts = {
+      "construction-crm": "crm для строительной компании",
+      "construction-documents": "программа для исполнительной документации",
+      "pto-software": "программа для пто",
+      "material-accounting": "учёт материалов в строительстве",
+      "contractor-control": "система контроля работы подрядчиков",
+      "construction-procurement": "автоматизация закупок в строительстве",
+      "construction-tenders": "строительные тендеры",
+      "construction-orders": "строительные заказы",
+      "construction-safety": "система охраны труда на стройке",
+      "construction-quality-control":
+        "система контроля качества строительства",
+    } as const;
+
+    for (const [pageKey, primaryIntent] of Object.entries(intentContracts)) {
+      const metadata = marketingSeo[pageKey];
+      const page = marketingSeoLandingPages[pageKey];
+      const normalizedIntent = primaryIntent.toLocaleLowerCase("ru-RU");
+
+      expect(metadata.title.toLocaleLowerCase("ru-RU"), `${pageKey}: title`).toContain(
+        normalizedIntent,
+      );
+      expect(page.title.toLocaleLowerCase("ru-RU"), `${pageKey}: h1`).toContain(
+        normalizedIntent,
+      );
+      expect(
+        page.supportingQueries[0].toLocaleLowerCase("ru-RU"),
+        `${pageKey}: primary query`,
+      ).toBe(normalizedIntent);
+      expect(page.title.length, `${pageKey}: h1 length`).toBeLessThanOrEqual(60);
+    }
+  });
+
+  it("separates integration, PTO, documents, and contractor search intents", () => {
+    expect(marketingSeo.integrations.title.toLocaleLowerCase("ru-RU")).not.toContain(
+      "1с",
+    );
+    expect(marketingSeo["1c-integration"].title).toContain("1С");
+
+    expect(marketingSeo["pto-software"].title.toLocaleLowerCase("ru-RU")).not.toContain(
+      "исполнительной документации",
+    );
+    expect(
+      marketingSeo["construction-documents"].title.toLocaleLowerCase("ru-RU"),
+    ).toContain("исполнительной документации");
+
+    expect(
+      marketingSeo["contractor-marketplace"].title.toLocaleLowerCase("ru-RU"),
+    ).toContain("каталог");
+    expect(
+      marketingSeoLandingPages["contractor-marketplace"].title.toLocaleLowerCase(
+        "ru-RU",
+      ),
+    ).toContain("каталог строительных подрядчиков");
+    expect(
+      marketingSeoLandingPages["contractor-marketplace"].supportingQueries[0],
+    ).toBe("каталог строительных подрядчиков");
+    expect(marketingSeo["find-contractor"].title.toLocaleLowerCase("ru-RU")).toContain(
+      "найти подрядчика",
+    );
+    expect(
+      marketingSeo["construction-brigades"].title.toLocaleLowerCase("ru-RU"),
+    ).toContain("найти строительную бригаду");
+
+    const integrationsSource = fs.readFileSync(
+      path.resolve(process.cwd(), "src/pages/product/IntegrationsPage.tsx"),
+      "utf8",
+    );
+    const integrationsHeroTitle = integrationsSource.match(
+      /<PageHero[\s\S]*?title="([^"]+)"/u,
+    )?.[1];
+
+    expect(integrationsHeroTitle).toBe("Как МОСТ обменивается данными с внешними системами.");
+    expect(integrationsHeroTitle).not.toContain("1С");
+  });
+
+  it("uses distinct commercial anchors for priority internal links", () => {
+    const labelsByPath = new Map(
+      marketingCommercialLandingLinks.map(({ href, label }) => [
+        href,
+        label.toLocaleLowerCase("ru-RU"),
+      ]),
+    );
+
+    expect(labelsByPath.get(marketingPaths.ptoSoftware)).toBe("программа для пто");
+    expect(labelsByPath.get(marketingPaths.constructionDocuments)).toBe(
+      "исполнительная документация",
+    );
+    expect(labelsByPath.get(marketingPaths.contractorControl)).toBe(
+      "система контроля подрядчиков",
+    );
+    expect(labelsByPath.get(marketingPaths.constructionProcurement)).toBe(
+      "автоматизация закупок",
+    );
+    expect(labelsByPath.get(marketingPaths.contractorMarketplace)).toBe(
+      "каталог подрядчиков",
+    );
+  });
+
   it("detects a duplicated section even when the same text is split into short strings", () => {
     const duplicates = findSemanticSectionDuplicates({
       "/route-a": {
@@ -1560,13 +1660,13 @@ describe("marketing content consistency", () => {
     const procurementLinks = [
       ...marketingCommercialLandingLinks,
       ...marketingModuleLandingLinks,
-    ].filter((link) => link.label === "Строительные закупки");
+    ].filter((link) => link.label === "Автоматизация закупок");
 
     expect(materialAccountingLinks.map((link) => link.label)).toContain(
       "Учет материалов",
     );
     expect(materialAccountingLinks.map((link) => link.label)).not.toContain(
-      "Строительные закупки",
+      "Автоматизация закупок",
     );
     expect(procurementLinks).toEqual([
       expect.objectContaining({ href: "/construction-procurement" }),
