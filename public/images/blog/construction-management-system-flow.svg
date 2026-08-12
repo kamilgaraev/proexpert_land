@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Движение данных в системе управления строительством</title>
+  <desc id="desc">События на площадке связываются с графиком, снабжением, бюджетом и документами, после чего руководитель принимает решение.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f7f5ef}.ink{fill:#18202a}.muted{fill:#5d6874}.card{fill:#fff;stroke:#d8d5cd;stroke-width:2}.accent{fill:#e96c38}.blue{fill:#315c73}.green{fill:#4e7763}.line{stroke:#a8a49c;stroke-width:3;fill:none;stroke-linecap:round}.dash{stroke-dasharray:8 10}.t1{font:700 30px Arial,sans-serif}.t2{font:700 21px Arial,sans-serif}.t3{font:400 17px Arial,sans-serif}.small{font:400 15px Arial,sans-serif}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0l10 5-10 5z" fill="#a8a49c"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="720" rx="28"/>
+  <text x="70" y="72" class="t1 ink">Один факт меняет весь контур проекта</text>
+  <text x="70" y="106" class="t3 muted">Пример рабочего маршрута, а не схема ИТ-инфраструктуры</text>
+
+  <rect x="70" y="158" width="250" height="414" rx="20" class="card"/>
+  <rect x="70" y="158" width="250" height="12" rx="6" class="accent"/>
+  <text x="100" y="218" class="t2 ink">Площадка</text>
+  <text x="100" y="259" class="t3 muted">Работа выполнена</text>
+  <text x="100" y="294" class="t3 muted">Материал принят</text>
+  <text x="100" y="329" class="t3 muted">Есть замечание</text>
+  <text x="100" y="364" class="t3 muted">Изменился объем</text>
+  <rect x="100" y="414" width="190" height="104" rx="14" fill="#fff1ea"/>
+  <text x="120" y="449" class="small ink">Факт содержит:</text>
+  <text x="120" y="477" class="small muted">участок · дату · объем</text>
+  <text x="120" y="503" class="small muted">ответственного · фото</text>
+
+  <path d="M320 365h92" class="line" marker-end="url(#arrow)"/>
+
+  <rect x="430" y="158" width="410" height="414" rx="20" class="card"/>
+  <text x="460" y="218" class="t2 ink">Связанные контуры</text>
+  <rect x="460" y="250" width="160" height="92" rx="14" fill="#edf3f6"/>
+  <circle cx="486" cy="278" r="8" class="blue"/><text x="506" y="284" class="t3 ink">График</text>
+  <text x="486" y="316" class="small muted">план · факт · прогноз</text>
+  <rect x="650" y="250" width="160" height="92" rx="14" fill="#edf5f0"/>
+  <circle cx="676" cy="278" r="8" class="green"/><text x="696" y="284" class="t3 ink">Снабжение</text>
+  <text x="676" y="316" class="small muted">заявка · поставка</text>
+  <rect x="460" y="370" width="160" height="92" rx="14" fill="#fff1ea"/>
+  <circle cx="486" cy="398" r="8" class="accent"/><text x="506" y="404" class="t3 ink">Бюджет</text>
+  <text x="486" y="436" class="small muted">лимит · обязательство</text>
+  <rect x="650" y="370" width="160" height="92" rx="14" fill="#f0eef6"/>
+  <circle cx="676" cy="398" r="8" fill="#665481"/><text x="696" y="404" class="t3 ink">Документы</text>
+  <text x="676" y="436" class="small muted">акт · схема · версия</text>
+  <path d="M540 342v28M730 342v28M620 416h30" class="line dash"/>
+  <text x="460" y="518" class="small muted">Единые объект, участок, работа и ответственный</text>
+
+  <path d="M840 365h72" class="line" marker-end="url(#arrow)"/>
+
+  <rect x="930" y="158" width="200" height="414" rx="20" class="card"/>
+  <rect x="930" y="158" width="200" height="12" rx="6" class="blue"/>
+  <text x="960" y="218" class="t2 ink">Решение</text>
+  <text x="960" y="262" class="t3 muted">Снять</text><text x="960" y="288" class="t3 muted">ограничение</text>
+  <line x1="960" y1="314" x2="1100" y2="314" stroke="#e3e0d9"/>
+  <text x="960" y="351" class="t3 muted">Изменить</text><text x="960" y="377" class="t3 muted">ресурс</text>
+  <line x1="960" y1="403" x2="1100" y2="403" stroke="#e3e0d9"/>
+  <text x="960" y="440" class="t3 muted">Согласовать</text><text x="960" y="466" class="t3 muted">изменение</text>
+  <line x1="960" y1="492" x2="1100" y2="492" stroke="#e3e0d9"/>
+  <text x="960" y="529" class="small ink">Владелец + срок</text>
+
+  <text x="70" y="650" class="t3 ink">Контроль начинается там, где возникло событие, а не в конце отчетного периода.</text>
+</svg>

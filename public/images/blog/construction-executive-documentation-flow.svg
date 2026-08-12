@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Подготовка исполнительной документации</title>
+  <desc id="desc">Схема показывает путь от готовности работы через фиксацию факта, формирование комплекта и проверку к подписанию и архиву.</desc>
+  <defs>
+    <style>.bg{fill:#f7f5ef}.ink{fill:#18202a}.muted{fill:#63707b}.card{fill:#fff;stroke:#d8d5cd;stroke-width:2}.orange{fill:#e96c38}.blue{fill:#315c73}.green{fill:#4e7763}.violet{fill:#665481}.line{stroke:#aaa69e;stroke-width:3;fill:none;stroke-linecap:round}.t1{font:700 30px Arial,sans-serif}.t2{font:700 19px Arial,sans-serif}.t3{font:400 16px Arial,sans-serif}.small{font:400 14px Arial,sans-serif}</style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0l10 5-10 5z" fill="#aaa69e"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="720" rx="28"/>
+  <text x="65" y="70" class="t1 ink">Исполнительная документация начинается на площадке</text>
+  <text x="65" y="104" class="t3 muted">У каждого перехода есть результат, ответственный и контрольный срок</text>
+
+  <rect x="65" y="155" width="198" height="190" rx="18" class="card"/>
+  <circle cx="102" cy="195" r="18" class="orange"/><text x="96" y="202" font-family="Arial" font-size="18" font-weight="700" fill="#fff">1</text>
+  <text x="88" y="244" class="t2 ink">Готовность</text>
+  <text x="88" y="274" class="t3 muted">Работа выполнена</text>
+  <text x="88" y="298" class="t3 muted">до закрытия</text>
+  <text x="88" y="325" class="small orange">владелец: прораб</text>
+
+  <path d="M263 250h52" class="line" marker-end="url(#arrow)"/>
+  <rect x="325" y="155" width="198" height="190" rx="18" class="card"/>
+  <circle cx="362" cy="195" r="18" class="blue"/><text x="356" y="202" font-family="Arial" font-size="18" font-weight="700" fill="#fff">2</text>
+  <text x="348" y="244" class="t2 ink">Исходный факт</text>
+  <text x="348" y="274" class="t3 muted">Место · дата · объем</text>
+  <text x="348" y="298" class="t3 muted">партия · фото · замер</text>
+  <text x="348" y="325" class="small blue">собирается сразу</text>
+
+  <path d="M523 250h52" class="line" marker-end="url(#arrow)"/>
+  <rect x="585" y="155" width="198" height="190" rx="18" class="card"/>
+  <circle cx="622" cy="195" r="18" class="violet"/><text x="616" y="202" font-family="Arial" font-size="18" font-weight="700" fill="#fff">3</text>
+  <text x="608" y="244" class="t2 ink">Комплект</text>
+  <text x="608" y="274" class="t3 muted">Акт · схема · журнал</text>
+  <text x="608" y="298" class="t3 muted">паспорт · протокол</text>
+  <text x="608" y="325" class="small violet">владелец: ПТО</text>
+
+  <path d="M783 250h52" class="line" marker-end="url(#arrow)"/>
+  <rect x="845" y="155" width="290" height="190" rx="18" class="card"/>
+  <circle cx="882" cy="195" r="18" class="green"/><text x="876" y="202" font-family="Arial" font-size="18" font-weight="700" fill="#fff">4</text>
+  <text x="868" y="244" class="t2 ink">Проверка и подписание</text>
+  <text x="868" y="274" class="t3 muted">Комплектность · реквизиты</text>
+  <text x="868" y="298" class="t3 muted">версии · замечания · подписи</text>
+  <text x="868" y="325" class="small green">результат: финальная версия</text>
+
+  <path d="M990 345v64" class="line" marker-end="url(#arrow)"/>
+  <rect x="845" y="425" width="290" height="176" rx="18" class="card"/>
+  <text x="873" y="471" class="t2 ink">Реестр и архив</text>
+  <text x="873" y="504" class="t3 muted">Связь с работой и участком</text>
+  <text x="873" y="530" class="t3 muted">История версий и передачи</text>
+  <rect x="873" y="555" width="229" height="24" rx="12" fill="#edf5f0"/><text x="889" y="572" class="small green">готовность видна руководителю</text>
+
+  <rect x="65" y="425" width="718" height="176" rx="18" fill="#fff1ea"/>
+  <text x="92" y="467" class="t2 ink">Контрольная точка перед следующей работой</text>
+  <text x="92" y="500" class="t3 muted">Если результат станет недоступен для осмотра, уведомление, контроль и фиксация</text>
+  <text x="92" y="526" class="t3 muted">должны войти в производственный график. Оформление «потом» уже не восстановит факт.</text>
+  <line x1="92" y1="552" x2="748" y2="552" stroke="#e6c8ba"/>
+  <text x="92" y="578" class="small ink">Производственная готовность ≠ готовность к сдаче без полного подтверждающего комплекта</text>
+
+  <text x="65" y="660" class="t3 ink">Цифровой реестр связывает документы с фактом, но не отменяет применимые формы и порядок подписания.</text>
+</svg>
