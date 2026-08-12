@@ -28,7 +28,7 @@ const BlogPublicLayout = ({
 }: BlogPublicLayoutProps) => (
   <div className="min-h-screen overflow-hidden bg-white">
     <Navbar />
-    <div className="pt-20">
+    <div className="pt-20 xl:pt-28">
       <PageHero
         eyebrow={eyebrow}
         title={title}
