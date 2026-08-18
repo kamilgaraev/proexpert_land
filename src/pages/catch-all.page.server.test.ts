@@ -312,6 +312,26 @@ describe('catch-all blog SSR', () => {
     });
   });
 
+  it('не прерывает SSR, если API вернул SEO-ключи строкой', async () => {
+    const articleWithStringKeywords = {
+      ...article,
+      meta_keywords: 'срыв сроков, перерасход бюджета, контроль стройки',
+    } as unknown as BlogArticle;
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({
+      success: true,
+      data: articleWithStringKeywords,
+    })));
+
+    const result = await onBeforeRender({ urlPathname: '/blog/manage-construction' });
+
+    expect(result.pageContext).toMatchObject({
+      routeStatusCode: 200,
+      documentProps: {
+        keywords: 'срыв сроков, перерасход бюджета, контроль стройки',
+      },
+    });
+  });
+
   it('нормализует старый бренд до формирования HTML-данных и JSON-LD статьи', async () => {
     const legacyArticle: BlogArticle = {
       ...article,

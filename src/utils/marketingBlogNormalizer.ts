@@ -45,6 +45,17 @@ const normalizeOptionalText = <T extends string | null | undefined>(
 ): T =>
   (typeof value === "string" ? normalizeMarketingBlogText(value) : value) as T;
 
+const normalizeMetaKeywords = (value: unknown): string[] | null | undefined => {
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((keyword) => keyword.trim())
+      .filter(Boolean);
+  }
+
+  return value as string[] | null | undefined;
+};
+
 export const normalizeMarketingBlogCategory = <T extends BlogCategory>(
   category: T,
 ): T => ({
@@ -67,6 +78,7 @@ export const normalizeMarketingBlogArticle = <T extends BlogArticle>(
   title: normalizeMarketingBlogText(article.title),
   meta_title: normalizeOptionalText(article.meta_title),
   meta_description: normalizeOptionalText(article.meta_description),
+  meta_keywords: normalizeMetaKeywords(article.meta_keywords),
   og_title: normalizeOptionalText(article.og_title),
   og_description: normalizeOptionalText(article.og_description),
   excerpt: normalizeOptionalText(article.excerpt),
