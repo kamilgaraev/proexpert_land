@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -44,6 +44,14 @@ const getPackageCountLabel = (count: number): string => {
   return 'пакетов';
 };
 
+const createRegistrationKey = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return `registration-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
 const RegisterPage = () => {
   // User Data
   const [name, setName] = useState('');
@@ -73,6 +81,8 @@ const RegisterPage = () => {
   // const [showNetworkError, setShowNetworkError] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [currentStep, setCurrentStep] = useState(1);
+  const registrationKeyRef = useRef(createRegistrationKey());
+  const submittingRef = useRef(false);
   
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -208,6 +218,10 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (submittingRef.current) {
+      return;
+    }
     
     if (currentStep === 1) {
       handleNext();
@@ -224,6 +238,7 @@ const RegisterPage = () => {
     setError('');
     setValidationErrors({});
     setIsLoading(true);
+    submittingRef.current = true;
     
     try {
       const formData = new FormData();
@@ -243,15 +258,21 @@ const RegisterPage = () => {
       if (organizationCity) formData.append('organization_city', organizationCity);
       if (organizationPostalCode) formData.append('organization_postal_code', organizationPostalCode);
       if (organizationCountry) formData.append('organization_country', organizationCountry);
+      formData.append('terms_accepted', 'true');
+      formData.append('privacy_accepted', 'true');
       if (avatarFile) {
         formData.append('avatar', avatarFile);
       }
-      await register(formData);
+      await register(formData, registrationKeyRef.current);
       rememberCommercialIntent(commercialIntent);
       
       navigate('/email-sent', { state: { email } });
     } catch (err: any) {
       console.error('Ошибка при регистрации:', err);
+
+      if (err?.status === 409 || err?.status === 422) {
+        registrationKeyRef.current = createRegistrationKey();
+      }
       
       if (err.message?.includes('Не удалось подключиться к серверу')) {
         // setShowNetworkError(true);
@@ -277,6 +298,7 @@ const RegisterPage = () => {
         }
       }
     } finally {
+      submittingRef.current = false;
       setIsLoading(false);
     }
   };
@@ -361,7 +383,8 @@ const RegisterPage = () => {
 
         {/* Error Alert */}
         {error && (
-             <motion.div 
+             <motion.div
+              role="alert"
               className="mx-8 mt-6 p-4 rounded-xl bg-destructive/10 text-destructive flex items-start gap-3"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -510,6 +533,7 @@ const RegisterPage = () => {
                             <div className="md:col-span-2 space-y-2">
                                 <Label htmlFor="organizationName">Название организации</Label>
                                 <AutocompleteInput
+                                    id="organizationName"
                                     value={organizationName}
                                     onChange={handleOrganizationSelect}
                                     onSearch={handleOrganizationSearch}
@@ -544,6 +568,7 @@ const RegisterPage = () => {
                              <div className="md:col-span-2 space-y-2">
                                 <Label htmlFor="organizationAddress">Адрес</Label>
                                 <AutocompleteInput
+                                    id="organizationAddress"
                                     value={organizationAddress}
                                     onChange={handleAddressSelect}
                                     onSearch={handleAddressSearch}
@@ -557,6 +582,7 @@ const RegisterPage = () => {
                              <div className="space-y-2">
                                 <Label htmlFor="organizationCity">Город</Label>
                                 <AutocompleteInput
+                                    id="organizationCity"
                                     value={organizationCity}
                                     onChange={handleCitySelect}
                                     onSearch={handleCitySearch}

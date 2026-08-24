@@ -1,5 +1,4 @@
-import { useState, useCallback } from 'react';
-import { getTokenFromStorages } from '@utils/api';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface DaDataAddress {
   value: string;
@@ -37,149 +36,104 @@ export interface DaDataOrganization {
 }
 
 const API_BASE_URL = 'https://api.1мост.рф/api/v1/landing';
+const CACHE_TTL_MS = 30000;
+const responseCache = new Map<string, { expiresAt: number; data: unknown[] }>();
+
+type SearchKind = 'addresses' | 'cities' | 'organizations';
 
 export const useDaData = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const controllers = useRef<Partial<Record<SearchKind, AbortController>>>({});
+  const activeRequests = useRef(0);
 
-  const getAuthHeaders = () => {
-    const token = getTokenFromStorages();
-    return {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` })
-    };
-  };
+  useEffect(() => () => {
+    Object.values(controllers.current).forEach((controller) => controller?.abort());
+  }, []);
 
-  const searchAddresses = useCallback(async (query: string): Promise<DaDataAddress[]> => {
-    if (!query || query.length < 3) return [];
+  const requestSuggestions = useCallback(async <T,>(
+    kind: SearchKind,
+    endpoint: 'addresses' | 'organizations',
+    query: string,
+  ): Promise<T[]> => {
+    const normalizedQuery = query.trim().toLocaleLowerCase('ru-RU');
 
+    if (normalizedQuery.length < 2) {
+      return [];
+    }
+
+    const cacheKey = `${kind}:${normalizedQuery}`;
+    const cached = responseCache.get(cacheKey);
+
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data as T[];
+    }
+
+    controllers.current[kind]?.abort();
+    const controller = new AbortController();
+    controllers.current[kind] = controller;
+    activeRequests.current += 1;
     setIsLoading(true);
+
     try {
-      const response = await fetch(`${API_BASE_URL}/dadata/suggest/addresses`, {
+      const response = await fetch(`${API_BASE_URL}/dadata/suggest/${endpoint}`, {
         method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ query }),
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ query: query.trim() }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
-        throw new Error('Ошибка при поиске адресов');
+        throw new Error('suggestion_http_error');
       }
 
-      const result = await response.json();
-      if (result.success) {
-        return result.data || [];
-      } else {
-        throw new Error(result.message || 'Ошибка поиска адресов');
+      const result = await response.json() as { success?: boolean; data?: T[] };
+
+      if (!result.success) {
+        throw new Error('suggestion_contract_error');
       }
+
+      const data = result.data ?? [];
+      responseCache.set(cacheKey, { expiresAt: Date.now() + CACHE_TTL_MS, data });
+
+      return data;
     } catch (error) {
-      console.error('Ошибка поиска адресов:', error);
-      return [];
+      if (error instanceof Error && error.name === 'AbortError') {
+        return [];
+      }
+
+      throw new Error('Подсказки временно недоступны. Введите данные вручную.');
     } finally {
-      setIsLoading(false);
+      activeRequests.current = Math.max(0, activeRequests.current - 1);
+      setIsLoading(activeRequests.current > 0);
     }
   }, []);
+
+  const searchAddresses = useCallback(
+    (query: string) => requestSuggestions<DaDataAddress>('addresses', 'addresses', query),
+    [requestSuggestions],
+  );
 
   const searchCities = useCallback(async (query: string): Promise<DaDataAddress[]> => {
-    if (!query || query.length < 3) return [];
+    const addresses = await requestSuggestions<DaDataAddress>('cities', 'addresses', query);
+    const normalizedQuery = query.trim().toLocaleLowerCase('ru-RU');
 
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/dadata/suggest/addresses`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ query }),
-      });
+    return addresses.filter((address) => (
+      address.data.city?.toLocaleLowerCase('ru-RU').includes(normalizedQuery)
+    ));
+  }, [requestSuggestions]);
 
-      if (!response.ok) {
-        throw new Error('Ошибка при поиске городов');
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        const addresses = result.data || [];
-        return addresses.filter((addr: DaDataAddress) => 
-          addr.data.city && addr.data.city.toLowerCase().includes(query.toLowerCase())
-        );
-      } else {
-        throw new Error(result.message || 'Ошибка поиска городов');
-      }
-    } catch (error) {
-      console.error('Ошибка поиска городов:', error);
-      return [];
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const searchOrganizations = useCallback(async (query: string): Promise<DaDataOrganization[]> => {
-    if (!query || query.length < 3) return [];
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/dadata/suggest/organizations`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ query }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Ошибка при поиске организаций');
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        return result.data || [];
-      } else {
-        throw new Error(result.message || 'Ошибка поиска организаций');
-      }
-    } catch (error) {
-      console.error('Ошибка поиска организаций:', error);
-      return [];
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const searchOrganizations = useCallback(
+    (query: string) => requestSuggestions<DaDataOrganization>('organizations', 'organizations', query),
+    [requestSuggestions],
+  );
 
   const cleanAddress = useCallback(async (address: string): Promise<DaDataAddress | null> => {
-    if (!address) return null;
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/dadata/clean/address`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ address }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Ошибка при стандартизации адреса');
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        return {
-          value: result.data.result,
-          unrestricted_value: result.data.result,
-          data: {
-            postal_code: result.data.postal_code || '',
-            country: result.data.country || '',
-            region: result.data.region || '',
-            city: result.data.city || '',
-            street: result.data.street || '',
-            house: result.data.house || '',
-            qc: result.data.qc
-          }
-        };
-      } else {
-        throw new Error(result.message || 'Ошибка стандартизации адреса');
-      }
-    } catch (error) {
-      console.error('Ошибка стандартизации адреса:', error);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    const [first] = await searchAddresses(address);
+    return first ?? null;
+  }, [searchAddresses]);
 
   return {
     searchAddresses,

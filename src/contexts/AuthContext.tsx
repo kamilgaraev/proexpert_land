@@ -28,7 +28,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
-  register: (formData: FormData) => Promise<void>;
+  register: (formData: FormData, idempotencyKey: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
 }
@@ -228,14 +228,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = async (formData: FormData): Promise<void> => {
+  const register = async (formData: FormData, idempotencyKey: string): Promise<void> => {
     const epoch = lifecycleEpochRef.current + 1;
     lifecycleEpochRef.current = epoch;
     setIsLoading(true);
     disconnectEchoSafely();
 
     try {
-      const response = await authService.register(formData);
+      const response = await authService.register(formData, idempotencyKey);
 
       if (lifecycleEpochRef.current !== epoch) {
         return;

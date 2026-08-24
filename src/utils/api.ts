@@ -118,6 +118,20 @@ type ApiRequestError = Error & {
   originalError?: unknown;
 };
 
+export type ApiTransportErrorKind = 'offline' | 'timeout' | 'http' | 'aborted';
+
+export class ApiTransportError extends Error {
+  constructor(
+    message: string,
+    public readonly kind: ApiTransportErrorKind,
+    public readonly status?: number,
+    public readonly data?: unknown,
+  ) {
+    super(message);
+    this.name = 'ApiTransportError';
+  }
+}
+
 type AuthPayload = Partial<AuthResponseData> & {
   data?: Partial<AuthResponseData> & {
     data?: Partial<AuthResponseData>;
@@ -440,20 +454,52 @@ export interface OrganizationsResponseData {
 // Сервисы для работы с API
 export const authService = {
   // Регистрация нового пользователя
-  register: async (formData: FormData): Promise<FetchApiResponse<AuthPayload>> => {
-    const response = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json'
-      },
-      credentials: 'include',
-      body: formData
-    });
+  register: async (formData: FormData, idempotencyKey: string): Promise<FetchApiResponse<AuthPayload>> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    let response: Response;
+
+    try {
+      response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Idempotency-Key': idempotencyKey,
+        },
+        credentials: 'include',
+        body: formData,
+        signal: controller.signal,
+      });
+    } catch (error) {
+      if (isAbortError(error)) {
+        throw new ApiTransportError(
+          'Сервер не ответил вовремя. Проверьте данные и повторите регистрацию.',
+          'timeout',
+        );
+      }
+
+      const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+      throw new ApiTransportError(
+        offline
+          ? 'Нет подключения к интернету. Проверьте сеть и повторите регистрацию.'
+          : 'Не удалось связаться с сервером. Проверьте подключение и повторите регистрацию.',
+        offline ? 'offline' : 'aborted',
+      );
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const data = await response.json() as AuthPayload & ApiErrorPayload;
 
     if (!response.ok) {
-      throw createApiRequestError(data?.message || 'Ошибка регистрации', response.status, data);
+      const error = new ApiTransportError(
+        data?.message || 'Не удалось завершить регистрацию.',
+        'http',
+        response.status,
+        data,
+      ) as ApiTransportError & { errors?: unknown };
+      error.errors = data?.errors;
+      throw error;
     }
 
     return createFetchResponse(data, response);
