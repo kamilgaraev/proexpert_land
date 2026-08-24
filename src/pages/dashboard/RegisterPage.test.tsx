@@ -91,7 +91,13 @@ describe('RegisterPage', () => {
     await waitFor(() => expect(registerMock).toHaveBeenCalledTimes(1));
     expect(window.sessionStorage.getItem(commercialIntentStorageKey)).toBeNull();
     const formData = registerMock.mock.calls[0][0] as FormData;
+    const idempotencyKey = registerMock.mock.calls[0][1] as string;
     expect(formData.has('plan_slug')).toBe(false);
+    expect(formData.get('terms_accepted')).toBe('true');
+    expect(formData.get('privacy_accepted')).toBe('true');
+    expect(idempotencyKey).toMatch(/^[A-Za-z0-9._:-]{8,128}$/);
+    fireEvent.click(screen.getByRole('button', { name: 'Создание...' }));
+    expect(registerMock).toHaveBeenCalledTimes(1);
 
     resolveRegistration?.();
     await waitFor(() => expect(window.sessionStorage.getItem(commercialIntentStorageKey)).toBe(

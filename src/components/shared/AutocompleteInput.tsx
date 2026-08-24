@@ -1,15 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
-interface AutocompleteOption {
+export interface AutocompleteOption {
   value: string;
   label: string;
-  data?: any;
+  data?: unknown;
 }
 
 interface AutocompleteInputProps {
+  id?: string;
   value: string;
-  onChange: (value: string, data?: any) => void;
+  onChange: (value: string, data?: unknown) => void;
   onSearch: (query: string) => Promise<AutocompleteOption[]>;
   placeholder: string;
   className?: string;
@@ -19,6 +20,7 @@ interface AutocompleteInputProps {
 }
 
 const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
+  id,
   value,
   onChange,
   onSearch,
@@ -28,16 +30,28 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   disabled = false,
   isLoading = false,
 }) => {
+  const generatedId = useId().replace(/:/g, '');
+  const inputId = id ?? `autocomplete-${generatedId}`;
+  const listboxId = `${inputId}-listbox`;
+  const statusId = `${inputId}-status`;
   const [isOpen, setIsOpen] = useState(false);
   const [options, setOptions] = useState<AutocompleteOption[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [searchError, setSearchError] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef(onSearch);
+  const requestSequence = useRef(0);
+  const suppressNextSearch = useRef(false);
+
+  useEffect(() => {
+    searchRef.current = onSearch;
+  }, [onSearch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setHighlightedIndex(-1);
       }
     };
 
@@ -45,87 +59,119 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    onChange(query);
+  useEffect(() => {
+    if (suppressNextSearch.current) {
+      suppressNextSearch.current = false;
+      return;
+    }
 
-    if (query.length >= 2) {
+    const query = value.trim();
+    const sequence = ++requestSequence.current;
+
+    if (disabled || query.length < 2) {
+      setOptions([]);
+      setIsOpen(false);
+      setHighlightedIndex(-1);
+      setSearchError('');
+      return;
+    }
+
+    const timeoutId = window.setTimeout(async () => {
       try {
-        const results = await onSearch(query);
+        const results = await searchRef.current(query);
+
+        if (sequence !== requestSequence.current) {
+          return;
+        }
+
         setOptions(results);
         setIsOpen(results.length > 0);
         setHighlightedIndex(-1);
-      } catch (error) {
-        console.error('Ошибка автокомплита:', error);
+        setSearchError('');
+      } catch {
+        if (sequence !== requestSequence.current) {
+          return;
+        }
+
         setOptions([]);
         setIsOpen(false);
+        setHighlightedIndex(-1);
+        setSearchError('Подсказки временно недоступны. Введите данные вручную.');
       }
-    } else {
-      setOptions([]);
-      setIsOpen(false);
-    }
-  };
+    }, 300);
 
-  const handleOptionClick = (option: AutocompleteOption) => {
+    return () => {
+      window.clearTimeout(timeoutId);
+      requestSequence.current += 1;
+    };
+  }, [disabled, value]);
+
+  const selectOption = (option: AutocompleteOption) => {
+    suppressNextSearch.current = true;
     onChange(option.value, option.data);
     setIsOpen(false);
     setOptions([]);
+    setHighlightedIndex(-1);
+    setSearchError('');
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen) return;
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Escape') {
+      setIsOpen(false);
+      setHighlightedIndex(-1);
+      return;
+    }
 
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setHighlightedIndex(prev => 
-          prev < options.length - 1 ? prev + 1 : 0
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setHighlightedIndex(prev => 
-          prev > 0 ? prev - 1 : options.length - 1
-        );
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (highlightedIndex >= 0 && options[highlightedIndex]) {
-          handleOptionClick(options[highlightedIndex]);
-        }
-        break;
-      case 'Escape':
-        setIsOpen(false);
-        setOptions([]);
-        break;
+    if (options.length === 0) {
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setIsOpen(true);
+      setHighlightedIndex((current) => current < options.length - 1 ? current + 1 : 0);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setIsOpen(true);
+      setHighlightedIndex((current) => current > 0 ? current - 1 : options.length - 1);
+    } else if (event.key === 'Enter' && isOpen && highlightedIndex >= 0) {
+      event.preventDefault();
+      selectOption(options[highlightedIndex]);
     }
   };
+
+  const activeOptionId = isOpen && highlightedIndex >= 0
+    ? `${inputId}-option-${highlightedIndex}`
+    : undefined;
+  const statusMessage = searchError || (isLoading ? 'Загрузка подсказок' : '');
 
   return (
     <div ref={containerRef} className="relative">
       <div className="relative">
         {icon && (
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none" aria-hidden="true">
             {icon}
           </div>
         )}
         <input
-          ref={inputRef}
+          id={inputId}
           type="text"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={isOpen}
+          aria-controls={listboxId}
+          aria-activedescendant={activeOptionId}
+          aria-describedby={statusMessage ? statusId : undefined}
           value={value}
-          onChange={handleInputChange}
+          onChange={(event) => onChange(event.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => {
-            if (options.length > 0) {
-              setIsOpen(true);
-            }
-          }}
+          onFocus={() => options.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
           disabled={disabled}
           className={className}
         />
         {(isLoading || isOpen) && (
-          <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none" aria-hidden="true">
             {isLoading ? (
               <svg className="animate-spin h-4 w-4 text-steel-400" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -138,24 +184,30 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
         )}
       </div>
 
+      <div id={statusId} role="status" aria-live="polite" className="sr-only">
+        {statusMessage}
+      </div>
+
       {isOpen && options.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-steel-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+        <div
+          id={listboxId}
+          role="listbox"
+          className="absolute z-50 w-full mt-1 bg-white border border-steel-200 rounded-xl shadow-lg max-h-60 overflow-auto"
+        >
           {options.map((option, index) => (
             <button
-              key={index}
+              id={`${inputId}-option-${index}`}
+              key={`${option.value}-${index}`}
               type="button"
-              onClick={() => handleOptionClick(option)}
+              role="option"
+              aria-selected={index === highlightedIndex}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => selectOption(option)}
               className={`w-full text-left px-4 py-3 hover:bg-construction-50 focus:bg-construction-50 focus:outline-none transition-colors ${
                 index === highlightedIndex ? 'bg-construction-50' : ''
               } ${index === 0 ? 'rounded-t-xl' : ''} ${index === options.length - 1 ? 'rounded-b-xl' : ''}`}
             >
               <div className="text-sm text-steel-900">{option.label}</div>
-              {option.data && (
-                <div className="text-xs text-steel-500 mt-1">
-                  {option.data.region && `${option.data.region}, `}
-                  {option.data.city && option.data.city}
-                </div>
-              )}
             </button>
           ))}
         </div>
@@ -164,4 +216,4 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   );
 };
 
-export default AutocompleteInput; 
+export default AutocompleteInput;

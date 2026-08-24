@@ -176,7 +176,7 @@ describe('authService.register', () => {
       },
     })));
 
-    const result = await authService.register(new FormData());
+    const result = await authService.register(new FormData(), 'registration-key-123');
 
     expect(result.data.data?.status).toBe('verification_required');
     expect(getAuthToken()).toBeNull();
@@ -200,7 +200,7 @@ describe('authService.register', () => {
       },
     })));
 
-    await expect(authService.register(new FormData())).rejects.toMatchObject({
+    await expect(authService.register(new FormData(), 'registration-key-456')).rejects.toMatchObject({
       message: payload.message,
       status: 422,
       data: payload,
@@ -208,6 +208,19 @@ describe('authService.register', () => {
     });
 
     expect(getAuthToken()).toBeNull();
+  });
+
+  it('sends a stable idempotency header and normalizes Safari transport failures', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError('Load failed'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(authService.register(new FormData(), 'registration-key-safari')).rejects.toMatchObject({
+      name: 'ApiTransportError',
+      kind: 'aborted',
+      message: 'Не удалось связаться с сервером. Проверьте подключение и повторите регистрацию.',
+    });
+    expect(new Headers(fetchMock.mock.calls[0][1]?.headers).get('Idempotency-Key'))
+      .toBe('registration-key-safari');
   });
 });
 
