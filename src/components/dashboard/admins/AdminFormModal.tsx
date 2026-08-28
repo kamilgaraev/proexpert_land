@@ -437,7 +437,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                     </div>
                   </div>
                 )}
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form onSubmit={handleSubmit} autoComplete="off" className="space-y-8">
                   <div className="bg-gradient-to-r from-construction-50 to-construction-100 rounded-2xl p-6 border border-construction-200">
                     <div className="flex items-center mb-4">
                       <UserCircleIcon className="h-6 w-6 text-construction-600 mr-2" />
@@ -450,6 +450,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                           type="text"
                           name="name"
                           id="name"
+                          autoComplete="off"
                           required
                           autoFocus
                           value={formData.name}
@@ -479,6 +480,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                             type="email"
                             name="email"
                             id="email"
+                            autoComplete="off"
                             required
                             maxLength={255}
                             value={formData.email}
@@ -625,6 +627,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                             type={showPassword ? "text" : "password"}
                             name="password"
                             id="password"
+                            autoComplete="new-password"
                             required={!isEditing}
                             minLength={isEditing && !formData.password ? undefined : 8}
                             value={formData.password}
@@ -699,6 +702,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                             type={showPasswordConfirmation ? "text" : "password"}
                             name="password_confirmation"
                             id="password_confirmation"
+                            autoComplete="new-password"
                             required={!!formData.password}
                             value={formData.password_confirmation}
                             onChange={handleChange}
