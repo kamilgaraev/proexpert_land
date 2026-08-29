@@ -558,17 +558,17 @@ const RegisterPage = () => {
 
                             <div className="space-y-2">
                                 <Label htmlFor="organizationTaxNumber">ИНН</Label>
-                                <Input id="organizationTaxNumber" name="organizationTaxNumber" autoComplete="off" value={organizationTaxNumber} onChange={e => setOrganizationTaxNumber(e.target.value)} className="h-11" placeholder="1234567890" />
+                                <Input id="organizationTaxNumber" name="organizationTaxNumber" inputMode="numeric" autoComplete="off" value={organizationTaxNumber} onChange={e => setOrganizationTaxNumber(e.target.value)} className="h-11" placeholder="1234567890" />
                             </div>
                             
                             <div className="space-y-2">
                                 <Label htmlFor="organizationRegistrationNumber">ОГРН</Label>
-                                <Input id="organizationRegistrationNumber" name="organizationRegistrationNumber" autoComplete="off" value={organizationRegistrationNumber} onChange={e => setOrganizationRegistrationNumber(e.target.value)} className="h-11" placeholder="1234567890123" />
+                                <Input id="organizationRegistrationNumber" name="organizationRegistrationNumber" inputMode="numeric" autoComplete="off" value={organizationRegistrationNumber} onChange={e => setOrganizationRegistrationNumber(e.target.value)} className="h-11" placeholder="1234567890123" />
                             </div>
 
                              <div className="space-y-2">
                                 <Label htmlFor="organizationPhone">Телефон организации</Label>
-                                <Input id="organizationPhone" name="organizationPhone" autoComplete="tel" value={organizationPhone} onChange={e => setOrganizationPhone(e.target.value)} className="h-11" placeholder="+7 (495) 000-00-00" />
+                                <Input id="organizationPhone" name="organizationPhone" type="tel" autoComplete="tel" value={organizationPhone} onChange={e => setOrganizationPhone(e.target.value)} className="h-11" placeholder="+7 (495) 000-00-00" />
                             </div>
 
                              <div className="space-y-2">
@@ -610,7 +610,7 @@ const RegisterPage = () => {
 
                             <div className="space-y-2">
                                 <Label htmlFor="organizationPostalCode">Индекс</Label>
-                                <Input id="organizationPostalCode" name="organizationPostalCode" autoComplete="postal-code" value={organizationPostalCode} onChange={e => setOrganizationPostalCode(e.target.value)} className="h-11" placeholder="101000" />
+                                <Input id="organizationPostalCode" name="organizationPostalCode" inputMode="numeric" autoComplete="postal-code" value={organizationPostalCode} onChange={e => setOrganizationPostalCode(e.target.value)} className="h-11" placeholder="101000" />
                             </div>
                         </div>
 
