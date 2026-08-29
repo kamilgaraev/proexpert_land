@@ -121,7 +121,9 @@ const LoginPage = () => {
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="name@company.com"
                   className="pl-10 h-12 text-base"
                   value={email}
@@ -137,7 +139,9 @@ const LoginPage = () => {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   placeholder="Введите пароль"
                   className="pl-10 pr-10 h-12 text-base"
                   value={password}
@@ -146,8 +150,10 @@ const LoginPage = () => {
                 />
                 <button
                   type="button"
+                  aria-label="Показать пароль"
+                  aria-pressed={showPassword}
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -158,6 +164,7 @@ const LoginPage = () => {
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
+                  name="rememberMe"
                   className="rounded border-input text-primary focus:ring-primary w-4 h-4 transition-colors"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
