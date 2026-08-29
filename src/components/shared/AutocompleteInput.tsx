@@ -9,6 +9,8 @@ export interface AutocompleteOption {
 
 interface AutocompleteInputProps {
   id?: string;
+  name?: string;
+  autoComplete?: string;
   value: string;
   onChange: (value: string, data?: unknown) => void;
   onSearch: (query: string) => Promise<AutocompleteOption[]>;
@@ -21,6 +23,8 @@ interface AutocompleteInputProps {
 
 const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   id,
+  name,
+  autoComplete,
   value,
   onChange,
   onSearch,
@@ -155,7 +159,9 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
         )}
         <input
           id={inputId}
+          name={name}
           type="text"
+          autoComplete={autoComplete}
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={isOpen}

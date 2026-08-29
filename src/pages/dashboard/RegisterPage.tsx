@@ -355,9 +355,14 @@ const RegisterPage = () => {
              <p className="text-primary-foreground/70 text-sm">Присоединяйтесь к МОСТ для управления строительными проектами</p>
 
              {/* Progress Steps */}
-            <div className="mt-8 flex items-center">
+            <ol className="mt-8 flex items-center" aria-label="Этапы регистрации">
                 {steps.map((step, index) => (
-                    <div key={step.id} className="flex items-center">
+                    <li
+                        key={step.id}
+                        className="flex items-center"
+                        aria-label={`${step.name}: ${step.description}`}
+                        aria-current={currentStep === step.id ? 'step' : undefined}
+                    >
                         <div className={cn(
                             "flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all",
                             currentStep >= step.id 
@@ -376,9 +381,9 @@ const RegisterPage = () => {
                                 currentStep > step.id ? "bg-white" : "bg-white/20"
                             )} />
                         )}
-                    </div>
+                    </li>
                 ))}
-            </div>
+            </ol>
         </div>
 
         {/* Error Alert */}
@@ -434,7 +439,7 @@ const RegisterPage = () => {
                                          <Camera className="w-8 h-8 text-muted-foreground/50" />
                                      )}
                                  </div>
-                                 <input type="file" accept="image/*" onChange={handleAvatarChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                 <input name="avatar" type="file" accept="image/*" aria-label="Загрузить фото профиля" onChange={handleAvatarChange} className="absolute inset-0 opacity-0 cursor-pointer" />
                                  {avatarPreview && (
                                      <button type="button" onClick={removeAvatar} className="absolute -top-1 -right-1 bg-destructive text-white p-1 rounded-full shadow-sm hover:bg-destructive/90">
                                          <X className="w-3 h-3" />
@@ -449,7 +454,7 @@ const RegisterPage = () => {
                                 <Label htmlFor="name">Полное имя</Label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input id="name" value={name} onChange={e => setName(e.target.value)} className={getInputClassName('name')} placeholder="Иван Иванов" />
+                                    <Input id="name" name="name" autoComplete="name" value={name} onChange={e => setName(e.target.value)} className={getInputClassName('name')} placeholder="Иван Иванов" />
                                 </div>
                                 {hasError('name') && <p className="text-xs text-destructive">{getErrorMessage('name')}</p>}
                             </div>
@@ -458,7 +463,7 @@ const RegisterPage = () => {
                                 <Label htmlFor="email">Email</Label>
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} className={getInputClassName('email')} placeholder="ivan@example.com" />
+                                    <Input id="email" name="email" type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} className={getInputClassName('email')} placeholder="ivan@example.com" />
                                 </div>
                                 {hasError('email') && <p className="text-xs text-destructive">{getErrorMessage('email')}</p>}
                             </div>
@@ -469,13 +474,15 @@ const RegisterPage = () => {
                                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                     <Input 
                                         id="password" 
+                                        name="password"
                                         type={showPassword ? 'text' : 'password'} 
+                                        autoComplete="new-password"
                                         value={password} 
                                         onChange={e => setPassword(e.target.value)} 
                                         className={cn(getInputClassName('password'), "pr-10")} 
                                         placeholder="••••••••" 
                                     />
-                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-muted-foreground hover:text-foreground">
+                                    <button type="button" aria-label="Показать пароль" aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)} className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-muted-foreground hover:text-foreground">
                                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </button>
                                 </div>
@@ -488,13 +495,15 @@ const RegisterPage = () => {
                                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                     <Input 
                                         id="passwordConfirmation" 
+                                        name="passwordConfirmation"
                                         type={showPasswordConfirmation ? 'text' : 'password'} 
+                                        autoComplete="new-password"
                                         value={passwordConfirmation} 
                                         onChange={e => setPasswordConfirmation(e.target.value)} 
                                         className={cn(getInputClassName('passwordConfirmation'), "pr-10")} 
                                         placeholder="••••••••" 
                                     />
-                                    <button type="button" onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)} className="absolute right-3 top-3 text-muted-foreground hover:text-foreground">
+                                    <button type="button" aria-label="Показать подтверждение пароля" aria-pressed={showPasswordConfirmation} onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)} className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-muted-foreground hover:text-foreground">
                                         {showPasswordConfirmation ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </button>
                                 </div>
@@ -505,7 +514,7 @@ const RegisterPage = () => {
                                 <Label htmlFor="phone">Телефон</Label>
                                 <div className="relative">
                                     <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input id="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="pl-10 h-11" placeholder="+7 (999) 000-00-00" />
+                                    <Input id="phone" name="phone" type="tel" autoComplete="tel" value={phone} onChange={e => setPhone(e.target.value)} className="pl-10 h-11" placeholder="+7 (999) 000-00-00" />
                                 </div>
                             </div>
 
@@ -513,7 +522,7 @@ const RegisterPage = () => {
                                 <Label htmlFor="position">Должность</Label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input id="position" value={position} onChange={e => setPosition(e.target.value)} className="pl-10 h-11" placeholder="Генеральный директор" />
+                                    <Input id="position" name="position" autoComplete="organization-title" value={position} onChange={e => setPosition(e.target.value)} className="pl-10 h-11" placeholder="Генеральный директор" />
                                 </div>
                             </div>
                         </div>
@@ -534,6 +543,8 @@ const RegisterPage = () => {
                                 <Label htmlFor="organizationName">Название организации</Label>
                                 <AutocompleteInput
                                     id="organizationName"
+                                    name="organizationName"
+                                    autoComplete="organization"
                                     value={organizationName}
                                     onChange={handleOrganizationSelect}
                                     onSearch={handleOrganizationSearch}
@@ -547,28 +558,30 @@ const RegisterPage = () => {
 
                             <div className="space-y-2">
                                 <Label htmlFor="organizationTaxNumber">ИНН</Label>
-                                <Input id="organizationTaxNumber" value={organizationTaxNumber} onChange={e => setOrganizationTaxNumber(e.target.value)} className="h-11" placeholder="1234567890" />
+                                <Input id="organizationTaxNumber" name="organizationTaxNumber" autoComplete="off" value={organizationTaxNumber} onChange={e => setOrganizationTaxNumber(e.target.value)} className="h-11" placeholder="1234567890" />
                             </div>
                             
                             <div className="space-y-2">
                                 <Label htmlFor="organizationRegistrationNumber">ОГРН</Label>
-                                <Input id="organizationRegistrationNumber" value={organizationRegistrationNumber} onChange={e => setOrganizationRegistrationNumber(e.target.value)} className="h-11" placeholder="1234567890123" />
+                                <Input id="organizationRegistrationNumber" name="organizationRegistrationNumber" autoComplete="off" value={organizationRegistrationNumber} onChange={e => setOrganizationRegistrationNumber(e.target.value)} className="h-11" placeholder="1234567890123" />
                             </div>
 
                              <div className="space-y-2">
                                 <Label htmlFor="organizationPhone">Телефон организации</Label>
-                                <Input id="organizationPhone" value={organizationPhone} onChange={e => setOrganizationPhone(e.target.value)} className="h-11" placeholder="+7 (495) 000-00-00" />
+                                <Input id="organizationPhone" name="organizationPhone" autoComplete="tel" value={organizationPhone} onChange={e => setOrganizationPhone(e.target.value)} className="h-11" placeholder="+7 (495) 000-00-00" />
                             </div>
 
                              <div className="space-y-2">
                                 <Label htmlFor="organizationEmail">Email организации</Label>
-                                <Input id="organizationEmail" value={organizationEmail} onChange={e => setOrganizationEmail(e.target.value)} className="h-11" placeholder="info@company.com" />
+                                <Input id="organizationEmail" name="organizationEmail" type="email" autoComplete="email" value={organizationEmail} onChange={e => setOrganizationEmail(e.target.value)} className="h-11" placeholder="info@company.com" />
                             </div>
 
                              <div className="md:col-span-2 space-y-2">
                                 <Label htmlFor="organizationAddress">Адрес</Label>
                                 <AutocompleteInput
                                     id="organizationAddress"
+                                    name="organizationAddress"
+                                    autoComplete="street-address"
                                     value={organizationAddress}
                                     onChange={handleAddressSelect}
                                     onSearch={handleAddressSearch}
@@ -583,6 +596,8 @@ const RegisterPage = () => {
                                 <Label htmlFor="organizationCity">Город</Label>
                                 <AutocompleteInput
                                     id="organizationCity"
+                                    name="organizationCity"
+                                    autoComplete="address-level2"
                                     value={organizationCity}
                                     onChange={handleCitySelect}
                                     onSearch={handleCitySearch}
@@ -595,13 +610,13 @@ const RegisterPage = () => {
 
                             <div className="space-y-2">
                                 <Label htmlFor="organizationPostalCode">Индекс</Label>
-                                <Input id="organizationPostalCode" value={organizationPostalCode} onChange={e => setOrganizationPostalCode(e.target.value)} className="h-11" placeholder="101000" />
+                                <Input id="organizationPostalCode" name="organizationPostalCode" autoComplete="postal-code" value={organizationPostalCode} onChange={e => setOrganizationPostalCode(e.target.value)} className="h-11" placeholder="101000" />
                             </div>
                         </div>
 
                         <div className="pt-4 border-t">
                             <label className="flex items-start gap-3 cursor-pointer">
-                                <input type="checkbox" className="mt-1 w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} />
+                                <input name="agreeTerms" type="checkbox" className="mt-1 w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} />
                                 <span className="text-sm text-muted-foreground">
                                     Я согласен с <Link to="/terms" className="text-primary hover:underline">условиями предоставления услуг</Link> и <Link to="/privacy" className="text-primary hover:underline">политикой конфиденциальности</Link>
                                 </span>
