@@ -112,12 +112,24 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-          <figure className="most-request-example">
+          <figure className="most-request-example most-object-story">
             <figcaption>
-              <span>Пример работы с заявкой</span>
-              <strong>Арматура для фундамента</strong>
+              <span>Пример: строительство жилого дома</span>
+              <strong>От потребности до поставки</strong>
             </figcaption>
             <div className="most-request-example-body">
+              <div className="most-story-visual">
+                <img
+                  src="/images/marketing/most-material-story-1440.webp"
+                  srcSet="/images/marketing/most-material-story-720.webp 720w, /images/marketing/most-material-story-1440.webp 1440w"
+                  sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1600px) 60vw, 920px"
+                  width={1672}
+                  height={941}
+                  alt="Арматура на площадке и фундамент, для которого она нужна"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
               <dl className="most-request-facts">
                 <div>
                   <dt>Объект</dt>
@@ -136,29 +148,33 @@ const HomePage = () => {
                   <dd>Армирование фундамента</dd>
                 </div>
               </dl>
-              <ol className="most-request-history">
-                <li>
-                  <span className="most-request-person">Прораб</span>
-                  <h3>Передаёт потребность</h3>
-                  <p>Указывает материал, количество, объект и нужный срок.</p>
-                </li>
-                <li>
-                  <span className="most-request-person">Снабженец</span>
-                  <h3>Организует закупку</h3>
-                  <p>
-                    Работает с заявкой и фиксирует договорённости о поставке.
-                  </p>
-                </li>
-                <li>
-                  <span className="most-request-person">Склад</span>
-                  <h3>Принимает материал</h3>
-                  <p>
-                    Фиксирует поступление для объекта. Остатки обновляются в
-                    учёте.
-                  </p>
-                </li>
-              </ol>
             </div>
+            <ol className="most-request-history">
+              <li>
+                <span className="most-request-person">Площадка · Прораб</span>
+                <h3>Нужно для работы</h3>
+                <p>
+                  В заявке — материал, количество и срок. Офис понимает, что
+                  требуется объекту, без пересказа в другом чате.
+                </p>
+              </li>
+              <li>
+                <span className="most-request-person">Офис · Снабженец</span>
+                <h3>Есть решение</h3>
+                <p>
+                  Снабженец работает с потребностью объекта: организует закупку
+                  и фиксирует договорённости о поставке.
+                </p>
+              </li>
+              <li>
+                <span className="most-request-person">Объект · Склад</span>
+                <h3>Материал поступил</h3>
+                <p>
+                  Поступление и остаток отражены в учёте. Материал остаётся
+                  связан с объектом, для которого его заказали.
+                </p>
+              </li>
+            </ol>
           </figure>
           <div className="most-product-links">
             <Link to={marketingPaths.materialAccounting}>
@@ -180,17 +196,30 @@ const HomePage = () => {
       >
         <div>
           <h2 id="most-roles-title">
-            Своя работа.
+            Свой участок работы.
             <br />
-            Общий результат.
+            Один общий объект.
           </h2>
           <p>
-            Каждому сотруднику — нужные разделы и права. Команде — общий порядок
-            работы с объектом.
+            Материалы — только часть работы. Прораб ведёт задачи, ПТО —
+            документы, руководитель — сроки и деньги. МОСТ связывает эти
+            процессы с одним объектом и открывает сотрудникам нужные данные.
           </p>
           <Link to={marketingPaths.solutions} className="most-text-link">
             Решение для вашей компании <span aria-hidden="true">↗</span>
           </Link>
+          <figure className="most-story-visual">
+            <img
+              src="/images/marketing/most-frame-story-1440.webp"
+              srcSet="/images/marketing/most-frame-story-720.webp 720w, /images/marketing/most-frame-story-1440.webp 1440w"
+              sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1600px) 55vw, 840px"
+              width={1672}
+              height={941}
+              alt="Тот же объект на следующем этапе: над фундаментом вырос каркас здания"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
         </div>
         <div className="most-role-list">
           {roles.map((role) => (
@@ -202,6 +231,41 @@ const HomePage = () => {
               <span aria-hidden="true">↗</span>
             </Link>
           ))}
+        </div>
+      </section>
+
+      <section
+        className="most-completion"
+        aria-labelledby="most-completion-title"
+      >
+        <div className="most-container most-completion-layout">
+          <div className="most-completion-copy">
+            <h2 id="most-completion-title">
+              Работы завершены.
+              <br />
+              Документы под рукой.
+            </h2>
+            <p>
+              Чертежи, замечания, акты и расчёты остаются связаны с объектом.
+              Команда может вернуться к документам и истории работ, когда
+              готовит сдачу или разбирает вопрос по проекту.
+            </p>
+            <Link to={marketingPaths.ptoSoftware} className="most-text-link">
+              От работ к документам <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
+          <figure className="most-story-visual">
+            <img
+              src="/images/marketing/most-completed-story-1440.webp"
+              srcSet="/images/marketing/most-completed-story-720.webp 720w, /images/marketing/most-completed-story-1440.webp 1440w"
+              sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1600px) 60vw, 920px"
+              width={1672}
+              height={941}
+              alt="Тот же объект после завершения строительства: готовое здание на месте фундамента"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
         </div>
       </section>
 

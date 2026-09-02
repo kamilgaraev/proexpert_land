@@ -12,7 +12,7 @@ interface MarketingShellProps {
 
 const MarketingShell = ({ children }: MarketingShellProps) => {
   return (
-    <div className="most-marketing flex min-h-[100svh] flex-col bg-white font-sans">
+    <div className="most-marketing flex min-h-[100svh] flex-col">
       <a className="most-skip-link" href="#main-content">
         Перейти к содержимому
       </a>
