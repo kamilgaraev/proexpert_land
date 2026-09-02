@@ -12,7 +12,7 @@
 
 ESLint трёх изменённых TSX и Prettier пяти исходников успешны. Vitest: 3 файла / 4 теста (Home SEO, PricingPage, MarketingPrimitives), все прошли. Gortex detect_changes/get_test_targets/check_guards выполнены; guards не настроены. Staged review: BLOCK только по HIGH fan-out PageHero/PageSectionNav, 0 конкретных findings. Изменение общего компонента — удаление декоративного текста и замена SVG, ссылки и сценарии сохранены; покрытие подтверждено целевыми тестами и браузером. Полное повторное тестирование не требуется для этих рисков.
 
-Выпуск этой доработки пока не опубликован; production по-прежнему c7a2d128. При публикации добавить commit/run и отдельные production-evidence. Эта приёмка относится к перечисленным исправлениям, а не ко всему сайту.
+**Опубликовано:** commit `536b87f9c90e83d7faae32e63d7b5bb0a938c3aa`, [run 33688717235](https://github.com/kamilgaraev/proexpert_land/actions/runs/33688717235) success, target=marketing, кабинет пропущен. Production Chromium: главная 390/768/1366/1440/2215, overflow/broken 0; desktop foundation → frame → complete → frame → foundation с ровно одним полным кадром; reduced motion — display contents, все три фигуры static/opacity1/clip none, animations0. /features, /solutions, /pricing на 390/1440/2215: overflow0, декоративного eyebrow нет, вторичные SVG18/20.4/22px, все FAQ-раскрытия с SVG; переход к конструктору стоимости показывает нужную секцию. Ошибки JavaScript не зарегистрированы. Скриншоты `output/playwright/approved-light/prod-three-*` и `prod-secondary-nav-*`; кадр завершения1440 и навигация2215 просмотрены отдельно. Эта приёмка относится к перечисленным исправлениям, а не ко всему сайту.
 
 ## Исторический выпуск главной для просмотра, 3 сентября 2026
 
