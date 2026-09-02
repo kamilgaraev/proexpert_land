@@ -350,6 +350,7 @@ const ContactForm = ({
                     <button
                       key={option.value}
                       type="button"
+                      aria-pressed={active}
                       onClick={() => handleSubjectChange(option.value)}
                       className={`rounded-[1.1rem] border px-4 py-3 text-left text-sm font-semibold transition ${
                         active

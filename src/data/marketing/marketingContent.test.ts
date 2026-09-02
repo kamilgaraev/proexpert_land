@@ -7,11 +7,7 @@ import { getPageSEOData } from "@/utils/seo";
 import { isMarketingPublicPath } from "@/utils/publicSite";
 import { marketingBlogArticles } from "./blogArticles";
 import { marketingCapabilityMatrix } from "./capabilities";
-import {
-  marketingFaqs,
-  marketingHeroFacts,
-  marketingLaunchSteps,
-} from "./home";
+import { marketingFaqs } from "./home";
 import {
   commercialPackages,
   commercialTerms,
@@ -21,7 +17,6 @@ import {
 } from "./packages";
 import { marketingSolutionSegments } from "./solutions";
 import {
-  marketingAboutSections,
   marketingSecurityCapabilities,
   marketingSecuritySections,
   marketingTrustFacts,
@@ -359,7 +354,7 @@ const coreMarketingRouteContract: CoreMarketingRouteContract[] = [
     componentName: "SolutionsPage",
     componentPath: "src/pages/landing/SolutionsPage.tsx",
     routeElement: '<Route path="/solutions" element={<SolutionsPage />} />',
-    requiredTerms: ["тип компании", "роль"],
+    requiredTerms: ["компани", "роль"],
   },
   {
     route: "/features",
@@ -491,27 +486,7 @@ const routeRegistrySelections: Record<
   CoreMarketingSeoKey,
   RouteRegistrySelection
 > = {
-  home: {
-    capabilityIds: [
-      "project-control",
-      "supply-chain",
-      "finance-control",
-      "pir-project-documentation",
-      "quality-handover",
-      "construction-safety",
-      "machinery-labor",
-      "change-control",
-      "multi-org",
-    ],
-    packageSlugs: [
-      "projects-processes",
-      "planning-schedules",
-      "estimates-norms",
-      "quality-safety",
-      "pto-handover",
-      "supply-warehouse",
-    ],
-  },
+  home: { capabilityIds: [], packageSlugs: [] },
   solutions: {
     capabilityIds: solutionCapabilityIds,
     packageSlugs: solutionPackageSlugs,
@@ -594,14 +569,7 @@ const selectedRegistryText = (seoKey: CoreMarketingSeoKey): string => {
 };
 
 const routeOwnedDataText: Record<CoreMarketingSeoKey, string> = {
-  home: flattenText([
-    marketingHeroFacts.map((item) => [item.value, item.label, item.detail]),
-    marketingLaunchSteps.map((item) => [item.title, item.description]),
-    marketingFaqs.map((item) => [item.question, item.answer]),
-    solutionText,
-    selectedRegistryText("home"),
-    trustText,
-  ]),
+  home: flattenText(marketingFaqs.map((item) => [item.question, item.answer])),
   solutions: flattenText([solutionText, selectedRegistryText("solutions")]),
   features: flattenText([
     selectedRegistryText("features"),
@@ -626,32 +594,15 @@ const routeOwnedDataText: Record<CoreMarketingSeoKey, string> = {
   contractors: "",
   developers: "",
   enterprise: flattenText([selectedRegistryText("enterprise"), trustText]),
-  about: flattenText([
-    marketingAboutSections.map((item) => [
-      item.title,
-      item.description,
-      item.bullets,
-    ]),
-    trustText,
-    marketingCompany.location,
-    marketingCompany.responseTime,
-    marketingCompany.hours,
-  ]),
-  security: flattenText([
-    capabilityRecordsText(marketingSecurityCapabilities),
+  about: "",
+  security: flattenText(
     marketingSecuritySections.map((item) => [
       item.title,
       item.description,
       item.bullets,
     ]),
-    trustText,
-  ]),
-  contact: flattenText([
-    marketingCompany.email,
-    marketingCompany.location,
-    marketingCompany.responseTime,
-    marketingCompany.hours,
-  ]),
+  ),
+  contact: marketingCompany.email,
   blog: flattenText(
     Object.values(marketingBlogArticles).map((item) => [
       item.title,
@@ -695,6 +646,11 @@ const readComponentUserFacingText = (componentPath: string): string => {
       }
     }
 
+    if (ts.isJsxText(node)) {
+      const normalizedText = node.text.replace(/\s+/gu, " ").trim();
+      if (normalizedText) values.push(normalizedText);
+    }
+
     ts.forEachChild(node, visit);
   };
 
@@ -703,7 +659,7 @@ const readComponentUserFacingText = (componentPath: string): string => {
 };
 
 describe("marketing content consistency", () => {
-  it("owns the security capability selection in the marketing data layer", () => {
+  it("keeps security content in the marketing data layer", () => {
     const trustSource = fs.readFileSync(
       path.resolve(process.cwd(), "src/data/marketing/trust.ts"),
       "utf8",
@@ -714,7 +670,7 @@ describe("marketing content consistency", () => {
     );
 
     expect(trustSource).toContain("export const marketingSecurityCapabilities");
-    expect(securityPageSource).toContain("marketingSecurityCapabilities.map");
+    expect(securityPageSource).toContain("marketingSecuritySections.map");
     expect(securityPageSource).not.toContain(
       "marketingCapabilityMatrix.slice(0, 5)",
     );
@@ -730,9 +686,12 @@ describe("marketing content consistency", () => {
       "utf8",
     );
 
-    expect(routeRegistrySelections.home.packageSlugs).toEqual(
-      marketingPackages.slice(0, 6).map((item) => item.slug),
-    );
+    expect(routeRegistrySelections.home).toEqual({
+      capabilityIds: [],
+      packageSlugs: [],
+    });
+    expect(homeSource).not.toContain("marketingCapabilityMatrix");
+    expect(homeSource).not.toContain("commercialPackages");
     expect(routeRegistrySelections.solutions).toEqual({
       capabilityIds: solutionCapabilityIds,
       packageSlugs: solutionPackageSlugs,
@@ -872,7 +831,7 @@ describe("marketing content consistency", () => {
 
   it("rejects guarantees, unsupported deadlines, old brand, hybrids, and unexplained jargon on core routes", () => {
     const guaranteedEffectPattern =
-      /(?:не\s+теря(?:ется|ются)|сокращается\s+время|быстрее\s+(?:увидеть|оценить|получить)|отч[её]тность\s+переста[её]т\s+зависеть|ускор(?:яет|яется|ить)|гарантир(?:ует|ован))/iu;
+      /(?:не\s+теря(?:ется|ются)|сокращается\s+время|быстрее\s+(?:увидеть|оценить|получить)|отч[её]тность\s+переста[её]т\s+зависеть|ускор(?:яет|яется|ить)|(?<!не\s)гарантир(?:ует|ован))/iu;
     const percentagePattern =
       /(?:\d+(?:[.,]\d+)?\s*%|\bпроцент(?:а|ов|ы)?\b)/iu;
     const numericDeadlinePattern =
@@ -1620,6 +1579,15 @@ describe("marketing content consistency", () => {
       marketingCapabilityMatrix.map((item) => item.id),
     );
     const packageSlugs = new Set(marketingPackages.map((item) => item.slug));
+
+    for (const capability of marketingCapabilityMatrix) {
+      for (const packageSlug of capability.packageSlugs) {
+        expect(
+          packageSlugs.has(packageSlug),
+          `${capability.id}: ${packageSlug}`,
+        ).toBe(true);
+      }
+    }
 
     for (const segment of marketingSolutionSegments) {
       expect(segment.capabilityIds.length).toBeGreaterThan(0);

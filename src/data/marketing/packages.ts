@@ -208,7 +208,7 @@ export const marketingAdvancedOffers: MarketingAdvancedOffer[] = [
   {
     id: 'corporate',
     title: 'Корпоративный уровень',
-    summary: 'Полный комплект с несколькими организациями, сводной отчетностью, SSO, аудитом, интеграциями, SLA, миграцией и обучением.',
+    summary: 'Для группы компаний согласуем состав возможностей, доступ к данным организаций, обмен с учётными системами, перенос данных и условия сопровождения.',
     maturity: 'stable',
     surfaces: ['admin', 'lk', 'holding'],
     moduleSlugs: ['multi-organization', 'integrations'],

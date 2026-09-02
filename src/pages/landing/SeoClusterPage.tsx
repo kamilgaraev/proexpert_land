@@ -1,343 +1,299 @@
-import ContactForm from '@/components/landing/ContactForm';
-import FaqAccordion from '@/components/marketing/blocks/FaqAccordion';
+import type { CSSProperties } from "react";
+import { ArrowUpRightIcon, PlusIcon } from "@heroicons/react/24/outline";
+import ContactForm from "@/components/landing/ContactForm";
 import {
   MarketingLink,
   PageHero,
-  PageSectionNav,
   SectionHeader,
-} from '@/components/marketing/MarketingPrimitives';
-import { marketingSeoLandingPages, marketingSeo, marketingPaths } from '@/data/marketingRegistry';
-import { useSEO } from '@/hooks/useSEO';
+} from "@/components/marketing/MarketingPrimitives";
+import {
+  marketingSeoLandingPages,
+  marketingSeo,
+  marketingPaths,
+} from "@/data/marketingRegistry";
+import { useSEO } from "@/hooks/useSEO";
+import "@/styles/marketing-scenarios.css";
 
 type SeoClusterPageProps = {
   pageKey: keyof typeof marketingSeoLandingPages;
 };
 
+const materialScenarios = new Set([
+  "material-accounting",
+  "construction-procurement",
+  "site-requests",
+  "ai-estimates",
+  "construction-budget-control",
+  "construction-payments",
+]);
+const completedScenarios = new Set([
+  "pto-software",
+  "construction-documents",
+  "pir-project-documentation",
+  "handover-acceptance",
+  "1c-integration",
+]);
+
 const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
   const page = marketingSeoLandingPages[pageKey];
-  const trustProfile = page.trust ?? {
-    title: 'Когда решение подходит вашей команде',
-    description:
-      'Эти ориентиры помогут понять, подходит ли решение вашей команде и с чего начать запуск.',
-    fitForTitle: 'Подходит, если',
-    fitFor: page.audiences.slice(0, 3),
-    cautionTitle: 'Важно обсудить заранее',
-    caution: page.problems.slice(0, 3),
-    firstStepTitle: 'С чего обычно начинают',
-    firstStep: page.contactHighlights.slice(0, 3),
-  };
-  useSEO({
-    ...marketingSeo[pageKey],
-    type: 'website',
-  });
+  const scene = materialScenarios.has(pageKey)
+    ? "material"
+    : completedScenarios.has(pageKey)
+      ? "completed"
+      : "frame";
+  const stageStyle = {
+    "--scenario-stage-count": page.workflow?.stages.length ?? 1,
+  } as CSSProperties;
+
+  useSEO({ ...marketingSeo[pageKey], type: "website" });
 
   return (
-    <div className="marketing-page-shell">
+    <div className="marketing-page-shell most-scenario">
       <PageHero
-        eyebrow={page.eyebrow}
         title={page.title}
         description={page.description}
         actions={[
-          { label: 'Запросить демонстрацию', href: '#contact', primary: true },
-          { label: 'Смотреть все решения', href: marketingPaths.solutions },
+          {
+            label: "Запросить демонстрацию",
+            href: "#contact-form",
+            primary: true,
+          },
+          { label: "Смотреть все решения", href: marketingPaths.solutions },
         ]}
         nav={[
-          { label: 'Для кого', href: '#audience' },
-          { label: 'Задачи', href: '#problems' },
-          { label: 'Когда подходит', href: '#trust' },
-          { label: 'Как меняется работа', href: '#process-comparison' },
-          ...(page.workflow ? [{ label: 'Порядок работы', href: '#workflow' }] : []),
-          { label: 'Автоматизация', href: '#automation' },
-          { label: 'FAQ', href: '#faq' },
-          { label: 'Контакт', href: '#contact' },
+          { label: "Задачи команды", href: "#audience" },
+          {
+            label: "Порядок работы",
+            href: page.workflow ? "#workflow" : "#process-comparison",
+          },
+          { label: "Возможности", href: "#automation" },
+          { label: "Вопросы и условия", href: "#faq" },
         ]}
         aside={
-          <div className="space-y-4">
-            <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                Основная задача
-              </div>
-              <div className="mt-4 rounded-[1.2rem] bg-concrete-50 px-4 py-4 text-sm font-semibold leading-7 text-steel-950">
-                {page.supportingQueries[0]}
-              </div>
-              <div className="mt-4 grid gap-3">
-                {page.supportingQueries.slice(1).map((query) => (
-                  <div
-                    key={query}
-                    className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                  >
-                    {query}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <PageSectionNav items={page.relatedLinks.map((link) => ({ label: link.label, href: link.href }))} />
-          </div>
+          <figure className="most-scenario-scene" aria-hidden="true">
+            <img
+              src={`/images/marketing/most-${scene}-story-1440.webp`}
+              srcSet={`/images/marketing/most-${scene}-story-720.webp 720w, /images/marketing/most-${scene}-story-1440.webp 1440w`}
+              sizes="(max-width: 1079px) calc(100vw - 40px), 48vw"
+              width={1672}
+              height={941}
+              alt=""
+              fetchPriority="high"
+              decoding="async"
+            />
+          </figure>
         }
       />
 
-      <section id="audience" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+      <section id="audience" className="most-scenario-section">
+        <div className="most-container most-scenario-context">
           <div>
             <SectionHeader
-              eyebrow="Для кого"
               title={page.audienceTitle}
               description={page.audienceDescription}
             />
+            <ul className="most-scenario-lines">
+              {page.audiences.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
           </div>
-          <div className="grid gap-4">
-            {page.audiences.map((item) => (
-              <div key={item} className="rounded-[1.5rem] border border-steel-200 bg-white px-5 py-5 shadow-sm">
-                <div className="text-sm leading-7 text-steel-700">{item}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="problems" className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)]">
-          <div>
+          <div id="problems">
             <SectionHeader
-              eyebrow="Задачи"
               title={page.problemTitle}
               description={page.problemDescription}
             />
-          </div>
-          <div className="grid gap-4">
-            {page.problems.map((item) => (
-              <div key={item} className="rounded-[1.5rem] border border-steel-200 bg-white px-5 py-5 shadow-sm">
-                <div className="text-sm leading-7 text-steel-700">{item}</div>
-              </div>
-            ))}
+            <ul className="most-scenario-lines">
+              {page.problems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
 
-      <section id="trust" className="py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Когда подходит"
-            title={trustProfile.title}
-            description={trustProfile.description}
-          />
-
-          <div className="mt-10 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <article className="rounded-[1.9rem] border border-emerald-200 bg-emerald-50/70 p-6 shadow-sm lg:p-7">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700">
-                {trustProfile.fitForTitle}
-              </div>
-              <div className="mt-6 grid gap-3">
-                {trustProfile.fitFor.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-[1.15rem] border border-emerald-200 bg-white px-4 py-4 text-sm leading-7 text-steel-700"
-                  >
-                    {item}
-                  </div>
+      <section className="most-scenario-section most-scenario-workflow">
+        <div className="most-container">
+          {page.workflow ? (
+            <div id="workflow">
+              <SectionHeader
+                title={page.workflow.title}
+                description={page.workflow.description}
+              />
+              <ol className="most-scenario-stages" style={stageStyle}>
+                {page.workflow.stages.map((stage, index) => (
+                  <li key={stage.label}>
+                    <span className="most-scenario-step" aria-hidden="true">
+                      {index + 1}
+                    </span>
+                    <h3>{stage.label}</h3>
+                    <p>{stage.description}</p>
+                  </li>
                 ))}
-              </div>
-            </article>
-
-            <article className="rounded-[1.9rem] border border-amber-200 bg-amber-50/80 p-6 shadow-sm lg:p-7">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-700">
-                {trustProfile.cautionTitle}
-              </div>
-              <div className="mt-6 grid gap-3">
-                {trustProfile.caution.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-[1.15rem] border border-amber-200 bg-white px-4 py-4 text-sm leading-7 text-steel-700"
-                  >
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </article>
-          </div>
-
-          <article className="mt-6 rounded-[1.9rem] border border-steel-200 bg-steel-950 p-6 text-white shadow-sm lg:p-7">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
-              {trustProfile.firstStepTitle}
+              </ol>
             </div>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {trustProfile.firstStep.map((item, index) => (
-                <div
-                  key={item}
-                  className="rounded-[1.3rem] border border-white/10 bg-white/5 px-4 py-4"
-                >
-                  <div className="text-sm font-semibold text-white">Шаг {index + 1}</div>
-                  <div className="mt-2 text-sm leading-7 text-white/76">{item}</div>
+          ) : null}
+
+          <div id="process-comparison" className="most-scenario-records">
+            <div>
+              <h2 className="most-scenario-record-title">
+                {page.processComparison.title}
+              </h2>
+              <p className="most-scenario-record-description">
+                {page.processComparison.description}
+              </p>
+            </div>
+            <dl className="most-scenario-facts">
+              {page.processComparison.metrics.map((metric) => (
+                <div key={metric.label}>
+                  <dt>{metric.label}</dt>
+                  <dd>
+                    <h3>{metric.value}</h3>
+                    <p>{metric.description}</p>
+                  </dd>
                 </div>
               ))}
-            </div>
-          </article>
+            </dl>
+          </div>
         </div>
       </section>
 
-      <section id="process-comparison" className="py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow={page.processComparison.eyebrow}
-            title={page.processComparison.title}
-            description={page.processComparison.description}
-          />
-
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {page.processComparison.metrics.map((metric) => (
-              <div
-                key={metric.label}
-                className="rounded-[1.6rem] border border-steel-200 bg-white px-5 py-5 shadow-sm"
-              >
-                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-                  {metric.label}
-                </div>
-                <div className="mt-3 text-2xl font-bold text-steel-950">{metric.value}</div>
-                <div className="mt-3 text-sm leading-7 text-steel-600">{metric.description}</div>
-              </div>
-            ))}
-          </div>
-
-          <p className="mt-6 text-sm leading-7 text-steel-500">{page.processComparison.note}</p>
-        </div>
-      </section>
-
-      {page.workflow && (
-        <section id="workflow" className="border-y border-steel-200 bg-concrete-50 py-16 lg:py-20">
-          <div className="container-custom">
-            <SectionHeader
-              eyebrow="Порядок работы"
-              title={page.workflow.title}
-              description={page.workflow.description}
-            />
-
-            <ol className="mt-10 grid gap-x-8 gap-y-0 md:grid-cols-2 xl:grid-cols-3">
-              {page.workflow.stages.map((stage, index) => (
-                <li key={stage.label} className="border-t border-steel-300 py-6 first:border-t-0 md:first:border-t">
-                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-construction-700">
-                    Этап {String(index + 1).padStart(2, '0')}
-                  </div>
-                  <h3 className="mt-3 text-lg font-semibold text-steel-950">{stage.label}</h3>
-                  <p className="mt-3 text-sm leading-7 text-steel-700">{stage.description}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-      )}
-
-      <section id="automation" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
+      <section id="automation" className="most-scenario-section">
+        <div className="most-container most-scenario-context">
           <div>
             <SectionHeader
-              eyebrow="Автоматизация"
-              title={page.automationTitle}
-              description={page.automationDescription}
-            />
-            <div className="mt-8 grid gap-4">
-              {page.automations.map((item) => (
-                <div key={item} className="rounded-[1.5rem] bg-concrete-50 px-5 py-5 text-sm leading-7 text-steel-700">
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-[1.9rem] border border-steel-900 bg-steel-950 p-6 text-white shadow-sm lg:p-7">
-            <SectionHeader
-              eyebrow="Что увидит команда"
               title={page.visibilityTitle}
               description={page.visibilityDescription}
-              tone="dark"
             />
-            <div className="mt-8 grid gap-4">
+            <div className="most-scenario-faq-list most-scenario-operation-detail">
+              <details>
+                <summary>
+                  <span>{page.automationTitle}</span>
+                  <PlusIcon className="most-icon" aria-hidden="true" />
+                </summary>
+                <p>{page.automationDescription}</p>
+                <ul className="most-scenario-lines">
+                  {page.automations.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </details>
+            </div>
+          </div>
+          <div>
+            <dl className="most-scenario-roles">
               {page.roleViews.map((item) => (
-                <div key={item.role} className="rounded-[1.3rem] border border-white/10 bg-white/5 px-4 py-4">
-                  <div className="text-sm font-semibold text-white">{item.role}</div>
-                  <div className="mt-2 text-sm leading-7 text-white/76">{item.description}</div>
+                <div key={item.role}>
+                  <dt>{item.role}</dt>
+                  <dd>{item.description}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </div>
         </div>
       </section>
 
-      <section className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-2">
-          <div className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
-            <SectionHeader
-              eyebrow="Связанные решения"
-              title="Решения для связанных задач"
-              description="Если задача затрагивает несколько ролей или процессов, здесь можно перейти к подходящему решению."
-            />
-            <div className="mt-8 grid gap-4">
-              {page.relatedLinks.map((link) => (
-                <MarketingLink
-                  key={link.href + link.label}
-                  href={link.href}
-                  className="rounded-[1.35rem] border border-steel-200 px-5 py-5 transition hover:border-construction-300 hover:bg-construction-50/50"
-                >
-                  <div className="text-base font-semibold text-steel-950">{link.label}</div>
-                  <div className="mt-2 text-sm leading-7 text-steel-600">{link.description}</div>
-                </MarketingLink>
+      <section id="trust" className="most-scenario-section">
+        <div className="most-container">
+          {page.trust ? (
+            <div className="most-scenario-conditions">
+              <SectionHeader
+                title={page.trust.title}
+                description={page.trust.description}
+              />
+              <div className="most-scenario-context">
+                {[
+                  { title: page.trust.fitForTitle, items: page.trust.fitFor },
+                  { title: page.trust.cautionTitle, items: page.trust.caution },
+                  {
+                    title: page.trust.firstStepTitle,
+                    items: page.trust.firstStep,
+                  },
+                ].map((group) => (
+                  <div key={group.title}>
+                    <h3>{group.title}</h3>
+                    <ul className="most-scenario-lines">
+                      {group.items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          <div id="faq" className="most-scenario-faq">
+            <SectionHeader title="Что важно перед началом работы" />
+            <div className="most-scenario-faq-list">
+              {page.faq.map((item) => (
+                <details key={item.question}>
+                  <summary>
+                    <span>{item.question}</span>
+                    <PlusIcon className="most-icon" aria-hidden="true" />
+                  </summary>
+                  <p>{item.answer}</p>
+                </details>
               ))}
             </div>
           </div>
-
-          <div className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7">
-            <SectionHeader
-              eyebrow="Что еще изучить"
-              title="Материалы, которые помогают подготовиться к демонстрации"
-              description="Здесь собраны материалы по связанным ролям и рабочим процессам."
-            />
-            <div className="mt-8 grid gap-4">
-              {page.blogLinks.map((link) => (
-                <MarketingLink
-                  key={link.label}
-                  href={link.href}
-                  className="rounded-[1.35rem] bg-concrete-50 px-5 py-5 transition hover:bg-construction-50/70"
-                >
-                  <div className="text-base font-semibold text-steel-950">{link.label}</div>
-                  <div className="mt-2 text-sm leading-7 text-steel-600">{link.description}</div>
-                </MarketingLink>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
-      <section id="faq" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      <section
+        id="contact"
+        className="most-scenario-section most-scenario-contact"
+      >
+        <div className="most-container most-scenario-contact-layout">
           <div>
             <SectionHeader
-              eyebrow="FAQ"
-              title="Частые вопросы по решению"
-              description="Отвечаем на запросы, которые чаще всего возникают до демонстрации и старта пилота."
+              title="Покажем МОСТ на вашей задаче"
+              description="Расскажите, как организована работа сейчас и что хотите изменить."
             />
-          </div>
-          <FaqAccordion items={page.faq} />
-        </div>
-      </section>
-
-      <section id="contact" className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.92fr)] xl:items-start">
-          <div>
-            <SectionHeader
-              eyebrow="Контакт"
-              title="Запросите демонстрацию под ваш процесс"
-              description="Покажем подходящие функции, роли и отчеты для вашего процесса."
-            />
-            <div className="mt-8 grid gap-3">
+            <ul className="most-scenario-lines">
               {page.contactHighlights.map((item) => (
-                <div key={item} className="rounded-[1.25rem] bg-white px-4 py-4 text-sm leading-7 text-steel-700 shadow-sm">
-                  {item}
-                </div>
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+          <div id="contact-form">
+            <ContactForm
+              variant="compact"
+              className="most-contact-form most-scenario-form"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="most-scenario-section most-scenario-related">
+        <div className="most-container most-scenario-context">
+          <div>
+            <h2>Связанные задачи</h2>
+            <div className="most-scenario-links">
+              {page.relatedLinks.map((link) => (
+                <MarketingLink key={link.href + link.label} href={link.href}>
+                  <span>
+                    <strong>{link.label}</strong>
+                    <span>{link.description}</span>
+                  </span>
+                  <ArrowUpRightIcon className="most-icon" aria-hidden="true" />
+                </MarketingLink>
               ))}
             </div>
           </div>
-
-          <ContactForm variant="compact" className="shadow-none" />
+          <div>
+            <h2>По теме</h2>
+            <div className="most-scenario-links">
+              {page.blogLinks.map((link) => (
+                <MarketingLink key={link.href + link.label} href={link.href}>
+                  <span>
+                    <strong>{link.label}</strong>
+                    <span>{link.description}</span>
+                  </span>
+                  <ArrowUpRightIcon className="most-icon" aria-hidden="true" />
+                </MarketingLink>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
     </div>
