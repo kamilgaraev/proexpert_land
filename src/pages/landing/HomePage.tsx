@@ -1,7 +1,11 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import ContactForm from "@/components/landing/ContactForm";
-import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
+import {
+  marketingFaqs,
+  marketingPaths,
+  marketingSeo,
+} from "@/data/marketingRegistry";
 import useAnalytics from "@/hooks/useAnalytics";
 import { useSEO } from "@/hooks/useSEO";
 
@@ -46,29 +50,6 @@ const roles = [
     name: "Снабженцу",
     text: "Потребности объектов и поставки.",
     href: marketingPaths.constructionProcurement,
-  },
-];
-
-const questions = [
-  {
-    question: "Для каких строительных компаний подходит МОСТ?",
-    answer:
-      "Для подрядчиков, генподрядчиков, девелоперов и технических заказчиков. Состав разделов зависит от ваших задач: работы на объекте, снабжение, документы, финансы или несколько направлений вместе.",
-  },
-  {
-    question: "Что можно делать бесплатно?",
-    answer:
-      "Создать организацию, пригласить команду, завести проекты, вести основные записи и просматривать доступные данные. Дополнительные бизнес-пакеты подключаются отдельно.",
-  },
-  {
-    question: "Нужно сразу переводить в МОСТ всю компанию?",
-    answer:
-      "Можно начать с одного объекта и одного процесса — например, заявок на материалы. Затем подключить остальных сотрудников и нужные разделы.",
-  },
-  {
-    question: "Все сотрудники видят финансовые данные?",
-    answer:
-      "Доступ зависит от назначенных прав. Вы определяете, с какими объектами и разделами работает сотрудник.",
   },
 ];
 
@@ -272,7 +253,7 @@ const HomePage = () => {
       >
         <h2 id="most-faq-title">До начала работы</h2>
         <div>
-          {questions.map((item) => (
+          {marketingFaqs.map((item) => (
             <details key={item.question}>
               <summary>
                 {item.question}
