@@ -9,27 +9,6 @@ import {
 import useAnalytics from "@/hooks/useAnalytics";
 import { useSEO } from "@/hooks/useSEO";
 
-const workflows = [
-  {
-    title: "Прораб сообщает, что нужно",
-    text: "Создаёт заявку на материалы, указывает объект и нужный срок. Прикладывает фотографии и описание.",
-    href: marketingPaths.siteRequests,
-    link: "Заявки с объекта",
-  },
-  {
-    title: "Снабжение организует поставку",
-    text: "Работает с заявками, закупками и поставками. Видит, для какого объекта нужны материалы.",
-    href: marketingPaths.constructionProcurement,
-    link: "Снабжение строительства",
-  },
-  {
-    title: "Руководитель видит ход работ",
-    text: "Проверяет сроки, задачи и платежи по объекту. Разбирает отклонения вместе с ответственными.",
-    href: marketingPaths.projectPulse,
-    link: "Сводка по объектам",
-  },
-];
-
 const roles = [
   {
     name: "Руководителю",
@@ -64,27 +43,32 @@ const HomePage = () => {
     <div className="most-home">
       <section className="most-hero" aria-labelledby="most-home-title">
         <div className="most-container most-hero-heading">
-          <h1 id="most-home-title">
-            Между офисом
-            <br />и стройкой — <span>МОСТ.</span>
-          </h1>
+          <div>
+            <h1 id="most-home-title">
+              Между офисом
+              <br />и стройкой — <span>МОСТ.</span>
+            </h1>
+            <p className="most-hero-subtitle">
+              Система управления строительством
+            </p>
+          </div>
           <div className="most-hero-intro">
             <p>
-              Управление строительством: задачи, материалы, документы и финансы.
-              Офис и площадка работают с одними данными по объекту.
+              Задачи, материалы, документы и деньги проходят один путь — от
+              решения до работы на объекте.
             </p>
-            <a href="#contact" className="most-button most-button-orange">
-              Посмотреть МОСТ в работе <span aria-hidden="true">↗</span>
-            </a>
-            <Link to="/register" className="most-text-link">
-              Или начать бесплатно <span aria-hidden="true">→</span>
+            <Link to="/register" className="most-button most-button-orange">
+              Начать бесплатно
             </Link>
+            <a href="#workflow" className="most-text-link">
+              Как это работает <span aria-hidden="true">↓</span>
+            </a>
           </div>
         </div>
         <div className="most-bridge-scene">
           <img
-            src="/images/marketing/most-bridge-1774.webp"
-            srcSet="/images/marketing/most-bridge-640.webp 640w, /images/marketing/most-bridge-1024.webp 1024w, /images/marketing/most-bridge-1774.webp 1774w"
+            src="/images/marketing/most-bridge-v2-1774.webp"
+            srcSet="/images/marketing/most-bridge-v2-640.webp 640w, /images/marketing/most-bridge-v2-1024.webp 1024w, /images/marketing/most-bridge-v2-1774.webp 1774w"
             sizes="100vw"
             width={1774}
             height={887}
@@ -92,83 +76,89 @@ const HomePage = () => {
             loading="eager"
             fetchPriority="high"
           />
-        </div>
-        <div className="most-container most-hero-caption">
-          <span>Стройка и офис. Одна команда.</span>
-          <a href="#workflow">
-            Как это работает <span aria-hidden="true">↓</span>
-          </a>
+          <ol className="most-bridge-path" aria-label="От заявки до работы">
+            <li>Заявка</li>
+            <li>Решение</li>
+            <li>Работа</li>
+          </ol>
+          <div className="most-bridge-places" aria-hidden="true">
+            <span>Площадка</span>
+            <span>Офис</span>
+          </div>
         </div>
       </section>
 
       <section
         id="workflow"
-        className="most-section most-container"
-        aria-labelledby="most-workflow-title"
-      >
-        <div className="most-section-heading">
-          <h2 id="most-workflow-title">
-            У заявки есть объект.
-            <br />У задачи — ответственный.
-          </h2>
-          <p>
-            Когда информация остаётся в переписке, её приходится искать и
-            уточнять. В МОСТ она связана с конкретным объектом и доступна
-            участникам работы.
-          </p>
-        </div>
-        <ol className="most-workflow">
-          {workflows.map((item, index) => (
-            <li key={item.title}>
-              <span className="most-step-number">0{index + 1}</span>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
-              <Link to={item.href} className="most-text-link">
-                {item.link} <span aria-hidden="true">↗</span>
-              </Link>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section
-        id="product"
         className="most-product-section"
         aria-labelledby="most-product-title"
       >
-        <div className="most-container">
+        <div id="product" className="most-container">
           <div className="most-section-heading">
             <h2 id="most-product-title">
-              Видеть объект целиком.
+              Одна заявка.
               <br />
-              Разбираться в деталях.
+              Общая работа.
             </h2>
             <div>
               <p>
-                От графика работ — к задачам, материалам и платежам. Проверяйте
-                план и факт, уточняйте сроки, находите ответственных.
+                На площадке понадобился материал. Прораб передаёт потребность,
+                снабженец организует поставку, склад принимает её для объекта. В
+                МОСТ у этой работы есть заявка, ответственные и данные по
+                объекту.
               </p>
               <Link to={marketingPaths.features} className="most-text-link">
                 Все возможности МОСТ <span aria-hidden="true">↗</span>
               </Link>
             </div>
           </div>
-          <figure className="most-product-figure">
-            <div className="most-product-image">
-              <img
-                src="/images/marketing/most-project-schedule.webp"
-                width={2200}
-                height={1420}
-                loading="lazy"
-                alt="График строительного проекта в МОСТ: этапы работ, задачи и сроки на диаграмме Ганта"
-              />
-            </div>
+          <figure className="most-request-example">
             <figcaption>
-              <strong>График работ</strong>
-              <span>
-                Задачи, зависимости и план-факт по срокам в одном представлении.
-              </span>
+              <span>Пример работы с заявкой</span>
+              <strong>Арматура для фундамента</strong>
             </figcaption>
+            <div className="most-request-example-body">
+              <dl className="most-request-facts">
+                <div>
+                  <dt>Объект</dt>
+                  <dd>Строительство жилого дома</dd>
+                </div>
+                <div>
+                  <dt>Материал</dt>
+                  <dd>Арматура А500С, 12 мм</dd>
+                </div>
+                <div>
+                  <dt>Количество</dt>
+                  <dd>8 тонн</dd>
+                </div>
+                <div>
+                  <dt>Для каких работ</dt>
+                  <dd>Армирование фундамента</dd>
+                </div>
+              </dl>
+              <ol className="most-request-history">
+                <li>
+                  <span className="most-request-person">Прораб</span>
+                  <h3>Передаёт потребность</h3>
+                  <p>Указывает материал, количество, объект и нужный срок.</p>
+                </li>
+                <li>
+                  <span className="most-request-person">Снабженец</span>
+                  <h3>Организует закупку</h3>
+                  <p>
+                    Работает с заявкой и фиксирует договорённости о поставке.
+                  </p>
+                </li>
+                <li>
+                  <span className="most-request-person">Склад</span>
+                  <h3>Принимает материал</h3>
+                  <p>
+                    Фиксирует поступление для объекта. Остатки обновляются в
+                    учёте.
+                  </p>
+                </li>
+              </ol>
+            </div>
           </figure>
           <div className="most-product-links">
             <Link to={marketingPaths.materialAccounting}>

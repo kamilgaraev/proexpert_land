@@ -1,49 +1,64 @@
 import { useEffect } from "react";
-import CapabilityCard from "@/components/marketing/blocks/CapabilityCard";
+import { Link } from "react-router-dom";
 import CtaBand from "@/components/marketing/blocks/CtaBand";
-import TrustFactList from "@/components/marketing/blocks/TrustFactList";
+import { PageHero } from "@/components/marketing/MarketingPrimitives";
 import {
-  MarketingLink,
-  PageHero,
-  SectionHeader,
-} from "@/components/marketing/MarketingPrimitives";
-import {
-  marketingAdvancedOffers,
   marketingCapabilityMatrix,
-  marketingModuleLandingLinks,
   marketingPaths,
-  marketingSecuritySections,
   marketingSeo,
-  marketingTrustFacts,
 } from "@/data/marketingRegistry";
 import useAnalytics from "@/hooks/useAnalytics";
 import { useSEO } from "@/hooks/useSEO";
-import type { MarketingCapability } from "@/types/marketing";
 
-const groupedCapabilities = marketingCapabilityMatrix.reduce<
-  Record<string, MarketingCapability[]>
->((accumulator, capability) => {
-  accumulator[capability.businessContour] ??= [];
-  accumulator[capability.businessContour].push(capability);
-  return accumulator;
-}, {});
+const dailyWork = [
+  {
+    id: "project-control",
+    title: "Работы и сроки",
+    description:
+      "Планируйте этапы строительства и проверяйте исполнение. Задачи, документы и ответственные относятся к конкретному объекту.",
+    points: [
+      "График работ, зависимости и план-факт по срокам.",
+      "Задачи с ответственными и текущими статусами.",
+      "Документы и история изменений по объекту.",
+    ],
+    href: marketingPaths.foremanSoftware,
+    link: "Работа на объекте",
+  },
+  {
+    id: "supply-chain",
+    title: "Материалы и снабжение",
+    description:
+      "Собирайте потребности площадок и ведите закупки. Проверяйте остатки и движение материалов до следующей поставки.",
+    points: [
+      "Заявки с объекта с потребностью и сроком.",
+      "Закупки, поставки и ответственные за снабжение.",
+      "Остатки, поступления и перемещения на складах.",
+    ],
+    href: marketingPaths.constructionProcurement,
+    link: "Как устроено снабжение",
+  },
+  {
+    id: "finance-control",
+    title: "Платежи и обязательства",
+    description:
+      "Связывайте финансовые документы с объектами, контрагентами и этапами работ. Проверяйте суммы, сроки и состояние платежей.",
+    points: [
+      "Платёжные документы по проектам и контрагентам.",
+      "Акты, авансы и обязательства по объекту.",
+      "Контроль бюджета и зафиксированных отклонений.",
+    ],
+    href: marketingPaths.constructionPayments,
+    link: "Платежи в строительстве",
+  },
+];
 
-const contourEntries = Object.entries(groupedCapabilities).map(
-  ([contour, capabilities], index) => ({
-    id: `contour-${index + 1}`,
-    contour,
-    capabilities,
-  }),
+const otherCapabilities = marketingCapabilityMatrix.filter(
+  (item) => !dailyWork.some((workflow) => workflow.id === item.id),
 );
 
 const FeaturesPage = () => {
-  useSEO({
-    ...marketingSeo.features,
-    type: "website",
-  });
-
+  useSEO({ ...marketingSeo.features, type: "website" });
   const { trackPageView } = useAnalytics();
-
   useEffect(() => {
     trackPageView("marketing_features");
   }, [trackPageView]);
@@ -51,184 +66,132 @@ const FeaturesPage = () => {
   return (
     <div className="marketing-page-shell">
       <PageHero
-        eyebrow="Функции МОСТ"
-        title="Что можно делать в системе управления строительством."
-        description="Обзор возможностей без привязки к одной роли: объекты и задачи, графики, документы, снабжение, финансы, качество, безопасность, техника, люди и сводные данные."
+        eyebrow="Возможности МОСТ"
+        title="Работы, материалы и деньги — по каждому объекту."
+        description="Система управления строительством для ежедневной работы площадки и офиса. Ведите проект от первых задач и заявок до актов, платежей и приёмки."
         actions={[
-          {
-            label: "Посмотреть возможности",
-            href: "#contour-1",
-            primary: true,
-          },
-          { label: "Выбрать решение", href: marketingPaths.solutions },
+          { label: "Посмотреть демо", href: "/#contact", primary: true },
+          { label: "Состав и стоимость", href: marketingPaths.pricing },
         ]}
         nav={[
-          ...contourEntries.map((entry) => ({
-            label: entry.contour,
-            href: `#${entry.id}`,
-          })),
-          { label: "Расширения", href: "#advanced" },
-          { label: "Доверие", href: "#trust" },
+          { label: "Ежедневная работа", href: "#work" },
+          { label: "Другие направления", href: "#capabilities" },
+          { label: "Доступ сотрудников", href: "#access" },
         ]}
-        aside={
-          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Доступ к функциям
-            </div>
-            <div className="mt-4 grid gap-3">
-              {marketingSecuritySections.slice(0, 3).map((section) => (
-                <div
-                  key={section.title}
-                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                >
-                  <span className="font-semibold text-steel-950">
-                    {section.title}.
-                  </span>{" "}
-                  {section.description}
-                </div>
-              ))}
-            </div>
-          </div>
-        }
       />
 
-      <section className="py-16 lg:py-20">
-        <div className="container-custom space-y-6">
-          {contourEntries.map((entry, index) => (
-            <section
-              id={entry.id}
-              key={entry.id}
-              className={`rounded-[1.9rem] border p-6 lg:p-7 ${
-                index % 2 === 0
-                  ? "border-steel-200 bg-white"
-                  : "border-steel-900 bg-steel-950 text-white"
-              }`}
-            >
-              <div className="grid gap-8 xl:grid-cols-[minmax(0,0.84fr)_minmax(0,1.16fr)]">
-                <div>
-                  <div
-                    className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${
-                      index % 2 === 0
-                        ? "text-construction-700"
-                        : "text-construction-200"
-                    }`}
-                  >
-                    {entry.contour}
-                  </div>
-                  <h2 className="mt-3 text-[2rem] font-bold leading-tight">
-                    {entry.capabilities[0]?.summary}
-                  </h2>
-                  <p
-                    className={`mt-5 text-sm leading-7 ${
-                      index % 2 === 0 ? "text-steel-600" : "text-white/72"
-                    }`}
-                  >
-                    В этом разделе собраны связанные функции. Карточки поясняют,
-                    кому они нужны, какие рабочие данные используют и в каких
-                    интерфейсах доступны.
-                  </p>
-                </div>
-
-                <div className="grid gap-4 lg:grid-cols-2">
-                  {entry.capabilities.map((capability) => (
-                    <CapabilityCard
-                      key={capability.id}
-                      capability={capability}
-                      tone={index % 2 === 0 ? "light" : "dark"}
-                      compact
-                    />
-                  ))}
-                </div>
+      <section id="work" className="most-content-section most-container">
+        <h2>От задачи на площадке до решения в офисе.</h2>
+        <p className="most-content-lead">
+          Команда вносит данные по ходу работы. Руководитель и смежные службы
+          используют эти же записи — с учётом своих прав доступа.
+        </p>
+        <div className="most-feature-list">
+          {dailyWork.map((item) => (
+            <article key={item.id} className="most-feature-row">
+              <div>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+                <Link to={item.href} className="most-text-link">
+                  {item.link} <span aria-hidden="true">↗</span>
+                </Link>
               </div>
-            </section>
+              <ul>
+                {item.points.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            </article>
           ))}
         </div>
       </section>
 
-      <section id="advanced" className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
+      <section
+        id="capabilities"
+        className="most-content-section most-content-tint"
+      >
+        <div className="most-container most-capabilities-layout">
           <div>
-            <SectionHeader
-              eyebrow="Расширения"
-              title="Пилотные расширения и интеграции."
-              description="Статус на карточке показывает, входит ли функция в готовый продукт или требует отдельного согласования."
-            />
-            <div className="mt-8 grid gap-4">
-              {marketingAdvancedOffers.map((offer) => (
-                <article
-                  key={offer.id}
-                  className="rounded-[1.5rem] border border-steel-200 bg-white p-5 shadow-sm"
-                >
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                    {offer.cta}
-                  </div>
-                  <h3 className="mt-3 text-xl font-bold text-steel-950">
-                    {offer.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">
-                    {offer.summary}
-                  </p>
-                </article>
-              ))}
-            </div>
+            <h2>Подключайте то, что нужно вашей команде.</h2>
+            <p className="most-content-lead">
+              ПТО, стройконтроль, охрана труда и другие службы работают со
+              своими разделами. Возможности подключаются пакетами по
+              направлениям.
+            </p>
+            <Link to={marketingPaths.pricing} className="most-text-link">
+              Выбрать пакеты <span aria-hidden="true">↗</span>
+            </Link>
           </div>
-
-          <CtaBand
-            eyebrow="Демонстрация"
-            title="Запросите показ нужных разделов МОСТ."
-            description="На встрече разберём задачу, покажем выбранные функции и ответим на вопросы о ролях, доступе и документах."
-            actions={[
-              {
-                label: "Запросить демонстрацию",
-                href: marketingPaths.contact,
-                primary: true,
-              },
-              { label: "Страница безопасности", href: marketingPaths.security },
-            ]}
-            tone="dark"
-          />
-        </div>
-      </section>
-
-      <section className="py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Страницы возможностей"
-            title="Подробнее о материалах, документах, мобильной работе и ИИ."
-            description="Профильные страницы разбирают входные данные, последовательность работы и результат каждой функции."
-          />
-
-          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {marketingModuleLandingLinks.map((item) => (
-              <MarketingLink
-                key={item.href + item.label}
-                href={item.href}
-                className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-construction-300"
-              >
-                <div className="text-lg font-bold text-steel-950">
-                  {item.label}
-                </div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">
-                  {item.description}
-                </p>
-              </MarketingLink>
+          <div className="most-capability-details">
+            {otherCapabilities.map((item) => (
+              <details key={item.id}>
+                <summary>
+                  {item.title}
+                  <span aria-hidden="true">+</span>
+                </summary>
+                {item.maturity !== "stable" ? (
+                  <p className="most-availability">
+                    Подключение по согласованию
+                  </p>
+                ) : null}
+                <p>{item.summary}</p>
+                <ul>
+                  {item.outcomes.map((outcome) => (
+                    <li key={outcome}>{outcome}</li>
+                  ))}
+                </ul>
+                {item.maturity !== "stable" ? (
+                  <Link to={marketingPaths.contact} className="most-text-link">
+                    Обсудить подключение <span aria-hidden="true">↗</span>
+                  </Link>
+                ) : null}
+              </details>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="trust" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
+      <section id="access" className="most-content-section most-container">
+        <div className="most-content-columns">
           <div>
-            <SectionHeader
-              eyebrow="Доступ и данные"
-              title="Роли определяют доступные разделы и действия."
-              description="Рабочие записи и файлы относятся к объектам и другим сущностям системы, а права назначаются пользователям."
-            />
+            <h2>Каждому сотруднику — свой доступ.</h2>
+            <p>
+              Прорабу нужны задачи и заявки его площадки. Финансовой службе —
+              платежи и документы. Руководителю — данные по доступным объектам.
+              Права определяют, что человек может просматривать и изменять.
+            </p>
+            <Link to={marketingPaths.security} className="most-text-link">
+              Доступ и безопасность <span aria-hidden="true">↗</span>
+            </Link>
           </div>
-          <TrustFactList items={marketingTrustFacts} />
+          <div>
+            <h3>Начать можно с одного процесса.</h3>
+            <p>
+              Например, перенести заявки на материалы с одного объекта.
+              Пригласить прораба и снабженца, определить правила работы, затем
+              подключить остальные площадки и службы.
+            </p>
+            <Link to={marketingPaths.solutions} className="most-text-link">
+              Решения для вашей команды <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
         </div>
       </section>
+
+      <div className="most-container most-page-closing">
+        <CtaBand
+          eyebrow="Демонстрация"
+          title="Покажем работу нужных разделов."
+          description="Расскажите о вашей компании и задаче. На демонстрации разберём процесс, роли сотрудников и данные для начала работы."
+          actions={[
+            {
+              label: "Запросить демонстрацию",
+              href: "/#contact",
+              primary: true,
+            },
+          ]}
+        />
+      </div>
     </div>
   );
 };

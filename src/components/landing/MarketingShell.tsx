@@ -3,6 +3,8 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import CookieBanner from "@/components/marketing/CookieBanner";
 import "@/styles/marketing.css";
+import "@/styles/marketing-pages.css";
+import "@/styles/marketing-pricing.css";
 
 interface MarketingShellProps {
   children: ReactNode;

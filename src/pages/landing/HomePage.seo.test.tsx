@@ -30,7 +30,11 @@ describe("Home page search markup", () => {
     }));
     expect(visibleQuestions.length).toBeGreaterThan(0);
     const faqSchema = getPageSEOData("/").structuredData?.find(
-      (item) => item["@type"] === "FAQPage",
+      (item) =>
+        typeof item === "object" &&
+        item !== null &&
+        "@type" in item &&
+        item["@type"] === "FAQPage",
     );
     expect(faqSchema).toMatchObject({ mainEntity: visibleQuestions });
   });

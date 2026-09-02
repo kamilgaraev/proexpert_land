@@ -1,266 +1,225 @@
 import { useEffect } from "react";
 import ContactForm from "@/components/landing/ContactForm";
-import CtaBand from "@/components/marketing/blocks/CtaBand";
 import {
   MarketingLink,
   PageHero,
-  SectionHeader,
-  SurfaceBadges,
 } from "@/components/marketing/MarketingPrimitives";
-import {
-  marketingCapabilityMatrix,
-  marketingPackages,
-  marketingPaths,
-  marketingRoleLandingLinks,
-  marketingSeo,
-  marketingSolutionSegments,
-} from "@/data/marketingRegistry";
+import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
 import useAnalytics from "@/hooks/useAnalytics";
 import { useSEO } from "@/hooks/useSEO";
 
-const solutionNav = marketingSolutionSegments.map((segment) => ({
-  label: segment.title,
-  href: `#${segment.id}`,
-}));
+const companySolutions = [
+  {
+    id: "contractor",
+    title: "Подрядчику",
+    description:
+      "Ведите работы, заявки на материалы и расчёты по каждому объекту. Прораб фиксирует выполненные объёмы, офис готовит документы, руководитель видит, что осталось сделать.",
+    href: marketingPaths.contractors,
+    link: "МОСТ для подрядчика",
+  },
+  {
+    id: "general-contractor",
+    title: "Генподрядчику",
+    description:
+      "Соберите график, обязательства субподрядчиков и замечания по качеству в одном проекте. Сопоставляйте выполненные работы с актами и оплатами.",
+    href: marketingPaths.contractorControl,
+    link: "Контроль субподрядчиков",
+  },
+  {
+    id: "developer-holding",
+    title: "Девелоперу и группе компаний",
+    description:
+      "Сравнивайте сроки и финансовые показатели объектов. Разделяйте доступ между организациями, сохраняя общую отчётность для управляющей команды.",
+    href: marketingPaths.developers,
+    link: "МОСТ для девелопера",
+  },
+  {
+    id: "technical-customer",
+    title: "Техническому заказчику",
+    description:
+      "Проверяйте ход работ, фиксируйте замечания и контролируйте их устранение. Документы и история приёмки остаются привязаны к объекту и ответственным.",
+    href: marketingPaths.handoverAcceptance,
+    link: "Приёмка и сдача объекта",
+  },
+];
+
+const teamSolutions = [
+  {
+    id: "foreman",
+    title: "Прораб",
+    description:
+      "Задачи бригадам, выполненные объёмы, фотографии и заявки с площадки.",
+    href: marketingPaths.foremanSoftware,
+  },
+  {
+    id: "engineering",
+    title: "Инженер ПТО",
+    description:
+      "Версии проектных документов, замечания и комплекты для сдачи работ.",
+    href: marketingPaths.ptoSoftware,
+  },
+  {
+    id: "procurement",
+    title: "Снабженец",
+    description:
+      "Потребности объектов, закупки, поставки и остатки материалов.",
+    href: marketingPaths.constructionProcurement,
+  },
+  {
+    id: "management",
+    title: "Руководитель строительства",
+    description:
+      "План и факт по срокам, затратам и обязательствам участников проекта.",
+    href: marketingPaths.constructionBudgetControl,
+  },
+  {
+    id: "quality-handover",
+    title: "Специалист стройконтроля",
+    description: "Инспекции, дефекты, ответственные и повторные проверки.",
+    href: marketingPaths.constructionQualityControl,
+  },
+  {
+    id: "safety",
+    title: "Специалист по охране труда",
+    description:
+      "Инструктажи, допуски, нарушения и сроки устранения предписаний.",
+    href: marketingPaths.constructionSafety,
+  },
+  {
+    id: "resources",
+    title: "Руководитель участка",
+    description:
+      "Смены техники, простои, наряды и фактическая выработка бригад.",
+    href: marketingPaths.machineryAndLabor,
+  },
+  {
+    id: "changes",
+    title: "Руководитель проекта",
+    description:
+      "Запросы заказчику, дополнительные работы и согласованные изменения.",
+    href: marketingPaths.changeControl,
+  },
+];
 
 const SolutionsPage = () => {
-  useSEO({
-    ...marketingSeo.solutions,
-    type: "website",
-  });
-
+  useSEO({ ...marketingSeo.solutions, type: "website" });
   const { trackPageView } = useAnalytics();
 
   useEffect(() => {
     trackPageView("marketing_solutions");
   }, [trackPageView]);
 
-  const capabilityMap = new Map(
-    marketingCapabilityMatrix.map((capability) => [capability.id, capability]),
-  );
-  const packageMap = new Map(
-    marketingPackages.map((item) => [item.slug, item]),
-  );
-
   return (
     <div className="marketing-page-shell">
       <PageHero
         eyebrow="Решения"
-        title="Выберите решение по типу компании и роли сотрудника."
-        description="Отдельные страницы помогают подрядчику, генподрядчику, девелоперу и техническому заказчику найти функции для своей работы. Ниже — задачи руководителя, ПТО, площадки, снабжения и других ролей."
+        title="У каждого своя работа. Объект — общий."
+        description="МОСТ объединяет участников строительства: от прораба на площадке до руководителя группы компаний. Выберите задачи, которые хотите вести в системе."
         actions={[
-          { label: "Выбрать решение", href: "#solutions", primary: true },
-          { label: "Посмотреть пакеты", href: marketingPaths.pricing },
+          { label: "Подобрать решение", href: "#contact", primary: true },
+          { label: "Возможности МОСТ", href: marketingPaths.features },
         ]}
-        nav={[...solutionNav, { label: "Контакт", href: "#contact" }]}
-        aside={
-          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Что вы увидите
-            </div>
-            <div className="mt-4 space-y-3">
-              {[
-                "Задачи каждого типа компании.",
-                "Работа конкретных ролей в системе.",
-                "Связанные функции и подходящие пакеты.",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        }
+        nav={[
+          { label: "Для компании", href: "#solutions" },
+          { label: "Для сотрудников", href: "#team" },
+          { label: "С чего начать", href: "#start" },
+        ]}
       />
 
-      <section id="solutions" className="py-16 lg:py-20">
-        <div className="container-custom space-y-6">
-          {marketingSolutionSegments.map((segment) => {
-            const capabilities = segment.capabilityIds
-              .map((capabilityId) => capabilityMap.get(capabilityId))
-              .filter((item): item is NonNullable<typeof item> =>
-                Boolean(item),
-              );
-            const packages = segment.recommendedPackageSlugs
-              .map((packageSlug) => packageMap.get(packageSlug))
-              .filter((item): item is NonNullable<typeof item> =>
-                Boolean(item),
-              );
-
-            return (
-              <section
-                id={segment.id}
-                key={segment.id}
-                className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7"
+      <section id="solutions" className="most-content-section">
+        <div className="most-container">
+          <div className="most-content-lead">
+            <h2>Какая у вас компания?</h2>
+            <p>
+              У подрядчика и заказчика разные обязанности. Выбирайте решение по
+              тому, за какие работы, документы и расчёты отвечаете вы.
+            </p>
+          </div>
+          <div className="most-solution-list">
+            {companySolutions.map((item) => (
+              <article
+                id={item.id}
+                key={item.id}
+                className="most-solution-item"
               >
-                <div className="grid gap-8 xl:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
-                  <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                      {segment.audience}
-                    </div>
-                    <h2 className="mt-3 text-[2rem] font-bold leading-tight text-steel-950">
-                      {segment.title}
-                    </h2>
-                    <p className="mt-5 text-sm leading-7 text-steel-600">
-                      <span className="font-semibold text-steel-950">
-                        Текущая проблема:
-                      </span>{" "}
-                      {segment.challenge}
-                    </p>
-                    <p className="mt-3 text-sm leading-7 text-steel-600">
-                      <span className="font-semibold text-steel-950">
-                        Как устроена работа:
-                      </span>{" "}
-                      {segment.transformation}
-                    </p>
-
-                    <div className="mt-6">
-                      <SurfaceBadges surfaces={segment.surfaces} />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-6">
-                    <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-                        Рабочие потоки
-                      </div>
-                      <div className="mt-4 grid gap-3 md:grid-cols-2">
-                        {segment.workflows.map((workflow) => (
-                          <div
-                            key={workflow}
-                            className="rounded-[1.2rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                          >
-                            {workflow}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid gap-6 lg:grid-cols-2">
-                      <div>
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-                          Связанные функции
-                        </div>
-                        <div className="mt-4 grid gap-3">
-                          {capabilities.map((capability) => (
-                            <div
-                              key={capability.id}
-                              className="rounded-[1.2rem] border border-steel-200 px-4 py-4"
-                            >
-                              <div className="text-base font-semibold text-steel-950">
-                                {capability.title}
-                              </div>
-                              <p className="mt-2 text-sm leading-7 text-steel-600">
-                                {capability.publicClaim}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-                          Рекомендуемые пакеты
-                        </div>
-                        <div className="mt-4 grid gap-3">
-                          {packages.map((item) => (
-                            <div
-                              key={item.slug}
-                              className="rounded-[1.2rem] bg-concrete-50 px-4 py-4"
-                            >
-                              <div className="text-base font-semibold text-steel-950">
-                                {item.name}
-                              </div>
-                              <p className="mt-2 text-sm leading-7 text-steel-600">
-                                {item.bestFor}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Роли"
-            title="Задачи прораба, ПТО, снабжения и руководителя стройки."
-            description="Ролевые страницы объясняют, какие данные вводит сотрудник, что получает от коллег и за какой результат отвечает."
-          />
-
-          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {marketingRoleLandingLinks.map((item) => (
-              <MarketingLink
-                key={item.href}
-                href={item.href}
-                className="rounded-[1.6rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-construction-300"
-              >
-                <div className="text-lg font-bold text-steel-950">
-                  {item.label}
-                </div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">
-                  {item.description}
-                </p>
-              </MarketingLink>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+                <MarketingLink href={item.href} className="most-text-link">
+                  {item.link} <span aria-hidden="true">↗</span>
+                </MarketingLink>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom">
-          <CtaBand
-            eyebrow="Не нашли свой вариант"
-            title="Запросите демонстрацию для нескольких ролей или типов работ."
-            description="На встрече разберём структуру компании, обязанности сотрудников и данные, которыми они обмениваются."
-            actions={[
-              {
-                label: "Запросить демонстрацию",
-                href: marketingPaths.contact,
-                primary: true,
-              },
-              { label: "Посмотреть пакеты", href: marketingPaths.pricing },
-            ]}
-            tone="light"
-          />
+      <section id="team" className="most-content-section most-content-tint">
+        <div className="most-container">
+          <div className="most-content-lead">
+            <h2>Что нужно вашей команде?</h2>
+            <p>
+              Сотрудники работают с данными своего участка. Коллегам доступны
+              сведения, на которые у них есть права: заявки, документы, статусы
+              и результаты работ.
+            </p>
+          </div>
+          <div className="most-solution-list">
+            {teamSolutions.map((item) => (
+              <article
+                id={item.id}
+                key={item.id}
+                className="most-solution-item"
+              >
+                <h3>
+                  <MarketingLink href={item.href} className="most-text-link">
+                    {item.title} <span aria-hidden="true">↗</span>
+                  </MarketingLink>
+                </h3>
+                <p>{item.description}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section id="contact" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.92fr)] xl:items-start">
+      <section id="start" className="most-content-section">
+        <div className="most-container most-content-columns">
           <div>
-            <SectionHeader
-              eyebrow="Контакт"
-              title="Расскажите о компании и ролях, которые участвуют в работе."
-              description="Для подготовки демонстрации достаточно указать тип компании, свою роль и задачу, которую нужно разобрать."
-            />
-            <div className="mt-8 grid gap-3">
-              {[
-                "Уточняем роли команды и текущий этап компании.",
-                "Определяем данные и функции для демонстрации.",
-                "При необходимости включаем вопросы доступа, документов и интеграций.",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.2rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
+            <h2>Начните с одного объекта и одной задачи.</h2>
+            <p>
+              Например, с заявок на материалы. Прораб создаёт заявку, снабженец
+              готовит закупку, склад фиксирует поступление. Так команда
+              осваивает систему на знакомой работе.
+            </p>
           </div>
+          <div>
+            <h3>Подключайте остальные функции по мере необходимости.</h3>
+            <p>
+              В МОСТ есть бесплатная основа для организации, команды и проектов.
+              Пакеты для работ, снабжения, финансов и других задач выбираются
+              отдельно. Условия и стоимость доступны до подключения.
+            </p>
+            <MarketingLink
+              href={marketingPaths.pricing}
+              className="most-text-link"
+            >
+              Тарифы и состав пакетов <span aria-hidden="true">↗</span>
+            </MarketingLink>
+          </div>
+        </div>
+      </section>
 
-          <ContactForm variant="compact" className="shadow-none" />
+      <section id="contact" className="most-content-section most-content-tint">
+        <div className="most-container most-content-columns">
+          <div>
+            <h2>Покажем МОСТ на задачах вашей команды.</h2>
+            <p>
+              Напишите, чем занимается компания и что хотите упорядочить: работу
+              на объектах, снабжение, документы или расчёты. Это поможет
+              подготовить демонстрацию.
+            </p>
+          </div>
+          <ContactForm variant="compact" className="most-contact-form" />
         </div>
       </section>
     </div>
