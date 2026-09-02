@@ -41,16 +41,16 @@ describe('коммерческий каталог пакетов', () => {
       'brigades',
     ]);
     expect(commercialPackages.map(({ slug, moduleSlugs }) => [slug, moduleSlugs])).toEqual([
-      ['projects-processes', ['site-requests', 'file-management']],
+      ['projects-processes', ['site-requests', 'file-management', 'ai-assistant', 'data-export']],
       ['planning-schedules', ['schedule-management']],
-      ['estimates-norms', ['budget-estimates', 'rate-management']],
-      ['quality-safety', ['budget-estimates', 'file-management', 'quality-control', 'safety-management']],
+      ['estimates-norms', ['budget-estimates', 'rate-management', 'ai-estimates']],
+      ['quality-safety', ['budget-estimates', 'file-management', 'quality-control', 'safety-management', 'video-monitoring', 'access_recertification']],
       ['pto-handover', ['budget-estimates', 'file-management', 'quality-control', 'report-templates', 'executive-documentation', 'design-management', 'handover-acceptance']],
       ['supply-warehouse', ['site-requests', 'basic-warehouse', 'procurement', 'material-analytics']],
-      ['finance-contracts', ['budget-estimates', 'budgeting', 'change-management', 'advance-accounting']],
+      ['finance-contracts', ['budget-estimates', 'budgeting', 'change-management', 'advance-accounting', 'one-c-basic-exchange']],
       ['workforce-output', ['time-tracking', 'budget-estimates', 'workforce-management', 'production-labor']],
       ['machinery', ['budget-estimates', 'site-requests', 'machinery-operations']],
-      ['sales-contractors', ['crm', 'commercial-proposals', 'contractor-portal']],
+      ['sales-contractors', ['crm', 'commercial-proposals', 'contractor-portal', 'file-management', 'tenders']],
     ]);
   });
 

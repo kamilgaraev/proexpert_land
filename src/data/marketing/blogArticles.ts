@@ -5,32 +5,38 @@ import type {
 
 export const marketingBlogArticles = {
   foremanOrder: {
-    title: "Как прорабу держать объект под контролем без хаоса в чатах",
-    href: "/blog/kak-prorabu-derzhat-obekt-bez-haosa",
-    purpose: "Организация ежедневных задач и фиксации факта на площадке.",
+    title:
+      "Общий журнал работ в строительстве: как вести и заполнять в 2026 году",
+    href: "/blog/obshchiy-zhurnal-rabot-v-stroitelstve",
+    purpose: "Как фиксировать выполненные работы и вести записи с площадки.",
   },
   ptoWorkspace: {
     title:
-      "Что должно быть у ПТО в одной системе, чтобы документы не догоняли стройку",
-    href: "/blog/chto-dolzhno-byt-u-pto-v-odnoy-sisteme",
-    purpose: "Рабочее пространство ПТО для документов, статусов и замечаний.",
+      "Исполнительная документация в строительстве: состав, ведение и электронный формат в 2026 году",
+    href: "/blog/ispolnitelnaya-dokumentaciya-v-stroitelstve",
+    purpose:
+      "Как собирать исполнительную документацию по мере выполнения работ.",
   },
   managerMorning: {
-    title: "Что руководитель строительства должен видеть каждое утро",
-    href: "/blog/chto-rukovoditel-stroitelstva-dolzhen-videt-kazhdoe-utro",
-    purpose: "Набор данных для ежедневной управленческой проверки объектов.",
+    title:
+      "План-факт в строительстве: как контролировать сроки, объемы и бюджет",
+    href: "/blog/plan-fakt-v-stroitelstve",
+    purpose:
+      "Какие отклонения по срокам, объёмам и бюджету проверять руководителю.",
   },
   procurementChats: {
     title:
-      "Как снабженцу перестать собирать заявки из чатов и не срывать поставки",
-    href: "/blog/kak-snabzhentsu-perestat-sobirat-zayavki-iz-chatov",
+      "Заявка на материалы в строительстве: образец, обязательные поля и маршрут согласования",
+    href: "/blog/zayavka-na-materialy-v-stroitelstve",
     purpose:
-      "Порядок обработки заявок на материалы вне разрозненной переписки.",
+      "Что указать в заявке и как провести её от потребности до поставки.",
   },
   contractorControl: {
-    title: "Как контролировать подрядчиков на объекте без ежедневных разборок",
-    href: "/blog/kak-kontrolirovat-podryadchikov-na-obekte-bez-razborok",
-    purpose: "Фиксация объёмов, сроков и замечаний в работе подрядчиков.",
+    title:
+      "График производства работ в строительстве: как составить, вести и обновлять по факту",
+    href: "/blog/grafik-proizvodstva-rabot-v-stroitelstve",
+    purpose:
+      "Как связать последовательность работ, ответственность и фактические сроки.",
   },
 } as const satisfies Readonly<Record<string, MarketingBlogArticleReference>>;
 

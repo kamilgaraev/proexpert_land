@@ -158,10 +158,6 @@ const HomePage = () => {
             <li>Решение</li>
             <li>Работа</li>
           </ol>
-          <div className="most-bridge-places" aria-hidden="true">
-            <span>Площадка</span>
-            <span>Офис</span>
-          </div>
         </div>
       </section>
 

@@ -54,6 +54,17 @@ export interface BlogCategory {
   updated_at: string | null;
 }
 
+export interface BlogCategoryInitialData {
+  slug: string;
+  category: BlogCategory | null;
+  categories: BlogCategory[];
+  articles: BlogArticle[];
+  pagination: BlogPaginationMeta;
+  categoriesLoaded: boolean;
+  articlesLoaded: boolean;
+  notFound: boolean;
+}
+
 export interface BlogTag {
   id: number;
   name: string;

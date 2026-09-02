@@ -64,6 +64,51 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+describe('catch-all blog category SSR', () => {
+  it('loads category articles and returns category-specific document metadata', async () => {
+    const fetchMock = blogIndexFetch(article, [category]);
+    vi.stubGlobal('fetch', fetchMock);
+    const result = await onBeforeRender({ urlPathname: '/blog/category/management/' });
+    expect(result.pageContext.routeStatusCode).toBe(200);
+    expect(result.pageContext.documentProps).toMatchObject({
+      title: 'Управление — блог МОСТ',
+      description: 'Подборка материалов МОСТ по теме «Управление».',
+      canonicalUrl: 'https://1мост.рф/blog/category/management',
+      noIndex: false,
+    });
+    expect(result.pageContext.pageProps?.initialBlogCategoryData).toMatchObject({
+      category, articles: [article], categoriesLoaded: true, articlesLoaded: true, notFound: false,
+    });
+    expect(String(fetchMock.mock.calls[1][0])).toContain('category_id=7');
+  });
+
+  it('returns a real 404 only when a valid category catalogue lacks the slug', async () => {
+    const fetchMock = blogIndexFetch(article, [category]);
+    vi.stubGlobal('fetch', fetchMock);
+    const result = await onBeforeRender({ urlPathname: '/blog/category/missing' });
+    expect(result.pageContext.routeStatusCode).toBe(404);
+    expect(result.pageContext.documentProps).toMatchObject({ noIndex: true, statusCode: 404 });
+    expect(result.pageContext.pageProps?.initialBlogCategoryData?.notFound).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([new Response('Unavailable', { status: 503 }), jsonResponse({ success: true, data: { invalid: true } })])('does not turn a failed catalogue into a missing category', async (response) => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response));
+    const result = await onBeforeRender({ urlPathname: '/blog/category/management' });
+    expect(result.pageContext.routeStatusCode).toBe(200);
+    expect(result.pageContext.pageProps?.initialBlogCategoryData).toMatchObject({ categoriesLoaded: false, notFound: false });
+  });
+
+  it('keeps known category metadata when article loading fails', async () => {
+    vi.stubGlobal('fetch', vi.fn((input) => Promise.resolve(String(input).includes('/categories')
+      ? jsonResponse({ success: true, data: [category] })
+      : new Response('Unavailable', { status: 503 }))));
+    const result = await onBeforeRender({ urlPathname: '/blog/category/management' });
+    expect(result.pageContext.pageProps?.initialBlogCategoryData).toMatchObject({ category, categoriesLoaded: true, articlesLoaded: false, notFound: false });
+    expect(result.pageContext.documentProps?.title).toBe('Управление — блог МОСТ');
+  });
+});
+
 describe('catch-all blog SSR', () => {
   it('loads the first article page and categories in parallel for the blog index', async () => {
     const fetchMock = vi.fn((input: string | URL | Request) => {

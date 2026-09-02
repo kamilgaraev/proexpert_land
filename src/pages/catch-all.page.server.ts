@@ -2,7 +2,8 @@ import { isKnownMarketingPath, normalizeMarketingPath } from '@/data/marketingRe
 import type { BlogArticle } from '@/types/blog';
 import { normalizeMarketingBlogArticle } from '@/utils/marketingBlogNormalizer';
 import { generateArticleSchema, normalizeArticleTitleBrand } from '@/utils/seo';
-import { fetchBlogIndexForSsr } from './blogIndexSsr';
+import { fetchBlogCategoryForSsr, fetchBlogIndexForSsr } from './blogIndexSsr';
+import { getBlogCategorySeo } from '@/utils/blogCategorySeo';
 
 const BASE_URL = 'https://1мост.рф';
 const API_BASE_DOMAIN = process.env.VITE_API_BASE ?? process.env.API_BASE_URL ?? 'https://api.1мост.рф';
@@ -167,6 +168,25 @@ export async function onBeforeRender(pageContext: { urlPathname?: string }) {
         pageProps: {
           initialBlogIndexData,
         },
+      },
+    };
+  }
+
+  const categoryMatch = normalizedPath.match(/^\/blog\/category\/([^/]+)$/);
+  if (categoryMatch) {
+    let slug: string;
+    try {
+      slug = decodeURIComponent(categoryMatch[1]);
+    } catch {
+      return { pageContext: { routeStatusCode: 404 } };
+    }
+    const initialBlogCategoryData = await fetchBlogCategoryForSsr(slug);
+    const documentProps = getBlogCategorySeo(slug, initialBlogCategoryData.category, initialBlogCategoryData.notFound);
+    return {
+      pageContext: {
+        routeStatusCode: documentProps.statusCode,
+        pageProps: { initialBlogCategoryData },
+        documentProps,
       },
     };
   }

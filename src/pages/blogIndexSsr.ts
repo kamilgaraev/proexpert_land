@@ -2,6 +2,7 @@ import type {
   BlogArticle,
   BlogAuthor,
   BlogCategory,
+  BlogCategoryInitialData,
   BlogComment,
   BlogIndexInitialData,
   BlogPaginationMeta,
@@ -268,6 +269,51 @@ const fetchBlogIndexResource = async (
   } finally {
     clearTimeout(timeoutId);
   }
+};
+
+export const fetchBlogCategoryForSsr = async (
+  slug: string,
+  options: BlogIndexSsrOptions = {},
+): Promise<BlogCategoryInitialData> => {
+  const requestOptions: Required<BlogIndexSsrOptions> = {
+    apiBaseDomain: options.apiBaseDomain ?? DEFAULT_API_BASE_DOMAIN,
+    fetchImpl: options.fetchImpl ?? fetch,
+    timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+  };
+  const result: BlogCategoryInitialData = {
+    slug,
+    category: null,
+    categories: [],
+    articles: [],
+    pagination: EMPTY_BLOG_PAGINATION,
+    categoriesLoaded: false,
+    articlesLoaded: false,
+    notFound: false,
+  };
+
+  try {
+    const payload = await fetchBlogIndexResource('/api/v1/blog/categories', requestOptions);
+    const categories = normalizeCategoriesEnvelope(payload);
+    if (!categories) return result;
+    result.categories = categories;
+    result.categoriesLoaded = true;
+    result.category = categories.find((category) => category.slug === slug && category.is_active) ?? null;
+    result.notFound = result.category === null;
+    if (!result.category || result.category.id === null) return result;
+    const articles = normalizeArticlesEnvelope(await fetchBlogIndexResource(
+      `/api/v1/blog/articles?status=published&page=1&per_page=12&category_id=${result.category.id}`,
+      requestOptions,
+    ));
+    if (articles) {
+      result.articles = articles.articles;
+      result.pagination = articles.pagination;
+      result.articlesLoaded = true;
+    }
+  } catch {
+    return result;
+  }
+
+  return result;
 };
 
 export const fetchBlogIndexForSsr = async (

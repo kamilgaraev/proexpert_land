@@ -1,7 +1,6 @@
-import type { ReactNode } from 'react';
-import { PageHero } from '@/components/marketing/MarketingPrimitives';
-import Footer from '@/components/landing/Footer';
-import Navbar from '@/components/landing/Navbar';
+import type { ReactNode } from "react";
+import { PageHero } from "@/components/marketing/MarketingPrimitives";
+import MarketingShell from "@/components/landing/MarketingShell";
 
 interface BlogPublicLayoutProps {
   children: ReactNode;
@@ -13,22 +12,21 @@ interface BlogPublicLayoutProps {
 }
 
 const defaultNav = [
-  { label: 'Последние статьи', href: '#blog-feed' },
-  { label: 'Категории', href: '#blog-categories' },
-  { label: 'Контакты', href: '#blog-cta' },
+  { label: "Последние статьи", href: "#blog-feed" },
+  { label: "Категории", href: "#blog-categories" },
+  { label: "Контакты", href: "#blog-cta" },
 ];
 
 const BlogPublicLayout = ({
   children,
-  eyebrow = 'Блог МОСТ',
-  title = 'Материалы о строительных процессах, запуске и управлении проектами.',
-  description = 'Публикуем статьи о графиках работ, снабжении, документах, финансах и организации строительной команды.',
+  eyebrow,
+  title = "Материалы о строительных процессах, запуске и управлении проектами.",
+  description = "Публикуем статьи о графиках работ, снабжении, документах, финансах и организации строительной команды.",
   nav = defaultNav,
   aside,
 }: BlogPublicLayoutProps) => (
-  <div className="min-h-screen overflow-hidden bg-white">
-    <Navbar />
-    <div className="pt-20 xl:pt-28">
+  <MarketingShell>
+    <div className="marketing-page-shell most-blog">
       <PageHero
         eyebrow={eyebrow}
         title={title}
@@ -36,10 +34,9 @@ const BlogPublicLayout = ({
         nav={nav}
         aside={aside}
       />
-      <main>{children}</main>
+      {children}
     </div>
-    <Footer />
-  </div>
+  </MarketingShell>
 );
 
 export default BlogPublicLayout;

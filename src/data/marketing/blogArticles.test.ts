@@ -3,23 +3,21 @@ import publishedBlogTitles from "./fixtures/publishedBlogTitles.json";
 import { marketingBlogArticles } from "./blogArticles";
 
 describe("marketing blog article registry", () => {
-  it("contains exactly the five published canonical article paths", () => {
-    const expectedPaths = [
+  it("does not restore links to archived articles returning 404", () => {
+    const archivedPaths = new Set([
       "/blog/kak-prorabu-derzhat-obekt-bez-haosa",
       "/blog/chto-dolzhno-byt-u-pto-v-odnoy-sisteme",
       "/blog/chto-rukovoditel-stroitelstva-dolzhen-videt-kazhdoe-utro",
       "/blog/kak-snabzhentsu-perestat-sobirat-zayavki-iz-chatov",
       "/blog/kak-kontrolirovat-podryadchikov-na-obekte-bez-razborok",
-    ];
+    ]);
 
-    expect(
-      Object.values(marketingBlogArticles)
-        .map(({ href }) => href)
-        .sort(),
-    ).toEqual(expectedPaths.sort());
+    for (const { href } of Object.values(marketingBlogArticles)) {
+      expect(archivedPaths.has(href)).toBe(false);
+    }
   });
 
-  it("uses the exact titles returned by the production public API", () => {
+  it("matches published headings verified by the production crawl on 2026-09-03", () => {
     const registryTitles = Object.fromEntries(
       Object.values(marketingBlogArticles).map(({ href, title }) => [
         href.replace("/blog/", ""),

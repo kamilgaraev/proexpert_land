@@ -112,6 +112,19 @@ export const blogPublicApi = {
 
   getCategories: async (): Promise<ApiResult<WrappedItemPayload<BlogCategory[]>>> => {
     const response = await api.get('/categories');
+    const payload = response.data;
+    const categories = Array.isArray(payload?.data) ? payload.data : payload?.data?.data;
+    if (
+      payload?.success !== true ||
+      !Array.isArray(categories) ||
+      categories.some((category: unknown) => {
+        if (!category || typeof category !== 'object') return true;
+        const value = category as Partial<BlogCategory>;
+        return typeof value.slug !== 'string' || typeof value.name !== 'string' || typeof value.is_active !== 'boolean';
+      })
+    ) {
+      throw new Error('Invalid blog category response');
+    }
 
     const result = wrapResourceCollectionPayload<BlogCategory>(
       response as { data: LandingEnvelope<{ data: BlogCategory[] }> },

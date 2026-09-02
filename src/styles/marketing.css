@@ -1,7 +1,13 @@
+html:has(.most-marketing) {
+  --most-paper: #f6f2f1;
+  background: var(--most-paper);
+}
+html:has(.most-marketing) body {
+  background: transparent;
+}
 .most-marketing {
   --most-ink: #252721;
   --most-muted: #60645d;
-  --most-paper: #f6f2f1;
   --most-line: #dcded5;
   --most-orange: #f16a28;
   --most-icon-size: clamp(1.25rem, 1.12rem + 0.54vw, 1.75rem);
@@ -32,38 +38,48 @@
 }
 .most-marketing .text-xs {
   font-size: var(--most-type-fine);
+  line-height: 1.5;
 }
 .most-marketing .text-sm {
   font-size: var(--most-type-small);
+  line-height: 1.6;
 }
 .most-marketing .text-base {
   font-size: var(--most-type-body);
+  line-height: 1.6;
 }
 .most-marketing .text-lg {
   font-size: var(--most-type-lead);
+  line-height: 1.5;
 }
 .most-marketing .text-xl {
   font-size: var(--most-type-subheading);
+  line-height: 1.35;
 }
 .most-marketing .text-2xl,
 .most-marketing [class~="text-[1.9rem]"],
 .most-marketing [class~="text-[2rem]"] {
   font-size: var(--most-type-h3);
+  line-height: 1.2;
 }
 .most-marketing .text-3xl,
 .most-marketing .text-4xl,
 .most-marketing [class~="text-[2.2rem]"] {
   font-size: var(--most-type-h2);
+  line-height: 1.15;
 }
 .most-marketing .text-5xl {
   font-size: var(--most-type-h1);
+  line-height: 1.1;
 }
 .most-marketing .text-6xl,
 .most-marketing .text-7xl {
   font-size: var(--most-type-display);
+  line-height: 1.05;
 }
 .most-marketing [class~="text-[11px]"] {
   font-size: var(--most-type-caption);
+  line-height: 1.5;
 }
 .most-contact-form label {
   font-size: var(--most-type-small);
@@ -349,13 +365,6 @@
   border: 4px solid #ed690d;
   border-radius: 50%;
   background: var(--most-paper);
-}
-.most-bridge-places {
-  position: absolute;
-  inset: auto 48px 24px;
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--most-type-body);
 }
 .most-section {
   padding-block: 100px;
@@ -1452,10 +1461,6 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   }
   .most-bridge-path::before {
     bottom: 4px;
-  }
-  .most-bridge-places {
-    inset: auto 20px 10px;
-    font-size: var(--most-type-fine);
   }
   .most-section {
     padding-block: 52px;

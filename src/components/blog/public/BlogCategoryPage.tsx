@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import BlogArticleCard from './BlogArticleCard';
 import BlogPublicLayout from './BlogPublicLayout';
@@ -6,115 +6,104 @@ import BlogSidebar from './BlogSidebar';
 import { getBlogListMeta } from './blogPresentation';
 import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
 import { useSEO } from '@/hooks/useSEO';
-import type { BlogArticle, BlogCategory } from '@/types/blog';
+import type { BlogArticle, BlogCategory, BlogCategoryInitialData } from '@/types/blog';
+import { getBlogCategorySeo } from '@/utils/blogCategorySeo';
 import { blogPublicApi } from '@/utils/blogPublicApi';
 
-const BlogCategoryPage = () => {
-  const { slug } = useParams<{ slug: string }>();
-  const [articles, setArticles] = useState<BlogArticle[]>([]);
-  const [category, setCategory] = useState<BlogCategory | null>(null);
-  const [categories, setCategories] = useState<BlogCategory[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [error, setError] = useState<string | null>(null);
+interface BlogCategoryPageProps {
+  initialData?: BlogCategoryInitialData;
+}
 
-  useSEO(
-    category
-      ? {
-          title: category.meta_title || `${category.name} - блог МОСТ`,
-          description:
-            category.meta_description ||
-            category.description ||
-            `Подборка материалов МОСТ по теме "${category.name}".`,
-          keywords: `${category.name}, блог МОСТ, строительство`,
-          type: 'website',
-        }
-      : {
-          title: 'Категория блога МОСТ',
-          description: 'Подборка материалов МОСТ по категориям блога.',
-          type: 'website',
-        },
-  );
+const BlogCategoryContent = ({ slug, initialData }: BlogCategoryPageProps & { slug: string }) => {
+  const [articles, setArticles] = useState<BlogArticle[]>(initialData?.articles ?? []);
+  const [category, setCategory] = useState<BlogCategory | null>(initialData?.category ?? null);
+  const [categories, setCategories] = useState<BlogCategory[]>(initialData?.categories ?? []);
+  const [loading, setLoading] = useState(!initialData?.articlesLoaded && !initialData?.notFound);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(Boolean(initialData && initialData.pagination.current_page < initialData.pagination.last_page));
+  const [currentPage, setCurrentPage] = useState(initialData?.pagination.current_page ?? 1);
+  const [notFound, setNotFound] = useState(initialData?.notFound ?? false);
+  const [error, setError] = useState<string | null>(null);
+  const mounted = useRef(false);
+  const loadMorePending = useRef(false);
+
+  useSEO(getBlogCategorySeo(slug, category, notFound));
 
   useEffect(() => {
+    let cancelled = false;
+    mounted.current = true;
     const fetchInitialData = async () => {
+      if (initialData?.notFound || initialData?.articlesLoaded) return;
       try {
         setLoading(true);
         setError(null);
-
-        const categoriesResponse = await blogPublicApi.getCategories();
-        const categoriesData = (categoriesResponse.data as { data: BlogCategory[] }).data;
-        const resolvedCategory = categoriesData.find((item) => item.slug === slug) || null;
-
+        const categoriesData = initialData?.categoriesLoaded
+          ? initialData.categories
+          : (await blogPublicApi.getCategories()).data.data;
+        if (cancelled) return;
+        const resolvedCategory = categoriesData.find((item) => item.slug === slug && item.is_active) ?? null;
         setCategories(categoriesData);
         setCategory(resolvedCategory);
-
-        if (!resolvedCategory || resolvedCategory.id === null) {
-          setError('Категория не найдена.');
+        setNotFound(resolvedCategory === null);
+        if (!resolvedCategory) return;
+        if (resolvedCategory.id === null) {
+          setError('Не удалось загрузить материалы этой категории.');
           return;
         }
-
-        const articlesResponse = await blogPublicApi.getArticles({
+        const { data: payload } = await blogPublicApi.getArticles({
           page: 1,
           per_page: 12,
           category_id: resolvedCategory.id,
         });
-
-        const payload = articlesResponse.data as {
-          data: BlogArticle[];
-          meta: { current_page: number; last_page: number };
-        };
-
+        if (cancelled) return;
+        if (!payload.meta) throw new Error('Missing article pagination');
         setArticles(payload.data);
-        setCurrentPage(1);
+        setCurrentPage(payload.meta.current_page);
         setHasMore(payload.meta.current_page < payload.meta.last_page);
-      } catch (fetchError) {
-        console.error('Error fetching category page data:', fetchError);
-        setError('Не удалось загрузить материалы этой категории.');
+      } catch {
+        if (!cancelled) setError('Не удалось загрузить материалы этой категории.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
-
-    fetchInitialData();
-  }, [slug]);
+    void fetchInitialData();
+    return () => {
+      cancelled = true;
+      mounted.current = false;
+    };
+  }, [slug, initialData]);
 
   const handleLoadMore = async () => {
-    if (!category || category.id === null) {
-      return;
-    }
-
+    if (!category || category.id === null || !hasMore || loadMorePending.current) return;
+    loadMorePending.current = true;
     try {
       setLoadingMore(true);
-      const nextPage = currentPage + 1;
-      const response = await blogPublicApi.getArticles({
-        page: nextPage,
+      setError(null);
+      const { data: payload } = await blogPublicApi.getArticles({
+        page: currentPage + 1,
         per_page: 12,
         category_id: category.id,
       });
-
-      const payload = response.data as {
-        data: BlogArticle[];
-        meta: { current_page: number; last_page: number };
-      };
-
-      setArticles((prev) => [...prev, ...payload.data]);
-      setCurrentPage(nextPage);
+      if (!mounted.current) return;
+      if (!payload.meta) throw new Error('Missing article pagination');
+      setArticles((previous) => {
+        const ids = new Set(previous.map((article) => article.id));
+        return [...previous, ...payload.data.filter((article) => !ids.has(article.id))];
+      });
+      setCurrentPage(payload.meta.current_page);
       setHasMore(payload.meta.current_page < payload.meta.last_page);
-    } catch (fetchError) {
-      console.error('Error loading more category articles:', fetchError);
-      setError('Не удалось загрузить следующую страницу статей.');
+    } catch {
+      if (mounted.current) setError('Не удалось загрузить следующую страницу статей.');
     } finally {
-      setLoadingMore(false);
+      loadMorePending.current = false;
+      if (mounted.current) setLoadingMore(false);
     }
   };
 
   return (
     <BlogPublicLayout
       eyebrow="Категория блога"
-      title={category ? category.name : 'Материалы по категории'}
+      title={notFound ? 'Категория не найдена' : category ? category.name : 'Материалы по категории'}
       description={
         category?.description ||
         'Собираем материалы по выбранной теме, чтобы быстрее найти релевантные статьи перед запуском или демонстрацией.'
@@ -227,7 +216,7 @@ const BlogCategoryPage = () => {
               </>
             ) : !loading ? (
               <div className="mt-6 rounded-[1.75rem] border border-steel-200 bg-white p-8 shadow-sm">
-                <h3 className="text-2xl font-bold text-steel-950">В этой категории пока нет статей</h3>
+                <h3 className="text-2xl font-bold text-steel-950">{notFound ? 'Выберите другую тему' : error ? 'Материалы временно недоступны' : 'В этой категории пока нет статей'}</h3>
                 <p className="mt-4 text-sm leading-7 text-steel-600">
                   Вернитесь к общей ленте или выберите соседнюю тему в списке категорий.
                 </p>
@@ -235,11 +224,16 @@ const BlogCategoryPage = () => {
             ) : null}
           </div>
 
-          <BlogSidebar />
+          <BlogSidebar categories={categories} />
         </div>
       </section>
     </BlogPublicLayout>
   );
+};
+
+const BlogCategoryPage = ({ initialData }: BlogCategoryPageProps = {}) => {
+  const { slug = '' } = useParams<{ slug: string }>();
+  return <BlogCategoryContent key={slug} slug={slug} initialData={initialData?.slug === slug ? initialData : undefined} />;
 };
 
 export default BlogCategoryPage;

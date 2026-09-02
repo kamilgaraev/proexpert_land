@@ -3,7 +3,7 @@
   background: var(--most-paper);
 }
 .most-marketing .container-custom {
-  width: min(1440px, calc(100% - 112px));
+  width: calc(100% - 96px);
   max-width: none;
   padding-inline: 0;
 }

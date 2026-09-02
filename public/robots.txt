@@ -17,6 +17,19 @@ Disallow: /node_modules/
 
 User-agent: Yandex
 Allow: /
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /verify-email
+Disallow: /email-sent
+Disallow: /landing/multi-organization/
+Disallow: /blog/preview/
+Disallow: /blog/tag/
+Disallow: /api/
+Disallow: /src/
+Disallow: /node_modules/
 Crawl-delay: 1
 Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&fbclid&gclid
 
