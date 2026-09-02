@@ -58,6 +58,7 @@ const OrganizationPage = () => {
           legal_name: response.data.organization.legal_name || '',
           tax_number: response.data.organization.tax_number || '',
           registration_number: response.data.organization.registration_number || '',
+          okpo: response.data.organization.okpo || '',
           phone: response.data.organization.phone || '',
           email: response.data.organization.email || '',
           address: response.data.organization.address || '',
@@ -258,40 +259,73 @@ const OrganizationPage = () => {
             <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label>Название организации</Label>
+                  <Label htmlFor="organization-name">Название организации</Label>
                   <Input
+                    id="organization-name"
                     value={formData.name || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Юридическое наименование</Label>
+                  <Label htmlFor="organization-legal-name">Юридическое наименование</Label>
                   <Input
+                    id="organization-legal-name"
                     value={formData.legal_name || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, legal_name: e.target.value }))}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>ИНН</Label>
+                  <Label htmlFor="organization-tax-number">ИНН</Label>
                   <Input
+                    id="organization-tax-number"
+                    inputMode="numeric"
+                    maxLength={12}
                     value={formData.tax_number || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, tax_number: e.target.value }))}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      tax_number: e.target.value.replace(/\D/g, '').slice(0, 12),
+                    }))}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>ОГРН</Label>
+                  <Label htmlFor="organization-registration-number">ОГРН</Label>
                   <Input
+                    id="organization-registration-number"
+                    inputMode="numeric"
+                    maxLength={15}
                     value={formData.registration_number || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, registration_number: e.target.value }))}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      registration_number: e.target.value.replace(/\D/g, '').slice(0, 15),
+                    }))}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Телефон</Label>
+                  <Label htmlFor="organization-okpo">ОКПО</Label>
                   <Input
+                    id="organization-okpo"
+                    inputMode="numeric"
+                    maxLength={10}
+                    aria-describedby="organization-okpo-help"
+                    value={formData.okpo || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      okpo: e.target.value.replace(/\D/g, '').slice(0, 10),
+                    }))}
+                  />
+                  <p id="organization-okpo-help" className="text-xs text-muted-foreground">
+                    8 цифр для организации, 10 — для ИП. Используется в складских документах.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="organization-phone">Телефон</Label>
+                  <Input
+                    id="organization-phone"
                     type="tel"
                     value={formData.phone || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
@@ -299,8 +333,9 @@ const OrganizationPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Email</Label>
+                  <Label htmlFor="organization-email">Email</Label>
                   <Input
+                    id="organization-email"
                     type="email"
                     value={formData.email || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
@@ -308,8 +343,9 @@ const OrganizationPage = () => {
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <Label>Адрес</Label>
+                  <Label htmlFor="organization-address">Адрес</Label>
                   <AutocompleteInput
+                    id="organization-address"
                     value={formData.address || ''}
                     onChange={(value) => setFormData(prev => ({ ...prev, address: value }))}
                     onSearch={handleAddressSearch}
@@ -319,24 +355,32 @@ const OrganizationPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Город</Label>
+                  <Label htmlFor="organization-city">Город</Label>
                   <Input
+                    id="organization-city"
                     value={formData.city || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Почтовый индекс</Label>
+                  <Label htmlFor="organization-postal-code">Почтовый индекс</Label>
                   <Input
+                    id="organization-postal-code"
+                    inputMode="numeric"
+                    maxLength={6}
                     value={formData.postal_code || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, postal_code: e.target.value }))}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      postal_code: e.target.value.replace(/\D/g, '').slice(0, 6),
+                    }))}
                   />
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <Label>Описание деятельности</Label>
+                  <Label htmlFor="organization-description">Описание деятельности</Label>
                   <Textarea
+                    id="organization-description"
                     value={formData.description || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     rows={3}
@@ -371,6 +415,10 @@ const OrganizationPage = () => {
               <div className="space-y-1">
                 <Label className="text-muted-foreground font-normal">ОГРН</Label>
                 <div className="font-medium">{organization.registration_number || '—'}</div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-muted-foreground font-normal">ОКПО</Label>
+                <div className="font-medium">{organization.okpo || '—'}</div>
               </div>
               <div className="space-y-1">
                 <Label className="text-muted-foreground font-normal">Телефон</Label>

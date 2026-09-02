@@ -1009,6 +1009,7 @@ export interface Organization {
   legal_name?: string;
   tax_number?: string;
   registration_number?: string;
+  okpo?: string;
   phone?: string;
   email?: string;
   address?: string;
@@ -1029,6 +1030,7 @@ export interface OrganizationUpdateData {
   legal_name?: string;
   tax_number?: string;
   registration_number?: string;
+  okpo?: string;
   phone?: string;
   email?: string;
   address?: string;
