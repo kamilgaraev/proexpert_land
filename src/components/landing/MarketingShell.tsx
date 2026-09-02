@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react';
-import Navbar from './Navbar';
-import Footer from './Footer';
-import CookieBanner from '@/components/marketing/CookieBanner';
+import type { ReactNode } from "react";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
+import CookieBanner from "@/components/marketing/CookieBanner";
+import "@/styles/marketing.css";
 
 interface MarketingShellProps {
   children: ReactNode;
@@ -9,9 +10,14 @@ interface MarketingShellProps {
 
 const MarketingShell = ({ children }: MarketingShellProps) => {
   return (
-    <div className="flex min-h-[100svh] flex-col overflow-x-hidden bg-white font-sans">
+    <div className="most-marketing flex min-h-[100svh] flex-col bg-white font-sans">
+      <a className="most-skip-link" href="#main-content">
+        Перейти к содержимому
+      </a>
       <Navbar />
-      <main className="flex-grow">{children}</main>
+      <main id="main-content" className="flex-grow">
+        {children}
+      </main>
       <Footer />
       <CookieBanner />
     </div>

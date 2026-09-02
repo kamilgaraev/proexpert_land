@@ -1,18 +1,18 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   BuildingOffice2Icon,
   EnvelopeIcon,
   PaperAirplaneIcon,
   ShieldCheckIcon,
   UserIcon,
-} from '@heroicons/react/24/outline';
-import NotificationService from '@/components/shared/NotificationService';
-import SuccessModal from '@/components/shared/SuccessModal';
-import { marketingPaths } from '@/data/marketingRegistry';
-import useAnalytics from '@/hooks/useAnalytics';
-import { COOKIE_CONSENT_VERSION } from '@/utils/marketingConsent';
+} from "@heroicons/react/24/outline";
+import NotificationService from "@/components/shared/NotificationService";
+import SuccessModal from "@/components/shared/SuccessModal";
+import { marketingPaths } from "@/data/marketingRegistry";
+import useAnalytics from "@/hooks/useAnalytics";
+import { COOKIE_CONSENT_VERSION } from "@/utils/marketingConsent";
 
 interface ContactFormData {
   name: string;
@@ -24,25 +24,27 @@ interface ContactFormData {
 }
 
 interface ContactFormProps {
-  variant?: 'full' | 'compact';
+  variant?: "full" | "compact";
   className?: string;
 }
 
 const subjectOptions = [
-  { value: 'demo', label: 'Запрос демонстрации' },
-  { value: 'pricing', label: 'Пакеты и состав решения' },
-  { value: 'launch', label: 'Внедрение и запуск' },
-  { value: 'security', label: 'Безопасность и юридические вопросы' },
+  { value: "demo", label: "Запрос демонстрации" },
+  { value: "pricing", label: "Пакеты и состав решения" },
+  { value: "launch", label: "Внедрение и запуск" },
+  { value: "security", label: "Безопасность и юридические вопросы" },
 ];
 
 const getPublicApiBase = () => {
-  const rawBase = (import.meta.env.VITE_API_URL as string | undefined) ?? 'https://api.1мост.рф';
+  const rawBase =
+    (import.meta.env.VITE_API_URL as string | undefined) ??
+    "https://api.1мост.рф";
 
-  return rawBase.replace(/\/api\/v1\/landing\/?$/, '');
+  return rawBase.replace(/\/api\/v1\/landing\/?$/, "");
 };
 
 const getUtmPayload = () => {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return {
       utm_source: undefined,
       utm_medium: undefined,
@@ -55,11 +57,11 @@ const getUtmPayload = () => {
   const searchParams = new URLSearchParams(window.location.search);
 
   return {
-    utm_source: searchParams.get('utm_source') ?? undefined,
-    utm_medium: searchParams.get('utm_medium') ?? undefined,
-    utm_campaign: searchParams.get('utm_campaign') ?? undefined,
-    utm_term: searchParams.get('utm_term') ?? undefined,
-    utm_content: searchParams.get('utm_content') ?? undefined,
+    utm_source: searchParams.get("utm_source") ?? undefined,
+    utm_medium: searchParams.get("utm_medium") ?? undefined,
+    utm_campaign: searchParams.get("utm_campaign") ?? undefined,
+    utm_term: searchParams.get("utm_term") ?? undefined,
+    utm_content: searchParams.get("utm_content") ?? undefined,
   };
 };
 
@@ -69,31 +71,36 @@ const normalizeOptional = (value: string) => {
   return trimmedValue.length > 0 ? trimmedValue : undefined;
 };
 
-const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => {
+const ContactForm = ({
+  variant = "full",
+  className = "",
+}: ContactFormProps) => {
   const location = useLocation();
   const { trackButtonClick, trackContactForm } = useAnalytics();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const [formData, setFormData] = useState<ContactFormData>({
-    name: '',
-    email: '',
-    company: '',
-    subject: variant === 'compact' ? 'demo' : '',
-    message: '',
+    name: "",
+    email: "",
+    company: "",
+    subject: variant === "compact" ? "demo" : "",
+    message: "",
     consentToPersonalData: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleInputChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const { name, value, type } = event.target;
 
     setFormData((prevState) => ({
       ...prevState,
       [name]:
-        type === 'checkbox'
+        type === "checkbox"
           ? (event.target as HTMLInputElement).checked
           : value,
     }));
@@ -110,23 +117,23 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     const errors: string[] = [];
 
     if (formData.name.trim().length < 2) {
-      errors.push('Укажите имя не короче 2 символов.');
+      errors.push("Укажите имя не короче 2 символов.");
     }
 
     if (!emailRegex.test(formData.email.trim())) {
-      errors.push('Введите корректную рабочую почту.');
+      errors.push("Введите корректную рабочую почту.");
     }
 
     if (formData.message.trim().length < 10) {
-      errors.push('Опишите запрос минимум в 10 символах.');
+      errors.push("Опишите запрос минимум в 10 символах.");
     }
 
-    if (variant === 'full' && !formData.subject) {
-      errors.push('Выберите тему обращения.');
+    if (variant === "full" && !formData.subject) {
+      errors.push("Выберите тему обращения.");
     }
 
     if (!formData.consentToPersonalData) {
-      errors.push('Подтвердите согласие на обработку персональных данных.');
+      errors.push("Подтвердите согласие на обработку персональных данных.");
     }
 
     return errors;
@@ -135,7 +142,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
   const isNameValid = formData.name.trim().length >= 2;
   const isEmailValid = emailRegex.test(formData.email.trim());
   const isMessageValid = formData.message.trim().length >= 10;
-  const isSubjectValid = variant === 'compact' || Boolean(formData.subject);
+  const isSubjectValid = variant === "compact" || Boolean(formData.subject);
   const canSubmit =
     !isSubmitting &&
     formData.consentToPersonalData &&
@@ -150,9 +157,9 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     const errors = validateForm();
     if (errors.length > 0) {
       NotificationService.show({
-        type: 'error',
-        title: 'Форма заполнена не полностью',
-        message: errors.join(' '),
+        type: "error",
+        title: "Форма заполнена не полностью",
+        message: errors.join(" "),
       });
       return;
     }
@@ -160,7 +167,8 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     setIsSubmitting(true);
 
     const selectedSubject =
-      subjectOptions.find((option) => option.value === formData.subject) ?? subjectOptions[0];
+      subjectOptions.find((option) => option.value === formData.subject) ??
+      subjectOptions[0];
     const payload = {
       name: formData.name.trim(),
       email: formData.email.trim(),
@@ -174,11 +182,13 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
     };
 
     const preparedPayload = Object.fromEntries(
-      Object.entries(payload).filter(([, value]) => value !== undefined && value !== ''),
+      Object.entries(payload).filter(
+        ([, value]) => value !== undefined && value !== "",
+      ),
     );
 
     try {
-      trackButtonClick('public_contact_submit', `contact_form_${variant}`);
+      trackButtonClick("public_contact_submit", `contact_form_${variant}`);
       trackContactForm(variant, {
         subject: selectedSubject.value,
         page_source: preparedPayload.page_source,
@@ -187,53 +197,53 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
       });
 
       const response = await fetch(`${getPublicApiBase()}/api/public/contact`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+          Accept: "application/json",
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(preparedPayload),
       });
 
-      const result = (await response.json().catch(() => null)) as
-        | {
-            success?: boolean;
-            message?: string;
-            errors?: Record<string, string[]>;
-          }
-        | null;
+      const result = (await response.json().catch(() => null)) as {
+        success?: boolean;
+        message?: string;
+        errors?: Record<string, string[]>;
+      } | null;
 
       if (!response.ok || !result?.success) {
         const validationMessage =
           response.status === 422 && result?.errors
-            ? Object.values(result.errors).flat().join(' ')
-            : result?.message ?? 'Не удалось отправить заявку. Попробуйте позже.';
+            ? Object.values(result.errors).flat().join(" ")
+            : (result?.message ??
+              "Не удалось отправить заявку. Попробуйте позже.");
 
         NotificationService.show({
-          type: 'error',
-          title: 'Ошибка отправки',
+          type: "error",
+          title: "Ошибка отправки",
           message: validationMessage,
         });
         return;
       }
 
       setSuccessMessage(
-        result.message ?? 'Заявка принята. Мы свяжемся с вами в течение рабочего дня.',
+        result.message ?? "Заявка принята. Мы напишем на указанную почту.",
       );
       setShowSuccessModal(true);
       setFormData({
-        name: '',
-        email: '',
-        company: '',
-        subject: variant === 'compact' ? 'demo' : '',
-        message: '',
+        name: "",
+        email: "",
+        company: "",
+        subject: variant === "compact" ? "demo" : "",
+        message: "",
         consentToPersonalData: false,
       });
     } catch {
       NotificationService.show({
-        type: 'error',
-        title: 'Ошибка соединения',
-        message: 'Не удалось отправить заявку. Проверьте соединение и попробуйте еще раз.',
+        type: "error",
+        title: "Ошибка соединения",
+        message:
+          "Не удалось отправить заявку. Проверьте соединение и попробуйте еще раз.",
       });
     } finally {
       setIsSubmitting(false);
@@ -241,7 +251,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
   };
 
   const wrapperClass =
-    variant === 'compact'
+    variant === "compact"
       ? `rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm ${className}`
       : `rounded-[2rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7 ${className}`;
 
@@ -254,16 +264,15 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
         transition={{ duration: 0.35 }}
       >
         <div className="flex flex-col gap-3 border-b border-steel-100 pb-5">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-            {variant === 'compact' ? 'Первичный контакт' : 'Форма заявки'}
-          </div>
           <h2 className="font-sans text-2xl font-bold text-steel-950 lg:text-[1.85rem]">
-            {variant === 'compact' ? 'Оставить заявку' : 'Запросить демонстрацию МОСТ'}
+            {variant === "compact"
+              ? "Оставить заявку"
+              : "Запросить демонстрацию МОСТ"}
           </h2>
           <p className="max-w-2xl text-sm leading-7 text-steel-600">
-            {variant === 'compact'
-              ? 'Оставьте рабочую почту и кратко опишите задачу. Ответим в течение рабочего дня и предложим формат демонстрации.'
-              : 'Оставьте рабочую почту, текущий процесс и проблемную зону. Ответим в течение рабочего дня и предложим формат демонстрации.'}
+            {variant === "compact"
+              ? "Укажите почту, на которую вам удобно получить ответ."
+              : "Расскажите, что хотите посмотреть. Напишем на указанную почту и договоримся о демонстрации."}
           </p>
         </div>
 
@@ -318,7 +327,7 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
             </label>
           </div>
 
-          {variant === 'full' ? (
+          {variant === "full" ? (
             <div>
               <span className="mb-3 block text-sm font-semibold text-steel-700">
                 Что хотите обсудить
@@ -334,8 +343,8 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
                       onClick={() => handleSubjectChange(option.value)}
                       className={`rounded-[1.1rem] border px-4 py-3 text-left text-sm font-semibold transition ${
                         active
-                          ? 'border-steel-950 bg-steel-950 text-white'
-                          : 'border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
+                          ? "border-steel-950 bg-steel-950 text-white"
+                          : "border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700"
                       }`}
                     >
                       {option.label}
@@ -349,14 +358,16 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
           )}
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-steel-700">Сообщение</span>
+            <span className="mb-2 block text-sm font-semibold text-steel-700">
+              Сообщение
+            </span>
             <textarea
               name="message"
               value={formData.message}
               onChange={handleInputChange}
               minLength={10}
-              placeholder="Опишите ваш процесс, текущую проблему или тип нужной демонстрации"
-              rows={variant === 'compact' ? 4 : 5}
+              placeholder="Например: хотим наладить заявки на материалы с трёх объектов"
+              rows={variant === "compact" ? 4 : 5}
               className="w-full rounded-[1.1rem] border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
               required
             />
@@ -382,16 +393,25 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
                   Согласие на обработку персональных данных
                 </div>
                 <p className="mt-2 text-sm leading-6 text-steel-600">
-                  Подтверждаю согласие в рамках{' '}
-                  <Link to={marketingPaths.privacy} className="font-semibold text-construction-700">
+                  Подтверждаю согласие в рамках{" "}
+                  <Link
+                    to={marketingPaths.privacy}
+                    className="font-semibold text-construction-700"
+                  >
                     политики конфиденциальности
-                  </Link>{' '}
-                  и принимаю условия{' '}
-                  <Link to={marketingPaths.offer} className="font-semibold text-construction-700">
+                  </Link>{" "}
+                  и принимаю условия{" "}
+                  <Link
+                    to={marketingPaths.offer}
+                    className="font-semibold text-construction-700"
+                  >
                     публичной оферты
                   </Link>
-                  . Настройки аналитики описаны в{' '}
-                  <Link to={marketingPaths.cookies} className="font-semibold text-construction-700">
+                  . Настройки аналитики описаны в{" "}
+                  <Link
+                    to={marketingPaths.cookies}
+                    className="font-semibold text-construction-700"
+                  >
                     политике cookie
                   </Link>
                   .
@@ -405,8 +425,8 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
             disabled={!canSubmit}
             className={`inline-flex w-full min-w-0 flex-wrap items-center justify-center gap-3 rounded-full px-6 py-4 text-center text-base font-semibold whitespace-normal [overflow-wrap:anywhere] transition ${
               !canSubmit
-                ? 'cursor-not-allowed bg-steel-300 text-white'
-                : 'bg-steel-950 text-white hover:-translate-y-0.5 hover:bg-steel-900'
+                ? "cursor-not-allowed bg-steel-300 text-white"
+                : "bg-steel-950 text-white hover:-translate-y-0.5 hover:bg-steel-900"
             }`}
           >
             {isSubmitting ? (
@@ -417,7 +437,9 @@ const ContactForm = ({ variant = 'full', className = '' }: ContactFormProps) => 
             ) : (
               <>
                 <PaperAirplaneIcon className="h-5 w-5 shrink-0" />
-                {variant === 'compact' ? 'Отправить заявку' : 'Запросить демонстрацию'}
+                {variant === "compact"
+                  ? "Отправить заявку"
+                  : "Запросить демонстрацию"}
               </>
             )}
           </button>
