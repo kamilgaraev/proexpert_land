@@ -15,12 +15,118 @@ on:
           - both
           - marketing
           - lk
+          - backup-marketing
+          - verify-marketing-backup
+          - restore-marketing-backup
+      confirm_restore:
+        description: Enter RESTORE-MARKETING-20260902 only to restore the baseline
+        required: false
+        type: string
 
 concurrency:
   group: prohelper-frontend-deploy
   cancel-in-progress: false
 
 jobs:
+  marketing-baseline:
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'backup-marketing' || inputs.target == 'verify-marketing-backup' || inputs.target == 'restore-marketing-backup')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate restore request
+        env:
+          TARGET: ${{ inputs.target }}
+          CONFIRM_RESTORE: ${{ inputs.confirm_restore }}
+        run: |
+          if [ "$TARGET" = restore-marketing-backup ] && [ "$CONFIRM_RESTORE" != RESTORE-MARKETING-20260902 ]; then
+            exit 1
+          fi
+      - name: Preserve or restore marketing baseline
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          BASELINE_OPERATION: ${{ inputs.target }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: root
+          key: ${{ secrets.SSH_KEY }}
+          envs: BASELINE_OPERATION
+          command_timeout: 20m
+          script: |
+            set -euo pipefail
+            umask 077
+            RELEASES_ROOT=/var/www/prohelper_marketing/releases
+            CURRENT_LINK=/var/www/prohelper_marketing/current
+            BACKUP_ROOT=/var/backups/most-marketing
+            BASELINE="$BACKUP_ROOT/before-redesign-20260902"
+            CURRENT_RELEASE="$(readlink -f "$CURRENT_LINK")"
+            case "$CURRENT_RELEASE" in
+              "$RELEASES_ROOT"/*) ;;
+              *) echo 'Unexpected marketing release path'; exit 1 ;;
+            esac
+            test -d "$CURRENT_RELEASE/server"
+            test -d "$CURRENT_RELEASE/client"
+            test -f "$CURRENT_RELEASE/ecosystem.config.cjs"
+            mkdir -p "$BACKUP_ROOT"
+            if [ "$BASELINE_OPERATION" = backup-marketing ] && [ ! -e "$BASELINE" ]; then
+              STAGING="$(mktemp -d "$BACKUP_ROOT/.baseline-20260902.XXXXXX")"
+              tar -czf "$STAGING/release.tgz" -C "$CURRENT_RELEASE" .
+              tar -dzf "$STAGING/release.tgz" -C "$CURRENT_RELEASE"
+              printf '%s\n' "$CURRENT_RELEASE" > "$STAGING/original-release.txt"
+              date -u +%FT%TZ > "$STAGING/created-at.txt"
+              (cd "$STAGING" && sha256sum release.tgz > SHA256SUMS)
+              mv -T "$STAGING" "$BASELINE"
+            fi
+            test -d "$BASELINE"
+            (cd "$BASELINE" && sha256sum -c SHA256SUMS)
+            VERIFY_PATH="$(mktemp -d "$BACKUP_ROOT/.restore-check-20260902.XXXXXX")"
+            tar -xzf "$BASELINE/release.tgz" -C "$VERIFY_PATH"
+            test -d "$VERIFY_PATH/client"
+            test -d "$VERIFY_PATH/server"
+            test -d "$VERIFY_PATH/node_modules"
+            test -f "$VERIFY_PATH/ecosystem.config.cjs"
+            test -f "$VERIFY_PATH/package-lock.json"
+            tar -dzf "$BASELINE/release.tgz" -C "$VERIFY_PATH"
+            if [ "$BASELINE_OPERATION" = restore-marketing-backup ]; then
+              RELEASE_PATH="$RELEASES_ROOT/$(date +%Y%m%d%H%M%S)-restored-baseline-20260902"
+              test ! -e "$RELEASE_PATH"
+              mv -T "$VERIFY_PATH" "$RELEASE_PATH"
+              NEXT_LINK="${CURRENT_LINK}.baseline-${{ github.run_id }}"
+              test ! -e "$NEXT_LINK"
+              test ! -L "$NEXT_LINK"
+              ln -s "$RELEASE_PATH" "$NEXT_LINK"
+              mv -Tf "$NEXT_LINK" "$CURRENT_LINK"
+              if ! pm2 startOrReload "$CURRENT_LINK/ecosystem.config.cjs" --only prohelper-ssr --update-env; then
+                ln -s "$CURRENT_RELEASE" "$NEXT_LINK"
+                mv -Tf "$NEXT_LINK" "$CURRENT_LINK"
+                pm2 startOrReload "$CURRENT_LINK/ecosystem.config.cjs" --only prohelper-ssr --update-env
+                exit 1
+              fi
+              HEALTHY=false
+              for attempt in 1 2 3 4 5 6; do
+                if curl --connect-timeout 5 --max-time 10 -fsS http://127.0.0.1:3001/ >/dev/null; then
+                  HEALTHY=true
+                  break
+                fi
+                sleep 5
+              done
+              if [ "$HEALTHY" != true ]; then
+                ln -s "$CURRENT_RELEASE" "$NEXT_LINK"
+                mv -Tf "$NEXT_LINK" "$CURRENT_LINK"
+                pm2 startOrReload "$CURRENT_LINK/ecosystem.config.cjs" --only prohelper-ssr --update-env
+                exit 1
+              fi
+              pm2 save
+            else
+              case "$VERIFY_PATH" in
+                "$BACKUP_ROOT"/.restore-check-20260902.*) rm -rf -- "$VERIFY_PATH" ;;
+                *) exit 1 ;;
+              esac
+            fi
+            printf 'Baseline: %s\nOriginal release: ' "$BASELINE"
+            cat "$BASELINE/original-release.txt"
+            cat "$BASELINE/SHA256SUMS"
+            printf 'Active release: %s\n' "$(readlink -f "$CURRENT_LINK")"
+            du -h "$BASELINE/release.tgz"
+
   deploy-marketing:
     if: github.event_name == 'push' || inputs.target == 'both' || inputs.target == 'marketing'
     runs-on: ubuntu-latest
