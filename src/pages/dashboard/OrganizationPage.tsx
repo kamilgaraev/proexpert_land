@@ -113,9 +113,8 @@ const OrganizationPage = () => {
       const response = await organizationService.update(formData);
       if (response.success) {
         setOrganization(response.data.organization);
-        setRecommendations(response.data.recommendations);
-        setUserMessage(response.data.user_message);
         setIsEditing(false);
+        await loadOrganization();
         setRecommendationsKey((prev) => prev + 1);
         toast.success("Данные организации обновлены");
       }
