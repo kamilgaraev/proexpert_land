@@ -6,6 +6,7 @@ import {
   BriefcaseIcon,
   BuildingOfficeIcon,
   ChartBarIcon,
+  ChevronDownIcon,
   ClipboardDocumentCheckIcon,
   CpuChipIcon,
   CubeIcon,
@@ -122,7 +123,11 @@ export const PageSectionNav = ({
       >
         {item.label}
         <span aria-hidden="true">
-          <ArrowUpRightIcon className="most-icon" />
+          {item.href.startsWith("#") ? (
+            <ChevronDownIcon className="most-icon" />
+          ) : (
+            <ArrowUpRightIcon className="most-icon" />
+          )}
         </span>
       </MarketingLink>
     ))}
@@ -130,7 +135,6 @@ export const PageSectionNav = ({
 );
 
 export const PageHero = ({
-  eyebrow,
   title,
   description,
   actions = [],
@@ -148,7 +152,6 @@ export const PageHero = ({
     <div className="most-container">
       <div className={`most-page-hero-layout ${aside ? "has-aside" : ""}`}>
         <div>
-          {eyebrow ? <p className="most-page-label">{eyebrow}</p> : null}
           <h1>{title}</h1>
           <p className="most-page-description">{description}</p>
           {actions.length > 0 ? (

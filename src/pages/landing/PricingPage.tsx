@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowDownIcon } from "@heroicons/react/24/outline";
+import { ArrowDownIcon, PlusIcon } from "@heroicons/react/24/outline";
 import ContactForm from "@/components/landing/ContactForm";
 import {
   MarketingLink,
@@ -243,7 +243,12 @@ const PricingPage = () => {
           </div>
           <div className="most-capability-details">
             <details open>
-              <summary>Что входит в пробный период?</summary>
+              <summary>
+                Что входит в пробный период?
+                <span aria-hidden="true">
+                  <PlusIcon className="most-icon" />
+                </span>
+              </summary>
               <p>
                 Каждый пакет можно один раз бесплатно попробовать в течение{" "}
                 {commercialTerms.trialHours / 24} дней для одной организации.
@@ -251,7 +256,12 @@ const PricingPage = () => {
               </p>
             </details>
             <details>
-              <summary>На какой срок подключается пакет?</summary>
+              <summary>
+                На какой срок подключается пакет?
+                <span aria-hidden="true">
+                  <PlusIcon className="most-icon" />
+                </span>
+              </summary>
               <p>
                 Оплата рассчитана на 30 дней. Дата следующего периода
                 фиксируется при подключении. Выбранные пакеты оплачиваются в
@@ -259,7 +269,12 @@ const PricingPage = () => {
               </p>
             </details>
             <details>
-              <summary>Что произойдёт, если задержать оплату?</summary>
+              <summary>
+                Что произойдёт, если задержать оплату?
+                <span aria-hidden="true">
+                  <PlusIcon className="most-icon" />
+                </span>
+              </summary>
               <p>
                 На продление предусмотрено {commercialTerms.graceDays} дней.
                 Поздний платёж сохраняет прежнюю расчётную дату: новый период не
@@ -267,7 +282,12 @@ const PricingPage = () => {
               </p>
             </details>
             <details>
-              <summary>Полный комплект подключится автоматически?</summary>
+              <summary>
+                Полный комплект подключится автоматически?
+                <span aria-hidden="true">
+                  <PlusIcon className="most-icon" />
+                </span>
+              </summary>
               <p>
                 Нет. Даже если вы выбрали много отдельных пакетов, состав набора
                 остаётся прежним. Полный комплект нужно выбрать самостоятельно.

@@ -70,6 +70,49 @@ const HomePage = () => {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const story =
+      homeRef.current?.querySelector<HTMLElement>(".most-build-story");
+    const frame = story?.querySelector<HTMLElement>(".most-build-roles");
+    const finish = story?.querySelector<HTMLElement>(".most-build-finish");
+    if (!story || !frame || !finish) return;
+
+    const motion = window.matchMedia(
+      "(min-width: 1080px) and (prefers-reduced-motion: no-preference)",
+    );
+    let pendingFrame = 0;
+    const update = () => {
+      pendingFrame = 0;
+      if (!motion.matches) {
+        delete story.dataset.buildStage;
+        return;
+      }
+      const threshold = window.innerHeight * 0.55;
+      const stage =
+        finish.getBoundingClientRect().top <= threshold
+          ? "complete"
+          : frame.getBoundingClientRect().top <= threshold
+            ? "frame"
+            : "foundation";
+      if (story.dataset.buildStage !== stage) story.dataset.buildStage = stage;
+    };
+    const schedule = () => {
+      if (!pendingFrame) pendingFrame = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    motion.addEventListener("change", schedule);
+    return () => {
+      window.cancelAnimationFrame(pendingFrame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      motion.removeEventListener("change", schedule);
+      delete story.dataset.buildStage;
+    };
+  }, []);
+
   return (
     <div ref={homeRef} className="most-home">
       <section className="most-hero" aria-labelledby="most-home-title">
@@ -149,24 +192,14 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-          <figure className="most-request-example most-object-story">
+        </div>
+        <div className="most-container most-build-story">
+          <figure className="most-request-example most-build-request">
             <figcaption>
               <span>Пример: строительство жилого дома</span>
               <strong>От потребности до поставки</strong>
             </figcaption>
             <div className="most-request-example-body">
-              <div className="most-story-visual">
-                <img
-                  src="/images/marketing/most-material-story-1440.webp"
-                  srcSet="/images/marketing/most-material-story-720.webp 720w, /images/marketing/most-material-story-1440.webp 1440w"
-                  sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1600px) 60vw, 920px"
-                  width={1672}
-                  height={941}
-                  alt="Арматура на площадке и фундамент, для которого она нужна"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
               <dl className="most-request-facts">
                 <div>
                   <dt>Объект</dt>
@@ -212,120 +245,130 @@ const HomePage = () => {
                 </p>
               </li>
             </ol>
+            <div className="most-product-links">
+              <Link to={marketingPaths.materialAccounting}>
+                Материалы и склад{" "}
+                <span aria-hidden="true">
+                  <ArrowUpRightIcon className="most-icon" />
+                </span>
+              </Link>
+              <Link to={marketingPaths.constructionBudgetControl}>
+                Бюджет и платежи{" "}
+                <span aria-hidden="true">
+                  <ArrowUpRightIcon className="most-icon" />
+                </span>
+              </Link>
+              <Link to={marketingPaths.ptoSoftware}>
+                Работы и документы{" "}
+                <span aria-hidden="true">
+                  <ArrowUpRightIcon className="most-icon" />
+                </span>
+              </Link>
+            </div>
           </figure>
-          <div className="most-product-links">
-            <Link to={marketingPaths.materialAccounting}>
-              Материалы и склад{" "}
-              <span aria-hidden="true">
-                <ArrowUpRightIcon className="most-icon" />
-              </span>
-            </Link>
-            <Link to={marketingPaths.constructionBudgetControl}>
-              Бюджет и платежи{" "}
-              <span aria-hidden="true">
-                <ArrowUpRightIcon className="most-icon" />
-              </span>
-            </Link>
-            <Link to={marketingPaths.ptoSoftware}>
-              Работы и документы{" "}
-              <span aria-hidden="true">
-                <ArrowUpRightIcon className="most-icon" />
-              </span>
-            </Link>
+          <div className="most-build-visuals">
+            <figure className="most-story-visual most-build-foundation">
+              <img
+                src="/images/marketing/most-material-story-1440.webp"
+                srcSet="/images/marketing/most-material-story-720.webp 720w, /images/marketing/most-material-story-1440.webp 1440w"
+                sizes="(max-width: 1079px) calc(100vw - 40px), 52vw"
+                width={1672}
+                height={941}
+                alt="Арматура на площадке и фундамент, для которого она нужна"
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+            <figure className="most-story-visual most-build-frame">
+              <img
+                src="/images/marketing/most-frame-story-1440.webp"
+                srcSet="/images/marketing/most-frame-story-720.webp 720w, /images/marketing/most-frame-story-1440.webp 1440w"
+                sizes="(max-width: 1079px) calc(100vw - 40px), 52vw"
+                width={1672}
+                height={941}
+                alt="Тот же объект на следующем этапе: над фундаментом вырос каркас здания"
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+            <figure className="most-story-visual most-build-complete">
+              <img
+                src="/images/marketing/most-completed-story-1440.webp"
+                srcSet="/images/marketing/most-completed-story-720.webp 720w, /images/marketing/most-completed-story-1440.webp 1440w"
+                sizes="(max-width: 1079px) calc(100vw - 40px), 52vw"
+                width={1672}
+                height={941}
+                alt="Тот же объект после завершения строительства: готовое здание на месте фундамента"
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+            <div className="most-build-route" aria-hidden="true">
+              <span>Заявка и поставка</span>
+              <span>Работы на объекте</span>
+              <span>Сдача и документы</span>
+            </div>
+          </div>
+          <div className="most-build-chapters">
+            <section
+              className="most-build-roles"
+              aria-labelledby="most-roles-title"
+            >
+              <h2 id="most-roles-title">
+                Свой участок работы.
+                <br />
+                Один общий объект.
+              </h2>
+              <p>
+                Материалы поступили — стройка продолжается. Прораб ведёт задачи,
+                ПТО — документы, руководитель — сроки и деньги. В МОСТ эта
+                работа связана с одним объектом.
+              </p>
+              <div className="most-role-list">
+                {roles.map((role) => (
+                  <Link key={role.name} to={role.href}>
+                    <div>
+                      <h3>{role.name}</h3>
+                      <p>{role.text}</p>
+                    </div>
+                    <span aria-hidden="true">
+                      <ArrowUpRightIcon className="most-icon" />
+                    </span>
+                  </Link>
+                ))}
+              </div>
+              <Link to={marketingPaths.solutions} className="most-text-link">
+                Решение для вашей компании{" "}
+                <span aria-hidden="true">
+                  <ArrowUpRightIcon className="most-icon" />
+                </span>
+              </Link>
+            </section>
+            <section
+              className="most-build-finish"
+              aria-labelledby="most-completion-title"
+            >
+              <h2 id="most-completion-title">
+                Работы завершены.
+                <br />
+                Документы под рукой.
+              </h2>
+              <p>
+                Когда приходит время сдавать объект, команде нужны чертежи,
+                замечания, акты и расчёты. В МОСТ они остаются связаны с
+                проектом — к документам и истории работ можно вернуться и после
+                завершения строительства.
+              </p>
+              <Link to={marketingPaths.ptoSoftware} className="most-text-link">
+                От работ к документам{" "}
+                <span aria-hidden="true">
+                  <ArrowUpRightIcon className="most-icon" />
+                </span>
+              </Link>
+            </section>
           </div>
         </div>
       </section>
-
-      <div className="most-container most-build-story">
-        <div className="most-build-visuals">
-          <figure className="most-story-visual most-build-frame">
-            <img
-              src="/images/marketing/most-frame-story-1440.webp"
-              srcSet="/images/marketing/most-frame-story-720.webp 720w, /images/marketing/most-frame-story-1440.webp 1440w"
-              sizes="(max-width: 1079px) calc(100vw - 40px), 52vw"
-              width={1672}
-              height={941}
-              alt="Тот же объект на следующем этапе: над фундаментом вырос каркас здания"
-              loading="lazy"
-              decoding="async"
-            />
-          </figure>
-          <figure className="most-story-visual most-build-complete">
-            <img
-              src="/images/marketing/most-completed-story-1440.webp"
-              srcSet="/images/marketing/most-completed-story-720.webp 720w, /images/marketing/most-completed-story-1440.webp 1440w"
-              sizes="(max-width: 1079px) calc(100vw - 40px), 52vw"
-              width={1672}
-              height={941}
-              alt="Тот же объект после завершения строительства: готовое здание на месте фундамента"
-              loading="lazy"
-              decoding="async"
-            />
-          </figure>
-          <div className="most-build-route" aria-hidden="true">
-            <span>Работы на объекте</span>
-            <span>Документы по проекту</span>
-          </div>
-        </div>
-        <div className="most-build-chapters">
-          <section
-            className="most-build-roles"
-            aria-labelledby="most-roles-title"
-          >
-            <h2 id="most-roles-title">
-              Свой участок работы.
-              <br />
-              Один общий объект.
-            </h2>
-            <p>
-              Материалы поступили — стройка продолжается. Прораб ведёт задачи,
-              ПТО — документы, руководитель — сроки и деньги. В МОСТ эта работа
-              связана с одним объектом.
-            </p>
-            <div className="most-role-list">
-              {roles.map((role) => (
-                <Link key={role.name} to={role.href}>
-                  <div>
-                    <h3>{role.name}</h3>
-                    <p>{role.text}</p>
-                  </div>
-                  <span aria-hidden="true">
-                    <ArrowUpRightIcon className="most-icon" />
-                  </span>
-                </Link>
-              ))}
-            </div>
-            <Link to={marketingPaths.solutions} className="most-text-link">
-              Решение для вашей компании{" "}
-              <span aria-hidden="true">
-                <ArrowUpRightIcon className="most-icon" />
-              </span>
-            </Link>
-          </section>
-          <section
-            className="most-build-finish"
-            aria-labelledby="most-completion-title"
-          >
-            <h2 id="most-completion-title">
-              Работы завершены.
-              <br />
-              Документы под рукой.
-            </h2>
-            <p>
-              Когда приходит время сдавать объект, команде нужны чертежи,
-              замечания, акты и расчёты. В МОСТ они остаются связаны с проектом
-              — к документам и истории работ можно вернуться и после завершения
-              строительства.
-            </p>
-            <Link to={marketingPaths.ptoSoftware} className="most-text-link">
-              От работ к документам{" "}
-              <span aria-hidden="true">
-                <ArrowUpRightIcon className="most-icon" />
-              </span>
-            </Link>
-          </section>
-        </div>
-      </div>
 
       <section
         className="most-start-section"

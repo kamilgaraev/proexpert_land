@@ -5,6 +5,7 @@
   --most-line: #dcded5;
   --most-orange: #f16a28;
   --most-icon-size: clamp(1.25rem, 1.12rem + 0.54vw, 1.75rem);
+  --most-icon-secondary: clamp(1.125rem, 1.07rem + 0.23vw, 1.375rem);
   --most-type-fine: clamp(0.75rem, 0.7rem + 0.2vw, 1rem);
   --most-type-caption: clamp(0.8125rem, 0.77rem + 0.18vw, 1.0625rem);
   --most-type-small: clamp(0.875rem, 0.81rem + 0.27vw, 1.1875rem);
@@ -739,6 +740,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   display: block;
   width: 100%;
   height: auto;
+  filter: brightness(1.04);
   mix-blend-mode: darken;
   mask-image:
     linear-gradient(to right, transparent, black 4%, black 96%, transparent),
@@ -829,6 +831,9 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     padding-block: 24px 64px;
   }
 }
+.most-product-section:has(.most-build-story) {
+  padding-bottom: 0;
+}
 .most-build-story {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -839,24 +844,80 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
 .most-build-chapters {
   display: contents;
 }
-.most-build-frame {
-  grid-column: 1;
-  grid-row: 1;
-  align-self: center;
-}
+.most-build-foundation,
+.most-build-frame,
 .most-build-complete {
   grid-column: 1;
-  grid-row: 2;
   align-self: center;
 }
-.most-build-roles {
-  grid-column: 2;
+.most-build-foundation,
+.most-build-request {
   grid-row: 1;
 }
+.most-build-frame,
+.most-build-roles {
+  grid-row: 2;
+}
+.most-build-complete,
+.most-build-finish {
+  grid-row: 3;
+}
+.most-build-request,
+.most-build-roles,
 .most-build-finish {
   grid-column: 2;
-  grid-row: 2;
+  min-width: 0;
   align-self: center;
+}
+.most-build-request {
+  border: 0;
+  margin: 0;
+}
+.most-build-request figcaption {
+  padding: 0 0 24px;
+  align-items: start;
+  flex-direction: column;
+}
+.most-build-request .most-request-example-body {
+  display: block;
+}
+.most-build-request .most-request-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  padding: 24px 0;
+  border: 0;
+}
+.most-build-request .most-request-facts > div + div {
+  margin: 0;
+}
+.most-build-request .most-request-facts dd {
+  font-size: var(--most-type-body);
+}
+.most-build-request .most-request-history {
+  padding: 24px 0 0 6px;
+}
+.most-home .most-build-request .most-request-history li::after {
+  width: 2px;
+  height: 100%;
+  left: -2px;
+  top: 6px;
+  transform-origin: top;
+  animation-name: most-route-rise;
+}
+.most-build-request .most-request-history li:last-child::after {
+  display: none;
+}
+.most-build-request .most-product-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 24px;
+  border-top: 1px solid var(--most-line);
+}
+.most-build-request .most-product-links a {
+  padding-block: 12px;
+  border-bottom: 1px solid var(--most-line);
 }
 .most-build-chapters section > p {
   margin-top: 24px;
@@ -883,41 +944,51 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   @supports (animation-timeline: --most-completion) and
     (timeline-scope: --most-completion) {
     .most-build-story {
-      timeline-scope: --most-completion;
+      timeline-scope: --most-frame, --most-completion;
     }
-    .most-build-visuals {
+    .most-build-story[data-build-stage] .most-build-visuals {
       display: block;
       position: sticky;
       top: 9vh;
       grid-column: 1;
-      grid-row: 1 / 3;
+      grid-row: 1 / 4;
       align-self: start;
     }
-    .most-build-chapters {
-      display: block;
-      grid-column: 2;
-      grid-row: 1 / 3;
-    }
+    .most-build-roles,
     .most-build-finish {
-      min-height: 65vh;
-      padding-block: 120px 64px;
-      view-timeline-name: --most-completion;
+      min-height: 75vh;
+      padding-block: 80px 64px;
       view-timeline-axis: block;
       view-timeline-inset: 0;
     }
-    .most-build-complete {
+    .most-build-roles {
+      view-timeline-name: --most-frame;
+    }
+    .most-build-finish {
+      view-timeline-name: --most-completion;
+    }
+    .most-build-visuals figure {
+      background: var(--most-paper);
+    }
+    .most-build-visuals img {
+      height: min(32vw, 72vh);
+      object-fit: contain;
+    }
+    .most-build-story[data-build-stage] .most-story-visual {
+      opacity: 0;
+      transition: opacity 240ms ease;
+    }
+    .most-build-story[data-build-stage] .most-build-frame,
+    .most-build-story[data-build-stage] .most-build-complete {
       position: absolute;
       inset: 0 0 auto;
-      animation: most-building-complete 1ms linear both;
-      animation-timeline: --most-completion;
-      animation-range: entry 90% contain 70%;
     }
-    .most-build-frame {
-      animation: most-building-frame 1ms linear both;
-      animation-timeline: --most-completion;
-      animation-range: entry 90% contain 70%;
+    .most-build-story[data-build-stage="foundation"] .most-build-foundation,
+    .most-build-story[data-build-stage="frame"] .most-build-frame,
+    .most-build-story[data-build-stage="complete"] .most-build-complete {
+      opacity: 1;
     }
-    .most-build-route {
+    .most-build-story[data-build-stage] .most-build-route {
       position: relative;
       display: flex;
       justify-content: space-between;
@@ -928,18 +999,25 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
       font-size: var(--most-type-caption);
       color: var(--most-muted);
     }
-    .most-build-route::before {
+    .most-build-route::before,
+    .most-build-route::after {
       content: "";
       position: absolute;
       top: -1px;
       left: 0;
-      width: 100%;
+      width: 50%;
       height: 2px;
       background: var(--most-orange);
       transform-origin: left;
       animation: most-route-draw 1ms linear both;
+      animation-range: entry 40% entry 80%;
+    }
+    .most-build-route::before {
+      animation-timeline: --most-frame;
+    }
+    .most-build-route::after {
+      left: 50%;
       animation-timeline: --most-completion;
-      animation-range: entry 90% contain 70%;
     }
   }
 }
@@ -949,6 +1027,8 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     gap: 28px;
     padding-block: 40px 64px;
   }
+  .most-build-foundation,
+  .most-build-request,
   .most-build-roles,
   .most-build-frame,
   .most-build-finish,
@@ -956,18 +1036,25 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     grid-column: 1;
     grid-row: auto;
   }
-  .most-build-roles {
+  .most-build-foundation {
+    order: 0;
+  }
+  .most-build-request {
     order: 1;
   }
   .most-build-frame {
     order: 2;
-  }
-  .most-build-finish {
-    order: 3;
     margin-top: 28px;
+  }
+  .most-build-roles {
+    order: 3;
   }
   .most-build-complete {
     order: 4;
+    margin-top: 28px;
+  }
+  .most-build-finish {
+    order: 5;
   }
   .most-build-chapters section > p {
     font-size: var(--most-type-body);
@@ -975,22 +1062,6 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   .most-build-visuals figcaption {
     padding-top: 12px;
     font-size: var(--most-type-small);
-  }
-}
-@keyframes most-building-complete {
-  from {
-    clip-path: inset(100% 0 0);
-  }
-  to {
-    clip-path: inset(0);
-  }
-}
-@keyframes most-building-frame {
-  from {
-    clip-path: inset(0);
-  }
-  to {
-    clip-path: inset(0 0 100%);
   }
 }
 @keyframes most-route-draw {

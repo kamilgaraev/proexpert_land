@@ -20,12 +20,6 @@
   gap: 8%;
   align-items: start;
 }
-.most-page-label {
-  margin-bottom: 20px;
-  color: #a64313;
-  font-size: var(--most-type-small);
-  font-weight: 500;
-}
 .most-page-hero h1 {
   max-width: 1050px;
   font-size: var(--most-type-h1);
@@ -91,10 +85,15 @@
 .most-section-nav a {
   display: inline-flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
   min-height: 52px;
   font-size: var(--most-type-small);
   color: var(--most-ink);
+}
+.most-section-nav .most-icon {
+  width: var(--most-icon-secondary);
+  height: var(--most-icon-secondary);
+  color: var(--most-muted);
 }
 .most-section-nav a:hover {
   text-decoration: underline;
@@ -129,14 +128,6 @@
 }
 .most-solution-item h3 .most-text-link {
   margin-top: 0;
-}
-.most-capability-details summary:not(:has(span))::after {
-  content: "+";
-  flex-shrink: 0;
-  font-size: var(--most-type-subheading);
-}
-.most-capability-details details[open] summary:not(:has(span))::after {
-  content: "−";
 }
 .most-feature-list {
   margin-top: 40px;
