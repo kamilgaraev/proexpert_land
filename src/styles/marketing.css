@@ -4,11 +4,90 @@
   --most-paper: #f6f2f1;
   --most-line: #dcded5;
   --most-orange: #f16a28;
+  --most-icon-size: clamp(1.25rem, 1.12rem + 0.54vw, 1.75rem);
+  --most-type-fine: clamp(0.75rem, 0.7rem + 0.2vw, 1rem);
+  --most-type-caption: clamp(0.8125rem, 0.77rem + 0.18vw, 1.0625rem);
+  --most-type-small: clamp(0.875rem, 0.81rem + 0.27vw, 1.1875rem);
+  --most-type-body: clamp(1rem, 0.92rem + 0.33vw, 1.375rem);
+  --most-type-control: clamp(1rem, 0.946rem + 0.222vw, 1.25rem);
+  --most-type-lead: clamp(1.125rem, 1.016rem + 0.444vw, 1.625rem);
+  --most-type-subheading: clamp(1.375rem, 1.24rem + 0.55vw, 2rem);
+  --most-type-h3: clamp(1.5rem, 1.31rem + 0.78vw, 2.375rem);
+  --most-type-h2: clamp(2rem, 1.58rem + 1.65vw, 3.75rem);
+  --most-type-h1: clamp(2.375rem, 1.7rem + 2.77vw, 5.5rem);
+  --most-type-display: clamp(2.375rem, 1.45rem + 3.8vw, 7.5rem);
+  --most-type-display-tablet: clamp(2.375rem, 1rem + 3.2vw, 3.75rem);
+  --most-type-display-short: clamp(3.375rem, 1.5rem + 3.2vw, 6rem);
+  --most-type-stat: clamp(4rem, 3.14rem + 3.52vw, 8rem);
+  --most-type-stat-symbol: clamp(2rem, 1.57rem + 1.76vw, 4rem);
+  --most-type-price: clamp(2.375rem, 2.02rem + 1.44vw, 4rem);
+  --most-type-brand: clamp(1.5rem, 1.26rem + 0.98vw, 2.625rem);
+  --most-type-route: clamp(0.6875rem, 0.539rem + 0.61vw, 1.375rem);
   color: var(--most-ink);
   background: var(--most-paper);
   font-family: "IBM Plex Sans", Arial, sans-serif;
-  font-size: 16px;
+  font-size: var(--most-type-body);
   line-height: 1.5;
+}
+.most-marketing .text-xs {
+  font-size: var(--most-type-fine);
+}
+.most-marketing .text-sm {
+  font-size: var(--most-type-small);
+}
+.most-marketing .text-base {
+  font-size: var(--most-type-body);
+}
+.most-marketing .text-lg {
+  font-size: var(--most-type-lead);
+}
+.most-marketing .text-xl {
+  font-size: var(--most-type-subheading);
+}
+.most-marketing .text-2xl,
+.most-marketing [class~="text-[1.9rem]"],
+.most-marketing [class~="text-[2rem]"] {
+  font-size: var(--most-type-h3);
+}
+.most-marketing .text-3xl,
+.most-marketing .text-4xl,
+.most-marketing [class~="text-[2.2rem]"] {
+  font-size: var(--most-type-h2);
+}
+.most-marketing .text-5xl {
+  font-size: var(--most-type-h1);
+}
+.most-marketing .text-6xl,
+.most-marketing .text-7xl {
+  font-size: var(--most-type-display);
+}
+.most-marketing [class~="text-[11px]"] {
+  font-size: var(--most-type-caption);
+}
+.most-contact-form label {
+  font-size: var(--most-type-small);
+}
+.most-marketing .most-icon {
+  display: block;
+  width: var(--most-icon-size);
+  height: var(--most-icon-size);
+  flex: none;
+  stroke-width: 1.75;
+}
+.most-marketing span:has(> .most-icon) {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+.most-contact-email {
+  align-items: center;
+}
+.most-contact-form input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.most-contact-form button[type="submit"] {
+  font-size: var(--most-type-control);
 }
 .most-marketing *,
 .most-marketing *::before,
@@ -69,7 +148,7 @@
   color: var(--most-ink);
 }
 .most-brand span {
-  font-size: clamp(28px, 2.2vw, 36px);
+  font-size: var(--most-type-brand);
   font-weight: 700;
   letter-spacing: -1px;
 }
@@ -86,7 +165,7 @@
 }
 .most-desktop-nav a,
 .most-login {
-  font-size: clamp(17px, 1.25vw, 22px);
+  font-size: var(--most-type-control);
   font-weight: 500;
 }
 .most-desktop-nav a:hover,
@@ -108,7 +187,7 @@
   padding: 14px 23px;
   border: 1px solid transparent;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: var(--most-type-body);
   font-weight: 500;
   text-align: center;
   text-decoration: none;
@@ -116,7 +195,7 @@
 }
 .most-button span {
   margin-left: auto;
-  font-size: 21px;
+  font-size: var(--most-type-subheading);
   line-height: 1;
 }
 .most-button-orange {
@@ -136,7 +215,7 @@
 .most-header-demo {
   min-height: 48px;
   padding: 12px 22px;
-  font-size: clamp(17px, 1.15vw, 20px);
+  font-size: var(--most-type-control);
 }
 .most-menu-toggle {
   display: none;
@@ -157,7 +236,7 @@
   justify-content: space-between;
   padding-block: 15px;
   border-bottom: 1px solid var(--most-line);
-  font-size: 21px;
+  font-size: var(--most-type-subheading);
 }
 .most-mobile-nav .most-button {
   margin-top: 20px;
@@ -177,7 +256,7 @@
   align-items: start;
 }
 .most-hero h1 {
-  font-size: clamp(54px, 5.8vw, 96px);
+  font-size: var(--most-type-display);
   line-height: 1.06;
   font-weight: 600;
   letter-spacing: -0.05em;
@@ -187,7 +266,7 @@
 }
 .most-hero-subtitle {
   margin-top: 18px;
-  font-size: 17px;
+  font-size: var(--most-type-control);
   line-height: 1.5;
 }
 .most-hero-intro {
@@ -195,21 +274,21 @@
   max-width: 430px;
 }
 .most-hero-intro p {
-  font-size: clamp(18px, 1.4vw, 22px);
+  font-size: var(--most-type-lead);
   line-height: 1.55;
 }
 .most-hero-intro .most-button {
   min-width: 240px;
   min-height: 56px;
   margin-top: 25px;
-  font-size: 20px;
+  font-size: var(--most-type-control);
 }
 .most-text-link {
   display: inline-flex;
   align-items: center;
   gap: 12px;
   font-weight: 500;
-  font-size: 16px;
+  font-size: var(--most-type-body);
   line-height: 1.5;
 }
 .most-text-link:hover {
@@ -218,7 +297,7 @@
 .most-hero-intro .most-text-link {
   display: flex;
   margin-top: 22px;
-  font-size: 17px;
+  font-size: var(--most-type-control);
 }
 .most-bridge-scene {
   position: relative;
@@ -244,7 +323,7 @@
   padding: 0;
   margin: 0;
   list-style: none;
-  font-size: clamp(14px, 1.15vw, 20px);
+  font-size: var(--most-type-route);
 }
 .most-bridge-path::before {
   content: "";
@@ -275,14 +354,14 @@
   inset: auto 48px 24px;
   display: flex;
   justify-content: space-between;
-  font-size: 16px;
+  font-size: var(--most-type-body);
 }
 .most-section {
   padding-block: 100px;
   scroll-margin-top: 24px;
 }
 .most-home h2 {
-  font-size: clamp(32px, 3vw, 46px);
+  font-size: var(--most-type-h2);
   line-height: 1.13;
   letter-spacing: -0.035em;
   font-weight: 500;
@@ -295,7 +374,7 @@
   margin-bottom: 48px;
 }
 .most-section-heading p {
-  font-size: 18px;
+  font-size: var(--most-type-lead);
   line-height: 1.65;
   color: var(--most-muted);
 }
@@ -321,12 +400,12 @@
   padding-left: 30px;
 }
 .most-step-number {
-  font-size: 14px;
+  font-size: var(--most-type-small);
   color: #a64313;
   margin-bottom: 24px;
 }
 .most-workflow h3 {
-  font-size: 24px;
+  font-size: var(--most-type-subheading);
   font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.25;
@@ -340,7 +419,7 @@
 }
 .most-workflow a {
   margin-top: auto;
-  font-size: 14px;
+  font-size: var(--most-type-small);
 }
 .most-product-section {
   padding-block: 104px;
@@ -364,10 +443,10 @@
 }
 .most-request-example figcaption span {
   color: var(--most-muted);
-  font-size: 15px;
+  font-size: var(--most-type-small);
 }
 .most-request-example figcaption strong {
-  font-size: 25px;
+  font-size: var(--most-type-subheading);
   font-weight: 500;
   letter-spacing: -0.025em;
 }
@@ -384,11 +463,11 @@
 }
 .most-request-facts dt {
   color: var(--most-muted);
-  font-size: 14px;
+  font-size: var(--most-type-small);
 }
 .most-request-facts dd {
   margin-top: 7px;
-  font-size: 18px;
+  font-size: var(--most-type-lead);
 }
 .most-request-history {
   margin: 0;
@@ -418,18 +497,18 @@
 }
 .most-request-person {
   color: #93401a;
-  font-size: 14px;
+  font-size: var(--most-type-small);
 }
 .most-request-history h3 {
   margin-top: 5px;
-  font-size: 21px;
+  font-size: var(--most-type-subheading);
   font-weight: 500;
 }
 .most-request-history p {
   margin-top: 9px;
   max-width: 450px;
   color: var(--most-muted);
-  font-size: 16px;
+  font-size: var(--most-type-body);
   line-height: 1.65;
 }
 .most-product-links {
@@ -443,7 +522,7 @@
   justify-content: space-between;
   align-items: center;
   min-height: 44px;
-  font-size: 17px;
+  font-size: var(--most-type-control);
 }
 .most-product-links a:hover {
   text-decoration: underline;
@@ -456,7 +535,7 @@
 .most-roles > div > p {
   margin-top: 23px;
   color: var(--most-muted);
-  font-size: 18px;
+  font-size: var(--most-type-lead);
   line-height: 1.7;
   max-width: 440px;
 }
@@ -475,7 +554,7 @@
   border-top: 1px solid var(--most-line);
 }
 .most-role-list h3 {
-  font-size: 23px;
+  font-size: var(--most-type-subheading);
   font-weight: 500;
 }
 .most-role-list p {
@@ -483,7 +562,7 @@
   color: var(--most-muted);
 }
 .most-role-list > a > span {
-  font-size: 25px;
+  font-size: var(--most-type-subheading);
 }
 .most-role-list > a:hover h3 {
   text-decoration: underline;
@@ -504,7 +583,7 @@
   margin-top: 20px;
   max-width: 610px;
   color: #d1d9cd;
-  font-size: 18px;
+  font-size: var(--most-type-lead);
   line-height: 1.65;
 }
 .most-inline-actions {
@@ -515,23 +594,23 @@
   gap: 22px;
 }
 .most-inline-actions > .most-text-link {
-  font-size: 14px;
+  font-size: var(--most-type-small);
 }
 .most-free-price {
   border-left: 1px solid #61705c;
   padding-left: 55px;
 }
 .most-free-price strong {
-  font-size: 100px;
+  font-size: var(--most-type-stat);
   line-height: 1;
   font-weight: 400;
   letter-spacing: -0.04em;
 }
 .most-free-price strong span {
-  font-size: 50px;
+  font-size: var(--most-type-stat-symbol);
 }
 .most-start-layout .most-free-price p {
-  font-size: 16px;
+  font-size: var(--most-type-body);
 }
 .most-faq {
   display: grid;
@@ -552,7 +631,7 @@
   cursor: pointer;
   list-style: none;
   padding-block: 23px;
-  font-size: 19px;
+  font-size: var(--most-type-lead);
   font-weight: 500;
 }
 .most-faq summary::-webkit-details-marker,
@@ -561,7 +640,7 @@
 }
 .most-faq summary span {
   flex-shrink: 0;
-  font-size: 24px;
+  font-size: var(--most-type-subheading);
   font-weight: 400;
 }
 .most-faq details[open] summary span {
@@ -588,14 +667,14 @@
   margin-top: 23px;
   max-width: 440px;
   color: var(--most-muted);
-  font-size: 18px;
+  font-size: var(--most-type-lead);
   line-height: 1.7;
 }
 .most-contact-email {
   display: inline-flex;
   gap: 24px;
   margin-top: 35px;
-  font-size: 23px;
+  font-size: var(--most-type-subheading);
 }
 .most-contact-form {
   opacity: 1 !important;
@@ -608,7 +687,7 @@
 }
 .most-contact-form input,
 .most-contact-form textarea {
-  font-size: 16px;
+  font-size: var(--most-type-body);
   border-radius: 4px;
 }
 .most-contact-form form > .grid {
@@ -707,7 +786,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
 }
 .most-completion-copy p {
   margin-top: 24px;
-  font-size: 18px;
+  font-size: var(--most-type-lead);
   line-height: 1.65;
   color: var(--most-muted);
 }
@@ -783,7 +862,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   margin-top: 24px;
   max-width: 620px;
   color: var(--most-muted);
-  font-size: 18px;
+  font-size: var(--most-type-lead);
   line-height: 1.65;
 }
 .most-build-chapters .most-text-link {
@@ -794,7 +873,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
 }
 .most-build-visuals figcaption {
   padding: 20px 4% 0;
-  font-size: 15px;
+  font-size: var(--most-type-small);
   color: var(--most-muted);
 }
 .most-build-route {
@@ -846,7 +925,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
       margin: 30px 4% 0;
       padding-top: 16px;
       border-top: 1px solid var(--most-line);
-      font-size: 13px;
+      font-size: var(--most-type-caption);
       color: var(--most-muted);
     }
     .most-build-route::before {
@@ -891,11 +970,11 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     order: 4;
   }
   .most-build-chapters section > p {
-    font-size: 16px;
+    font-size: var(--most-type-body);
   }
   .most-build-visuals figcaption {
     padding-top: 12px;
-    font-size: 14px;
+    font-size: var(--most-type-small);
   }
 }
 @keyframes most-building-complete {
@@ -930,6 +1009,15 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     transform: scaleY(1);
   }
 }
+@keyframes most-marker-arrive {
+  0%,
+  100% {
+    background: var(--most-paper);
+  }
+  50% {
+    background: var(--most-orange);
+  }
+}
 @keyframes most-step-arrive {
   from {
     transform: translateY(16px);
@@ -945,8 +1033,8 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   .most-bridge-scene[data-motion-entered] .most-bridge-path::before {
     animation: most-route-draw 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
-  .most-bridge-scene[data-motion-entered] .most-bridge-path li {
-    animation: most-step-arrive 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  .most-bridge-scene[data-motion-entered] .most-bridge-path li::after {
+    animation: most-marker-arrive 650ms ease both;
   }
   .most-home .most-request-history li::after {
     content: "";
@@ -966,12 +1054,16 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   }
   .most-request-history[data-motion-entered] li:nth-child(2)::after,
   .most-request-history[data-motion-entered] li:nth-child(2) > *,
-  .most-bridge-scene[data-motion-entered] .most-bridge-path li:nth-child(2) {
+  .most-bridge-scene[data-motion-entered]
+    .most-bridge-path
+    li:nth-child(2)::after {
     animation-delay: 160ms;
   }
   .most-request-history[data-motion-entered] li:nth-child(3)::after,
   .most-request-history[data-motion-entered] li:nth-child(3) > *,
-  .most-bridge-scene[data-motion-entered] .most-bridge-path li:nth-child(3) {
+  .most-bridge-scene[data-motion-entered]
+    .most-bridge-path
+    li:nth-child(3)::after {
     animation-delay: 320ms;
   }
   .most-start-section[data-motion-entered] .most-free-price,
@@ -1029,7 +1121,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   opacity: 0.55;
 }
 .most-contact-form > div > h2 {
-  font-size: 26px;
+  font-size: var(--most-type-h3);
 }
 .most-contact-form > div > p {
   margin-top: 0;
@@ -1054,13 +1146,13 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
 }
 .most-footer-brand p {
   margin-top: 16px;
-  font-size: 15px;
+  font-size: var(--most-type-small);
   color: var(--most-muted);
 }
 .most-footer-brand > a:last-child {
   display: inline-block;
   margin-top: 18px;
-  font-size: 15px;
+  font-size: var(--most-type-small);
 }
 .most-footer-main nav {
   display: flex;
@@ -1069,12 +1161,12 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   gap: 12px;
 }
 .most-footer-main nav h2 {
-  font-size: 16px;
+  font-size: var(--most-type-body);
   font-weight: 500;
   margin-bottom: 5px;
 }
 .most-footer-main nav a {
-  font-size: 14px;
+  font-size: var(--most-type-small);
   color: var(--most-muted);
 }
 .most-footer a:hover {
@@ -1089,7 +1181,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   list-style: none;
   padding-block: 18px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--most-type-small);
 }
 .most-footer-directions nav {
   display: grid;
@@ -1098,7 +1190,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   padding-block: 12px 28px;
 }
 .most-footer-directions nav a {
-  font-size: 14px;
+  font-size: var(--most-type-small);
   color: var(--most-muted);
 }
 .most-footer-bottom {
@@ -1108,7 +1200,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   padding-block: 24px 30px;
   border-top: 1px solid var(--most-line);
   color: var(--most-muted);
-  font-size: 12px;
+  font-size: var(--most-type-fine);
 }
 .most-footer-bottom span {
   margin-right: auto;
@@ -1143,13 +1235,13 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     width: calc(100% - 64px);
   }
   .most-hero h1 {
-    font-size: clamp(40px, 5.3vw, 58px);
+    font-size: var(--most-type-display-tablet);
   }
   .most-hero-intro p {
-    font-size: 16px;
+    font-size: var(--most-type-body);
   }
   .most-hero-intro .most-button {
-    font-size: 14px;
+    font-size: var(--most-type-control);
     padding: 12px 16px;
     gap: 14px;
   }
@@ -1163,10 +1255,10 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     padding-left: 22px;
   }
   .most-workflow h3 {
-    font-size: 21px;
+    font-size: var(--most-type-subheading);
   }
   .most-workflow p {
-    font-size: 15px;
+    font-size: var(--most-type-small);
   }
   .most-roles,
   .most-contact-layout {
@@ -1187,6 +1279,14 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     grid-column: 1 / -1;
   }
 }
+@media (max-width: 1079px) {
+  .most-contact-layout {
+    display: block;
+  }
+  .most-contact-form {
+    margin-top: 35px;
+  }
+}
 @media (max-width: 639px) {
   .most-container {
     width: calc(100% - 40px);
@@ -1200,7 +1300,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     height: 31px;
   }
   .most-brand span {
-    font-size: 24px;
+    font-size: var(--most-type-brand);
   }
   .most-brand {
     gap: 7px;
@@ -1210,7 +1310,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   }
   .most-login,
   .most-menu-toggle {
-    font-size: 14px;
+    font-size: var(--most-type-control);
   }
   .most-menu-toggle {
     gap: 7px;
@@ -1227,10 +1327,10 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   }
   .most-hero-subtitle {
     margin-top: 14px;
-    font-size: 14px;
+    font-size: var(--most-type-small);
   }
   .most-hero h1 {
-    font-size: clamp(37px, 9.5vw, 57px);
+    font-size: var(--most-type-display);
     letter-spacing: -0.05em;
   }
   .most-hero-intro {
@@ -1239,13 +1339,13 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     max-width: none;
   }
   .most-hero-intro p {
-    font-size: 16px;
+    font-size: var(--most-type-body);
     line-height: 1.6;
     max-width: 420px;
   }
   .most-hero-intro .most-button {
     margin-top: 22px;
-    font-size: 15px;
+    font-size: var(--most-type-control);
     min-height: 52px;
     padding-inline: 19px;
   }
@@ -1269,7 +1369,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     left: 27%;
     right: 23%;
     gap: 8px;
-    font-size: 11px;
+    font-size: var(--most-type-route);
   }
   .most-bridge-path li {
     gap: 9px;
@@ -1284,13 +1384,13 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   }
   .most-bridge-places {
     inset: auto 20px 10px;
-    font-size: 12px;
+    font-size: var(--most-type-fine);
   }
   .most-section {
     padding-block: 52px;
   }
   .most-home h2 {
-    font-size: 32px;
+    font-size: var(--most-type-h2);
     line-height: 1.15;
   }
   .most-section-heading {
@@ -1299,7 +1399,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   }
   .most-section-heading p {
     margin-top: 21px;
-    font-size: 16px;
+    font-size: var(--most-type-body);
   }
   .most-workflow {
     display: block;
@@ -1316,11 +1416,11 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     position: absolute;
     top: 28px;
     left: 0;
-    font-size: 12px;
+    font-size: var(--most-type-fine);
   }
   .most-workflow h3 {
     max-width: none;
-    font-size: 21px;
+    font-size: var(--most-type-subheading);
   }
   .most-workflow p {
     margin-top: 12px;
@@ -1335,7 +1435,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     gap: 8px;
   }
   .most-request-example figcaption strong {
-    font-size: 23px;
+    font-size: var(--most-type-subheading);
   }
   .most-request-example-body {
     grid-template-columns: minmax(0, 1fr);
@@ -1346,7 +1446,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     border-bottom: 1px solid var(--most-line);
   }
   .most-request-facts dd {
-    font-size: 16px;
+    font-size: var(--most-type-body);
   }
   .most-request-history {
     padding: 28px 26px;
@@ -1361,23 +1461,23 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   .most-product-links a {
     padding-block: 12px;
     border-bottom: 1px solid #c3cabc;
-    font-size: 16px;
+    font-size: var(--most-type-body);
   }
   .most-roles {
     display: block;
   }
   .most-roles > div > p {
-    font-size: 16px;
+    font-size: var(--most-type-body);
     margin-top: 20px;
   }
   .most-role-list {
     margin-top: 30px;
   }
   .most-role-list h3 {
-    font-size: 21px;
+    font-size: var(--most-type-subheading);
   }
   .most-role-list p {
-    font-size: 14px;
+    font-size: var(--most-type-small);
   }
   .most-role-list > a {
     padding-block: 17px;
@@ -1392,7 +1492,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     gap: 32px;
   }
   .most-start-layout > div > p {
-    font-size: 16px;
+    font-size: var(--most-type-body);
   }
   .most-inline-actions {
     align-items: start;
@@ -1408,15 +1508,15 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     gap: 30px;
   }
   .most-free-price strong {
-    font-size: 64px;
+    font-size: var(--most-type-stat);
     white-space: nowrap;
   }
   .most-free-price strong span {
-    font-size: 35px;
+    font-size: var(--most-type-stat-symbol);
   }
   .most-start-layout .most-free-price p {
     margin: 0;
-    font-size: 14px;
+    font-size: var(--most-type-small);
   }
   .most-faq {
     display: block;
@@ -1425,12 +1525,12 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     margin-top: 28px;
   }
   .most-faq summary {
-    font-size: 17px;
+    font-size: var(--most-type-control);
     padding-block: 19px;
     gap: 18px;
   }
   .most-faq details p {
-    font-size: 15px;
+    font-size: var(--most-type-small);
     padding-right: 0;
   }
   .most-contact-section {
@@ -1440,11 +1540,11 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     display: block;
   }
   .most-contact-layout > div > p {
-    font-size: 16px;
+    font-size: var(--most-type-body);
     margin-top: 20px;
   }
   .most-contact-email {
-    font-size: 20px;
+    font-size: var(--most-type-lead);
     margin-top: 23px;
   }
   .most-contact-form {
@@ -1489,7 +1589,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
 }
 .most-cookie-layout p {
   max-width: 750px;
-  font-size: 14px;
+  font-size: var(--most-type-small);
   line-height: 1.6;
   color: var(--most-muted);
 }
@@ -1506,7 +1606,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   min-height: 44px;
   padding: 10px 16px;
   border-color: #a5a69f;
-  font-size: 14px;
+  font-size: var(--most-type-small);
   color: var(--most-ink);
 }
 .most-cookie-actions .most-button:hover {
@@ -1534,7 +1634,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
     padding-top: 16px;
   }
   .most-hero h1 {
-    font-size: clamp(54px, 5vw, 76px);
+    font-size: var(--most-type-display-short);
   }
   .most-hero-intro {
     padding-top: 0;
@@ -1542,7 +1642,7 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   .most-hero-intro .most-button {
     margin-top: 18px;
     min-height: 48px;
-    font-size: 17px;
+    font-size: var(--most-type-control);
   }
   .most-hero-intro .most-text-link {
     margin-top: 14px;

@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
+  ArrowUpRightIcon,
   BanknotesIcon,
   BriefcaseIcon,
   BuildingOfficeIcon,
@@ -120,7 +121,9 @@ export const PageSectionNav = ({
         className="most-section-nav-link"
       >
         {item.label}
-        <span aria-hidden="true">↗</span>
+        <span aria-hidden="true">
+          <ArrowUpRightIcon className="most-icon" />
+        </span>
       </MarketingLink>
     ))}
   </nav>
@@ -161,7 +164,9 @@ export const PageHero = ({
                   }
                 >
                   {action.label}
-                  <span aria-hidden="true">↗</span>
+                  <span aria-hidden="true">
+                    <ArrowUpRightIcon className="most-icon" />
+                  </span>
                 </MarketingLink>
               ))}
             </div>

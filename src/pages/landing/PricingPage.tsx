@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ArrowDownIcon } from "@heroicons/react/24/outline";
 import ContactForm from "@/components/landing/ContactForm";
 import {
   MarketingLink,
@@ -172,7 +173,10 @@ const PricingPage = () => {
                     сохранён.
                   </p>
                   <MarketingLink href="#full-suite" className="most-text-link">
-                    Посмотреть условия <span aria-hidden="true">↓</span>
+                    Посмотреть условия{" "}
+                    <span aria-hidden="true">
+                      <ArrowDownIcon className="most-icon" />
+                    </span>
                   </MarketingLink>
                 </div>
               ) : null}
@@ -199,7 +203,9 @@ const PricingPage = () => {
           </span>
           <MarketingLink href="#package-summary" className="most-text-link">
             К набору ({selection.selectedPackages.length}){" "}
-            <span aria-hidden="true">↓</span>
+            <span aria-hidden="true">
+              <ArrowDownIcon className="most-icon" />
+            </span>
           </MarketingLink>
         </div>
       ) : null}
@@ -288,7 +294,10 @@ const PricingPage = () => {
               они не включены автоматически в цену полного комплекта.
             </p>
             <MarketingLink href="#contact" className="most-text-link">
-              Обсудить условия <span aria-hidden="true">↓</span>
+              Обсудить условия{" "}
+              <span aria-hidden="true">
+                <ArrowDownIcon className="most-icon" />
+              </span>
             </MarketingLink>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { MarketingLink } from "@/components/marketing/MarketingPrimitives";
+import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 
 interface CtaBandAction {
   label: string;
@@ -38,7 +39,9 @@ const CtaBand = ({
             }
           >
             {action.label}
-            <span aria-hidden="true">↗</span>
+            <span aria-hidden="true">
+              <ArrowUpRightIcon className="most-icon" />
+            </span>
           </MarketingLink>
         ))}
       </div>

@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   BuildingOffice2Icon,
+  ChatBubbleLeftRightIcon,
   EnvelopeIcon,
   PaperAirplaneIcon,
   ShieldCheckIcon,
@@ -280,7 +281,10 @@ const ContactForm = ({
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <label className="block">
               <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
-                <UserIcon className="h-4 w-4" />
+                <UserIcon
+                  className="most-icon h-5 w-5 shrink-0"
+                  aria-hidden="true"
+                />
                 Имя
               </span>
               <input
@@ -297,7 +301,10 @@ const ContactForm = ({
 
             <label className="block">
               <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
-                <BuildingOffice2Icon className="h-4 w-4" />
+                <BuildingOffice2Icon
+                  className="most-icon h-5 w-5 shrink-0"
+                  aria-hidden="true"
+                />
                 Компания
               </span>
               <input
@@ -312,7 +319,10 @@ const ContactForm = ({
 
             <label className="block md:col-span-2 xl:col-span-1">
               <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
-                <EnvelopeIcon className="h-4 w-4" />
+                <EnvelopeIcon
+                  className="most-icon h-5 w-5 shrink-0"
+                  aria-hidden="true"
+                />
                 Рабочая почта
               </span>
               <input
@@ -358,7 +368,11 @@ const ContactForm = ({
           )}
 
           <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-steel-700">
+            <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
+              <ChatBubbleLeftRightIcon
+                className="most-icon h-5 w-5 shrink-0"
+                aria-hidden="true"
+              />
               Сообщение
             </span>
             <textarea
@@ -389,7 +403,10 @@ const ContactForm = ({
               />
               <div>
                 <div className="inline-flex items-center gap-2 text-sm font-semibold text-steel-900">
-                  <ShieldCheckIcon className="h-4 w-4 text-construction-700" />
+                  <ShieldCheckIcon
+                    className="most-icon h-5 w-5 shrink-0 text-construction-700"
+                    aria-hidden="true"
+                  />
                   Согласие на обработку персональных данных
                 </div>
                 <p className="mt-2 text-sm leading-6 text-steel-600">
@@ -436,7 +453,10 @@ const ContactForm = ({
               </>
             ) : (
               <>
-                <PaperAirplaneIcon className="h-5 w-5 shrink-0" />
+                <PaperAirplaneIcon
+                  className="most-icon h-5 w-5 shrink-0"
+                  aria-hidden="true"
+                />
                 {variant === "compact"
                   ? "Отправить заявку"
                   : "Запросить демонстрацию"}

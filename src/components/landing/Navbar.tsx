@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { Link, useLocation } from "react-router-dom";
 import { marketingPaths } from "@/data/marketingRegistry";
 
@@ -82,6 +83,7 @@ const Navbar = () => {
           >
             <span>{isOpen ? "Закрыть" : "Меню"}</span>
             <svg
+              className="most-icon"
               width="20"
               height="20"
               viewBox="0 0 20 20"
@@ -120,11 +122,16 @@ const Navbar = () => {
               onClick={() => setIsOpen(false)}
             >
               {item.label}
-              <span aria-hidden="true">↗</span>
+              <span aria-hidden="true">
+                <ArrowUpRightIcon className="most-icon" />
+              </span>
             </Link>
           ))}
           <Link to={marketingPaths.contact} onClick={() => setIsOpen(false)}>
-            Контакты<span aria-hidden="true">↗</span>
+            Контакты
+            <span aria-hidden="true">
+              <ArrowUpRightIcon className="most-icon" />
+            </span>
           </Link>
           <Link
             to="/register"

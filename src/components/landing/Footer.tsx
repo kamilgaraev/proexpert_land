@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import {
   marketingCommercialLandingLinks,
   marketingCompany,
@@ -59,7 +60,10 @@ const Footer = () => (
       </div>
       <details className="most-footer-directions">
         <summary>
-          Все направления работы <span aria-hidden="true">+</span>
+          Все направления работы{" "}
+          <span aria-hidden="true">
+            <PlusIcon className="most-icon" />
+          </span>
         </summary>
         <nav aria-label="Направления работы">
           {marketingCommercialLandingLinks.map((link) => (

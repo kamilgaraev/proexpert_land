@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import ContactForm from "@/components/landing/ContactForm";
 import {
   MarketingLink,
@@ -145,7 +146,10 @@ const SolutionsPage = () => {
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>
                 <MarketingLink href={item.href} className="most-text-link">
-                  {item.link} <span aria-hidden="true">↗</span>
+                  {item.link}{" "}
+                  <span aria-hidden="true">
+                    <ArrowUpRightIcon className="most-icon" />
+                  </span>
                 </MarketingLink>
               </article>
             ))}
@@ -172,7 +176,10 @@ const SolutionsPage = () => {
               >
                 <h3>
                   <MarketingLink href={item.href} className="most-text-link">
-                    {item.title} <span aria-hidden="true">↗</span>
+                    {item.title}{" "}
+                    <span aria-hidden="true">
+                      <ArrowUpRightIcon className="most-icon" />
+                    </span>
                   </MarketingLink>
                 </h3>
                 <p>{item.description}</p>
@@ -203,7 +210,10 @@ const SolutionsPage = () => {
               href={marketingPaths.pricing}
               className="most-text-link"
             >
-              Тарифы и состав пакетов <span aria-hidden="true">↗</span>
+              Тарифы и состав пакетов{" "}
+              <span aria-hidden="true">
+                <ArrowUpRightIcon className="most-icon" />
+              </span>
             </MarketingLink>
           </div>
         </div>

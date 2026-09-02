@@ -23,12 +23,12 @@
 .most-page-label {
   margin-bottom: 20px;
   color: #a64313;
-  font-size: 15px;
+  font-size: var(--most-type-small);
   font-weight: 500;
 }
 .most-page-hero h1 {
   max-width: 1050px;
-  font-size: clamp(38px, 4.5vw, 66px);
+  font-size: var(--most-type-h1);
   line-height: 1.08;
   letter-spacing: -0.045em;
   font-weight: 500;
@@ -38,7 +38,7 @@
   max-width: 760px;
   margin-top: 24px;
   color: var(--most-muted);
-  font-size: 19px;
+  font-size: var(--most-type-lead);
   line-height: 1.65;
 }
 .most-page-actions {
@@ -55,7 +55,7 @@
   max-width: 900px;
 }
 .most-section-intro h2 {
-  font-size: clamp(30px, 3vw, 44px);
+  font-size: var(--most-type-h2);
   line-height: 1.15;
   letter-spacing: -0.035em;
   font-weight: 500;
@@ -65,7 +65,7 @@
   max-width: 720px;
   margin-top: 20px;
   color: var(--most-muted);
-  font-size: 17px;
+  font-size: var(--most-type-body);
   line-height: 1.7;
 }
 .most-section-intro.is-center {
@@ -93,7 +93,7 @@
   align-items: center;
   gap: 16px;
   min-height: 52px;
-  font-size: 15px;
+  font-size: var(--most-type-small);
   color: var(--most-ink);
 }
 .most-section-nav a:hover {
@@ -104,13 +104,13 @@
   scroll-margin-top: 24px;
 }
 .most-content-section h2 {
-  font-size: clamp(30px, 3vw, 44px);
+  font-size: var(--most-type-h2);
   line-height: 1.15;
   letter-spacing: -0.035em;
   font-weight: 500;
 }
 .most-content-section h3 {
-  font-size: 24px;
+  font-size: var(--most-type-subheading);
   line-height: 1.25;
   font-weight: 500;
   letter-spacing: -0.02em;
@@ -122,7 +122,7 @@
 .most-content-lead {
   max-width: 720px;
   margin-top: 22px;
-  font-size: 18px;
+  font-size: var(--most-type-lead);
 }
 .most-content-lead > p {
   margin-top: 20px;
@@ -133,7 +133,7 @@
 .most-capability-details summary:not(:has(span))::after {
   content: "+";
   flex-shrink: 0;
-  font-size: 24px;
+  font-size: var(--most-type-subheading);
 }
 .most-capability-details details[open] summary:not(:has(span))::after {
   content: "−";
@@ -154,7 +154,7 @@
 }
 .most-feature-row .most-text-link {
   margin-top: 20px;
-  font-size: 15px;
+  font-size: var(--most-type-small);
 }
 .most-feature-row ul {
   list-style: none;
@@ -227,14 +227,14 @@
   padding-block: 21px;
   list-style: none;
   cursor: pointer;
-  font-size: 19px;
+  font-size: var(--most-type-lead);
   font-weight: 500;
 }
 .most-capability-details summary::-webkit-details-marker {
   display: none;
 }
 .most-capability-details summary span {
-  font-size: 24px;
+  font-size: var(--most-type-subheading);
   flex-shrink: 0;
 }
 .most-capability-details details[open] summary span {
@@ -245,7 +245,7 @@
 }
 .most-capability-details .most-availability {
   color: #914014;
-  font-size: 14px;
+  font-size: var(--most-type-small);
 }
 .most-capability-details ul {
   padding-left: 20px;
@@ -272,7 +272,7 @@
 }
 .most-cta-panel h2 {
   max-width: 900px;
-  font-size: clamp(28px, 3vw, 44px);
+  font-size: var(--most-type-h2);
   font-weight: 500;
   line-height: 1.15;
   letter-spacing: -0.035em;
@@ -280,7 +280,7 @@
 .most-cta-panel p {
   max-width: 760px;
   margin-top: 20px;
-  font-size: 17px;
+  font-size: var(--most-type-body);
   line-height: 1.7;
   color: #d1d9cd;
 }
@@ -295,7 +295,7 @@
   padding: 28px;
 }
 .most-cta-panel.is-compact h2 {
-  font-size: 28px;
+  font-size: var(--most-type-h3);
 }
 .most-cta-panel.is-compact .most-page-actions {
   align-items: stretch;
@@ -325,15 +325,15 @@
   }
   .most-page-label {
     margin-bottom: 16px;
-    font-size: 14px;
+    font-size: var(--most-type-small);
   }
   .most-page-hero h1 {
-    font-size: clamp(34px, 8.5vw, 44px);
+    font-size: var(--most-type-h1);
     line-height: 1.1;
   }
   .most-page-description {
     margin-top: 21px;
-    font-size: 16px;
+    font-size: var(--most-type-body);
   }
   .most-page-actions {
     margin-top: 24px;
@@ -345,10 +345,10 @@
     width: 100%;
   }
   .most-section-intro h2 {
-    font-size: 30px;
+    font-size: var(--most-type-h2);
   }
   .most-section-intro p {
-    font-size: 16px;
+    font-size: var(--most-type-body);
   }
   .most-section-nav {
     display: grid;
@@ -363,7 +363,7 @@
     padding-block: 48px;
   }
   .most-content-lead {
-    font-size: 16px;
+    font-size: var(--most-type-body);
   }
   .most-feature-row {
     grid-template-columns: minmax(0, 1fr);
@@ -383,6 +383,6 @@
     padding: 28px 22px;
   }
   .most-cta-panel p {
-    font-size: 16px;
+    font-size: var(--most-type-body);
   }
 }

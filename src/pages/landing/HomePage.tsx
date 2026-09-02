@@ -1,4 +1,10 @@
 import { useEffect, useRef } from "react";
+import {
+  ArrowDownIcon,
+  ArrowRightIcon,
+  ArrowUpRightIcon,
+  PlusIcon,
+} from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import ContactForm from "@/components/landing/ContactForm";
 import {
@@ -86,7 +92,10 @@ const HomePage = () => {
               Начать бесплатно
             </Link>
             <a href="#workflow" className="most-text-link">
-              Как это работает <span aria-hidden="true">↓</span>
+              Как это работает{" "}
+              <span aria-hidden="true">
+                <ArrowDownIcon className="most-icon" />
+              </span>
             </a>
           </div>
         </div>
@@ -133,7 +142,10 @@ const HomePage = () => {
                 объекту.
               </p>
               <Link to={marketingPaths.features} className="most-text-link">
-                Все возможности МОСТ <span aria-hidden="true">↗</span>
+                Все возможности МОСТ{" "}
+                <span aria-hidden="true">
+                  <ArrowUpRightIcon className="most-icon" />
+                </span>
               </Link>
             </div>
           </div>
@@ -203,13 +215,22 @@ const HomePage = () => {
           </figure>
           <div className="most-product-links">
             <Link to={marketingPaths.materialAccounting}>
-              Материалы и склад <span aria-hidden="true">↗</span>
+              Материалы и склад{" "}
+              <span aria-hidden="true">
+                <ArrowUpRightIcon className="most-icon" />
+              </span>
             </Link>
             <Link to={marketingPaths.constructionBudgetControl}>
-              Бюджет и платежи <span aria-hidden="true">↗</span>
+              Бюджет и платежи{" "}
+              <span aria-hidden="true">
+                <ArrowUpRightIcon className="most-icon" />
+              </span>
             </Link>
             <Link to={marketingPaths.ptoSoftware}>
-              Работы и документы <span aria-hidden="true">↗</span>
+              Работы и документы{" "}
+              <span aria-hidden="true">
+                <ArrowUpRightIcon className="most-icon" />
+              </span>
             </Link>
           </div>
         </div>
@@ -268,12 +289,17 @@ const HomePage = () => {
                     <h3>{role.name}</h3>
                     <p>{role.text}</p>
                   </div>
-                  <span aria-hidden="true">↗</span>
+                  <span aria-hidden="true">
+                    <ArrowUpRightIcon className="most-icon" />
+                  </span>
                 </Link>
               ))}
             </div>
             <Link to={marketingPaths.solutions} className="most-text-link">
-              Решение для вашей компании <span aria-hidden="true">↗</span>
+              Решение для вашей компании{" "}
+              <span aria-hidden="true">
+                <ArrowUpRightIcon className="most-icon" />
+              </span>
             </Link>
           </section>
           <section
@@ -292,7 +318,10 @@ const HomePage = () => {
               строительства.
             </p>
             <Link to={marketingPaths.ptoSoftware} className="most-text-link">
-              От работ к документам <span aria-hidden="true">↗</span>
+              От работ к документам{" "}
+              <span aria-hidden="true">
+                <ArrowUpRightIcon className="most-icon" />
+              </span>
             </Link>
           </section>
         </div>
@@ -311,10 +340,16 @@ const HomePage = () => {
             </p>
             <div className="most-inline-actions">
               <Link to="/register" className="most-button most-button-orange">
-                Начать бесплатно <span aria-hidden="true">↗</span>
+                Начать бесплатно{" "}
+                <span aria-hidden="true">
+                  <ArrowUpRightIcon className="most-icon" />
+                </span>
               </Link>
               <Link to={marketingPaths.pricing} className="most-text-link">
-                Состав и стоимость пакетов <span aria-hidden="true">→</span>
+                Состав и стоимость пакетов{" "}
+                <span aria-hidden="true">
+                  <ArrowRightIcon className="most-icon" />
+                </span>
               </Link>
             </div>
           </div>
@@ -340,7 +375,9 @@ const HomePage = () => {
             <details key={item.question}>
               <summary>
                 {item.question}
-                <span aria-hidden="true">+</span>
+                <span aria-hidden="true">
+                  <PlusIcon className="most-icon" />
+                </span>
               </summary>
               <p>{item.answer}</p>
             </details>
@@ -369,7 +406,10 @@ const HomePage = () => {
               className="most-contact-email"
               href="mailto:info@xn--1-xtbgmf.xn--p1ai"
             >
-              info@1мост.рф <span aria-hidden="true">↗</span>
+              info@1мост.рф{" "}
+              <span aria-hidden="true">
+                <ArrowUpRightIcon className="most-icon" />
+              </span>
             </a>
           </div>
           <ContactForm variant="compact" className="most-contact-form" />

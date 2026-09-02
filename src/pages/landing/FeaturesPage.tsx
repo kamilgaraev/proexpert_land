@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { ArrowUpRightIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import CtaBand from "@/components/marketing/blocks/CtaBand";
 import { PageHero } from "@/components/marketing/MarketingPrimitives";
@@ -93,7 +94,10 @@ const FeaturesPage = () => {
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>
                 <Link to={item.href} className="most-text-link">
-                  {item.link} <span aria-hidden="true">↗</span>
+                  {item.link}{" "}
+                  <span aria-hidden="true">
+                    <ArrowUpRightIcon className="most-icon" />
+                  </span>
                 </Link>
               </div>
               <ul>
@@ -119,7 +123,10 @@ const FeaturesPage = () => {
               направлениям.
             </p>
             <Link to={marketingPaths.pricing} className="most-text-link">
-              Выбрать пакеты <span aria-hidden="true">↗</span>
+              Выбрать пакеты{" "}
+              <span aria-hidden="true">
+                <ArrowUpRightIcon className="most-icon" />
+              </span>
             </Link>
           </div>
           <div className="most-capability-details">
@@ -127,7 +134,9 @@ const FeaturesPage = () => {
               <details key={item.id}>
                 <summary>
                   {item.title}
-                  <span aria-hidden="true">+</span>
+                  <span aria-hidden="true">
+                    <PlusIcon className="most-icon" />
+                  </span>
                 </summary>
                 {item.maturity !== "stable" ? (
                   <p className="most-availability">
@@ -142,7 +151,10 @@ const FeaturesPage = () => {
                 </ul>
                 {item.maturity !== "stable" ? (
                   <Link to={marketingPaths.contact} className="most-text-link">
-                    Обсудить подключение <span aria-hidden="true">↗</span>
+                    Обсудить подключение{" "}
+                    <span aria-hidden="true">
+                      <ArrowUpRightIcon className="most-icon" />
+                    </span>
                   </Link>
                 ) : null}
               </details>
@@ -161,7 +173,10 @@ const FeaturesPage = () => {
               Права определяют, что человек может просматривать и изменять.
             </p>
             <Link to={marketingPaths.security} className="most-text-link">
-              Доступ и безопасность <span aria-hidden="true">↗</span>
+              Доступ и безопасность{" "}
+              <span aria-hidden="true">
+                <ArrowUpRightIcon className="most-icon" />
+              </span>
             </Link>
           </div>
           <div>
@@ -172,7 +187,10 @@ const FeaturesPage = () => {
               подключить остальные площадки и службы.
             </p>
             <Link to={marketingPaths.solutions} className="most-text-link">
-              Решения для вашей команды <span aria-hidden="true">↗</span>
+              Решения для вашей команды{" "}
+              <span aria-hidden="true">
+                <ArrowUpRightIcon className="most-icon" />
+              </span>
             </Link>
           </div>
         </div>
