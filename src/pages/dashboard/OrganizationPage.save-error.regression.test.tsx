@@ -106,4 +106,41 @@ describe("OrganizationPage save errors", () => {
       "Организация с таким email уже существует.",
     );
   });
+
+  it("keeps the organization visible when update returns no recommendations", async () => {
+    const updatedResponse = {
+      ...organizationResponse,
+      data: {
+        ...organizationResponse.data,
+        organization: {
+          ...organizationResponse.data.organization,
+          okpo: "12345678",
+        },
+      },
+    };
+
+    apiMocks.getCurrent
+      .mockResolvedValueOnce(organizationResponse)
+      .mockResolvedValueOnce(updatedResponse);
+    apiMocks.update.mockResolvedValue({
+      success: true,
+      data: {
+        organization: updatedResponse.data.organization,
+      },
+    });
+
+    render(
+      <MemoryRouter>
+        <OrganizationPage />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Редактировать/ }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Сохранить" }));
+
+    expect(await screen.findByText("12345678")).toBeInTheDocument();
+    expect(screen.queryByText("Данные организации не найдены")).toBeNull();
+  });
 });
