@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import ContactForm from "@/components/landing/ContactForm";
 import {
@@ -33,14 +33,39 @@ const roles = [
 ];
 
 const HomePage = () => {
+  const homeRef = useRef<HTMLDivElement>(null);
   useSEO({ ...marketingSeo.home, type: "website" });
   const { trackPageView } = useAnalytics();
   useEffect(() => {
     trackPageView("marketing_home");
   }, [trackPageView]);
 
+  useEffect(() => {
+    const root = homeRef.current;
+    if (!root || !window.IntersectionObserver) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.setAttribute("data-motion-entered", "");
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.12 },
+    );
+
+    root
+      .querySelectorAll(
+        ".most-bridge-scene, .most-request-history, .most-build-story, .most-start-section",
+      )
+      .forEach((element) => observer.observe(element));
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="most-home">
+    <div ref={homeRef} className="most-home">
       <section className="most-hero" aria-labelledby="most-home-title">
         <div className="most-container most-hero-heading">
           <div>
@@ -190,29 +215,13 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section
-        className="most-section most-container most-roles"
-        aria-labelledby="most-roles-title"
-      >
-        <div>
-          <h2 id="most-roles-title">
-            Свой участок работы.
-            <br />
-            Один общий объект.
-          </h2>
-          <p>
-            Материалы — только часть работы. Прораб ведёт задачи, ПТО —
-            документы, руководитель — сроки и деньги. МОСТ связывает эти
-            процессы с одним объектом и открывает сотрудникам нужные данные.
-          </p>
-          <Link to={marketingPaths.solutions} className="most-text-link">
-            Решение для вашей компании <span aria-hidden="true">↗</span>
-          </Link>
-          <figure className="most-story-visual">
+      <div className="most-container most-build-story">
+        <div className="most-build-visuals">
+          <figure className="most-story-visual most-build-frame">
             <img
               src="/images/marketing/most-frame-story-1440.webp"
               srcSet="/images/marketing/most-frame-story-720.webp 720w, /images/marketing/most-frame-story-1440.webp 1440w"
-              sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1600px) 55vw, 840px"
+              sizes="(max-width: 1079px) calc(100vw - 40px), 52vw"
               width={1672}
               height={941}
               alt="Тот же объект на следующем этапе: над фундаментом вырос каркас здания"
@@ -220,45 +229,11 @@ const HomePage = () => {
               decoding="async"
             />
           </figure>
-        </div>
-        <div className="most-role-list">
-          {roles.map((role) => (
-            <Link key={role.name} to={role.href}>
-              <div>
-                <h3>{role.name}</h3>
-                <p>{role.text}</p>
-              </div>
-              <span aria-hidden="true">↗</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section
-        className="most-completion"
-        aria-labelledby="most-completion-title"
-      >
-        <div className="most-container most-completion-layout">
-          <div className="most-completion-copy">
-            <h2 id="most-completion-title">
-              Работы завершены.
-              <br />
-              Документы под рукой.
-            </h2>
-            <p>
-              Чертежи, замечания, акты и расчёты остаются связаны с объектом.
-              Команда может вернуться к документам и истории работ, когда
-              готовит сдачу или разбирает вопрос по проекту.
-            </p>
-            <Link to={marketingPaths.ptoSoftware} className="most-text-link">
-              От работ к документам <span aria-hidden="true">↗</span>
-            </Link>
-          </div>
-          <figure className="most-story-visual">
+          <figure className="most-story-visual most-build-complete">
             <img
               src="/images/marketing/most-completed-story-1440.webp"
               srcSet="/images/marketing/most-completed-story-720.webp 720w, /images/marketing/most-completed-story-1440.webp 1440w"
-              sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1600px) 60vw, 920px"
+              sizes="(max-width: 1079px) calc(100vw - 40px), 52vw"
               width={1672}
               height={941}
               alt="Тот же объект после завершения строительства: готовое здание на месте фундамента"
@@ -266,8 +241,62 @@ const HomePage = () => {
               decoding="async"
             />
           </figure>
+          <div className="most-build-route" aria-hidden="true">
+            <span>Работы на объекте</span>
+            <span>Документы по проекту</span>
+          </div>
         </div>
-      </section>
+        <div className="most-build-chapters">
+          <section
+            className="most-build-roles"
+            aria-labelledby="most-roles-title"
+          >
+            <h2 id="most-roles-title">
+              Свой участок работы.
+              <br />
+              Один общий объект.
+            </h2>
+            <p>
+              Материалы поступили — стройка продолжается. Прораб ведёт задачи,
+              ПТО — документы, руководитель — сроки и деньги. В МОСТ эта работа
+              связана с одним объектом.
+            </p>
+            <div className="most-role-list">
+              {roles.map((role) => (
+                <Link key={role.name} to={role.href}>
+                  <div>
+                    <h3>{role.name}</h3>
+                    <p>{role.text}</p>
+                  </div>
+                  <span aria-hidden="true">↗</span>
+                </Link>
+              ))}
+            </div>
+            <Link to={marketingPaths.solutions} className="most-text-link">
+              Решение для вашей компании <span aria-hidden="true">↗</span>
+            </Link>
+          </section>
+          <section
+            className="most-build-finish"
+            aria-labelledby="most-completion-title"
+          >
+            <h2 id="most-completion-title">
+              Работы завершены.
+              <br />
+              Документы под рукой.
+            </h2>
+            <p>
+              Когда приходит время сдавать объект, команде нужны чертежи,
+              замечания, акты и расчёты. В МОСТ они остаются связаны с проектом
+              — к документам и истории работ можно вернуться и после завершения
+              строительства.
+            </p>
+            <Link to={marketingPaths.ptoSoftware} className="most-text-link">
+              От работ к документам <span aria-hidden="true">↗</span>
+            </Link>
+          </section>
+        </div>
+      </div>
 
       <section
         className="most-start-section"
