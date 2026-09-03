@@ -68,6 +68,17 @@ export interface BlogCategoryInitialData {
   notFound: boolean;
 }
 
+export interface BlogTagInitialData {
+  slug: string;
+  queryKey: string;
+  articles: BlogArticle[];
+  pagination: BlogPaginationMeta;
+  articlesLoaded: boolean;
+  notFound: boolean;
+  pageNotFound: boolean;
+  unavailable: boolean;
+}
+
 export interface BlogTag {
   id: number;
   name: string;
@@ -264,6 +275,7 @@ export interface BlogIndexInitialData {
 }
 
 export interface BlogArticleFilters {
+  tag_slug?: string;
   status?: string;
   category_id?: number;
   author_id?: number;

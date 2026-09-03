@@ -796,7 +796,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       automations: [
         "Справочники ресурсов и привязку к объектам.",
         "Бюджетные основания и фактические операции.",
-        "Статусы обмена с корпоративными системами.",
+        "Данные обмена с 1С после настройки интеграции.",
       ],
       visibilityTitle: "Что видят участники",
       visibilityDescription:

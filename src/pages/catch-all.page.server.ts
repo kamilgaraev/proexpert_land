@@ -3,7 +3,8 @@ import { getBlogListingSeo, readBlogIndexQuery } from '@/utils/blogIndexQuery';
 import type { BlogArticle } from '@/types/blog';
 import { normalizeMarketingBlogArticle } from '@/utils/marketingBlogNormalizer';
 import { generateArticleSchema, normalizeArticleTitleBrand } from '@/utils/seo';
-import { fetchBlogCategoryForSsr, fetchBlogIndexForSsr } from './blogIndexSsr';
+import { fetchBlogCategoryForSsr, fetchBlogIndexForSsr, fetchBlogTagForSsr } from './blogIndexSsr';
+import { getBlogTagSeo, normalizeBlogTagQuery } from '@/utils/blogTagListing';
 import { getBlogCategorySeo } from '@/utils/blogCategorySeo';
 
 const BASE_URL = 'https://1мост.рф';
@@ -172,6 +173,26 @@ export async function onBeforeRender(pageContext: { urlPathname?: string; urlOri
         routeStatusCode: documentProps.statusCode,
         documentProps,
         pageProps: { initialBlogIndexData },
+      },
+    };
+  }
+
+  const tagMatch = normalizedPath.match(/^\/blog\/tag\/([^/]+)$/);
+  if (tagMatch) {
+    let slug: string;
+    try {
+      slug = decodeURIComponent(tagMatch[1]);
+    } catch {
+      slug = '';
+    }
+    const tagQuery = normalizeBlogTagQuery(query);
+    const initialBlogTagData = await fetchBlogTagForSsr(slug, { query: tagQuery });
+    const documentProps = getBlogTagSeo(initialBlogTagData, tagQuery);
+    return {
+      pageContext: {
+        routeStatusCode: documentProps.statusCode,
+        pageProps: { initialBlogTagData },
+        documentProps,
       },
     };
   }

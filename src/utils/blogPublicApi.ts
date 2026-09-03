@@ -80,10 +80,14 @@ export const blogPublicApi = {
     params.append('status', 'published');
     if (filters?.category_id) params.append('category_id', filters.category_id.toString());
     if (filters?.search) params.append('search', filters.search);
+    if (filters?.tag_slug) params.append('tag_slug', filters.tag_slug);
     if (filters?.per_page) params.append('per_page', filters.per_page.toString());
     if (filters?.page) params.append('page', filters.page.toString());
 
     const response = await api.get(`/articles?${params.toString()}`);
+    if (filters?.tag_slug && response.data?.success !== true) {
+      throw new Error('Invalid blog tag response');
+    }
 
     return normalizeArticleCollectionPayload(
       unwrapCollectionPayload<BlogArticle>(response as { data: LandingEnvelope<WrappedCollectionPayload<BlogArticle>> }),

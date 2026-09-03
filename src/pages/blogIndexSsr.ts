@@ -7,12 +7,21 @@ import type {
   BlogIndexInitialData,
   BlogPaginationMeta,
   BlogTag,
+  BlogTagInitialData,
 } from '@/types/blog';
 import { buildBlogIndexQueryKey, type BlogIndexQuery } from '@/utils/blogIndexQuery';
 import {
   normalizeMarketingBlogArticle,
   normalizeMarketingBlogCategory,
 } from '@/utils/marketingBlogNormalizer';
+
+import { applyBlogTagArticles, createBlogTagData, normalizeBlogTagQuery } from '@/utils/blogTagListing';
+
+class BlogIndexHttpError extends Error {
+  constructor(readonly status: number) {
+    super(`Blog API returned ${status}`);
+  }
+}
 
 const DEFAULT_API_BASE_DOMAIN = process.env.VITE_API_BASE
   ?? process.env.API_BASE_URL
@@ -263,7 +272,7 @@ const fetchBlogIndexResource = async (
     });
 
     if (!response.ok) {
-      throw new Error(`Blog API returned ${response.status}`);
+      throw new BlogIndexHttpError(response.status);
     }
 
     const payload = await response.json() as unknown;
@@ -271,6 +280,30 @@ const fetchBlogIndexResource = async (
     return payload;
   } finally {
     clearTimeout(timeoutId);
+  }
+};
+
+export const fetchBlogTagForSsr = async (
+  slug: string,
+  options: BlogIndexSsrOptions = {},
+): Promise<BlogTagInitialData> => {
+  const query = normalizeBlogTagQuery(options.query ?? {});
+  const initial = createBlogTagData(slug, query);
+  if (initial.notFound || initial.pageNotFound) return initial;
+  const params = new URLSearchParams({ tag_slug: slug, page: String(query.page), per_page: '12' });
+  if (query.search) params.set('search', query.search);
+  try {
+    const payload = normalizeArticlesEnvelope(await fetchBlogIndexResource(`/api/v1/blog/articles?${params}`, {
+      apiBaseDomain: options.apiBaseDomain ?? DEFAULT_API_BASE_DOMAIN,
+      fetchImpl: options.fetchImpl ?? fetch,
+      timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+    }));
+    if (!payload) throw new Error('Invalid blog tag response');
+    return applyBlogTagArticles(initial, payload.articles, payload.pagination);
+  } catch (error) {
+    return error instanceof BlogIndexHttpError && error.status === 404
+      ? { ...initial, notFound: true }
+      : { ...initial, unavailable: true };
   }
 };
 

@@ -1,6 +1,22 @@
 # МОСТ — прочитать первым после восстановления контекста
 
-## Текущая контрольная точка после восстановления Gortex, 3 сентября
+## Текущая контрольная точка, 3 сентября после 11:30 МСК
+
+Цель ACTIVE. Marketing production **125a80bcc825d61ac529c408cb9e82d6d3a9462c**, run33729486216 success. Страницы contractors/developers/enterprise прошли независимое production UI-ревью в 12 конфигурациях: APPROVE (evidence/segments-delivery-production-20260903.md). Desktop Lighthouse93, mobile57; FCP1,055/5,775с, LCP1,475/7,800с. Выявлен реальный остаточный дефект: SSR предзагружает все21WOFF2 (320097Б). Исправление пока НЕ внесено: injectFilter дляfont/non-entry, оставить Sans latin/cyrillic, не трогатьCSS/JS/image; Context7 и installed0.4.142 проверены performance_review. Отчёт evidence/performance-release-125a80bc.md.
+
+Backend exacttag **опубликован**: PR619 merged, commit73a3701bffba99cc617d1936300dcc9c59edda6b, run33732472191 success. ProductionAPI pto per_page1 page1/2: разныестатьи19/17,total3,точныйtag; unknown404,invalidpage422,outofrange200empty. Evidence/blog-tag-backend-production-20260903.md. Backendworktree ещё сохранён; taskcommitbb0ee39e1 входитвmain, послеокончаниязависимостейпроверитьчистотуиубратьworktree/taskbranchпоправилам. Не повторять22успешныхDBсценария.
+
+Frontend exacttag локально готов,20Vitest/MSWPASS,ESLint9PASS, независимыйestimate_truthAPPROVE. Evidence/blog-tag-frontend-review-20260903.md и blog-tag-frontend-spec-20260903.md. ОбщиефайлысохраняютPrettierwarnings, невыдаватьзаполныйзелёныйformatter. Блокещёнеcommitted/notdeployed; нельзяпотерятьновыйutils/blogTagListing.ts. Дополнительноroot исправилоднустрокуconstruction-erp на«Данныеобменас1Спосленастройкиинтеграции» (реальныйтекстсобычнымипробелами); testtargetsнет,guardsнет,исполняемоеповедение не менялось.
+
+НовыйПРИОРИТЕТпользователя: скроллбарТОЛЬКОбегунокповерхконтента, безфоновойдорожки иviewportgutter; stickyheader; исправитьблог(двапоиска,двойнойfocusoutline,сырыеdetailsмаркеры,пустыеотступы). Worker marketing_ui_polish единственныйтекущийисполнителькода:MarketingShell/Navbar/MarketingScrollbar/marketing.css/marketing-blog.css/blogcontrols. Последнийстатус: узкийimpactPASS,реализацияидёт. Не трогатьегофайлы.
+
+Пользовательотклонилповтороднихитeхже3Dдомиковнапочтивсехстраницах. ПерваяноваяПТОсценанабетоннойподставке(узел+чертежи)ТОЖЕОТКЛОНЕНА, невыпускать. Источники output/imagegen/most-scenes-20260903/pto-detail-v1.png иv2.png — discardedconcepts. Новыйэксперимент: архитектурнаяфотосценареальногомасштаба с чертежомнастройке, generated_images/.../exec-e1053879-1208-40f7-9c93-e2b90f332ca0.png; пользовательпокаНЕоценил, несчитатьпринятой. package_truth ведётread-onlyкартусюжетов illustration-narrative-map-20260903.md. Heroмостодобрен, не менятьегообщуюконцепциюиз-запробвнутреннихиллюстраций.
+
+УточненоПРАВИЛОмиграцийпо явнойпросьбепользователя: запреттольколокальныйручнойзапуск; действующийproductionCI/CDвключаетмиграцииврамкахужеавторизованногодеплоя,повторныхвопросовнет. RootAGENTS.md и.agent/rules/core.md,laravel.mdточечнопоправленыиrgпроверены. Чужой prohelper_land/AGENTS.md НЕ менялся и НЕстейджить.
+
+Gortex03.09около11:12МСКштатноgracefulrestartуспешно: PID20024самзавершился, новый6708. Через4м15графqueryable,detect_changesсновапроходит. Не повторятьdiskcommittedмутации(втомчислематрицупродукта); приread-onlyтаймаутепроверятьтотжесервис, неубиватьпроцесспоодномутаймауту. Нативныекомандыдляsourceпо-прежнемузапрещены; административныеправкиправил/интеграцииразрешены.
+
+## Историческая контрольная точка после восстановления Gortex, 3 сентября
 
 Цель вновь ACTIVE, подтверждено get_goal. Production пока a7bfba1b. Gortex staged review 44файлов завершился за1.3сек: 0findings, REVIEW поfan-outтестовогофайла. Кодовые действия вновь доступны; прежнюю блокировку ниже не считать текущей.
 

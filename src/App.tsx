@@ -90,11 +90,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import YandexMetrika from '@components/analytics/YandexMetrika';
 import { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
 import { initSEOTracking } from '@utils/seoTracking';
-import type { BlogArticle, BlogCategoryInitialData, BlogIndexInitialData } from '@/types/blog';
+import type { BlogArticle, BlogCategoryInitialData, BlogIndexInitialData, BlogTagInitialData } from '@/types/blog';
 
 interface AppProps {
   initialBlogIndexData?: BlogIndexInitialData;
   initialBlogCategoryData?: BlogCategoryInitialData;
+  initialBlogTagData?: BlogTagInitialData;
   initialBlogArticle?: BlogArticle;
   initialBlogArticleNotFound?: boolean;
   initialBlogArticleNotFoundSlug?: string;
@@ -136,6 +137,7 @@ const BillingAccessRoute = () => {
 function App({
   initialBlogIndexData,
   initialBlogCategoryData,
+  initialBlogTagData,
   initialBlogArticle,
   initialBlogArticleNotFound = false,
   initialBlogArticleNotFoundSlug,
@@ -279,7 +281,7 @@ function App({
         <Route path="/blog" element={<BlogPublicPage initialData={initialBlogIndexData} />} />
         <Route path="/blog/preview/:articleId" element={<BlogArticlePage />} />
         <Route path="/blog/category/:slug" element={<BlogCategoryPage initialData={initialBlogCategoryData} />} />
-        <Route path="/blog/tag/:slug" element={<BlogTagPage />} />
+        <Route path="/blog/tag/:slug" element={<BlogTagPage initialData={initialBlogTagData} />} />
         <Route
           path="/blog/:slug"
           element={
