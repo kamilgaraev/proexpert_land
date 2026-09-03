@@ -87,14 +87,14 @@ const ContractorsPage = () => {
               Здание растёт по этапам. В МОСТ за каждым этапом остаются работа,
               исполнитель и записи, к которым можно вернуться при проверке.
             </p>
-            <figure>
+            <figure className="most-segment-photo">
               <img
-                src="/images/marketing/most-frame-story-1440.webp"
-                srcSet="/images/marketing/most-frame-story-720.webp 720w, /images/marketing/most-frame-story-1440.webp 1440w"
-                sizes="(min-width: 1024px) 48vw, 100vw"
-                width="1440"
-                height="810"
-                alt="Каркас строящегося здания и оранжевая линия, связывающая площадку"
+                src="/images/marketing/most-contractors-report-branded-v1.webp"
+                width="1536"
+                height="1024"
+                loading="lazy"
+                decoding="async"
+                alt="Прораб фотографирует смонтированные воздуховоды для отчёта о выполненной работе"
               />
             </figure>
             <dl className="most-segment-record">

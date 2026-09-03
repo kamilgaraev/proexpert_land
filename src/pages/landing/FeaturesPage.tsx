@@ -10,6 +10,7 @@ import {
 } from "@/data/marketingRegistry";
 import useAnalytics from "@/hooks/useAnalytics";
 import { useSEO } from "@/hooks/useSEO";
+import { useFittingSticky } from "@/hooks/useFittingSticky";
 import "@/styles/marketing-product-story.css";
 
 const dailyWork = [
@@ -61,6 +62,7 @@ const otherCapabilities = marketingCapabilityMatrix.filter(
 const FeaturesPage = () => {
   useSEO({ ...marketingSeo.features, type: "website" });
   const { trackPageView } = useAnalytics();
+  const story = useFittingSticky();
   useEffect(() => {
     trackPageView("marketing_features");
   }, [trackPageView]);
@@ -88,22 +90,24 @@ const FeaturesPage = () => {
 
       <section id="work" className="most-content-section most-container">
         <div className="most-product-story">
-          <div className="most-product-story-scene">
+          <div
+            ref={story.ref}
+            data-sticky={story.fits}
+            className="most-product-story-scene"
+          >
             <h2>От задачи на площадке до решения в офисе.</h2>
             <p className="most-content-lead">
               Команда вносит данные по ходу работы. Руководитель и смежные
               службы используют эти же записи — с учётом своих прав доступа.
             </p>
-            <figure>
+            <figure className="most-product-photo">
               <img
-                src="/images/marketing/most-frame-story-1440.webp"
-                srcSet="/images/marketing/most-frame-story-720.webp 720w, /images/marketing/most-frame-story-1440.webp 1440w"
-                sizes="(max-width: 1080px) 100vw, 48vw"
-                width={1440}
-                height={810}
+                src="/images/marketing/most-office-site-branded-v1.webp"
+                width={1536}
+                height={1024}
                 loading="lazy"
                 decoding="async"
-                alt=""
+                alt="Рабочее место координатора проекта в офисе рядом со строительной площадкой"
               />
               <figcaption>
                 График, поставки и расчёты относятся к одному объекту.

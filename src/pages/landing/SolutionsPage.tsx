@@ -8,6 +8,7 @@ import {
 import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
 import useAnalytics from "@/hooks/useAnalytics";
 import { useSEO } from "@/hooks/useSEO";
+import { useFittingSticky } from "@/hooks/useFittingSticky";
 import "@/styles/marketing-product-story.css";
 
 const companySolutions = [
@@ -106,6 +107,7 @@ const teamSolutions = [
 const SolutionsPage = () => {
   useSEO({ ...marketingSeo.solutions, type: "website" });
   const { trackPageView } = useAnalytics();
+  const story = useFittingSticky();
 
   useEffect(() => {
     trackPageView("marketing_solutions");
@@ -160,7 +162,11 @@ const SolutionsPage = () => {
 
       <section id="team" className="most-content-section">
         <div className="most-container most-product-story">
-          <div className="most-product-story-scene">
+          <div
+            ref={story.ref}
+            data-sticky={story.fits}
+            className="most-product-story-scene"
+          >
             <div className="most-content-lead">
               <h2>Что нужно вашей команде?</h2>
               <p>
@@ -169,16 +175,14 @@ const SolutionsPage = () => {
                 статусы и результаты работ.
               </p>
             </div>
-            <figure>
+            <figure className="most-product-photo">
               <img
-                src="/images/marketing/most-frame-story-1440.webp"
-                srcSet="/images/marketing/most-frame-story-720.webp 720w, /images/marketing/most-frame-story-1440.webp 1440w"
-                sizes="(max-width: 1080px) 100vw, 48vw"
-                width={1440}
-                height={810}
+                src="/images/marketing/most-team-coordination-branded-v1.webp"
+                width={1536}
+                height={1024}
                 loading="lazy"
                 decoding="async"
-                alt=""
+                alt="Прораб, инженер и снабженец обсуждают план работ на одной площадке"
               />
               <figcaption>
                 Один объект объединяет работу разных специалистов.

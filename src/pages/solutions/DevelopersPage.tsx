@@ -82,14 +82,14 @@ const DevelopersPage = () => {
               ещё открыты. МОСТ помогает рассматривать их вместе с ходом
               проекта.
             </p>
-            <figure>
+            <figure className="most-segment-photo">
               <img
-                src="/images/marketing/most-completed-story-1440.webp"
-                srcSet="/images/marketing/most-completed-story-720.webp 720w, /images/marketing/most-completed-story-1440.webp 1440w"
-                sizes="(min-width: 1024px) 48vw, 100vw"
-                width="1440"
-                height="810"
-                alt="Завершённое здание из общей истории строительства МОСТ"
+                src="/images/marketing/most-developers-handover-branded-v1.webp"
+                width="1536"
+                height="1024"
+                loading="lazy"
+                decoding="async"
+                alt="Специалист отмечает участок облицовки, который нужно проверить перед приёмкой"
               />
             </figure>
             <dl className="most-segment-record">
