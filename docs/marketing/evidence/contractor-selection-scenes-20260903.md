@@ -22,4 +22,4 @@
 
 ## Проверки до выпуска
 
-ESLint двух TS/TSX-файлов PASS. Vitest `SeoClusterPage`, `marketingContent`, `commercialBoundary`: **78 PASS / 0 FAIL**. Собственная скрытая IAB tab26: все три маршрута осмотрены при1440×960 и390×844; отдельные изображения и H1 верны, mobile использует720px, overflow false. Шесть снимков осмотрены, viewport сброшен. Production и Gortex review будут добавлены после выпуска. Общая цель ACTIVE.
+ESLint двух TS/TSX-файлов PASS. Vitest `SeoClusterPage`, `marketingContent`, `commercialBoundary`: **78 PASS / 0 FAIL**. Собственная скрытая IAB tab26: все три маршрута осмотрены при1440×960 и390×844; отдельные изображения и H1 верны, mobile использует720px, overflow false. Шесть снимков осмотрены, viewport сброшен. Gortex staged review APPROVE,0findings. Выпуск81b38b0a, workflow33787640354 SUCCESS. Production всех трёх страниц проверен в собственной скрытой IAB3 при1280×720: верные новые изображения и H1, отсутствие горизонтального переполнения, скриншоты осмотрены. Все три сцены опубликованы; покрытие24из29. Общая цель ACTIVE.
