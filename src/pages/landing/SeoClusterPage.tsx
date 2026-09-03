@@ -40,6 +40,21 @@ const editorialScenes: Partial<
     { src: string; smallSrc: string; alt: string }
   >
 > = {
+  "material-accounting": {
+    src: "/images/marketing/most-stock-count-branded-v1.webp",
+    smallSrc: "/images/marketing/most-stock-count-branded-v1-720.webp",
+    alt: "Кладовщик сверяет количество блоков на складском стеллаже",
+  },
+  "pir-project-documentation": {
+    src: "/images/marketing/most-design-review-branded-v1.webp",
+    smallSrc: "/images/marketing/most-design-review-branded-v1-720.webp",
+    alt: "Проектировщик проверяет чертежи и отмечает детали для уточнения",
+  },
+  "change-control": {
+    src: "/images/marketing/most-change-discussion-branded-v1.webp",
+    smallSrc: "/images/marketing/most-change-discussion-branded-v1-720.webp",
+    alt: "Инженеры обсуждают расположение проёма и сверяют его с чертежом",
+  },
   "machinery-and-labor": {
     src: "/images/marketing/most-machinery-shift-branded-v1.webp",
     smallSrc: "/images/marketing/most-machinery-shift-branded-v1-720.webp",
