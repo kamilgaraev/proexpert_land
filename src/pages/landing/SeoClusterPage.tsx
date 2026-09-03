@@ -40,6 +40,21 @@ const editorialScenes: Partial<
     { src: string; smallSrc: string; alt: string }
   >
 > = {
+  "construction-orders": {
+    src: "/images/marketing/most-order-discussion-branded-v1.webp",
+    smallSrc: "/images/marketing/most-order-discussion-branded-v1-720.webp",
+    alt: "Заказчица и подрядчик обсуждают строительные работы по плану объекта",
+  },
+  subcontracting: {
+    src: "/images/marketing/most-subcontract-walkthrough-branded-v1.webp",
+    smallSrc: "/images/marketing/most-subcontract-walkthrough-branded-v1-720.webp",
+    alt: "Руководитель проекта и субподрядчик осматривают участок электромонтажных работ",
+  },
+  "project-pulse": {
+    src: "/images/marketing/most-project-observation-branded-v1.webp",
+    smallSrc: "/images/marketing/most-project-observation-branded-v1-720.webp",
+    alt: "Руководитель фотографирует ход фасадных работ на строительном объекте",
+  },
   "construction-crm": {
     src: "/images/marketing/most-client-project-branded-v1.webp",
     smallSrc: "/images/marketing/most-client-project-branded-v1-720.webp",
