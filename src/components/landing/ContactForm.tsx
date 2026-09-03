@@ -414,21 +414,21 @@ const ContactForm = ({
                   Подтверждаю согласие в рамках{" "}
                   <Link
                     to={marketingPaths.privacy}
-                    className="font-semibold text-construction-700"
+                    className="font-semibold text-construction-800 underline decoration-1 underline-offset-2"
                   >
                     политики конфиденциальности
                   </Link>{" "}
                   и принимаю условия{" "}
                   <Link
                     to={marketingPaths.offer}
-                    className="font-semibold text-construction-700"
+                    className="font-semibold text-construction-800 underline decoration-1 underline-offset-2"
                   >
                     публичной оферты
                   </Link>
                   . Настройки аналитики описаны в{" "}
                   <Link
                     to={marketingPaths.cookies}
-                    className="font-semibold text-construction-700"
+                    className="font-semibold text-construction-800 underline decoration-1 underline-offset-2"
                   >
                     политике cookie
                   </Link>
