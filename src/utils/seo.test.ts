@@ -296,16 +296,29 @@ describe('buildStructuredDataGraph', () => {
 });
 
 describe('normalizeOgImageUrl', () => {
-  it('converts static МОСТ OG svg images to png', () => {
+  it('converts static МОСТ previews to versioned PNG images', () => {
     expect(normalizeOgImageUrl('https://1мост.рф/og/contractor-control.svg'))
-      .toBe('https://1мост.рф/og/contractor-control.png');
-    expect(normalizeOgImageUrl('/og/contractor-control.svg')).toBe('/og/contractor-control.png');
+      .toBe('https://1мост.рф/og/contractor-control.png?v=bridge-20260903');
+    expect(normalizeOgImageUrl('/og/contractor-control.svg'))
+      .toBe('/og/contractor-control.png?v=bridge-20260903');
+    expect(normalizeOgImageUrl('https://1мост.рф/og/contractor-control.png'))
+      .toBe('https://1мост.рф/og/contractor-control.png?v=bridge-20260903');
   });
 
-  it('keeps external or already raster images unchanged', () => {
-    expect(normalizeOgImageUrl('https://cdn.example.test/cover.svg')).toBe('https://cdn.example.test/cover.svg');
-    expect(normalizeOgImageUrl('https://1мост.рф/og/contractor-control.png'))
-      .toBe('https://1мост.рф/og/contractor-control.png');
+  it('preserves unrelated images and absent values', () => {
+    expect(normalizeOgImageUrl('https://cdn.example.test/og/cover.svg')).toBe('https://cdn.example.test/og/cover.svg');
+    expect(normalizeOgImageUrl('/uploads/cover.png')).toBe('/uploads/cover.png');
+    expect(normalizeOgImageUrl(null)).toBeUndefined();
+    expect(normalizeOgImageUrl()).toBeUndefined();
+  });
+
+  it('preserves parameters and fragments without accumulating versions', () => {
+    const image = '/og/home.svg?source=share&v=old#preview';
+    const result = '/og/home.png?source=share&v=bridge-20260903#preview';
+    expect(normalizeOgImageUrl(image)).toBe(result);
+    expect(normalizeOgImageUrl(result)).toBe(result);
+    expect(normalizeOgImageUrl('https://xn--1-xtbgmf.xn--p1ai/og/home.png'))
+      .toBe('https://xn--1-xtbgmf.xn--p1ai/og/home.png?v=bridge-20260903');
   });
 });
 
