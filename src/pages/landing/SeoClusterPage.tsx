@@ -72,6 +72,16 @@ const editorialScenes: Partial<
     smallSrc: "/images/marketing/most-contractor-shortlist-branded-v1-720.webp",
     alt: "Специалисты выбирают подрядчика по плану участка и фотографиям выполненных работ",
   },
+  "construction-brigades": {
+    src: "/images/marketing/most-crew-scope-branded-v1.webp",
+    smallSrc: "/images/marketing/most-crew-scope-branded-v1-720.webp",
+    alt: "Прораб и бригада сверяют участок отделочных работ с планом помещения",
+  },
+  "renovation-orders": {
+    src: "/images/marketing/most-renovation-scope-branded-v1.webp",
+    smallSrc: "/images/marketing/most-renovation-scope-branded-v1-720.webp",
+    alt: "Заказчица и подрядчик обсуждают отделочные материалы и план ремонта",
+  },
   "material-accounting": {
     src: "/images/marketing/most-stock-count-branded-v2.webp",
     smallSrc: "/images/marketing/most-stock-count-branded-v2-720.webp",
