@@ -120,6 +120,7 @@ describe("Marketing window scrollbar", () => {
       isPrimary: true,
     });
     expect(capture.has(8)).toBe(true);
+    expect(thumb).not.toHaveFocus();
     fireEvent.pointerMove(thumb, { pointerId: 8, clientY: 900 });
     expect(window.scrollTo).toHaveBeenLastCalledWith({
       top: 4000,

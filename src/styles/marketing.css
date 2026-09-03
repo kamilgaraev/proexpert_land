@@ -767,8 +767,14 @@ html:has(.most-marketing) body {
 .most-scrollbar-thumb[data-dragging] {
   cursor: grabbing;
 }
-.most-marketing .most-scrollbar-thumb:focus-visible {
-  outline-offset: -2px;
+.most-marketing .most-scrollbar-thumb:focus {
+  outline: none;
+}
+.most-marketing .most-scrollbar-thumb:focus-visible::before {
+  width: 10px;
+  background: var(--most-ink);
+  outline: 2px solid #bb4c13;
+  outline-offset: 1px;
 }
 @media (min-width: 1080px) and (pointer: fine) and (forced-colors: none) {
   html.most-overlay-scrollbar-ready {

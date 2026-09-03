@@ -94,7 +94,6 @@ const MarketingScrollbar = () => {
         thumb.setPointerCapture(event.pointerId);
         pointer = event.pointerId;
         thumb.setAttribute("data-dragging", "true");
-        thumb.focus({ preventScroll: true });
       };
       const pointerMove = (event: PointerEvent) => {
         if (pointer !== event.pointerId) return;
