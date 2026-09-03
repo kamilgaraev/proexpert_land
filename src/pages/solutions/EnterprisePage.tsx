@@ -1,296 +1,201 @@
-import CtaBand from "@/components/marketing/blocks/CtaBand";
+import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import {
   MarketingLink,
   PageHero,
-  SectionHeader,
-  SurfaceBadges,
 } from "@/components/marketing/MarketingPrimitives";
-import {
-  marketingCapabilityMatrix,
-  marketingPaths,
-  marketingSeo,
-  marketingTrustFacts,
-} from "@/data/marketingRegistry";
+import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
 import { useSEO } from "@/hooks/useSEO";
+import "@/styles/marketing-segments.css";
 
-const enterpriseHighlights = [
-  "Организации и объекты разделены внутри группы компаний.",
-  "Права пользователей назначаются по роли и зоне ответственности.",
-  "Управляющая команда работает со сводными данными доступных организаций.",
-];
-
-const enterpriseOperatingModel = [
+const operatingModel = [
   {
-    title: "Структура группы компаний",
+    title: "Объект относится к организации",
     description:
-      "Организации, объекты, пользователи и документы сохраняют свои границы внутри общей структуры.",
-    bullets: [
-      "Определяется иерархия организаций и объектов.",
-      "Для каждой роли задаётся доступ к нужным данным и действиям.",
-      "Сводные показатели строятся из доступных руководителю данных.",
-    ],
+      "Работы, пользователи и документы сохраняют принадлежность к своей организации. Сотрудник выбирает доступную организацию и работает с её объектами.",
+    result: "Основа: организация и её объекты.",
   },
   {
-    title: "Подключение организаций",
+    title: "Сотрудник получает нужный доступ",
     description:
-      "Состав организаций, объектов и пользователей можно добавлять поэтапно, сохраняя принятые правила доступа.",
-    bullets: [
-      "Начало работы с выбранной организацией или группой объектов.",
-      "Проверка ролей и доступов на реальных обязанностях сотрудников.",
-      "Добавление следующих организаций и сводной отчётности.",
-    ],
+      "Права задают, какие данные и действия доступны участнику в организации и проекте. Обязанности руководителя, команды объекта и финансовой службы различаются.",
+    result: "Для участника: роль, объект и разрешённые действия.",
+  },
+  {
+    title: "Руководитель работает со сводными данными",
+    description:
+      "Управляющая команда рассматривает сведения доступных организаций. Состав показателей определяется данными объектов и подключёнными возможностями.",
+    result: "Для управления: доступные объекты и их показатели.",
   },
 ];
 
-const enterpriseTrustLayer = [
-  "На демонстрации показываем разделение организаций, объектов и пользовательских прав.",
-  "Разбираем роли, которым нужны операционные или сводные данные.",
-  "Отдельно фиксируем требования к файлам, документам и интеграциям.",
-];
-
-const featuredCapabilities = marketingCapabilityMatrix.filter((capability) =>
-  [
-    "multi-org",
-    "finance-control",
-    "project-control",
-    "document-control",
-  ].includes(capability.id),
-);
-
-const enterpriseRelatedLinks = [
+const relatedLinks = [
   {
-    label: "Управление ресурсами строительства",
+    label: "Объекты и ресурсы",
     href: marketingPaths.constructionErp,
-    description:
-      "Если нужно связать объекты, финансы и документы нескольких организаций.",
+    description: "Связь работ, финансовых данных и документов организации.",
   },
   {
-    label: "Интеграции и расширения",
+    label: "Интеграции",
     href: marketingPaths.integrations,
-    description:
-      "Подходит, когда группе компаний нужен внешний обмен согласованным набором данных.",
+    description: "Согласованный обмен данными с другими системами.",
   },
   {
-    label: "Контроль бюджета стройки",
+    label: "Бюджет строительства",
     href: marketingPaths.constructionBudgetControl,
-    description:
-      "Для компаний, которым нужно отдельно вести лимиты, платежный календарь и финансовые показатели.",
+    description: "План, платёжные документы и финансовые показатели объекта.",
   },
   {
     label: "Безопасность и доступ",
     href: marketingPaths.security,
-    description:
-      "Если в обсуждении на первом месте роли, разграничение доступа, журнал действий и требования корпоративной безопасности.",
+    description: "Роли участников и разграничение доступа к данным.",
   },
 ];
 
 const EnterprisePage = () => {
-  useSEO({
-    ...marketingSeo.enterprise,
-    type: "website",
-  });
+  useSEO({ ...marketingSeo.enterprise, type: "website" });
 
   return (
-    <div className="marketing-page-shell">
+    <div className="marketing-page-shell most-segment-page">
       <PageHero
-        eyebrow="Группа компаний"
-        title="Организации, объекты, права и сводные данные в МОСТ."
-        description="Каждая организация сохраняет свои объекты и пользователей. Права ограничивают доступ к данным, а управляющая команда видит разрешённую сводную информацию по группе."
+        title="Одна группа компаний. У каждого объекта — своя команда."
+        description="МОСТ связывает работу площадки и офиса внутри группы компаний. Организации сохраняют свои объекты и пользователей, а управляющая команда работает с разрешённой сводной информацией."
         actions={[
           {
-            label: "Связаться с командой",
-            href: marketingPaths.contact,
+            label: "Обсудить структуру группы",
+            href: `${marketingPaths.contact}#contact-form`,
             primary: true,
           },
           { label: "Безопасность и доступ", href: marketingPaths.security },
         ]}
         nav={[
-          { label: "Модель запуска", href: "#operating-model" },
-          { label: "Корпоративные функции", href: "#enterprise-capabilities" },
-          { label: "Следующий шаг", href: "#enterprise-cta" },
+          { label: "Организации и роли", href: "#operating-model" },
+          { label: "Подключение", href: "#enterprise-capabilities" },
         ]}
-        aside={
-          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Что важно крупной команде
-            </div>
-            <div className="mt-4 grid gap-3">
-              {enterpriseHighlights.map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        }
       />
 
-      <section id="operating-model" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-5 xl:grid-cols-2">
-          {enterpriseOperatingModel.map((item) => (
-            <article
-              key={item.title}
-              className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
-            >
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                {item.title}
+      <section id="operating-model" className="most-segment-section">
+        <div className="most-container most-segment-story">
+          <div className="most-segment-scene">
+            <h2>Общая работа начинается с понятных границ.</h2>
+            <p>
+              На площадке работают разные участники. Чтобы данные объекта были
+              полезны группе компаний, нужно сохранить их принадлежность и
+              определить, кто с ними работает.
+            </p>
+            <figure>
+              <img
+                src="/images/marketing/most-material-story-1440.webp"
+                srcSet="/images/marketing/most-material-story-720.webp 720w, /images/marketing/most-material-story-1440.webp 1440w"
+                sizes="(min-width: 1024px) 48vw, 100vw"
+                width="1440"
+                height="810"
+                alt="Фундамент одного объекта и материалы на его площадке"
+              />
+            </figure>
+            <dl className="most-segment-record">
+              <div>
+                <dt>Принадлежность данных</dt>
+                <dd>Организация → объект</dd>
               </div>
-              <p className="mt-4 text-sm leading-7 text-steel-600">
-                {item.description}
-              </p>
-              <div className="mt-5 grid gap-3">
-                {item.bullets.map((bullet) => (
-                  <div
-                    key={bullet}
-                    className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                  >
-                    {bullet}
-                  </div>
-                ))}
+              <div>
+                <dt>Доступ сотрудника</dt>
+                <dd>Роль → разрешённые действия</dd>
               </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section
-        id="enterprise-capabilities"
-        className="bg-concrete-50 py-16 lg:py-20"
-      >
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Корпоративные функции"
-            title="Разделение данных и управление на уровне группы."
-            description="Ниже функции, связанные со структурой организаций, объектами, правами пользователей, финансами и сводной информацией."
-          />
-
-          <div className="mt-10 grid gap-5 xl:grid-cols-2">
-            {featuredCapabilities.map((capability) => (
-              <article
-                key={capability.id}
-                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
-              >
-                <div className="flex flex-col gap-4 border-b border-steel-100 pb-5 lg:flex-row lg:items-start lg:justify-between">
-                  <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                      {capability.businessContour}
-                    </div>
-                    <h2 className="mt-2 text-2xl font-bold text-steel-950">
-                      {capability.title}
-                    </h2>
-                  </div>
-                  <SurfaceBadges surfaces={capability.surfaces} />
-                </div>
-                <p className="mt-5 text-sm leading-7 text-steel-600">
-                  {capability.publicClaim}
-                </p>
-                <div className="mt-5 grid gap-3">
-                  {capability.outcomes.slice(0, 3).map((highlight) => (
-                    <div
-                      key={highlight}
-                      className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                    >
-                      {highlight}
-                    </div>
-                  ))}
-                </div>
-              </article>
+            </dl>
+          </div>
+          <ol className="most-segment-steps">
+            {operatingModel.map((step) => (
+              <li key={step.title}>
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
+                <p className="most-segment-result">{step.result}</p>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
-      <section className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)]">
+      <section id="enterprise-capabilities" className="most-segment-section">
+        <div className="most-container most-segment-split">
           <div>
-            <SectionHeader
-              eyebrow="Как мы это обсуждаем"
-              title="Для демонстрации нужна схема организаций и ролей."
-              description="На встрече разбираем структуру группы, доступ пользователей к объектам и состав сводных данных для руководителей."
-            />
-            <div className="mt-8 grid gap-3">
-              {enterpriseTrustLayer.map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
+            <h2>Сначала одна организация. Затем — остальные.</h2>
+            <p>
+              Начните с выбранной организации и её объектов. Проверьте работу
+              ролей и нужные сведения, прежде чем расширять состав участников.
+            </p>
           </div>
-
-          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-              На чём строится разделение данных
+          <dl className="most-segment-facts">
+            <div>
+              <dt>Структура и ответственность</dt>
+              <dd>
+                На первом разговоре разберём состав организаций, объекты и роли.
+                Отдельно определим, кому нужны сведения по одному проекту, а
+                кому — по нескольким организациям.
+              </dd>
             </div>
-            <div className="mt-5 grid gap-3">
-              {marketingTrustFacts.slice(0, 4).map((fact) => (
-                <article
-                  key={fact.title}
-                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4"
-                >
-                  <div className="text-base font-semibold text-steel-950">
-                    {fact.title}
-                  </div>
-                  <p className="mt-2 text-sm leading-7 text-steel-600">
-                    {fact.text}
-                  </p>
-                </article>
-              ))}
+            <div>
+              <dt>Работы, документы и финансы</dt>
+              <dd>
+                Выберите процессы для начала работы: задачи, документы,
+                материалы или платёжные записи. Набор пакетов подбирается под
+                задачи организации и не подключается автоматически.
+              </dd>
             </div>
-          </div>
+            <div>
+              <dt>Обмен и корпоративные условия</dt>
+              <dd>
+                Состав обмена с 1С и другими системами обсуждается отдельно.
+                Перенос данных, обучение и дополнительные условия поддержки
+                согласуются для корпоративного проекта.
+              </dd>
+            </div>
+          </dl>
         </div>
       </section>
 
-      <section className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Связанные страницы"
-            title="Подробнее о финансах, интеграциях и доступе."
-            description="Выберите профильную страницу, если основной вопрос относится к одному процессу."
-          />
-
-          <div className="mt-10 grid gap-5 xl:grid-cols-2">
-            {enterpriseRelatedLinks.map((item) => (
-              <MarketingLink
-                key={item.href}
-                href={item.href}
-                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
-              >
-                <div className="text-xl font-bold text-steel-950">
-                  {item.label}
-                </div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">
-                  {item.description}
-                </p>
+      <section className="most-segment-section">
+        <div className="most-container">
+          <h2>Уточните требования к своей системе.</h2>
+          <div className="most-segment-links">
+            {relatedLinks.map((item) => (
+              <MarketingLink key={item.href} href={item.href}>
+                <span>{item.label}</span>
+                <ArrowUpRightIcon className="most-icon" aria-hidden="true" />
+                <p>{item.description}</p>
               </MarketingLink>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="enterprise-cta" className="pb-16 pt-16 lg:pb-20 lg:pt-20">
-        <div className="container-custom">
-          <CtaBand
-            eyebrow="Демонстрация"
-            title="Посмотрите управление группой компаний в МОСТ."
-            description="На встрече покажем разделение организаций, объектов и прав, затем разберём требования к сводным данным и документам."
-            actions={[
-              {
-                label: "Связаться с нами",
-                href: marketingPaths.contact,
-                primary: true,
-              },
-              { label: "О продукте", href: marketingPaths.about },
-            ]}
-            tone="dark"
-          />
-        </div>
-      </section>
+      <div className="most-container">
+        <section id="enterprise-cta" className="most-segment-contact">
+          <h2>Разберём вашу структуру на встрече.</h2>
+          <div>
+            <p>
+              Расскажите, какие организации входят в группу и кто отвечает за
+              объекты. Покажем разделение данных и обсудим сведения, которые
+              нужны управляющей команде.
+            </p>
+            <div className="most-page-actions">
+              <MarketingLink
+                href={`${marketingPaths.contact}#contact-form`}
+                className="most-button most-button-orange"
+              >
+                Связаться с командой МОСТ
+                <ArrowUpRightIcon className="most-icon" aria-hidden="true" />
+              </MarketingLink>
+              <MarketingLink
+                href={marketingPaths.about}
+                className="most-text-link"
+              >
+                О компании
+                <ArrowUpRightIcon className="most-icon" aria-hidden="true" />
+              </MarketingLink>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };

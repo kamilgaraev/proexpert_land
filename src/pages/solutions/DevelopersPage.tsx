@@ -1,296 +1,201 @@
-import {
-  BanknotesIcon,
-  BuildingStorefrontIcon,
-  ChartBarIcon,
-  CheckCircleIcon,
-  CogIcon,
-  ShieldCheckIcon,
-  UsersIcon,
-} from "@heroicons/react/24/outline";
-import CtaBand from "@/components/marketing/blocks/CtaBand";
+import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import {
   MarketingLink,
   PageHero,
-  SectionHeader,
 } from "@/components/marketing/MarketingPrimitives";
 import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
 import { useSEO } from "@/hooks/useSEO";
+import "@/styles/marketing-segments.css";
 
-const capabilityCards = [
+const projectChecks = [
   {
-    title: "Портфель объектов",
+    title: "Команда ведёт сроки и факт",
     description:
-      "Руководитель сравнивает стадии, сроки и открытые вопросы по объектам портфеля.",
-    icon: ChartBarIcon,
+      "Плановые даты, задачи и выполненные объёмы относятся к объекту. Руководитель сопоставляет ход работ с планом и разбирает отклонения с ответственными.",
+    result: "На проверке: этап, срок и фактический прогресс.",
   },
   {
-    title: "Сроки и бюджет",
+    title: "Замечание получает ответственного",
     description:
-      "Плановые сроки, обязательства и платежи рассматриваются по конкретному объекту и этапу.",
-    icon: BanknotesIcon,
+      "Проектная команда фиксирует замечания и следит за исправлениями. При повторной проверке участник принимает решение, можно ли закрыть вопрос.",
+    result: "По вопросу: ответственный, статус и результат проверки.",
   },
   {
-    title: "Подрядчики и замечания",
+    title: "Документы собираются по объекту",
     description:
-      "Сроки, статусы, замечания и ответственность внешних исполнителей доступны проектной команде.",
-    icon: UsersIcon,
+      "Команда ведёт работы, акты и комплект документов. Готовность к сдаче проверяют по фактическим данным и открытым замечаниям; решение о приёмке принимает уполномоченный участник.",
+    result: "К сдаче: документы, подтверждённые работы и открытые вопросы.",
   },
-  {
-    title: "Документы и готовность",
-    description:
-      "Документы, замечания и фактический прогресс относятся к этапу реализации объекта.",
-    icon: BuildingStorefrontIcon,
-  },
-  {
-    title: "Отчётность",
-    description:
-      "Сводные данные формируются из статусов объектов, сроков, замечаний и финансовых записей.",
-    icon: CogIcon,
-  },
-  {
-    title: "Права доступа",
-    description:
-      "Команда объекта и руководители получают разные права в зависимости от своих обязанностей.",
-    icon: ShieldCheckIcon,
-  },
-];
-
-const operatingModel = [
-  {
-    title: "Сначала данные по портфелю",
-    bullets: [
-      "Определяется состав объектов и ответственные со стороны заказчика.",
-      "Для объектов согласуется единый набор статусов и сроков.",
-      "Отдельно фиксируются правила работы с замечаниями и отчётностью.",
-    ],
-  },
-  {
-    title: "Разделяем работу объекта и портфеля",
-    bullets: [
-      "Команда объекта ведёт сроки, задачи, замечания и документы.",
-      "Руководитель сравнивает объекты по согласованным показателям.",
-      "Права пользователей ограничивают доступ к организациям и объектам.",
-    ],
-  },
-];
-
-const trustList = [
-  "Состав портфеля, объектов и ответственных фиксируется до настройки.",
-  "Сроки и замечания ведутся по единым правилам для выбранных объектов.",
-  "Состав сводной отчётности определяется из доступных в МОСТ данных.",
 ];
 
 const relatedScenarios = [
   {
-    label: "Управление ресурсами строительства",
+    label: "Объекты и ресурсы",
     href: marketingPaths.constructionErp,
-    description:
-      "Если нужно связать объекты, документы, снабжение и финансовое управление.",
+    description: "Работы, документы, снабжение и финансовые данные объекта.",
   },
   {
-    label: "Контроль бюджета стройки",
+    label: "Бюджет строительства",
     href: marketingPaths.constructionBudgetControl,
-    description:
-      "Подходит, когда главный вопрос сейчас в лимитах, платежах и отклонениях по бюджету.",
+    description: "План, платёжные документы и отклонения по бюджету.",
   },
   {
     label: "Контроль подрядчиков",
     href: marketingPaths.contractorControl,
-    description:
-      "Когда узкое место сосредоточено в сроках, дисциплине исполнения и договорных обязательствах.",
+    description: "Сроки, исполнители, объёмы и замечания по работам.",
   },
   {
-    label: "Интеграции и расширения",
+    label: "Обмен с другими системами",
     href: marketingPaths.integrations,
-    description:
-      "Если нужно обсудить обмен данными с другими системами и дополнительные функции.",
+    description: "Состав и условия обмена данными для вашего процесса.",
   },
 ];
 
 const DevelopersPage = () => {
-  useSEO({
-    ...marketingSeo.developers,
-    type: "website",
-  });
+  useSEO({ ...marketingSeo.developers, type: "website" });
 
   return (
-    <div className="marketing-page-shell">
+    <div className="marketing-page-shell most-segment-page">
       <PageHero
-        eyebrow="Девелопер и технический заказчик"
-        title="Портфель объектов, сроки, замечания и отчётность."
-        description="МОСТ собирает сведения по объектам в портфель: стадии, сроки, открытые замечания, документы и доступные финансовые данные. Команда объекта ведёт работу, руководство сравнивает проекты."
+        title="Застройщику — видеть объект за цифрами отчёта."
+        description="МОСТ помогает застройщику и техническому заказчику вести сроки, замечания и документы по объектам. Команда фиксирует ход строительства, руководитель работает с доступными данными проектов."
         actions={[
           {
-            label: "Связаться с командой",
-            href: marketingPaths.contact,
+            label: "Обсудить свои объекты",
+            href: `${marketingPaths.contact}#contact-form`,
             primary: true,
           },
-          { label: "Группа компаний", href: marketingPaths.enterprise },
+          { label: "Для группы компаний", href: marketingPaths.enterprise },
         ]}
         nav={[
-          { label: "Данные по объектам", href: "#capabilities" },
-          { label: "Модель запуска", href: "#model" },
-          { label: "Проверяемые данные", href: "#trust" },
-          { label: "Смежные маршруты", href: "#related" },
+          { label: "Готовность объекта", href: "#capabilities" },
+          { label: "Работа с портфелем", href: "#model" },
         ]}
-        aside={
-          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Что важно девелоперу
-            </div>
-            <div className="mt-4 grid gap-3">
-              {[
-                "Сравнивать стадии и сроки объектов портфеля.",
-                "Видеть открытые замечания и ответственных.",
-                "Получать отчётность из данных проектных команд.",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        }
       />
 
-      <section id="capabilities" className="py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Данные по объектам"
-            title="Что видит девелопер и технический заказчик."
-            description="Карточки показывают данные для управления портфелем и работы команды каждого объекта."
-          />
-
-          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {capabilityCards.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <article
-                  key={item.title}
-                  className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
-                >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-construction-50 text-construction-700">
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <h2 className="mt-5 text-xl font-bold text-steel-950">
-                    {item.title}
-                  </h2>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">
-                    {item.description}
-                  </p>
-                </article>
-              );
-            })}
+      <section id="capabilities" className="most-segment-section">
+        <div className="most-container most-segment-story">
+          <div className="most-segment-scene">
+            <h2>За готовым зданием — проверенные работы.</h2>
+            <p>
+              Фасад уже может быть завершён, а вопросы по работам и документам —
+              ещё открыты. МОСТ помогает рассматривать их вместе с ходом
+              проекта.
+            </p>
+            <figure>
+              <img
+                src="/images/marketing/most-completed-story-1440.webp"
+                srcSet="/images/marketing/most-completed-story-720.webp 720w, /images/marketing/most-completed-story-1440.webp 1440w"
+                sizes="(min-width: 1024px) 48vw, 100vw"
+                width="1440"
+                height="810"
+                alt="Завершённое здание из общей истории строительства МОСТ"
+              />
+            </figure>
+            <dl className="most-segment-record">
+              <div>
+                <dt>По объекту</dt>
+                <dd>Сроки и выполненные работы</dd>
+              </div>
+              <div>
+                <dt>Перед приёмкой</dt>
+                <dd>Замечания и документы</dd>
+              </div>
+            </dl>
           </div>
+          <ol className="most-segment-steps">
+            {projectChecks.map((step) => (
+              <li key={step.title}>
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
+                <p className="most-segment-result">{step.result}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
-      <section id="model" className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom grid gap-5 xl:grid-cols-2">
-          {operatingModel.map((item) => (
-            <article
-              key={item.title}
-              className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
-            >
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                {item.title}
-              </div>
-              <div className="mt-5 grid gap-3">
-                {item.bullets.map((bullet) => (
-                  <div
-                    key={bullet}
-                    className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                  >
-                    {bullet}
-                  </div>
-                ))}
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="trust" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      <section id="model" className="most-segment-section">
+        <div className="most-container most-segment-split">
           <div>
-            <SectionHeader
-              eyebrow="Проверяемые данные"
-              title="Что нужно согласовать до демонстрации."
-              description="Состав портфеля, роли проектных команд, единые статусы, правила замечаний и ожидаемую отчётность."
-            />
+            <h2>От одного объекта — к портфелю.</h2>
+            <p>
+              Определите, какие сведения проектная команда ведёт на объекте, а
+              какие нужны руководителю для сравнения проектов.
+            </p>
           </div>
-
-          <div className="rounded-[1.9rem] border border-steel-900 bg-steel-950 p-6 text-white lg:p-7">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
-              Что важно на первом разговоре
+          <dl id="trust" className="most-segment-facts">
+            <div>
+              <dt>Общие правила работы</dt>
+              <dd>
+                Согласуйте статусы, плановые даты и порядок работы с
+                замечаниями. Так команда понимает, какие сведения готовить по
+                каждому объекту.
+              </dd>
             </div>
-            <div className="mt-5 grid gap-3">
-              {trustList.map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-white/76"
-                >
-                  <CheckCircleIcon className="mr-2 inline h-4 w-4 text-construction-200" />
-                  {item}
-                </div>
-              ))}
+            <div>
+              <dt>Финансовые данные рядом с проектом</dt>
+              <dd>
+                Рассматривайте бюджет, обязательства и платёжные документы по
+                объекту. Состав отчётности определяется доступными данными и
+                подключёнными возможностями.
+              </dd>
             </div>
-          </div>
+            <div>
+              <dt>Доступ по обязанностям</dt>
+              <dd>
+                Команда проекта и руководители получают права на нужные
+                организации и объекты. Наличие объекта в портфеле не открывает
+                его данные всем сотрудникам.
+              </dd>
+            </div>
+          </dl>
         </div>
       </section>
 
-      <section id="related" className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Смежные маршруты"
-            title="Подробнее о бюджете, подрядчиках и интеграциях."
-            description="Выберите профильную страницу, если основной вопрос относится к одному процессу."
-          />
-
-          <div className="mt-10 grid gap-5 md:grid-cols-2">
+      <section id="related" className="most-segment-section">
+        <div className="most-container">
+          <h2>Что важно проверить в вашем проекте?</h2>
+          <div className="most-segment-links">
             {relatedScenarios.map((item) => (
-              <MarketingLink
-                key={item.href}
-                href={item.href}
-                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
-              >
-                <div className="text-xl font-bold text-steel-950">
-                  {item.label}
-                </div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">
-                  {item.description}
-                </p>
+              <MarketingLink key={item.href} href={item.href}>
+                <span>{item.label}</span>
+                <ArrowUpRightIcon className="most-icon" aria-hidden="true" />
+                <p>{item.description}</p>
               </MarketingLink>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="pb-16 pt-16 lg:pb-20 lg:pt-20">
-        <div className="container-custom">
-          <CtaBand
-            eyebrow="Демонстрация"
-            title="Посмотрите, как данные объектов собираются на уровне портфеля."
-            description="На встрече покажем сроки, замечания и отчётность с учётом ролей проектной и управляющей команды."
-            actions={[
-              {
-                label: "Связаться с нами",
-                href: marketingPaths.contact,
-                primary: true,
-              },
-              {
-                label: "Управление ресурсами строительства",
-                href: marketingPaths.constructionErp,
-              },
-            ]}
-            tone="dark"
-          />
-        </div>
-      </section>
+      <div className="most-container">
+        <section className="most-segment-contact">
+          <h2>Разберём данные одного объекта.</h2>
+          <div>
+            <p>
+              Расскажите, какие сроки, замечания и документы команда собирает
+              сейчас. Покажем соответствующие возможности МОСТ и обсудим
+              отчётность для руководителя.
+            </p>
+            <div className="most-page-actions">
+              <MarketingLink
+                href={`${marketingPaths.contact}#contact-form`}
+                className="most-button most-button-orange"
+              >
+                Обсудить задачи заказчика
+                <ArrowUpRightIcon className="most-icon" aria-hidden="true" />
+              </MarketingLink>
+              <MarketingLink
+                href={marketingPaths.pricing}
+                className="most-text-link"
+              >
+                Состав и стоимость
+                <ArrowUpRightIcon className="most-icon" aria-hidden="true" />
+              </MarketingLink>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };

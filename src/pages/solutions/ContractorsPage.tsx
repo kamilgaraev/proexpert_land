@@ -1,326 +1,203 @@
-import {
-  ClockIcon,
-  DocumentTextIcon,
-  ShieldCheckIcon,
-  UsersIcon,
-  WrenchScrewdriverIcon,
-} from "@heroicons/react/24/outline";
-import CtaBand from "@/components/marketing/blocks/CtaBand";
+import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import {
   MarketingLink,
   PageHero,
-  SectionHeader,
 } from "@/components/marketing/MarketingPrimitives";
 import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
 import { useSEO } from "@/hooks/useSEO";
+import "@/styles/marketing-segments.css";
 
-const focusAreas = [
+const workflow = [
   {
-    title: "Объект и этапы",
+    title: "Руководитель задаёт работу",
     description:
-      "Работы, сроки и ответственные относятся к конкретному объекту и этапу.",
-    icon: ClockIcon,
+      "В объекте появляются этапы, плановые даты, задачи и ответственные. Бригада понимает, какой объём ей предстоит выполнить.",
+    result: "В работе: задача, срок и исполнитель.",
   },
   {
-    title: "Бригады и роли",
+    title: "Прораб передаёт потребность",
     description:
-      "Задачи и фактический объём распределяются по бригадам и ответственным.",
-    icon: UsersIcon,
+      "Прораб указывает материал, количество и срок. Снабженец связывает потребность с закупочной заявкой и организует заказ; после подтверждённой приёмки отражается приход на складе.",
+    result: "По объекту: заявка, заказ и принятый материал.",
   },
   {
-    title: "Документы и оплата",
+    title: "Площадка фиксирует выполнение",
     description:
-      "Выполненный объём, подтверждающие документы и подготовка к оплате рассматриваются вместе.",
-    icon: DocumentTextIcon,
+      "Команда вносит фактический объём и прикладывает фотографии. Замечания и исправления остаются связаны с работой и ответственным.",
+    result: "Для проверки: объём, фотографии и замечания.",
   },
   {
-    title: "Замечания и приёмка",
+    title: "ПТО готовит документы",
     description:
-      "Замечания, проверки и корректирующие действия остаются привязанными к реальному этапу работ.",
-    icon: ShieldCheckIcon,
+      "Сотрудник с доступом выбирает подтверждённые работы для акта. Финансовая команда ведёт связанные платёжные документы; решение об оплате принимают ответственные.",
+    result: "К закрытию этапа: проверенные работы и документы.",
   },
-];
-
-const workflowTracks = [
-  {
-    title: "Планирование работ",
-    bullets: [
-      "Этапы и зоны ответственности задаются по объекту.",
-      "Задачи распределяются по бригадам и ответственным.",
-      "Плановый и фактический объём фиксируются по работам.",
-    ],
-  },
-  {
-    title: "Работа с площадкой",
-    bullets: [
-      "Площадка фиксирует статус, объём и замечания по ходу работ.",
-      "Документы и вложения прикрепляются к конкретному этапу.",
-      "Офис работает с теми же данными, которые передала площадка.",
-    ],
-  },
-  {
-    title: "Материалы и снабжение",
-    bullets: [
-      "Заявки, поставки и приёмка материалов относятся к объекту.",
-      "Ответственный видит статус потребности и поставки.",
-      "Документы по материалам хранятся рядом с заявкой.",
-    ],
-  },
-  {
-    title: "Закрытие и оплата",
-    bullets: [
-      "Замечания и исправления относятся к выполненной работе.",
-      "Подтверждённый объём дополняется закрывающими документами.",
-      "После проверки документы используются при подготовке оплаты.",
-    ],
-  },
-];
-
-const resultOutcomes = [
-  "Объём работ связан с объектом, этапом и бригадой.",
-  "Замечания остаются рядом с работой и ответственным.",
-  "Документы подтверждают выполнение и готовность к оплате.",
-  "Офис и площадка используют одни и те же статусы.",
 ];
 
 const relatedSolutions = [
   {
-    label: "Программа для прораба",
+    label: "Работа прораба",
     href: marketingPaths.foremanSoftware,
-    description:
-      "Если ключевая точка управления находится на площадке и нужна полная картина по задачам и факту.",
+    description: "Задачи, фотографии и производственный факт с площадки.",
   },
   {
     label: "Контроль подрядчиков",
     href: marketingPaths.contractorControl,
-    description:
-      "Когда нужно отдельно разобрать сроки, объемы, ответственность и исполнительскую дисциплину.",
+    description: "Ответственные, сроки, объёмы и замечания по работам.",
   },
   {
-    label: "Учет материалов",
+    label: "Материалы и склад",
     href: marketingPaths.materialAccounting,
-    description:
-      "Если подрядный процесс упирается в заявки, поставки, приемку и остатки материалов.",
+    description: "От потребности объекта до приёмки и складского учёта.",
   },
   {
     label: "Исполнительная документация",
     href: marketingPaths.constructionDocuments,
-    description:
-      "Подходит, если узкое место сейчас в актах, замечаниях и комплектности документов.",
+    description: "Работы, акты и комплект документов по объекту.",
   },
 ];
 
 const ContractorsPage = () => {
-  useSEO({
-    ...marketingSeo.contractors,
-    type: "website",
-  });
+  useSEO({ ...marketingSeo.contractors, type: "website" });
 
   return (
-    <div className="marketing-page-shell">
+    <div className="marketing-page-shell most-segment-page">
       <PageHero
-        eyebrow="Подрядная организация"
-        title="От объекта и бригады — к документам и оплате."
-        description="МОСТ связывает задачу, фактический объём, исполнителя, замечания и закрывающие документы. Руководитель видит, что выполнено и что мешает закрыть этап."
+        title="Подрядчик ведёт работу. МОСТ связывает её с результатом."
+        description="Система управления строительством для подрядной организации: задачи бригад, материалы, выполненные объёмы и документы по каждому объекту. Площадка передаёт факт, офис готовит закрытие этапа."
         actions={[
           {
-            label: "Запросить демонстрацию",
-            href: marketingPaths.contact,
+            label: "Обсудить свой объект",
+            href: `${marketingPaths.contact}#contact-form`,
             primary: true,
           },
-          { label: "Открыть все решения", href: marketingPaths.solutions },
+          { label: "Все решения", href: marketingPaths.solutions },
         ]}
         nav={[
-          { label: "Фокус", href: "#focus" },
-          { label: "Порядок работы", href: "#workflow" },
-          { label: "Результат", href: "#result" },
-          { label: "Смежные страницы", href: "#related" },
+          { label: "От задания до акта", href: "#workflow" },
+          { label: "Начало работы", href: "#result" },
         ]}
-        aside={
-          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Что важно подрядной команде
-            </div>
-            <div className="mt-4 grid gap-3">
-              {[
-                "Видеть работу по объекту, этапу и бригаде.",
-                "Сопоставлять плановый и фактический объём.",
-                "Подтверждать выполнение документами перед оплатой.",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        }
       />
 
-      <section id="focus" className="py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Фокус"
-            title="Какие данные нужны подрядной организации каждый день."
-            description="Объект и этап, бригада, объём работ, замечания, документы и статус подготовки к оплате."
-          />
-
-          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {focusAreas.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <article
-                  key={item.title}
-                  className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
-                >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-construction-50 text-construction-700">
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <h2 className="mt-5 text-xl font-bold text-steel-950">
-                    {item.title}
-                  </h2>
-                  <p className="mt-3 text-sm leading-7 text-steel-600">
-                    {item.description}
-                  </p>
-                </article>
-              );
-            })}
+      <section id="focus" className="most-segment-section">
+        <div className="most-container most-segment-story">
+          <div className="most-segment-scene">
+            <h2>Объём выполнен. Его нужно подтвердить.</h2>
+            <p>
+              Здание растёт по этапам. В МОСТ за каждым этапом остаются работа,
+              исполнитель и записи, к которым можно вернуться при проверке.
+            </p>
+            <figure>
+              <img
+                src="/images/marketing/most-frame-story-1440.webp"
+                srcSet="/images/marketing/most-frame-story-720.webp 720w, /images/marketing/most-frame-story-1440.webp 1440w"
+                sizes="(min-width: 1024px) 48vw, 100vw"
+                width="1440"
+                height="810"
+                alt="Каркас строящегося здания и оранжевая линия, связывающая площадку"
+              />
+            </figure>
+            <dl className="most-segment-record">
+              <div>
+                <dt>Основа записи</dt>
+                <dd>Объект, этап, работа</dd>
+              </div>
+              <div>
+                <dt>Подтверждение</dt>
+                <dd>Объём, фото, акт</dd>
+              </div>
+            </dl>
           </div>
-        </div>
-      </section>
-
-      <section id="workflow" className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Порядок работы"
-            title="Как проходит работа от задания до закрытия этапа."
-            description="Последовательность связывает план, факт на площадке, проверку и документы для оплаты."
-          />
-
-          <div className="mt-10 grid gap-5 xl:grid-cols-2">
-            {workflowTracks.map((item) => (
-              <article
-                key={item.title}
-                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-steel-950 text-construction-200">
-                    <WrenchScrewdriverIcon className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-xl font-bold text-steel-950">
-                    {item.title}
-                  </h2>
-                </div>
-
-                <div className="mt-5 grid gap-3">
-                  {item.bullets.map((bullet) => (
-                    <div
-                      key={bullet}
-                      className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                    >
-                      {bullet}
-                    </div>
-                  ))}
-                </div>
-              </article>
+          <ol id="workflow" className="most-segment-steps">
+            {workflow.map((step) => (
+              <li key={step.title}>
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
+                <p className="most-segment-result">{step.result}</p>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
-      <section id="result" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+      <section id="result" className="most-segment-section">
+        <div className="most-container most-segment-split">
           <div>
-            <SectionHeader
-              eyebrow="Результат"
-              title="Какие связи сохраняются в системе."
-              description="По каждой работе можно проверить объект, бригаду, объём, замечания и подтверждающие документы."
-            />
-            <div className="mt-8 grid gap-3">
-              {resultOutcomes.map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.25rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
+            <h2>Начните с одного рабочего этапа.</h2>
+            <p>
+              Выберите объект и работу, которую команда уже ведёт. На ней удобно
+              разобрать роли, нужные данные и состав возможностей МОСТ.
+            </p>
           </div>
-
-          <div className="rounded-[1.9rem] border border-steel-900 bg-steel-950 p-6 text-white lg:p-7">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
-              Что показываем на встрече
+          <dl className="most-segment-facts">
+            <div>
+              <dt>Кто передаёт факт</dt>
+              <dd>
+                Определите ответственных на площадке и сотрудников, которые
+                проверяют объём, замечания и документы в офисе.
+              </dd>
             </div>
-            <div className="mt-5 grid gap-3">
-              {[
-                "Как подрядная команда видит план, факт, замечания и документы без лишних переключений.",
-                "Как связать площадку, снабжение и приемку в одной логике исполнения.",
-                "Какой набор возможностей нужен именно вашему объекту и роли команды.",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.15rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-white/76"
-                >
-                  {item}
-                </div>
-              ))}
+            <div>
+              <dt>Что требуется для закрытия</dt>
+              <dd>
+                Согласуйте, какие работы, фотографии и документы команда
+                собирает по этапу. Проверка и решение о приёмке остаются за
+                участниками.
+              </dd>
             </div>
-          </div>
+            <div>
+              <dt>Какие возможности подключить</dt>
+              <dd>
+                Состав пакетов выбирается под задачи организации. Доступ
+                сотрудников зависит от их прав и подключённых возможностей.
+              </dd>
+            </div>
+          </dl>
         </div>
       </section>
 
-      <section id="related" className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Смежные страницы"
-            title="Подробнее о работе прораба, материалах и документах."
-            description="Выберите профильную страницу, если основной вопрос относится к конкретной роли или процессу."
-          />
-
-          <div className="mt-10 grid gap-5 md:grid-cols-2">
+      <section id="related" className="most-segment-section">
+        <div className="most-container">
+          <h2>Разберите свою часть работы.</h2>
+          <div className="most-segment-links">
             {relatedSolutions.map((item) => (
-              <MarketingLink
-                key={item.href}
-                href={item.href}
-                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
-              >
-                <div className="text-xl font-bold text-steel-950">
-                  {item.label}
-                </div>
-                <p className="mt-3 text-sm leading-7 text-steel-600">
-                  {item.description}
-                </p>
+              <MarketingLink key={item.href} href={item.href}>
+                <span>{item.label}</span>
+                <ArrowUpRightIcon className="most-icon" aria-hidden="true" />
+                <p>{item.description}</p>
               </MarketingLink>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="pb-16 pt-16 lg:pb-20 lg:pt-20">
-        <div className="container-custom">
-          <CtaBand
-            eyebrow="Демонстрация"
-            title="Посмотрите работу подрядной организации в МОСТ."
-            description="На встрече разберём структуру объекта и покажем путь от задачи и объёма до документа и подготовки к оплате."
-            actions={[
-              {
-                label: "Связаться с нами",
-                href: marketingPaths.contact,
-                primary: true,
-              },
-              {
-                label: "Контроль подрядчиков",
-                href: marketingPaths.contractorControl,
-              },
-            ]}
-            tone="dark"
-          />
-        </div>
-      </section>
+      <div className="most-container">
+        <section className="most-segment-contact">
+          <h2>Покажем путь от задания до документов.</h2>
+          <div>
+            <p>
+              Расскажите, какие работы выполняет ваша организация и где сейчас
+              теряются сведения между площадкой и офисом.
+            </p>
+            <div className="most-page-actions">
+              <MarketingLink
+                href={`${marketingPaths.contact}#contact-form`}
+                className="most-button most-button-orange"
+              >
+                Обсудить работу команды
+                <ArrowUpRightIcon className="most-icon" aria-hidden="true" />
+              </MarketingLink>
+              <MarketingLink
+                href={marketingPaths.pricing}
+                className="most-text-link"
+              >
+                Состав и стоимость
+                <ArrowUpRightIcon className="most-icon" aria-hidden="true" />
+              </MarketingLink>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };

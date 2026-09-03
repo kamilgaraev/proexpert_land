@@ -6,6 +6,7 @@ import { redirect } from 'vite-plugin-ssr/abort';
 // @ts-ignore
 import { StaticRouter } from 'react-router-dom/server';
 import { PageShell } from './PageShell';
+import { preparePageShell } from './pageShellLoader';
 import { buildServerSeoPayload } from './serverSeo';
 import { resolveServerRouterLocation } from './serverRouterLocation';
 
@@ -18,6 +19,7 @@ export async function render(pageContext: PageContextServer) {
     throw redirect(seoPayload.redirectTarget as `/${string}`, 301);
   }
 
+  await preparePageShell(pathname);
   const { Page, pageProps } = pageContext;
   const html = ReactDOMServer.renderToString(
     <StaticRouter location={routerLocation}>

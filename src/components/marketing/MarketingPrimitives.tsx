@@ -61,7 +61,7 @@ export const MarketingLink = ({
   children,
 }: {
   href: string;
-  className: string;
+  className?: string;
   children: ReactNode;
 }) => {
   if (isExternalHref(href)) {
