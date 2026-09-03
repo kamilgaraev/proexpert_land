@@ -122,6 +122,14 @@ html:has(.most-marketing) body {
   outline: 3px solid #bb4c13;
   outline-offset: 5px;
 }
+.most-marketing .most-contact-form :is(input[type="text"], input[type="email"], textarea):focus {
+  border-color: var(--most-line);
+  box-shadow: none;
+}
+.most-marketing .most-contact-form :is(input[type="text"], input[type="email"], textarea):focus-visible {
+  outline: 2px solid #9a3412;
+  outline-offset: 2px;
+}
 .most-marketing h1,
 .most-marketing h2,
 .most-marketing h3 {
