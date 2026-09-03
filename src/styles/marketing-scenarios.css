@@ -27,6 +27,11 @@
     linear-gradient(to bottom, transparent, black 4%, black 96%, transparent);
   mask-composite: intersect;
 }
+.most-scenario-photo img {
+  filter: none;
+  mix-blend-mode: normal;
+  mask-image: none;
+}
 .most-scenario-section {
   padding-block: 88px;
   border-bottom: 1px solid var(--most-line);

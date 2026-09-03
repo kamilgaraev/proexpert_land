@@ -34,8 +34,18 @@ const completedScenarios = new Set([
   "1c-integration",
 ]);
 
+const editorialScenes: Partial<
+  Record<keyof typeof marketingSeoLandingPages, { src: string; alt: string }>
+> = {
+  "pto-software": {
+    src: "/images/marketing/most-pto-inspection-v2.webp",
+    alt: "Инженер сопоставляет чертёж на закреплённом планшете с бетонной конструкцией на объекте",
+  },
+};
+
 const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
   const page = marketingSeoLandingPages[pageKey];
+  const editorialScene = editorialScenes[pageKey];
   const scene = materialScenarios.has(pageKey)
     ? "material"
     : completedScenarios.has(pageKey)
@@ -70,14 +80,24 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
           { label: "Вопросы и условия", href: "#faq" },
         ]}
         aside={
-          <figure className="most-scenario-scene" aria-hidden="true">
+          <figure
+            className={`most-scenario-scene${editorialScene ? " most-scenario-photo" : ""}`}
+            aria-hidden={editorialScene ? undefined : true}
+          >
             <img
-              src={`/images/marketing/most-${scene}-story-1440.webp`}
-              srcSet={`/images/marketing/most-${scene}-story-720.webp 720w, /images/marketing/most-${scene}-story-1440.webp 1440w`}
+              src={
+                editorialScene?.src ??
+                `/images/marketing/most-${scene}-story-1440.webp`
+              }
+              srcSet={
+                editorialScene
+                  ? undefined
+                  : `/images/marketing/most-${scene}-story-720.webp 720w, /images/marketing/most-${scene}-story-1440.webp 1440w`
+              }
               sizes="(max-width: 1079px) calc(100vw - 40px), 48vw"
-              width={1672}
-              height={941}
-              alt=""
+              width={editorialScene ? 1536 : 1672}
+              height={editorialScene ? 1024 : 941}
+              alt={editorialScene?.alt ?? ""}
               fetchPriority="high"
               decoding="async"
             />
