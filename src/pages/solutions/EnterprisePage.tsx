@@ -82,14 +82,14 @@ const EnterprisePage = () => {
               полезны группе компаний, нужно сохранить их принадлежность и
               определить, кто с ними работает.
             </p>
-            <figure>
+            <figure className="most-segment-photo">
               <img
-                src="/images/marketing/most-material-story-1440.webp"
-                srcSet="/images/marketing/most-material-story-720.webp 720w, /images/marketing/most-material-story-1440.webp 1440w"
-                sizes="(min-width: 1024px) 48vw, 100vw"
-                width="1440"
-                height="810"
-                alt="Фундамент одного объекта и материалы на его площадке"
+                src="/images/marketing/most-enterprise-projects-v1.webp"
+                width="1536"
+                height="1024"
+                alt="Несколько зданий на разных стадиях: бетонный каркас, отделка фасада и готовый объект"
+                loading="lazy"
+                decoding="async"
               />
             </figure>
             <dl className="most-segment-record">

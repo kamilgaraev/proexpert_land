@@ -85,6 +85,15 @@
   mix-blend-mode: darken;
 }
 
+.most-segment-scene .most-segment-photo {
+  margin: 1.5rem 0;
+}
+
+.most-segment-photo img {
+  filter: none;
+  mix-blend-mode: normal;
+}
+
 .most-segment-record {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

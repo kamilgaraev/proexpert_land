@@ -41,6 +41,14 @@ const editorialScenes: Partial<
     src: "/images/marketing/most-pto-inspection-v2.webp",
     alt: "Инженер сопоставляет чертёж на закреплённом планшете с бетонной конструкцией на объекте",
   },
+  "construction-procurement": {
+    src: "/images/marketing/most-procurement-receiving-v1.webp",
+    alt: "Сотрудник сверяет поставку арматуры и кладочных блоков на площадке",
+  },
+  "contractor-control": {
+    src: "/images/marketing/most-contractor-inspection-v2.webp",
+    alt: "Специалист проверяет вертикальность кладки строительным уровнем",
+  },
 };
 
 const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
