@@ -8,6 +8,7 @@ import {
 import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
 import useAnalytics from "@/hooks/useAnalytics";
 import { useSEO } from "@/hooks/useSEO";
+import "@/styles/marketing-product-story.css";
 
 const companySolutions = [
   {
@@ -117,7 +118,7 @@ const SolutionsPage = () => {
         title="У каждого своя работа. Объект — общий."
         description="МОСТ объединяет участников строительства: от прораба на площадке до руководителя группы компаний. Выберите задачи, которые хотите вести в системе."
         actions={[
-          { label: "Подобрать решение", href: "#contact", primary: true },
+          { label: "Подобрать решение", href: "#contact-form", primary: true },
           { label: "Возможности МОСТ", href: marketingPaths.features },
         ]}
         nav={[
@@ -157,15 +158,32 @@ const SolutionsPage = () => {
         </div>
       </section>
 
-      <section id="team" className="most-content-section most-content-tint">
-        <div className="most-container">
-          <div className="most-content-lead">
-            <h2>Что нужно вашей команде?</h2>
-            <p>
-              Сотрудники работают с данными своего участка. Коллегам доступны
-              сведения, на которые у них есть права: заявки, документы, статусы
-              и результаты работ.
-            </p>
+      <section id="team" className="most-content-section">
+        <div className="most-container most-product-story">
+          <div className="most-product-story-scene">
+            <div className="most-content-lead">
+              <h2>Что нужно вашей команде?</h2>
+              <p>
+                Сотрудники работают с данными своего участка. Коллегам доступны
+                сведения, на которые у них есть права: заявки, документы,
+                статусы и результаты работ.
+              </p>
+            </div>
+            <figure>
+              <img
+                src="/images/marketing/most-frame-story-1440.webp"
+                srcSet="/images/marketing/most-frame-story-720.webp 720w, /images/marketing/most-frame-story-1440.webp 1440w"
+                sizes="(max-width: 1080px) 100vw, 48vw"
+                width={1440}
+                height={810}
+                loading="lazy"
+                decoding="async"
+                alt=""
+              />
+              <figcaption>
+                Один объект объединяет работу разных специалистов.
+              </figcaption>
+            </figure>
           </div>
           <div className="most-solution-list">
             {teamSolutions.map((item) => (
@@ -229,7 +247,9 @@ const SolutionsPage = () => {
               подготовить демонстрацию.
             </p>
           </div>
-          <ContactForm variant="compact" className="most-contact-form" />
+          <div id="contact-form" className="most-solutions-form-anchor">
+            <ContactForm variant="compact" className="most-contact-form" />
+          </div>
         </div>
       </section>
     </div>

@@ -12,6 +12,7 @@ import {
 } from "@/components/marketing/MarketingPrimitives";
 import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
 import { useSEO } from "@/hooks/useSEO";
+import "@/styles/marketing-product-story.css";
 
 type IntegrationStatus = "В продукте" | "Этап настройки" | "По запросу";
 
@@ -161,7 +162,7 @@ const relatedScenarios = [
       "Если сначала нужно упорядочить объекты и задачи, а затем подключать внешние связи.",
   },
   {
-    label: "Enterprise",
+    label: "Для группы компаний",
     href: marketingPaths.enterprise,
     description:
       "Подходит, если важно заранее обсудить корпоративные правила доступа, пилоты и архитектуру запуска.",
@@ -174,17 +175,6 @@ const relatedScenarios = [
   },
 ];
 
-const getStatusTone = (status: IntegrationStatus) => {
-  switch (status) {
-    case "В продукте":
-      return "bg-emerald-100 text-emerald-800";
-    case "Этап настройки":
-      return "bg-sky-100 text-sky-800";
-    default:
-      return "bg-amber-100 text-amber-800";
-  }
-};
-
 const IntegrationsPage = () => {
   useSEO({
     ...marketingSeo.integrations,
@@ -192,7 +182,7 @@ const IntegrationsPage = () => {
   });
 
   return (
-    <div className="marketing-page-shell">
+    <div className="marketing-page-shell most-integrations">
       <PageHero
         eyebrow="Обмен данными"
         title="Как МОСТ обменивается данными с внешними системами."
@@ -210,27 +200,6 @@ const IntegrationsPage = () => {
           { label: "Категории", href: "#categories" },
           { label: "Куда идти дальше", href: "#related" },
         ]}
-        aside={
-          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-              Что обсуждаем на старте
-            </div>
-            <div className="mt-4 grid gap-3">
-              {[
-                "Какие справочники и документы нужно передавать.",
-                "Какая система считается источником каждого поля.",
-                "Кто на стороне заказчика проверяет результат обмена.",
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        }
       />
 
       <section id="principles" className="py-16 lg:py-20">
@@ -241,21 +210,18 @@ const IntegrationsPage = () => {
             description="Интеграция не исправляет исходные справочники сама. Нужны согласованные правила, владельцы данных и контрольный набор для проверки."
           />
 
-          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="most-integration-path">
             {principles.map((item) => {
               const Icon = item.icon;
 
               return (
-                <article
-                  key={item.title}
-                  className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm"
-                >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-[1rem] bg-construction-50 text-construction-700">
-                    <Icon className="h-6 w-6" />
+                <article key={item.title} className="most-integration-step">
+                  <div className="text-construction-700">
+                    <Icon className="most-icon" aria-hidden="true" />
                   </div>
-                  <h2 className="mt-5 text-xl font-bold text-steel-950">
+                  <h3 className="mt-5 text-xl font-bold text-steel-950">
                     {item.title}
-                  </h2>
+                  </h3>
                   <p className="mt-3 text-sm leading-7 text-steel-600">
                     {item.description}
                   </p>
@@ -266,7 +232,7 @@ const IntegrationsPage = () => {
         </div>
       </section>
 
-      <section id="categories" className="bg-concrete-50 py-16 lg:py-20">
+      <section id="categories" className="most-content-tint py-16 lg:py-20">
         <div className="container-custom space-y-6">
           {integrationCategories.map((category) => {
             const Icon = category.icon;
@@ -274,30 +240,28 @@ const IntegrationsPage = () => {
             return (
               <section
                 key={category.category}
-                className="rounded-[1.9rem] border border-steel-200 bg-white p-6 shadow-sm lg:p-7"
+                className="most-integration-group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-[1rem] bg-steel-950 text-construction-200">
-                    <Icon className="h-5 w-5" />
+                  <div className="text-construction-700">
+                    <Icon className="most-icon" aria-hidden="true" />
                   </div>
                   <h2 className="text-2xl font-bold text-steel-950">
                     {category.category}
                   </h2>
                 </div>
 
-                <div className="mt-6 grid gap-5 xl:grid-cols-3">
+                <div className="most-integration-items">
                   {category.items.map((item) => (
                     <article
                       key={`${category.category}-${item.name}`}
-                      className="rounded-[1.5rem] border border-steel-200 bg-concrete-50 px-5 py-5"
+                      className="most-integration-item"
                     >
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="most-integration-item-heading">
                         <h3 className="text-lg font-bold text-steel-950">
                           {item.name}
                         </h3>
-                        <span
-                          className={`inline-flex w-fit rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${getStatusTone(item.status)}`}
-                        >
+                        <span className="most-integration-status">
                           {item.status}
                         </span>
                       </div>
@@ -326,7 +290,7 @@ const IntegrationsPage = () => {
               <MarketingLink
                 key={item.href}
                 href={item.href}
-                className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm transition hover:border-construction-300 hover:bg-construction-50/40"
+                className="most-integration-related"
               >
                 <div className="text-xl font-bold text-steel-950">
                   {item.label}
@@ -352,7 +316,7 @@ const IntegrationsPage = () => {
                 href: marketingPaths.contact,
                 primary: true,
               },
-              { label: "Enterprise", href: marketingPaths.enterprise },
+              { label: "Для группы компаний", href: marketingPaths.enterprise },
             ]}
             tone="dark"
           />

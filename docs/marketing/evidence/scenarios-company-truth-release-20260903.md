@@ -1,6 +1,8 @@
 # Сценарии, страницы о МОСТ и сверка обещаний
 
-Статус: готовится отдельный выпуск после 37da882a; не считать опубликованным до успешного CI и production-проверки. Блог в параллельной работе в этот выпуск не входит.
+Статус: опубликован c8ba17aae9e722a5066274a47a1957efc0b74d7c. GitHub Actions33697334257 success, target marketing; кабинет пропущен. Блог в параллельной работе в этот выпуск не входит.
+
+Production-проверка: /foreman-software, /pto-software, /about, /security, /contact на390/1440 — все200, overflow0, один main, битых изображений0, pageerrors[]. Root просмотрел about1440 и pto390. Снимки output/playwright/release-c8ba17aa, сценарий C:/Users/kamilgaraev/.codex/audits/most-2026-09-03/production-c8ba.js. Дорожка scrollbar вычисляется rgba(0,0,0,0). Sitemap200,51URL, Cache-Control public/max-age900/stale-while-revalidate3600. Сбой API намеренно на production не вызывался; его покрывают локальные регрессии. Проверка не означает завершения общего редизайна.
 
 ## Что изменилось
 

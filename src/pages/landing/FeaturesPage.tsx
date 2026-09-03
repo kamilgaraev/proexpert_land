@@ -10,6 +10,7 @@ import {
 } from "@/data/marketingRegistry";
 import useAnalytics from "@/hooks/useAnalytics";
 import { useSEO } from "@/hooks/useSEO";
+import "@/styles/marketing-product-story.css";
 
 const dailyWork = [
   {
@@ -71,7 +72,11 @@ const FeaturesPage = () => {
         title="Работы, материалы и деньги — по каждому объекту."
         description="Система управления строительством для ежедневной работы площадки и офиса. Ведите проект от первых задач и заявок до актов, платежей и приёмки."
         actions={[
-          { label: "Посмотреть демо", href: "/#contact", primary: true },
+          {
+            label: "Посмотреть демо",
+            href: marketingPaths.contact,
+            primary: true,
+          },
           { label: "Состав и стоимость", href: marketingPaths.pricing },
         ]}
         nav={[
@@ -82,31 +87,50 @@ const FeaturesPage = () => {
       />
 
       <section id="work" className="most-content-section most-container">
-        <h2>От задачи на площадке до решения в офисе.</h2>
-        <p className="most-content-lead">
-          Команда вносит данные по ходу работы. Руководитель и смежные службы
-          используют эти же записи — с учётом своих прав доступа.
-        </p>
-        <div className="most-feature-list">
-          {dailyWork.map((item) => (
-            <article key={item.id} className="most-feature-row">
-              <div>
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-                <Link to={item.href} className="most-text-link">
-                  {item.link}{" "}
-                  <span aria-hidden="true">
-                    <ArrowUpRightIcon className="most-icon" />
-                  </span>
-                </Link>
-              </div>
-              <ul>
-                {item.points.map((point) => (
-                  <li key={point}>{point}</li>
-                ))}
-              </ul>
-            </article>
-          ))}
+        <div className="most-product-story">
+          <div className="most-product-story-scene">
+            <h2>От задачи на площадке до решения в офисе.</h2>
+            <p className="most-content-lead">
+              Команда вносит данные по ходу работы. Руководитель и смежные
+              службы используют эти же записи — с учётом своих прав доступа.
+            </p>
+            <figure>
+              <img
+                src="/images/marketing/most-frame-story-1440.webp"
+                srcSet="/images/marketing/most-frame-story-720.webp 720w, /images/marketing/most-frame-story-1440.webp 1440w"
+                sizes="(max-width: 1080px) 100vw, 48vw"
+                width={1440}
+                height={810}
+                loading="lazy"
+                decoding="async"
+                alt=""
+              />
+              <figcaption>
+                График, поставки и расчёты относятся к одному объекту.
+              </figcaption>
+            </figure>
+          </div>
+          <div className="most-feature-list">
+            {dailyWork.map((item) => (
+              <article key={item.id} className="most-feature-row">
+                <div>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
+                  <Link to={item.href} className="most-text-link">
+                    {item.link}{" "}
+                    <span aria-hidden="true">
+                      <ArrowUpRightIcon className="most-icon" />
+                    </span>
+                  </Link>
+                </div>
+                <ul>
+                  {item.points.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -204,7 +228,7 @@ const FeaturesPage = () => {
           actions={[
             {
               label: "Запросить демонстрацию",
-              href: "/#contact",
+              href: marketingPaths.contact,
               primary: true,
             },
           ]}
