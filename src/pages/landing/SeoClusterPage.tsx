@@ -73,9 +73,9 @@ const editorialScenes: Partial<
     alt: "Специалисты выбирают подрядчика по плану участка и фотографиям выполненных работ",
   },
   "material-accounting": {
-    src: "/images/marketing/most-stock-count-branded-v1.webp",
-    smallSrc: "/images/marketing/most-stock-count-branded-v1-720.webp",
-    alt: "Кладовщик сверяет количество блоков на складском стеллаже",
+    src: "/images/marketing/most-stock-count-branded-v2.webp",
+    smallSrc: "/images/marketing/most-stock-count-branded-v2-720.webp",
+    alt: "Кладовщик сверяет количество блоков на напольных паллетах",
   },
   "pir-project-documentation": {
     src: "/images/marketing/most-design-review-branded-v1.webp",
@@ -153,8 +153,8 @@ const editorialScenes: Partial<
     alt: "Специалист сравнивает рабочие чертежи рядом с папкой МОСТ",
   },
   "site-requests": {
-    src: "/images/marketing/most-site-request-branded-v2.webp",
-    smallSrc: "/images/marketing/most-site-request-branded-v2-720.webp",
+    src: "/images/marketing/most-site-request-branded-v3.webp",
+    smallSrc: "/images/marketing/most-site-request-branded-v3-720.webp",
     alt: "Прораб с планшетом проверяет наличие материалов на площадке",
   },
   "construction-quality-control": {
