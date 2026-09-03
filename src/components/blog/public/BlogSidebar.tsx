@@ -8,6 +8,7 @@ import { marketingPaths } from "@/data/marketing/common";
 import { blogPublicApi } from "@/utils/blogPublicApi";
 import type { BlogArticle, BlogCategory, BlogTag } from "@/types/blog";
 import { formatBlogDate } from "./blogPresentation";
+import { getBlogNavigationCategories } from "@/utils/blogCategoryNavigation";
 
 interface BlogSidebarProps {
   categories?: BlogCategory[];
@@ -87,7 +88,7 @@ const BlogSidebar = ({
         <section id="blog-categories">
           <h2>Темы</h2>
           <div className="most-blog-sidebar-links">
-            {categories.map((category) => (
+            {getBlogNavigationCategories(categories).map((category) => (
               <Link key={category.id} to={`/blog/category/${category.slug}`}>
                 <span>{category.name}</span>
                 <span>

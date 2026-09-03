@@ -7,6 +7,7 @@ import BlogPublicLayout from "./BlogPublicLayout";
 import BlogSidebar from "./BlogSidebar";
 import BlogTopicFilter from "./BlogTopicFilter";
 import { getBlogListMeta } from "./blogPresentation";
+import { getBlogNavigationCategories } from "@/utils/blogCategoryNavigation";
 import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
 import { useSEO } from "@/hooks/useSEO";
 import type {
@@ -354,7 +355,7 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
               >
                 Все статьи
               </button>
-              {categories.map((category) => (
+              {getBlogNavigationCategories(categories, selectedCategory).map((category) => (
                 <button
                   key={category.id}
                   type="button"

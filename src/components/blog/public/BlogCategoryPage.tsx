@@ -5,6 +5,7 @@ import BlogPagination from "./BlogPagination";
 import BlogPublicLayout from "./BlogPublicLayout";
 import BlogSidebar from "./BlogSidebar";
 import { getBlogListMeta } from "./blogPresentation";
+import { getBlogNavigationCategories } from "@/utils/blogCategoryNavigation";
 import { useSEO } from "@/hooks/useSEO";
 import type {
   BlogArticle,
@@ -149,7 +150,7 @@ const BlogCategoryContent = ({
         <div className="most-container">
           <nav className="most-blog-topic-filter" aria-label="Категории статей">
             <Link to="/blog">Все статьи</Link>
-            {categories.map((item) => (
+            {getBlogNavigationCategories(categories, slug).map((item) => (
               <Link
                 key={item.id}
                 to={`/blog/category/${item.slug}`}
