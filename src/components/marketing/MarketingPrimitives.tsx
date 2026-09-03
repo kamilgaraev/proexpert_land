@@ -93,7 +93,7 @@ export const SectionHeader = ({
   align = "left",
   tone = "light",
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description?: string;
   align?: "left" | "center";

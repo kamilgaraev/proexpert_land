@@ -2,8 +2,7 @@
  * Утилиты для работы с API
  */
 
-// @ts-ignore
-import axios from 'axios';
+import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 // @ts-ignore
 // import api_instance from './axiosConfig'; 
 import {
@@ -96,7 +95,7 @@ export type FetchApiResponse<T> = {
 
 export type LegacyJsonPayload = ReturnType<typeof JSON.parse>;
 
-type RetriableRequestConfig = Axios.AxiosXHRConfig<unknown> & {
+type RetriableRequestConfig = InternalAxiosRequestConfig<unknown> & {
   _retry?: boolean;
   skipAuth?: boolean;
 };
@@ -108,7 +107,7 @@ type ApiErrorPayload = {
 
 type ApiClientError = {
   config?: RetriableRequestConfig;
-  response?: Axios.AxiosXHR<ApiErrorPayload>;
+  response?: AxiosResponse<ApiErrorPayload>;
 };
 
 type ApiRequestError = Error & {
@@ -380,7 +379,7 @@ api.interceptors.request.use(attachAuthorizationHeader);
 
 // Интерцептор для обработки ошибок
 api.interceptors.response.use(
-  (response: Axios.AxiosXHR<unknown>) => response,
+  (response: AxiosResponse<unknown>) => response,
   async (error: ApiClientError) => {
     const originalRequest = error.config;
     const isAuthRequest = originalRequest?.url?.startsWith('/auth/') === true;

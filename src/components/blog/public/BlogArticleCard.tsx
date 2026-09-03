@@ -31,7 +31,7 @@ const BlogArticleCard = ({ article }: BlogArticleCardProps) => (
         <Link to={`/blog/category/${article.category.slug}`}>
           {article.category.name}
         </Link>
-        <time dateTime={article.published_at || article.created_at}>
+        <time dateTime={article.published_at || article.created_at || undefined}>
           {formatBlogDate(article.published_at || article.created_at)}
         </time>
       </div>

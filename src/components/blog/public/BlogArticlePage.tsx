@@ -304,7 +304,7 @@ const BlogArticlePage = ({
 
               <div className="most-blog-byline">
                 <span>{article.author.name}</span>
-                <time dateTime={article.published_at || article.created_at}>
+                <time dateTime={article.published_at || article.created_at || undefined}>
                   {formatBlogDate(article.published_at || article.created_at)}
                 </time>
                 <span className="most-blog-reading">

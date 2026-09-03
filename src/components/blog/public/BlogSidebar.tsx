@@ -105,7 +105,7 @@ const BlogSidebar = ({
           <h2>Популярные материалы</h2>
           {popularArticles.map((article) => (
             <article key={article.id} className="most-blog-sidebar-article">
-              <time dateTime={article.published_at || article.created_at}>
+              <time dateTime={article.published_at || article.created_at || undefined}>
                 {formatBlogDate(article.published_at || article.created_at)}
               </time>
               <h3>

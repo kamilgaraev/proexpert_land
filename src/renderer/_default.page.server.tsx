@@ -1,10 +1,11 @@
 import ReactDOMServer from "react-dom/server";
+import type { ComponentType } from "react";
 // @ts-ignore
 import {
   escapeInject,
   dangerouslySkipEscape,
-  type PageContextServer,
 } from "vite-plugin-ssr";
+import type { PageContextServer } from "vite-plugin-ssr/types";
 // @ts-ignore
 import { redirect } from "vite-plugin-ssr/abort";
 // @ts-ignore
@@ -16,12 +17,18 @@ import { resolveServerRouterLocation } from "./serverRouterLocation";
 import { isMarketingPublicPath } from "@/utils/publicSite";
 import { filterMarketingAssets } from "./marketingAssetFilter";
 
-export async function render(pageContext: PageContextServer) {
+type ServerPageContext = PageContextServer & {
+  Page: ComponentType<Record<string, unknown>>;
+  pageProps?: Record<string, unknown>;
+  documentProps?: Parameters<typeof buildServerSeoPayload>[1];
+};
+
+export async function render(pageContext: ServerPageContext) {
   const pathname = pageContext.urlPathname || "/";
   const routerLocation = resolveServerRouterLocation(pageContext);
   const seoPayload = buildServerSeoPayload(
     pathname,
-    pageContext.documentProps as any,
+    pageContext.documentProps,
   );
 
   if (seoPayload.redirectTarget) {

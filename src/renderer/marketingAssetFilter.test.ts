@@ -12,7 +12,7 @@ const asset = (
   src,
   assetType,
   isEntry,
-  mediaType: assetType === "font" ? "font/woff2" : "",
+  mediaType: assetType === "font" ? "font/woff2" : null,
   inject: "HTML_BEGIN",
 });
 
