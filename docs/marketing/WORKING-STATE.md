@@ -1,5 +1,11 @@
 # МОСТ — прочитать первым после восстановления контекста
 
+## Текущая контрольная точка — контентные контракты, готово к выпуску
+
+Gortex повторно проверен и доступен. Подготовленный блок исправляет отсутствие processComparison.note в общем шаблоне 29 профильных страниц, первое видимое употребление RFI/punch-list и неподтверждённые BIM/IFC в SEO/OG ПИР. Все шесть ранее записанных контентных падений разобраны. Целевые тесты: 73 PASS/1 FAIL в полном прогоне, после исправления последнего устаревшего ожидания целевой повтор 1 PASS; все 74 проверки покрыты. ESLint/Prettier и diff-check PASS. Gortex staged review 0 findings; MEDIUM общего компонента покрыт тестами и локальным осмотром 1440/390. Evidence: evidence/content-contract-repair-20260903.md.
+
+Следующий шаг: commit/push, штатный marketing deploy и проверка production в собственной скрытой IAB. До подтверждения workflow текущая production-версия остаётся 45a40fc0. Чужие AGENTS.md, ({src и .playwright-cli/ исключены. Фиолетовый OG остаётся долгом общего бренд-аудита; 11 уникальных профильных сцен и общий UI/SEO/performance-аудит ещё открыты. Цель ACTIVE.
+
 ## Текущая контрольная точка, 3 сентября — фокус прокрутки
 
 **Production 45a40fc0, workflow 33768566365 SUCCESS за 1м17с.** Пользователь указал прямоугольную рамку вокруг scrollbar. В MarketingScrollbar pointerDown убран принудительный focus; в marketing.css outline снят с 20px области захвата, keyboard focus перенесён на скруглённый ::before ползунка. Управление клавиатурой и drag сохранено. В существующий regression-тест добавлено отсутствие захвата фокуса при pointerdown. ESLint PASS, MarketingScrollbar.test.tsx 5/5 PASS. Gortex review: нет rule findings, MEDIUM по компоненту покрыт целевыми тестами и браузером.

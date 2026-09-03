@@ -263,6 +263,11 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
                 </div>
               ))}
             </dl>
+            {page.processComparison.note ? (
+              <p className="most-scenario-record-note">
+                {page.processComparison.note}
+              </p>
+            ) : null}
           </div>
         </div>
       </section>

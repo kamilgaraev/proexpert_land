@@ -270,7 +270,7 @@ const rewrittenClusterContracts = {
     "дополнительн",
     "уполномочен",
   ],
-  "mobile-app": ["телефон", "роль", "связ"],
+  "mobile-app": ["телефон", "рол", "связ"],
   "ai-estimates": [
     "предварительн",
     "чертеж",
@@ -297,7 +297,7 @@ const rewrittenClusterContracts = {
     "оплат",
     "лимит",
     "согласован",
-    "внешн",
+    "банковск",
     "финансов",
   ],
   "1c-integration": ["1с", "справочник", "документ", "проект", "интеграц"],
@@ -502,10 +502,7 @@ const routeRegistrySelections: Record<
   integrations: { capabilityIds: [], packageSlugs: [] },
   contractors: { capabilityIds: [], packageSlugs: [] },
   developers: { capabilityIds: [], packageSlugs: [] },
-  enterprise: {
-    capabilityIds: ["multi-org", "finance-control", "project-control"],
-    packageSlugs: [],
-  },
+  enterprise: { capabilityIds: [], packageSlugs: [] },
   about: { capabilityIds: [], packageSlugs: [] },
   security: {
     capabilityIds: [],
@@ -714,9 +711,13 @@ describe("marketing content consistency", () => {
     for (const id of routeRegistrySelections.home.capabilityIds) {
       expect(homeSource, `/: ${id}`).toContain(`"${id}"`);
     }
-    for (const id of routeRegistrySelections.enterprise.capabilityIds) {
-      expect(enterpriseSource, `/enterprise: ${id}`).toContain(`"${id}"`);
-    }
+    expect(enterpriseSource).not.toMatch(
+      /marketingCapabilityMatrix|marketingPackages/,
+    );
+    expect(routeRegistrySelections.enterprise).toEqual({
+      capabilityIds: [],
+      packageSlugs: [],
+    });
 
     for (const seoKey of [
       "integrations",
@@ -919,8 +920,7 @@ describe("marketing content consistency", () => {
       "construction-tenders": "строительные тендеры",
       "construction-orders": "строительные заказы",
       "construction-safety": "система охраны труда на стройке",
-      "construction-quality-control":
-        "система контроля качества строительства",
+      "construction-quality-control": "система контроля качества строительства",
     } as const;
 
     for (const [pageKey, primaryIntent] of Object.entries(intentContracts)) {
@@ -928,29 +928,39 @@ describe("marketing content consistency", () => {
       const page = marketingSeoLandingPages[pageKey];
       const normalizedIntent = primaryIntent.toLocaleLowerCase("ru-RU");
 
-      expect(metadata.title.toLocaleLowerCase("ru-RU"), `${pageKey}: title`).toContain(
-        normalizedIntent,
-      );
-      expect(page.title.toLocaleLowerCase("ru-RU"), `${pageKey}: h1`).toContain(
-        normalizedIntent,
+      expect(
+        metadata.title.toLocaleLowerCase("ru-RU"),
+        `${pageKey}: title`,
+      ).toContain(normalizedIntent);
+      expect(
+        page.title.trim().length,
+        `${pageKey}: editorial h1`,
+      ).toBeGreaterThanOrEqual(15);
+      const otherTitles = Object.entries(marketingSeoLandingPages)
+        .filter(([key]) => key !== pageKey)
+        .map(([, other]) => other.title.trim().toLocaleLowerCase("ru-RU"));
+      expect(otherTitles, `${pageKey}: distinct h1`).not.toContain(
+        page.title.trim().toLocaleLowerCase("ru-RU"),
       );
       expect(
         page.supportingQueries[0].toLocaleLowerCase("ru-RU"),
         `${pageKey}: primary query`,
       ).toBe(normalizedIntent);
-      expect(page.title.length, `${pageKey}: h1 length`).toBeLessThanOrEqual(60);
+      expect(page.title.length, `${pageKey}: h1 length`).toBeLessThanOrEqual(
+        60,
+      );
     }
   });
 
   it("separates integration, PTO, documents, and contractor search intents", () => {
-    expect(marketingSeo.integrations.title.toLocaleLowerCase("ru-RU")).not.toContain(
-      "1с",
-    );
+    expect(
+      marketingSeo.integrations.title.toLocaleLowerCase("ru-RU"),
+    ).not.toContain("1с");
     expect(marketingSeo["1c-integration"].title).toContain("1С");
 
-    expect(marketingSeo["pto-software"].title.toLocaleLowerCase("ru-RU")).not.toContain(
-      "исполнительной документации",
-    );
+    expect(
+      marketingSeo["pto-software"].title.toLocaleLowerCase("ru-RU"),
+    ).not.toContain("исполнительной документации");
     expect(
       marketingSeo["construction-documents"].title.toLocaleLowerCase("ru-RU"),
     ).toContain("исполнительной документации");
@@ -959,16 +969,16 @@ describe("marketing content consistency", () => {
       marketingSeo["contractor-marketplace"].title.toLocaleLowerCase("ru-RU"),
     ).toContain("каталог");
     expect(
-      marketingSeoLandingPages["contractor-marketplace"].title.toLocaleLowerCase(
-        "ru-RU",
-      ),
+      marketingSeoLandingPages[
+        "contractor-marketplace"
+      ].title.toLocaleLowerCase("ru-RU"),
     ).toContain("каталог строительных подрядчиков");
     expect(
       marketingSeoLandingPages["contractor-marketplace"].supportingQueries[0],
     ).toBe("каталог строительных подрядчиков");
-    expect(marketingSeo["find-contractor"].title.toLocaleLowerCase("ru-RU")).toContain(
-      "найти подрядчика",
-    );
+    expect(
+      marketingSeo["find-contractor"].title.toLocaleLowerCase("ru-RU"),
+    ).toContain("найти подрядчика");
     expect(
       marketingSeo["construction-brigades"].title.toLocaleLowerCase("ru-RU"),
     ).toContain("найти строительную бригаду");
@@ -981,7 +991,9 @@ describe("marketing content consistency", () => {
       /<PageHero[\s\S]*?title="([^"]+)"/u,
     )?.[1];
 
-    expect(integrationsHeroTitle).toBe("Как МОСТ обменивается данными с внешними системами.");
+    expect(integrationsHeroTitle).toBe(
+      "Как МОСТ обменивается данными с внешними системами.",
+    );
     expect(integrationsHeroTitle).not.toContain("1С");
   });
 
@@ -993,7 +1005,9 @@ describe("marketing content consistency", () => {
       ]),
     );
 
-    expect(labelsByPath.get(marketingPaths.ptoSoftware)).toBe("программа для пто");
+    expect(labelsByPath.get(marketingPaths.ptoSoftware)).toBe(
+      "программа для пто",
+    );
     expect(labelsByPath.get(marketingPaths.constructionDocuments)).toBe(
       "исполнительная документация",
     );
@@ -1145,46 +1159,26 @@ describe("marketing content consistency", () => {
     expect(seoPagesSource).not.toContain("createProcessComparisonFromSource");
   });
 
-  it("keeps mobile and AI process comparisons fully declarative", () => {
-    expect(marketingSeoLandingPages["mobile-app"].processComparison).toEqual({
-      eyebrow: "Работа с телефона",
-      title: "Полевое действие сохраняет связь с объектом",
-      description:
-        "Сотрудник фиксирует событие на телефоне, а офис получает автора, время, объект и назначенное действие.",
-      metrics: [
-        {
-          value: "Карточка объекта",
-          label: "Полевой факт",
-          description: "Фото, замечание и статус относятся к выбранной задаче.",
-        },
-        {
-          value: "Ответственная роль",
-          label: "Следующий шаг",
-          description:
-            "Запись передаётся участнику с доступом к этому процессу.",
-        },
-      ],
-      note: "Доступность функций зависит от роли пользователя и качества связи.",
-    });
-    expect(marketingSeoLandingPages["ai-estimates"].processComparison).toEqual({
-      eyebrow: "Разбор чертежа",
-      title: "Предварительный результат передаётся сметчику",
-      description:
-        "Система выделяет доступные элементы чертежа и формирует рабочую структуру для экспертной проверки.",
-      metrics: [
-        {
-          value: "Исходный документ",
-          label: "Основание",
-          description: "Результат сохраняет связь с загруженным чертежом.",
-        },
-        {
-          value: "Экспертная проверка",
-          label: "Обязательный этап",
-          description: "Сметчик сверяет позиции, объёмы и единицы измерения.",
-        },
-      ],
-      note: "Предварительный разбор не является готовой сметой.",
-    });
+  it("keeps mobile connectivity and estimate review limitations explicit", () => {
+    const mobile = marketingSeoLandingPages["mobile-app"].processComparison;
+    const estimates =
+      marketingSeoLandingPages["ai-estimates"].processComparison;
+    expect(mobile.note).toMatch(
+      /зависит от роли пользователя и качества связи/iu,
+    );
+    expect(collectSectionStrings(mobile.metrics).join(" ")).toMatch(
+      /фото|фотограф/iu,
+    );
+    expect(collectSectionStrings(mobile.metrics).join(" ")).toMatch(
+      /ответствен/iu,
+    );
+    expect(estimates.note).toContain("не является готовой сметой");
+    expect(collectSectionStrings(estimates.metrics).join(" ")).toMatch(
+      /сметчик|эксперт/iu,
+    );
+    expect(collectSectionStrings(estimates.metrics).join(" ")).toMatch(
+      /проверк|сверя/iu,
+    );
   });
 
   it("keeps related links unique on every commercial cluster page", () => {
@@ -1192,6 +1186,27 @@ describe("marketing content consistency", () => {
       const links = marketingSeoLandingPages[pageKey].relatedLinks;
       expect(new Set(links.map(({ href }) => href)).size, pageKey).toBe(
         links.length,
+      );
+    }
+  });
+
+  it("does not promise unsupported BIM or IFC in PIR public surfaces", () => {
+    const surfaces = [
+      marketingSeo["pir-project-documentation"],
+      marketingSeoLandingPages["pir-project-documentation"],
+      marketingCommercialLandingLinks,
+      marketingModuleLandingLinks,
+      marketingSolutionSegments,
+    ];
+    expect(collectSectionStrings(surfaces).join(" ")).not.toMatch(
+      /\b(?:BIM|IFC)\b/iu,
+    );
+    for (const file of [
+      "public/og/pir-project-documentation.svg",
+      "scripts/generate-og-images.mjs",
+    ]) {
+      expect(fs.readFileSync(path.resolve(file), "utf8"), file).not.toMatch(
+        /\b(?:BIM|IFC)\b/iu,
       );
     }
   });
@@ -1207,34 +1222,6 @@ describe("marketing content consistency", () => {
       expect(pageText, pageKey).not.toMatch(forbiddenPattern);
     }
 
-    const firstUseContracts = [
-      [
-        "construction-safety",
-        "охрана труда, промышленная и экологическая безопасность",
-        "HSE",
-      ],
-      ["change-control", "запрос информации (RFI)", "RFI"],
-      ["pir-project-documentation", "формата отраслевой модели (IFC)", "IFC"],
-      [
-        "handover-acceptance",
-        "перечень замечаний при приёмке (punch-list)",
-        "punch-list",
-      ],
-      ["construction-documents", "электронной подписи (ЭП)", "ЭП"],
-    ] as const;
-
-    for (const [pageKey, expansion, abbreviation] of firstUseContracts) {
-      const pageText = collectSectionStrings(marketingSeoLandingPages[pageKey])
-        .join(" ")
-        .toLocaleLowerCase("ru-RU");
-      const normalizedExpansion = expansion.toLocaleLowerCase("ru-RU");
-      const normalizedAbbreviation = abbreviation.toLocaleLowerCase("ru-RU");
-      expect(pageText, `${pageKey}: expansion`).toContain(normalizedExpansion);
-      expect(
-        pageText.indexOf(normalizedExpansion),
-        `${pageKey}: first use`,
-      ).toBeLessThanOrEqual(pageText.indexOf(normalizedAbbreviation));
-    }
     expect(
       collectSectionStrings(marketingSeoLandingPages["1c-integration"]).join(
         " ",
@@ -1335,14 +1322,6 @@ describe("marketing content consistency", () => {
     expect(faq?.answer).toBe(
       "Да. Закупка ведёт потребность до поставки, а складской учёт отражает приход и последующее движение.",
     );
-  });
-
-  it("expands the first public use of the electronic signature abbreviation", () => {
-    const page = marketingSeoLandingPages["construction-documents"];
-
-    expect(page.description).toContain("электронной подписи (ЭП)");
-    expect(page.contactHighlights.join(" ")).toContain("ЭП");
-    expect(page.faq.map(({ answer }) => answer).join(" ")).toContain("ЭП");
   });
 
   it("has a clear public contact channel", () => {

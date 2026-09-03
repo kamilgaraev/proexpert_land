@@ -104,7 +104,7 @@ export const marketingCommercialLandingLinks: MarketingContentLink[] = [
   {
     label: 'ПИР и проектная документация',
     href: marketingPaths.pirProjectDocumentation,
-    description: 'ПД, РД, IFC, замечания, нормоконтроль и выпуск комплектов.',
+    description: 'Проектная и рабочая документация, замечания и выпуск комплектов.',
   },
   {
     label: 'Охрана труда на стройке',
@@ -242,7 +242,7 @@ export const marketingModuleLandingLinks: MarketingContentLink[] = [
   {
     label: 'ПИР',
     href: marketingPaths.pirProjectDocumentation,
-    description: 'ПД, РД, IFC, нормоконтроль, версии и выпуск комплектов.',
+    description: 'Версии проектной документации, замечания и выпуск комплектов.',
   },
   {
     label: 'Охрана труда',
@@ -2061,7 +2061,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
     problemTitle: 'Какие задачи решает',
     problemDescription: 'МОСТ связывает контроль качества, замечания заказчика и комплект сдачи.',
     problems: [
-      'Ведет зоны, punch-list, статусы устранения и повторные проверки.',
+      'Сохраняет перечень замечаний при приёмке (punch-list) по зонам, статусы устранения и повторные проверки.',
       'Показывает готовность передачи результата по объекту.',
       'Связывает замечания с исполнительной документацией, качеством и решениями заказчика.',
     ],
@@ -2173,7 +2173,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
     audienceTitle: 'Кому подходит управление изменениями',
     audienceDescription: 'Для проектов, где изменения, дополнительные работы и решения заказчика влияют на сроки и деньги.',
     audiences: [
-      'Генподрядчикам, которым нужно контролировать RFI и изменения объемов.',
+      'Генподрядчикам, которые согласуют запросы информации (RFI) и изменения объёмов работ.',
       'Девелоперам и заказчикам, которым важна прозрачная история решений.',
       'ПТО и финансовому блоку, которые оценивают влияние на документы, сроки и бюджет.',
     ],

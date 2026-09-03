@@ -10,9 +10,31 @@ vi.mock("@/components/marketing/MarketingPrimitives", () => ({
   MarketingLink: ({ children }: { children: React.ReactNode }) => (
     <a>{children}</a>
   ),
-  PageHero: ({ title }: { title: string }) => <h1>{title}</h1>,
+  PageHero: ({
+    title,
+    description,
+  }: {
+    title: string;
+    description: string;
+  }) => (
+    <>
+      <h1>{title}</h1>
+      <p>{description}</p>
+    </>
+  ),
   PageSectionNav: () => <nav />,
-  SectionHeader: ({ title }: { title: string }) => <h2>{title}</h2>,
+  SectionHeader: ({
+    title,
+    description,
+  }: {
+    title: string;
+    description?: string;
+  }) => (
+    <>
+      <h2>{title}</h2>
+      {description ? <p>{description}</p> : null}
+    </>
+  ),
 }));
 vi.mock("@/hooks/useSEO", () => ({ useSEO: () => undefined }));
 
@@ -22,6 +44,60 @@ import { marketingSeoLandingPages } from "@/data/marketingRegistry";
 afterEach(cleanup);
 
 describe("SeoClusterPage workflow", () => {
+  it.each(Object.keys(marketingSeoLandingPages))(
+    "renders the configured process limitation on %s",
+    (pageKey) => {
+      const page = marketingSeoLandingPages[pageKey];
+      const { container } = render(<SeoClusterPage pageKey={pageKey} />);
+      if (page.processComparison.note) {
+        expect(
+          container.querySelector(
+            "#process-comparison .most-scenario-record-note",
+          ),
+        ).toHaveTextContent(page.processComparison.note);
+      } else {
+        expect(
+          container.querySelector(".most-scenario-record-note"),
+        ).toBeNull();
+      }
+    },
+  );
+
+  it.each([
+    [
+      "construction-safety",
+      "охрана труда, промышленная и экологическая безопасность (HSE)",
+      "HSE",
+    ],
+    ["change-control", "запросы информации (RFI)", "RFI"],
+    [
+      "handover-acceptance",
+      "перечень замечаний при приёмке (punch-list)",
+      "punch-list",
+    ],
+    ["construction-documents", "электронной подписи (ЭП)", "ЭП"],
+  ])(
+    "explains the first rendered abbreviation on %s",
+    (pageKey, expansion, abbreviation) => {
+      const { container } = render(<SeoClusterPage pageKey={pageKey} />);
+      const text = container.textContent!.toLocaleLowerCase("ru-RU");
+      const normalizedExpansion = expansion.toLocaleLowerCase("ru-RU");
+      const normalizedAbbreviation = abbreviation.toLocaleLowerCase("ru-RU");
+      expect(text).toContain(normalizedExpansion);
+      expect(text.indexOf(normalizedExpansion)).toBeLessThanOrEqual(
+        text.indexOf(normalizedAbbreviation),
+      );
+    },
+  );
+
+  it("keeps the legal conditions of electronic signing visible in the document FAQ", () => {
+    const { container } = render(
+      <SeoClusterPage pageKey="construction-documents" />,
+    );
+    expect(container.querySelector("#faq")).toHaveTextContent(
+      "Юридическая значимость зависит от регламента компании, полномочий участников и используемой электронной подписи (ЭП).",
+    );
+  });
   it("renders configured workflow heading and stages for a product page", () => {
     const html = renderToStaticMarkup(
       <SeoClusterPage pageKey="construction-procurement" />,

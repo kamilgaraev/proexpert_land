@@ -39,7 +39,7 @@
 <g>
     <rect x="802" y="286" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#DDD6FE" stroke-opacity="0.18" />
     <circle cx="830" cy="310" r="5" fill="#DDD6FE" />
-    <text x="850" y="317" class="capability">IFC</text>
+    <text x="850" y="317" class="capability">Версии</text>
   </g>
 <g>
     <rect x="802" y="350" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#DDD6FE" stroke-opacity="0.18" />
@@ -49,7 +49,7 @@
 <g>
     <rect x="802" y="414" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#DDD6FE" stroke-opacity="0.18" />
     <circle cx="830" cy="438" r="5" fill="#DDD6FE" />
-    <text x="850" y="445" class="capability">Нормоконтроль</text>
+    <text x="850" y="445" class="capability">Комплекты</text>
   </g>
   <text x="798" y="520" class="stamp">МОСТ</text>
   <rect x="82" y="86" width="170" height="48" rx="24" fill="#6D28D9" />
@@ -57,8 +57,8 @@
   <text x="278" y="117" class="domain">МОСТ</text>
   <text x="82" y="214" class="title">ПИР и проектная</text>
 <text x="82" y="278" class="title">документация</text>
-  <text x="82" y="370" class="subtitle">ПД, РД, IFC, замечания и выпуск комплектов в</text>
-<text x="82" y="408" class="subtitle">едином контуре</text>
+  <text x="82" y="370" class="subtitle">Версии чертежей, замечания и выпуск</text>
+<text x="82" y="408" class="subtitle">комплектов</text>
   <rect x="82" y="468" width="254" height="7" rx="3.5" fill="url(#accent-pir-project-documentation)" />
   <text x="82" y="536" class="footer">Объекты, документы, команда и финансы в одной системе</text>
   <text x="82" y="572" class="domain">МОСТ</text>

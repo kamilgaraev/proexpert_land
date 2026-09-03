@@ -258,8 +258,9 @@ const items = [
     theme: 'engineering',
     badge: 'ПИР',
     title: 'ПИР и проектная документация',
-    subtitle: 'ПД, РД, IFC, замечания и выпуск комплектов в едином контуре',
-    capabilities: ['ПД и РД', 'IFC', 'Замечания', 'Нормоконтроль'],
+    subtitle: 'Версии чертежей, замечания и выпуск комплектов',
+    subtitleMaxCharacters: 40,
+    capabilities: ['ПД и РД', 'Версии', 'Замечания', 'Комплекты'],
   },
   {
     key: 'construction-safety',

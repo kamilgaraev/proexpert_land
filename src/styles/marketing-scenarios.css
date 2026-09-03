@@ -136,6 +136,13 @@
   font-size: var(--most-type-body);
   line-height: 1.65;
 }
+.most-scenario-record-note {
+  max-width: 80ch;
+  margin-top: 24px;
+  color: var(--most-muted);
+  font-size: var(--most-type-small);
+  line-height: 1.65;
+}
 .most-scenario-records .most-scenario-facts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
