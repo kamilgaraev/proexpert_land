@@ -3,13 +3,14 @@ import react from '@vitejs/plugin-react';
 // @ts-ignore - vite-plugin-ssr типы не публикует для /plugin
 import ssr from 'vite-plugin-ssr/plugin';
 import path from 'path';
+import { ssrBuildCompatibility } from './scripts/ssrBuildCompatibility';
 
 // Если собираем личный кабинет (BUILD_TARGET=lk) — SSR не нужен.
 const isLkBuild = process.env.BUILD_TARGET === 'lk';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: isLkBuild ? [react()] : [react(), ssr()],
+  plugins: isLkBuild ? [react()] : [react(), ssr(), ssrBuildCompatibility()],
   define: {
     '$': 'undefined',
     'jQuery': 'undefined',
