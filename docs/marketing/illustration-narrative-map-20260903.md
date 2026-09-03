@@ -20,9 +20,13 @@
 
 Итого отдельные сцены опубликованы для 12 из 28 профильных маршрутов; остаются 16. Этот счётчик относится к уникальности hero, а не к завершённости текста и визуального аудита страниц. Исходные проблемы и таблицы ниже сохраняются как описание задачи; фактический статус замен указан в разделах выполнения.
 
-## Текущий охват после восьмого блока
+## Текущий охват после девятого блока
 
-Production `f98c30c0`, workflow `33785743778` SUCCESS: опубликованы самостоятельные сцены `/construction-crm`, `/construction-erp`, `/1c-integration`; evidence: `evidence/office-system-scenes-20260903.md`. Отдельные сцены есть у **21 из 29** профильных страниц. Остаются **8**: `/contractor-marketplace`, `/construction-orders`, `/construction-tenders`, `/project-pulse`, `/subcontracting`, `/find-contractor`, `/construction-brigades`, `/renovation-orders`. Уникальная сцена не равна полной готовности страницы: общая редактура, сценарии и SEO ещё проверяются.
+Локально подготовлены и проверены самостоятельные сцены `/contractor-marketplace`, `/construction-tenders`, `/find-contractor`; evidence: `evidence/contractor-selection-scenes-20260903.md`. После выпуска отдельные сцены будут у **24 из 29** профильных страниц. Останутся **5**: `/construction-orders`, `/project-pulse`, `/subcontracting`, `/construction-brigades`, `/renovation-orders`. До подтверждения production опубликованный счётчик остаётся21из29.
+
+## Предыдущий охват после восьмого блока
+
+Production `f98c30c0`, workflow `33785743778` SUCCESS: опубликованы самостоятельные сцены `/construction-crm`, `/construction-erp`, `/1c-integration`; evidence: `evidence/office-system-scenes-20260903.md`. Отдельные сцены есть у **21 из 29** профильных страниц. Оставались **8**: `/contractor-marketplace`, `/construction-orders`, `/construction-tenders`, `/project-pulse`, `/subcontracting`, `/find-contractor`, `/construction-brigades`, `/renovation-orders`. Уникальная сцена не равна полной готовности страницы: общая редактура, сценарии и SEO ещё проверяются.
 
 ## Предыдущий охват после седьмого блока
 

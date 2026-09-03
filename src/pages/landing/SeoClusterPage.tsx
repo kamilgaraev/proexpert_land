@@ -56,6 +56,22 @@ const editorialScenes: Partial<
       "/images/marketing/most-accounting-reconciliation-branded-v1-720.webp",
     alt: "Специалист сверяет строки двух учётных документов",
   },
+  "contractor-marketplace": {
+    src: "/images/marketing/most-contractor-portfolios-branded-v1.webp",
+    smallSrc:
+      "/images/marketing/most-contractor-portfolios-branded-v1-720.webp",
+    alt: "Менеджеры сравнивают портфолио подрядчиков и образцы отделочных материалов",
+  },
+  "construction-tenders": {
+    src: "/images/marketing/most-tender-review-branded-v1.webp",
+    smallSrc: "/images/marketing/most-tender-review-branded-v1-720.webp",
+    alt: "Тендерная комиссия сверяет предложения и образцы строительных материалов",
+  },
+  "find-contractor": {
+    src: "/images/marketing/most-contractor-shortlist-branded-v1.webp",
+    smallSrc: "/images/marketing/most-contractor-shortlist-branded-v1-720.webp",
+    alt: "Специалисты выбирают подрядчика по плану участка и фотографиям выполненных работ",
+  },
   "material-accounting": {
     src: "/images/marketing/most-stock-count-branded-v1.webp",
     smallSrc: "/images/marketing/most-stock-count-branded-v1-720.webp",
