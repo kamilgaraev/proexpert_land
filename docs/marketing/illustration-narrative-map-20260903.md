@@ -20,9 +20,13 @@
 
 Итого отдельные сцены опубликованы для 12 из 28 профильных маршрутов; остаются 16. Этот счётчик относится к уникальности hero, а не к завершённости текста и визуального аудита страниц. Исходные проблемы и таблицы ниже сохраняются как описание задачи; фактический статус замен указан в разделах выполнения.
 
-## Текущий охват после седьмого блока
+## Текущий охват после восьмого блока
 
-Production bead66e1, workflow 33765062337 SUCCESS: материалы, проектная документация и изменения. Evidence: evidence/stock-design-change-scenes-20260903.md. Отдельные сцены опубликованы для **18 из 29** профильных страниц. Остаются **11**: `/construction-crm`, `/construction-erp`, `/1c-integration`, `/contractor-marketplace`, `/construction-orders`, `/construction-tenders`, `/project-pulse`, `/subcontracting`, `/find-contractor`, `/construction-brigades`, `/renovation-orders`. Уникальная сцена не равна полной готовности страницы: общая редактура, сценарии и SEO ещё проверяются.
+Локально подготовлены и проверены самостоятельные сцены `/construction-crm`, `/construction-erp`, `/1c-integration`; evidence: `evidence/office-system-scenes-20260903.md`. После выпуска отдельные сцены будут у **21 из 29** профильных страниц. Останутся **8**: `/contractor-marketplace`, `/construction-orders`, `/construction-tenders`, `/project-pulse`, `/subcontracting`, `/find-contractor`, `/construction-brigades`, `/renovation-orders`. До подтверждения production опубликованный счётчик остаётся 18 из 29. Уникальная сцена не равна полной готовности страницы: общая редактура, сценарии и SEO ещё проверяются.
+
+## Предыдущий охват после седьмого блока
+
+Production bead66e1, workflow 33765062337 SUCCESS: материалы, проектная документация и изменения. Evidence: evidence/stock-design-change-scenes-20260903.md. Отдельные сцены опубликованы для **18 из 29** профильных страниц. Оставались **11**: `/construction-crm`, `/construction-erp`, `/1c-integration`, `/contractor-marketplace`, `/construction-orders`, `/construction-tenders`, `/project-pulse`, `/subcontracting`, `/find-contractor`, `/construction-brigades`, `/renovation-orders`.
 
 ## Предыдущий охват после шестого блока
 

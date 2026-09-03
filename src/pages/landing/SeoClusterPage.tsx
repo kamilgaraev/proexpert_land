@@ -40,6 +40,22 @@ const editorialScenes: Partial<
     { src: string; smallSrc: string; alt: string }
   >
 > = {
+  "construction-crm": {
+    src: "/images/marketing/most-client-project-branded-v1.webp",
+    smallSrc: "/images/marketing/most-client-project-branded-v1-720.webp",
+    alt: "Менеджер и заказчик обсуждают план будущего объекта",
+  },
+  "construction-erp": {
+    src: "/images/marketing/most-resource-planning-branded-v1.webp",
+    smallSrc: "/images/marketing/most-resource-planning-branded-v1-720.webp",
+    alt: "Руководители сверяют план работ, документы и образцы материалов",
+  },
+  "1c-integration": {
+    src: "/images/marketing/most-accounting-reconciliation-branded-v1.webp",
+    smallSrc:
+      "/images/marketing/most-accounting-reconciliation-branded-v1-720.webp",
+    alt: "Специалист сверяет строки двух учётных документов",
+  },
   "material-accounting": {
     src: "/images/marketing/most-stock-count-branded-v1.webp",
     smallSrc: "/images/marketing/most-stock-count-branded-v1-720.webp",
