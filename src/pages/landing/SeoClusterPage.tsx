@@ -49,6 +49,18 @@ const editorialScenes: Partial<
     src: "/images/marketing/most-contractor-inspection-v2.webp",
     alt: "Специалист проверяет вертикальность кладки строительным уровнем",
   },
+  "construction-documents": {
+    src: "/images/marketing/most-document-versions-branded-v1.webp",
+    alt: "Специалист сравнивает рабочие чертежи рядом с папкой МОСТ",
+  },
+  "site-requests": {
+    src: "/images/marketing/most-site-request-branded-v2.webp",
+    alt: "Прораб с планшетом проверяет наличие материалов на площадке",
+  },
+  "construction-quality-control": {
+    src: "/images/marketing/most-quality-defect-branded-v1.webp",
+    alt: "Инженер осматривает отмеченный скол бетонной ступени",
+  },
 };
 
 const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
