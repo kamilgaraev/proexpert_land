@@ -28,4 +28,12 @@
 
 ## Выпуск
 
-Ожидает публикации и проверки production. Не считать этот документ подтверждением выпуска до заполнения данного раздела.
+Опубликован bead66e1, workflow 33765062337 SUCCESS за 1 минуту 16 секунд. Проверка production в собственной скрытой Codex IAB tab18: материалы и изменения 390×844, ПИР 1440×960. Три H1, canonical и изображения соответствуют выпуску, изображения complete/naturalWidth>0, переполнения нет. Три экрана осмотрены, viewport сброшен.
+
+## Дополнительная сверка — ещё не выпущена
+
+Поиск IFC выявил старые обещания в common.ts, карточках seoPages.ts/solutions.ts, generate-og-images.mjs и OG SVG/PNG. Эти места исправлены локально (transaction most-pir-public-contract-20260903). Добавлена regression-проверка отсутствия неподтверждённых BIM/IFC в публичных данных и OG: PASS. ESLint изменённых файлов PASS. PNG пересобран из SVG через имеющийся sharp; визуальная проверка OG и финальная проверка Gortex ещё нужны.
+
+Полный marketingContent.test.ts: 30 PASS, 6 FAIL. Не скрывать и не объявлять весь модуль зелёным. Падения: maps each route only to registry entries selected by its page (enterprise multi-org), assigns one commercial search intent to each priority landing page, keeps mobile and AI process comparisons fully declarative, uses plain Russian and rejects promises across all commercial cluster pages (старые first-use contracts), publishes complete and distinct content for the 15 rewritten routes (mobile-app требует точное «роль», текст содержит «роли»), expands the first public use of the electronic signature abbreviation (в новом hero документов нет ЭП). Нужен отдельный разбор контрактов по фактическому UI, без подгонки текстов под устаревшие строки.
+
+Gortex index_health health100/stale0/failures0/status refreshing, но detect_changes пока отказывает по pending mutation-76/78/81, get_symbol_source дважды истёк. Изменения на диске подтверждены, не повторять mutation. Следующим шагом проверить тот же transaction/очередь, затем разобрать тесты и завершить выпуск дополнительной сверки.
