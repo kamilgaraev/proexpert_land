@@ -13,11 +13,54 @@ const navigationItems = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
-  const location = useLocation();
+  const rowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setIsOpen(false);
-  }, [location.pathname, location.hash]);
+    const row = rowRef.current;
+    if (!row) return;
+    const root = document.documentElement;
+    const updateHeight = () =>
+      root.style.setProperty(
+        "--most-header-height",
+        `${row.getBoundingClientRect().height}px`,
+      );
+    updateHeight();
+    const observer =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(updateHeight);
+    observer?.observe(row);
+    window.addEventListener("resize", updateHeight);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updateHeight);
+      root.style.removeProperty("--most-header-height");
+    };
+  }, []);
+  const location = useLocation();
+  const previousLocationRef = useRef(location.pathname + location.hash);
+  const pendingAnchorRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const nextLocation = location.pathname + location.hash;
+    const navigated = previousLocationRef.current !== nextLocation;
+    previousLocationRef.current = nextLocation;
+    if (isOpen && navigated) {
+      pendingAnchorRef.current = location.hash;
+      setIsOpen(false);
+      return;
+    }
+    if (isOpen || !pendingAnchorRef.current) return;
+    const anchor = pendingAnchorRef.current.slice(1);
+    pendingAnchorRef.current = null;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(anchor)?.scrollIntoView({
+        behavior: "instant",
+        block: "start",
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.pathname, location.hash, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -46,7 +89,7 @@ const Navbar = () => {
 
   return (
     <header className="most-header">
-      <div className="most-container most-header-row">
+      <div ref={rowRef} className="most-container most-header-row">
         <Link to="/" className="most-brand" aria-label="МОСТ — главная">
           <img src="/logo.svg" alt="" width={38} height={38} />
           <span>МОСТ</span>

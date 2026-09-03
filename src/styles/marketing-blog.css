@@ -5,6 +5,11 @@
 .most-blog-editorial .most-page-hero {
   padding-block: 40px 24px;
 }
+.most-blog-editorial:has(#blog-category-switcher, #blog-tag-actions)
+  .most-page-hero
+  .most-section-nav {
+  display: none;
+}
 .most-blog-editorial .most-page-hero h1 {
   max-width: 30ch;
   font-size: var(--most-type-h2);
@@ -26,7 +31,10 @@
   padding-block: 40px 80px;
 }
 .most-blog-filters {
-  padding-block: 16px 24px;
+  padding-block: 8px 12px;
+}
+.most-blog-filters + .most-blog-section {
+  padding-top: 20px;
 }
 .most-blog-list-layout {
   display: grid;
@@ -174,8 +182,12 @@
   line-height: 1.5;
   outline: none;
 }
+.most-marketing .most-blog-search input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
 .most-blog-search:focus-within {
-  outline: 2px solid var(--most-orange);
+  outline: 2px solid #bb4c13;
   outline-offset: 2px;
 }
 .most-blog-search input::placeholder {
@@ -186,6 +198,12 @@
   place-items: center;
   min-width: 44px;
   min-height: 44px;
+}
+.most-blog-topic-toggle {
+  display: none;
+}
+.most-blog-filter-disclosure .most-blog-topic-filter {
+  margin-top: 12px;
 }
 .most-blog-topic-filter {
   display: flex;
@@ -439,6 +457,17 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+@media (min-width: 1080px) and (max-width: 1799px) {
+  .most-blog-filter-disclosure .most-blog-topic-filter {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: 24px;
+  }
+  .most-blog-filter-disclosure .most-blog-topic-filter button {
+    justify-self: start;
+    text-align: left;
+  }
+}
 @media (max-width: 1079px) {
   .most-blog-list-layout,
   .most-blog-article-layout {
@@ -454,6 +483,28 @@
   }
 }
 @media (max-width: 639px) {
+  .most-blog-topic-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    min-height: 52px;
+    margin-top: 12px;
+    padding-block: 10px;
+    border-bottom: 1px solid var(--most-line);
+    text-align: left;
+    font-size: var(--most-type-body);
+  }
+  .most-blog-topic-toggle[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+  }
+  .most-blog-filter-disclosure .most-blog-topic-filter[data-open="false"] {
+    display: none;
+  }
+  .most-blog-filter-disclosure .most-blog-topic-filter {
+    margin-top: 0;
+  }
   .most-blog-editorial .most-page-hero {
     padding-block: 40px 24px;
   }

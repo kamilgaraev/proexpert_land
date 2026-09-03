@@ -1,6 +1,7 @@
 html:has(.most-marketing) {
   --most-paper: #f6f2f1;
   background: var(--most-paper);
+  scroll-padding-top: calc(var(--most-header-height, 88px) + 16px);
 }
 html:has(.most-marketing) body {
   background: transparent;
@@ -143,7 +144,8 @@ html:has(.most-marketing) body {
   transform: translateY(0);
 }
 .most-header {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 40;
   background: var(--most-paper);
 }
@@ -241,6 +243,9 @@ html:has(.most-marketing) body {
   min-height: 44px;
 }
 .most-mobile-nav {
+  max-height: calc(100dvh - var(--most-header-height, 88px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border-top: 1px solid var(--most-line);
   padding-block: 16px 28px;
 }
@@ -715,19 +720,67 @@ html:has(.most-marketing) body {
   background: transparent;
 }
 
-html:has(.most-marketing) {
-  scrollbar-color: #85847f transparent;
-  scrollbar-width: thin;
+@media (forced-colors: none) {
+  html:has(.most-marketing),
+  .most-marketing * {
+    scrollbar-color: #85847f transparent;
+  }
+  html:has(.most-marketing)::-webkit-scrollbar-track,
+  .most-marketing *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  html:has(.most-marketing)::-webkit-scrollbar-thumb,
+  .most-marketing *::-webkit-scrollbar-thumb {
+    background: #85847f;
+    border-radius: 4px;
+  }
+  html:has(.most-marketing)::-webkit-scrollbar-thumb:hover,
+  .most-marketing *::-webkit-scrollbar-thumb:hover {
+    background: #666861;
+  }
 }
-html:has(.most-marketing)::-webkit-scrollbar-track {
+.most-scrollbar-thumb {
+  display: none;
+  position: fixed;
+  z-index: 90;
+  top: 0;
+  right: 0;
+  width: 20px;
+  min-height: 48px;
   background: transparent;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
 }
-html:has(.most-marketing)::-webkit-scrollbar-thumb {
-  background: #85847f;
+.most-scrollbar-thumb::before {
+  content: "";
+  position: absolute;
+  inset: 0 3px 0 auto;
+  width: 8px;
   border-radius: 4px;
+  background: #85847f;
 }
-html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
-  background: #565853;
+.most-scrollbar-thumb:hover::before,
+.most-scrollbar-thumb[data-dragging]::before {
+  background: #666861;
+}
+.most-scrollbar-thumb[data-dragging] {
+  cursor: grabbing;
+}
+.most-marketing .most-scrollbar-thumb:focus-visible {
+  outline-offset: -2px;
+}
+@media (min-width: 1080px) and (pointer: fine) and (forced-colors: none) {
+  html.most-overlay-scrollbar-ready {
+    scrollbar-width: none;
+    scrollbar-gutter: auto;
+  }
+  html.most-overlay-scrollbar-ready::-webkit-scrollbar {
+    display: none;
+  }
+  .most-overlay-scrollbar-ready .most-scrollbar-thumb:not([hidden]) {
+    display: block;
+  }
 }
 .most-object-story {
   border-top: 1px solid var(--most-line);

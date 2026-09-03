@@ -5,6 +5,7 @@ import BlogArticleCard from "./BlogArticleCard";
 import BlogPagination from "./BlogPagination";
 import BlogPublicLayout from "./BlogPublicLayout";
 import BlogSidebar from "./BlogSidebar";
+import BlogTopicFilter from "./BlogTopicFilter";
 import { getBlogListMeta } from "./blogPresentation";
 import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
 import { useSEO } from "@/hooks/useSEO";
@@ -345,36 +346,25 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
                 placeholder="Например, бюджет, график работ или снабжение"
               />
             </div>
-            <details className="most-blog-filter-disclosure">
-              <summary>
-                Темы статей
-                {selectedCategory
-                  ? `: ${categories.find((item) => item.slug === selectedCategory)?.name || "выбранная тема"}`
-                  : ""}
-              </summary>
-              <div
-                className="most-blog-topic-filter"
-                aria-label="Категории статей"
+            <BlogTopicFilter selectedName={selectedCategoryMeta?.name}>
+              <button
+                type="button"
+                onClick={() => handleCategoryFilter(null)}
+                aria-pressed={!selectedCategory}
               >
+                Все статьи
+              </button>
+              {categories.map((category) => (
                 <button
+                  key={category.id}
                   type="button"
-                  onClick={() => handleCategoryFilter(null)}
-                  aria-pressed={!selectedCategory}
+                  onClick={() => handleCategoryFilter(category.slug)}
+                  aria-pressed={selectedCategory === category.slug}
                 >
-                  Все статьи
+                  {category.name}
                 </button>
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    type="button"
-                    onClick={() => handleCategoryFilter(category.slug)}
-                    aria-pressed={selectedCategory === category.slug}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-            </details>
+              ))}
+            </BlogTopicFilter>
           </div>
         </div>
       </section>
@@ -448,7 +438,11 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
             )}
           </div>
 
-          <BlogSidebar categories={categories} />
+          <BlogSidebar
+            categories={categories}
+            showSearch={false}
+            showCategories={false}
+          />
         </div>
       </section>
     </BlogPublicLayout>

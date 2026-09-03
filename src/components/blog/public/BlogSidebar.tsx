@@ -11,9 +11,15 @@ import { formatBlogDate } from "./blogPresentation";
 
 interface BlogSidebarProps {
   categories?: BlogCategory[];
+  showSearch?: boolean;
+  showCategories?: boolean;
 }
 
-const BlogSidebar = ({ categories: providedCategories }: BlogSidebarProps) => {
+const BlogSidebar = ({
+  categories: providedCategories,
+  showSearch = true,
+  showCategories = true,
+}: BlogSidebarProps) => {
   const navigate = useNavigate();
   const [fetchedCategories, setFetchedCategories] = useState<BlogCategory[]>(
     [],
@@ -60,22 +66,24 @@ const BlogSidebar = ({ categories: providedCategories }: BlogSidebarProps) => {
 
   return (
     <aside className="most-blog-sidebar" aria-label="Навигация по блогу">
-      <section>
-        <h2>Поиск по блогу</h2>
-        <form onSubmit={handleSearch} className="most-blog-search">
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Например, график работ"
-            aria-label="Поиск по блогу"
-          />
-          <button type="submit" aria-label="Найти статьи">
-            <MagnifyingGlassIcon aria-hidden="true" />
-          </button>
-        </form>
-      </section>
-      {categories.length ? (
+      {showSearch ? (
+        <section>
+          <h2>Поиск по блогу</h2>
+          <form onSubmit={handleSearch} className="most-blog-search">
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Например, график работ"
+              aria-label="Поиск по блогу"
+            />
+            <button type="submit" aria-label="Найти статьи">
+              <MagnifyingGlassIcon aria-hidden="true" />
+            </button>
+          </form>
+        </section>
+      ) : null}
+      {showCategories && categories.length ? (
         <section id="blog-categories">
           <h2>Темы</h2>
           <div className="most-blog-sidebar-links">

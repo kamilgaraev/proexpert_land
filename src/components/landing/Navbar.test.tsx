@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { Link, MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import Navbar from "./Navbar";
 
@@ -24,6 +24,8 @@ const renderNavigation = () => {
   render(
     <MemoryRouter>
       <Navbar />
+      <Link to="#workflow">Как это работает</Link>
+      <section id="workflow">Работа на объекте</section>
     </MemoryRouter>,
   );
   return { media, listeners };
@@ -55,6 +57,30 @@ describe("Marketing navigation", () => {
     expect(
       screen.getByRole("button", { name: "Открыть меню" }),
     ).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("aligns a hash destination after the mobile menu has closed", () => {
+    let align: FrameRequestCallback | undefined;
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      align = callback;
+      return 1;
+    });
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+    renderNavigation();
+    const target = document.getElementById("workflow")!;
+    const scrollIntoView = vi.fn();
+    target.scrollIntoView = scrollIntoView;
+    fireEvent.click(screen.getByRole("button", { name: "Открыть меню" }));
+    fireEvent.click(screen.getByRole("link", { name: "Как это работает" }));
+    expect(document.getElementById("most-mobile-navigation")).toHaveAttribute(
+      "hidden",
+    );
+    expect(align).toBeDefined();
+    align?.(0);
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: "instant",
+      block: "start",
+    });
   });
 
   it("removes viewport listeners when the menu closes", () => {

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Navbar from "./Navbar";
+import MarketingScrollbar from "./MarketingScrollbar";
 import Footer from "./Footer";
 import CookieBanner from "@/components/marketing/CookieBanner";
 import "@/styles/marketing.css";
@@ -17,11 +18,12 @@ const MarketingShell = ({ children }: MarketingShellProps) => {
         Перейти к содержимому
       </a>
       <Navbar />
-      <main id="main-content" className="flex-grow">
+      <main id="main-content" className="flex-grow" tabIndex={-1}>
         {children}
       </main>
       <Footer />
       <CookieBanner />
+      <MarketingScrollbar />
     </div>
   );
 };
