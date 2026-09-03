@@ -1,6 +1,12 @@
 # МОСТ — прочитать первым после восстановления контекста
 
-## Текущая контрольная точка, 3 сентября 17:25 — материалы, ПИР, изменения
+## Текущая контрольная точка, 3 сентября — фокус прокрутки
+
+**Production 45a40fc0, workflow 33768566365 SUCCESS за 1м17с.** Пользователь указал прямоугольную рамку вокруг scrollbar. В MarketingScrollbar pointerDown убран принудительный focus; в marketing.css outline снят с 20px области захвата, keyboard focus перенесён на скруглённый ::before ползунка. Управление клавиатурой и drag сохранено. В существующий regression-тест добавлено отсутствие захвата фокуса при pointerdown. ESLint PASS, MarketingScrollbar.test.tsx 5/5 PASS. Gortex review: нет rule findings, MEDIUM по компоненту покрыт целевыми тестами и браузером.
+
+Локальная IAB1280: мышь не фокусирует и не рисует рамку; keyboard ArrowDown scrollY40/aria40 и обводка только thumb; drag1472→2227, pointer released. Production собственная скрытая tab19: click focusfalse/outline none, ArrowDown focusvisible/scroll40/aria40; оба состояния визуально осмотрены. TLS timeout gh-watch не был сбоем деплоя: gh run view того же run подтвердил SUCCESS. Не перезапускать выпуск. Сессии6670/50777 terminal. Предыдущие неподготовленные к выпуску IFC/SEO/test изменения остаются локальными, не вошли в этот commit. Следующий шаг — разбор 6 контентных падений и оставшиеся пункты ниже. Цель ACTIVE.
+
+## Предыдущая контрольная точка, 3 сентября 17:25 — материалы, ПИР, изменения
 
 **Production bead66e1, workflow 33765062337 SUCCESS (1м16с).** Три отдельные сцены материалов, чертежей и обсуждения изменения, WebP 1536/720. Локально все три осмотрены 1440/390. Production: материалы/изменения 390, ПИР 1440; H1/canonical/изображения верны, overflow false. Собственная скрытая IAB tab18, viewport reset. ESLint/Prettier TSX PASS, Gortex review APPROVE. Evidence: evidence/stock-design-change-scenes-20260903.md. Уникальные сцены теперь у 18 из 29 профильных страниц, остаются 11 (список в карте).
 
