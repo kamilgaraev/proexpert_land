@@ -40,6 +40,21 @@ const editorialScenes: Partial<
     { src: string; smallSrc: string; alt: string }
   >
 > = {
+  "construction-budget-control": {
+    src: "/images/marketing/most-budget-review-branded-v1.webp",
+    smallSrc: "/images/marketing/most-budget-review-branded-v1-720.webp",
+    alt: "Финансовый специалист и руководитель проекта проверяют бюджет в офисе у стройплощадки",
+  },
+  "construction-payments": {
+    src: "/images/marketing/most-payment-review-branded-v2.webp",
+    smallSrc: "/images/marketing/most-payment-review-branded-v2-720.webp",
+    alt: "Специалист сверяет счёт с накладной перед согласованием оплаты",
+  },
+  "ai-estimates": {
+    src: "/images/marketing/most-estimate-review-branded-v1.webp",
+    smallSrc: "/images/marketing/most-estimate-review-branded-v1-720.webp",
+    alt: "Сметчик сверяет исходный чертёж и рабочие записи за столом",
+  },
   "pto-software": {
     src: "/images/marketing/most-pto-inspection-v2.webp",
     smallSrc: "/images/marketing/most-pto-inspection-v2-720.webp",
