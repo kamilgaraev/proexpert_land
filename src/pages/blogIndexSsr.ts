@@ -8,7 +8,7 @@ import type {
   BlogPaginationMeta,
   BlogTag,
 } from '@/types/blog';
-import { BLOG_INDEX_BASE_QUERY_KEY } from '@/utils/blogIndexQuery';
+import { buildBlogIndexQueryKey, type BlogIndexQuery } from '@/utils/blogIndexQuery';
 import {
   normalizeMarketingBlogArticle,
   normalizeMarketingBlogCategory,
@@ -30,6 +30,7 @@ const EMPTY_BLOG_PAGINATION: BlogPaginationMeta = {
 };
 
 interface BlogIndexSsrOptions {
+  query?: BlogIndexQuery;
   apiBaseDomain?: string;
   fetchImpl?: typeof fetch;
   timeoutMs?: number;
@@ -191,7 +192,6 @@ const normalizePaginationMeta = (value: unknown): BlogPaginationMeta | null => {
     || !Number.isInteger(total)
     || currentPage < 1
     || lastPage < 1
-    || currentPage > lastPage
     || perPage < 1
     || total < 0
   ) {
@@ -215,6 +215,9 @@ const normalizeArticlesEnvelope = (value: unknown) => {
   const pagination = normalizePaginationMeta(value.data.meta);
 
   if (!Array.isArray(articles) || !articles.every(isBlogArticle) || !pagination) {
+    return null;
+  }
+  if (pagination.current_page > pagination.last_page && articles.length > 0) {
     return null;
   }
 
@@ -246,7 +249,7 @@ const normalizeApiBase = (apiBase: string) => apiBase.replace(/\/+$/, '');
 
 const fetchBlogIndexResource = async (
   path: string,
-  { apiBaseDomain, fetchImpl, timeoutMs }: Required<BlogIndexSsrOptions>,
+  { apiBaseDomain, fetchImpl, timeoutMs }: Required<Omit<BlogIndexSsrOptions, 'query'>>,
 ): Promise<unknown> => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -275,75 +278,68 @@ export const fetchBlogCategoryForSsr = async (
   slug: string,
   options: BlogIndexSsrOptions = {},
 ): Promise<BlogCategoryInitialData> => {
-  const requestOptions: Required<BlogIndexSsrOptions> = {
-    apiBaseDomain: options.apiBaseDomain ?? DEFAULT_API_BASE_DOMAIN,
-    fetchImpl: options.fetchImpl ?? fetch,
-    timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-  };
-  const result: BlogCategoryInitialData = {
+  const query = { ...options.query, category: slug };
+  const data = await fetchBlogIndexForSsr({ ...options, query });
+  const category = data.categories.find((item) => item.slug === slug && item.is_active) ?? null;
+  return {
+    ...data,
     slug,
-    category: null,
-    categories: [],
-    articles: [],
-    pagination: EMPTY_BLOG_PAGINATION,
-    categoriesLoaded: false,
-    articlesLoaded: false,
-    notFound: false,
+    category,
+    queryKey: buildBlogIndexQueryKey(query),
+    notFound: data.categoriesLoaded && category === null,
+    pageNotFound: Boolean(data.notFound && category !== null),
   };
-
-  try {
-    const payload = await fetchBlogIndexResource('/api/v1/blog/categories', requestOptions);
-    const categories = normalizeCategoriesEnvelope(payload);
-    if (!categories) return result;
-    result.categories = categories;
-    result.categoriesLoaded = true;
-    result.category = categories.find((category) => category.slug === slug && category.is_active) ?? null;
-    result.notFound = result.category === null;
-    if (!result.category || result.category.id === null) return result;
-    const articles = normalizeArticlesEnvelope(await fetchBlogIndexResource(
-      `/api/v1/blog/articles?status=published&page=1&per_page=12&category_id=${result.category.id}`,
-      requestOptions,
-    ));
-    if (articles) {
-      result.articles = articles.articles;
-      result.pagination = articles.pagination;
-      result.articlesLoaded = true;
-    }
-  } catch {
-    return result;
-  }
-
-  return result;
 };
 
 export const fetchBlogIndexForSsr = async (
   options: BlogIndexSsrOptions = {},
 ): Promise<BlogIndexInitialData> => {
-  const requestOptions: Required<BlogIndexSsrOptions> = {
+  const requestOptions: Required<Omit<BlogIndexSsrOptions, 'query'>> = {
     apiBaseDomain: options.apiBaseDomain ?? DEFAULT_API_BASE_DOMAIN,
     fetchImpl: options.fetchImpl ?? fetch,
     timeoutMs: options.timeoutMs ?? DEFAULT_TIMEOUT_MS,
   };
-  const [articlesResult, categoriesResult] = await Promise.allSettled([
-    fetchBlogIndexResource(
-      '/api/v1/blog/articles?status=published&page=1&per_page=12',
-      requestOptions,
-    ),
-    fetchBlogIndexResource('/api/v1/blog/categories', requestOptions),
-  ]);
-  const articlesPayload = articlesResult.status === 'fulfilled'
-    ? normalizeArticlesEnvelope(articlesResult.value)
-    : null;
-  const categoriesPayload = categoriesResult.status === 'fulfilled'
-    ? normalizeCategoriesEnvelope(categoriesResult.value)
-    : null;
-
-  return {
-    articles: articlesPayload?.articles ?? [],
-    categories: categoriesPayload ?? [],
-    pagination: articlesPayload?.pagination ?? EMPTY_BLOG_PAGINATION,
-    articlesLoaded: articlesPayload !== null,
-    categoriesLoaded: categoriesPayload !== null,
-    queryKey: BLOG_INDEX_BASE_QUERY_KEY,
+  const query = options.query ?? {};
+  const page = query.page ?? 1;
+  const result: BlogIndexInitialData = {
+    articles: [],
+    categories: [],
+    pagination: { ...EMPTY_BLOG_PAGINATION, current_page: page },
+    articlesLoaded: false,
+    categoriesLoaded: false,
+    queryKey: buildBlogIndexQueryKey(query),
+    notFound: page < 1 || !Number.isSafeInteger(page),
   };
+  const categoriesPromise = fetchBlogIndexResource('/api/v1/blog/categories', requestOptions)
+    .then(normalizeCategoriesEnvelope).catch(() => null);
+  const loadArticles = async (categoryId?: number) => {
+    if (result.notFound) return null;
+    const params = new URLSearchParams({ status: 'published', page: String(page), per_page: '12' });
+    if (categoryId !== undefined) params.set('category_id', String(categoryId));
+    if (query.search?.trim()) params.set('search', query.search.trim());
+    return fetchBlogIndexResource(`/api/v1/blog/articles?${params}`, requestOptions)
+      .then(normalizeArticlesEnvelope).catch(() => null);
+  };
+  const articlesPromise = query.category
+    ? categoriesPromise.then((categories) => {
+        if (!categories) return null;
+        const category = categories.find((item) => item.slug === query.category && item.is_active);
+        if (!category) {
+          result.notFound = true;
+          return null;
+        }
+        return category.id === null ? null : loadArticles(category.id);
+      })
+    : loadArticles();
+  const [categories, payload] = await Promise.all([categoriesPromise, articlesPromise]);
+  result.categories = categories ?? [];
+  result.categoriesLoaded = categories !== null;
+  if (payload) {
+    result.notFound = page > payload.pagination.last_page || page !== payload.pagination.current_page;
+    result.articles = result.notFound ? [] : payload.articles;
+    result.pagination = payload.pagination;
+  }
+  result.articlesLoaded = payload !== null || Boolean(result.notFound);
+  result.unavailable = !result.notFound && (!result.articlesLoaded || !result.categoriesLoaded);
+  return result;
 };

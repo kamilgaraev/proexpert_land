@@ -1,14 +1,18 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import BlogArticleCard from './BlogArticleCard';
-import BlogPublicLayout from './BlogPublicLayout';
-import BlogSidebar from './BlogSidebar';
-import { getBlogListMeta } from './blogPresentation';
-import { filterBlogArticlesByTagSlug, getBlogTagDisplayName, getBlogTagSearchTerm, resolveBlogTagBySlug } from './blogTags';
-import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
-import { useSEO } from '@/hooks/useSEO';
-import type { BlogArticle, BlogTag } from '@/types/blog';
-import { blogPublicApi } from '@/utils/blogPublicApi';
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import BlogArticleCard from "./BlogArticleCard";
+import BlogPublicLayout from "./BlogPublicLayout";
+import BlogSidebar from "./BlogSidebar";
+import { getBlogListMeta } from "./blogPresentation";
+import {
+  filterBlogArticlesByTagSlug,
+  getBlogTagDisplayName,
+  getBlogTagSearchTerm,
+  resolveBlogTagBySlug,
+} from "./blogTags";
+import { useSEO } from "@/hooks/useSEO";
+import type { BlogArticle, BlogTag } from "@/types/blog";
+import { blogPublicApi } from "@/utils/blogPublicApi";
 
 const BlogTagPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -19,14 +23,20 @@ const BlogTagPage = () => {
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
-  const tagDisplayName = getBlogTagDisplayName(slug, tag);
+  const tagDisplayName = tag ? getBlogTagDisplayName(slug, tag) : "";
 
   useSEO({
-    title: tagDisplayName ? `Тег #${tagDisplayName} - блог МОСТ` : 'Теги блога МОСТ',
-    description: tagDisplayName ? `Подборка статей МОСТ по тегу #${tagDisplayName}.` : 'Подборка статей МОСТ по тегам.',
-    keywords: tagDisplayName ? `${tagDisplayName}, блог МОСТ, строительство` : 'теги блога МОСТ',
+    title: tagDisplayName
+      ? `Тег #${tagDisplayName} - блог МОСТ`
+      : "Теги блога МОСТ",
+    description: tagDisplayName
+      ? `Подборка статей МОСТ по тегу #${tagDisplayName}.`
+      : "Подборка статей МОСТ по тегам.",
+    keywords: tagDisplayName
+      ? `${tagDisplayName}, блог МОСТ, строительство`
+      : "теги блога МОСТ",
     noIndex: true,
-    type: 'website',
+    type: "website",
   });
 
   useEffect(() => {
@@ -48,7 +58,10 @@ const BlogTagPage = () => {
         const resolvedTag = resolveBlogTagBySlug(tagsData, slug);
         setTag(resolvedTag);
 
-        const response = await blogPublicApi.searchArticles(getBlogTagSearchTerm(slug, resolvedTag), 12);
+        const response = await blogPublicApi.searchArticles(
+          getBlogTagSearchTerm(slug, resolvedTag),
+          12,
+        );
         const payload = response.data as { data?: BlogArticle[] };
         const rawArticles = payload.data || [];
         const nextArticles = filterBlogArticlesByTagSlug(rawArticles, slug);
@@ -57,8 +70,8 @@ const BlogTagPage = () => {
         setCurrentPage(1);
         setHasMore(rawArticles.length === 12);
       } catch (fetchError) {
-        console.error('Error fetching articles by tag:', fetchError);
-        setError('Не удалось загрузить подборку по тегу.');
+        console.error("Error fetching articles by tag:", fetchError);
+        setError("Не удалось загрузить подборку по тегу.");
       } finally {
         setLoading(false);
       }
@@ -78,7 +91,10 @@ const BlogTagPage = () => {
       setLoadingMore(true);
 
       const nextPage = currentPage + 1;
-      const response = await blogPublicApi.searchArticles(searchTerm, nextPage * 12);
+      const response = await blogPublicApi.searchArticles(
+        searchTerm,
+        nextPage * 12,
+      );
       const payload = response.data as { data?: BlogArticle[] };
       const rawArticles = payload.data || [];
       const nextArticles = filterBlogArticlesByTagSlug(rawArticles, slug);
@@ -87,8 +103,8 @@ const BlogTagPage = () => {
       setCurrentPage(nextPage);
       setHasMore(rawArticles.length === nextPage * 12);
     } catch (fetchError) {
-      console.error('Error loading more tag articles:', fetchError);
-      setError('Не удалось загрузить дополнительные статьи по тегу.');
+      console.error("Error loading more tag articles:", fetchError);
+      setError("Не удалось загрузить дополнительные статьи по тегу.");
     } finally {
       setLoadingMore(false);
     }
@@ -96,109 +112,67 @@ const BlogTagPage = () => {
 
   return (
     <BlogPublicLayout
-      eyebrow="Тег блога"
-      title={tagDisplayName ? `Материалы по тегу #${tagDisplayName}` : 'Материалы по тегу'}
-      description="Теги помогают быстро собрать статьи по одной узкой теме без лишних переходов по категориям."
+      title={tagDisplayName ? `Статьи: ${tagDisplayName}` : "Статьи по теме"}
+      description="Практические материалы о работе строительной команды."
       nav={[
-        { label: 'Лента тега', href: '#blog-feed' },
-        { label: 'Все статьи', href: '#blog-tag-actions' },
-        { label: 'Контакты', href: '#blog-cta' },
+        { label: "Статьи по теме", href: "#blog-feed" },
+        { label: "Все статьи", href: "#blog-tag-actions" },
+        { label: "Контакты", href: "#blog-cta" },
       ]}
-      aside={
-        <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-            Как использовать тег
-          </div>
-          <div className="mt-4 grid gap-3">
-            {[
-              'Собрать подборку по одной теме для внутренней команды.',
-              'Перейти из статьи к соседним материалам по тому же вопросу.',
-              'Использовать тег как быстрый маршрут перед демонстрацией.',
-            ].map((item) => (
-              <div key={item} className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700">
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
-      }
     >
-      <section id="blog-tag-actions" className="py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Маршрут"
-            title="Используйте тег как короткий срез по теме."
-            description="Если нужно расширить выборку, переходите к общей ленте блога или к категориям через сайдбар."
-          />
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              to="/blog"
-              className="inline-flex w-full min-w-0 flex-wrap items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-center text-sm font-semibold text-white whitespace-normal [overflow-wrap:anywhere] transition hover:bg-steel-900 sm:w-auto"
-            >
-              Открыть все статьи
-            </Link>
-          </div>
+      <section id="blog-tag-actions" className="most-blog-filters">
+        <div className="most-container">
+          <Link to="/blog" className="most-blog-read">
+            Открыть все статьи
+          </Link>
         </div>
       </section>
-
-      <section id="blog-feed" className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
+      <section id="blog-feed" className="most-blog-section">
+        <div className="most-container most-blog-list-layout">
           <div>
-            <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-                Лента тега
-              </div>
-              <h2 className="mt-2 text-3xl font-bold text-steel-950">#{tagDisplayName}</h2>
-              <p className="mt-4 text-sm leading-7 text-steel-600">
-                {error ? error : getBlogListMeta(articles.length)}
-              </p>
+            <div className="most-blog-feed-intro">
+              <h2>Статьи по теме</h2>
+              {!error ? <p>{getBlogListMeta(articles.length)}</p> : null}
             </div>
-
             {loading ? (
-              <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <div className="most-blog-grid" aria-label="Загружаем статьи">
                 {Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className="rounded-[1.75rem] border border-steel-200 bg-white p-5 shadow-sm">
-                    <div className="aspect-[16/10] animate-pulse rounded-[1.35rem] bg-concrete-100" />
-                    <div className="mt-5 h-4 w-32 animate-pulse rounded bg-concrete-100" />
-                    <div className="mt-4 h-8 w-4/5 animate-pulse rounded bg-concrete-100" />
-                    <div className="mt-3 h-20 animate-pulse rounded bg-concrete-100" />
+                  <div key={index} className="most-blog-skeleton">
+                    <div className="aspect-[16/10] animate-pulse bg-concrete-100" />
+                    <div className="mt-5 h-4 w-32 animate-pulse bg-concrete-100" />
+                    <div className="mt-4 h-8 w-4/5 animate-pulse bg-concrete-100" />
                   </div>
                 ))}
               </div>
+            ) : error ? (
+              <div className="most-blog-notice" role="alert">
+                {error}
+              </div>
             ) : articles.length ? (
               <>
-                <div className="mt-6 grid gap-5 md:grid-cols-2">
+                <div className="most-blog-grid">
                   {articles.map((article) => (
                     <BlogArticleCard key={article.id} article={article} />
                   ))}
                 </div>
                 {hasMore ? (
-                  <div className="mt-8">
-                    <button
-                      type="button"
-                      onClick={handleLoadMore}
-                      disabled={loadingMore}
-                      className={`inline-flex w-full min-w-0 flex-wrap items-center justify-center rounded-full px-5 py-3 text-center text-sm font-semibold whitespace-normal [overflow-wrap:anywhere] transition sm:w-auto ${
-                        loadingMore
-                          ? 'cursor-not-allowed bg-steel-300 text-white'
-                          : 'bg-steel-950 text-white hover:bg-steel-900'
-                      }`}
-                    >
-                      {loadingMore ? 'Загружаем статьи' : 'Показать еще'}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    className="most-blog-button"
+                  >
+                    {loadingMore ? "Загружаем статьи" : "Показать еще"}
+                  </button>
                 ) : null}
               </>
-            ) : !loading ? (
-              <div className="mt-6 rounded-[1.75rem] border border-steel-200 bg-white p-8 shadow-sm">
-                <h3 className="text-2xl font-bold text-steel-950">По этому тегу пока нет материалов</h3>
-                <p className="mt-4 text-sm leading-7 text-steel-600">
-                  Вернитесь к общей ленте или воспользуйтесь поиском и категориями в правой колонке.
-                </p>
+            ) : (
+              <div className="most-blog-notice">
+                <h3>По этому тегу пока нет материалов</h3>
+                <p>Вернитесь к общей ленте или выберите другую тему.</p>
               </div>
-            ) : null}
+            )}
           </div>
-
           <BlogSidebar />
         </div>
       </section>

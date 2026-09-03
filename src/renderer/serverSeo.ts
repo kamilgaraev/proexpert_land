@@ -62,7 +62,9 @@ export const buildServerSeoPayload = (
   const title = resolvedDocumentProps.title ?? baseSeo.title;
   const description = resolvedDocumentProps.description ?? baseSeo.description;
   const keywords = resolvedDocumentProps.keywords ?? baseSeo.keywords;
-  const canonicalUrl = (resolvedDocumentProps.canonicalUrl ?? baseSeo.canonicalUrl).replace(/[?#].*$/, '');
+  const canonicalUrl = resolvedDocumentProps.canonicalUrl !== undefined
+    ? resolvedDocumentProps.canonicalUrl.replace(/#.*$/, '')
+    : baseSeo.canonicalUrl.replace(/[?#].*$/, '');
   const ogImage = normalizeOgImageUrl(resolvedDocumentProps.ogImage ?? baseSeo.ogImage) ?? baseSeo.ogImage;
   const noIndex = resolvedDocumentProps.noIndex ?? baseSeo.noIndex;
   const ogType = resolvedDocumentProps.type ?? baseSeo.type;

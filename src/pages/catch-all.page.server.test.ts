@@ -64,6 +64,105 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+describe('blog URL pagination', () => {
+  const installPaginationApi = (lastPage = 3) => {
+    const mock = vi.fn((input: string | URL | Request) => {
+      const url = new URL(String(input));
+      const page = Number(url.searchParams.get('page') || 1);
+      return Promise.resolve(url.pathname.endsWith('/categories')
+        ? jsonResponse({ success: true, data: [category] })
+        : jsonResponse({ success: true, data: { data: page > lastPage ? [] : [{ ...article, id: page, title: `Страница ${page}` }], meta: { current_page: page, last_page: lastPage, per_page: 12, total: 30 } } }));
+    });
+    vi.stubGlobal('fetch', mock);
+    return mock;
+  };
+
+  it.each([
+    ['/blog?page=2', '/articles?'],
+    ['/blog?page=2', '/categories'],
+    ['/blog/category/management?page=2', '/articles?'],
+    ['/blog/category/management?page=2', '/categories'],
+  ])('marks API failure as 503/noindex for %s when %s fails', async (urlOriginal, failedResource) => {
+    vi.stubGlobal('fetch', vi.fn((input) => Promise.resolve(String(input).includes(failedResource)
+      ? new Response('Unavailable', { status: 503 })
+      : String(input).includes('/categories')
+        ? jsonResponse({ success: true, data: [category] })
+        : jsonResponse({ success: true, data: { data: [article], meta: { current_page: 2, last_page: 3, per_page: 12, total: 30 } } }))));
+    const result = await onBeforeRender({ urlPathname: urlOriginal.split('?')[0], urlOriginal });
+    expect(result.pageContext.routeStatusCode).toBe(503);
+    expect(result.pageContext.documentProps).toMatchObject({ noIndex: true, statusCode: 503 });
+    const data = result.pageContext.pageProps?.initialBlogIndexData ?? result.pageContext.pageProps?.initialBlogCategoryData;
+    expect(data).toMatchObject({ unavailable: true, notFound: false });
+  });
+
+  it('distinguishes an empty Laravel out-of-range result from nonempty invalid metadata', async () => {
+    const respond = (items: BlogArticle[]) => vi.fn((input) => Promise.resolve(String(input).includes('/categories')
+      ? jsonResponse({ success: true, data: [category] })
+      : jsonResponse({ success: true, data: { data: items, meta: { current_page: 2, last_page: 1, per_page: 12, total: 1 } } })));
+    vi.stubGlobal('fetch', respond([article]));
+    const invalid = await onBeforeRender({ urlPathname: '/blog', urlOriginal: '/blog?page=2' });
+    expect(invalid.pageContext.routeStatusCode).toBe(503);
+    expect(invalid.pageContext.pageProps?.initialBlogIndexData).toMatchObject({ unavailable: true, notFound: false, articles: [] });
+    vi.stubGlobal('fetch', respond([]));
+    const absent = await onBeforeRender({ urlPathname: '/blog', urlOriginal: '/blog?page=2' });
+    expect(absent.pageContext.routeStatusCode).toBe(404);
+    expect(absent.pageContext.pageProps?.initialBlogIndexData).toMatchObject({ unavailable: false, notFound: true, articles: [] });
+  });
+
+  it('SSR fetches page 2 once and makes its clean URL canonical', async () => {
+    const mock = installPaginationApi();
+    const result = await onBeforeRender({ urlPathname: '/blog', urlOriginal: '/blog?page=2' });
+    expect(mock).toHaveBeenCalledTimes(2);
+    expect(result.pageContext.pageProps?.initialBlogIndexData).toMatchObject({ queryKey: 'category=&search=&page=2', articles: [{ title: 'Страница 2' }], notFound: false });
+    expect(result.pageContext.documentProps).toMatchObject({ canonicalUrl: 'https://1мост.рф/blog?page=2', noIndex: false, statusCode: 200 });
+  });
+
+  it('SSR sends category and search filters with the exact page', async () => {
+    const mock = installPaginationApi();
+    const result = await onBeforeRender({ urlPathname: '/blog', urlOriginal: '/blog?category=management&search=budget&page=2' });
+    const articleUrl = new URL(String(mock.mock.calls.find(([url]) => String(url).includes('/articles?'))?.[0]));
+    expect(Object.fromEntries(articleUrl.searchParams)).toMatchObject({ page: '2', category_id: '7', search: 'budget', per_page: '12' });
+    expect(result.pageContext.documentProps?.noIndex).toBe(true);
+    expect(result.pageContext.pageProps?.initialBlogIndexData?.queryKey).toBe('category=management&search=budget&page=2');
+  });
+
+  it.each(['0', '-1', '1.5', 'no', '9007199254740992', '2&page=3', ''])('rejects invalid page=%s without requesting articles', async (value) => {
+    const mock = installPaginationApi();
+    const result = await onBeforeRender({ urlPathname: '/blog', urlOriginal: `/blog?page=${value}` });
+    expect(result.pageContext.routeStatusCode).toBe(404);
+    expect(result.pageContext.pageProps?.initialBlogIndexData).toMatchObject({ articles: [], articlesLoaded: true, notFound: true });
+    expect(mock.mock.calls.some(([url]) => String(url).includes('/articles?'))).toBe(false);
+  });
+
+  it('does not turn an unknown category filter into the unfiltered list', async () => {
+    const mock = installPaginationApi();
+    const result = await onBeforeRender({ urlPathname: '/blog', urlOriginal: '/blog?category=missing' });
+    expect(result.pageContext.routeStatusCode).toBe(404);
+    expect(result.pageContext.pageProps?.initialBlogIndexData?.articles).toEqual([]);
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects out of range pages and suppresses an API first-page substitute', async () => {
+    installPaginationApi(1);
+    const result = await onBeforeRender({ urlPathname: '/blog', urlOriginal: '/blog?page=2' });
+    expect(result.pageContext.routeStatusCode).toBe(404);
+    expect(result.pageContext.pageProps?.initialBlogIndexData?.articles).toEqual([]);
+    vi.stubGlobal('fetch', blogIndexFetch(article, [category]));
+    const clamped = await onBeforeRender({ urlPathname: '/blog', urlOriginal: '/blog?page=2' });
+    expect(clamped.pageContext.routeStatusCode).toBe(404);
+    expect(clamped.pageContext.pageProps?.initialBlogIndexData?.articles).toEqual([]);
+  });
+
+  it('restores category page 2, and search inside a category remains noindex', async () => {
+    installPaginationApi();
+    const result = await onBeforeRender({ urlPathname: '/blog/category/management', urlOriginal: '/blog/category/management?page=2' });
+    expect(result.pageContext.pageProps?.initialBlogCategoryData).toMatchObject({ articles: [{ title: 'Страница 2' }], queryKey: 'category=management&search=&page=2', notFound: false, pageNotFound: false });
+    expect(result.pageContext.documentProps).toMatchObject({ canonicalUrl: 'https://1мост.рф/blog/category/management?page=2', noIndex: false });
+    const filtered = await onBeforeRender({ urlPathname: '/blog/category/management', urlOriginal: '/blog/category/management?search=budget&page=2' });
+    expect(filtered.pageContext.documentProps?.noIndex).toBe(true);
+  });
+});
+
 describe('catch-all blog category SSR', () => {
   it('loads category articles and returns category-specific document metadata', async () => {
     const fetchMock = blogIndexFetch(article, [category]);
@@ -95,8 +194,9 @@ describe('catch-all blog category SSR', () => {
   it.each([new Response('Unavailable', { status: 503 }), jsonResponse({ success: true, data: { invalid: true } })])('does not turn a failed catalogue into a missing category', async (response) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response));
     const result = await onBeforeRender({ urlPathname: '/blog/category/management' });
-    expect(result.pageContext.routeStatusCode).toBe(200);
-    expect(result.pageContext.pageProps?.initialBlogCategoryData).toMatchObject({ categoriesLoaded: false, notFound: false });
+    expect(result.pageContext.routeStatusCode).toBe(503);
+    expect(result.pageContext.documentProps?.noIndex).toBe(true);
+    expect(result.pageContext.pageProps?.initialBlogCategoryData).toMatchObject({ categoriesLoaded: false, notFound: false, unavailable: true });
   });
 
   it('keeps known category metadata when article loading fails', async () => {
@@ -137,6 +237,8 @@ describe('catch-all blog SSR', () => {
       expect.stringContaining('/api/v1/blog/categories'),
     ]));
     expect(initialData).toEqual({
+      unavailable: false,
+      notFound: false,
       articles: [article],
       categories: [category],
       pagination: { current_page: 1, last_page: 3, per_page: 12, total: 25 },

@@ -55,7 +55,10 @@ export interface BlogCategory {
 }
 
 export interface BlogCategoryInitialData {
+  unavailable?: boolean;
   slug: string;
+  queryKey?: string;
+  pageNotFound?: boolean;
   category: BlogCategory | null;
   categories: BlogCategory[];
   articles: BlogArticle[];
@@ -250,6 +253,8 @@ export interface BlogPaginatedResponse<T> extends BlogApiResponse<T[]> {
 export type BlogPaginationMeta = BlogPaginatedResponse<BlogArticle>['meta'];
 
 export interface BlogIndexInitialData {
+  unavailable?: boolean;
+  notFound?: boolean;
   articles: BlogArticle[];
   categories: BlogCategory[];
   pagination: BlogPaginationMeta;

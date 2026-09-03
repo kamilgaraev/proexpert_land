@@ -671,7 +671,9 @@ export const buildStructuredDataGraph = ({
   const normalizedPath = normalizeMarketingPath(pathname);
   const pageKey = resolveMarketingSeoKey(normalizedPath);
   const isBlogArticle = /^\/blog\/[^/]+$/.test(normalizedPath);
-  const normalizedCanonicalUrl = stripUrlQuery(canonicalUrl);
+  const normalizedCanonicalUrl = normalizedPath === '/blog' || normalizedPath.startsWith('/blog/category/')
+    ? canonicalUrl.replace(/#.*$/, '')
+    : stripUrlQuery(canonicalUrl);
   const currentPageName = stripTitleBrand(title);
   const breadcrumbItems = [
     { name: 'Главная', url: `${BASE_URL}/` },

@@ -119,7 +119,9 @@ export const useSEO = (props: UseSEOProps = {}) => {
       modifiedTime: props.modifiedTime,
       noIndex: props.noIndex ?? pageData.noIndex ?? false,
       statusCode: props.statusCode ?? pageData.statusCode,
-      canonicalUrl: (props.canonicalUrl ?? pageData.canonicalUrl).replace(/[?#].*$/, ''),
+      canonicalUrl: props.canonicalUrl !== undefined
+        ? props.canonicalUrl.replace(/#.*$/, '')
+        : pageData.canonicalUrl.replace(/[?#].*$/, ''),
     };
 
     const currentUrl = finalData.canonicalUrl;

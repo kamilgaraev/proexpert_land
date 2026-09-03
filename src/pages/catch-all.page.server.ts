@@ -1,4 +1,5 @@
-import { isKnownMarketingPath, normalizeMarketingPath } from '@/data/marketingRegistry';
+import { isKnownMarketingPath, normalizeMarketingPath, marketingSeo } from '@/data/marketingRegistry';
+import { getBlogListingSeo, readBlogIndexQuery } from '@/utils/blogIndexQuery';
 import type { BlogArticle } from '@/types/blog';
 import { normalizeMarketingBlogArticle } from '@/utils/marketingBlogNormalizer';
 import { generateArticleSchema, normalizeArticleTitleBrand } from '@/utils/seo';
@@ -154,20 +155,23 @@ const buildMissingArticleDocumentProps = () => ({
   statusCode: 404,
 });
 
-export async function onBeforeRender(pageContext: { urlPathname?: string }) {
+export async function onBeforeRender(pageContext: { urlPathname?: string; urlOriginal?: string }) {
+  const query = readBlogIndexQuery(new URL(pageContext.urlOriginal || pageContext.urlPathname || '/', BASE_URL).searchParams);
   const normalizedPath = normalizeMarketingPath(pageContext.urlPathname || '/');
   const routeStatusCode = isKnownMarketingPath(normalizedPath) ? 200 : 404;
   const articleSlug = resolveBlogArticleSlug(normalizedPath);
 
   if (normalizedPath === '/blog') {
-    const initialBlogIndexData = await fetchBlogIndexForSsr();
-
+    const initialBlogIndexData = await fetchBlogIndexForSsr({ query });
+    const documentProps = {
+      ...marketingSeo.blog,
+      ...getBlogListingSeo('/blog', query, marketingSeo.blog.title, initialBlogIndexData.notFound, initialBlogIndexData.unavailable),
+    };
     return {
       pageContext: {
-        routeStatusCode: 200,
-        pageProps: {
-          initialBlogIndexData,
-        },
+        routeStatusCode: documentProps.statusCode,
+        documentProps,
+        pageProps: { initialBlogIndexData },
       },
     };
   }
@@ -180,8 +184,9 @@ export async function onBeforeRender(pageContext: { urlPathname?: string }) {
     } catch {
       return { pageContext: { routeStatusCode: 404 } };
     }
-    const initialBlogCategoryData = await fetchBlogCategoryForSsr(slug);
-    const documentProps = getBlogCategorySeo(slug, initialBlogCategoryData.category, initialBlogCategoryData.notFound);
+    const categoryQuery = { ...query, category: null };
+    const initialBlogCategoryData = await fetchBlogCategoryForSsr(slug, { query: categoryQuery });
+    const documentProps = getBlogCategorySeo(slug, initialBlogCategoryData.category, initialBlogCategoryData.notFound, categoryQuery, initialBlogCategoryData.pageNotFound, initialBlogCategoryData.unavailable);
     return {
       pageContext: {
         routeStatusCode: documentProps.statusCode,

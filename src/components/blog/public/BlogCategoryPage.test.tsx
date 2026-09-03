@@ -124,6 +124,37 @@ const tree = (
   </MemoryRouter>
 );
 
+describe("BlogCategoryPage URL pagination", () => {
+  it("hydrates category page 2 without fetching and preserves search in pagination links", async () => {
+    render(tree({ ...initialData, queryKey: 'category=management&search=budget&page=2', pagination: { current_page: 2, last_page: 3, per_page: 12, total: 30 } }, '/blog/category/management?search=budget&page=2'));
+    expect(screen.getByRole('heading', { name: article.title })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Следующая' })).toHaveAttribute('href', '/blog/category/management?search=budget&page=3');
+    await act(async () => { await Promise.resolve(); });
+    expect(requests).toEqual({ articles: 0, categories: 0 });
+  });
+
+  it("loads the requested URL page and replaces old category content", async () => {
+    const pages: string[] = [];
+    server.use(http.get(apiUrl('/api/v1/blog/articles'), ({ request }) => {
+      const page = new URL(request.url).searchParams.get('page') || '1';
+      pages.push(page);
+      return HttpResponse.json({ success: true, data: { data: [{ ...article, title: `Категория: страница ${page}` }], meta: { current_page: Number(page), last_page: 2, per_page: 12, total: 13 } } });
+    }));
+    render(tree({ ...initialData, pagination: { current_page: 1, last_page: 2, per_page: 12, total: 13 } }));
+    fireEvent.click(screen.getByRole('link', { name: 'Следующая' }));
+    await screen.findByRole('heading', { name: 'Категория: страница 2' });
+    expect(screen.queryByRole('heading', { name: article.title })).not.toBeInTheDocument();
+    expect(pages).toEqual(['2']);
+    expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute('href', 'https://1мост.рф/blog/category/management?page=2');
+  });
+
+  it("shows an unavailable page without displaying another page of articles", async () => {
+    render(tree(initialData, '/blog/category/management?page=9'));
+    await screen.findByRole('heading', { level: 1, name: 'Страница не найдена' });
+    expect(screen.queryByRole('heading', { name: article.title })).not.toBeInTheDocument();
+  });
+});
+
 describe("BlogCategoryPage initial data", () => {
   it("renders category H1 and article links into server HTML", () => {
     const html = renderToString(tree(initialData));
@@ -262,5 +293,6 @@ describe("BlogCategoryPage initial data", () => {
     expect(
       screen.getByRole("heading", { name: "Материалы временно недоступны" }),
     ).toBeVisible();
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toContain('noindex');
   });
 });

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { PageHero } from "@/components/marketing/MarketingPrimitives";
 import MarketingShell from "@/components/landing/MarketingShell";
+import "@/styles/marketing-blog.css";
 
 interface BlogPublicLayoutProps {
   children: ReactNode;
@@ -19,16 +20,14 @@ const defaultNav = [
 
 const BlogPublicLayout = ({
   children,
-  eyebrow,
   title = "Материалы о строительных процессах, запуске и управлении проектами.",
   description = "Публикуем статьи о графиках работ, снабжении, документах, финансах и организации строительной команды.",
   nav = defaultNav,
   aside,
 }: BlogPublicLayoutProps) => (
   <MarketingShell>
-    <div className="marketing-page-shell most-blog">
+    <div className="marketing-page-shell most-blog most-blog-editorial">
       <PageHero
-        eyebrow={eyebrow}
         title={title}
         description={description}
         nav={nav}
