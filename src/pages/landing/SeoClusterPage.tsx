@@ -40,6 +40,21 @@ const editorialScenes: Partial<
     { src: string; smallSrc: string; alt: string }
   >
 > = {
+  "machinery-and-labor": {
+    src: "/images/marketing/most-machinery-shift-branded-v1.webp",
+    smallSrc: "/images/marketing/most-machinery-shift-branded-v1-720.webp",
+    alt: "Сотрудник проверяет сменный лист рядом с припаркованным экскаватором",
+  },
+  "construction-safety": {
+    src: "/images/marketing/most-safety-walkway-branded-v1.webp",
+    smallSrc: "/images/marketing/most-safety-walkway-branded-v1-720.webp",
+    alt: "Специалист по охране труда осматривает проход и ограждение на площадке",
+  },
+  "handover-acceptance": {
+    src: "/images/marketing/most-handover-window-branded-v3.webp",
+    smallSrc: "/images/marketing/most-handover-window-branded-v3-720.webp",
+    alt: "Специалисты проверяют окно и документы в готовом помещении перед сдачей",
+  },
   "foreman-software": {
     src: "/images/marketing/most-foreman-planning-branded-v1.webp",
     smallSrc: "/images/marketing/most-foreman-planning-branded-v1-720.webp",
