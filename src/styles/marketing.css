@@ -1292,6 +1292,9 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   .most-header-row {
     min-height: 78px;
     justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 8px;
+    padding-block: 12px;
   }
   .most-desktop-nav,
   .most-header-demo {
@@ -1302,6 +1305,9 @@ html:has(.most-marketing)::-webkit-scrollbar-thumb:hover {
   }
   .most-header-actions {
     gap: 28px;
+    flex-wrap: wrap;
+    max-width: 100%;
+    margin-left: auto;
   }
   .most-hero {
     padding-top: 48px;

@@ -27,6 +27,7 @@ import {
   marketingSurfaceMeta,
 } from "@/data/marketingRegistry";
 import type { MarketingMaturity, MarketingSurface } from "@/types/marketing";
+import "@/styles/marketing-legal.css";
 
 const packageIcons: Record<string, ComponentType<{ className?: string }>> = {
   projects: BuildingOfficeIcon,
@@ -278,16 +279,14 @@ export const LegalDocumentView = ({
   });
 
   return (
-    <div className="marketing-page-shell">
+    <div className="marketing-page-shell most-legal">
       <PageHero
         eyebrow={document.shortTitle}
         title={document.title}
         description={document.intro}
         aside={
-          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-              Версия документа
-            </div>
+          <div className="most-legal-meta">
+            <div className="most-legal-caption">Версия документа</div>
             <div className="mt-3 text-lg font-bold text-steel-950">
               {document.version}
             </div>
@@ -295,9 +294,7 @@ export const LegalDocumentView = ({
               Обновлено: {document.updatedAt}
             </div>
             <div className="mt-6 border-t border-steel-100 pt-6">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-                Контакт по вопросам
-              </div>
+              <div className="most-legal-caption">Контакт по вопросам</div>
               <a
                 href={marketingCompany.emailHref}
                 className="mt-3 block text-base font-semibold text-construction-700"
@@ -313,29 +310,21 @@ export const LegalDocumentView = ({
       />
 
       <section className="py-16 lg:py-20">
-        <div className="container-custom grid gap-10 xl:grid-cols-[340px_minmax(0,1fr)]">
-          <aside className="rounded-[1.75rem] border border-steel-200 bg-concrete-50 p-6">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-              Ключевые положения
-            </div>
+        <div className="most-container most-legal-content">
+          <details className="most-legal-highlights">
+            <summary>Ключевые положения</summary>
             <div className="mt-5 space-y-3">
               {document.highlights.map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.25rem] border border-white bg-white px-4 py-4 text-sm leading-7 text-steel-700"
-                >
+                <div key={item} className="most-legal-highlight">
                   {item}
                 </div>
               ))}
             </div>
-          </aside>
+          </details>
 
           <div className="space-y-5">
             {document.sections.map((section) => (
-              <article
-                key={section.title}
-                className="rounded-[1.75rem] border border-steel-200 bg-white p-7 shadow-sm"
-              >
+              <article key={section.title} className="most-legal-article">
                 <h2 className="text-2xl font-bold text-steel-950">
                   {section.title}
                 </h2>
@@ -345,16 +334,13 @@ export const LegalDocumentView = ({
                   ))}
                 </div>
                 {section.bullets?.length ? (
-                  <div className="mt-5 grid gap-3">
+                  <ul className="mt-5 grid gap-3">
                     {section.bullets.map((bullet) => (
-                      <div
-                        key={bullet}
-                        className="rounded-[1.25rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                      >
+                      <li key={bullet} className="most-legal-bullet">
                         {bullet}
-                      </div>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 ) : null}
               </article>
             ))}
@@ -362,7 +348,7 @@ export const LegalDocumentView = ({
         </div>
       </section>
 
-      <section className="border-t border-steel-100 bg-concrete-50 py-16">
+      <section className="most-content-tint border-t border-steel-100 py-16">
         <div className="container-custom flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-xl font-bold text-steel-950">
@@ -376,14 +362,11 @@ export const LegalDocumentView = ({
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               to={marketingPaths.contact}
-              className="inline-flex w-full items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-steel-900 sm:w-auto"
+              className="most-button most-button-orange"
             >
               Перейти к контактам
             </Link>
-            <Link
-              to={marketingPaths.cookies}
-              className="inline-flex w-full items-center justify-center rounded-full border border-steel-300 bg-white px-5 py-3 text-center text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700 sm:w-auto"
-            >
+            <Link to={marketingPaths.cookies} className="most-text-link">
               Политика cookie
             </Link>
           </div>

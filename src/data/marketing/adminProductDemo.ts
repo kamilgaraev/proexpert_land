@@ -46,7 +46,7 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Объекты',
     shortTitle: 'Объекты',
     contour: 'Портфель',
-    businessOutcome: 'Руководитель видит портфель объектов, ответственных, прогресс и зоны риска без ручного свода.',
+    businessOutcome: 'Руководитель просматривает объекты, ответственных и текущие показатели по данным, которые внесла команда.',
     activeTab: 'Активные объекты',
     notification: 'На объекте ЖК "Северный" обновлен риск по срокам.',
     stats: [
@@ -103,7 +103,7 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Снабжение',
     shortTitle: 'Снабжение',
     contour: 'Закупки',
-    businessOutcome: 'Потребность превращается в закупочную заявку, запрос поставщикам, сравнение предложений и заказ.',
+    businessOutcome: 'Снабженец ведёт закупочную заявку, запрашивает предложения поставщиков, сравнивает их и оформляет заказ.',
     activeTab: 'Закупки',
     notification: 'По заявке на арматуру выбран поставщик с поставкой за 2 дня.',
     stats: [
