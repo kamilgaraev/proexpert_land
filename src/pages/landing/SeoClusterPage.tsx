@@ -35,30 +35,39 @@ const completedScenarios = new Set([
 ]);
 
 const editorialScenes: Partial<
-  Record<keyof typeof marketingSeoLandingPages, { src: string; alt: string }>
+  Record<
+    keyof typeof marketingSeoLandingPages,
+    { src: string; smallSrc: string; alt: string }
+  >
 > = {
   "pto-software": {
     src: "/images/marketing/most-pto-inspection-v2.webp",
+    smallSrc: "/images/marketing/most-pto-inspection-v2-720.webp",
     alt: "Инженер сопоставляет чертёж на закреплённом планшете с бетонной конструкцией на объекте",
   },
   "construction-procurement": {
     src: "/images/marketing/most-procurement-receiving-v1.webp",
+    smallSrc: "/images/marketing/most-procurement-receiving-v1-720.webp",
     alt: "Сотрудник сверяет поставку арматуры и кладочных блоков на площадке",
   },
   "contractor-control": {
     src: "/images/marketing/most-contractor-inspection-v2.webp",
+    smallSrc: "/images/marketing/most-contractor-inspection-v2-720.webp",
     alt: "Специалист проверяет вертикальность кладки строительным уровнем",
   },
   "construction-documents": {
     src: "/images/marketing/most-document-versions-branded-v1.webp",
+    smallSrc: "/images/marketing/most-document-versions-branded-v1-720.webp",
     alt: "Специалист сравнивает рабочие чертежи рядом с папкой МОСТ",
   },
   "site-requests": {
     src: "/images/marketing/most-site-request-branded-v2.webp",
+    smallSrc: "/images/marketing/most-site-request-branded-v2-720.webp",
     alt: "Прораб с планшетом проверяет наличие материалов на площадке",
   },
   "construction-quality-control": {
     src: "/images/marketing/most-quality-defect-branded-v1.webp",
+    smallSrc: "/images/marketing/most-quality-defect-branded-v1-720.webp",
     alt: "Инженер осматривает отмеченный скол бетонной ступени",
   },
 };
@@ -111,7 +120,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
               }
               srcSet={
                 editorialScene
-                  ? undefined
+                  ? `${editorialScene.smallSrc} 720w, ${editorialScene.src} 1536w`
                   : `/images/marketing/most-${scene}-story-720.webp 720w, /images/marketing/most-${scene}-story-1440.webp 1440w`
               }
               sizes="(max-width: 1079px) calc(100vw - 40px), 48vw"
