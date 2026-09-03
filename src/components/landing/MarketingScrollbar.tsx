@@ -37,7 +37,7 @@ const MarketingScrollbar = () => {
       return;
 
     const desktop = window.matchMedia(
-      "(min-width: 1080px) and (pointer: fine)",
+      "(pointer: fine)",
     );
     const forcedColors = window.matchMedia("(forced-colors: active)");
     const root = document.documentElement;

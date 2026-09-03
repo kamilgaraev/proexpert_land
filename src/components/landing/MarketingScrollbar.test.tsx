@@ -15,6 +15,7 @@ beforeEach(() => {
   capture.clear();
   mediaListeners.clear();
   vi.stubGlobal("innerHeight", 1000);
+  vi.stubGlobal("innerWidth", 1440);
   vi.stubGlobal("scrollY", 0);
   vi.spyOn(document.documentElement, "scrollHeight", "get").mockReturnValue(
     5000,
@@ -44,7 +45,8 @@ beforeEach(() => {
   );
   vi.stubGlobal("matchMedia", (query: string) => ({
     get matches() {
-      return query.includes("forced-colors") ? forcedColors : desktop;
+      if (query.includes("forced-colors")) return forcedColors;
+      return desktop && (!query.includes("min-width: 1080px") || window.innerWidth >= 1080);
     },
     addEventListener: (_: string, listener: () => void) =>
       mediaListeners.add(listener),
@@ -169,6 +171,13 @@ describe("Marketing window scrollbar", () => {
     expect(document.documentElement).not.toHaveClass(
       "most-overlay-scrollbar-ready",
     );
+  });
+
+  it("keeps the overlay scrollbar in a narrow window with a mouse", () => {
+    vi.stubGlobal("innerWidth", 390);
+    render(<MarketingScrollbar />);
+    expect(document.documentElement).toHaveClass("most-overlay-scrollbar-ready");
+    expect(screen.getByRole("scrollbar")).not.toHaveAttribute("hidden");
   });
 
   it("coalesces document resizing and scrolling into one pending frame", () => {

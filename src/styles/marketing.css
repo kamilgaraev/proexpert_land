@@ -775,7 +775,7 @@ html:has(.most-marketing) body {
   border-radius: 6px;
   background: var(--most-ink);
 }
-@media (min-width: 1080px) and (pointer: fine) and (forced-colors: none) {
+@media (pointer: fine) and (forced-colors: none) {
   html.most-overlay-scrollbar-ready {
     scrollbar-width: none;
     scrollbar-gutter: auto;
