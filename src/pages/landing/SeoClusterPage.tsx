@@ -40,6 +40,21 @@ const editorialScenes: Partial<
     { src: string; smallSrc: string; alt: string }
   >
 > = {
+  "foreman-software": {
+    src: "/images/marketing/most-foreman-planning-branded-v1.webp",
+    smallSrc: "/images/marketing/most-foreman-planning-branded-v1-720.webp",
+    alt: "Прораб сверяет задание на закреплённом чертеже с участком работ",
+  },
+  "mobile-app": {
+    src: "/images/marketing/most-mobile-photo-branded-v2.webp",
+    smallSrc: "/images/marketing/most-mobile-photo-branded-v2-720.webp",
+    alt: "Инженер фотографирует участок строительства с телефона",
+  },
+  "workforce-management": {
+    src: "/images/marketing/most-workforce-briefing-branded-v2.webp",
+    smallSrc: "/images/marketing/most-workforce-briefing-branded-v2-720.webp",
+    alt: "Прораб и бригада обсуждают задание по плану перед началом смены",
+  },
   "construction-budget-control": {
     src: "/images/marketing/most-budget-review-branded-v1.webp",
     smallSrc: "/images/marketing/most-budget-review-branded-v1-720.webp",
