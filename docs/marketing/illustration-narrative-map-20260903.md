@@ -22,7 +22,7 @@
 
 ## Текущий охват после восьмого блока
 
-Локально подготовлены и проверены самостоятельные сцены `/construction-crm`, `/construction-erp`, `/1c-integration`; evidence: `evidence/office-system-scenes-20260903.md`. После выпуска отдельные сцены будут у **21 из 29** профильных страниц. Останутся **8**: `/contractor-marketplace`, `/construction-orders`, `/construction-tenders`, `/project-pulse`, `/subcontracting`, `/find-contractor`, `/construction-brigades`, `/renovation-orders`. До подтверждения production опубликованный счётчик остаётся 18 из 29. Уникальная сцена не равна полной готовности страницы: общая редактура, сценарии и SEO ещё проверяются.
+Production `f98c30c0`, workflow `33785743778` SUCCESS: опубликованы самостоятельные сцены `/construction-crm`, `/construction-erp`, `/1c-integration`; evidence: `evidence/office-system-scenes-20260903.md`. Отдельные сцены есть у **21 из 29** профильных страниц. Остаются **8**: `/contractor-marketplace`, `/construction-orders`, `/construction-tenders`, `/project-pulse`, `/subcontracting`, `/find-contractor`, `/construction-brigades`, `/renovation-orders`. Уникальная сцена не равна полной готовности страницы: общая редактура, сценарии и SEO ещё проверяются.
 
 ## Предыдущий охват после седьмого блока
 
