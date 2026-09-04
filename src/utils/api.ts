@@ -19,6 +19,7 @@ import {
 } from './authTokenStorage';
 import type { AdminFormData as AdminFormDataExternal, AdminUsersListResponse, AdminUserDetailResponse, AdminUserDeleteResponse } from '../types/admin';
 import NotificationService from '@components/shared/NotificationService';
+import type { OrganizationTeamQuery } from '@/types/organization-team';
 
 // БЛОК ОПРЕДЕЛЕНИЯ URL
 // Базовый домен API
@@ -1645,6 +1646,11 @@ export const userManagementService = {
   getOrganizationUsers: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/user-management/organization-users');
     return response;
+  },
+
+  getOrganizationTeam: async (query: OrganizationTeamQuery, signal: AbortSignal): Promise<unknown> => {
+    const response = await api.get<unknown>('/user-management/organization-users', { params: query, signal });
+    return response.data;
   },
 
   // Управление ролями пользователей - обновлено для кастомных ролей
