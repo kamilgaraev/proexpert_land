@@ -1,6 +1,6 @@
-import { CheckCircle } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import type { CommercialPackage, CommercialPackageSlug } from '@/data/marketing/packages';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 interface RecommendedPackagesCardProps {
@@ -17,64 +17,35 @@ export const RecommendedPackagesCard = ({
   if (packages.length === 0) {
     return (
       <Card>
-        <CardContent className="p-8 text-center">
-          <p className="text-gray-500">
-            Заполните профиль организации, чтобы получить рекомендации по пакетам
-          </p>
+        <CardContent className="p-5 text-sm text-muted-foreground">
+          Заполните профиль организации, чтобы получить рекомендации по пакетам.
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {showTitle ? (
+    <div className="space-y-3">
+      {showTitle && (
         <div>
-          <h3 className="mb-1 text-lg font-semibold text-gray-900">Рекомендуемые пакеты</h3>
-          <p className="text-sm text-gray-600">На основе профиля вашей организации</p>
+          <h3 className="text-lg font-semibold">Рекомендуемые пакеты</h3>
+          <p className="mt-1 text-sm text-muted-foreground">На основе профиля вашей организации</p>
         </div>
-      ) : null}
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {packages.map((item) => (
-          <button
-            key={item.slug}
-            type="button"
-            className="group rounded-xl text-left"
+      )}
+      <div className="divide-y divide-border border-y border-border">
+        {packages.map(item => (
+          <Button key={item.slug} type="button" variant="ghost"
             onClick={() => onPackageClick(item.slug)}
-          >
-            <Card className="h-full transition-all duration-200 group-hover:border-construction-300 group-hover:shadow-lg">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-base transition-colors group-hover:text-construction-600">
-                      {item.name}
-                    </CardTitle>
-                    <CardDescription className="mt-1 text-sm">{item.description}</CardDescription>
-                  </div>
-                  <CheckCircle className="ml-2 h-5 w-5 flex-shrink-0 text-construction-500" />
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="sm"
-                  className="w-full text-construction-600 group-hover:bg-construction-50"
-                >
-                  <span>Выбрать пакет →</span>
-                </Button>
-              </CardContent>
-            </Card>
-          </button>
+            className="h-auto w-full items-start justify-start gap-3 whitespace-normal rounded-none px-1 py-4 text-left">
+            <span className="min-w-0 flex-1">
+              <span className="block font-medium">{item.name}</span>
+              <span className="mt-1 block text-sm font-normal text-muted-foreground">{item.description}</span>
+            </span>
+            <ArrowUpRight className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          </Button>
         ))}
       </div>
-
-      <div className="mt-6 rounded-lg border border-construction-200 bg-construction-50 p-4">
-        <p className="text-sm text-construction-800">
-          Состав можно изменить в разделе «Пакеты и оплата».
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground">Состав можно изменить в разделе «Пакеты и оплата».</p>
     </div>
   );
 };

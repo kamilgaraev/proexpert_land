@@ -1,7 +1,6 @@
 import type { WorkspaceAction, WorkspaceProfile } from '@/types/organization-profile';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Briefcase, PackageCheck, Settings } from 'lucide-react';
+import { ArrowUpRight, Briefcase, PackageCheck, Settings } from 'lucide-react';
 
 interface WorkspaceQuickActionsCardProps {
   workspaceProfile?: WorkspaceProfile | null;
@@ -23,45 +22,22 @@ export const WorkspaceQuickActionsCard = ({
   showTitle = true,
 }: WorkspaceQuickActionsCardProps) => {
   const actions = workspaceProfile?.recommended_actions ?? [];
-
-  if (actions.length === 0) {
-    return null;
-  }
+  if (actions.length === 0) return null;
 
   return (
-    <div className="space-y-4">
-      {showTitle && (
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Быстрые действия</h3>
-          <p className="text-sm text-gray-600">Стартовые сценарии для выбранного режима работы</p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {actions.map((action) => {
+    <div className="space-y-3">
+      {showTitle && <h3 className="text-lg font-semibold">Быстрые действия</h3>}
+      <div className="divide-y divide-border border-y border-border">
+        {actions.map(action => {
           const Icon = ACTION_ICONS[action.key] ?? Briefcase;
-
           return (
-            <Card
-              key={action.key}
-              className="cursor-pointer transition-all duration-200 hover:border-construction-300 hover:shadow-lg"
+            <Button key={action.key} type="button" variant="ghost"
               onClick={() => onActionClick(action)}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="rounded-lg bg-construction-50 p-2 text-construction-600">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <ArrowRight className="mt-1 h-4 w-4 text-construction-500" />
-                </div>
-                <CardTitle className="text-base">{action.label}</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <Button variant="ghost" size="sm" className="w-full text-construction-600 hover:bg-construction-50">
-                  Открыть
-                </Button>
-              </CardContent>
-            </Card>
+              className="h-auto min-h-14 w-full justify-start gap-3 whitespace-normal rounded-none px-1 py-4 text-left">
+              <Icon className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <span className="min-w-0 flex-1">{action.label}</span>
+              <ArrowUpRight className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            </Button>
           );
         })}
       </div>
