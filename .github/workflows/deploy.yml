@@ -237,6 +237,9 @@ jobs:
             sed -i 's|../../node_modules|../node_modules|g' server/importBuild.cjs
           fi
 
+      - name: Verify built marketing SSR
+        run: node scripts/verify-ssr-build.mjs
+
       - name: Prepare marketing artefact
         run: |
           rm -rf .deploy/marketing
