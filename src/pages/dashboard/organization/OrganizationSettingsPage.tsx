@@ -190,7 +190,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
 
     return (
       <Card className="overflow-hidden">
-        <div className="flex items-center justify-between border-b bg-muted/20 px-6 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-5 py-4 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="rounded-lg border bg-background p-2 shadow-sm">{icon}</div>
             <div>
@@ -261,7 +261,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <Card>
             <CardContent className="p-6">
               <div className="mb-6 flex items-center gap-4">
@@ -399,7 +399,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
           )}
         </div>
 
-        <div className="space-y-6 lg:col-span-1">
+        <div className="min-w-0 space-y-6 lg:col-span-1">
           {profile && (
             <ProfileCompletenessWidget
               completeness={profile.profile_completeness}
