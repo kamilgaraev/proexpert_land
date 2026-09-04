@@ -55,6 +55,21 @@ const getSaveErrorMessage = (error: unknown): string => {
     : defaultSaveErrorMessage;
 };
 
+const organizationFormValues = (organization: Organization): OrganizationUpdateData => ({
+  name: organization.name || "",
+  legal_name: organization.legal_name || "",
+  tax_number: organization.tax_number || "",
+  registration_number: organization.registration_number || "",
+  okpo: organization.okpo || "",
+  phone: organization.phone || "",
+  email: organization.email || "",
+  address: organization.address || "",
+  city: organization.city || "",
+  postal_code: organization.postal_code || "",
+  country: organization.country || "Россия",
+  description: organization.description || "",
+});
+
 const OrganizationPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -83,21 +98,7 @@ const OrganizationPage = () => {
         setOrganization(response.data.organization);
         setRecommendations(response.data.recommendations);
         setUserMessage(response.data.user_message);
-        setFormData({
-          name: response.data.organization.name || "",
-          legal_name: response.data.organization.legal_name || "",
-          tax_number: response.data.organization.tax_number || "",
-          registration_number:
-            response.data.organization.registration_number || "",
-          okpo: response.data.organization.okpo || "",
-          phone: response.data.organization.phone || "",
-          email: response.data.organization.email || "",
-          address: response.data.organization.address || "",
-          city: response.data.organization.city || "",
-          postal_code: response.data.organization.postal_code || "",
-          country: response.data.organization.country || "Россия",
-          description: response.data.organization.description || "",
-        });
+        setFormData(organizationFormValues(response.data.organization));
       }
     } catch (error) {
       toast.error("Не удалось загрузить данные организации");
@@ -268,6 +269,7 @@ const OrganizationPage = () => {
                   size="sm"
                   variant="outline"
                   onClick={() => {
+                    setFormData(organizationFormValues(organization));
                     setSaveError(null);
                     setIsEditing(true);
                   }}
@@ -329,6 +331,7 @@ const OrganizationPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => {
+                  setFormData(organizationFormValues(organization));
                   setSaveError(null);
                   setIsEditing(true);
                 }}
