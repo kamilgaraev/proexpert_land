@@ -67,7 +67,7 @@ const RolesComparisonTable: React.FC<RolesComparisonTableProps> = ({ onRoleClick
   );
   const accessSummary = (role: RoleComparison) => role.has_all_permissions
     ? 'Все права доступа'
-    : `${role.system_permissions_count + role.module_permissions_count} разрешений`;
+    : `Разрешений: ${role.system_permissions_count + role.module_permissions_count}`;
 
   if (loading) return <div role="status" className="py-12 text-center text-muted-foreground">Загружаем роли…</div>;
   if (error) return (
