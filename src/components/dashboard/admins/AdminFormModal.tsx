@@ -370,7 +370,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={onClose}>
+      <Dialog as="div" className="most-workspace relative z-[70]" onClose={onClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -380,11 +380,11 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          <div className="fixed inset-0 bg-black/40 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-0">
+          <div className="flex min-h-full items-start justify-center p-4 text-left sm:items-center sm:p-6">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -394,13 +394,13 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-3xl bg-gradient-to-br from-white to-concrete-50 px-8 pt-10 pb-8 text-left shadow-construction-lg ring-1 ring-construction-200/50 transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-10">
+              <Dialog.Panel className="relative w-full min-w-0 max-w-2xl transform overflow-hidden rounded-lg bg-white p-4 text-left shadow-xl transition-all sm:my-4 sm:p-6">
                 <div className="flex items-center mb-8">
-                  <div className="flex-shrink-0 bg-gradient-to-r from-construction-500 to-construction-600 rounded-full p-3 mr-4 shadow-construction">
+                  <div className="hidden">
                     <UserCircleIcon className="h-10 w-10 text-white" />
                   </div>
                   <div>
-                    <Dialog.Title as="h3" className="text-3xl font-bold bg-gradient-to-r from-steel-800 to-steel-600 bg-clip-text text-transparent">
+                    <Dialog.Title as="h3" className="text-2xl font-semibold text-steel-900">
                       {isEditing ? 'Редактировать администратора' : 'Добавить администратора'}
                     </Dialog.Title>
                     <p className="text-steel-600 mt-1">
@@ -438,7 +438,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                   </div>
                 )}
                 <form onSubmit={handleSubmit} autoComplete="off" className="space-y-8">
-                  <div className="bg-gradient-to-r from-construction-50 to-construction-100 rounded-2xl p-6 border border-construction-200">
+                  <div className="min-w-0 border-t border-steel-200 pt-6">
                     <div className="flex items-center mb-4">
                       <UserCircleIcon className="h-6 w-6 text-construction-600 mr-2" />
                       <h4 className="text-xl font-bold text-steel-800">Данные администратора</h4>
@@ -455,7 +455,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                           autoFocus
                           value={formData.name}
                           onChange={handleChange}
-                          className={`block w-full rounded-xl border-2 transition-all duration-200 px-4 py-3 text-steel-900 placeholder-steel-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
+                          className={`block w-full rounded-xl border-2 transition-all duration-200 px-4 py-3 text-steel-900 placeholder-steel-500 bg-white text-base font-medium ${
                             fieldErrors.name 
                               ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 focus:ring-4' 
                               : 'border-steel-200 focus:border-construction-500 focus:ring-construction-500/20 focus:ring-4 hover:border-steel-300'
@@ -485,7 +485,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                             maxLength={255}
                             value={formData.email}
                             onChange={handleChange}
-                            className={`block w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 text-steel-900 placeholder-steel-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
+                            className={`block w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-200 text-steel-900 placeholder-steel-500 bg-white text-base font-medium ${
                               fieldErrors.email 
                                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 focus:ring-4' 
                                 : 'border-steel-200 focus:border-construction-500 focus:ring-construction-500/20 focus:ring-4 hover:border-steel-300'
@@ -524,8 +524,8 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
 
                                 return (
                                   <div key={roleType}>
-                                    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-steel-500">
-                                      {roleType === 'system' ? 'Системные роли' : 'Кастомные роли'}
+                                    <p className="mb-2 text-sm font-medium text-steel-600">
+                                      {roleType === 'system' ? 'Системные роли' : 'Роли организации'}
                                     </p>
                                     <div className="grid grid-cols-1 gap-2">
                                       {roles.map((role) => {
@@ -597,8 +597,8 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                     </div>
                   </div>
                   
-                  <div className="bg-gradient-to-r from-safety-50 to-safety-100 rounded-2xl p-6 border border-safety-200">
-                    <div className="flex items-center justify-between mb-4">
+                  <div className="min-w-0 border-t border-steel-200 pt-6">
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                       <div className="flex items-center">
                         <LockClosedIcon className="h-6 w-6 text-safety-600 mr-2" />
                         <h4 className="text-xl font-bold text-steel-800">Безопасность</h4>
@@ -632,7 +632,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                             minLength={isEditing && !formData.password ? undefined : 8}
                             value={formData.password}
                             onChange={handleChange}
-                            className={`block w-full pl-12 pr-12 py-3 rounded-xl border-2 transition-all duration-200 text-steel-900 placeholder-steel-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
+                            className={`block w-full pl-12 pr-12 py-3 rounded-xl border-2 transition-all duration-200 text-steel-900 placeholder-steel-500 bg-white text-base font-medium ${
                               fieldErrors.password 
                                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 focus:ring-4' 
                                 : 'border-steel-200 focus:border-safety-500 focus:ring-safety-500/20 focus:ring-4 hover:border-steel-300'
@@ -642,7 +642,8 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-steel-400 hover:text-steel-600 transition-colors duration-200"
+                            aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-steel-500 hover:text-steel-800"
                           >
                             {showPassword ? (
                               <EyeSlashIcon className="h-5 w-5" />
@@ -706,7 +707,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                             required={!!formData.password}
                             value={formData.password_confirmation}
                             onChange={handleChange}
-                            className={`block w-full pl-12 pr-12 py-3 rounded-xl border-2 transition-all duration-200 text-steel-900 placeholder-steel-500 bg-white/80 backdrop-blur-sm shadow-sm text-sm font-medium ${
+                            className={`block w-full pl-12 pr-12 py-3 rounded-xl border-2 transition-all duration-200 text-steel-900 placeholder-steel-500 bg-white text-base font-medium ${
                               fieldErrors.password_confirmation 
                                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 focus:ring-4' 
                                 : 'border-steel-200 focus:border-safety-500 focus:ring-safety-500/20 focus:ring-4 hover:border-steel-300'
@@ -716,7 +717,8 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                           <button
                             type="button"
                             onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)}
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-steel-400 hover:text-steel-600 transition-colors duration-200"
+                            aria-label={showPasswordConfirmation ? 'Скрыть подтверждение пароля' : 'Показать подтверждение пароля'}
+                            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-steel-500 hover:text-steel-800"
                           >
                             {showPasswordConfirmation ? (
                               <EyeSlashIcon className="h-5 w-5" />
@@ -749,7 +751,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                             onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                             className="h-5 w-5 rounded-lg border-2 border-steel-300 text-safety-600 focus:ring-safety-500/20 focus:ring-4 transition-all duration-200"
                           />
-                          <label htmlFor="is_active" className="ml-3 flex items-center">
+                          <label htmlFor="is_active" className="ml-3 flex flex-wrap items-center gap-2">
                             <span className="text-sm font-semibold text-steel-800">Активен</span>
                             <span className="ml-2 text-xs text-steel-600">Администратор сможет войти в систему</span>
                           </label>
@@ -761,7 +763,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-construction-600 to-construction-500 hover:from-construction-700 hover:to-construction-600 focus:outline-none focus:ring-4 focus:ring-construction-500/20 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-200 hover:scale-105 shadow-construction hover:shadow-construction-lg"
+                      className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#ae4612] px-4 py-3 text-base font-semibold text-white hover:bg-[#8f370c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoading ? (
                         <>
@@ -781,7 +783,7 @@ const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onForm
                     <button
                       type="button"
                       disabled={isLoading}
-                      className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-base font-semibold text-steel-700 bg-white border-2 border-steel-200 hover:border-construction-300 hover:bg-construction-50 hover:text-construction-700 focus:outline-none focus:ring-4 focus:ring-steel-200/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
+                      className="inline-flex min-h-11 items-center justify-center rounded-lg border border-steel-200 bg-white px-4 py-3 text-base font-semibold text-steel-700 hover:bg-steel-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={onClose}
                     >
                       <XMarkIcon className="h-5 w-5 mr-2" />
