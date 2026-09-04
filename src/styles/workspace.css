@@ -2,6 +2,8 @@
   --workspace-text-caption: clamp(0.8125rem, 0.79rem + 0.06vw, 0.875rem);
   --workspace-text-label: clamp(0.875rem, 0.84rem + 0.08vw, 0.9375rem);
   --workspace-text-body: 1rem;
+  --workspace-text-lead: clamp(1.125rem, 1.06rem + 0.2vw, 1.25rem);
+  --workspace-text-large: clamp(1.5rem, 1.35rem + 0.4vw, 1.875rem);
   --workspace-text-section: clamp(1.25rem, 1.12rem + 0.35vw, 1.5rem);
   --workspace-text-title: clamp(1.75rem, 1.4rem + 0.8vw, 2.25rem);
   --workspace-page-gutter: clamp(1rem, 0.4rem + 1.6vw, 2.5rem);
@@ -39,6 +41,10 @@
 .most-workspace .text-xs { font-size: var(--workspace-text-caption); line-height: 1.5; }
 .most-workspace .text-sm { font-size: var(--workspace-text-label); line-height: 1.5; }
 .most-workspace .text-base { font-size: var(--workspace-text-body); line-height: 1.5; }
+.most-workspace .text-lg { font-size: var(--workspace-text-lead); line-height: 1.4; }
+.most-workspace .text-xl { font-size: var(--workspace-text-section); line-height: 1.3; }
+.most-workspace .text-2xl { font-size: var(--workspace-text-large); line-height: 1.25; }
+.most-workspace .text-3xl { font-size: var(--workspace-text-title); line-height: 1.2; }
 
 .most-workspace-header {
   background: hsl(var(--background));
@@ -133,8 +139,15 @@
   outline-offset: 3px;
 }
 
-.most-workspace :where(input, select, textarea) {
+.most-workspace :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]) {
+  min-height: var(--workspace-control-height);
   font-size: var(--workspace-text-body);
+  line-height: 1.5;
+  border-radius: var(--workspace-radius);
+}
+
+.most-workspace :is(input, select, textarea):focus-visible {
+  box-shadow: none;
 }
 
 .most-workspace :where(th, td) {
