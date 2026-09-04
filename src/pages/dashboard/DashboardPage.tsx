@@ -187,9 +187,9 @@ const DashboardPage = () => {
 
       {/* Stats Grid */}
       {landingData && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 2xl:grid-cols-4">
              {/* Financial Card - Featured */}
-             <Card className="border-border bg-card shadow-none rounded-lg md:col-span-2">
+             <Card className="col-span-2 border-border bg-card shadow-none rounded-lg">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
                     Баланс организации
@@ -222,14 +222,14 @@ const DashboardPage = () => {
               </Card>
 
              {statCards.slice(0, 2).map((stat) => (
-                <Card key={stat.name} className="rounded-lg border-border shadow-none">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card key={stat.name} className="min-w-0 rounded-lg border-border shadow-none">
+                    <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0 p-4 pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
                         {stat.name}
                     </CardTitle>
                     <stat.icon className="h-5 w-5 text-muted-foreground" />
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-4 pt-0">
                     <div className="text-2xl font-bold">{stat.value}</div>
                     <p className="text-xs text-muted-foreground mt-1">
                         {stat.description}
@@ -241,16 +241,16 @@ const DashboardPage = () => {
       )}
 
       {landingData && (
-         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">
+         <div className="grid grid-cols-2 gap-4 2xl:grid-cols-4">
               {statCards.slice(2).map((stat) => (
-                <Card key={stat.name} className="rounded-lg border-border shadow-none">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Card key={stat.name} className="min-w-0 rounded-lg border-border shadow-none">
+                    <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0 p-4 pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
                         {stat.name}
                     </CardTitle>
                     <stat.icon className="h-5 w-5 text-muted-foreground" />
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-4 pt-0">
                     <div className="text-2xl font-bold">{stat.value}</div>
                     <p className="text-xs text-muted-foreground mt-1">
                         {stat.description}
@@ -258,7 +258,7 @@ const DashboardPage = () => {
                     </CardContent>
                 </Card>
              ))}
-              <Card className="md:col-span-2 rounded-lg border-border bg-card shadow-none">
+              <Card className="col-span-2 rounded-lg border-border bg-card shadow-none">
                  <CardHeader className="pb-2">
                      <CardTitle className="text-base">Быстрые действия</CardTitle>
                  </CardHeader>
@@ -286,10 +286,10 @@ const DashboardPage = () => {
          <div className="grid grid-cols-1 gap-4 xl:grid-cols-7">
              <Card className="min-w-0 rounded-lg shadow-none xl:col-span-4">
                  <CardHeader>
-                     <CardTitle>Проекты по месяцам</CardTitle>
+                     <CardTitle className="text-lg">Проекты по месяцам</CardTitle>
                      <CardDescription>Динамика создания новых объектов</CardDescription>
                  </CardHeader>
-                 <CardContent className="h-[300px] pl-2 pr-4 pb-6">
+                 <CardContent className={landingData.charts?.projects_monthly?.values?.some((value) => value !== 0) ? 'h-[240px] pl-2 pr-4 pb-6 sm:h-[300px]' : 'h-28 px-4 pb-6'}>
                     <LineChart
                         title=""
                         labels={landingData.charts?.projects_monthly?.labels || []}
@@ -299,10 +299,10 @@ const DashboardPage = () => {
              </Card>
              <Card className="min-w-0 rounded-lg shadow-none xl:col-span-3">
                  <CardHeader>
-                     <CardTitle>Статус проектов</CardTitle>
+                     <CardTitle className="text-lg">Статус проектов</CardTitle>
                      <CardDescription>Распределение по этапам</CardDescription>
                  </CardHeader>
-                 <CardContent className="h-[300px] pb-6">
+                 <CardContent className="h-[260px] pb-6 sm:h-[300px]">
                     <DonutStatusChart title="" data={projectStatusChartData} />
                  </CardContent>
              </Card>
@@ -314,7 +314,7 @@ const DashboardPage = () => {
          <div className="grid grid-cols-1 gap-4 2xl:grid-cols-3">
             <Card className="min-w-0 rounded-lg shadow-none">
                  <CardHeader>
-                     <CardTitle className="text-sm">Контракты</CardTitle>
+                     <CardTitle className="text-lg">Контракты</CardTitle>
                  </CardHeader>
                  <CardContent className="h-[240px] pl-2 pr-4 pb-6">
                     <LineChart
@@ -326,7 +326,7 @@ const DashboardPage = () => {
             </Card>
             <Card className="min-w-0 rounded-lg shadow-none">
                  <CardHeader>
-                     <CardTitle className="text-sm">Завершённые работы</CardTitle>
+                     <CardTitle className="text-lg">Завершённые работы</CardTitle>
                  </CardHeader>
                  <CardContent className="h-[240px] pl-2 pr-4 pb-6">
                     <LineChart
@@ -338,7 +338,7 @@ const DashboardPage = () => {
             </Card>
             <Card className="min-w-0 rounded-lg shadow-none">
                  <CardHeader>
-                     <CardTitle className="text-sm">Изменение баланса</CardTitle>
+                     <CardTitle className="text-lg">Изменение баланса</CardTitle>
                  </CardHeader>
                  <CardContent className="h-[240px] pl-2 pr-4 pb-6">
                     <LineChart
