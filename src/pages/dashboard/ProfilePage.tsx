@@ -97,7 +97,6 @@ const ProfilePage = () => {
     if (email !== user.email) formData.append('email', email);
     if (phone !== (user.phone || '')) formData.append('phone', phone);
     if (position !== (user.position || '')) formData.append('position', position);
-    formData.append('_method', 'PATCH');
 
     if (avatarFile) {
       formData.append('avatar', avatarFile);
@@ -117,6 +116,8 @@ const ProfilePage = () => {
       setIsSaving(false);
       return;
     }
+
+    formData.append('_method', 'PATCH');
 
     try {
       const response = await userService.updateProfile(formData);
@@ -189,10 +190,10 @@ const ProfilePage = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-steel-100">
+          <div className="bg-white rounded-lg p-5 sm:p-8 border border-steel-200">
             <div className="text-center">
               <div className="relative inline-block">
-                <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-construction-500 to-construction-600 p-1 shadow-construction">
+                <div className="w-32 h-32 rounded-full overflow-hidden border border-steel-200 p-1">
                   <div className="w-full h-full rounded-full overflow-hidden bg-white">
                     {avatarPreview ? (
                       <img 
@@ -211,8 +212,9 @@ const ProfilePage = () => {
                 {isEditing && (
                   <div className="absolute -bottom-2 -right-2">
                     <label htmlFor="avatar-upload" className="cursor-pointer">
-                      <div className="w-10 h-10 bg-construction-600 rounded-full flex items-center justify-center shadow-lg hover:bg-construction-700 transition-colors">
+                      <div className="w-11 h-11 bg-construction-600 rounded-full flex items-center justify-center hover:bg-construction-700 transition-colors">
                         <CameraIcon className="w-5 h-5 text-white" />
+                        <span className="sr-only">Загрузить аватар</span>
                       </div>
                       <input
                         id="avatar-upload"
@@ -229,7 +231,7 @@ const ProfilePage = () => {
               <div className="mt-6">
                 <h2 className="text-2xl font-bold text-steel-900">{user.name}</h2>
                 <p className="text-steel-600 mt-1">{user.position || 'Не указана должность'}</p>
-                <div className="flex items-center justify-center gap-2 mt-2">
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-2 break-all">
                   <p className="text-steel-500 text-sm">{user.email}</p>
                   {verificationLoading ? (
                     <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
@@ -277,7 +279,7 @@ const ProfilePage = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <TrashIcon className="w-4 h-4 mr-2" />
+                  <TrashIcon className="w-5 h-5 mr-2 shrink-0" />
                   Удалить аватар
                 </motion.button>
               )}
@@ -292,10 +294,10 @@ const ProfilePage = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="bg-white rounded-2xl shadow-lg border border-steel-100 overflow-hidden">
+          <div className="bg-white rounded-lg border border-steel-200 min-w-0">
             {/* Заголовок формы */}
-            <div className="bg-gradient-to-r from-construction-50 to-safety-50 px-8 py-6 border-b border-steel-100">
-              <div className="flex items-center justify-between">
+            <div className="px-5 sm:px-8 py-6 border-b border-steel-200">
+              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
                 <div>
                   <h3 className="text-xl font-bold text-steel-900">Личная информация</h3>
                   <p className="text-steel-600 mt-1">Основные данные вашего профиля</p>
@@ -304,37 +306,37 @@ const ProfilePage = () => {
                   <motion.button
                     type="button"
                     onClick={() => setIsEditing(true)}
-                    className="inline-flex items-center px-4 py-2 bg-construction-600 text-white rounded-xl hover:bg-construction-700 transition-colors shadow-construction"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 bg-construction-600 text-white rounded-md hover:bg-construction-700 transition-colors"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <PencilIcon className="w-4 h-4 mr-2" />
+                    <PencilIcon className="w-5 h-5 mr-2 shrink-0" />
                     Редактировать
                   </motion.button>
                 ) : (
-                  <div className="flex space-x-3">
+                  <div className="flex flex-wrap gap-3">
                     <motion.button
                       type="button"
                       onClick={handleCancelEdit}
-                      className="inline-flex items-center px-4 py-2 border border-steel-300 text-steel-700 rounded-xl hover:bg-steel-50 transition-colors"
+                      className="inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 border border-steel-300 text-steel-700 rounded-md hover:bg-steel-50 transition-colors"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <XMarkIcon className="w-4 h-4 mr-2" />
+                      <XMarkIcon className="w-5 h-5 mr-2 shrink-0" />
                       Отмена
                     </motion.button>
                     <motion.button
                       type="submit"
                       form="profile-form"
                       disabled={isSaving}
-                      className="inline-flex items-center px-4 py-2 bg-safety-600 text-white rounded-xl hover:bg-safety-700 transition-colors shadow-safety disabled:opacity-50"
+                      className="inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 bg-construction-600 text-white rounded-md hover:bg-construction-700 transition-colors disabled:opacity-50"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       {isSaving ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
                       ) : (
-                        <CheckIcon className="w-4 h-4 mr-2" />
+                        <CheckIcon className="w-5 h-5 mr-2 shrink-0" />
                       )}
                       {isSaving ? 'Сохранение...' : 'Сохранить'}
                     </motion.button>
@@ -344,16 +346,18 @@ const ProfilePage = () => {
             </div>
 
             {/* Форма */}
-            <form id="profile-form" onSubmit={handleSubmit} className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form id="profile-form" onSubmit={handleSubmit} className="p-5 sm:p-8">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {/* Имя */}
                 <div>
-                  <label className="block text-sm font-medium text-steel-700 mb-2">
-                    <IdentificationIcon className="w-4 h-4 inline mr-2" />
+                  <label htmlFor="profile-name" className="block text-sm font-medium text-steel-700 mb-2">
+                    <IdentificationIcon className="w-5 h-5 inline mr-2" />
                     Полное имя
                   </label>
                   {isEditing ? (
                     <input
+                      id="profile-name"
+                      autoComplete="name"
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -374,12 +378,14 @@ const ProfilePage = () => {
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-steel-700 mb-2">
-                    <EnvelopeIcon className="w-4 h-4 inline mr-2" />
+                  <label htmlFor="profile-email" className="block text-sm font-medium text-steel-700 mb-2">
+                    <EnvelopeIcon className="w-5 h-5 inline mr-2" />
                     Email адрес
                   </label>
                   {isEditing ? (
                     <input
+                      id="profile-email"
+                      autoComplete="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -390,7 +396,7 @@ const ProfilePage = () => {
                     />
                   ) : (
                     <div className="space-y-2">
-                      <div className="px-4 py-3 bg-steel-50 rounded-xl text-steel-900 font-medium flex items-center justify-between">
+                      <div className="px-4 py-3 bg-steel-50 rounded-md text-steel-900 font-medium flex flex-wrap items-center justify-between gap-2 break-all">
                         <span>{user.email || 'Не указан'}</span>
                         {verificationLoading ? (
                           <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
@@ -435,12 +441,14 @@ const ProfilePage = () => {
 
                 {/* Телефон */}
                 <div>
-                  <label className="block text-sm font-medium text-steel-700 mb-2">
-                    <PhoneIcon className="w-4 h-4 inline mr-2" />
+                  <label htmlFor="profile-phone" className="block text-sm font-medium text-steel-700 mb-2">
+                    <PhoneIcon className="w-5 h-5 inline mr-2" />
                     Номер телефона
                   </label>
                   {isEditing ? (
                     <input
+                      id="profile-phone"
+                      autoComplete="tel"
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
@@ -461,12 +469,14 @@ const ProfilePage = () => {
 
                 {/* Должность */}
                 <div>
-                  <label className="block text-sm font-medium text-steel-700 mb-2">
-                    <BuildingOfficeIcon className="w-4 h-4 inline mr-2" />
+                  <label htmlFor="profile-position" className="block text-sm font-medium text-steel-700 mb-2">
+                    <BuildingOfficeIcon className="w-5 h-5 inline mr-2" />
                     Должность
                   </label>
                   {isEditing ? (
                     <input
+                      id="profile-position"
+                      autoComplete="organization-title"
                       type="text"
                       value={position}
                       onChange={(e) => setPosition(e.target.value)}
@@ -489,8 +499,8 @@ const ProfilePage = () => {
               {/* Дополнительная информация */}
               <div className="mt-8 pt-8 border-t border-steel-200">
                 <h4 className="text-lg font-semibold text-steel-900 mb-4">Дополнительная информация</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-center justify-between p-4 bg-construction-50 rounded-xl">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                  <div className="flex items-center justify-between gap-3 p-4 bg-steel-50 rounded-md">
                     <div>
                       <p className="font-medium text-steel-900">Дата регистрации</p>
                       <p className="text-steel-600 text-sm">
@@ -502,7 +512,7 @@ const ProfilePage = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-safety-50 rounded-xl">
+                  <div className="flex items-center justify-between gap-3 p-4 bg-steel-50 rounded-md">
                     <div>
                       <p className="font-medium text-steel-900">Последнее обновление</p>
                       <p className="text-steel-600 text-sm">

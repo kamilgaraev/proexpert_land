@@ -1,4 +1,4 @@
-import { ArrowUpRight, Building2, CheckCircle2, FileText, MapPin, TrendingUp, User } from 'lucide-react';
+import { ArrowUpRight, Building2, FileText, MapPin, Hammer, User } from 'lucide-react';
 import type { ProjectOverview } from '@/types/projects-overview';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,181 +10,74 @@ interface ProjectCardProps {
   onGoToWork?: (projectId: number) => void;
 }
 
-export const ProjectCard = ({
-  project,
-  onViewDetails
-}: ProjectCardProps) => {
-  const statusConfig: Record<string, { color: string; label: string; dot: string; bg: string; ring: string }> = {
-    planned: { color: 'text-slate-600', bg: 'bg-slate-100', dot: 'bg-slate-400', ring: 'ring-slate-200', label: 'Запланирован' },
-    active: { color: 'text-emerald-700', bg: 'bg-emerald-50', dot: 'bg-emerald-500', ring: 'ring-emerald-100', label: 'Активен' },
-    in_progress: { color: 'text-blue-700', bg: 'bg-blue-50', dot: 'bg-blue-500', ring: 'ring-blue-100', label: 'В работе' },
-    completed: { color: 'text-slate-600', bg: 'bg-slate-100', dot: 'bg-slate-500', ring: 'ring-slate-200', label: 'Завершен' },
-    on_hold: { color: 'text-amber-700', bg: 'bg-amber-50', dot: 'bg-amber-500', ring: 'ring-amber-100', label: 'На паузе' },
-    cancelled: { color: 'text-red-700', bg: 'bg-red-50', dot: 'bg-red-500', ring: 'ring-red-100', label: 'Отменен' }
+export const ProjectCard = ({ project, onViewDetails }: ProjectCardProps) => {
+  const statuses: Record<string, { label: string; color: string }> = {
+    planned: { label: 'Запланирован', color: 'text-muted-foreground' },
+    active: { label: 'Активен', color: 'text-emerald-800' },
+    in_progress: { label: 'В работе', color: 'text-blue-800' },
+    completed: { label: 'Завершён', color: 'text-muted-foreground' },
+    on_hold: { label: 'На паузе', color: 'text-amber-800' },
+    cancelled: { label: 'Отменён', color: 'text-red-800' }
   };
-
+  const status = statuses[project.status] ?? { label: 'Статус не указан', color: 'text-muted-foreground' };
   const completionPercentage = Math.min(100, Math.max(0, Math.round(project.progress_percent ?? project.completion_percentage ?? 0)));
   const totalContracts = project.stats?.contracts.total ?? project.total_contracts ?? 0;
   const totalWorks = project.stats?.works.total ?? project.total_works ?? 0;
   const totalAmountContracts = project.stats?.contracts.total_amount ?? project.total_amount_contracts ?? 0;
   const totalAmountWorks = project.stats?.works.total_amount ?? project.total_amount_works ?? 0;
-
-  const formatAmount = (amount: number) => {
-    if (!amount) {
-      return '0 ₽';
-    }
-
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency: 'RUB',
-      maximumFractionDigits: 0,
-      notation: amount >= 1000000 ? 'compact' : 'standard'
-    }).format(amount);
-  };
-
-  const status = statusConfig[project.status] || { 
-    color: 'text-slate-600', 
-    bg: 'bg-slate-100', 
-    dot: 'bg-slate-400', 
-    ring: 'ring-slate-200',
-    label: project.status 
-  };
-
-  const getProgressColor = (percent: number) => {
-    if (percent >= 100) return 'bg-emerald-500';
-    if (percent > 75) return 'bg-blue-500';
-    if (percent > 40) return 'bg-primary';
-    return 'bg-orange-500';
-  };
-
+  const formatAmount = (amount: number) => new Intl.NumberFormat('ru-RU', {
+    style: 'currency', currency: 'RUB', maximumFractionDigits: 0,
+    notation: amount >= 1000000 ? 'compact' : 'standard'
+  }).format(amount);
   const roleValue = typeof project.role === 'string' ? project.role : project.role.value;
   const roleLabels: Record<string, string> = {
-    owner: 'Владелец',
-    customer: 'Заказчик',
-    general_contractor: 'Генподрядчик',
-    contractor: 'Подрядчик',
-    subcontractor: 'Субподрядчик',
-    construction_supervision: 'Стройконтроль',
-    designer: 'Проектировщик',
-    observer: 'Наблюдатель'
+    owner: 'Владелец', customer: 'Заказчик', general_contractor: 'Генподрядчик',
+    contractor: 'Подрядчик', subcontractor: 'Субподрядчик',
+    construction_supervision: 'Стройконтроль', designer: 'Проектировщик', observer: 'Наблюдатель'
   };
-  const roleLabel = typeof project.role === 'string' ? roleLabels[roleValue] || project.role : project.role.label;
-  const isOwner = roleValue === 'owner';
-  const RoleIcon = isOwner ? Building2 : User;
-  const progressLabel = completionPercentage >= 100
-    ? 'Завершено'
-    : completionPercentage > 0
-      ? 'В процессе'
-      : 'Не начато';
+  const roleLabel = typeof project.role === 'string' ? roleLabels[roleValue] || 'Участник проекта' : project.role.label;
+  const RoleIcon = roleValue === 'owner' ? Building2 : User;
 
   return (
-    <Card 
-      onClick={() => onViewDetails(project.id)}
-      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-[0_20px_45px_rgba(15,23,42,0.08)]"
-    >
-      <div className="h-1 bg-gradient-to-r from-primary via-amber-400 to-emerald-400" />
-
+    <Card className="flex h-full min-w-0 flex-col rounded-lg border-border bg-card shadow-none">
       <CardContent className="flex flex-1 flex-col gap-5 p-5 sm:p-6">
-        <div className="space-y-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className={cn(
-              'inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ring-1',
-              status.bg,
-              status.color,
-              status.ring
-            )}>
-              <span className={cn("h-2 w-2 rounded-full", status.dot)} />
-              {status.label}
-            </div>
-            <span className="shrink-0 rounded-full bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
-              {completionPercentage}%
-            </span>
-          </div>
-
-          <h3 className="line-clamp-2 text-[1.35rem] font-bold leading-tight text-slate-950 transition-colors duration-300 group-hover:text-primary">
-            {project.name}
-          </h3>
-
-          <div className="space-y-2.5 text-sm">
-            <div className={cn("flex items-start", project.address ? 'text-slate-600' : 'text-slate-400')}>
-              <MapPin className="mr-2.5 mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-              <span className="line-clamp-1">{project.address || 'Адрес не указан'}</span>
-            </div>
-
-            <div className="flex items-center">
-              <div className={cn(
-                "inline-flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold ring-1",
-                isOwner
-                  ? 'bg-orange-50 text-orange-700 ring-orange-100'
-                  : 'bg-slate-50 text-slate-700 ring-slate-200'
-              )}>
-                <RoleIcon className="h-3.5 w-3.5" />
-                <span>{roleLabel}</span>
-              </div>
-            </div>
-          </div>
+        <p className={cn('text-sm font-medium', status.color)}>{status.label}</p>
+        <h2 className="most-workspace-heading break-words">{project.name}</h2>
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <p className="flex items-start gap-2.5">
+            <MapPin aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0" />
+            <span className="break-words">{project.address || 'Адрес не указан'}</span>
+          </p>
+          <p className="flex items-start gap-2.5">
+            <RoleIcon aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0" />
+            <span>{roleLabel}</span>
+          </p>
         </div>
-
-        <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70">
-          <div className="p-4">
-            <div className="mb-3 flex items-center gap-2 text-slate-500">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white shadow-sm">
-                <FileText className="h-3.5 w-3.5 text-slate-500" />
-              </div>
-              <span className="text-xs font-semibold">Контракты</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold text-slate-950">{totalContracts}</span>
-              <span className="text-xs text-slate-500 font-medium">{formatAmount(totalAmountContracts)}</span>
-            </div>
+        <dl className="grid grid-cols-2 gap-5 border-y border-border py-5 tabular-nums">
+          <div className="min-w-0">
+            <dt className="mb-2 flex items-center gap-2 text-sm text-muted-foreground"><FileText aria-hidden="true" className="h-5 w-5 shrink-0" />Контракты</dt>
+            <dd className="most-workspace-heading">{totalContracts}</dd>
+            <dd className="mt-1 break-words text-sm text-muted-foreground">{formatAmount(totalAmountContracts)}</dd>
           </div>
-          
-          <div className="border-l border-slate-200 p-4">
-            <div className="mb-3 flex items-center gap-2 text-emerald-700">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white shadow-sm">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-              </div>
-              <span className="text-xs font-semibold">Выполнено</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold text-slate-950">{totalWorks}</span>
-              <span className="text-xs text-emerald-600 font-bold">{formatAmount(totalAmountWorks)}</span>
-            </div>
+          <div className="min-w-0">
+            <dt className="mb-2 flex items-center gap-2 text-sm text-muted-foreground"><Hammer aria-hidden="true" className="h-5 w-5 shrink-0" />Работы</dt>
+            <dd className="most-workspace-heading">{totalWorks}</dd>
+            <dd className="mt-1 break-words text-sm text-muted-foreground">{formatAmount(totalAmountWorks)}</dd>
           </div>
-        </div>
-
-        <div className="mt-auto space-y-2">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span>{progressLabel}</span>
-            </div>
-            <span className="text-sm font-bold text-slate-900">
-              {completionPercentage}%
-            </span>
+        </dl>
+        <div className="mt-auto space-y-3">
+          <div className="flex justify-between gap-3 text-sm">
+            <span className="text-muted-foreground">Готовность проекта</span>
+            <span className="font-medium tabular-nums">{completionPercentage}%</span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-            <div 
-              className={cn("h-full rounded-full transition-[width] duration-700 ease-out", getProgressColor(completionPercentage))}
-              style={{ width: `${completionPercentage}%` }}
-            />
+          <div role="progressbar" aria-label="Готовность проекта" aria-valuenow={completionPercentage} aria-valuemin={0} aria-valuemax={100} className="h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-full bg-primary" style={{ width: `${completionPercentage}%` }} />
           </div>
         </div>
       </CardContent>
-
-      <CardFooter className="border-t border-slate-100 bg-slate-50/60 p-3">
-        <Button 
-          variant="ghost"
-          className="group/btn h-11 w-full justify-between rounded-xl px-3 text-sm font-semibold text-slate-700 transition-all hover:bg-white hover:text-primary"
-          onClick={(e) => {
-            e.stopPropagation();
-            onViewDetails(project.id);
-          }}
-        >
-          <span>Открыть проект</span>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-slate-400 ring-1 ring-slate-200 transition-all group-hover/btn:text-primary group-hover/btn:ring-orange-200">
-            <ArrowUpRight className="h-4 w-4 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
-          </div>
+      <CardFooter className="border-t border-border p-3">
+        <Button variant="ghost" className="h-11 w-full justify-between rounded-md px-3 text-sm font-medium" aria-label={`Открыть проект «${project.name}»`} onClick={() => onViewDetails(project.id)}>
+          Открыть проект<ArrowUpRight aria-hidden="true" className="h-5 w-5" />
         </Button>
       </CardFooter>
     </Card>

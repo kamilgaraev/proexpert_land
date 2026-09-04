@@ -70,10 +70,16 @@ describe('YandexMetrika', () => {
     expect(window.ym).toHaveBeenNthCalledWith(
       2,
       110599591,
-      'hit',
-      window.location.href,
-      expect.objectContaining({ params: { event: 'cta_clicked', location: 'hero' } }),
+      'params',
+      { event: 'cta_clicked', location: 'hero' },
     );
+  });
+
+  it('не отправляет события и цели без согласия на аналитику', () => {
+    window.localStorage.clear();
+    trackYandexEvent('cta_clicked', { location: 'hero' });
+    trackYandexGoal('contact_form');
+    expect(window.ym).not.toHaveBeenCalled();
   });
 
   it('инициализирует параметры нового счетчика без trackHash', () => {

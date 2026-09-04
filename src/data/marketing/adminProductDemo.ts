@@ -38,7 +38,7 @@ export type AdminProductDemoFlow = {
 };
 
 export const adminProductDemoDisclaimer =
-  'На сайте показан сокращенный пример рабочего экрана. В личном кабинете МОСТ больше деталей: реальные объекты, роли команды, документы, настройки процессов и данные вашей компании.';
+  'Интерактивный пример: названия, цифры и статусы условны. В МОСТ команда работает с данными своей компании; доступные действия зависят от подключённых возможностей и прав сотрудников.';
 
 export const adminProductDemoModules: AdminProductDemoModule[] = [
   {
@@ -46,7 +46,7 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Объекты',
     shortTitle: 'Объекты',
     contour: 'Портфель',
-    businessOutcome: 'Руководитель видит портфель объектов, ответственных, прогресс и зоны риска без ручного свода.',
+    businessOutcome: 'Руководитель просматривает объекты, ответственных и текущие показатели по данным, которые внесла команда.',
     activeTab: 'Активные объекты',
     notification: 'На объекте ЖК "Северный" обновлен риск по срокам.',
     stats: [
@@ -103,7 +103,7 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Снабжение',
     shortTitle: 'Снабжение',
     contour: 'Закупки',
-    businessOutcome: 'Потребность превращается в закупочную заявку, запрос поставщикам, сравнение предложений и заказ.',
+    businessOutcome: 'Снабженец ведёт закупочную заявку, запрашивает предложения поставщиков, сравнивает их и оформляет заказ.',
     activeTab: 'Закупки',
     notification: 'По заявке на арматуру выбран поставщик с поставкой за 2 дня.',
     stats: [
@@ -132,7 +132,7 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     ],
     rows: [
       { title: 'Арматура A500C, 12 мм', meta: 'Склад Север, резерв под ЖК "Северный"', status: 'Принято', progress: 100, linkedTo: ['procurement', 'schedule'] },
-      { title: 'Сухие смеси М150', meta: 'Остаток ниже минимума', status: 'Автозаказ', progress: 24, linkedTo: ['procurement'] },
+      { title: 'Сухие смеси М150', meta: 'Остаток ниже минимума', status: 'Нужно пополнить', progress: 24, linkedTo: ['procurement'] },
       { title: 'Кабель ВВГнг-LS', meta: 'Перемещение на БЦ "Меридиан"', status: 'В пути', progress: 67, linkedTo: ['siteRequests', 'documentsAnalytics'] },
     ],
   },
@@ -143,14 +143,14 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     contour: 'ПТО',
     businessOutcome: 'Сметные версии, позиции и аудит помогают связать плановую стоимость с графиком, работами и актами.',
     activeTab: 'Версии сметы',
-    notification: 'Версия сметы В-04 передана в расчет выполненных работ.',
+    notification: 'Версия сметы В-04 передана на проверку.',
     stats: [
       { label: 'Версий', value: '9', tone: 'neutral' },
       { label: 'Отклонений', value: '6', tone: 'warning' },
       { label: 'Проверено', value: '84%', tone: 'success' },
     ],
     rows: [
-      { title: 'Смета ВК, версия В-04', meta: 'Позиции материалов связаны со складом', status: 'На проверке', progress: 84, linkedTo: ['warehouse', 'acts'] },
+      { title: 'Смета ВК, версия В-04', meta: 'Сравнение позиций с предыдущей версией', status: 'На проверке', progress: 84, linkedTo: ['warehouse', 'acts'] },
       { title: 'Допработы по фасаду', meta: 'Подрядчик: ФасадСтрой', status: 'Согласование', progress: 52, linkedTo: ['contractors', 'payments'] },
       { title: 'Аудит расценок', meta: 'Сравнение с базой проекта', status: 'Найдены отличия', progress: 68, linkedTo: ['documentsAnalytics'] },
     ],
@@ -179,7 +179,7 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     title: 'Акты и выполненные работы',
     shortTitle: 'Акты',
     contour: 'Закрытие',
-    businessOutcome: 'Выполненные объемы превращаются в акты и платежные основания без разрыва со сметой и графиком.',
+    businessOutcome: 'Сотрудник проверяет выполненные объёмы и включает выбранные работы в акт. Акт сохраняет связь с объектом и договором.',
     activeTab: 'Акты и объемы',
     notification: 'Акт по фасадным работам связан с платежным документом.',
     stats: [
@@ -200,7 +200,7 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     contour: 'Исполнители',
     businessOutcome: 'Исполнители, бригады и договоренности видны в контексте объекта, графика, актов и оплат.',
     activeTab: 'Исполнители',
-    notification: 'Бригада назначена на этап, график и акт обновлены.',
+    notification: 'Бригада назначена на этап.',
     stats: [
       { label: 'Подрядчиков', value: '64', tone: 'neutral' },
       { label: 'Бригад', value: '21', tone: 'success' },
@@ -219,7 +219,7 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
     contour: 'Контроль',
     businessOutcome: 'Документы, исполнительная, отчеты и проектный пульс собирают управленческую картину по объектам.',
     activeTab: 'Отчеты и документы',
-    notification: 'Проектный пульс обновил сводку по рискам и документам.',
+    notification: 'Сформирована сводка за выбранную дату.',
     stats: [
       { label: 'Отчетов', value: '28', tone: 'neutral' },
       { label: 'Комплектов документации', value: '17', tone: 'success' },
@@ -234,8 +234,8 @@ export const adminProductDemoModules: AdminProductDemoModule[] = [
 ];
 
 export const adminProductDemoFlows: AdminProductDemoFlow[] = [
-  { id: 'field-to-payment', title: 'От заявки до оплаты', description: 'Потребность с объекта проходит закупку, приемку на склад и финансовое согласование.', modules: ['siteRequests', 'procurement', 'warehouse', 'payments'] },
-  { id: 'estimate-to-act', title: 'От сметы до акта', description: 'Сметная позиция попадает в график, закрывается выполненными работами и становится основанием для акта.', modules: ['estimates', 'schedule', 'acts', 'payments'] },
+  { id: 'field-to-payment', title: 'От заявки до платёжного документа', description: 'Снабженец оформляет закупку по потребности объекта. После приёмки команда проверяет финансовые документы; перевод денег выполняется в банке.', modules: ['siteRequests', 'procurement', 'warehouse', 'payments'] },
+  { id: 'estimate-to-act', title: 'От сметы до акта', description: 'Команда связывает сметные позиции с задачами графика, фиксирует выполненные объёмы и выбирает проверенные работы для акта.', modules: ['estimates', 'schedule', 'acts', 'payments'] },
   { id: 'contractor-execution', title: 'Исполнитель в контексте объекта', description: 'Подрядчик или бригада привязаны к объекту, задачам, объемам и закрывающим документам.', modules: ['contractors', 'projects', 'schedule', 'acts'] },
   { id: 'management-control', title: 'Контроль руководителя', description: 'Данные по объектам, материалам, деньгам и документам собираются в управленческие отчеты.', modules: ['projects', 'warehouse', 'payments', 'documentsAnalytics'] },
 ];

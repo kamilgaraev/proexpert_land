@@ -112,13 +112,13 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
       <div className="px-4 py-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <LightBulbIcon className="h-5 w-5 text-yellow-500" />
+            <LightBulbIcon className="h-5 w-5 text-muted-foreground" />
             <h3 className="text-sm font-medium text-gray-900">
               {isFullyVerified ? 'Статус верификации' : 'Рекомендации по верификации'}
             </h3>
           </div>
           {recommendations.potential_score_increase > 0 && !isFullyVerified && (
-            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+            <span className="text-xs bg-secondary text-foreground px-2 py-1 rounded">
               +{recommendations.potential_score_increase} баллов
             </span>
           )}
@@ -136,20 +136,20 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-gradient-to-r from-construction-500 to-construction-600 h-2 rounded-full transition-all duration-500"
+              className="bg-foreground h-2 rounded-full transition-all duration-500"
               style={{ width: `${recommendations.current_score}%` }}
             ></div>
           </div>
         </div>
 
         {isFullyVerified ? (
-          <div className="flex items-center space-x-2 text-green-600 bg-green-50 rounded-lg p-3">
-            <CheckCircleIcon className="h-4 w-4" />
+          <div className="flex items-start gap-3 rounded border border-border bg-secondary/30 p-3 text-foreground">
+            <CheckCircleIcon aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
             <span className="text-sm">Организация полностью верифицирована! Все данные проверены через государственные реестры.</span>
           </div>
         ) : !hasIssues ? (
-          <div className="flex items-center space-x-2 text-green-600 bg-green-50 rounded-lg p-3">
-            <CheckCircleIcon className="h-4 w-4" />
+          <div className="flex items-start gap-3 rounded border border-border bg-secondary/30 p-3 text-foreground">
+            <CheckCircleIcon aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
             <span className="text-sm">Все данные заполнены корректно!</span>
           </div>
         ) : (

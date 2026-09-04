@@ -190,6 +190,21 @@ describe('BillingPage commercial packages', () => {
     expect(sessionStorage.getItem('most:commercial-package-intent')).toBeNull();
   });
 
+  it('показывает состав ресурсов в истории и не выдумывает состав старых платежей', async () => {
+    server.use(http.get(`${baseUrl}/billing/commercial/history`, () => HttpResponse.json({
+      success: true,
+      data: [
+        { order_id: 'resource-history', status: 'paid', amount_minor: 60000, currency: 'RUB', selected_package_slugs: [], paid_package_slugs: [], offer_type: 'packages', paid_composition_items: [{ type: 'resource', slug: 'extra_users', label: 'Дополнительные пользователи', quantity: 2 }] },
+        { order_id: 'old-history', status: 'paid', amount_minor: 100000, currency: 'RUB', selected_package_slugs: [], offer_type: 'packages' },
+      ],
+      meta: { current_page: 1, last_page: 1, total: 2, per_page: 20 },
+    })));
+    renderPage();
+    expect(await screen.findByRole('cell', { name: 'Дополнительные пользователи: +2' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Состав не указан' })).toBeInTheDocument();
+    expect(screen.queryByRole('cell', { name: '0 пак.' })).not.toBeInTheDocument();
+  });
+
   it('использует спокойные карточки личного кабинета вместо промо-блоков', async () => {
     renderPage();
 
@@ -197,7 +212,7 @@ describe('BillingPage commercial packages', () => {
     const pageHeader = pageTitle.closest('header');
     const fullSuiteSection = screen.getByRole('heading', { name: 'Полный комплект' }).closest('section');
 
-    expect(pageHeader).toHaveClass('bg-white');
+    expect(screen.queryByText('Пакеты и оплата')).not.toBeInTheDocument();
     expect(pageHeader).not.toHaveClass('bg-slate-950');
     expect(fullSuiteSection).toHaveClass('bg-white');
     expect(fullSuiteSection).not.toHaveClass('bg-slate-950');

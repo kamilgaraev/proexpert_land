@@ -1,23 +1,41 @@
-import ReactDOMServer from 'react-dom/server';
+import ReactDOMServer from "react-dom/server";
+import type { ComponentType } from "react";
 // @ts-ignore
-import { escapeInject, dangerouslySkipEscape, type PageContextServer } from 'vite-plugin-ssr';
+import {
+  escapeInject,
+  dangerouslySkipEscape,
+} from "vike";
+import type { PageContextServer } from "vike/types";
 // @ts-ignore
-import { redirect } from 'vite-plugin-ssr/abort';
+import { redirect } from "vike/abort";
 // @ts-ignore
-import { StaticRouter } from 'react-router-dom/server';
-import { PageShell } from './PageShell';
-import { buildServerSeoPayload } from './serverSeo';
-import { resolveServerRouterLocation } from './serverRouterLocation';
+import { StaticRouter } from "react-router-dom";
+import { PageShell } from "./PageShell";
+import { preparePageShell } from "./pageShellLoader";
+import { buildServerSeoPayload } from "./serverSeo";
+import { resolveServerRouterLocation } from "./serverRouterLocation";
+import { isMarketingPublicPath } from "@/utils/publicSite";
+import { filterMarketingAssets } from "./marketingAssetFilter";
 
-export async function render(pageContext: PageContextServer) {
-  const pathname = pageContext.urlPathname || '/';
+type ServerPageContext = PageContextServer & {
+  Page: ComponentType<Record<string, unknown>>;
+  pageProps?: Record<string, unknown>;
+  documentProps?: Parameters<typeof buildServerSeoPayload>[1];
+};
+
+export async function render(pageContext: ServerPageContext) {
+  const pathname = pageContext.urlPathname || "/";
   const routerLocation = resolveServerRouterLocation(pageContext);
-  const seoPayload = buildServerSeoPayload(pathname, pageContext.documentProps as any);
+  const seoPayload = buildServerSeoPayload(
+    pathname,
+    pageContext.documentProps,
+  );
 
   if (seoPayload.redirectTarget) {
     throw redirect(seoPayload.redirectTarget as `/${string}`, 301);
   }
 
+  await preparePageShell(pathname);
   const { Page, pageProps } = pageContext;
   const html = ReactDOMServer.renderToString(
     <StaticRouter location={routerLocation}>
@@ -45,10 +63,14 @@ export async function render(pageContext: PageContextServer) {
 
   return {
     documentHtml,
+    injectFilter: isMarketingPublicPath(pathname)
+      ? filterMarketingAssets
+      : undefined,
     pageContext: {
-      abortStatusCode: seoPayload.statusCode === 200 ? undefined : seoPayload.statusCode,
+      abortStatusCode:
+        seoPayload.statusCode === 200 ? undefined : seoPayload.statusCode,
     },
   };
 }
 
-export const passToClient = ['pageProps', 'documentProps'];
+export const passToClient = ["pageProps", "documentProps"];

@@ -1,11 +1,13 @@
-import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import BlogArticleCard from "./BlogArticleCard";
+import BlogPagination from "./BlogPagination";
 import BlogPublicLayout from "./BlogPublicLayout";
 import BlogSidebar from "./BlogSidebar";
+import BlogTopicFilter from "./BlogTopicFilter";
 import { getBlogListMeta } from "./blogPresentation";
-import { SectionHeader } from "@/components/marketing/MarketingPrimitives";
+import { getBlogNavigationCategories } from "@/utils/blogCategoryNavigation";
 import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
 import { useSEO } from "@/hooks/useSEO";
 import type {
@@ -17,6 +19,8 @@ import type {
 import {
   BLOG_INDEX_BASE_QUERY_KEY,
   buildBlogIndexQueryKey,
+  getBlogListingSeo,
+  readBlogIndexQuery,
 } from "@/utils/blogIndexQuery";
 import { blogPublicApi } from "@/utils/blogPublicApi";
 
@@ -32,18 +36,23 @@ interface ArticlesRequest {
 
 const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const selectedCategory = searchParams.get("category");
-  const searchQuery = searchParams.get("search");
+  const query = readBlogIndexQuery(searchParams);
+  const selectedCategory = query.category;
+  const searchQuery = query.search;
+  const page = query.page ?? 1;
   const queryKey = useMemo(
     () =>
       buildBlogIndexQueryKey({
         category: selectedCategory,
         search: searchQuery,
+        page,
       }),
-    [searchQuery, selectedCategory],
+    [searchQuery, selectedCategory, page],
   );
+  const matchingInitialData =
+    initialData?.queryKey === queryKey ? initialData : undefined;
   const [articles, setArticles] = useState<BlogArticle[]>(
-    () => initialData?.articles ?? [],
+    () => matchingInitialData?.articles ?? [],
   );
   const [categories, setCategories] = useState<BlogCategory[]>(
     () => initialData?.categories ?? [],
@@ -51,47 +60,47 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
   const [categoriesLoaded, setCategoriesLoaded] = useState(
     initialData?.categoriesLoaded ?? false,
   );
-  const [loading, setLoading] = useState(
-    () => !(initialData?.articlesLoaded ?? false),
+  const [categoriesError, setCategoriesError] = useState(false);
+  const [unavailable, setUnavailable] = useState(
+    Boolean(matchingInitialData?.unavailable),
   );
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [loading, setLoading] = useState(
+    () => !(matchingInitialData?.articlesLoaded ?? false) && page > 0,
+  );
   const [hasMore, setHasMore] = useState(() =>
     initialData?.articlesLoaded
       ? initialData.pagination.current_page < initialData.pagination.last_page
       : true,
   );
-  const [loadedPage, setLoadedPage] = useState(() =>
-    initialData?.articlesLoaded ? initialData.pagination.current_page : 0,
+  const [notFound, setNotFound] = useState(
+    Boolean(matchingInitialData?.notFound || page === 0),
   );
   const [error, setError] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState(
     searchParams.get("search") || "",
   );
   const appliedQueryKeyRef = useRef(
-    initialData?.articlesLoaded
-      ? (initialData.queryKey ?? BLOG_INDEX_BASE_QUERY_KEY)
+    matchingInitialData?.articlesLoaded
+      ? (matchingInitialData.queryKey ?? BLOG_INDEX_BASE_QUERY_KEY)
       : null,
   );
   const articlesRequestRef = useRef<ArticlesRequest | null>(null);
   const articlesGenerationRef = useRef(0);
   const categoriesRequestRef = useRef<Promise<BlogCategory[]> | null>(null);
   const currentQueryKeyRef = useRef(queryKey);
-  const loadingMoreRef = useRef(false);
-  const mountedRef = useRef(false);
   currentQueryKeyRef.current = queryKey;
 
   useSEO({
     ...marketingSeo.blog,
+    ...getBlogListingSeo(
+      "/blog",
+      query,
+      marketingSeo.blog.title,
+      notFound,
+      unavailable || categoriesError,
+    ),
     type: "website",
   });
-
-  useEffect(() => {
-    mountedRef.current = true;
-
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
 
   useEffect(() => {
     setSearchInput(searchQuery || "");
@@ -150,6 +159,7 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
           return;
         }
 
+        setCategoriesError(true);
         console.error("Error fetching categories:", fetchError);
       });
 
@@ -164,36 +174,51 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
     }
 
     return (
-      categories.find((category) => category.slug === selectedCategory)?.id ??
-      undefined
+      categories.find(
+        (category) => category.slug === selectedCategory && category.is_active,
+      )?.id ?? undefined
     );
   }, [categories, selectedCategory]);
 
   useEffect(() => {
+    if (page === 0) {
+      appliedQueryKeyRef.current = queryKey;
+      setArticles([]);
+      setNotFound(true);
+      setUnavailable(false);
+      setLoading(false);
+      setHasMore(false);
+      setError(null);
+      return;
+    }
     if (selectedCategory && !categoriesLoaded) {
+      setLoading(!categoriesError);
+      setError(
+        categoriesError
+          ? "Не удалось загрузить категории. Попробуйте обновить страницу позже."
+          : null,
+      );
       return;
     }
 
     if (selectedCategory && categoryId === undefined) {
       appliedQueryKeyRef.current = queryKey;
-      loadingMoreRef.current = false;
+      setNotFound(true);
       setArticles([]);
-      setLoadedPage(0);
       setHasMore(false);
       setLoading(false);
-      setLoadingMore(false);
       setError("Категория не найдена.");
       return;
     }
 
     if (appliedQueryKeyRef.current === queryKey) {
+      if (categoriesLoaded) setUnavailable(false);
       setLoading(false);
       return;
     }
 
     let active = true;
-    loadingMoreRef.current = false;
-    setLoadingMore(false);
+    setNotFound(false);
     setLoading(true);
     setError(null);
 
@@ -207,7 +232,7 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
         key: queryKey,
         promise: blogPublicApi
           .getArticles({
-            page: 1,
+            page,
             per_page: 12,
             category_id: categoryId,
             search: searchQuery || undefined,
@@ -229,12 +254,17 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
           return;
         }
 
-        const currentPage = payload.meta?.current_page ?? 1;
-        const lastPage = payload.meta?.last_page ?? currentPage;
+        if (!payload.meta) throw new Error("Missing article pagination");
+        const currentPage = payload.meta.current_page;
+        const lastPage = payload.meta.last_page;
+        if (currentPage > lastPage && payload.data.length > 0)
+          throw new Error("Invalid article pagination");
+        const pageNotFound = page > lastPage || currentPage !== page;
         appliedQueryKeyRef.current = queryKey;
-        setArticles(payload.data);
-        setLoadedPage(currentPage);
-        setHasMore(currentPage < lastPage);
+        setArticles(pageNotFound ? [] : payload.data);
+        setNotFound(pageNotFound);
+        setUnavailable(false);
+        setHasMore(!pageNotFound && currentPage < lastPage);
       })
       .catch((fetchError) => {
         if (
@@ -245,6 +275,7 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
           return;
         }
 
+        setUnavailable(true);
         console.error("Error fetching articles:", fetchError);
         setError(
           "Не удалось загрузить статьи. Попробуйте обновить страницу позже.",
@@ -265,7 +296,15 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
     return () => {
       active = false;
     };
-  }, [categoriesLoaded, categoryId, queryKey, searchQuery, selectedCategory]);
+  }, [
+    categoriesLoaded,
+    categoriesError,
+    categoryId,
+    queryKey,
+    searchQuery,
+    selectedCategory,
+    page,
+  ]);
 
   const handleCategoryFilter = (categorySlug: string | null) => {
     setSearchParams((prev) => {
@@ -282,177 +321,61 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
     });
   };
 
-  const handleLoadMore = async () => {
-    if (loadingMoreRef.current) {
-      return;
-    }
-
-    const requestQueryKey = queryKey;
-    const requestGeneration = articlesGenerationRef.current;
-    const nextPage = loadedPage + 1;
-    loadingMoreRef.current = true;
-
-    try {
-      setLoadingMore(true);
-
-      const response = await blogPublicApi.getArticles({
-        page: nextPage,
-        per_page: 12,
-        category_id: categoryId,
-        search: searchQuery || undefined,
-      });
-
-      if (
-        !mountedRef.current ||
-        currentQueryKeyRef.current !== requestQueryKey ||
-        articlesGenerationRef.current !== requestGeneration
-      ) {
-        return;
-      }
-
-      const payload = response.data;
-      const currentPage = payload.meta?.current_page ?? nextPage;
-      const lastPage = payload.meta?.last_page ?? currentPage;
-      setArticles((prev) => [...prev, ...payload.data]);
-      setLoadedPage(currentPage);
-      setHasMore(currentPage < lastPage);
-
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.set("page", String(currentPage));
-        return next;
-      });
-    } catch (fetchError) {
-      if (
-        !mountedRef.current ||
-        currentQueryKeyRef.current !== requestQueryKey
-      ) {
-        return;
-      }
-
-      console.error("Error loading more articles:", fetchError);
-      setError("Не удалось загрузить следующую страницу статей.");
-    } finally {
-      if (
-        mountedRef.current &&
-        currentQueryKeyRef.current === requestQueryKey
-      ) {
-        loadingMoreRef.current = false;
-        setLoadingMore(false);
-      }
-    }
-  };
-
   const selectedCategoryMeta = categories.find(
     (category) => category.slug === selectedCategory,
-  );
-  const heroAside = (
-    <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-        Что внутри блога
-      </div>
-      <div className="mt-4 grid gap-3">
-        {[
-          "Организация ежедневной работы на объекте.",
-          "Документы, заявки, снабжение и подрядчики.",
-          "Данные для руководителя и подготовка отчётности.",
-        ].map((item) => (
-          <div
-            key={item}
-            className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-          >
-            {item}
-          </div>
-        ))}
-      </div>
-    </div>
   );
 
   return (
     <BlogPublicLayout
-      eyebrow="Блог МОСТ"
-      title="Практические статьи об управлении стройкой."
-      description="В блоге опубликованы материалы о работе прораба и ПТО, графиках, заявках на материалы, подрядчиках, документах и ежедневной проверке объектов руководителем."
-      nav={[
-        { label: "Лента статей", href: "#blog-feed" },
-        { label: "Фильтры", href: "#blog-filters" },
-        { label: "Контакты", href: "#blog-cta" },
-      ]}
-      aside={heroAside}
+      title="О работе на стройке и в офисе"
+      description="Графики, материалы, документы и работа команды. Разбираем задачи, которые каждый день связывают площадку и офис."
+      nav={[]}
     >
-      <section id="blog-filters" className="py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(320px,0.78fr)] xl:items-start">
+      <section id="blog-filters" className="most-blog-filters">
+        <div className="most-container">
           <div>
-            <SectionHeader
-              eyebrow="Лента"
-              title="Найдите материал по теме или роли."
-              description="Используйте поиск по словам или выберите категорию. В ленте остаются только опубликованные статьи."
-            />
-          </div>
-
-          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-              <MagnifyingGlassIcon className="h-4 w-4" />
-              Поиск и фильтры
-            </div>
-            <div className="mt-4">
+            <label htmlFor="blog-search" className="most-blog-search-label">
+              Найти статью
+            </label>
+            <div className="most-blog-search most-blog-search-wide">
+              <MagnifyingGlassIcon aria-hidden="true" />
               <input
-                type="text"
+                id="blog-search"
+                type="search"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Например, бюджет, график работ или снабжение"
-                className="w-full rounded-[1.1rem] border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
               />
             </div>
-            <div className="mt-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-              <FunnelIcon className="h-4 w-4" />
-              Категории
-            </div>
-            <div className="mt-4 flex flex-wrap gap-3">
+            <BlogTopicFilter selectedName={selectedCategoryMeta?.name}>
               <button
                 type="button"
                 onClick={() => handleCategoryFilter(null)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  !selectedCategory
-                    ? "bg-steel-950 text-white"
-                    : "border border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700"
-                }`}
+                aria-pressed={!selectedCategory}
               >
                 Все статьи
               </button>
-              {categories.map((category) => (
+              {getBlogNavigationCategories(categories, selectedCategory).map((category) => (
                 <button
                   key={category.id}
                   type="button"
                   onClick={() => handleCategoryFilter(category.slug)}
-                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                    selectedCategory === category.slug
-                      ? "border-transparent text-white"
-                      : "border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700"
-                  }`}
-                  style={
-                    selectedCategory === category.slug
-                      ? { backgroundColor: category.color }
-                      : undefined
-                  }
+                  aria-pressed={selectedCategory === category.slug}
                 >
                   {category.name}
                 </button>
               ))}
-            </div>
+            </BlogTopicFilter>
           </div>
         </div>
       </section>
 
-      <section id="blog-feed" className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
+      <section id="blog-feed" className="most-blog-section">
+        <div className="most-container most-blog-list-layout">
           <div>
-            <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="most-blog-feed-intro">
+              <div className="most-blog-feed-heading">
                 <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-                    Подборка материалов
-                  </div>
                   <h2 className="mt-2 text-3xl font-bold text-steel-950">
                     {selectedCategoryMeta
                       ? selectedCategoryMeta.name
@@ -474,13 +397,10 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
             </div>
 
             {loading ? (
-              <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <div className="most-blog-grid">
                 {Array.from({ length: 6 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className="rounded-[1.75rem] border border-steel-200 bg-white p-5 shadow-sm"
-                  >
-                    <div className="aspect-[16/10] animate-pulse rounded-[1.35rem] bg-concrete-100" />
+                  <div key={index} className="most-blog-skeleton">
+                    <div className="aspect-[16/10] animate-pulse bg-concrete-100" />
                     <div className="mt-5 h-4 w-32 animate-pulse rounded bg-concrete-100" />
                     <div className="mt-4 h-8 w-4/5 animate-pulse rounded bg-concrete-100" />
                     <div className="mt-3 h-20 animate-pulse rounded bg-concrete-100" />
@@ -488,54 +408,42 @@ const BlogPublicPage = ({ initialData }: BlogPublicPageProps) => {
                 ))}
               </div>
             ) : error ? (
-              <div className="mt-6 rounded-[1.75rem] border border-rose-200 bg-rose-50 p-6 text-sm leading-7 text-rose-700">
-                {error}
-              </div>
+              <div className="most-blog-notice">{error}</div>
             ) : articles.length === 0 ? (
-              <div className="mt-6 rounded-[1.75rem] border border-steel-200 bg-white p-8 shadow-sm">
+              <div className="most-blog-notice">
                 <h3 className="text-2xl font-bold text-steel-950">
-                  Статьи не найдены
+                  {notFound ? "Страница не найдена" : "Статьи не найдены"}
                 </h3>
                 <p className="mt-4 text-sm leading-7 text-steel-600">
                   Попробуйте изменить запрос, снять фильтр по категории или
                   перейти к общей ленте.
                 </p>
-                <a
-                  href={marketingPaths.blog}
-                  className="mt-5 inline-flex w-full min-w-0 flex-wrap items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-center text-sm font-semibold text-white whitespace-normal [overflow-wrap:anywhere] transition hover:bg-steel-900 sm:w-auto"
-                >
+                <a href={marketingPaths.blog} className="most-blog-button">
                   Открыть все статьи
                 </a>
               </div>
             ) : (
               <>
-                <div className="mt-6 grid gap-5 md:grid-cols-2">
+                <div className="most-blog-grid">
                   {articles.map((article) => (
                     <BlogArticleCard key={article.id} article={article} />
                   ))}
                 </div>
 
-                {hasMore ? (
-                  <div className="mt-8">
-                    <button
-                      type="button"
-                      onClick={handleLoadMore}
-                      disabled={loadingMore}
-                      className={`inline-flex w-full min-w-0 flex-wrap items-center justify-center rounded-full px-5 py-3 text-center text-sm font-semibold whitespace-normal [overflow-wrap:anywhere] transition sm:w-auto ${
-                        loadingMore
-                          ? "cursor-not-allowed bg-steel-300 text-white"
-                          : "bg-steel-950 text-white hover:bg-steel-900"
-                      }`}
-                    >
-                      {loadingMore ? "Загружаем статьи" : "Показать еще"}
-                    </button>
-                  </div>
-                ) : null}
+                <BlogPagination
+                  pathname="/blog"
+                  query={query}
+                  hasNext={hasMore}
+                />
               </>
             )}
           </div>
 
-          <BlogSidebar categories={categories} />
+          <BlogSidebar
+            categories={categories}
+            showSearch={false}
+            showCategories={false}
+          />
         </div>
       </section>
     </BlogPublicLayout>

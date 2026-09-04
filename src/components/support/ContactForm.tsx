@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { supportService } from '@/utils/api';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CheckCircleIcon, ExclamationTriangleIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
 
 export function ContactForm() {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -43,7 +45,19 @@ export function ContactForm() {
     setSuccess(false);
     
     try {
-      await supportService.submitSupportRequest(formData);
+      const response = await supportService.submitSupportRequest({
+        ...formData,
+        name: user?.name ?? formData.name,
+        email: user?.email ?? formData.email,
+      });
+      if (response.status < 200 || response.status >= 300 || response.data?.success === false) {
+        setError(response.status === 422
+          ? 'Проверьте заполненные поля. Тема должна быть не длиннее 255 символов, сообщение — 5000 символов.'
+          : response.status === 429
+            ? 'Слишком много обращений. Подождите немного и попробуйте снова.'
+            : 'Не удалось отправить обращение. Текст сохранён в форме — попробуйте ещё раз.');
+        return;
+      }
       setSuccess(true);
       setFormData({
         name: '',
@@ -52,29 +66,29 @@ export function ContactForm() {
         message: '',
         type: 'Общий вопрос',
       });
-    } catch (err: any) {
-      setError(err.message || 'Произошла ошибка при отправке запроса');
+    } catch {
+      setError('Не удалось отправить обращение. Проверьте соединение и попробуйте ещё раз. Текст сохранён в форме.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Card className="border-border shadow-sm max-w-2xl mx-auto">
+    <Card className="max-w-3xl rounded-lg border-border shadow-none">
       <CardHeader>
         <CardTitle className="text-2xl font-bold">Написать в поддержку</CardTitle>
         <CardDescription>
-          Заполните форму ниже, и мы ответим вам в течение 24 часов
+          {user ? 'Опишите вопрос. Ответ придёт на почту вашего аккаунта.' : 'Опишите вопрос и укажите почту для ответа.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {success && (
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <div role="status" className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6 flex items-start gap-3">
             <CheckCircleIcon className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-bold text-emerald-800">Сообщение отправлено</p>
               <p className="text-sm text-emerald-600 mt-1">
-                Мы получили ваш запрос и уже работаем над ним. Ответ придет на указанную почту.
+                Ваше обращение принято. Ответ придёт на указанную почту.
               </p>
               <Button variant="link" className="text-emerald-700 p-0 h-auto mt-2" onClick={() => setSuccess(false)}>
                  Отправить еще одно сообщение
@@ -84,7 +98,7 @@ export function ContactForm() {
         )}
         
         {error && (
-          <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <div role="alert" className="bg-red-50 border border-red-100 rounded-xl p-4 mb-6 flex items-start gap-3">
             <ExclamationTriangleIcon className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-bold text-red-800">Ошибка отправки</p>
@@ -101,7 +115,8 @@ export function ContactForm() {
                 <Input
                   id="name"
                   name="name"
-                  value={formData.name}
+                  value={user?.name ?? formData.name}
+                  readOnly={Boolean(user)}
                   onChange={handleChange}
                   placeholder="Иван Иванов"
                   required
@@ -114,7 +129,8 @@ export function ContactForm() {
                   id="email"
                   name="email"
                   type="email"
-                  value={formData.email}
+                  value={user?.email ?? formData.email}
+                  readOnly={Boolean(user)}
                   onChange={handleChange}
                   placeholder="ivan@example.com"
                   required
@@ -125,7 +141,7 @@ export function ContactForm() {
             <div className="space-y-2">
               <Label htmlFor="type">Тип обращения</Label>
               <Select value={formData.type} onValueChange={handleSelectChange}>
-                <SelectTrigger>
+                <SelectTrigger id="type" className="min-h-11 text-base">
                   <SelectValue placeholder="Выберите тип вопроса" />
                 </SelectTrigger>
                 <SelectContent>
@@ -141,6 +157,7 @@ export function ContactForm() {
               <Label htmlFor="subject">Тема</Label>
               <Input
                 id="subject"
+                maxLength={255}
                 name="subject"
                 value={formData.subject}
                 onChange={handleChange}
@@ -153,6 +170,7 @@ export function ContactForm() {
               <Label htmlFor="message">Сообщение</Label>
               <Textarea
                 id="message"
+                maxLength={5000}
                 name="message"
                 value={formData.message}
                 onChange={handleChange}
@@ -168,7 +186,7 @@ export function ContactForm() {
                 'Отправка...'
               ) : (
                 <>
-                  <PaperAirplaneIcon className="w-4 h-4 mr-2" />
+                  <PaperAirplaneIcon className="mr-2 h-5 w-5" aria-hidden="true" />
                   Отправить сообщение
                 </>
               )}

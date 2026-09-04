@@ -1,8 +1,11 @@
-import { isKnownMarketingPath, normalizeMarketingPath } from '@/data/marketingRegistry';
+import { isKnownMarketingPath, normalizeMarketingPath, marketingSeo } from '@/data/marketingRegistry';
+import { getBlogListingSeo, readBlogIndexQuery } from '@/utils/blogIndexQuery';
 import type { BlogArticle } from '@/types/blog';
 import { normalizeMarketingBlogArticle } from '@/utils/marketingBlogNormalizer';
 import { generateArticleSchema, normalizeArticleTitleBrand } from '@/utils/seo';
-import { fetchBlogIndexForSsr } from './blogIndexSsr';
+import { fetchBlogCategoryForSsr, fetchBlogIndexForSsr, fetchBlogTagForSsr } from './blogIndexSsr';
+import { getBlogTagSeo, normalizeBlogTagQuery } from '@/utils/blogTagListing';
+import { getBlogCategorySeo } from '@/utils/blogCategorySeo';
 
 const BASE_URL = 'https://1мост.рф';
 const API_BASE_DOMAIN = process.env.VITE_API_BASE ?? process.env.API_BASE_URL ?? 'https://api.1мост.рф';
@@ -153,20 +156,63 @@ const buildMissingArticleDocumentProps = () => ({
   statusCode: 404,
 });
 
-export async function onBeforeRender(pageContext: { urlPathname?: string }) {
+export async function onBeforeRender(pageContext: { urlPathname?: string; urlOriginal?: string }) {
+  const query = readBlogIndexQuery(new URL(pageContext.urlOriginal || pageContext.urlPathname || '/', BASE_URL).searchParams);
   const normalizedPath = normalizeMarketingPath(pageContext.urlPathname || '/');
   const routeStatusCode = isKnownMarketingPath(normalizedPath) ? 200 : 404;
   const articleSlug = resolveBlogArticleSlug(normalizedPath);
 
   if (normalizedPath === '/blog') {
-    const initialBlogIndexData = await fetchBlogIndexForSsr();
-
+    const initialBlogIndexData = await fetchBlogIndexForSsr({ query });
+    const documentProps = {
+      ...marketingSeo.blog,
+      ...getBlogListingSeo('/blog', query, marketingSeo.blog.title, initialBlogIndexData.notFound, initialBlogIndexData.unavailable),
+    };
     return {
       pageContext: {
-        routeStatusCode: 200,
-        pageProps: {
-          initialBlogIndexData,
-        },
+        routeStatusCode: documentProps.statusCode,
+        documentProps,
+        pageProps: { initialBlogIndexData },
+      },
+    };
+  }
+
+  const tagMatch = normalizedPath.match(/^\/blog\/tag\/([^/]+)$/);
+  if (tagMatch) {
+    let slug: string;
+    try {
+      slug = decodeURIComponent(tagMatch[1]);
+    } catch {
+      slug = '';
+    }
+    const tagQuery = normalizeBlogTagQuery(query);
+    const initialBlogTagData = await fetchBlogTagForSsr(slug, { query: tagQuery });
+    const documentProps = getBlogTagSeo(initialBlogTagData, tagQuery);
+    return {
+      pageContext: {
+        routeStatusCode: documentProps.statusCode,
+        pageProps: { initialBlogTagData },
+        documentProps,
+      },
+    };
+  }
+
+  const categoryMatch = normalizedPath.match(/^\/blog\/category\/([^/]+)$/);
+  if (categoryMatch) {
+    let slug: string;
+    try {
+      slug = decodeURIComponent(categoryMatch[1]);
+    } catch {
+      return { pageContext: { routeStatusCode: 404 } };
+    }
+    const categoryQuery = { ...query, category: null };
+    const initialBlogCategoryData = await fetchBlogCategoryForSsr(slug, { query: categoryQuery });
+    const documentProps = getBlogCategorySeo(slug, initialBlogCategoryData.category, initialBlogCategoryData.notFound, categoryQuery, initialBlogCategoryData.pageNotFound, initialBlogCategoryData.unavailable);
+    return {
+      pageContext: {
+        routeStatusCode: documentProps.statusCode,
+        pageProps: { initialBlogCategoryData },
+        documentProps,
       },
     };
   }

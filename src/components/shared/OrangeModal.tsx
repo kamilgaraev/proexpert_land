@@ -34,14 +34,14 @@ const OrangeModal: React.FC<OrangeModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className={`bg-white rounded-2xl shadow-2xl w-full ${widthClassName} mx-4 overflow-hidden`}>
-        <div className="px-6 py-4 border-b border-orange-200 bg-gradient-to-r from-orange-50 to-white">
-          <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+      <div className={`bg-card text-card-foreground rounded-md border border-border shadow-xl w-full ${widthClassName} mx-4 overflow-hidden`}>
+        <div className="px-6 py-4 border-b border-border bg-background">
+          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
         </div>
         <div className="p-6">
           {children}
         </div>
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end space-x-3">
+        <div className="px-6 py-4 border-t border-border bg-background flex justify-end space-x-3">
           <button
             type="button"
             onClick={handleSecondary}

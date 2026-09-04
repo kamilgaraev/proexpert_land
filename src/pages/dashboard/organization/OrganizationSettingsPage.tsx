@@ -297,7 +297,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
 
           {renderInfoSection(
             'Направления деятельности',
-            <CheckCircle className="h-5 w-5 text-primary" />,
+            <CheckCircle className="h-5 w-5 text-muted-foreground" aria-hidden="true" />,
             !profile?.capabilities || profile.capabilities.length === 0,
             editingSection === 'capabilities' ? (
               <CapabilitiesSelector
@@ -322,7 +322,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
 
           {renderInfoSection(
             'Основной режим работы',
-            <Briefcase className="h-5 w-5 text-blue-600" />,
+            <Briefcase className="h-5 w-5 text-muted-foreground" />,
             !profile?.primary_business_type,
             editingSection === 'business_type' ? (
               <BusinessTypeSelector
@@ -331,8 +331,8 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
                 availableTypes={localCapabilities}
               />
             ) : (
-              <div className="flex items-center gap-4 rounded-lg border border-blue-100 bg-blue-50/50 p-4">
-                <div className="text-3xl">🏗️</div>
+              <div className="flex items-center gap-4 rounded-lg border border-border bg-secondary/40 p-4">
+                <Briefcase className="h-7 w-7 shrink-0 text-foreground" aria-hidden="true" />
                 <div>
                   <p className="font-bold text-foreground">
                     {primaryBusinessType ? BUSINESS_TYPE_LABELS[primaryBusinessType] : null}
@@ -348,7 +348,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
 
           {renderInfoSection(
             'Специализации',
-            <ListChecks className="h-5 w-5 text-emerald-600" />,
+            <ListChecks className="h-5 w-5 text-muted-foreground" />,
             !profile?.specializations || profile.specializations.length === 0,
             editingSection === 'specializations' ? (
               <SpecializationsSelector
@@ -361,7 +361,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
                   <Badge
                     key={specialization}
                     variant="outline"
-                    className="border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700"
+                    className="border-border bg-secondary/40 px-3 py-1 text-foreground"
                   >
                     {SPECIALIZATION_LABELS[specialization] || specialization}
                   </Badge>
@@ -373,7 +373,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
 
           {renderInfoSection(
             'Сертификаты и допуски',
-            <Award className="h-5 w-5 text-violet-600" />,
+            <Award className="h-5 w-5 text-muted-foreground" />,
             !profile?.certifications || profile.certifications.length === 0,
             editingSection === 'certifications' ? (
               <CertificationsList
@@ -385,10 +385,10 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
                 {profile?.certifications?.map((certification, index) => (
                   <div
                     key={`${certification}-${index}`}
-                    className="flex items-center gap-3 rounded-lg border border-violet-100 bg-violet-50/50 p-3"
+                    className="flex items-center gap-3 rounded-lg border border-border bg-secondary/40 p-3"
                   >
-                    <div className="rounded-md bg-violet-100 p-1">
-                      <CheckCircle className="h-4 w-4 text-violet-600" />
+                    <div className="rounded-md bg-secondary p-1">
+                      <CheckCircle className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <span className="text-sm font-medium">{certification}</span>
                   </div>

@@ -68,7 +68,15 @@ export const normalizeOgImageUrl = (image?: string | null) => {
     return undefined;
   }
 
-  return image.replace(MARKETING_OG_IMAGE_PATTERN, '$1/og/$2.png$3');
+  const rasterImage = image.replace(MARKETING_OG_IMAGE_PATTERN, '$1/og/$2.png$3');
+  const match = rasterImage.match(/^(https?:\/\/(?:www\.)?(?:prohelper\.pro|1мост\.рф|xn--1-xtbgmf\.xn--p1ai))?(\/og\/[^/?#]+\.png)(\?[^#]*)?(#.*)?$/i);
+  if (!match) {
+    return rasterImage;
+  }
+
+  const query = new URLSearchParams(match[3] ?? '');
+  query.set('v', 'bridge-20260903');
+  return `${match[1] ?? ''}${match[2]}?${query.toString()}${match[4] ?? ''}`;
 };
 
 const notFoundSeo = {
@@ -671,7 +679,9 @@ export const buildStructuredDataGraph = ({
   const normalizedPath = normalizeMarketingPath(pathname);
   const pageKey = resolveMarketingSeoKey(normalizedPath);
   const isBlogArticle = /^\/blog\/[^/]+$/.test(normalizedPath);
-  const normalizedCanonicalUrl = stripUrlQuery(canonicalUrl);
+  const normalizedCanonicalUrl = normalizedPath === '/blog' || normalizedPath.startsWith('/blog/category/')
+    ? canonicalUrl.replace(/#.*$/, '')
+    : stripUrlQuery(canonicalUrl);
   const currentPageName = stripTitleBrand(title);
   const breadcrumbItems = [
     { name: 'Главная', url: `${BASE_URL}/` },

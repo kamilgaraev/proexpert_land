@@ -1,11 +1,12 @@
-import type { ComponentType, ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import type { ComponentType, ReactNode } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowUpRightIcon,
   BanknotesIcon,
   BriefcaseIcon,
   BuildingOfficeIcon,
   ChartBarIcon,
+  ChevronDownIcon,
   ClipboardDocumentCheckIcon,
   CpuChipIcon,
   CubeIcon,
@@ -16,16 +17,17 @@ import {
   TruckIcon,
   UserGroupIcon,
   WrenchScrewdriverIcon,
-} from '@heroicons/react/24/outline';
-import { useSEO } from '@/hooks/useSEO';
+} from "@heroicons/react/24/outline";
+import { useSEO } from "@/hooks/useSEO";
 import {
   legalDocuments,
   marketingCompany,
   marketingMaturityMeta,
   marketingPaths,
   marketingSurfaceMeta,
-} from '@/data/marketingRegistry';
-import type { MarketingMaturity, MarketingSurface } from '@/types/marketing';
+} from "@/data/marketingRegistry";
+import type { MarketingMaturity, MarketingSurface } from "@/types/marketing";
+import "@/styles/marketing-legal.css";
 
 const packageIcons: Record<string, ComponentType<{ className?: string }>> = {
   projects: BuildingOfficeIcon,
@@ -35,22 +37,23 @@ const packageIcons: Record<string, ComponentType<{ className?: string }>> = {
   ai: CpuChipIcon,
   integrations: RectangleGroupIcon,
   enterprise: ShieldCheckIcon,
-  'objects-execution': BuildingOfficeIcon,
-  'supply-warehouse': TruckIcon,
-  'finance-acts': BanknotesIcon,
+  "objects-execution": BuildingOfficeIcon,
+  "supply-warehouse": TruckIcon,
+  "finance-acts": BanknotesIcon,
   crm: BriefcaseIcon,
-  'estimates-pto': RectangleGroupIcon,
-  'holding-analytics': ChartBarIcon,
-  'ai-contour': CpuChipIcon,
-  'site-quality-handover': ClipboardDocumentCheckIcon,
-  'construction-safety': ShieldCheckIcon,
-  'machinery-and-labor': WrenchScrewdriverIcon,
-  'workforce-management': UserGroupIcon,
-  'change-control': ExclamationTriangleIcon,
-  'pir-project-documentation': DocumentCheckIcon,
+  "estimates-pto": RectangleGroupIcon,
+  "holding-analytics": ChartBarIcon,
+  "ai-contour": CpuChipIcon,
+  "site-quality-handover": ClipboardDocumentCheckIcon,
+  "construction-safety": ShieldCheckIcon,
+  "machinery-and-labor": WrenchScrewdriverIcon,
+  "workforce-management": UserGroupIcon,
+  "change-control": ExclamationTriangleIcon,
+  "pir-project-documentation": DocumentCheckIcon,
 };
 
-const isExternalHref = (href: string) => href.startsWith('mailto:') || href.startsWith('http');
+const isExternalHref = (href: string) =>
+  href.startsWith("mailto:") || href.startsWith("http");
 
 export const MarketingLink = ({
   href,
@@ -58,7 +61,7 @@ export const MarketingLink = ({
   children,
 }: {
   href: string;
-  className: string;
+  className?: string;
   children: ReactNode;
 }) => {
   if (isExternalHref(href)) {
@@ -69,7 +72,7 @@ export const MarketingLink = ({
     );
   }
 
-  if (href.startsWith('#')) {
+  if (href.startsWith("#")) {
     return (
       <a href={href} className={className}>
         {children}
@@ -85,64 +88,54 @@ export const MarketingLink = ({
 };
 
 export const SectionHeader = ({
-  eyebrow,
   title,
   description,
-  align = 'left',
-  tone = 'light',
+  align = "left",
+  tone = "light",
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description?: string;
-  align?: 'left' | 'center';
-  tone?: 'light' | 'dark';
-}) => {
-  const wrapperClass = align === 'center' ? 'mx-auto text-center' : '';
-  const eyebrowClass = tone === 'dark' ? 'text-construction-200' : 'text-construction-700';
-  const titleClass = tone === 'dark' ? 'text-white' : 'text-steel-950';
-  const descriptionClass = tone === 'dark' ? 'text-white/72' : 'text-steel-600';
-
-  return (
-    <div className={`max-w-4xl ${wrapperClass}`}>
-      <div className={`text-sm font-semibold leading-6 ${eyebrowClass}`}>
-        {eyebrow}
-      </div>
-      <h2
-        className={`mt-4 max-w-4xl font-sans text-[clamp(1.85rem,3.6vw,3.2rem)] font-bold leading-[1.04] tracking-tight [overflow-wrap:anywhere] [text-wrap:balance] sm:mt-5 ${titleClass}`}
-      >
-        {title}
-      </h2>
-      {description ? (
-        <p className={`mt-4 max-w-3xl text-sm leading-7 sm:mt-5 sm:text-base sm:leading-8 ${descriptionClass}`}>{description}</p>
-      ) : null}
-    </div>
-  );
-};
+  align?: "left" | "center";
+  tone?: "light" | "dark";
+}) => (
+  <div className={`most-section-intro is-${align} tone-${tone}`}>
+    <h2>{title}</h2>
+    {description ? <p>{description}</p> : null}
+  </div>
+);
 
 export const PageSectionNav = ({
   items,
-  className = '',
+  className = "",
 }: {
   items: { label: string; href: string }[];
   className?: string;
 }) => (
-  <div className={`overflow-x-auto pb-2 ${className}`}>
-    <div className="flex min-w-max gap-3 sm:min-w-0 sm:flex-wrap">
-      {items.map((item) => (
-        <MarketingLink
-          key={`${item.href}-${item.label}`}
-          href={item.href}
-          className="inline-flex items-center whitespace-nowrap rounded-full border border-steel-200 bg-white px-4 py-2 text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700"
-        >
-          {item.label}
-        </MarketingLink>
-      ))}
-    </div>
-  </div>
+  <nav
+    className={`most-section-nav ${className}`}
+    aria-label="Разделы страницы"
+  >
+    {items.map((item) => (
+      <MarketingLink
+        key={`${item.href}-${item.label}`}
+        href={item.href}
+        className="most-section-nav-link"
+      >
+        {item.label}
+        <span aria-hidden="true">
+          {item.href.startsWith("#") ? (
+            <ChevronDownIcon className="most-icon" />
+          ) : (
+            <ArrowUpRightIcon className="most-icon" />
+          )}
+        </span>
+      </MarketingLink>
+    ))}
+  </nav>
 );
 
 export const PageHero = ({
-  eyebrow,
   title,
   description,
   actions = [],
@@ -156,45 +149,45 @@ export const PageHero = ({
   nav?: { label: string; href: string }[];
   aside?: ReactNode;
 }) => (
-  <section className="overflow-x-hidden border-b border-steel-100 bg-transparent">
-    <div className="container-custom pb-12 pt-8 sm:pb-14 sm:pt-10 lg:pb-20 lg:pt-10">
-      <div className={`grid gap-8 ${aside ? 'xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)] xl:items-start' : ''}`}>
-        <div className="min-w-0 max-w-4xl">
-          {eyebrow ? <div className="text-sm font-semibold leading-6 text-construction-700">{eyebrow}</div> : null}
-          <h1 className="mt-4 max-w-full font-sans text-[clamp(1.9rem,8vw,4.4rem)] font-bold leading-[0.98] tracking-tight text-steel-950 [overflow-wrap:anywhere] [text-wrap:balance] sm:mt-5 sm:max-w-4xl sm:text-[clamp(2rem,5.4vw,4.4rem)]">
-            {title}
-          </h1>
-          <p className="mt-5 max-w-3xl break-words text-base leading-7 text-steel-600 sm:mt-6 sm:text-lg sm:leading-8">{description}</p>
-
+  <section className="most-page-hero">
+    <div className="most-container">
+      <div className={`most-page-hero-layout ${aside ? "has-aside" : ""}`}>
+        <div>
+          <h1>{title}</h1>
+          <p className="most-page-description">{description}</p>
           {actions.length > 0 ? (
-            <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
+            <div className="most-page-actions">
               {actions.map((action) => (
                 <MarketingLink
                   key={`${action.href}-${action.label}`}
                   href={action.href}
-                  className={`inline-flex w-full min-w-0 flex-wrap items-center justify-center gap-2 rounded-full px-5 py-3 text-center text-sm font-semibold whitespace-normal [overflow-wrap:anywhere] transition sm:w-auto ${
+                  className={
                     action.primary
-                      ? 'bg-steel-950 text-white hover:-translate-y-0.5 hover:bg-steel-900'
-                      : 'border border-steel-200 bg-white text-steel-700 hover:border-construction-300 hover:text-construction-700'
-                  }`}
+                      ? "most-button most-button-orange"
+                      : "most-text-link"
+                  }
                 >
                   {action.label}
-                  {action.primary ? <ArrowUpRightIcon className="h-4 w-4 shrink-0" /> : null}
+                  <span aria-hidden="true">
+                    <ArrowUpRightIcon className="most-icon" />
+                  </span>
                 </MarketingLink>
               ))}
             </div>
           ) : null}
         </div>
-
-        {aside ? <div className="min-w-0">{aside}</div> : null}
+        {aside ? <div className="most-page-aside">{aside}</div> : null}
       </div>
-
-      {nav.length > 0 ? <PageSectionNav items={nav} className="mt-8 sm:mt-10" /> : null}
+      {nav.length > 0 ? <PageSectionNav items={nav} /> : null}
     </div>
   </section>
 );
 
-export const MaturityBadge = ({ maturity }: { maturity: MarketingMaturity }) => {
+export const MaturityBadge = ({
+  maturity,
+}: {
+  maturity: MarketingMaturity;
+}) => {
   const meta = marketingMaturityMeta[maturity];
 
   return (
@@ -207,7 +200,11 @@ export const MaturityBadge = ({ maturity }: { maturity: MarketingMaturity }) => 
   );
 };
 
-export const SurfaceBadges = ({ surfaces }: { surfaces: MarketingSurface[] }) => (
+export const SurfaceBadges = ({
+  surfaces,
+}: {
+  surfaces: MarketingSurface[];
+}) => (
   <div className="flex flex-wrap gap-2">
     {surfaces.map((surface) => {
       const meta = marketingSurfaceMeta[surface];
@@ -226,7 +223,7 @@ export const SurfaceBadges = ({ surfaces }: { surfaces: MarketingSurface[] }) =>
 
 export const PackageIcon = ({
   slug,
-  className = 'h-6 w-6',
+  className = "h-6 w-6",
 }: {
   slug: string;
   className?: string;
@@ -244,26 +241,26 @@ export const formatPackagePrice = ({
 }: {
   price: number;
   priceLabel?: string;
-  billingModel: 'free' | 'subscription';
+  billingModel: "free" | "subscription";
   durationDays?: number;
 }) => {
   if (priceLabel) {
     return priceLabel;
   }
 
-  if (billingModel === 'free' && durationDays) {
+  if (billingModel === "free" && durationDays) {
     return `${durationDays} дней`;
   }
 
-  if (billingModel === 'free') {
-    return 'Бесплатно';
+  if (billingModel === "free") {
+    return "Бесплатно";
   }
 
   if (price <= 0) {
-    return 'По запросу';
+    return "По запросу";
   }
 
-  return `от ${price.toLocaleString('ru-RU')} ₽/мес`;
+  return `от ${price.toLocaleString("ru-RU")} ₽/мес`;
 };
 
 export const LegalDocumentView = ({
@@ -278,26 +275,26 @@ export const LegalDocumentView = ({
     description: document.seo.description,
     keywords: document.seo.keywords,
     noIndex: document.seo.noIndex,
-    type: 'website',
+    type: "website",
   });
 
   return (
-    <div className="marketing-page-shell">
+    <div className="marketing-page-shell most-legal">
       <PageHero
         eyebrow={document.shortTitle}
         title={document.title}
         description={document.intro}
         aside={
-          <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-              Версия документа
+          <div className="most-legal-meta">
+            <div className="most-legal-caption">Версия документа</div>
+            <div className="mt-3 text-lg font-bold text-steel-950">
+              {document.version}
             </div>
-            <div className="mt-3 text-lg font-bold text-steel-950">{document.version}</div>
-            <div className="mt-2 text-sm text-steel-600">Обновлено: {document.updatedAt}</div>
+            <div className="mt-2 text-sm text-steel-600">
+              Обновлено: {document.updatedAt}
+            </div>
             <div className="mt-6 border-t border-steel-100 pt-6">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-                Контакт по вопросам
-              </div>
+              <div className="most-legal-caption">Контакт по вопросам</div>
               <a
                 href={marketingCompany.emailHref}
                 className="mt-3 block text-base font-semibold text-construction-700"
@@ -313,46 +310,37 @@ export const LegalDocumentView = ({
       />
 
       <section className="py-16 lg:py-20">
-        <div className="container-custom grid gap-10 xl:grid-cols-[340px_minmax(0,1fr)]">
-          <aside className="rounded-[1.75rem] border border-steel-200 bg-concrete-50 p-6">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-              Ключевые положения
-            </div>
+        <div className="most-container most-legal-content">
+          <details className="most-legal-highlights">
+            <summary>Ключевые положения</summary>
             <div className="mt-5 space-y-3">
               {document.highlights.map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.25rem] border border-white bg-white px-4 py-4 text-sm leading-7 text-steel-700"
-                >
+                <div key={item} className="most-legal-highlight">
                   {item}
                 </div>
               ))}
             </div>
-          </aside>
+          </details>
 
           <div className="space-y-5">
             {document.sections.map((section) => (
-              <article
-                key={section.title}
-                className="rounded-[1.75rem] border border-steel-200 bg-white p-7 shadow-sm"
-              >
-                <h2 className="text-2xl font-bold text-steel-950">{section.title}</h2>
+              <article key={section.title} className="most-legal-article">
+                <h2 className="text-2xl font-bold text-steel-950">
+                  {section.title}
+                </h2>
                 <div className="mt-4 space-y-4 text-sm leading-7 text-steel-700">
                   {section.paragraphs.map((paragraph) => (
                     <p key={paragraph}>{paragraph}</p>
                   ))}
                 </div>
                 {section.bullets?.length ? (
-                  <div className="mt-5 grid gap-3">
+                  <ul className="mt-5 grid gap-3">
                     {section.bullets.map((bullet) => (
-                      <div
-                        key={bullet}
-                        className="rounded-[1.25rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700"
-                      >
+                      <li key={bullet} className="most-legal-bullet">
                         {bullet}
-                      </div>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 ) : null}
               </article>
             ))}
@@ -360,26 +348,25 @@ export const LegalDocumentView = ({
         </div>
       </section>
 
-      <section className="border-t border-steel-100 bg-concrete-50 py-16">
+      <section className="most-content-tint border-t border-steel-100 py-16">
         <div className="container-custom flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="text-xl font-bold text-steel-950">Нужна дополнительная информация?</div>
+            <div className="text-xl font-bold text-steel-950">
+              Нужна дополнительная информация?
+            </div>
             <p className="mt-2 text-sm text-steel-600">
-              Напишите нам или перейдите на страницу контактов, если нужно обсудить документы
-              детальнее.
+              Напишите нам или перейдите на страницу контактов, если нужно
+              обсудить документы детальнее.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               to={marketingPaths.contact}
-              className="inline-flex w-full items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-steel-900 sm:w-auto"
+              className="most-button most-button-orange"
             >
               Перейти к контактам
             </Link>
-            <Link
-              to={marketingPaths.cookies}
-              className="inline-flex w-full items-center justify-center rounded-full border border-steel-300 bg-white px-5 py-3 text-center text-sm font-semibold text-steel-700 transition hover:border-construction-300 hover:text-construction-700 sm:w-auto"
-            >
+            <Link to={marketingPaths.cookies} className="most-text-link">
               Политика cookie
             </Link>
           </div>

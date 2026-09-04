@@ -54,6 +54,31 @@ export interface BlogCategory {
   updated_at: string | null;
 }
 
+export interface BlogCategoryInitialData {
+  unavailable?: boolean;
+  slug: string;
+  queryKey?: string;
+  pageNotFound?: boolean;
+  category: BlogCategory | null;
+  categories: BlogCategory[];
+  articles: BlogArticle[];
+  pagination: BlogPaginationMeta;
+  categoriesLoaded: boolean;
+  articlesLoaded: boolean;
+  notFound: boolean;
+}
+
+export interface BlogTagInitialData {
+  slug: string;
+  queryKey: string;
+  articles: BlogArticle[];
+  pagination: BlogPaginationMeta;
+  articlesLoaded: boolean;
+  notFound: boolean;
+  pageNotFound: boolean;
+  unavailable: boolean;
+}
+
 export interface BlogTag {
   id: number;
   name: string;
@@ -239,6 +264,8 @@ export interface BlogPaginatedResponse<T> extends BlogApiResponse<T[]> {
 export type BlogPaginationMeta = BlogPaginatedResponse<BlogArticle>['meta'];
 
 export interface BlogIndexInitialData {
+  unavailable?: boolean;
+  notFound?: boolean;
   articles: BlogArticle[];
   categories: BlogCategory[];
   pagination: BlogPaginationMeta;
@@ -248,6 +275,7 @@ export interface BlogIndexInitialData {
 }
 
 export interface BlogArticleFilters {
+  tag_slug?: string;
   status?: string;
   category_id?: number;
   author_id?: number;

@@ -1,0 +1,226 @@
+.most-company-page {
+  color: var(--most-ink);
+}
+.most-contact-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+  align-items: start;
+  column-gap: clamp(2.5rem, 6vw, 8rem);
+  row-gap: 2rem;
+  padding-block: clamp(2.5rem, 5vw, 6rem) clamp(4rem, 7vw, 8rem);
+}
+.most-contact-intro h1 {
+  font-size: var(--most-type-h1);
+  line-height: 1.08;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  max-width: 13ch;
+}
+.most-company-lead {
+  margin-top: 1.5rem;
+  max-width: 48ch;
+  font-size: var(--most-type-lead);
+  line-height: 1.6;
+  color: var(--most-muted);
+}
+.most-contact-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  min-height: 44px;
+  font-size: var(--most-type-control);
+  overflow-wrap: anywhere;
+}
+.most-contact-next {
+  margin-top: clamp(2rem, 4vw, 4rem);
+  border-top: 1px solid var(--most-line);
+  padding-top: 1.5rem;
+}
+.most-contact-next h2 {
+  font-size: var(--most-type-subheading);
+  font-weight: 500;
+  line-height: 1.3;
+}
+.most-contact-next ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+  margin-top: 1.25rem;
+  font-size: var(--most-type-body);
+  line-height: 1.65;
+}
+.most-contact-next li + li {
+  margin-top: 1rem;
+}
+.most-contact-next li::marker {
+  color: var(--most-muted);
+}
+.most-contact-note {
+  margin-block: 1.75rem 1rem;
+  max-width: 48ch;
+  font-size: var(--most-type-small);
+  color: var(--most-muted);
+  line-height: 1.6;
+}
+.most-contact-followup {
+  grid-column: 1;
+}
+.most-company-form {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.most-company-form form button {
+  border-radius: 4px;
+}
+.most-company-form > div {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  opacity: 1;
+  transform: none;
+}
+.most-company-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: clamp(2rem, 6vw, 8rem);
+  align-items: start;
+  padding-block: clamp(2.5rem, 5vw, 6rem);
+}
+.most-company-heading h1 {
+  font-size: var(--most-type-h1);
+  line-height: 1.08;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  max-width: 18ch;
+}
+.most-company-heading .most-company-lead {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+.most-about-bridge {
+  width: 100%;
+  margin: 0;
+}
+.most-about-bridge img {
+  display: block;
+  width: 100%;
+  height: auto;
+  mix-blend-mode: darken;
+  filter: brightness(1.04);
+}
+.most-company-section {
+  padding-block: clamp(3rem, 5vw, 6rem);
+  border-top: 1px solid var(--most-line);
+}
+.most-company-section h2 {
+  font-size: var(--most-type-h2);
+  line-height: 1.12;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  max-width: 24ch;
+}
+.most-company-section h3 {
+  font-size: var(--most-type-subheading);
+  line-height: 1.3;
+  font-weight: 500;
+}
+.most-company-split {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(2rem, 6vw, 8rem);
+}
+.most-company-prose p,
+.most-company-principles p,
+.most-access-path p,
+.most-security-sections p,
+.most-security-sections li {
+  font-size: var(--most-type-body);
+  line-height: 1.65;
+  color: var(--most-muted);
+  max-width: 58ch;
+}
+.most-company-prose p + p {
+  margin-top: 1.25rem;
+}
+.most-company-principles,
+.most-access-path {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.5rem, 4vw, 4rem);
+  margin-top: clamp(2rem, 4vw, 4rem);
+}
+.most-company-principles article {
+  border-top: 2px solid var(--most-orange);
+  padding-top: 1.5rem;
+}
+.most-company-principles p,
+.most-access-path p,
+.most-security-sections p {
+  margin-top: 1rem;
+}
+.most-company-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 2rem;
+  align-items: center;
+  margin-top: 2rem;
+}
+.most-access-path {
+  list-style: none;
+  padding: 0;
+  border-top: 2px solid var(--most-orange);
+}
+.most-access-path li {
+  padding-top: 1.5rem;
+}
+.most-access-path .most-icon {
+  margin-bottom: 1rem;
+}
+.most-security-sections {
+  margin-top: clamp(2rem, 4vw, 4rem);
+}
+.most-security-sections article {
+  border-top: 1px solid var(--most-line);
+  padding-block: 2rem;
+}
+.most-security-sections ul {
+  padding-left: 1.2em;
+  list-style: disc;
+}
+.most-security-sections li + li {
+  margin-top: 0.75rem;
+}
+@media (max-width: 900px) {
+  .most-company-heading,
+  .most-company-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .most-company-principles,
+  .most-access-path {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .most-access-path {
+    border-top: 0;
+    border-left: 2px solid var(--most-orange);
+    padding-left: 1.5rem;
+  }
+  .most-access-path li {
+    padding-top: 0;
+  }
+  .most-contact-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+  .most-company-form {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .most-contact-next {
+    margin-top: 1rem;
+  }
+  .most-contact-note {
+    margin: 0;
+  }
+}

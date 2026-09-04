@@ -1,3 +1,4 @@
+import { Briefcase } from 'lucide-react';
 import type { OrganizationCapability } from '@/types/organization-profile';
 import { filterBusinessTypeOptions } from '@/utils/organizationProfile';
 
@@ -18,57 +19,45 @@ export const BusinessTypeSelector = ({
 
   if (businessTypes.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-6 py-8 text-center text-sm text-gray-500">
+      <div className="rounded-lg border border-dashed border-border bg-muted px-6 py-8 text-sm text-muted-foreground">
         Сначала выберите направления деятельности организации, чтобы определить основной режим работы.
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {businessTypes.map((type) => {
-          const isSelected = selectedType === type.value;
-
-          return (
-            <div
-              key={type.value}
-              className={`
-                relative rounded-lg border-2 p-4 transition-all duration-200
-                ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
-                ${
-                  isSelected
-                    ? 'scale-105 border-construction-500 bg-construction-50 shadow-lg'
-                    : 'border-gray-200 bg-white hover:border-construction-300 hover:shadow-md'
-                }
-              `}
-              onClick={() => !disabled && onChange(type.value)}
-            >
-              {isSelected && (
-                <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-construction-500">
-                  <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              )}
-
-              <div className="space-y-2 text-center">
-                <div className="text-4xl">{type.icon}</div>
-                <h4 className={`text-base font-semibold ${isSelected ? 'text-construction-900' : 'text-gray-900'}`}>
-                  {type.label}
-                </h4>
-                <p className="text-xs text-gray-600">{type.description}</p>
-              </div>
-            </div>
-          );
-        })}
+    <fieldset className="min-w-0 space-y-4" disabled={disabled}>
+      <legend className="sr-only">Основной режим работы</legend>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {businessTypes.map((type) => (
+          <label
+            key={type.value}
+            className={`flex min-w-0 items-start gap-3 rounded-lg border p-4 transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${selectedType === type.value ? 'border-primary bg-accent' : 'border-border bg-card hover:bg-muted'}`}
+          >
+            <input
+              type="radio"
+              name="primary-business-type"
+              value={type.value}
+              checked={selectedType === type.value}
+              onChange={() => onChange(type.value)}
+              className="mt-1 h-5 w-5 shrink-0 accent-primary focus-visible:!outline-none"
+              aria-label={type.label}
+            />
+            <span className="min-w-0 flex-1 space-y-1">
+              <span className="flex items-center gap-2 text-base font-semibold">
+                <Briefcase className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                {type.label}
+              </span>
+              <span className="block text-sm text-muted-foreground">{type.description}</span>
+            </span>
+          </label>
+        ))}
       </div>
-
       {!selectedType && businessTypes.length > 1 && (
-        <p className="py-2 text-center text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           Выберите основной режим работы, который должен открываться первым в личном кабинете.
         </p>
       )}
-    </div>
+    </fieldset>
   );
 };

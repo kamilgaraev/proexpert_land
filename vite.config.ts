@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-// @ts-ignore - vite-plugin-ssr типы не публикует для /plugin
-import ssr from 'vite-plugin-ssr/plugin';
+import ssr from 'vike/plugin';
 import path from 'path';
+
 
 // Если собираем личный кабинет (BUILD_TARGET=lk) — SSR не нужен.
 const isLkBuild = process.env.BUILD_TARGET === 'lk';
@@ -36,6 +36,7 @@ export default defineConfig({
   // чтобы при переходе на вложенные маршруты (/blog) браузер не запрашивал /blog/assets/…
   base: '/',
   build: {
+    target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
     manifest: 'manifest.json',
     // Включаем минификацию
     minify: 'terser',
@@ -72,18 +73,14 @@ export default defineConfig({
             // Это предотвратит circular dependencies
           }
         },
-        chunkFileNames: (chunkInfo) => {
-          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop().replace('.tsx', '').replace('.ts', '') : 'chunk';
-          return `assets/${facadeModuleId}-[hash].js`;
-        },
-        entryFileNames: (chunkInfo) => {
-          // Не хешируем pageFiles и importBuild для vite-plugin-ssr
-          if (chunkInfo.name === 'pageFiles' || chunkInfo.name === 'importBuild') {
-            return '[name].js';
-          }
-          return 'assets/[name]-[hash].js';
-        },
-        assetFileNames: 'assets/[name]-[hash][extname]'
+        ...(isLkBuild ? {
+          chunkFileNames: (chunkInfo) => {
+            const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop()?.replace('.tsx', '').replace('.ts', '') : 'chunk';
+            return `assets/${facadeModuleId}-[hash].js`;
+          },
+          entryFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash][extname]',
+        } : {}),
       }
     },
     // Не даём commonjs-плагину повторно обрабатывать чистые ESM-модули

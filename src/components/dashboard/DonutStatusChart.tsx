@@ -1,14 +1,7 @@
 import React from 'react';
 import { Doughnut } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { ChartPieIcon } from '@heroicons/react/24/outline';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
-// Регистрируем компоненты локально
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface DonutStatusChartProps {
@@ -16,75 +9,41 @@ interface DonutStatusChartProps {
   title: string;
 }
 
-const COLORS = [
-  '#3b82f6', // blue
-  '#16a34a', // green
-  '#f59e0b', // amber
-  '#ef4444', // red
-  '#6366f1', // indigo
-  '#10b981', // emerald
-];
+const COLORS = ['#ae4612', '#426354', '#967027', '#9d4343', '#626378', '#4b7376'];
 
 const DonutStatusChart: React.FC<DonutStatusChartProps> = ({ data, title }) => {
-  const labels = Object.keys(data);
-  const values = Object.values(data);
-
-  const hasData = values.some((v) => v > 0);
-
+  const entries = Object.entries(data).filter(([, value]) => Number.isFinite(value) && value > 0);
+  const total = entries.reduce((sum, [, value]) => sum + value, 0);
   const chartData = {
-    labels,
-    datasets: [
-      {
-        data: values,
-        backgroundColor: COLORS.slice(0, values.length),
-        borderWidth: 2,
-        borderColor: '#ffffff',
-        hoverOffset: 4,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-        labels: {
-          padding: 20,
-          usePointStyle: true,
-          font: {
-            size: 12,
-          },
-        },
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context: any) {
-            const label = context.label || '';
-            const value = context.parsed || 0;
-            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-            const percentage = ((value / total) * 100).toFixed(1);
-            return `${label}: ${value} (${percentage}%)`;
-          },
-        },
-      },
-    },
-    cutout: '60%',
+    labels: entries.map(([label]) => label),
+    datasets: [{
+      data: entries.map(([, value]) => value),
+      backgroundColor: entries.map((_, index) => COLORS[index % COLORS.length]),
+      borderWidth: 2,
+      borderColor: '#ffffff',
+    }],
   };
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col">
-      {title && <h3 className="mb-4 text-sm font-medium text-steel-600">{title}</h3>}
-      {hasData ? (
-        <div className="relative min-h-0 flex-1">
-          <Doughnut data={chartData} options={options} />
-        </div>
+    <div className="flex h-full min-h-0 min-w-0 flex-col items-center gap-3">
+      {title && <h3 className="self-start text-sm font-medium text-foreground">{title}</h3>}
+      {total > 0 ? (
+        <>
+          <div className="relative h-40 w-40 max-w-full shrink-0">
+            <Doughnut data={chartData} options={{ responsive: true, maintainAspectRatio: false, animation: false, cutout: '65%', plugins: { legend: { display: false } } }} aria-hidden="true" />
+          </div>
+          <ul aria-label={title || 'Распределение по статусам'} className="grid min-h-0 w-full gap-2 overflow-y-auto text-sm">
+            {entries.map(([label, value], index) => (
+              <li key={label} className="flex items-start gap-2">
+                <span aria-hidden="true" className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                <span className="min-w-0 flex-1 break-words">{label}</span>
+                <span className="shrink-0 tabular-nums">{value.toLocaleString('ru-RU')} · {Math.round(value / total * 100)}%</span>
+              </li>
+            ))}
+          </ul>
+        </>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center text-steel-400">
-          <ChartPieIcon className="mb-2 h-12 w-12" />
-          <span className="text-sm">Нет данных</span>
-        </div>
+        <p className="my-auto text-center text-sm text-muted-foreground">Нет данных для распределения</p>
       )}
     </div>
   );

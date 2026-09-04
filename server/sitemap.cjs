@@ -145,13 +145,14 @@ const renderSitemapXml = (articles = []) => {
 
 const fetchBlogSitemapArticles = async ({ apiBase, fetchImpl = globalThis.fetch } = {}) => {
   if (typeof fetchImpl !== 'function') {
-    return [];
+    throw new Error('Blog sitemap fetch is unavailable');
   }
 
   const response = await fetchImpl(`${normalizeApiBase(apiBase)}/api/v1/blog/sitemap`, {
     headers: {
       Accept: 'application/json',
     },
+    signal: AbortSignal.timeout(10000),
   });
 
   if (!response.ok) {
@@ -159,25 +160,41 @@ const fetchBlogSitemapArticles = async ({ apiBase, fetchImpl = globalThis.fetch 
   }
 
   const payload = await response.json();
+  if (!payload || payload.success === false || !Array.isArray(payload.data)) {
+    throw new Error('Blog sitemap API returned an invalid article list');
+  }
 
-  return Array.isArray(payload.data) ? payload.data : [];
+  return payload.data;
 };
 
 const createSitemapXml = async ({ apiBase, fetchImpl } = {}) => {
+  const articles = await fetchBlogSitemapArticles({ apiBase, fetchImpl });
+  return renderSitemapXml(articles);
+};
+
+const respondWithSitemap = async (res, options = {}) => {
   try {
-    const articles = await fetchBlogSitemapArticles({ apiBase, fetchImpl });
-
-    return renderSitemapXml(articles);
-  } catch (error) {
-    console.error('Failed to load blog sitemap articles', error);
-
-    return renderSitemapXml([]);
+    const xml = await createSitemapXml(options);
+    res.writeHead(200, {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=900, stale-while-revalidate=3600',
+    });
+    res.end(xml);
+  } catch {
+    console.error('Sitemap generation failed: blog article list unavailable');
+    res.writeHead(503, {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'Retry-After': '300',
+    });
+    res.end('Карта сайта временно недоступна.');
   }
 };
 
 module.exports = {
   STATIC_MARKETING_SITEMAP_ROUTES,
   createSitemapXml,
+  respondWithSitemap,
   fetchBlogSitemapArticles,
   renderSitemapXml,
   validateSitemapRoutes,

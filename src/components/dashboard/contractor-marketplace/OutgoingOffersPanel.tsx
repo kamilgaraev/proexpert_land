@@ -251,7 +251,7 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
       patchOffer(updatedOffer);
       setCancelTarget(null);
       setCancelReason('');
-      toast.success('Оффер отменен');
+      toast.success('Предложение отменено');
     } catch (error) {
       const message = normalizeErrorMessage(error);
       setErrorMessage(message);
@@ -359,20 +359,22 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-4 rounded-xl border bg-background p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-xl border bg-background p-4">
         <div>
-          <h2 className="text-xl font-semibold">Исходящие офферы</h2>
+          <h2 className="text-xl font-semibold">Исходящие предложения</h2>
           <p className="text-sm text-muted-foreground">
             Предложения, отправленные подрядчикам из закрытой сети.
           </p>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] xl:items-end">
+          <div className="min-w-0 space-y-2">
+          <Label htmlFor="outgoing-project">Проект</Label>
           <Select
             value={filters.project_id ? String(filters.project_id) : 'all'}
             disabled={projectsLoading}
             onValueChange={(value) => updateFilter('project_id', value === 'all' ? undefined : Number(value))}
           >
-            <SelectTrigger className="h-9 w-full sm:w-56">
+            <SelectTrigger id="outgoing-project" className="min-h-11 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -384,11 +386,14 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
               ))}
             </SelectContent>
           </Select>
+          </div>
+          <div className="min-w-0 space-y-2">
+          <Label htmlFor="outgoing-status">Статус предложения</Label>
           <Select
             value={filters.status ?? 'all'}
             onValueChange={(value) => updateFilter('status', value === 'all' ? undefined : value as MarketplaceOfferStatus)}
           >
-            <SelectTrigger className="h-9 w-full sm:w-44">
+            <SelectTrigger id="outgoing-status" className="min-h-11 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -402,8 +407,9 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
                 ))}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={() => void loadOffers()} disabled={isLoading}>
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+          </div>
+          <Button variant="outline" className="min-h-11" onClick={() => void loadOffers()} disabled={isLoading}>
+            {isLoading ? <Loader2 className="mr-2 h-5 w-5 shrink-0 animate-spin" /> : <RefreshCw className="mr-2 h-5 w-5 shrink-0" />}
             Обновить
           </Button>
         </div>
@@ -424,7 +430,7 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
       ) : offers.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-background p-10 text-center">
           <Briefcase className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-          <h3 className="text-lg font-semibold">Офферов пока нет</h3>
+          <h3 className="text-lg font-semibold">Предложений пока нет</h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             Выберите подрядчика в каталоге и отправьте предложение по проекту.
           </p>
@@ -449,19 +455,19 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
               <CardContent className="space-y-4 p-4">
                 <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
                   <div className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" />
+                    <Briefcase className="h-5 w-5 shrink-0" />
                     <span>{offer.project?.name ?? 'Проект не указан'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Banknote className="h-4 w-4" />
+                    <Banknote className="h-5 w-5 shrink-0" />
                     <span>{formatBudgetRange(offer.budget_min, offer.budget_max, offer.currency)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4" />
+                    <CalendarDays className="h-5 w-5 shrink-0" />
                     <span>{formatDate(offer.starts_at)} - {formatDate(offer.ends_at)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4" />
+                    <Star className="h-5 w-5 shrink-0" />
                     <span>{offer.reviews.length > 0 ? 'Оценка сохранена' : 'Оценка не заполнена'}</span>
                   </div>
                 </div>
@@ -597,12 +603,12 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
                         <div className="grid gap-3 md:grid-cols-2">
                           {reviewScoreLabels.map(({ field, label }) => (
                             <div key={field} className="space-y-2">
-                              <Label>{label}</Label>
+                              <Label htmlFor={`review-${category.id}-${field}`}>{label}</Label>
                               <Select
                                 value={String(draft?.[field] ?? 5)}
                                 onValueChange={(value) => updateReviewDraft(category.id, field, Number(value))}
                               >
-                                <SelectTrigger>
+                                <SelectTrigger id={`review-${category.id}-${field}`}>
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -617,8 +623,9 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
                           ))}
                         </div>
                         <div className="space-y-2">
-                          <Label>Комментарий</Label>
+                          <Label htmlFor={`review-${category.id}-comment`}>Комментарий</Label>
                           <Textarea
+                            id={`review-${category.id}-comment`}
                             value={draft?.comment ?? ''}
                             rows={3}
                             onChange={(event) => updateReviewDraft(category.id, 'comment', event.target.value)}
@@ -628,7 +635,7 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
                     );
                   })}
                   <Button onClick={() => void submitReview()} disabled={actionOfferId === selectedOffer.id}>
-                    {actionOfferId === selectedOffer.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {actionOfferId === selectedOffer.id && <Loader2 className="mr-2 h-5 w-5 shrink-0 animate-spin" />}
                     Сохранить оценку
                   </Button>
                 </div>
@@ -642,8 +649,8 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
                     disabled={actionOfferId === selectedOffer.id}
                     onClick={() => setCancelTarget(selectedOffer)}
                   >
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Отменить оффер
+                    <XCircle className="mr-2 h-5 w-5 shrink-0" />
+                    Отменить предложение
                   </Button>
                 </div>
               )}
@@ -655,17 +662,18 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
       <Dialog open={cancelTarget !== null} onOpenChange={(open) => !open && setCancelTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Отменить оффер</DialogTitle>
+            <DialogTitle>Отменить предложение</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <Alert>
               <AlertDescription>
-                Подрядчик больше не сможет принять это предложение. Уже принятые офферы отменить нельзя.
+                Подрядчик больше не сможет принять это предложение. Уже принятые предложения отменить нельзя.
               </AlertDescription>
             </Alert>
             <div className="space-y-2">
-              <Label>Причина отмены</Label>
+              <Label htmlFor="outgoing-cancel-reason">Причина отмены</Label>
               <Textarea
+                id="outgoing-cancel-reason"
                 value={cancelReason}
                 rows={4}
                 maxLength={1000}
@@ -678,8 +686,8 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
               Закрыть
             </Button>
             <Button variant="destructive" onClick={() => void confirmCancel()} disabled={actionOfferId !== null}>
-              {actionOfferId !== null && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Отменить оффер
+              {actionOfferId !== null && <Loader2 className="mr-2 h-5 w-5 shrink-0 animate-spin" />}
+              Отменить предложение
             </Button>
           </DialogFooter>
         </DialogContent>

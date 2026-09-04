@@ -1,888 +1,145 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  PlusIcon, 
-  PencilIcon, 
-  TrashIcon, 
-  UserCircleIcon,
-  MagnifyingGlassIcon,
-  UsersIcon,
-  ShieldCheckIcon,
-  CalendarIcon,
-  EnvelopeIcon,
-  UserPlusIcon,
-  PaperAirplaneIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  ChartBarIcon
-} from '@heroicons/react/24/outline';
-import { adminPanelUserService, userManagementService } from '@utils/api';
-import { AdminPanelUser } from '@/types/admin';
-import AdminFormModal from '@components/dashboard/admins/AdminFormModal';
-import ConfirmDeleteModal from '@components/shared/ConfirmDeleteModal';
-import { toast } from 'react-toastify';
-import { useUserManagement } from '@hooks/useUserManagement';
-import { useAuth } from '@hooks/useAuth';
-import { useIsOwner } from '@hooks/usePermissions';
-import UsersList from '@components/dashboard/users/UsersList';
-import InvitationsList from '@components/dashboard/users/InvitationsList';
-import UserCreateInviteModal from '@components/dashboard/users/UserCreateInviteModal';
-import RolesComparisonTable from '@components/dashboard/roles/RolesComparisonTable';
-import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
+import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowUpRight, Plus, Send, ShieldCheck, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import OrganizationTeamDirectory from '@/components/dashboard/users/OrganizationTeamDirectory';
+import OrganizationTeamAccessAction from '@/components/dashboard/users/OrganizationTeamAccessAction';
+import OrganizationTeamOwnerAction from '@/components/dashboard/users/OrganizationTeamOwnerAction';
+import OrganizationTeamRoleAction from '@/components/dashboard/users/OrganizationTeamRoleAction';
+import InvitationsList from '@/components/dashboard/users/InvitationsList';
+import UserCreateInviteModal from '@/components/dashboard/users/UserCreateInviteModal';
+import RolesComparisonTable from '@/components/dashboard/roles/RolesComparisonTable';
+import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { useUserManagement } from '@/hooks/useUserManagement';
 
-type TabType = 'admins' | 'users' | 'invitations' | 'roles-comparison';
+function TeamInvitations({ onInvite }: { onInvite?: () => void }) {
+  const { invitations, loading, error, fetchInvitations, clearError } = useUserManagement();
+  const refresh = useCallback(async () => {
+    clearError();
+    await fetchInvitations();
+  }, [clearError, fetchInvitations]);
 
-const AdminsPage = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('admins');
-  const [admins, setAdmins] = useState<AdminPanelUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isProcessingDelete, setIsProcessingDelete] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-  const [editingAdmin, setEditingAdmin] = useState<AdminPanelUser | null>(null);
-  const [isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen] = useState(false);
-  const [deletingAdmin, setDeletingAdmin] = useState<AdminPanelUser | null>(null);
-  const [ownerCandidate, setOwnerCandidate] = useState<AdminPanelUser | null>(null);
-  const [ownerAcknowledged, setOwnerAcknowledged] = useState(false);
-  const [grantingOwner, setGrantingOwner] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [sendingEmail, setSendingEmail] = useState<number | null>(null);
-  const { user: currentUser } = useAuth();
-  const isCurrentUserOwner = useIsOwner();
+  useEffect(() => { void fetchInvitations(); }, [fetchInvitations]);
 
-  const {
-    users,
-    invitations,
-    loading: userManagementLoading,
-    error: userManagementError,
-    fetchUsers,
-    fetchInvitations,
-    fetchRoles,
-    roles: availableRoles,
-    clearError
-  } = useUserManagement();
-
-  const fetchAdmins = useCallback(async () => {
-    setIsLoading(true);
-    setEditingAdmin(null);
-    setDeletingAdmin(null);
-    try {
-      const response = await adminPanelUserService.getAdminPanelUsers();
-      setAdmins(response.data || []);
-      setError(null);
-    } catch (err) {
-      setError("Не удалось загрузить список администраторов. Пожалуйста, попробуйте еще раз.");
-      setAdmins([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchAdmins();
-  }, [fetchAdmins]);
-
-  useEffect(() => {
-    const initUserManagementData = async () => {
-      try {
-        if (activeTab === 'users') {
-          await Promise.all([
-            fetchUsers(),
-            fetchRoles(),
-          ]);
-        } else if (activeTab === 'invitations') {
-          await Promise.all([
-            fetchInvitations(),
-            fetchRoles(),
-          ]);
-        } else {
-          await Promise.all([
-            fetchUsers(),
-            fetchInvitations(),
-            fetchRoles(),
-          ]);
-        }
-      } catch (err) {
-      }
-    };
-
-    if (activeTab !== 'admins') {
-      initUserManagementData();
-    }
-  }, [activeTab, fetchUsers, fetchInvitations, fetchRoles]);
-
-  useEffect(() => {
-    if (userManagementError) {
-      clearError();
-    }
-  }, [userManagementError, clearError]);
-
-  // Загружаем роли всегда при заходе на страницу, чтобы эндпоинт available-roles вызывался сразу
-  useEffect(() => {
-    fetchRoles().catch(() => {});
-  }, [fetchRoles]);
-
-  const filteredAdmins = useMemo(() => {
-    if (!searchTerm) {
-      return admins;
-    }
-    return admins.filter(admin => 
-      admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      admin.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [admins, searchTerm]);
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-  };
-
-  const roleNameBySlug = useMemo(() => {
-    const next = new Map<string, string>();
-
-    availableRoles.forEach((role) => {
-      if (role.slug && role.name && !next.has(role.slug)) {
-        next.set(role.slug, role.name);
-      }
-    });
-
-    return next;
-  }, [availableRoles]);
-
-  const getRoleDisplayName = (role_slug: string | null): string => {
-    if (role_slug) {
-      const roleName = roleNameBySlug.get(role_slug);
-
-      if (roleName) {
-        return roleName;
-      }
-    }
-
-    switch (role_slug) {
-      case 'organization_owner':
-        return 'Владелец';
-      case 'organization_admin':
-        return 'Администратор';
-      case 'web_admin':
-        return 'Веб-админ';
-      case 'accountant':
-        return 'Бухгалтер';
-      case 'super_admin':
-        return 'Главный';
-      case 'admin':
-        return 'Админ';
-      case 'content_admin':
-        return 'Контент';
-      case 'support_admin':
-        return 'Поддержка';
-      default:
-        return 'Пользователь';
-    }
-  };
-
-  const getRoleColor = (role_slug: string | null): string => {
-    switch (role_slug) {
-      case 'organization_owner':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'organization_admin':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'web_admin':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'accountant':
-        return 'bg-green-100 text-green-800 border-green-200';
-      default:
-        return 'bg-slate-100 text-slate-800 border-slate-200';
-    }
-  };
-
-  const getDisplayRoles = (admin: AdminPanelUser) => {
-    if (Array.isArray(admin.roles) && admin.roles.length > 0) {
-      return admin.roles;
-    }
-
-    if (!admin.role_slug) {
-      return [];
-    }
-
-    return [{
-      id: -1,
-      name: getRoleDisplayName(admin.role_slug),
-      slug: admin.role_slug,
-      type: 'system' as const,
-    }];
-  };
-  
-  const formatDate = (dateString: string): string => {
-    if (!dateString) return 'N/A';
-    try {
-      return new Date(dateString).toLocaleDateString('ru-RU', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      });
-    } catch (e) {
-      return 'Invalid date';
-    }
-  };
-
-  const formatDateTime = (dateString: string | null): string | null => {
-    if (!dateString) return null;
-    try {
-      return new Date(dateString).toLocaleDateString('ru-RU', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (e) {
-      return null;
-    }
-  };
-
-  const isEmailVerified = (admin: AdminPanelUser) => {
-    return admin.email_verified_at !== null && admin.email_verified_at !== undefined;
-  };
-
-  const hasOrganizationOwnerRole = (admin: AdminPanelUser) => {
-    return admin.role_slug === 'organization_owner'
-      || admin.roles?.some(role => role.slug === 'organization_owner') === true;
-  };
-
-  const currentUserHasOwnerRoleInProfile = () => {
-    const roles = (currentUser as any)?.roles;
-
-    if (!Array.isArray(roles)) return false;
-
-    return roles.some((role: any) => (
-      typeof role === 'string' ? role === 'organization_owner' : role?.slug === 'organization_owner'
-    ));
-  };
-
-  const canCurrentUserGrantOwner = isCurrentUserOwner || currentUserHasOwnerRoleInProfile();
-
-  const canGrantOwnerToAdmin = (admin: AdminPanelUser) => {
-    return canCurrentUserGrantOwner
-      && currentUser?.id !== admin.id
-      && admin.is_active
-      && !hasOrganizationOwnerRole(admin);
-  };
-
-  const openGrantOwnerModal = (admin: AdminPanelUser) => {
-    setOwnerCandidate(admin);
-    setOwnerAcknowledged(false);
-  };
-
-  const closeGrantOwnerModal = () => {
-    if (grantingOwner) return;
-    setOwnerCandidate(null);
-    setOwnerAcknowledged(false);
-  };
-
-  const handleGrantOwner = async () => {
-    if (!ownerCandidate || !ownerAcknowledged) return;
-
-    setGrantingOwner(true);
-
-    try {
-      const response = await userManagementService.grantOrganizationOwner(ownerCandidate.id);
-
-      if (response.data?.success) {
-        toast.success(response.data.message || 'Пользователь назначен владельцем организации');
-        setOwnerCandidate(null);
-        setOwnerAcknowledged(false);
-        await Promise.all([fetchAdmins(), fetchUsers()]);
-      } else {
-        throw new Error(response.data?.message || 'Не удалось назначить владельца организации');
-      }
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err.message || 'Не удалось назначить владельца организации';
-      toast.error(message);
-    } finally {
-      setGrantingOwner(false);
-    }
-  };
-
-  const handleResendVerificationEmail = async (adminId: number) => {
-    setSendingEmail(adminId);
-    try {
-      const result = await adminPanelUserService.resendVerificationEmailForAdmin(adminId);
-      if (result.success) {
-        toast.success('Письмо для подтверждения email отправлено');
-        fetchAdmins();
-      } else {
-        throw new Error(result.message || 'Ошибка отправки письма');
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Не удалось отправить письмо');
-    } finally {
-      setSendingEmail(null);
-    }
-  };
-
-  const handleOpenCreateModal = () => {
-    setEditingAdmin(null);
-    setIsFormModalOpen(true);
-  };
-
-  const handleOpenEditModal = (admin: AdminPanelUser) => {
-    setEditingAdmin(admin);
-    setIsFormModalOpen(true);
-  };
-
-  const handleCloseFormModal = () => {
-    setIsFormModalOpen(false);
-    setEditingAdmin(null);
-  };
-  
-  const handleFormSubmitted = () => {
-    fetchAdmins();
-  };
-
-  const handleOpenDeleteConfirmModal = (admin: AdminPanelUser) => {
-    setDeletingAdmin(admin);
-    setIsConfirmDeleteModalOpen(true);
-  };
-
-  const handleCloseDeleteConfirmModal = () => {
-    setDeletingAdmin(null);
-    setIsConfirmDeleteModalOpen(false);
-  };
-
-  const handleDeleteConfirmed = async () => {
-    if (!deletingAdmin) return;
-    
-    setIsProcessingDelete(true);
-    setError(null);
-    try {
-      const result = await adminPanelUserService.deleteAdminPanelUser(deletingAdmin.id);
-
-      if (result.success) {
-        toast.success(result.message || 'Администратор успешно удален.');
-        fetchAdmins();
-        handleCloseDeleteConfirmModal();
-      } else {
-        const errorMessage = result.message || "Не удалось удалить администратора.";
-        setError(errorMessage);
-        toast.error(errorMessage);
-      }
-    } catch (err: any) {
-      const errMsg = err.response?.data?.message || err.message || "Не удалось удалить администратора.";
-      setError(errMsg);
-      toast.error(errMsg);
-    } finally {
-      setIsProcessingDelete(false);
-    }
-  };
-
-  const tabs = [
-    { id: 'admins' as TabType, name: 'Администраторы', icon: UsersIcon, count: admins.length },
-    { id: 'users' as TabType, name: 'Пользователи', icon: UserPlusIcon, count: users.length },
-    { id: 'invitations' as TabType, name: 'Приглашения', icon: PaperAirplaneIcon, count: invitations.filter(i => i.status === 'pending').length },
-    { id: 'roles-comparison' as TabType, name: 'Сравнение ролей', icon: ChartBarIcon, count: null }
-  ];
-
-  const renderContent = () => {
-    if (userManagementError && ['users', 'invitations'].includes(activeTab)) {
-      return (
-        <div className="p-8">
-          <div className="bg-red-50 border border-red-100 rounded-2xl p-6 text-center">
-            <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-               <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
-            </div>
-            <h3 className="text-lg font-bold text-red-900 mb-2">Ошибка загрузки данных</h3>
-            <p className="text-sm text-red-700 mb-4">{userManagementError}</p>
-            <button 
-              onClick={() => {
-                clearError();
-                if (activeTab === 'users') fetchUsers();
-                else if (activeTab === 'invitations') fetchInvitations();
-              }}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl font-bold transition-colors shadow-lg shadow-red-200"
-            >
-              Попробовать снова
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    switch (activeTab) {
-      case 'users':
-        return <UsersList users={users} loading={userManagementLoading} onRefresh={fetchUsers} />;
-      case 'invitations':
-        return (
-          <>
-            <InvitationsList 
-              invitations={invitations} 
-              loading={userManagementLoading} 
-              onRefresh={fetchInvitations} 
-              onInvite={() => setShowInviteModal(true)}
-            />
-            <UserCreateInviteModal 
-              isOpen={showInviteModal} 
-              onClose={() => setShowInviteModal(false)} 
-              onSave={() => {
-                setShowInviteModal(false);
-                fetchInvitations();
-              }}
-            />
-          </>
-        );
-      case 'roles-comparison':
-        return <RolesComparisonTable />;
-      case 'admins':
-      default:
-        return renderAdminsContent();
-    }
-  };
-
-  const renderAdminsContent = () => {
-    if (isLoading) {
-      return (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-200 border-t-orange-600"></div>
-          </div>
-      );
-    }
-
-    if (filteredAdmins.length === 0 && !error) {
-      return (
-          <div className="text-center py-16">
-            <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-               <UsersIcon className="h-10 w-10 text-slate-300" />
-            </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">
-              {searchTerm ? 'Администраторы не найдены' : 'Нет администраторов'}
-            </h3>
-            <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
-              {searchTerm 
-                ? 'Попробуйте изменить критерии поиска' 
-                : 'Добавьте первого администратора для начала работы с командой'
-              }
-            </p>
-            {!searchTerm && (
-              <motion.button
-                onClick={handleOpenCreateModal}
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:shadow-lg hover:shadow-orange-200 transition-all duration-200 font-bold"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <PlusIcon className="w-5 h-5 mr-2" />
-                Добавить администратора
-              </motion.button>
-            )}
-          </div>
-      );
-    }
-
+  if (error) {
     return (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAdmins.map((admin, index) => (
-              <motion.div
-                key={admin.id}
-                className="bg-card rounded-3xl p-6 shadow-lg shadow-primary/5 border border-border hover:shadow-xl hover:border-primary/50 transition-all duration-300 group relative overflow-hidden"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-              >
-                <div className="absolute top-0 right-0 -mt-8 -mr-8 w-24 h-24 bg-primary/10 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
-
-                <div className="relative z-10">
-                   <div className="flex items-center space-x-4 mb-6">
-                     <div className="relative">
-                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-secondary p-1 ring-2 ring-background shadow-md">
-                          <div className="w-full h-full rounded-xl overflow-hidden bg-background flex items-center justify-center">
-                            <UserCircleIcon className="w-12 h-12 text-muted-foreground" />
-                          </div>
-                        </div>
-                        {admin.is_active ? (
-                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-lg border-2 border-background flex items-center justify-center shadow-sm" title="Активен">
-                            <ShieldCheckIcon className="w-3.5 h-3.5 text-white" />
-                          </div>
-                        ) : (
-                           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-muted rounded-lg border-2 border-background flex items-center justify-center shadow-sm" title="Неактивен">
-                            <CalendarIcon className="w-3.5 h-3.5 text-white" />
-                          </div>
-                        )}
-                     </div>
-                     <div className="flex-1 min-w-0">
-                       <h3 className="text-lg font-bold text-foreground truncate mb-1">{admin.name}</h3>
-                       <div className="flex flex-wrap gap-1.5">
-                         {getDisplayRoles(admin).map((role) => (
-                           <span
-                             key={`${admin.id}-${role.type ?? 'system'}-${role.slug}`}
-                             className={`inline-flex max-w-full px-2.5 py-0.5 rounded-lg text-xs font-bold border ${getRoleColor(role.slug)}`}
-                             title={role.name}
-                           >
-                             <span className="truncate">{role.name}</span>
-                           </span>
-                         ))}
-                       </div>
-                     </div>
-                   </div>
-
-                   <div className="space-y-3 mb-6">
-                     <div className="flex items-center text-sm text-muted-foreground bg-secondary p-2.5 rounded-xl">
-                       <EnvelopeIcon className="w-4 h-4 mr-3 text-muted-foreground flex-shrink-0" />
-                       <span className="truncate font-medium">{admin.email}</span>
-                     </div>
-                     
-                     <div className="flex items-center justify-between text-sm bg-secondary p-2.5 rounded-xl">
-                       <div className="flex items-center">
-                         {isEmailVerified(admin) ? (
-                           <>
-                             <CheckCircleIcon className="w-4 h-4 mr-2 text-green-600 flex-shrink-0" />
-                             <span className="text-green-700 font-medium">Email подтвержден</span>
-                             {admin.email_verified_at && (
-                               <span className="text-muted-foreground ml-2 text-xs">
-                                 {formatDateTime(admin.email_verified_at)}
-                               </span>
-                             )}
-                           </>
-                         ) : (
-                           <>
-                             <ExclamationTriangleIcon className="w-4 h-4 mr-2 text-red-600 flex-shrink-0" />
-                             <span className="text-red-700 font-medium">Email не подтвержден</span>
-                           </>
-                         )}
-                       </div>
-                     </div>
-                     
-                     <div className="flex items-center text-sm text-muted-foreground bg-secondary p-2.5 rounded-xl">
-                       <CalendarIcon className="w-4 h-4 mr-3 text-muted-foreground flex-shrink-0" />
-                       <span className="font-medium">Добавлен: {formatDate(admin.created_at)}</span>
-                     </div>
-                   </div>
-
-                   {!isEmailVerified(admin) && (
-                     <div className="mb-3">
-                       <button
-                         onClick={() => handleResendVerificationEmail(admin.id)}
-                         disabled={sendingEmail === admin.id}
-                         className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-primary hover:text-orange-700 disabled:opacity-50 disabled:cursor-not-allowed bg-background border border-border rounded-xl hover:bg-secondary transition-all"
-                       >
-                         {sendingEmail === admin.id ? (
-                           <>
-                             <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                             Отправка...
-                           </>
-                         ) : (
-                           <>
-                             <EnvelopeIcon className="w-4 h-4" />
-                             Отправить письмо повторно
-                           </>
-                         )}
-                       </button>
-                     </div>
-                   )}
-                   {canGrantOwnerToAdmin(admin) && (
-                     <div className="mb-3 flex justify-end">
-                       <button
-                         type="button"
-                         onClick={() => openGrantOwnerModal(admin)}
-                         className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-muted-foreground shadow-sm transition-all hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700"
-                       >
-                         <ShieldCheckIcon className="h-4 w-4" />
-                         Сделать владельцем
-                       </button>
-                     </div>
-                   )}
-                   <div className="flex gap-3 pt-2 border-t border-border">
-                     <motion.button
-                       onClick={() => handleOpenEditModal(admin)}
-                       className="flex-1 inline-flex items-center justify-center px-3 py-2.5 bg-background border border-border text-foreground rounded-xl hover:bg-secondary hover:border-border transition-all font-bold text-sm shadow-sm"
-                       whileHover={{ scale: 1.02 }}
-                       whileTap={{ scale: 0.98 }}
-                     >
-                       <PencilIcon className="w-4 h-4 mr-2" />
-                       Изменить
-                     </motion.button>
-                     <motion.button
-                       onClick={() => handleOpenDeleteConfirmModal(admin)}
-                       className="px-3 py-2.5 bg-background border border-border text-red-500 rounded-xl hover:bg-red-50 hover:border-red-200 transition-all shadow-sm"
-                       whileHover={{ scale: 1.02 }}
-                       whileTap={{ scale: 0.98 }}
-                     >
-                       <TrashIcon className="w-4 h-4" />
-                     </motion.button>
-                   </div>
-                </div>
-              </motion.div>
-            ))}
+      <div role="alert" className="space-y-3 border-y border-border py-6">
+        <p>Не удалось загрузить приглашения. Попробуйте ещё раз.</p>
+        <Button variant="outline" onClick={() => void refresh()}>Повторить загрузку</Button>
       </div>
     );
-  };
+  }
+
+  return <InvitationsList invitations={invitations} loading={loading} onRefresh={refresh} onInvite={onInvite} />;
+}
+
+interface WorkspaceProps {
+  scope: string;
+  actorId: number;
+  organizationId: number;
+  canAssignRoles: boolean;
+  canCreate: boolean;
+  canInvite: boolean;
+  canViewRoles: boolean;
+  canGrantOwner: boolean;
+}
+
+function TeamWorkspace({ scope, actorId, organizationId, canAssignRoles, canCreate, canInvite, canViewRoles, canGrantOwner }: WorkspaceProps) {
+  const { reload } = usePermissions();
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [revision, setRevision] = useState(0);
+  const canAdd = canCreate || canInvite;
 
   return (
-    <div className="space-y-8 min-h-screen bg-background p-4 md:p-8 pb-20">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">Команда</h1>
-            <p className="text-muted-foreground text-lg mt-2">
-              Управление доступом и ролями сотрудников
-            </p>
-          </div>
-          {activeTab === 'admins' && (
-            <motion.button
-              onClick={handleOpenCreateModal}
-              className="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-2xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 font-bold"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <PlusIcon className="w-5 h-5 mr-2" />
-              Добавить админа
-            </motion.button>
-          )}
+    <div className="min-w-0 space-y-7">
+      <header className="flex flex-wrap items-start justify-between gap-5">
+        <div className="min-w-0">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Команда</h1>
+          <p className="mt-2 max-w-2xl text-muted-foreground">Сотрудники компании, их роли и доступ к работе.</p>
         </div>
-
-        {/* Tabs */}
-        <div className="bg-background p-1.5 rounded-2xl shadow-sm border border-border inline-flex overflow-x-auto max-w-full">
-           {tabs.map((tab) => {
-             const Icon = tab.icon;
-             const isActive = activeTab === tab.id;
-             return (
-               <button
-                 key={tab.id}
-                 onClick={() => setActiveTab(tab.id)}
-                 className={`relative flex items-center px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
-                   isActive 
-                     ? 'text-primary' 
-                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                 }`}
-               >
-                 {isActive && (
-                   <motion.div
-                     layoutId="activeTab"
-                     className="absolute inset-0 bg-secondary rounded-xl border border-border"
-                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                   />
-                 )}
-                 <span className="relative z-10 flex items-center">
-                   <Icon className={`w-5 h-5 mr-2 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                   {tab.name}
-                   {tab.count !== null && (
-                     <span className={`ml-2 px-2 py-0.5 rounded-lg text-xs ${
-                       isActive ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'
-                     }`}>
-                       {tab.count}
-                     </span>
-                   )}
-                 </span>
-               </button>
-             );
-           })}
-        </div>
-
-        {/* Summary Cards */}
-        <motion.div 
-           className="grid grid-cols-1 md:grid-cols-3 gap-6"
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.6 }}
-        >
-           <div className="bg-card rounded-3xl p-6 shadow-sm border border-border relative overflow-hidden">
-              <div className="absolute right-0 top-0 -mt-4 -mr-4 w-24 h-24 bg-primary/10 rounded-full opacity-50"></div>
-              <div className="relative z-10">
-                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
-                    <UsersIcon className="w-6 h-6 text-primary" />
-                 </div>
-                 <p className="text-muted-foreground font-medium text-sm mb-1">Администраторы</p>
-                 <p className="text-3xl font-bold text-foreground">{admins.length}</p>
-              </div>
-           </div>
-           
-           <div className="bg-card rounded-3xl p-6 shadow-sm border border-border relative overflow-hidden">
-              <div className="absolute right-0 top-0 -mt-4 -mr-4 w-24 h-24 bg-blue-50 rounded-full opacity-50"></div>
-              <div className="relative z-10">
-                 <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
-                    <UserPlusIcon className="w-6 h-6 text-blue-600" />
-                 </div>
-                 <p className="text-muted-foreground font-medium text-sm mb-1">Пользователи</p>
-                 <p className="text-3xl font-bold text-foreground">{users.length}</p>
-              </div>
-           </div>
-
-           <div className="bg-card rounded-3xl p-6 shadow-sm border border-border relative overflow-hidden">
-              <div className="absolute right-0 top-0 -mt-4 -mr-4 w-24 h-24 bg-green-50 rounded-full opacity-50"></div>
-              <div className="relative z-10">
-                 <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mb-4">
-                    <PaperAirplaneIcon className="w-6 h-6 text-green-600" />
-                 </div>
-                 <p className="text-muted-foreground font-medium text-sm mb-1">Приглашения</p>
-                 <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold text-foreground">{invitations.filter(i => i.status === 'pending').length}</p>
-                    <p className="text-sm text-muted-foreground">ожидают</p>
-                 </div>
-              </div>
-           </div>
-        </motion.div>
-
-        {/* Roles Banner */}
-        <ProtectedComponent 
-          permission="roles.view_custom"
-          role="organization_owner"
-          requireAll={false}
-          showFallback={false}
-        >
-          <motion.div
-            className="bg-gradient-to-r from-slate-50 to-white rounded-3xl p-8 shadow-sm border border-border relative overflow-hidden group"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-orange-100/50 rounded-full blur-3xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            
-            <div className="relative z-10 flex items-center justify-between flex-wrap gap-6">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                   <div className="p-2 bg-orange-100 rounded-xl">
-                      <ShieldCheckIcon className="w-6 h-6 text-orange-600" />
-                   </div>
-                   <h3 className="text-xl font-bold text-foreground">Настройка ролей доступа</h3>
-                </div>
-                <p className="text-muted-foreground max-w-lg">
-                  Создавайте кастомные роли и гибко настраивайте права доступа для сотрудников вашей организации
-                </p>
-              </div>
-              <button
-                onClick={() => (window.location.href = '/dashboard/custom-roles')}
-                className="px-6 py-3 bg-background border border-border text-foreground hover:bg-secondary hover:border-orange-200 hover:text-orange-700 rounded-xl font-bold transition-all shadow-sm hover:shadow-md"
-              >
-                Управление ролями
-              </button>
-            </div>
-          </motion.div>
-        </ProtectedComponent>
-
-        {/* Search Bar */}
-        {activeTab === 'admins' && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <div className="relative max-w-md">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <input
-                type="text"
-                placeholder="Поиск администратора..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className="w-full pl-11 pr-4 py-3 bg-background border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none shadow-sm font-medium text-foreground placeholder:text-muted-foreground"
-              />
-            </div>
-          </motion.div>
+        {canAdd && (
+          <Button onClick={() => setShowInviteModal(true)}>
+            <Plus aria-hidden="true" className="mr-2 h-5 w-5" />Добавить сотрудника
+          </Button>
         )}
-
-        {/* Main Content Area */}
-        <div className="min-h-[400px]">
-          {error && !isProcessingDelete && (
-            <motion.div 
-              className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-center gap-3"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <ExclamationTriangleIcon className="w-5 h-5" />
-              <p className="font-medium">{error}</p>
-            </motion.div>
-          )}
-          
-          <AnimatePresence mode='wait'>
-             <motion.div
-               key={activeTab}
-               initial={{ opacity: 0, x: -20 }}
-               animate={{ opacity: 1, x: 0 }}
-               exit={{ opacity: 0, x: 20 }}
-               transition={{ duration: 0.3 }}
-             >
-               {renderContent()}
-             </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
-
-      {/* Modals */}
-      <AdminFormModal 
-        isOpen={isFormModalOpen} 
-        onClose={handleCloseFormModal} 
-        onFormSubmit={handleFormSubmitted} 
-        adminToEdit={editingAdmin}
-      />
-
-      <ConfirmDeleteModal
-        isOpen={isConfirmDeleteModalOpen}
-        onClose={handleCloseDeleteConfirmModal}
-        onConfirm={handleDeleteConfirmed}
-        title="Удалить администратора"
-        message={`Вы уверены, что хотите удалить администратора "${deletingAdmin?.name}"? Это действие нельзя отменить.`}
-        isLoading={isProcessingDelete}
-      />
-
-      {ownerCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
-            <div className="flex items-start gap-3 border-b border-amber-200 bg-amber-50 px-5 py-4">
-              <ExclamationTriangleIcon className="mt-0.5 h-7 w-7 flex-shrink-0 text-amber-600" />
-              <div>
-                <h3 className="text-lg font-bold text-amber-950">
-                  Назначить владельцем организации?
-                </h3>
-                <p className="mt-1 text-sm leading-6 text-amber-900">
-                  Это важная роль с полным доступом к организации, сотрудникам, ролям и настройкам.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4 px-5 py-5">
-              <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-                <div className="text-sm font-semibold text-gray-900">{ownerCandidate.name}</div>
-                <div className="text-sm text-gray-600">{ownerCandidate.email}</div>
-              </div>
-
-              <label className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-                <input
-                  type="checkbox"
-                  checked={ownerAcknowledged}
-                  onChange={(event) => setOwnerAcknowledged(event.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-amber-300 text-amber-700 focus:ring-amber-600"
-                />
-                <span>
-                  Я понимаю, что сотрудник получит права владельца организации и сможет управлять доступами других пользователей.
-                </span>
-              </label>
-            </div>
-
-            <div className="flex flex-col-reverse gap-2 border-t border-gray-200 px-5 py-4 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={closeGrantOwnerModal}
-                disabled={grantingOwner}
-                className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-              >
-                Отмена
-              </button>
-              <button
-                type="button"
-                onClick={handleGrantOwner}
-                disabled={!ownerAcknowledged || grantingOwner}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-bold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {grantingOwner && (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                )}
-                Сделать владельцем
-              </button>
-            </div>
+      </header>
+      <Tabs defaultValue="employees" className="min-w-0">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
+          <div className="max-w-full overflow-x-auto">
+            <TabsList aria-label="Разделы команды" className="h-auto justify-start gap-1 bg-transparent p-0">
+              <TabsTrigger value="employees" className="min-h-11 px-4 data-[state=active]:bg-secondary data-[state=active]:shadow-none">
+                <Users aria-hidden="true" className="mr-2 h-5 w-5" />Сотрудники
+              </TabsTrigger>
+              <TabsTrigger value="invitations" className="min-h-11 px-4 data-[state=active]:bg-secondary data-[state=active]:shadow-none">
+                <Send aria-hidden="true" className="mr-2 h-5 w-5" />Приглашения
+              </TabsTrigger>
+              {canViewRoles && (
+                <TabsTrigger value="roles" className="min-h-11 px-4 data-[state=active]:bg-secondary data-[state=active]:shadow-none">
+                  <ShieldCheck aria-hidden="true" className="mr-2 h-5 w-5" />Роли и права
+                </TabsTrigger>
+              )}
+            </TabsList>
           </div>
+          {canViewRoles && (
+            <Button variant="ghost" asChild>
+              <Link to="/dashboard/custom-roles">Настроить роли<ArrowUpRight aria-hidden="true" className="ml-2 h-5 w-5" /></Link>
+            </Button>
+          )}
         </div>
+        <TabsContent value="employees" className="mt-6">
+          <OrganizationTeamDirectory key={revision} scope={scope} canManage renderActions={(member, refresh) => (
+            <div className="flex flex-wrap items-center gap-2">
+              <OrganizationTeamRoleAction member={member} actorId={actorId} organizationId={organizationId} canAssign={canAssignRoles} onChanged={() => {
+                if (member.id === actorId) {
+                  void reload();
+                } else {
+                  refresh();
+                }
+              }} />
+              <OrganizationTeamAccessAction member={member} actorId={actorId} scope={scope} canManage onChanged={refresh} />
+              <OrganizationTeamOwnerAction member={member} actorId={actorId} scope={scope} canGrant={canGrantOwner} onChanged={refresh} />
+            </div>
+          )} />
+        </TabsContent>
+        <TabsContent value="invitations" className="mt-6"><TeamInvitations key={revision} onInvite={canInvite ? () => setShowInviteModal(true) : undefined} /></TabsContent>
+        {canViewRoles && <TabsContent value="roles" className="mt-6"><RolesComparisonTable /></TabsContent>}
+      </Tabs>
+      {showInviteModal && canAdd && (
+        <UserCreateInviteModal isOpen canInvite={canInvite} onClose={() => setShowInviteModal(false)} onSave={() => {
+          setShowInviteModal(false);
+          setRevision(value => value + 1);
+        }} />
       )}
     </div>
   );
-};
+}
 
-export default AdminsPage;
+export default function AdminsPage() {
+  const { user, isLoading: authLoading } = useAuth();
+  const { permissions, isLoaded, isLoading, error, can, hasRole, reload } = usePermissions();
+  const organizationId = user?.current_organization_id;
+  const contextMatches = Boolean(user && organizationId && permissions.user_id === user.id && permissions.organization_id === organizationId);
+
+  if (authLoading || isLoading || (!isLoaded && !error)) {
+    return <p role="status" className="py-10 text-muted-foreground">Загружаем команду…</p>;
+  }
+  if (!user || !organizationId) {
+    return <p className="py-10 text-muted-foreground">Выберите компанию, чтобы открыть её команду.</p>;
+  }
+  if (error || !contextMatches) {
+    return (
+      <div role="alert" className="space-y-4 py-10">
+        <p>Не удалось подтвердить доступ к команде этой компании.</p>
+        <Button variant="outline" onClick={() => void reload()}>Проверить доступ</Button>
+      </div>
+    );
+  }
+  if (!can('users.manage')) {
+    return <p className="py-10 text-muted-foreground">У вас нет доступа к управлению командой этой компании.</p>;
+  }
+
+  const scope = `${user.id}:${organizationId}`;
+  return <TeamWorkspace key={scope} scope={scope} actorId={user.id} organizationId={organizationId} canAssignRoles={can('users.assign_roles') && can('roles.view_custom')} canCreate={can('roles.view_custom')} canInvite={can('users.invite') && can('roles.view_custom')} canViewRoles={can('roles.view_custom') || hasRole('organization_owner')} canGrantOwner={can('users.assign_roles') && hasRole('organization_owner')} />;
+}

@@ -1,265 +1,85 @@
-import { Link } from 'react-router-dom';
-import {
-  ArrowUpRightIcon,
-  ClockIcon,
-  EnvelopeIcon,
-  MapPinIcon,
-} from '@heroicons/react/24/outline';
+import { Link } from "react-router-dom";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import {
   marketingCommercialLandingLinks,
   marketingCompany,
   marketingPaths,
-  marketingRoleLandingLinks,
-} from '@/data/marketingRegistry';
+} from "@/data/marketingRegistry";
 
-const sitemapGroups = [
+const groups = [
   {
-    title: 'Сайт',
+    title: "Продукт",
     links: [
-      { label: 'Главная', href: marketingPaths.home },
-      { label: 'Решения', href: marketingPaths.solutions },
-      { label: 'Продукт', href: marketingPaths.features },
-      { label: 'Интеграции', href: marketingPaths.integrations },
-      { label: 'Пакеты', href: marketingPaths.pricing },
+      { label: "Возможности", href: marketingPaths.features },
+      { label: "Стоимость", href: marketingPaths.pricing },
+      { label: "Интеграции", href: marketingPaths.integrations },
+      { label: "Безопасность", href: marketingPaths.security },
     ],
   },
   {
-    title: 'Роли и задачи',
+    title: "Для команды",
     links: [
-      { label: 'Программа для прораба', href: marketingPaths.foremanSoftware },
-      { label: 'Система для ПТО', href: marketingPaths.ptoSoftware },
-      { label: 'ПИР и проектная документация', href: marketingPaths.pirProjectDocumentation },
-      { label: 'Учет материалов', href: marketingPaths.materialAccounting },
-      { label: 'Контроль подрядчиков', href: marketingPaths.contractorControl },
-      { label: 'Контроль бюджета стройки', href: marketingPaths.constructionBudgetControl },
+      { label: "Решения для компаний", href: marketingPaths.solutions },
+      { label: "Прорабу", href: marketingPaths.foremanSoftware },
+      { label: "Инженеру ПТО", href: marketingPaths.ptoSoftware },
+      { label: "Снабжению", href: marketingPaths.constructionProcurement },
     ],
   },
   {
-    title: 'Решения',
+    title: "О МОСТ",
     links: [
-      { label: 'CRM для строительной компании', href: marketingPaths.constructionCrm },
-      { label: 'ERP для строительства', href: marketingPaths.constructionErp },
-      { label: 'Исполнительная документация', href: marketingPaths.constructionDocuments },
-      { label: 'Контроль качества', href: marketingPaths.constructionQualityControl },
-      { label: 'Приемка и punch-list', href: marketingPaths.handoverAcceptance },
-      { label: 'Охрана труда', href: marketingPaths.constructionSafety },
-    ],
-  },
-  {
-    title: 'Операционные процессы',
-    links: [
-      { label: 'Техника и выработка', href: marketingPaths.machineryAndLabor },
-      { label: 'RFI и изменения', href: marketingPaths.changeControl },
-      { label: 'Мобильное приложение', href: marketingPaths.mobileApp },
-      { label: 'AI сметы по чертежам', href: marketingPaths.aiEstimates },
-    ],
-  },
-  {
-    title: 'Компания',
-    links: [
-      { label: 'О продукте', href: marketingPaths.about },
-      { label: 'Безопасность', href: marketingPaths.security },
-      { label: 'Контакты', href: marketingPaths.contact },
-      { label: 'Блог', href: marketingPaths.blog },
-      { label: 'Войти в кабинет', href: '/login' },
-    ],
-  },
-  {
-    title: 'Документы',
-    links: [
-      { label: 'Политика конфиденциальности', href: marketingPaths.privacy },
-      { label: 'Публичная оферта', href: marketingPaths.offer },
-      { label: 'Политика cookie', href: marketingPaths.cookies },
+      { label: "О компании", href: marketingPaths.about },
+      { label: "Блог", href: marketingPaths.blog },
+      { label: "Контакты", href: marketingPaths.contact },
     ],
   },
 ];
 
-const footerNotes = [
-  'Показываем продукт на примере рабочих задач, а не через витрину экранов.',
-  'Запуск можно начать с одного процесса и расширять по мере роста компании.',
-  'Материалы по безопасности и юридическому блоку предоставляем по запросу.',
-];
-
-const Footer = () => {
-  const currentYear = new Date().getFullYear();
-
-  return (
-    <footer className="overflow-x-hidden bg-steel-950 text-white">
-      <div className="container-custom py-14 lg:py-16">
-        <div className="rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(249,115,22,0.08))] p-8 lg:p-10">
-          <div className="grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_auto] xl:items-end">
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
-                Следующий шаг
-              </div>
-              <h2 className="mt-4 max-w-4xl text-[clamp(2rem,4.2vw,3.8rem)] font-bold leading-[1.02]">
-                Разберем вашу задачу и покажем, с какого процесса в МОСТ лучше начать.
-              </h2>
-              <p className="mt-5 max-w-3xl text-base leading-8 text-white/72">
-                На созвоне раскладываем роли команды, текущий процесс и приоритет запуска.
-                Без лишнего визуального шума и попытки продавать весь каталог сразу.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap xl:justify-end">
-              <Link
-                to="/register"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-center text-sm font-semibold text-steel-950 transition hover:bg-construction-100 sm:w-auto"
-              >
-                Создать бесплатную базу
-                <ArrowUpRightIcon className="h-4 w-4 shrink-0" />
-              </Link>
-              <a
-                href={`${marketingPaths.home}#contact`}
-                className="inline-flex w-full items-center justify-center rounded-full border border-white/15 bg-white/5 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 sm:w-auto"
-              >
-                Запросить демонстрацию
-              </a>
-            </div>
-          </div>
+const Footer = () => (
+  <footer className="most-footer">
+    <div className="most-container">
+      <div className="most-footer-main">
+        <div className="most-footer-brand">
+          <Link to="/" className="most-brand" aria-label="МОСТ — главная">
+            <img src="/logo.svg" alt="" width={38} height={38} />
+            <span>МОСТ</span>
+          </Link>
+          <p>Между офисом и стройкой.</p>
+          <a href={marketingCompany.emailHref}>{marketingCompany.email}</a>
         </div>
-
-        <div className="mt-12 grid gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(420px,520px)]">
-          <div>
-            <div className="flex items-center gap-4">
-              <img
-                src="/logo-white.svg"
-                alt="МОСТ"
-                className="h-14 w-14 shrink-0 object-contain"
-              />
-              <div>
-                <div className="text-2xl font-bold">{marketingCompany.brand}</div>
-                <div className="text-[11px] uppercase tracking-[0.22em] text-white/45">
-                  {marketingCompany.tagline}
-                </div>
-              </div>
-            </div>
-
-            <p className="mt-6 max-w-2xl text-base leading-8 text-white/70">
-              МОСТ помогает собрать объект, ПИР, снабжение, финансы, качество, безопасность,
-              ресурсы, изменения, документы и управленческую картину в одной системе для офиса,
-              площадки, заказчика и руководителя.
-            </p>
-
-            <div className="mt-8 grid gap-3 lg:grid-cols-3">
-              {footerNotes.map((item) => (
-                <div
-                  key={item}
-                  className="rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-white/72"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              <a
-                href={marketingCompany.emailHref}
-                className="flex items-start gap-3 rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/10"
-              >
-                <EnvelopeIcon className="mt-0.5 h-5 w-5 shrink-0 text-construction-200" />
-                <div>
-                  <div className="text-sm font-semibold text-white">Почта</div>
-                  <div className="mt-1 text-sm text-white/68">{marketingCompany.email}</div>
-                </div>
-              </a>
-
-              <div className="flex items-start gap-3 rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-4">
-                <ClockIcon className="mt-0.5 h-5 w-5 shrink-0 text-construction-200" />
-                <div>
-                  <div className="text-sm font-semibold text-white">Ответ</div>
-                  <div className="mt-1 text-sm text-white/68">
-                    {marketingCompany.responseTime}. {marketingCompany.hours}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-4">
-                <MapPinIcon className="mt-0.5 h-5 w-5 shrink-0 text-construction-200" />
-                <div>
-                  <div className="text-sm font-semibold text-white">Формат</div>
-                  <div className="mt-1 text-sm text-white/68">{marketingCompany.location}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
-                Популярные задачи
-              </div>
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                {marketingRoleLandingLinks.slice(0, 4).map((item) => (
-                  <Link
-                    key={item.href + item.label}
-                    to={item.href}
-                    className="rounded-[1.1rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-white/72 transition hover:bg-white/10 hover:text-white"
-                  >
-                    <span className="font-semibold text-white">{item.label}.</span> {item.description}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-8 sm:grid-cols-2">
-            {sitemapGroups.map((group) => (
-              <div
-                key={group.title}
-                className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5"
-              >
-                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
-                  {group.title}
-                </div>
-                <div className="mt-4 space-y-3">
-                  {group.links.map((item) => (
-                    <Link
-                      key={`${group.title}-${item.href}-${item.label}`}
-                      to={item.href}
-                      className="block text-sm leading-7 text-white/72 transition hover:text-white"
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-10 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-200">
-            Популярные решения
-          </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {marketingCommercialLandingLinks.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className="rounded-[1.1rem] border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-white/72 transition hover:bg-white/10 hover:text-white"
-              >
-                <span className="font-semibold text-white">{item.label}.</span> {item.description}
+        {groups.map((group) => (
+          <nav key={group.title} aria-label={group.title}>
+            <h2>{group.title}</h2>
+            {group.links.map((link) => (
+              <Link key={link.href} to={link.href}>
+                {link.label}
               </Link>
             ))}
-          </div>
-        </div>
-
-        <div className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-6 text-sm text-white/45 md:flex-row md:items-center md:justify-between">
-          <div>© {currentYear} МОСТ. Все права защищены.</div>
-          <div className="flex flex-wrap gap-5">
-            <Link to={marketingPaths.privacy} className="transition hover:text-white">
-              Конфиденциальность
-            </Link>
-            <Link to={marketingPaths.offer} className="transition hover:text-white">
-              Оферта
-            </Link>
-            <Link to={marketingPaths.cookies} className="transition hover:text-white">
-              Cookie
-            </Link>
-          </div>
-        </div>
+          </nav>
+        ))}
       </div>
-    </footer>
-  );
-};
+      <details className="most-footer-directions">
+        <summary>
+          Все направления работы{" "}
+          <span aria-hidden="true">
+            <PlusIcon className="most-icon" />
+          </span>
+        </summary>
+        <nav aria-label="Направления работы">
+          {marketingCommercialLandingLinks.map((link) => (
+            <Link key={link.href} to={link.href}>
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      </details>
+      <div className="most-footer-bottom">
+        <span>© {new Date().getFullYear()} МОСТ</span>
+        <Link to="/privacy">Конфиденциальность</Link>
+        <Link to={marketingPaths.offer}>Оферта</Link>
+      </div>
+    </div>
+  </footer>
+);
 
 export default Footer;

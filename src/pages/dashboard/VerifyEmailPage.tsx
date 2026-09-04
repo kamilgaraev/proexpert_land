@@ -4,7 +4,8 @@ import { useEmailVerification } from '@/hooks/useEmailVerification';
 import { useAuth } from '@/hooks/useAuth';
 import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
+import '@/styles/auth.css';
 
 const createEmailHash = async (email: string): Promise<string> => {
   const digest = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(email));
@@ -102,13 +103,13 @@ export const VerifyEmailPage = () => {
 
   if (isAuthLoading || loading || verificationState.status === 'pending') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center">
+      <div className="most-workspace most-auth-page">
+        <Card className="most-auth-shell most-auth-content shadow-none">
+          <CardContent className="p-0 text-center" role="status" aria-live="polite">
             <Loader2 className="w-16 h-16 text-construction-600 animate-spin mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="font-bold text-foreground mb-2">
               Подтверждение email...
-            </h2>
+            </h1>
             <p className="text-gray-600">
               Пожалуйста, подождите
             </p>
@@ -119,9 +120,9 @@ export const VerifyEmailPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center pb-4">
+    <div className="most-workspace most-auth-page">
+      <Card className="most-auth-shell most-auth-content shadow-none">
+        <CardHeader className="text-center p-0 pb-5">
           <div className="mx-auto mb-4">
             {verificationState.status === 'success' ? (
               <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full">
@@ -133,14 +134,14 @@ export const VerifyEmailPage = () => {
               </div>
             )}
           </div>
-          <CardTitle className="text-2xl">
+          <h1 className="font-bold">
             {verificationState.status === 'success' 
               ? 'Email подтвержден!' 
               : 'Ошибка подтверждения'
             }
-          </CardTitle>
+          </h1>
         </CardHeader>
-        <CardContent className="text-center space-y-6">
+        <CardContent className="p-0 text-center space-y-6" role={verificationState.status === 'error' ? 'alert' : 'status'}>
           <CardDescription className="text-base">
             {verificationState.message}
           </CardDescription>
@@ -149,14 +150,14 @@ export const VerifyEmailPage = () => {
             <div className="space-y-3">
               <Button
                 onClick={handleGoToDashboard}
-                className="w-full"
+                className="w-full min-h-12"
                 size="lg"
               >
                 Перейти в личный кабинет
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <p className="text-sm text-gray-500">
-                Теперь у вас есть доступ ко всем функциям платформы МОСТ
+                Почта подтверждена. В кабинете доступны разделы вашей компании с учётом вашей роли.
               </p>
             </div>
           ) : (
@@ -164,7 +165,7 @@ export const VerifyEmailPage = () => {
               <Button
                 onClick={handleGoToLogin}
                 variant="outline"
-                className="w-full"
+                className="w-full min-h-12"
                 size="lg"
               >
                 Перейти на страницу входа

@@ -150,21 +150,15 @@ describe('useSEO structured data policy', () => {
     expect(document.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0);
   });
 
-  it('uses a query-free canonical override in metadata and the WebPage graph', async () => {
-    renderSeo('/features?utm_source=route', {
-      canonicalUrl: 'https://1мост.рф/solutions?utm_source=override#details',
+  it('preserves explicit blog pagination in canonical, metadata and the graph while stripping hash', async () => {
+    renderSeo('/blog?page=2&utm_source=route', {
+      canonicalUrl: 'https://1мост.рф/blog?page=2#articles',
     });
-
     await waitFor(() => {
-      expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
-        'https://1мост.рф/solutions',
-      );
+      expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe('https://1мост.рф/blog?page=2');
     });
-
-    expect(document.querySelector('meta[property="og:url"]')?.getAttribute('content')).toBe(
-      'https://1мост.рф/solutions',
-    );
-    expect(graphNode('WebPage')?.url).toBe('https://1мост.рф/solutions');
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute('content')).toBe('https://1мост.рф/blog?page=2');
+    expect(graphNode('CollectionPage')?.url).toBe('https://1мост.рф/blog?page=2');
   });
 
   it('keeps googlebot synchronized while navigating indexable and noindex pages', async () => {

@@ -79,6 +79,20 @@ describe("OrganizationPage save errors", () => {
     apiMocks.getCurrent.mockResolvedValue(organizationResponse);
   });
 
+  it("restores saved contacts after discarding an edit", async () => {
+    render(<MemoryRouter><OrganizationPage /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole("button", { name: /Редактировать/ }));
+    expect(screen.getByLabelText("Телефон")).toHaveValue(organizationResponse.data.organization.phone);
+    expect(screen.getByLabelText("Email")).toHaveValue(organizationResponse.data.organization.email);
+    fireEvent.change(screen.getByLabelText("Телефон"), { target: { value: "" } });
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: "Отменить" }));
+    fireEvent.click(screen.getByRole("button", { name: /Редактировать/ }));
+    expect(screen.getByLabelText("Телефон")).toHaveValue(organizationResponse.data.organization.phone);
+    expect(screen.getByLabelText("Email")).toHaveValue(organizationResponse.data.organization.email);
+    expect(apiMocks.update).not.toHaveBeenCalled();
+  });
+
   it("keeps the server validation message visible inside the form", async () => {
     apiMocks.update.mockRejectedValue({
       response: {

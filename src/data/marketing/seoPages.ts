@@ -1,17 +1,17 @@
-import { marketingPaths } from './common';
-import { getMarketingBlogLink } from './blogArticles';
-import type { MarketingBlogArticleKey } from './blogArticles';
-import { marketingProductSeoLandingPages } from './seoProductPages';
+import { marketingPaths } from "./common";
+import { getMarketingBlogLink } from "./blogArticles";
+import type { MarketingBlogArticleKey } from "./blogArticles";
+import { marketingProductSeoLandingPages } from "./seoProductPages";
 import type {
   MarketingContentLink,
   MarketingEditorialSeries,
   MarketingSeoLandingPage,
-} from '@/types/marketing';
+} from "@/types/marketing";
 
 const allBlogArticlesLink: MarketingContentLink = {
-  label: 'Все статьи',
+  label: "Все статьи",
   href: marketingPaths.blog,
-  description: 'Практические материалы команды МОСТ.',
+  description: "Практические материалы команды МОСТ.",
 };
 
 const getMarketingBlogLinks = (
@@ -19,12 +19,14 @@ const getMarketingBlogLinks = (
 ): MarketingContentLink[] => keys.map((key) => getMarketingBlogLink(key));
 
 const createProcessComparison = (
-  comparison: MarketingSeoLandingPage['processComparison'],
+  comparison: MarketingSeoLandingPage["processComparison"],
 ) => comparison;
 
 type OperationalSeoPageConfig = MarketingSeoLandingPage;
 
-const createOperationalSeoPage = (config: OperationalSeoPageConfig): MarketingSeoLandingPage => ({
+const createOperationalSeoPage = (
+  config: OperationalSeoPageConfig,
+): MarketingSeoLandingPage => ({
   path: config.path,
   eyebrow: config.eyebrow,
   title: config.title,
@@ -52,119 +54,134 @@ const createOperationalSeoPage = (config: OperationalSeoPageConfig): MarketingSe
 
 export const marketingCommercialLandingLinks: MarketingContentLink[] = [
   {
-    label: 'Программа для прораба',
+    label: "Программа для прораба",
     href: marketingPaths.foremanSoftware,
-    description: 'Контроль задач, работ, замечаний и отчетности на объекте.',
+    description: "Контроль задач, работ, замечаний и отчетности на объекте.",
   },
   {
-    label: 'CRM для строительной компании',
+    label: "CRM для строительной компании",
     href: marketingPaths.constructionCrm,
-    description: 'Единая система клиентов, объектов, задач и статусов исполнения.',
+    description:
+      "Единая система клиентов, объектов, задач и статусов исполнения.",
   },
   {
-    label: 'ERP для строительства',
+    label: "ERP для строительства",
     href: marketingPaths.constructionErp,
-    description: 'Связка объекта, снабжения, финансов, документов и управленческой аналитики.',
+    description:
+      "Связка объекта, снабжения, финансов, документов и управленческой аналитики.",
   },
   {
-    label: 'Учет материалов',
+    label: "Учет материалов",
     href: marketingPaths.materialAccounting,
-    description: 'Заявки, поставки, остатки и движение материалов по объектам.',
+    description: "Заявки, поставки, остатки и движение материалов по объектам.",
   },
   {
-    label: 'Программа для ПТО',
+    label: "Программа для ПТО",
     href: marketingPaths.ptoSoftware,
-    description: 'Исполнительная документация, контроль замечаний и комплектности.',
+    description:
+      "Исполнительная документация, контроль замечаний и комплектности.",
   },
   {
-    label: 'Система контроля подрядчиков',
+    label: "Система контроля подрядчиков",
     href: marketingPaths.contractorControl,
-    description: 'Сроки, объемы, ответственность и прозрачность исполнения по подрядчикам.',
+    description:
+      "Сроки, объемы, ответственность и прозрачность исполнения по подрядчикам.",
   },
   {
-    label: 'Исполнительная документация',
+    label: "Исполнительная документация",
     href: marketingPaths.constructionDocuments,
-    description: 'Структурированная работа с актами, реестрами и комплектами документов.',
+    description:
+      "Структурированная работа с актами, реестрами и комплектами документов.",
   },
   {
-    label: 'Контроль бюджета стройки',
+    label: "Контроль бюджета стройки",
     href: marketingPaths.constructionBudgetControl,
-    description: 'Платежи, лимиты, фактические затраты и отклонения по объектам.',
+    description:
+      "Платежи, лимиты, фактические затраты и отклонения по объектам.",
   },
   {
-    label: 'Мобильное приложение',
+    label: "Мобильное приложение",
     href: marketingPaths.mobileApp,
-    description: 'Работа прораба, снабженца и инженерной команды прямо на площадке.',
+    description:
+      "Работа прораба, снабженца и инженерной команды прямо на площадке.",
   },
   {
-    label: 'AI сметы по чертежам',
+    label: "AI сметы по чертежам",
     href: marketingPaths.aiEstimates,
-    description: 'Предварительная оценка объемов и структуры сметы на базе AI.',
+    description: "Предварительная оценка объемов и структуры сметы на базе AI.",
   },
   {
-    label: 'ПИР и проектная документация',
+    label: "ПИР и проектная документация",
     href: marketingPaths.pirProjectDocumentation,
-    description: 'ПД, РД, IFC, замечания, нормоконтроль и выпуск комплектов.',
+    description:
+      "Проектная и рабочая документация, замечания и выпуск комплектов.",
   },
   {
-    label: 'Охрана труда на стройке',
+    label: "Охрана труда на стройке",
     href: marketingPaths.constructionSafety,
-    description: 'Инструктажи, допуски, инциденты, нарушения и предписания.',
+    description: "Инструктажи, допуски, инциденты, нарушения и предписания.",
   },
   {
-    label: 'Контроль качества строительства',
+    label: "Контроль качества строительства",
     href: marketingPaths.constructionQualityControl,
-    description: 'Инспекции, дефекты, ответственные, сроки и повторная проверка.',
+    description:
+      "Инспекции, дефекты, ответственные, сроки и повторная проверка.",
   },
   {
-    label: 'Приемка и punch-list',
+    label: "Приемка и punch-list",
     href: marketingPaths.handoverAcceptance,
-    description: 'Передача зон заказчику, замечания и статус готовности к сдаче.',
+    description:
+      "Передача зон заказчику, замечания и статус готовности к сдаче.",
   },
   {
-    label: 'Техника и выработка',
+    label: "Техника и выработка",
     href: marketingPaths.machineryAndLabor,
-    description: 'Техника, смены, простои, наряды, ГСМ и фактическая выработка.',
+    description:
+      "Техника, смены, простои, наряды, ГСМ и фактическая выработка.",
   },
   {
-    label: 'RFI и изменения',
+    label: "RFI и изменения",
     href: marketingPaths.changeControl,
-    description: 'Изменения, дополнительные работы, претензии и влияние на сроки.',
+    description:
+      "Изменения, дополнительные работы, претензии и влияние на сроки.",
   },
   {
-    label: 'Автоматизация закупок',
+    label: "Автоматизация закупок",
     href: marketingPaths.constructionProcurement,
-    description: 'Потребность объекта, поставщики, заказ, оплата и приемка в одном маршруте.',
+    description:
+      "Потребность объекта, поставщики, заказ, оплата и приемка в одном маршруте.",
   },
   {
-    label: 'Заявки с объекта',
+    label: "Заявки с объекта",
     href: marketingPaths.siteRequests,
-    description: 'Материалы, техника, люди и финансовые обращения из площадки в офис.',
+    description:
+      "Материалы, техника, люди и финансовые обращения из площадки в офис.",
   },
   {
-    label: 'Управление персоналом',
+    label: "Управление персоналом",
     href: marketingPaths.workforceManagement,
-    description: 'Бригады, смены, время и производственный факт по объектам.',
+    description: "Бригады, смены, время и производственный факт по объектам.",
   },
   {
-    label: 'Платежи в строительстве',
+    label: "Платежи в строительстве",
     href: marketingPaths.constructionPayments,
-    description: 'Счета, согласование, календарь, оплата и сверка по объекту.',
+    description: "Счета, согласование, календарь, оплата и сверка по объекту.",
   },
   {
-    label: 'Интеграция с 1С',
+    label: "Интеграция с 1С",
     href: marketingPaths.oneCIntegration,
-    description: 'Согласованный сценарий обмена, мастер-данные и сверка.',
+    description: "Согласованный сценарий обмена, мастер-данные и сверка.",
   },
   {
-    label: 'Каталог подрядчиков',
+    label: "Каталог подрядчиков",
     href: marketingPaths.contractorMarketplace,
-    description: 'Поиск исполнителей, шорт-лист и контролируемое приглашение.',
+    description: "Поиск исполнителей, шорт-лист и контролируемое приглашение.",
   },
   {
-    label: 'Project Pulse',
+    label: "Project Pulse",
     href: marketingPaths.projectPulse,
-    description: 'Пилотная ежедневная сводка и сигналы для управленческой проверки.',
+    description:
+      "Пилотная ежедневная сводка и сигналы для управленческой проверки.",
   },
 ];
 
@@ -172,291 +189,327 @@ export const marketingRoleLandingLinks: MarketingContentLink[] = [
   marketingCommercialLandingLinks[0],
   marketingCommercialLandingLinks[4],
   {
-    label: 'Для снабженца',
+    label: "Для снабженца",
     href: marketingPaths.materialAccounting,
-    description: 'Управление заявками, закупками, поставками и складом без Excel-хаоса.',
+    description:
+      "Управление заявками, закупками, поставками и складом без Excel-хаоса.",
   },
   {
-    label: 'Для руководителя строительства',
+    label: "Для руководителя строительства",
     href: marketingPaths.constructionBudgetControl,
-    description: 'Сводная картина по срокам, бюджету, подрядчикам и критическим отклонениям.',
+    description:
+      "Сводная картина по срокам, бюджету, подрядчикам и критическим отклонениям.",
   },
   {
-    label: 'Для генподрядчика',
+    label: "Для генподрядчика",
     href: marketingPaths.contractorControl,
-    description: 'Контроль субподрядчиков, графика, актов и исполнения договорных обязательств.',
+    description:
+      "Контроль субподрядчиков, графика, актов и исполнения договорных обязательств.",
   },
   {
-    label: 'Для девелопера',
+    label: "Для девелопера",
     href: marketingPaths.constructionErp,
-    description: 'Управленческие данные по объектам, бюджетам, подрядчикам и пакетам отчетности.',
+    description:
+      "Управленческие данные по объектам, бюджетам, подрядчикам и пакетам отчетности.",
   },
   {
-    label: 'Для проектной команды',
+    label: "Для проектной команды",
     href: marketingPaths.pirProjectDocumentation,
-    description: 'ПИР, проектные версии, замечания и выпуск комплектов ПД/РД.',
+    description: "ПИР, проектные версии, замечания и выпуск комплектов ПД/РД.",
   },
   {
-    label: 'Для специалиста ОТ',
+    label: "Для специалиста ОТ",
     href: marketingPaths.constructionSafety,
-    description: 'Инструктажи, допуски, нарушения и устранение предписаний.',
+    description: "Инструктажи, допуски, нарушения и устранение предписаний.",
   },
   {
-    label: 'Для стройконтроля',
+    label: "Для стройконтроля",
     href: marketingPaths.constructionQualityControl,
-    description: 'Дефекты, инспекции, фотофиксация и повторная проверка качества.',
+    description:
+      "Дефекты, инспекции, фотофиксация и повторная проверка качества.",
   },
 ];
 
 export const marketingModuleLandingLinks: MarketingContentLink[] = [
   {
-    label: 'Строительный склад',
+    label: "Строительный склад",
     href: marketingPaths.materialAccounting,
-    description: 'Остатки, движения, поставки и контроль материалов по объектам.',
+    description:
+      "Остатки, движения, поставки и контроль материалов по объектам.",
   },
   {
-    label: 'Учет материалов',
+    label: "Учет материалов",
     href: marketingPaths.materialAccounting,
-    description: 'Остатки, движения, поставки и складской учет по объектам.',
+    description: "Остатки, движения, поставки и складской учет по объектам.",
   },
   {
-    label: 'Акты КС-2 и КС-3',
+    label: "Акты КС-2 и КС-3",
     href: marketingPaths.constructionDocuments,
-    description: 'Подготовка пакетов документов и контроль комплектности по объекту.',
+    description:
+      "Подготовка пакетов документов и контроль комплектности по объекту.",
   },
   {
-    label: 'Платежи и лимиты',
+    label: "Платежи и лимиты",
     href: marketingPaths.constructionBudgetControl,
-    description: 'Контроль бюджета, платежного календаря и исполнения финансовых обязательств.',
+    description:
+      "Контроль бюджета, платежного календаря и исполнения финансовых обязательств.",
   },
   {
-    label: 'Работа с площадки',
+    label: "Работа с площадки",
     href: marketingPaths.mobileApp,
-    description: 'Рабочие сценарии для площадки, фотофиксации и согласований в поле.',
+    description:
+      "Рабочие сценарии для площадки, фотофиксации и согласований в поле.",
   },
   {
-    label: 'AI-сметы',
+    label: "AI-сметы",
     href: marketingPaths.aiEstimates,
-    description: 'Сценарий предварительной оценки объемов и смет по чертежам.',
+    description: "Сценарий предварительной оценки объемов и смет по чертежам.",
   },
   {
-    label: 'ПИР',
+    label: "ПИР",
     href: marketingPaths.pirProjectDocumentation,
-    description: 'ПД, РД, IFC, нормоконтроль, версии и выпуск комплектов.',
+    description:
+      "Версии проектной документации, замечания и выпуск комплектов.",
   },
   {
-    label: 'Охрана труда',
+    label: "Охрана труда",
     href: marketingPaths.constructionSafety,
-    description: 'Инструктажи, допуски, инциденты и контроль устранения.',
+    description: "Инструктажи, допуски, инциденты и контроль устранения.",
   },
   {
-    label: 'Качество и приемка',
+    label: "Качество и приемка",
     href: marketingPaths.constructionQualityControl,
-    description: 'Дефекты, повторная проверка, punch-list и сдача результата.',
+    description: "Дефекты, повторная проверка, punch-list и сдача результата.",
   },
   {
-    label: 'Ресурсы и выработка',
+    label: "Ресурсы и выработка",
     href: marketingPaths.machineryAndLabor,
-    description: 'Техника, смены, простои, наряды и фактическая выработка.',
+    description: "Техника, смены, простои, наряды и фактическая выработка.",
   },
   {
-    label: 'Изменения и RFI',
+    label: "Изменения и RFI",
     href: marketingPaths.changeControl,
-    description: 'RFI, дополнительные работы, претензии и решения заказчика.',
+    description: "RFI, дополнительные работы, претензии и решения заказчика.",
   },
   {
-    label: 'Закупки материалов',
+    label: "Закупки материалов",
     href: marketingPaths.constructionProcurement,
-    description: 'Потребность, запрос поставщикам, выбор, заказ и приемка.',
+    description: "Потребность, запрос поставщикам, выбор, заказ и приемка.",
   },
   {
-    label: 'Заявки с площадки',
+    label: "Заявки с площадки",
     href: marketingPaths.siteRequests,
-    description: 'Маршрутизация обращений в снабжение, склад, финансы и кадровую команду.',
+    description:
+      "Маршрутизация обращений в снабжение, склад, финансы и кадровую команду.",
   },
   {
-    label: 'Персонал и смены',
+    label: "Персонал и смены",
     href: marketingPaths.workforceManagement,
-    description: 'Сотрудники, бригады, время и производственная основа для выгрузки.',
+    description:
+      "Сотрудники, бригады, время и производственная основа для выгрузки.",
   },
   {
-    label: 'Платежный календарь',
+    label: "Платежный календарь",
     href: marketingPaths.constructionPayments,
-    description: 'Согласование счета, лимит, оплата и сверка по объекту.',
+    description: "Согласование счета, лимит, оплата и сверка по объекту.",
   },
   {
-    label: 'Интеграция с 1С и MDM',
+    label: "Интеграция с 1С и MDM",
     href: marketingPaths.oneCIntegration,
-    description: 'Сопоставление справочников и контролируемый обмен по согласованному сценарию.',
+    description:
+      "Сопоставление справочников и контролируемый обмен по согласованному сценарию.",
   },
   {
-    label: 'Подбор подрядчиков',
+    label: "Подбор подрядчиков",
     href: marketingPaths.contractorMarketplace,
-    description: 'Категории, поиск, шорт-лист, приглашение и решение по кандидату.',
+    description:
+      "Категории, поиск, шорт-лист, приглашение и решение по кандидату.",
   },
   {
-    label: 'Project Pulse для руководителя',
+    label: "Project Pulse для руководителя",
     href: marketingPaths.projectPulse,
-    description: 'Сигналы риска, ежедневная сводка и дальнейшее действие руководителя.',
+    description:
+      "Сигналы риска, ежедневная сводка и дальнейшее действие руководителя.",
   },
 ];
 
 export const marketingBlogEditorialSeries: MarketingEditorialSeries[] = [
   {
-    id: 'roles',
-    title: 'Серия по ролям',
-    description: 'Материалы под рабочие сценарии ключевых участников строительной команды.',
+    id: "roles",
+    title: "Серия по ролям",
+    description:
+      "Материалы под рабочие сценарии ключевых участников строительной команды.",
     articles: [
       {
-        title: 'Как прорабу вести объект без хаоса',
-        cluster: 'программа для прораба',
-        intent: 'informational',
+        title: "Как прорабу вести объект без хаоса",
+        cluster: "программа для прораба",
+        intent: "informational",
         relatedPath: marketingPaths.foremanSoftware,
-        summary: 'Разбираем, какие данные прорабу нужны каждый день и как собрать их в одной системе.',
+        summary:
+          "Разбираем, какие данные прорабу нужны каждый день и как собрать их в одной системе.",
       },
       {
-        title: 'Что должно быть у ПТО в одной системе',
-        cluster: 'система для ПТО',
-        intent: 'informational',
+        title: "Что должно быть у ПТО в одной системе",
+        cluster: "система для ПТО",
+        intent: "informational",
         relatedPath: marketingPaths.ptoSoftware,
-        summary: 'Показываем работу ПТО: замечания, акты, комплектность и согласования.',
+        summary:
+          "Показываем работу ПТО: замечания, акты, комплектность и согласования.",
       },
       {
-        title: 'Как снабженцу контролировать материалы без Excel',
-        cluster: 'учет материалов в строительстве',
-        intent: 'informational',
+        title: "Как снабженцу контролировать материалы без Excel",
+        cluster: "учет материалов в строительстве",
+        intent: "informational",
         relatedPath: marketingPaths.materialAccounting,
-        summary: 'Путь от заявки до поставки, остатков и сверки по объектам.',
+        summary: "Путь от заявки до поставки, остатков и сверки по объектам.",
       },
       {
-        title: 'Что должен видеть руководитель строительства каждое утро',
-        cluster: 'контроль бюджета стройки',
-        intent: 'informational',
+        title: "Что должен видеть руководитель строительства каждое утро",
+        cluster: "контроль бюджета стройки",
+        intent: "informational",
         relatedPath: marketingPaths.constructionBudgetControl,
-        summary: 'Ключевые показатели по срокам, бюджету и рискам без ручной консолидации отчетов.',
+        summary:
+          "Ключевые показатели по срокам, бюджету и рискам без ручной консолидации отчетов.",
       },
       {
-        title: 'Как проектной команде управлять ПД и РД без потери версий',
-        cluster: 'пир в строительстве',
-        intent: 'informational',
+        title: "Как проектной команде управлять ПД и РД без потери версий",
+        cluster: "пир в строительстве",
+        intent: "informational",
         relatedPath: marketingPaths.pirProjectDocumentation,
-        summary: 'Разбираем процесс ПИР: версии, замечания, нормоконтроль и выпуск комплектов.',
+        summary:
+          "Разбираем процесс ПИР: версии, замечания, нормоконтроль и выпуск комплектов.",
       },
       {
-        title: 'Что специалист ОТ должен видеть по объектам каждый день',
-        cluster: 'охрана труда на стройке',
-        intent: 'informational',
+        title: "Что специалист ОТ должен видеть по объектам каждый день",
+        cluster: "охрана труда на стройке",
+        intent: "informational",
         relatedPath: marketingPaths.constructionSafety,
-        summary: 'Какие события безопасности важно фиксировать в объектном контексте.',
+        summary:
+          "Какие события безопасности важно фиксировать в объектном контексте.",
       },
     ],
   },
   {
-    id: 'pain-points',
-    title: 'Серия по болям',
-    description: 'Контент под запросы, где клиент ищет решение конкретной операционной проблемы.',
+    id: "pain-points",
+    title: "Серия по болям",
+    description:
+      "Контент под запросы, где клиент ищет решение конкретной операционной проблемы.",
     articles: [
       {
-        title: 'Как сократить перерасход на стройке',
-        cluster: 'контроль бюджета стройки',
-        intent: 'informational',
+        title: "Как сократить перерасход на стройке",
+        cluster: "контроль бюджета стройки",
+        intent: "informational",
         relatedPath: marketingPaths.constructionBudgetControl,
-        summary: 'Практика контроля лимитов, заявок, платежей и отклонений по объекту.',
+        summary:
+          "Практика контроля лимитов, заявок, платежей и отклонений по объекту.",
       },
       {
-        title: 'Почему срываются сроки поставок в строительстве',
-        cluster: 'контроль поставок',
-        intent: 'informational',
+        title: "Почему срываются сроки поставок в строительстве",
+        cluster: "контроль поставок",
+        intent: "informational",
         relatedPath: marketingPaths.materialAccounting,
-        summary: 'Разбираем узкие места цепочки снабжения и точки контроля для команды.',
+        summary:
+          "Разбираем узкие места цепочки снабжения и точки контроля для команды.",
       },
       {
-        title: 'Как убрать Excel из стройки без стресса для команды',
-        cluster: 'альтернатива Excel для стройки',
-        intent: 'informational',
+        title: "Как убрать Excel из стройки без стресса для команды",
+        cluster: "альтернатива Excel для стройки",
+        intent: "informational",
         relatedPath: marketingPaths.constructionCrm,
-        summary: 'Как переводить объект, заявки и статусы в единую систему без большого Big Bang.',
+        summary:
+          "Как переводить объект, заявки и статусы в единую систему без большого Big Bang.",
       },
       {
-        title: 'Как наладить контроль подрядчиков на объекте',
-        cluster: 'контроль подрядчиков',
-        intent: 'informational',
+        title: "Как наладить контроль подрядчиков на объекте",
+        cluster: "контроль подрядчиков",
+        intent: "informational",
         relatedPath: marketingPaths.contractorControl,
-        summary: 'Что фиксировать по подрядчику, чтобы вовремя видеть просадку по срокам и объемам.',
+        summary:
+          "Что фиксировать по подрядчику, чтобы вовремя видеть просадку по срокам и объемам.",
       },
       {
-        title: 'Как дефекты доходят до повторной проверки и приемки',
-        cluster: 'контроль качества строительства',
-        intent: 'informational',
+        title: "Как дефекты доходят до повторной проверки и приемки",
+        cluster: "контроль качества строительства",
+        intent: "informational",
         relatedPath: marketingPaths.constructionQualityControl,
-        summary: 'Путь замечания от фиксации на площадке до устранения и готовности к сдаче.',
+        summary:
+          "Путь замечания от фиксации на площадке до устранения и готовности к сдаче.",
       },
       {
-        title: 'Почему RFI и изменения нельзя вести только в переписке',
-        cluster: 'rfi в строительстве',
-        intent: 'informational',
+        title: "Почему RFI и изменения нельзя вести только в переписке",
+        cluster: "rfi в строительстве",
+        intent: "informational",
         relatedPath: marketingPaths.changeControl,
-        summary: 'Как сохранить основания, влияние на сроки и решение заказчика по изменениям.',
+        summary:
+          "Как сохранить основания, влияние на сроки и решение заказчика по изменениям.",
       },
     ],
   },
   {
-    id: 'documents-and-processes',
-    title: 'Серия по документам и процессам',
-    description: 'Материалы для запросов вокруг исполнительной документации, графиков и отчетности.',
+    id: "documents-and-processes",
+    title: "Серия по документам и процессам",
+    description:
+      "Материалы для запросов вокруг исполнительной документации, графиков и отчетности.",
     articles: [
       {
-        title: 'Как вести исполнительную документацию без потерь',
-        cluster: 'исполнительная документация в строительстве',
-        intent: 'informational',
+        title: "Как вести исполнительную документацию без потерь",
+        cluster: "исполнительная документация в строительстве",
+        intent: "informational",
         relatedPath: marketingPaths.constructionDocuments,
-        summary: 'Какие документы чаще всего теряются и как собрать их в управляемый комплект.',
+        summary:
+          "Какие документы чаще всего теряются и как собрать их в управляемый комплект.",
       },
       {
-        title: 'Как автоматизировать КС-2 и КС-3',
-        cluster: 'акты КС-2 и КС-3',
-        intent: 'informational',
+        title: "Как автоматизировать КС-2 и КС-3",
+        cluster: "акты КС-2 и КС-3",
+        intent: "informational",
         relatedPath: marketingPaths.constructionDocuments,
-        summary: 'Связка актов, объемов, замечаний и финансовых данных в одном процессе.',
+        summary:
+          "Связка актов, объемов, замечаний и финансовых данных в одном процессе.",
       },
       {
-        title: 'Как контролировать график производства работ',
-        cluster: 'график работ',
-        intent: 'informational',
+        title: "Как контролировать график производства работ",
+        cluster: "график работ",
+        intent: "informational",
         relatedPath: marketingPaths.foremanSoftware,
-        summary: 'Как вести график, фактическое исполнение и отклонения без ручной пересборки данных.',
+        summary:
+          "Как вести график, фактическое исполнение и отклонения без ручной пересборки данных.",
       },
       {
-        title: 'Как подготовить стройку к внедрению ERP',
-        cluster: 'erp для строительства',
-        intent: 'informational',
+        title: "Как подготовить стройку к внедрению ERP",
+        cluster: "erp для строительства",
+        intent: "informational",
         relatedPath: marketingPaths.constructionErp,
-        summary: 'Когда компании нужен ERP-подход и какие процессы должны быть готовы к внедрению.',
+        summary:
+          "Когда компании нужен ERP-подход и какие процессы должны быть готовы к внедрению.",
       },
       {
-        title: 'Как подготовить объект к передаче заказчику',
-        cluster: 'приемка зон строительство',
-        intent: 'informational',
+        title: "Как подготовить объект к передаче заказчику",
+        cluster: "приемка зон строительство",
+        intent: "informational",
         relatedPath: marketingPaths.handoverAcceptance,
-        summary: 'Что должно быть видно по зонам, punch-list и комплекту сдачи до финальной приемки.',
+        summary:
+          "Что должно быть видно по зонам, punch-list и комплекту сдачи до финальной приемки.",
       },
       {
-        title: 'Как учитывать технику, смены и выработку без ручного свода',
-        cluster: 'учет техники на стройке',
-        intent: 'informational',
+        title: "Как учитывать технику, смены и выработку без ручного свода",
+        cluster: "учет техники на стройке",
+        intent: "informational",
         relatedPath: marketingPaths.machineryAndLabor,
-        summary: 'Контроль смен, простоев, ГСМ, нарядов и фактических объемов по объектам.',
+        summary:
+          "Контроль смен, простоев, ГСМ, нарядов и фактических объемов по объектам.",
       },
     ],
   },
 ];
-export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> = {
+export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
+  {
     "foreman-software": {
       path: marketingPaths.foremanSoftware,
       eyebrow: "Работа прораба",
-      title: "Программа для прораба: смены, задачи и журнал работ",
+      title: "Рабочий день прораба — в МОСТ",
       description:
-        "МОСТ связывает смену, задачу, фото, запись в журнале работ и отклонение по объекту. Данные зависят от дисциплины фиксации на площадке.",
+        "Назначайте задачи на смену, добавляйте фотографии и ведите журнал работ. МОСТ сохраняет задания и результаты по участкам, чтобы офис видел ход работ.",
       supportingQueries: [
         "программа для прораба",
         "журнал работ на объекте",
@@ -464,7 +517,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         "контроль смены прораба",
       ],
       processComparison: createProcessComparison({
-        eyebrow: 'Как меняется работа',
+        eyebrow: "Как меняется работа",
         title: "От сменного задания к записи о выполнении",
         description:
           "Прораб фиксирует задачу и результат там же, где руководитель проверяет отклонения.",
@@ -485,17 +538,17 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
             description: "Причина и ответственный доступны руководителю.",
           },
         ],
-        note: 'Это описание процесса, а не обещание результата.',
+        note: "Это описание процесса, а не обещание результата.",
       }),
       audienceTitle: "Кому нужна программа",
       audienceDescription:
         "Прорабам и руководителям участков, которые управляют ежедневными работами на площадке.",
       audiences: [
         "Прорабу, который распределяет задания на смену.",
-        "Начальнику участка, который проверяет факт и отклонения.",
+        "Начальнику участка, который сверяет выполненные работы с планом.",
         "ПТО, которому нужны записи журнала и фото по работам.",
       ],
-      problemTitle: "Где теряется фактическая картина",
+      problemTitle: "К концу смены трудно понять, что сделано",
       problemDescription:
         "Устные поручения, отдельные фотографии и поздние записи не дают проверить ход смены.",
       problems: [
@@ -513,7 +566,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       ],
       visibilityTitle: "Что видят участники",
       visibilityDescription:
-        "Каждая роль получает данные, необходимые для своей проверки.",
+        "Прораб отмечает выполненные работы, начальник участка проверяет результат, ПТО использует записи при подготовке документов.",
       roleViews: [
         {
           role: "Прораб",
@@ -530,7 +583,8 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       ],
       workflow: {
         title: "Как проходит смена",
-        description: "Работа движется от задания до проверенного факта.",
+        description:
+          "Утром — задания по участкам. В течение смены — фотографии и записи. В конце — проверка выполненных работ.",
         stages: [
           {
             label: "План смены",
@@ -546,7 +600,8 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
           },
           {
             label: "Проверка",
-            description: "Руководитель принимает факт или отмечает отклонение.",
+            description:
+              "Руководитель проверяет результат и отмечает, что нужно исправить.",
           },
         ],
       },
@@ -566,12 +621,12 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
           label: "Система для ПТО",
           href: marketingPaths.ptoSoftware,
           description:
-            "Передавайте подтверждённый факт в работу инженерной команды.",
+            "Передавайте записи о выполненных работах и фотографии инженерам ПТО.",
         },
       ],
       blogLinks: getMarketingBlogLinks("foremanOrder", "managerMorning"),
       contactHighlights: [
-        "Покажем карточку сменного задания и фотофакт.",
+        "Покажем, как назначить задание и добавить фотографии результата.",
         "Покажем журнал работ и обработку отклонения.",
         "Сопоставим роли прораба и начальника участка с вашим регламентом.",
       ],
@@ -596,9 +651,9 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
     "construction-crm": {
       path: marketingPaths.constructionCrm,
       eyebrow: "Клиенты и договоры",
-      title: "CRM для строительной компании: от клиента к объекту",
+      title: "CRM для стройки: от договора к объекту",
       description:
-        "CRM МОСТ связывает клиента, договор, объект, этап и обязательство команды. Она поддерживает коммерческую работу, но не заменяет отраслевую бухгалтерию.",
+        "Сохраните контакты клиента, условия договора и следующий шаг по объекту. В CRM МОСТ команда видит, о чём договорились с заказчиком и что нужно выполнить.",
       supportingQueries: [
         "crm для строительной компании",
         "учёт договоров в строительстве",
@@ -606,7 +661,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         "этапы строительного договора",
       ],
       processComparison: createProcessComparison({
-        eyebrow: 'Как меняется работа',
+        eyebrow: "Как меняется работа",
         title: "От обращения клиента к договорному обязательству",
         description:
           "Команда видит, какой объект обсуждается, на каком этапе договор и кто выполняет следующий шаг.",
@@ -623,11 +678,11 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
           },
           {
             label: "Обязательство",
-            value: "Ответственная роль",
-            description: "Исполнение передано конкретной роли.",
+            value: "Ответственный",
+            description: "Понятно, кто принимает обязательство в работу.",
           },
         ],
-        note: 'Это описание процесса, а не обещание результата.',
+        note: "Условия договора и их изменения подтверждают ответственные сотрудники.",
       }),
       audienceTitle: "Кому нужна строительная CRM",
       audienceDescription:
@@ -639,11 +694,11 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       ],
       problemTitle: "Где расходятся договорённости",
       problemDescription:
-        "Обычная воронка заканчивается сделкой, а строительной компании нужно передать условия в исполнение.",
+        "После согласования договора важно передать проектной команде сроки, состав работ и условия заказчика.",
       problems: [
         "Карточка клиента не связана с будущим объектом.",
         "Статус договора приходится уточнять у нескольких отделов.",
-        "Обязательство перед заказчиком не имеет владельца после подписания.",
+        "После подписания договора не назначен ответственный за выполнение условий.",
       ],
       automationTitle: "Что фиксирует МОСТ",
       automationDescription:
@@ -655,7 +710,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       ],
       visibilityTitle: "Что видят участники",
       visibilityDescription:
-        "Коммерческие условия и операционные задачи разделены правами, но связаны объектом.",
+        "Менеджер, юрист и руководитель проекта работают с одним объектом. Каждый видит сведения, доступные ему по роли.",
       roleViews: [
         {
           role: "Менеджер",
@@ -674,7 +729,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       workflow: {
         title: "Как клиент становится действующим объектом",
         description:
-          "Договорённости проходят проверяемую передачу между коммерческой и проектной командой.",
+          "Менеджер фиксирует условия, юрист согласует договор, руководитель проекта принимает обязательства в работу.",
         stages: [
           {
             label: "Клиент",
@@ -741,9 +796,9 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
     "construction-erp": {
       path: marketingPaths.constructionErp,
       eyebrow: "Управленческий учёт",
-      title: "ERP для строительства: ресурсы и бюджет объектов",
+      title: "ERP для стройки: ресурсы и бюджет объектов",
       description:
-        "ERP МОСТ связывает ресурсы, бюджет и объект для управленческого учёта. Глубина ERP-процесса зависит от настроенных справочников и интеграций.",
+        "Материалы, заявки, документы и затраты связаны с объектом. ERP МОСТ помогает руководителям проверять план и факт по общим правилам учёта.",
       supportingQueries: [
         "erp для строительства",
         "управленческий учёт стройки",
@@ -751,10 +806,10 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         "бюджет объектов в erp",
       ],
       processComparison: createProcessComparison({
-        eyebrow: 'Как меняется работа',
-        title: "От локальных операций к управленческому учёту",
+        eyebrow: "Как меняется работа",
+        title: "От операции на объекте к отчёту руководителя",
         description:
-          "Операции подразделений получают общие справочники и сохраняют связь с объектом.",
+          "Поступление материала, договор и платёж относятся к конкретному объекту и входят в его управленческий учёт.",
         metrics: [
           {
             label: "Ресурсы",
@@ -769,12 +824,12 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
           {
             label: "Учёт",
             value: "Отчёт по объектам",
-            description: "Показатели доступны в единой структуре.",
+            description: "План и факт можно проверить по одному объекту.",
           },
         ],
-        note: 'Это описание процесса, а не обещание результата.',
+        note: "Полнота отчёта зависит от внесённых операций, справочников и настроенного обмена данными.",
       }),
-      audienceTitle: "Кому нужен ERP-подход",
+      audienceTitle: "Когда нужен общий учёт по объектам",
       audienceDescription:
         "Компаниям с несколькими объектами, общими ресурсами и регулярной управленческой отчётностью.",
       audiences: [
@@ -784,7 +839,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       ],
       problemTitle: "Что мешает получить сопоставимые данные",
       problemDescription:
-        "ERP начинается не с панели, а с единых правил учёта ресурсов и операций.",
+        "Чтобы сравнивать объекты, подразделениям нужны общие названия материалов, статьи затрат и правила отражения операций.",
       problems: [
         "Номенклатура и контрагенты расходятся между источниками.",
         "Заявки, договоры и платежи по-разному привязаны к бюджету.",
@@ -792,15 +847,15 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       ],
       automationTitle: "Что фиксирует МОСТ",
       automationDescription:
-        "Система поддерживает управленческие операции в границах настроенной модели данных.",
+        "В учёт входят ресурсы объекта, бюджетные основания и фактические операции. Обмен с другими системами настраивается отдельно.",
       automations: [
         "Справочники ресурсов и привязку к объектам.",
         "Бюджетные основания и фактические операции.",
-        "Статусы обмена с корпоративными системами.",
+        "Данные обмена с 1С после настройки интеграции.",
       ],
       visibilityTitle: "Что видят участники",
       visibilityDescription:
-        "Роли работают с разными срезами одной учётной структуры.",
+        "Руководители проверяют объекты, финансы — затраты, ИТ-команда — источники и качество данных.",
       roleViews: [
         {
           role: "Операционный директор",
@@ -887,9 +942,9 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
     "material-accounting": {
       path: marketingPaths.materialAccounting,
       eyebrow: "Движение материалов",
-      title: "Учёт материалов в строительстве: приход и списание",
+      title: "Материалы: что пришло, куда ушло, сколько осталось",
       description:
-        "МОСТ ведёт заявку, приход, перемещение, списание и остаток материалов по объекту. Фактический остаток требует своевременного ввода операций.",
+        "Учитывайте материалы по складам и объектам: приход, перемещение и списание на работы. МОСТ сохраняет движения и считает остаток по внесённым операциям.",
       supportingQueries: [
         "учёт материалов в строительстве",
         "приход материалов на объект",
@@ -897,7 +952,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         "списание строительных материалов",
       ],
       processComparison: createProcessComparison({
-        eyebrow: 'Как меняется работа',
+        eyebrow: "Как меняется работа",
         title: "От потребности до остатка",
         description:
           "Каждая складская операция меняет количество материала в выбранном месте хранения.",
@@ -918,7 +973,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
             description: "Операция уменьшает расчётный остаток.",
           },
         ],
-        note: 'Это описание процесса, а не обещание результата.',
+        note: "Фактический остаток требует своевременного ввода операций.",
       }),
       audienceTitle: "Кому нужен учёт материалов",
       audienceDescription:
@@ -1039,7 +1094,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         "контроль замечаний пто",
       ],
       processComparison: createProcessComparison({
-        eyebrow: 'Как меняется работа',
+        eyebrow: "Как меняется работа",
         title: "От перечня документов к готовому комплекту",
         description:
           "Инженер ведёт состав комплекта, устраняет замечания и передаёт материалы на проверку.",
@@ -1060,7 +1115,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
             description: "Руководитель видит этап подготовки.",
           },
         ],
-        note: 'Это описание процесса, а не обещание результата.',
+        note: "Это описание процесса, а не обещание результата.",
       }),
       audienceTitle: "Кому нужна система ПТО",
       audienceDescription:
@@ -1181,7 +1236,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         "объёмы работ подрядчика",
       ],
       processComparison: createProcessComparison({
-        eyebrow: 'Как меняется работа',
+        eyebrow: "Как меняется работа",
         title: "От договорного объёма к принятой работе",
         description:
           "Руководитель сопоставляет обязательство подрядчика с фактом и замечаниями.",
@@ -1202,7 +1257,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
             description: "Открытые вопросы видны до закрытия этапа.",
           },
         ],
-        note: 'Это описание процесса, а не обещание результата.',
+        note: "Это описание процесса, а не обещание результата.",
       }),
       audienceTitle: "Кому нужен контроль подрядчиков",
       audienceDescription:
@@ -1313,9 +1368,9 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
     "construction-documents": {
       path: marketingPaths.constructionDocuments,
       eyebrow: "Версии и согласование",
-      title: "Программа для исполнительной документации в МОСТ",
+      title: "Исполнительная документация по каждому объекту",
       description:
-        "МОСТ ведёт исполнительную документацию, версии и архив. Юридическая значимость зависит от принятого регламента и электронной подписи (ЭП).",
+        "Храните рабочие версии, передавайте документы на согласование и возвращайтесь к истории решений. Завершённые документы остаются в архиве МОСТ.",
       supportingQueries: [
         "программа для исполнительной документации",
         "ведение исполнительной документации",
@@ -1323,7 +1378,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         "согласование документов на стройке",
       ],
       processComparison: createProcessComparison({
-        eyebrow: 'Как меняется работа',
+        eyebrow: "Как меняется работа",
         title: "От рабочей версии к архивной записи",
         description:
           "Документ проходит проверку, получает решение и сохраняется с историей доступа.",
@@ -1344,7 +1399,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
             description: "Доступ определяется ролью.",
           },
         ],
-        note: 'Это описание процесса, а не обещание результата.',
+        note: "Это описание процесса, а не обещание результата.",
       }),
       audienceTitle: "Кому нужна работа с документами",
       audienceDescription:
@@ -1431,13 +1486,13 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       contactHighlights: [
         "Покажем историю версий документа.",
         "Покажем согласование и ролевой доступ.",
-        "Обсудим архив, регламент и применение ЭП.",
+        "Обсудим архив, регламент и применение электронной подписи (ЭП).",
       ],
       faq: [
         {
           question: "Документ в МОСТ автоматически имеет юридическую силу?",
           answer:
-            "Нет. Юридическая значимость зависит от регламента компании, полномочий участников и используемой ЭП.",
+            "Нет. Юридическая значимость зависит от регламента компании, полномочий участников и используемой электронной подписи (ЭП).",
         },
         {
           question: "Можно ли восстановить предыдущую версию?",
@@ -1454,9 +1509,9 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
     "construction-budget-control": {
       path: marketingPaths.constructionBudgetControl,
       eyebrow: "План и факт",
-      title: "Контроль бюджета стройки: лимиты и обязательства",
+      title: "Бюджет стройки — от плана до оплаты",
       description:
-        "МОСТ сопоставляет бюджет, лимит, обязательство, факт и отклонение по объекту. Точность зависит от полноты заявок, договоров и оплат.",
+        "Проверяйте лимиты, обязательства по договорам и фактические расходы по каждому объекту. МОСТ сопоставляет внесённые заявки, договоры и оплаты с бюджетом.",
       supportingQueries: [
         "контроль бюджета стройки",
         "лимиты строительного объекта",
@@ -1464,7 +1519,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         "план факт затрат в строительстве",
       ],
       processComparison: createProcessComparison({
-        eyebrow: 'Как меняется работа',
+        eyebrow: "Как меняется работа",
         title: "От лимита к подтверждённому факту",
         description:
           "Руководитель проверяет будущие обязательства до сопоставления с оплатами и бюджетом.",
@@ -1485,7 +1540,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
             description: "Оплаты сопоставлены с основаниями.",
           },
         ],
-        note: 'Это описание процесса, а не обещание результата.',
+        note: "Это описание процесса, а не обещание результата.",
       }),
       audienceTitle: "Кому нужен контроль бюджета",
       audienceDescription:
@@ -1597,10 +1652,9 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
     "mobile-app": {
       path: marketingPaths.mobileApp,
       eyebrow: "Работа на площадке",
-      title:
-        "Мобильное приложение для строительной компании и работы на объекте",
+      title: "МОСТ на объекте — с телефона",
       description:
-        "Мобильное приложение МОСТ помогает вести задачи, замечания, фотофиксацию, статусы работ и материалы прямо на строительной площадке.",
+        "Открывайте задачи, добавляйте фотографии и замечания прямо на площадке. Мобильное приложение МОСТ передаёт записи в общую систему, когда есть связь.",
       supportingQueries: [
         "мобильное приложение для строительной компании",
         "приложение для стройки",
@@ -1609,20 +1663,21 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       ],
       processComparison: createProcessComparison({
         eyebrow: "Работа с телефона",
-        title: "Полевое действие сохраняет связь с объектом",
+        title: "Снимок на площадке — запись для офиса",
         description:
-          "Сотрудник фиксирует событие на телефоне, а офис получает автора, время, объект и назначенное действие.",
+          "Добавьте фотографию и комментарий к задаче. Сотрудник в офисе увидит, кто отправил запись, когда и к какому объекту она относится.",
         metrics: [
           {
             value: "Карточка объекта",
-            label: "Полевой факт",
-            description: "Фото, замечание и статус относятся к выбранной задаче.",
+            label: "На площадке",
+            description:
+              "Фото, замечание и статус относятся к выбранной задаче.",
           },
           {
-            value: "Ответственная роль",
+            value: "Проверка записи",
             label: "Следующий шаг",
             description:
-              "Запись передаётся участнику с доступом к этому процессу.",
+              "Ответственный открывает запись, проверяет детали и продолжает работу.",
           },
         ],
         note: "Доступность функций зависит от роли пользователя и качества связи.",
@@ -1632,15 +1687,15 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         "Для команд, где рабочая информация возникает на площадке и должна попасть ответственному в офисе.",
       audiences: [
         "Прорабам и руководителям участка, которым нужно работать с задачами на ходу.",
-        "Снабженцам и инженерам, которым важно подтверждать факт прямо на объекте.",
+        "Снабженцам и инженерам, которые проверяют поставки и работы на объекте.",
         "Строительным компаниям, где мобильная работа должна быть частью общей системы.",
       ],
       problemTitle: "Какие задачи решает",
       problemDescription:
-        "Без мобильного доступа факт приходит поздно, а часть деталей по объекту приходится уточнять.",
+        "Фотографию в чате легко потерять. Когда она сохранена у задачи, офису проще разобраться, что произошло на объекте.",
       problems: [
-        "Позволяет фиксировать задачи, замечания и фотофакт прямо на площадке.",
-        "Передаёт событие с объекта назначенному участнику офисного процесса.",
+        "Задачи, замечания и фотографии можно записывать прямо на площадке.",
+        "Ответственный в офисе получает запись с указанием объекта и автора.",
         "Поддерживает работу команды без постоянного возврата к таблицам и перепискам.",
       ],
       automationTitle: "Что автоматизирует",
@@ -1649,11 +1704,11 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       automations: [
         "Передачу задач, комментариев и статусов между офисом и площадкой.",
         "Фотофиксацию, подтверждение работ и работу с замечаниями.",
-        "Полевые сценарии по материалам, приемке и оперативной отчетности.",
+        "Записи о материалах, приёмке и выполненных работах.",
       ],
       visibilityTitle: "Что видит команда",
       visibilityDescription:
-        "Мобильный слой делает площадку полноценным участником цифрового процесса.",
+        "Прораб фиксирует результат на объекте, а офис видит запись и может продолжить работу с ней.",
       roleViews: [
         {
           role: "Прораб",
@@ -1668,25 +1723,42 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         {
           role: "Офис / руководитель",
           description:
-            "Факт с площадки с автором, временем и связью с объектом.",
+            "Записи с площадки: что сделано, на каком объекте и кто сообщил.",
         },
       ],
       workflow: {
         title: "Как действие с телефона попадает в работу",
         description:
-          "Сотрудник фиксирует событие на площадке, а назначенная роль проверяет данные и продолжает процесс.",
+          "Отправьте запись с объекта. Ответственный в офисе проверит её и решит, что делать дальше.",
         stages: [
-          { label: "Выбор объекта", description: "Пользователь открывает доступный ему объект и рабочую задачу." },
-          { label: "Полевое действие", description: "С телефона добавляются статус, замечание, фотография или подтверждение." },
-          { label: "Передача данных", description: "Запись отправляется при наличии связи и сохраняет автора и время." },
-          { label: "Проверка офисом", description: "Ответственный участник уточняет данные и назначает следующее действие." },
+          {
+            label: "Выбор объекта",
+            description:
+              "Пользователь открывает доступный ему объект и рабочую задачу.",
+          },
+          {
+            label: "Запись на площадке",
+            description:
+              "Сотрудник добавляет фотографию, комментарий или замечание и обновляет статус работы.",
+          },
+          {
+            label: "Передача данных",
+            description:
+              "Запись отправляется при наличии связи и сохраняет автора и время.",
+          },
+          {
+            label: "Проверка офисом",
+            description:
+              "Ответственный участник уточняет данные и назначает следующее действие.",
+          },
         ],
       },
       relatedLinks: [
         {
           label: "Заявки с объекта",
           href: marketingPaths.siteRequests,
-          description: "Передавайте полевые обращения в назначенный офисный процесс.",
+          description:
+            "Оформляйте потребности площадки и передавайте заявку ответственному.",
         },
         {
           label: "Программа для прораба",
@@ -1703,9 +1775,9 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
       ],
       blogLinks: getMarketingBlogLinks("foremanOrder", "procurementChats"),
       contactHighlights: [
-        "Покажем, как мобильное приложение связывает площадку и офис без двойного ввода.",
+        "Покажем путь фотографии от задачи на телефоне до проверки в офисе.",
         "Разберем, какие действия команда выполняет на телефоне, а какие оставляет офису.",
-        "Подскажем, как запускать мобильную работу без сопротивления пользователей.",
+        "Обсудим, с каких задач начать и какие права нужны сотрудникам.",
       ],
       faq: [
         {
@@ -1734,10 +1806,9 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
     "ai-estimates": {
       path: marketingPaths.aiEstimates,
       eyebrow: "AI и сметы",
-      title:
-        "Предварительный разбор чертежа для подготовки сметной оценки",
+      title: "От чертежа к сметной оценке",
       description:
-        "МОСТ выполняет предварительный разбор чертежа и помогает подготовить данные для оценки объёмов. Результат не является готовой сметой и требует экспертной проверки.",
+        "МОСТ помогает разобрать чертёж и подготовить исходные данные для оценки объёмов. Сметчик проверяет результат перед расчётом: предварительный разбор не заменяет готовую смету.",
       supportingQueries: [
         "ai смета по чертежу",
         "смета по чертежу",
@@ -1758,8 +1829,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
           {
             value: "Экспертная проверка",
             label: "Обязательный этап",
-            description:
-              "Сметчик сверяет позиции, объёмы и единицы измерения.",
+            description: "Сметчик сверяет позиции, объёмы и единицы измерения.",
           },
         ],
         note: "Предварительный разбор не является готовой сметой.",
@@ -1804,7 +1874,8 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         },
         {
           role: "Команда внедрения",
-          description: "Как предварительный разбор встраивается в общий процесс МОСТ.",
+          description:
+            "Как предварительный разбор встраивается в общий процесс МОСТ.",
         },
       ],
       workflow: {
@@ -1812,17 +1883,34 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         description:
           "Автоматическая обработка заканчивается проверкой сметчика, а не выпуском готовой сметы.",
         stages: [
-          { label: "Загрузка", description: "Специалист выбирает чертёж и указывает проектный контекст." },
-          { label: "Предварительный разбор", description: "Система выделяет доступные элементы и формирует рабочую структуру." },
-          { label: "Проверка специалистом", description: "Сметчик сверяет позиции, объёмы, единицы и спорные места." },
-          { label: "Сметный расчёт", description: "Проверенные данные используются в отдельном профессиональном расчёте." },
+          {
+            label: "Загрузка",
+            description:
+              "Специалист выбирает чертёж и указывает проектный контекст.",
+          },
+          {
+            label: "Предварительный разбор",
+            description:
+              "Система выделяет доступные элементы и формирует рабочую структуру.",
+          },
+          {
+            label: "Проверка специалистом",
+            description:
+              "Сметчик сверяет позиции, объёмы, единицы и спорные места.",
+          },
+          {
+            label: "Сметный расчёт",
+            description:
+              "Проверенные данные используются в отдельном профессиональном расчёте.",
+          },
         ],
       },
       relatedLinks: [
         {
           label: "Система для ПТО",
           href: marketingPaths.ptoSoftware,
-          description: "Свяжите проверенный результат с инженерной работой и документами.",
+          description:
+            "Свяжите проверенный результат с инженерной работой и документами.",
         },
         {
           label: "ERP для строительства",
@@ -1861,370 +1949,883 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         },
       ],
     },
-  'pir-project-documentation': createOperationalSeoPage({
-    path: marketingPaths.pirProjectDocumentation,
-    eyebrow: 'Проектно-изыскательские работы (ПИР)',
-    title: 'Проектная документация, замечания и выпуск комплектов',
-    description:
-      'МОСТ помогает вести проектную документацию (ПД), рабочую документацию (РД), файлы открытого формата отраслевой модели (IFC), замечания и выпуск комплектов.',
-    supportingQueries: [
-      'пир в строительстве',
-      'проектная документация пд рд',
-      'управление проектированием',
-      'нормоконтроль проектной документации',
-    ],
-    processComparison: createProcessComparison({ eyebrow: 'Выпуск проектного комплекта', title: 'Версии ПД и РД проходят инженерную проверку', description: 'Проектная документация (ПД), рабочая документация (РД) и замечания собраны по разделам и выпускам.', metrics: [{ value: 'Версия', label: 'Документ', description: 'Участники видят редакцию и её статус.' }, { value: 'Комплект', label: 'Выпуск', description: 'Состав выдачи связан с замечаниями и решением о выпуске.' }], note: 'Версия и статус в МОСТ не заменяют инженерную проверку документации.' }),
-    workflow: { title: 'Как выпускается комплект документации', description: 'Раздел проходит проверку замечаний и получает отдельное решение о выпуске.', stages: [{ label: 'Регистрация версии', description: 'Проектировщик загружает ПД или РД и указывает раздел.' }, { label: 'Инженерная проверка', description: 'Специалист изучает содержание и фиксирует замечания.' }, { label: 'Отработка замечаний', description: 'Автор готовит новую редакцию и отвечает по каждому пункту.' }, { label: 'Выпуск комплекта', description: 'Уполномоченный участник подтверждает состав и статус выдачи.' }] },
-    audienceTitle: 'Кому подходит управление ПИР',
-    audienceDescription: 'Для команд, где проектирование, ПТО и заказчик регулярно работают с версиями, замечаниями и комплектами документации.',
-    audiences: [
-      'Проектным офисам, которым нужно управлять ПД, РД, IFC и версиями по объектам.',
-      'ПТО и генподрядчикам, которые связывают проектные решения со сметами, исполнительной документацией и приёмкой.',
-      'Девелоперам, которым важно видеть историю замечаний и готовность комплектов.',
-    ],
-    problemTitle: 'Какие задачи решает',
-    problemDescription: 'МОСТ связывает проектные файлы, замечания и управление объектом.',
-    problems: [
-      'Собирает проектные материалы, версии, замечания и нормоконтроль в одном реестре.',
-      'Помогает видеть, какие разделы и комплекты готовы к выпуску.',
-      'Связывает ПИР со сметами, изменениями, исполнительной документацией и сдачей результата.',
-    ],
-    automationTitle: 'Что автоматизирует',
-    automationDescription: 'Фокус на управляемом жизненном цикле проектной документации.',
-    automations: [
-      'Регистрацию ПД, РД, IFC и связанных файлов по объектам и разделам.',
-      'Маршрут замечаний, нормоконтроля, ответственных и статусов реакции.',
-      'Подготовку комплектов и передачу проектной базы в сметный и исполнительный процессы.',
-    ],
-    visibilityTitle: 'Что видит команда',
-    visibilityDescription: 'Каждая роль получает свой срез проектной готовности без перегруза лишними файлами.',
-    roleViews: [
-      { role: 'Проектная команда', description: 'Версии, замечания, разделы, статусы и готовность комплектов.' },
-      { role: 'ПТО', description: 'Связь проектной базы со сметами, исполнительной документацией, изменениями и приёмкой.' },
-      { role: 'Руководитель проекта', description: 'Блокирующие замечания, сроки реакции и готовность выпуска документации.' },
-    ],
-    relatedLinks: [
-      { label: 'Исполнительная документация', href: marketingPaths.constructionDocuments, description: 'Свяжите выпущенные проектные комплекты с подготовкой документов по работам.' },
-      { label: 'Система для ПТО', href: marketingPaths.ptoSoftware, description: 'Сметы, документы, шаблоны отчетов и инженерная подготовка.' },
-      { label: 'RFI и изменения', href: marketingPaths.changeControl, description: 'Изменения и решения заказчика, связанные с проектной базой.' },
-    ],
-    blogLinks: getMarketingBlogLinks('ptoWorkspace', 'managerMorning'),
-    contactHighlights: [
-      'Покажем управление ПД, РД, IFC и проектными версиями.',
-      'Разберем маршрут замечаний, нормоконтроля и выпуска комплектов.',
-      'Свяжем ПИР со сметами, исполнительной документацией, изменениями и приёмкой.',
-    ],
-    faq: [
-      { question: 'Можно ли вести ПД и РД в одной системе?', answer: 'Да, ПД, РД, IFC, файлы, замечания и комплекты можно связывать с объектом, разделами и статусами.' },
-      { question: 'Поддерживаются ли замечания и нормоконтроль?', answer: 'Да, замечания получают статус, ответственного и срок реакции, а нормоконтроль становится частью маршрута документации.' },
-      { question: 'ПИР связан со сметами и исполнительной документацией?', answer: 'Да, проектная база может связываться со сметным процессом, исполнительной документацией и изменениями.' },
-    ],
-  }),
-  'construction-safety': createOperationalSeoPage({
-    path: marketingPaths.constructionSafety,
-    eyebrow: 'Охрана труда',
-    title: 'Система охраны труда на стройке: допуски и инциденты',
-    description:
-      'МОСТ помогает вести инструктажи, наряды-допуски, нарушения, инциденты, предписания и контроль устранения в проектном контексте.',
-    supportingQueries: [
-      'система охраны труда на стройке',
-      'охрана труда на стройке',
-      'безопасность в строительстве',
-      'инструктажи и допуски',
-    ],
-    processComparison: createProcessComparison({ eyebrow: 'Безопасность работ', title: 'Нарушение проходит от фиксации до проверки устранения', description: 'Охрана труда, промышленная и экологическая безопасность (HSE) связаны с объектом и ответственными.', metrics: [{ value: 'Инструктаж', label: 'Допуск', description: 'Запись связана с участником и видом работ.' }, { value: 'Предписание', label: 'Устранение', description: 'Нарушение имеет исполнителя и повторную проверку.' }], note: 'МОСТ хранит рабочие записи, но обязательные журналы и решения ответственных специалистов ведутся по правилам компании.' }),
-    workflow: { title: 'Как обрабатывается нарушение безопасности', description: 'Событие получает место, ответственного исполнителя и результат повторной проверки.', stages: [{ label: 'Фиксация', description: 'Специалист описывает нарушение и прикладывает материалы.' }, { label: 'Предписание', description: 'Ответственный определяет действие и срок устранения.' }, { label: 'Исполнение', description: 'Назначенный участник сообщает о выполненных мерах.' }, { label: 'Повторная проверка', description: 'Специалист по безопасности подтверждает результат или возвращает предписание.' }] },
-    audienceTitle: 'Кому подходит управление охраной труда',
-    audienceDescription: 'Для команд, которым нужно видеть безопасность как часть операционного контроля стройки.',
-    audiences: [
-      'Специалистам по охране труда, которые ведут инструктажи, допуски и инциденты.',
-      'Генподрядчикам, которые отвечают за подрядчиков и безопасность на нескольких объектах.',
-      'Руководителям проектов, которым нужна видимость рисков безопасности рядом со сроками и качеством.',
-    ],
-    problemTitle: 'Какие задачи решает',
-    problemDescription: 'МОСТ связывает журналы охраны труда с управлением объектом.',
-    problems: [
-      'Связывает инструктажи и допуски с участниками и объектом.',
-      'Фиксирует нарушения, инциденты, предписания и контроль устранения.',
-      'Показывает риски безопасности руководителю без ручной пересборки.',
-    ],
-    automationTitle: 'Что автоматизирует',
-    automationDescription: 'Фокус на статусах, ответственных и контроле устранения.',
-    automations: [
-      'Учет инструктажей, допусков, нарушений и инцидентов.',
-      'Маршрут предписания от фиксации до устранения.',
-      'Отчетность по открытым событиям безопасности.',
-    ],
-    visibilityTitle: 'Что видит команда',
-    visibilityDescription: 'Каждая роль получает свой срез безопасности без перегруза лишними данными.',
-    roleViews: [
-      { role: 'Специалист ОТ', description: 'Инструктажи, допуски, нарушения, инциденты и предписания.' },
-      { role: 'Прораб', description: 'События на объекте, фотофиксация, сроки устранения и ответственные.' },
-      { role: 'Руководитель проекта', description: 'Открытые риски безопасности и статус устранения по объектам.' },
-    ],
-    relatedLinks: [
-      { label: 'Программа для прораба', href: marketingPaths.foremanSoftware, description: 'Передавайте предписания ответственным на площадке.' },
-      { label: 'Мобильное приложение', href: marketingPaths.mobileApp, description: 'Фиксация событий с площадки.' },
-      { label: 'Контроль качества', href: marketingPaths.constructionQualityControl, description: 'Связанный процесс дефектов и проверок.' },
-    ],
-    blogLinks: getMarketingBlogLinks('foremanOrder', 'managerMorning'),
-    contactHighlights: [
-      'Покажем фиксацию нарушений и инцидентов.',
-      'Разберем роли специалиста ОТ, прораба и руководителя.',
-      'Обсудим отчеты и контроль устранения.',
-    ],
-    faq: [
-      { question: 'Можно ли вести инструктажи?', answer: 'Да, в МОСТ можно вести инструктажи, допуски и связь с участниками работ.' },
-      { question: 'Инциденты видны руководителю?', answer: 'Да, открытые инциденты и нарушения можно выводить в управленческий обзор.' },
-      { question: 'Можно ли фиксировать фото?', answer: 'Да, события безопасности можно связывать с файлами и материалами проверки.' },
-    ],
-  }),
-  'construction-quality-control': createOperationalSeoPage({
-    path: marketingPaths.constructionQualityControl,
-    eyebrow: 'Стройконтроль',
-    title: 'Система контроля качества строительства: дефекты',
-    description:
-      'МОСТ помогает вести инспекции, дефекты, ответственных, сроки устранения, фотофиксацию, повторную проверку и связь с приемкой.',
-    supportingQueries: [
-      'система контроля качества строительства',
-      'контроль качества строительства',
-      'строительный контроль дефекты',
-      'инспекции качества на объекте',
-    ],
-    processComparison: createProcessComparison({ eyebrow: 'Проверка качества', title: 'Дефект закрывается только после повторной проверки', description: 'Замечание получает зону, фотографии, исполнителя и решение специалиста по строительному контролю.', metrics: [{ value: 'Дефект', label: 'Фиксация', description: 'Карточка хранит место и материалы проверки.' }, { value: 'Повторно', label: 'Контроль', description: 'Ответственный специалист подтверждает устранение.' }], note: 'Решение о качестве и готовности работ принимает ответственный специалист.' }),
-    workflow: { title: 'Как дефект проходит контроль качества', description: 'Исполнитель сообщает об устранении, после чего специалист повторно осматривает работу.', stages: [{ label: 'Осмотр', description: 'Стройконтроль фиксирует дефект и его расположение.' }, { label: 'Назначение', description: 'Замечание получает исполнителя и срок обработки.' }, { label: 'Устранение', description: 'Подрядчик прикладывает подтверждение выполненной работы.' }, { label: 'Решение о качестве', description: 'Ответственный специалист принимает или возвращает результат.' }] },
-    audienceTitle: 'Кому подходит контроль качества',
-    audienceDescription: 'Для стройконтроля, генподрядчика и ПТО, которым важно видеть качество закрытия этапа.',
-    audiences: [
-      'Стройконтролю, который фиксирует дефекты и повторные проверки.',
-      'Генподрядчику, который отвечает за качество работы подрядчиков.',
-      'ПТО и руководителю проекта, которым нужна связь качества, исполнительной документации и приёмки.',
-    ],
-    problemTitle: 'Какие задачи решает',
-    problemDescription: 'МОСТ связывает замечание на площадке с управленческим решением.',
-    problems: [
-      'Собирает дефекты, инспекции и фотофиксацию в одном реестре.',
-      'Назначает ответственных и сроки устранения.',
-      'Связывает качество с приемкой зон и исполнительной документацией.',
-    ],
-    automationTitle: 'Что автоматизирует',
-    automationDescription: 'Фокус на жизненном цикле дефекта и повторной проверке.',
-    automations: [
-      'Создание дефекта с зоной, фото, ответственным и сроком.',
-      'Статусы устранения, проверки и отклонения.',
-      'Отчеты по критичным и просроченным замечаниям.',
-    ],
-    visibilityTitle: 'Что видит команда',
-    visibilityDescription: 'Качество становится видимым процессом для площадки, ПТО и руководителя.',
-    roleViews: [
-      { role: 'Стройконтроль', description: 'Дефекты, инспекции, повторные проверки и критичность.' },
-      { role: 'Прораб', description: 'Назначенные замечания, сроки устранения и комментарии.' },
-      { role: 'Руководитель проекта', description: 'Критичные дефекты, просрочки и готовность к приемке.' },
-    ],
-    relatedLinks: [
-      { label: 'Приёмка зон', href: marketingPaths.handoverAcceptance, description: 'Используйте проверенные дефекты при подготовке зоны к передаче.' },
-      { label: 'Исполнительная документация', href: marketingPaths.constructionDocuments, description: 'Свяжите результат проверки с комплектом документов по работам.' },
-      { label: 'Мобильное приложение', href: marketingPaths.mobileApp, description: 'Фиксируйте дефект и материалы осмотра на площадке.' },
-    ],
-    blogLinks: getMarketingBlogLinks('foremanOrder', 'managerMorning'),
-    contactHighlights: [
-      'Покажем путь дефекта от фиксации до проверки.',
-      'Разберем роли стройконтроля, прораба и ПТО.',
-      'Обсудим связь качества с приёмкой и исполнительной документацией.',
-    ],
-    faq: [
-      { question: 'Можно ли назначать ответственных?', answer: 'Да, дефект получает ответственного, срок устранения и статус.' },
-      { question: 'Есть повторная проверка?', answer: 'Да, МОСТ поддерживает устранение, повторную проверку и отклонение.' },
-      { question: 'Качество связано с приемкой?', answer: 'Да, замечания и дефекты можно связывать с зонами, punch-list и готовностью передачи результата.' },
-    ],
-  }),
-  'handover-acceptance': createOperationalSeoPage({
-    path: marketingPaths.handoverAcceptance,
-    eyebrow: 'Сдача результата',
-    title: 'Приёмка зон и перечень замечаний для передачи результата',
-    description:
-      'МОСТ помогает вести приёмку зон и перечень замечаний при приёмке (punch-list), статусы устранения и комплект передачи результата.',
-    supportingQueries: [
-      'приемка зон строительство',
-      'punch list стройка',
-      'сдача объекта заказчику',
-      'контроль замечаний при приемке',
-    ],
-    processComparison: createProcessComparison({ eyebrow: 'Приёмка зоны', title: 'Перечень замечаний сопровождает передачу результата', description: 'Punch-list, то есть перечень замечаний при приёмке, связывает зону, исполнителей и повторные осмотры.', metrics: [{ value: 'Зона', label: 'Готовность', description: 'Участники видят открытые замечания по месту работ.' }, { value: 'Перечень', label: 'Приёмка', description: 'Каждый пункт имеет статус и результат осмотра.' }], note: 'Фактическую приёмку и подписание документов выполняют уполномоченные участники.' }),
-    workflow: { title: 'Как зона готовится к приёмке', description: 'Перечень замечаний связывает осмотр, устранение и итоговое решение по зоне.', stages: [{ label: 'Предварительный осмотр', description: 'Комиссия фиксирует замечания по зоне.' }, { label: 'Распределение', description: 'Каждый пункт получает исполнителя и срок.' }, { label: 'Повторный осмотр', description: 'Участники проверяют заявленное устранение.' }, { label: 'Приёмка зоны', description: 'Уполномоченные стороны принимают решение и оформляют документы.' }] },
-    audienceTitle: 'Кому подходит приемка и punch-list',
-    audienceDescription: 'Для команд, которые передают результат заказчику и хотят видеть готовность сдачи до финального этапа.',
-    audiences: [
-      'ПТО и стройконтролю, которые закрывают замечания и готовят комплект передачи.',
-      'Генподрядчикам, которые отвечают за сдачу зон и работу подрядчиков.',
-      'Девелоперам и заказчикам, которым нужна прозрачная история приемки.',
-    ],
-    problemTitle: 'Какие задачи решает',
-    problemDescription: 'МОСТ связывает контроль качества, замечания заказчика и комплект сдачи.',
-    problems: [
-      'Ведет зоны, punch-list, статусы устранения и повторные проверки.',
-      'Показывает готовность передачи результата по объекту.',
-      'Связывает замечания с исполнительной документацией, качеством и решениями заказчика.',
-    ],
-    automationTitle: 'Что автоматизирует',
-    automationDescription: 'Фокус на управляемой передаче результата и контроле замечаний.',
-    automations: [
-      'Создание punch-list по зонам, объектам и участникам приемки.',
-      'Маршрут устранения замечаний и повторной проверки.',
-      'Подготовку прозрачной картины готовности к сдаче.',
-    ],
-    visibilityTitle: 'Что видит команда',
-    visibilityDescription: 'Приемка становится рабочим маршрутом для ПТО, площадки и заказчика.',
-    roleViews: [
-      { role: 'ПТО', description: 'Зоны, перечень замечаний, статусы, исполнительная документация и готовность передачи.' },
-      { role: 'Прораб', description: 'Назначенные замечания, сроки устранения и блокирующие зоны.' },
-      { role: 'Заказчик', description: 'Статус приемки, открытые замечания и историю решений.' },
-    ],
-    relatedLinks: [
-      { label: 'Исполнительная документация', href: marketingPaths.constructionDocuments, description: 'Сопоставьте готовность зоны с комплектом документов.' },
-      { label: 'Контроль качества', href: marketingPaths.constructionQualityControl, description: 'Дефекты и повторные проверки до приемки.' },
-      { label: 'RFI и изменения', href: marketingPaths.changeControl, description: 'Решения заказчика и изменения, влияющие на сдачу.' },
-    ],
-    blogLinks: getMarketingBlogLinks('foremanOrder', 'managerMorning'),
-    contactHighlights: [
-      'Покажем приемку зон и punch-list.',
-      'Разберем связь замечаний, качества и исполнительной документации.',
-      'Обсудим сценарий видимости для заказчика.',
-    ],
-    faq: [
-      { question: 'Можно ли вести punch-list?', answer: 'Да, punch-list можно вести по зонам, объектам, ответственным и статусам устранения.' },
-      { question: 'Приемка связана с дефектами?', answer: 'Да, дефекты и замечания качества можно доводить до повторной проверки и передачи результата.' },
-      { question: 'Можно ли показать статус заказчику?', answer: 'Да, доступ заказчика можно настроить для согласованной части приёмки.' },
-    ],
-  }),
-  'machinery-and-labor': createOperationalSeoPage({
-    path: marketingPaths.machineryAndLabor,
-    eyebrow: 'Ресурсы',
-    title: 'Учет техники, механизмов, нарядов и выработки на объекте',
-    description:
-      'МОСТ помогает вести технику, механизмы, смены, простои, ГСМ, наряды, бригады, фактическую выработку и подготовку начислений.',
-    supportingQueries: [
-      'учет техники на стройке',
-      'учет механизмов',
-      'наряды в строительстве',
-      'выработка бригад',
-    ],
-    processComparison: createProcessComparison({ eyebrow: 'Факт по ресурсам', title: 'Смена техники сопоставляется с нарядом и выработкой', description: 'Назначение механизма, часы работы, простой и фактический объём остаются в записи объекта.', metrics: [{ value: 'Смена', label: 'Техника', description: 'Механик подтверждает работу и простой.' }, { value: 'Наряд', label: 'Выработка', description: 'Прораб фиксирует выполненный объём.' }], note: 'Телематика и табели доступны только при наличии и качестве подключённых источников.' }),
-    workflow: { title: 'Как подтверждается работа техники и бригады', description: 'Смена начинается с назначения ресурса и заканчивается проверкой выработки.', stages: [{ label: 'Назначение', description: 'Диспетчер связывает технику или бригаду с объектом.' }, { label: 'Смена', description: 'Прораб и механик фиксируют время работы и простои.' }, { label: 'Выработка', description: 'Фактический объём сопоставляется с нарядом.' }, { label: 'Проверка периода', description: 'Ответственные сверяют источник данных и подтверждают запись.' }] },
-    audienceTitle: 'Кому подходит учет техники и выработки',
-    audienceDescription: 'Для проектов, где техника, бригады и фактическая выработка влияют на сроки и себестоимость.',
-    audiences: [
-      'Руководителям проектов, которым нужно видеть ресурсные отклонения.',
-      'Прорабам и механикам, которые фиксируют технику, смены и простои.',
-      'Финансовому блоку, который сверяет выработку и начисления.',
-    ],
-    problemTitle: 'Какие задачи решает',
-    problemDescription: 'МОСТ связывает данные о ресурсах с объектом, объемами и закрытием периода.',
-    problems: [
-      'Ведет технику, назначения, сменные рапорты, простои и ГСМ.',
-      'Фиксирует наряды, выработку и отклонения по бригадам.',
-      'Готовит основу для начислений без ручной пересборки.',
-    ],
-    automationTitle: 'Что автоматизирует',
-    automationDescription: 'Фокус на ежедневном факте ресурсов и производственной проверке.',
-    automations: [
-      'Заявки и назначения техники на объект.',
-      'Сменные рапорты, простои, ГСМ и статусы техники.',
-      'Наряды, фактическую выработку и подготовку начислений.',
-    ],
-    visibilityTitle: 'Что видит команда',
-    visibilityDescription: 'Ресурсы становятся видимой частью исполнения, а не отдельным набором отчетов.',
-    roleViews: [
-      { role: 'Прораб', description: 'Наряды, выработка, смены и фактические объемы.' },
-      { role: 'Механик', description: 'Техника, назначения, простои, сменные рапорты и ГСМ.' },
-      { role: 'Руководитель проекта', description: 'Недовыработка, простои и ресурсные отклонения по объектам.' },
-    ],
-    relatedLinks: [
-      { label: 'Управление бригадами', href: marketingPaths.workforceManagement, description: 'Сопоставьте смены людей с нарядами и производственным фактом.' },
-      { label: 'Контроль бюджета', href: marketingPaths.constructionBudgetControl, description: 'Финансовая связь ресурса и объекта.' },
-      { label: 'Мобильное приложение', href: marketingPaths.mobileApp, description: 'Фиксация факта с площадки.' },
-    ],
-    blogLinks: getMarketingBlogLinks('managerMorning'),
-    contactHighlights: [
-      'Покажем сменный рапорт и простой техники.',
-      'Разберем наряды и фактическую выработку.',
-      'Обсудим подготовку начислений по вашему процессу.',
-    ],
-    faq: [
-      { question: 'Можно ли учитывать простои?', answer: 'Да, простой остается открытым до закрытия с фактическим временем и причиной.' },
-      { question: 'Выработка связана с нарядами?', answer: 'Да, в МОСТ можно связать наряды, объемы, факт выработки и проверку.' },
-      { question: 'Можно ли связать технику со сметами?', answer: 'Да, техника и механизмы могут связываться со сметными механизмами и выполненными работами.' },
-    ],
-  }),
-  'change-control': createOperationalSeoPage({
-    path: marketingPaths.changeControl,
-    eyebrow: 'Изменения и претензии',
-    title: 'Запросы информации, изменения и дополнительные работы',
-    description:
-      'МОСТ связывает запрос информации (RFI), изменение, дополнительные работы, оценку влияния, документы и решение заказчика.',
-    supportingQueries: [
-      'RFI в строительстве',
-      'изменения объемов строительства',
-      'изменения к договору в строительстве',
-      'претензии подрядчика',
-    ],
-    processComparison: createProcessComparison({ eyebrow: 'Решение по изменению', title: 'Запрос информации получает основание и последствия', description: 'RFI, то есть запрос информации, связывается с ответом, дополнительными работами и оценкой влияния.', metrics: [{ value: 'Запрос', label: 'Основание', description: 'Вопрос и документы собраны в одной записи.' }, { value: 'Изменение', label: 'Последствия', description: 'Команда отдельно оценивает срок и стоимость.' }], note: 'Влияние на деньги и срок подтверждают уполномоченные участники проекта.' }),
-    audienceTitle: 'Кому подходит управление изменениями',
-    audienceDescription: 'Для проектов, где изменения, дополнительные работы и решения заказчика влияют на сроки и деньги.',
-    audiences: [
-      'Генподрядчикам, которым нужно контролировать RFI и изменения объемов.',
-      'Девелоперам и заказчикам, которым важна прозрачная история решений.',
-      'ПТО и финансовому блоку, которые оценивают влияние на документы, сроки и бюджет.',
-    ],
-    problemTitle: 'Какие задачи решает',
-    problemDescription: 'МОСТ связывает коммерческие изменения с проектными данными, документами и заказчиком.',
-    problems: [
-      'Ведет запросы информации, ответы, согласованные изменения, дополнительные работы и претензии.',
-      'Показывает влияние изменения на сроки, бюджет и документы.',
-      'Сохраняет решение заказчика и историю согласования.',
-    ],
-    automationTitle: 'Что автоматизирует',
-    automationDescription: 'Фокус на маршруте решения, влиянии и доказательной базе.',
-    automations: [
-      'Создание RFI, ответа, изменения или претензии.',
-      'Оценку влияния на сроки, смету и финансовую модель.',
-      'Согласование с заказчиком и сохранение решения.',
-    ],
-    visibilityTitle: 'Что видит команда',
-    visibilityDescription: 'Изменение становится общим объектом работы для ПТО, руководителя, финансов и заказчика.',
-    roleViews: [
-      { role: 'ПТО', description: 'RFI, документы, основания, замечания и влияние на комплект.' },
-      { role: 'Финансовый блок', description: 'Сумму, бюджетное влияние и связь с платежами.' },
-      { role: 'Заказчик', description: 'Запросы на согласовании, влияние по дням и сумму решения.' },
-    ],
-    relatedLinks: [
-      { label: 'Приёмка зон', href: marketingPaths.handoverAcceptance, description: 'Проверьте, как согласованное изменение влияет на передачу результата.' },
-      { label: 'Контроль бюджета', href: marketingPaths.constructionBudgetControl, description: 'Финансовое влияние изменений.' },
-      { label: 'ПИР и проектная документация', href: marketingPaths.pirProjectDocumentation, description: 'Проектная база и замечания.' },
-      { label: 'Project Pulse', href: marketingPaths.projectPulse, description: 'Управленческие сигналы по изменениям, бюджету и срокам объекта.' },
-    ],
-    blogLinks: getMarketingBlogLinks('ptoWorkspace', 'managerMorning'),
-    contactHighlights: [
-      'Покажем RFI и изменение с влиянием на сроки.',
-      'Разберем связь изменения со сметой и платежами.',
-      'Обсудим согласование заказчиком и историю решений.',
-    ],
-    faq: [
-      { question: 'RFI и изменение — это разные сценарии?', answer: 'Да. RFI фиксирует запрос информации и ответ, а изменение может учитывать влияние на сроки, бюджет и документы.' },
-      { question: 'Можно ли фиксировать претензии?', answer: 'Да, МОСТ поддерживает претензии, основания, доказательства и решения.' },
-      { question: 'Заказчик может согласовывать изменения?', answer: 'Да, если изменение требует решения заказчика, ему можно предоставить отдельный шаг согласования.' },
-    ],
-    workflow: {
-      title: 'Как изменение проходит от RFI до закрытия',
-      description: 'Процесс связывает инженерное основание, решение заказчика и последствия для сроков, денег и документов.',
-      stages: [
-        { label: 'RFI', description: 'Команда фиксирует запрос, основание и срок ответа по объекту.' },
-        { label: 'Решение и изменение', description: 'Ответ заказчика превращается в согласованное изменение или основание для претензии.' },
-        { label: 'Влияние на проект', description: 'ПТО оценивает влияние на смету, график и бюджет.' },
-        { label: 'Согласование и оплата', description: 'Решение связывается с платежом и необходимым комплектом документов.' },
-        { label: 'Претензия или закрытие', description: 'История решения и доказательства остаются доступными для дальнейшего действия.' },
+    "pir-project-documentation": createOperationalSeoPage({
+      path: marketingPaths.pirProjectDocumentation,
+      eyebrow: "Проектно-изыскательские работы (ПИР)",
+      title: "От рабочего чертежа до выпуска комплекта",
+      description:
+        "Соберите проектную и рабочую документацию по разделам, сохраняйте версии и замечания. В МОСТ команда видит, что требует доработки и какие комплекты готовы к выпуску.",
+      supportingQueries: [
+        "пир в строительстве",
+        "проектная документация пд рд",
+        "управление проектированием",
+        "нормоконтроль проектной документации",
       ],
-    },
-  }),
-  ...marketingProductSeoLandingPages,
-};
+      processComparison: createProcessComparison({
+        eyebrow: "Выпуск проектного комплекта",
+        title: "Версии ПД и РД проходят инженерную проверку",
+        description:
+          "Проектная документация (ПД), рабочая документация (РД) и замечания собраны по разделам и выпускам.",
+        metrics: [
+          {
+            value: "Версия",
+            label: "Документ",
+            description: "Участники видят редакцию и её статус.",
+          },
+          {
+            value: "Комплект",
+            label: "Выпуск",
+            description:
+              "Состав выдачи связан с замечаниями и решением о выпуске.",
+          },
+        ],
+        note: "Версия и статус в МОСТ не заменяют инженерную проверку документации.",
+      }),
+      workflow: {
+        title: "Как выпускается комплект документации",
+        description:
+          "Раздел проходит проверку замечаний и получает отдельное решение о выпуске.",
+        stages: [
+          {
+            label: "Регистрация версии",
+            description:
+              "Проектировщик загружает ПД или РД и указывает раздел.",
+          },
+          {
+            label: "Инженерная проверка",
+            description: "Специалист изучает содержание и фиксирует замечания.",
+          },
+          {
+            label: "Отработка замечаний",
+            description:
+              "Автор готовит новую редакцию и отвечает по каждому пункту.",
+          },
+          {
+            label: "Выпуск комплекта",
+            description:
+              "Уполномоченный участник подтверждает состав и статус выдачи.",
+          },
+        ],
+      },
+      audienceTitle: "Кому подходит управление ПИР",
+      audienceDescription:
+        "Для команд, где проектирование, ПТО и заказчик регулярно работают с версиями, замечаниями и комплектами документации.",
+      audiences: [
+        "Проектным офисам, которые ведут проектную и рабочую документацию по объектам.",
+        "ПТО и генподрядчикам, которые связывают проектные решения со сметами, исполнительной документацией и приёмкой.",
+        "Девелоперам, которым важно видеть историю замечаний и готовность комплектов.",
+      ],
+      problemTitle: "Какие задачи решает",
+      problemDescription:
+        "МОСТ связывает проектные файлы, замечания и управление объектом.",
+      problems: [
+        "Собирает проектные материалы, версии, замечания и нормоконтроль в одном реестре.",
+        "Помогает видеть, какие разделы и комплекты готовы к выпуску.",
+        "Связывает ПИР со сметами, изменениями, исполнительной документацией и сдачей результата.",
+      ],
+      automationTitle: "Что автоматизирует",
+      automationDescription:
+        "Версии, замечания и решения о выпуске сохраняются рядом с документами.",
+      automations: [
+        "Регистрацию проектной и рабочей документации по объектам и разделам.",
+        "Маршрут замечаний, нормоконтроля, ответственных и статусов реакции.",
+        "Подготовку комплектов и передачу проектной базы в сметный и исполнительный процессы.",
+      ],
+      visibilityTitle: "Что видит команда",
+      visibilityDescription:
+        "Проектировщик отвечает на замечания, ПТО проверяет комплект, руководитель видит, что задерживает выпуск.",
+      roleViews: [
+        {
+          role: "Проектная команда",
+          description:
+            "Версии, замечания, разделы, статусы и готовность комплектов.",
+        },
+        {
+          role: "ПТО",
+          description:
+            "Связь проектной базы со сметами, исполнительной документацией, изменениями и приёмкой.",
+        },
+        {
+          role: "Руководитель проекта",
+          description:
+            "Блокирующие замечания, сроки реакции и готовность выпуска документации.",
+        },
+      ],
+      relatedLinks: [
+        {
+          label: "Исполнительная документация",
+          href: marketingPaths.constructionDocuments,
+          description:
+            "Свяжите выпущенные проектные комплекты с подготовкой документов по работам.",
+        },
+        {
+          label: "Система для ПТО",
+          href: marketingPaths.ptoSoftware,
+          description:
+            "Сметы, документы, шаблоны отчетов и инженерная подготовка.",
+        },
+        {
+          label: "RFI и изменения",
+          href: marketingPaths.changeControl,
+          description:
+            "Изменения и решения заказчика, связанные с проектной базой.",
+        },
+      ],
+      blogLinks: getMarketingBlogLinks("ptoWorkspace", "managerMorning"),
+      contactHighlights: [
+        "Покажем версии проектной и рабочей документации и историю замечаний.",
+        "Разберем маршрут замечаний, нормоконтроля и выпуска комплектов.",
+        "Свяжем ПИР со сметами, исполнительной документацией, изменениями и приёмкой.",
+      ],
+      faq: [
+        {
+          question: "Можно ли вести ПД и РД в одной системе?",
+          answer:
+            "Да. Проектную и рабочую документацию, замечания и комплекты можно связывать с объектом, разделами и статусами.",
+        },
+        {
+          question: "Кто проверяет документацию?",
+          answer:
+            "Инженерную проверку и нормоконтроль выполняют специалисты. В МОСТ можно сохранить замечание, назначить ответственного и срок ответа, а затем отметить результат проверки.",
+        },
+        {
+          question: "ПИР связан со сметами и исполнительной документацией?",
+          answer:
+            "Да, проектная база может связываться со сметным процессом, исполнительной документацией и изменениями.",
+        },
+      ],
+    }),
+    "construction-safety": createOperationalSeoPage({
+      path: marketingPaths.constructionSafety,
+      eyebrow: "Охрана труда",
+      title: "Охрана труда на каждом объекте",
+      description:
+        "Ведите инструктажи и допуски, фиксируйте нарушения с фотографиями, назначайте сроки устранения. МОСТ сохраняет записи по объекту и помогает специалисту проверить, какие предписания ещё открыты.",
+      supportingQueries: [
+        "система охраны труда на стройке",
+        "охрана труда на стройке",
+        "безопасность в строительстве",
+        "инструктажи и допуски",
+      ],
+      processComparison: createProcessComparison({
+        eyebrow: "Безопасность работ",
+        title: "Нарушение проходит от фиксации до проверки устранения",
+        description:
+          "Охрана труда, промышленная и экологическая безопасность (HSE) связаны с объектом и ответственными.",
+        metrics: [
+          {
+            value: "Инструктаж",
+            label: "Допуск",
+            description: "Запись связана с участником и видом работ.",
+          },
+          {
+            value: "Предписание",
+            label: "Устранение",
+            description: "Нарушение имеет исполнителя и повторную проверку.",
+          },
+        ],
+        note: "МОСТ хранит рабочие записи, но обязательные журналы и решения ответственных специалистов ведутся по правилам компании.",
+      }),
+      workflow: {
+        title: "Как обрабатывается нарушение безопасности",
+        description:
+          "Событие получает место, ответственного исполнителя и результат повторной проверки.",
+        stages: [
+          {
+            label: "Фиксация",
+            description:
+              "Специалист описывает нарушение и прикладывает материалы.",
+          },
+          {
+            label: "Предписание",
+            description: "Ответственный определяет действие и срок устранения.",
+          },
+          {
+            label: "Исполнение",
+            description: "Назначенный участник сообщает о выполненных мерах.",
+          },
+          {
+            label: "Повторная проверка",
+            description:
+              "Специалист по безопасности подтверждает результат или возвращает предписание.",
+          },
+        ],
+      },
+      audienceTitle: "Кому подходит управление охраной труда",
+      audienceDescription:
+        "Для специалистов по охране труда, прорабов и руководителей, которые отвечают за условия работы на площадке.",
+      audiences: [
+        "Специалистам по охране труда, которые ведут инструктажи, допуски и инциденты.",
+        "Генподрядчикам, которые отвечают за подрядчиков и безопасность на нескольких объектах.",
+        "Руководителям проектов, которым нужна видимость рисков безопасности рядом со сроками и качеством.",
+      ],
+      problemTitle: "Какие задачи решает",
+      problemDescription:
+        "МОСТ связывает журналы охраны труда с управлением объектом.",
+      problems: [
+        "Связывает инструктажи и допуски с участниками и объектом.",
+        "Фиксирует нарушения, инциденты, предписания и контроль устранения.",
+        "Показывает риски безопасности руководителю без ручной пересборки.",
+      ],
+      automationTitle: "Что автоматизирует",
+      automationDescription:
+        "Фокус на статусах, ответственных и контроле устранения.",
+      automations: [
+        "Учет инструктажей, допусков, нарушений и инцидентов.",
+        "Маршрут предписания от фиксации до устранения.",
+        "Отчетность по открытым событиям безопасности.",
+      ],
+      visibilityTitle: "Что видит команда",
+      visibilityDescription:
+        "Специалист оформляет предписание, прораб организует устранение, руководитель видит открытые нарушения по объектам.",
+      roleViews: [
+        {
+          role: "Специалист ОТ",
+          description:
+            "Инструктажи, допуски, нарушения, инциденты и предписания.",
+        },
+        {
+          role: "Прораб",
+          description:
+            "События на объекте, фотофиксация, сроки устранения и ответственные.",
+        },
+        {
+          role: "Руководитель проекта",
+          description:
+            "Открытые риски безопасности и статус устранения по объектам.",
+        },
+      ],
+      relatedLinks: [
+        {
+          label: "Программа для прораба",
+          href: marketingPaths.foremanSoftware,
+          description: "Передавайте предписания ответственным на площадке.",
+        },
+        {
+          label: "Мобильное приложение",
+          href: marketingPaths.mobileApp,
+          description: "Фиксация событий с площадки.",
+        },
+        {
+          label: "Контроль качества",
+          href: marketingPaths.constructionQualityControl,
+          description: "Связанный процесс дефектов и проверок.",
+        },
+      ],
+      blogLinks: getMarketingBlogLinks("foremanOrder", "managerMorning"),
+      contactHighlights: [
+        "Покажем фиксацию нарушений и инцидентов.",
+        "Разберем роли специалиста ОТ, прораба и руководителя.",
+        "Обсудим отчеты и контроль устранения.",
+      ],
+      faq: [
+        {
+          question: "Можно ли вести инструктажи?",
+          answer:
+            "Да, в МОСТ можно вести инструктажи, допуски и связь с участниками работ.",
+        },
+        {
+          question: "Инциденты видны руководителю?",
+          answer:
+            "Да, открытые инциденты и нарушения можно выводить в управленческий обзор.",
+        },
+        {
+          question: "Можно ли фиксировать фото?",
+          answer:
+            "Да, события безопасности можно связывать с файлами и материалами проверки.",
+        },
+        {
+          question: "МОСТ сам подтверждает безопасность работ?",
+          answer:
+            "Нет. Система хранит записи, предписания и результаты проверок. Осмотр, допуск к работам и решение об устранении нарушения выполняют ответственные специалисты.",
+        },
+      ],
+    }),
+    "construction-quality-control": createOperationalSeoPage({
+      path: marketingPaths.constructionQualityControl,
+      eyebrow: "Стройконтроль",
+      title: "Контроль качества на каждом этапе стройки",
+      description:
+        "Фиксируйте дефекты с фотографиями, назначайте ответственных и сроки устранения. МОСТ сохраняет историю замечания до повторной проверки и приёмки.",
+      supportingQueries: [
+        "система контроля качества строительства",
+        "контроль качества строительства",
+        "строительный контроль дефекты",
+        "инспекции качества на объекте",
+      ],
+      processComparison: createProcessComparison({
+        eyebrow: "Проверка качества",
+        title: "Дефект закрывается только после повторной проверки",
+        description:
+          "Замечание получает зону, фотографии, исполнителя и решение специалиста по строительному контролю.",
+        metrics: [
+          {
+            value: "Дефект",
+            label: "Фиксация",
+            description: "Карточка хранит место и материалы проверки.",
+          },
+          {
+            value: "Повторно",
+            label: "Контроль",
+            description: "Ответственный специалист подтверждает устранение.",
+          },
+        ],
+        note: "Решение о качестве и готовности работ принимает ответственный специалист.",
+      }),
+      workflow: {
+        title: "Как дефект проходит контроль качества",
+        description:
+          "Исполнитель сообщает об устранении, после чего специалист повторно осматривает работу.",
+        stages: [
+          {
+            label: "Осмотр",
+            description: "Стройконтроль фиксирует дефект и его расположение.",
+          },
+          {
+            label: "Назначение",
+            description: "Замечание получает исполнителя и срок обработки.",
+          },
+          {
+            label: "Устранение",
+            description:
+              "Подрядчик прикладывает подтверждение выполненной работы.",
+          },
+          {
+            label: "Решение о качестве",
+            description:
+              "Ответственный специалист принимает или возвращает результат.",
+          },
+        ],
+      },
+      audienceTitle: "Кому подходит контроль качества",
+      audienceDescription:
+        "Для стройконтроля, генподрядчика и ПТО, которым важно видеть качество закрытия этапа.",
+      audiences: [
+        "Стройконтролю, который фиксирует дефекты и повторные проверки.",
+        "Генподрядчику, который отвечает за качество работы подрядчиков.",
+        "ПТО и руководителю проекта, которым нужна связь качества, исполнительной документации и приёмки.",
+      ],
+      problemTitle: "Какие задачи решает",
+      problemDescription:
+        "МОСТ связывает замечание на площадке с управленческим решением.",
+      problems: [
+        "Собирает дефекты, инспекции и фотофиксацию в одном реестре.",
+        "Назначает ответственных и сроки устранения.",
+        "Связывает качество с приемкой зон и исполнительной документацией.",
+      ],
+      automationTitle: "Что автоматизирует",
+      automationDescription:
+        "Фокус на жизненном цикле дефекта и повторной проверке.",
+      automations: [
+        "Создание дефекта с зоной, фото, ответственным и сроком.",
+        "Статусы устранения, проверки и отклонения.",
+        "Отчеты по критичным и просроченным замечаниям.",
+      ],
+      visibilityTitle: "Что видит команда",
+      visibilityDescription:
+        "Качество становится видимым процессом для площадки, ПТО и руководителя.",
+      roleViews: [
+        {
+          role: "Стройконтроль",
+          description: "Дефекты, инспекции, повторные проверки и критичность.",
+        },
+        {
+          role: "Прораб",
+          description: "Назначенные замечания, сроки устранения и комментарии.",
+        },
+        {
+          role: "Руководитель проекта",
+          description: "Критичные дефекты, просрочки и готовность к приемке.",
+        },
+      ],
+      relatedLinks: [
+        {
+          label: "Приёмка зон",
+          href: marketingPaths.handoverAcceptance,
+          description:
+            "Используйте проверенные дефекты при подготовке зоны к передаче.",
+        },
+        {
+          label: "Исполнительная документация",
+          href: marketingPaths.constructionDocuments,
+          description:
+            "Свяжите результат проверки с комплектом документов по работам.",
+        },
+        {
+          label: "Мобильное приложение",
+          href: marketingPaths.mobileApp,
+          description: "Фиксируйте дефект и материалы осмотра на площадке.",
+        },
+      ],
+      blogLinks: getMarketingBlogLinks("foremanOrder", "managerMorning"),
+      contactHighlights: [
+        "Покажем путь дефекта от фиксации до проверки.",
+        "Разберем роли стройконтроля, прораба и ПТО.",
+        "Обсудим связь качества с приёмкой и исполнительной документацией.",
+      ],
+      faq: [
+        {
+          question: "Можно ли назначать ответственных?",
+          answer:
+            "Да, дефект получает ответственного, срок устранения и статус.",
+        },
+        {
+          question: "Есть повторная проверка?",
+          answer:
+            "Да, МОСТ поддерживает устранение, повторную проверку и отклонение.",
+        },
+        {
+          question: "Качество связано с приемкой?",
+          answer:
+            "Да, замечания и дефекты можно связывать с зонами, punch-list и готовностью передачи результата.",
+        },
+      ],
+    }),
+    "handover-acceptance": createOperationalSeoPage({
+      path: marketingPaths.handoverAcceptance,
+      eyebrow: "Сдача результата",
+      title: "Замечания устранены. Объект готовят к сдаче.",
+      description:
+        "Соберите замечания по помещениям и зонам, назначьте исполнителей и проверьте устранение. МОСТ помогает подготовить сдачу объекта заказчику: сохранить результаты осмотров, статусы и документы.",
+      supportingQueries: [
+        "приемка зон строительство",
+        "punch list стройка",
+        "сдача объекта заказчику",
+        "контроль замечаний при приемке",
+      ],
+      processComparison: createProcessComparison({
+        eyebrow: "Приёмка зоны",
+        title: "Перечень замечаний сопровождает передачу результата",
+        description:
+          "Punch-list, то есть перечень замечаний при приёмке, связывает зону, исполнителей и повторные осмотры.",
+        metrics: [
+          {
+            value: "Зона",
+            label: "Готовность",
+            description: "Участники видят открытые замечания по месту работ.",
+          },
+          {
+            value: "Перечень",
+            label: "Приёмка",
+            description: "Каждый пункт имеет статус и результат осмотра.",
+          },
+        ],
+        note: "Фактическую приёмку и подписание документов выполняют уполномоченные участники.",
+      }),
+      workflow: {
+        title: "Как зона готовится к приёмке",
+        description:
+          "Перечень замечаний связывает осмотр, устранение и итоговое решение по зоне.",
+        stages: [
+          {
+            label: "Предварительный осмотр",
+            description: "Комиссия фиксирует замечания по зоне.",
+          },
+          {
+            label: "Распределение",
+            description: "Каждый пункт получает исполнителя и срок.",
+          },
+          {
+            label: "Повторный осмотр",
+            description: "Участники проверяют заявленное устранение.",
+          },
+          {
+            label: "Приёмка зоны",
+            description:
+              "Уполномоченные стороны принимают решение и оформляют документы.",
+          },
+        ],
+      },
+      audienceTitle: "Кто готовит объект к сдаче",
+      audienceDescription:
+        "Для команд, которые передают результат заказчику и хотят видеть готовность сдачи до финального этапа.",
+      audiences: [
+        "ПТО и стройконтролю, которые закрывают замечания и готовят комплект передачи.",
+        "Генподрядчикам, которые отвечают за сдачу зон и работу подрядчиков.",
+        "Девелоперам и заказчикам, которым нужна прозрачная история приемки.",
+      ],
+      problemTitle: "Какие задачи решает",
+      problemDescription:
+        "МОСТ связывает контроль качества, замечания заказчика и комплект сдачи.",
+      problems: [
+        "Сохраняет перечень замечаний при приёмке (punch-list) по зонам, статусы устранения и повторные проверки.",
+        "Показывает готовность передачи результата по объекту.",
+        "Связывает замечания с исполнительной документацией, качеством и решениями заказчика.",
+      ],
+      automationTitle: "Что автоматизирует",
+      automationDescription:
+        "Фокус на управляемой передаче результата и контроле замечаний.",
+      automations: [
+        "Создание punch-list по зонам, объектам и участникам приемки.",
+        "Маршрут устранения замечаний и повторной проверки.",
+        "Подготовку прозрачной картины готовности к сдаче.",
+      ],
+      visibilityTitle: "Что видит команда",
+      visibilityDescription:
+        "Приемка становится рабочим маршрутом для ПТО, площадки и заказчика.",
+      roleViews: [
+        {
+          role: "ПТО",
+          description:
+            "Зоны, перечень замечаний, статусы, исполнительная документация и готовность передачи.",
+        },
+        {
+          role: "Прораб",
+          description:
+            "Назначенные замечания, сроки устранения и блокирующие зоны.",
+        },
+        {
+          role: "Заказчик",
+          description: "Статус приемки, открытые замечания и историю решений.",
+        },
+      ],
+      relatedLinks: [
+        {
+          label: "Исполнительная документация",
+          href: marketingPaths.constructionDocuments,
+          description: "Сопоставьте готовность зоны с комплектом документов.",
+        },
+        {
+          label: "Контроль качества",
+          href: marketingPaths.constructionQualityControl,
+          description: "Дефекты и повторные проверки до приемки.",
+        },
+        {
+          label: "RFI и изменения",
+          href: marketingPaths.changeControl,
+          description: "Решения заказчика и изменения, влияющие на сдачу.",
+        },
+      ],
+      blogLinks: getMarketingBlogLinks("foremanOrder", "managerMorning"),
+      contactHighlights: [
+        "Покажем приемку зон и punch-list.",
+        "Разберем связь замечаний, качества и исполнительной документации.",
+        "Обсудим сценарий видимости для заказчика.",
+      ],
+      faq: [
+        {
+          question: "Можно ли вести punch-list?",
+          answer:
+            "Да, punch-list можно вести по зонам, объектам, ответственным и статусам устранения.",
+        },
+        {
+          question: "Приемка связана с дефектами?",
+          answer:
+            "Да, дефекты и замечания качества можно доводить до повторной проверки и передачи результата.",
+        },
+        {
+          question: "Можно ли показать статус заказчику?",
+          answer:
+            "Да, доступ заказчика можно настроить для согласованной части приёмки.",
+        },
+        {
+          question: "Статус в МОСТ заменяет акт приёмки?",
+          answer:
+            "Нет. Статус помогает отслеживать готовность и замечания. Решение о приёмке и подписание необходимых документов остаются за уполномоченными участниками.",
+        },
+      ],
+    }),
+    "machinery-and-labor": createOperationalSeoPage({
+      path: marketingPaths.machineryAndLabor,
+      eyebrow: "Ресурсы",
+      title: "Техника на объекте: работа, простои и выработка",
+      description:
+        "Назначайте технику на объекты, записывайте часы работы и причины простоев, сверяйте выполненные объёмы с нарядами. МОСТ собирает данные смены для проверки и дальнейшего расчёта.",
+      supportingQueries: [
+        "учет техники на стройке",
+        "учет механизмов",
+        "наряды в строительстве",
+        "выработка бригад",
+      ],
+      processComparison: createProcessComparison({
+        eyebrow: "Факт по ресурсам",
+        title: "Смена техники сопоставляется с нарядом и выработкой",
+        description:
+          "Назначение механизма, часы работы, простой и фактический объём остаются в записи объекта.",
+        metrics: [
+          {
+            value: "Смена",
+            label: "Техника",
+            description: "Механик подтверждает работу и простой.",
+          },
+          {
+            value: "Наряд",
+            label: "Выработка",
+            description: "Прораб фиксирует выполненный объём.",
+          },
+        ],
+        note: "Телематика и табели доступны только при наличии и качестве подключённых источников.",
+      }),
+      workflow: {
+        title: "Как подтверждается работа техники и бригады",
+        description:
+          "Смена начинается с назначения ресурса и заканчивается проверкой выработки.",
+        stages: [
+          {
+            label: "Назначение",
+            description: "Диспетчер связывает технику или бригаду с объектом.",
+          },
+          {
+            label: "Смена",
+            description: "Прораб и механик фиксируют время работы и простои.",
+          },
+          {
+            label: "Выработка",
+            description: "Фактический объём сопоставляется с нарядом.",
+          },
+          {
+            label: "Проверка периода",
+            description:
+              "Ответственные сверяют источник данных и подтверждают запись.",
+          },
+        ],
+      },
+      audienceTitle: "Кому подходит учет техники и выработки",
+      audienceDescription:
+        "Для проектов, где техника, бригады и фактическая выработка влияют на сроки и себестоимость.",
+      audiences: [
+        "Руководителям проектов, которым нужно видеть ресурсные отклонения.",
+        "Прорабам и механикам, которые фиксируют технику, смены и простои.",
+        "Финансовому блоку, который сверяет выработку и начисления.",
+      ],
+      problemTitle: "Какие задачи решает",
+      problemDescription:
+        "МОСТ связывает данные о ресурсах с объектом, объемами и закрытием периода.",
+      problems: [
+        "Ведет технику, назначения, сменные рапорты, простои и ГСМ.",
+        "Фиксирует наряды, выработку и отклонения по бригадам.",
+        "Готовит основу для начислений без ручной пересборки.",
+      ],
+      automationTitle: "Что автоматизирует",
+      automationDescription:
+        "Сменный рапорт показывает, какая техника работала, сколько времени и с каким результатом.",
+      automations: [
+        "Заявки и назначения техники на объект.",
+        "Сменные рапорты, простои, ГСМ и статусы техники.",
+        "Наряды, фактическую выработку и подготовку начислений.",
+      ],
+      visibilityTitle: "Что видит команда",
+      visibilityDescription:
+        "Ресурсы становятся видимой частью исполнения, а не отдельным набором отчетов.",
+      roleViews: [
+        {
+          role: "Прораб",
+          description: "Наряды, выработка, смены и фактические объемы.",
+        },
+        {
+          role: "Механик",
+          description: "Техника, назначения, простои, сменные рапорты и ГСМ.",
+        },
+        {
+          role: "Руководитель проекта",
+          description:
+            "Недовыработка, простои и ресурсные отклонения по объектам.",
+        },
+      ],
+      relatedLinks: [
+        {
+          label: "Управление бригадами",
+          href: marketingPaths.workforceManagement,
+          description:
+            "Сопоставьте смены людей с нарядами и производственным фактом.",
+        },
+        {
+          label: "Контроль бюджета",
+          href: marketingPaths.constructionBudgetControl,
+          description: "Финансовая связь ресурса и объекта.",
+        },
+        {
+          label: "Мобильное приложение",
+          href: marketingPaths.mobileApp,
+          description: "Фиксация факта с площадки.",
+        },
+      ],
+      blogLinks: getMarketingBlogLinks("managerMorning"),
+      contactHighlights: [
+        "Покажем сменный рапорт и простой техники.",
+        "Разберем наряды и фактическую выработку.",
+        "Обсудим подготовку начислений по вашему процессу.",
+      ],
+      faq: [
+        {
+          question: "Можно ли учитывать простои?",
+          answer:
+            "Да, простой остается открытым до закрытия с фактическим временем и причиной.",
+        },
+        {
+          question: "Выработка связана с нарядами?",
+          answer:
+            "Да, в МОСТ можно связать наряды, объемы, факт выработки и проверку.",
+        },
+        {
+          question: "Можно ли связать технику со сметами?",
+          answer:
+            "Да, техника и механизмы могут связываться со сметными механизмами и выполненными работами.",
+        },
+        {
+          question: "Часы работы записываются автоматически?",
+          answer:
+            "Для учёта нужны заполненные сменные записи или данные подключённого источника. Само добавление машины в МОСТ не включает автоматическое отслеживание её работы.",
+        },
+      ],
+    }),
+    "change-control": createOperationalSeoPage({
+      path: marketingPaths.changeControl,
+      eyebrow: "Изменения и претензии",
+      title: "Изменения в проекте — с понятным решением",
+      description:
+        "Зафиксируйте вопрос по проекту, приложите документы и получите ответ. Если нужны дополнительные работы, команда оценит сроки и стоимость, а МОСТ сохранит изменение и историю согласования.",
+      supportingQueries: [
+        "RFI в строительстве",
+        "изменения объемов строительства",
+        "изменения к договору в строительстве",
+        "претензии подрядчика",
+      ],
+      processComparison: createProcessComparison({
+        eyebrow: "Решение по изменению",
+        title: "Запрос информации получает основание и последствия",
+        description:
+          "RFI, то есть запрос информации, связывается с ответом, дополнительными работами и оценкой влияния.",
+        metrics: [
+          {
+            value: "Запрос",
+            label: "Основание",
+            description: "Вопрос и документы собраны в одной записи.",
+          },
+          {
+            value: "Изменение",
+            label: "Последствия",
+            description: "Команда отдельно оценивает срок и стоимость.",
+          },
+        ],
+        note: "Влияние на деньги и срок подтверждают уполномоченные участники проекта.",
+      }),
+      audienceTitle: "Кому подходит управление изменениями",
+      audienceDescription:
+        "Для проектов, где изменения, дополнительные работы и решения заказчика влияют на сроки и деньги.",
+      audiences: [
+        "Генподрядчикам, которые согласуют запросы информации (RFI) и изменения объёмов работ.",
+        "Девелоперам и заказчикам, которым важна прозрачная история решений.",
+        "ПТО и финансовому блоку, которые оценивают влияние на документы, сроки и бюджет.",
+      ],
+      problemTitle: "Какие задачи решает",
+      problemDescription:
+        "МОСТ связывает коммерческие изменения с проектными данными, документами и заказчиком.",
+      problems: [
+        "Ведет запросы информации, ответы, согласованные изменения, дополнительные работы и претензии.",
+        "Показывает влияние изменения на сроки, бюджет и документы.",
+        "Сохраняет решение заказчика и историю согласования.",
+      ],
+      automationTitle: "Что автоматизирует",
+      automationDescription:
+        "Вопрос, ответ, документы и согласованное решение доступны в истории изменения.",
+      automations: [
+        "Создание RFI, ответа, изменения или претензии.",
+        "Запись оценки влияния на сроки, смету и бюджет.",
+        "Согласование с заказчиком и сохранение решения.",
+      ],
+      visibilityTitle: "Что видит команда",
+      visibilityDescription:
+        "Изменение становится общим объектом работы для ПТО, руководителя, финансов и заказчика.",
+      roleViews: [
+        {
+          role: "ПТО",
+          description:
+            "RFI, документы, основания, замечания и влияние на комплект.",
+        },
+        {
+          role: "Финансовый блок",
+          description: "Сумму, бюджетное влияние и связь с платежами.",
+        },
+        {
+          role: "Заказчик",
+          description:
+            "Запросы на согласовании, влияние по дням и сумму решения.",
+        },
+      ],
+      relatedLinks: [
+        {
+          label: "Приёмка зон",
+          href: marketingPaths.handoverAcceptance,
+          description:
+            "Проверьте, как согласованное изменение влияет на передачу результата.",
+        },
+        {
+          label: "Контроль бюджета",
+          href: marketingPaths.constructionBudgetControl,
+          description: "Финансовое влияние изменений.",
+        },
+        {
+          label: "ПИР и проектная документация",
+          href: marketingPaths.pirProjectDocumentation,
+          description: "Проектная база и замечания.",
+        },
+        {
+          label: "Project Pulse",
+          href: marketingPaths.projectPulse,
+          description:
+            "Управленческие сигналы по изменениям, бюджету и срокам объекта.",
+        },
+      ],
+      blogLinks: getMarketingBlogLinks("ptoWorkspace", "managerMorning"),
+      contactHighlights: [
+        "Покажем RFI и изменение с влиянием на сроки.",
+        "Разберем связь изменения со сметой и платежами.",
+        "Обсудим согласование заказчиком и историю решений.",
+      ],
+      faq: [
+        {
+          question: "RFI и изменение — это разные сценарии?",
+          answer:
+            "Да. RFI фиксирует запрос информации и ответ, а изменение может учитывать влияние на сроки, бюджет и документы.",
+        },
+        {
+          question: "Можно ли фиксировать претензии?",
+          answer:
+            "Да, МОСТ поддерживает претензии, основания, доказательства и решения.",
+        },
+        {
+          question: "Заказчик может согласовывать изменения?",
+          answer:
+            "Да, если изменение требует решения заказчика, ему можно предоставить отдельный шаг согласования.",
+        },
+        {
+          question: "Сроки и стоимость согласуются автоматически?",
+          answer:
+            "Нет. Команда готовит оценку, а уполномоченные участники принимают решение. Запись изменения в МОСТ сама по себе не меняет договорные обязательства.",
+        },
+      ],
+      workflow: {
+        title: "Как изменение проходит от RFI до закрытия",
+        description:
+          "Процесс связывает инженерное основание, решение заказчика и последствия для сроков, денег и документов.",
+        stages: [
+          {
+            label: "RFI",
+            description:
+              "Команда фиксирует запрос, основание и срок ответа по объекту.",
+          },
+          {
+            label: "Ответ и предложение",
+            description:
+              "Ответственный изучает ответ и при необходимости оформляет предложение об изменении.",
+          },
+          {
+            label: "Влияние на проект",
+            description: "ПТО оценивает влияние на смету, график и бюджет.",
+          },
+          {
+            label: "Согласование",
+            description:
+              "Уполномоченные участники проверяют предложение и фиксируют решение с документами.",
+          },
+          {
+            label: "Претензия или закрытие",
+            description:
+              "История решения и доказательства остаются доступными для дальнейшего действия.",
+          },
+        ],
+      },
+    }),
+    ...marketingProductSeoLandingPages,
+  };

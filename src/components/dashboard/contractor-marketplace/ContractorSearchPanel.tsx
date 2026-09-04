@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Banknote,
   BriefcaseBusiness,
+  ChevronDown,
   Eye,
   Loader2,
   MapPin,
@@ -123,9 +124,10 @@ const formatTeam = (contractor: MarketplaceContractorListItem): string => {
 };
 
 const ratingText = (value: MoneyLike): string => {
+  if (value === null || value === undefined || value === '') return 'Нет оценок';
   const score = Number(value);
 
-  return Number.isFinite(score) ? score.toFixed(1) : 'нет';
+  return Number.isFinite(score) ? score.toFixed(1) : 'Нет оценок';
 };
 
 const compactDraft = (filters: MarketplaceSearchParams): MarketplaceSearchParams => {
@@ -155,6 +157,10 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
   const [isOfferSubmitting, setIsOfferSubmitting] = useState(false);
 
   const flatCategories = useMemo(() => flattenCategories(categories), [categories]);
+  const additionalFilterCount = ['availability_status', 'verification_level', 'min_rating', 'team_capacity_min'].filter(
+    key => draftFilters[key as keyof MarketplaceSearchParams] !== undefined
+  ).length;
+  const hasAppliedFilters = Object.entries(filters).some(([key, value]) => key !== 'sort_by' && value !== undefined && value !== '');
 
   const loadContractors = useCallback(async () => {
     setIsLoading(true);
@@ -246,7 +252,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
     try {
       await contractorMarketplaceApi.createOffer(payload);
       setOfferProfile(null);
-      toast.success('Оффер подрядчику отправлен');
+      toast.success('Предложение подрядчику отправлено');
       await loadContractors();
     } catch (error) {
       const message = normalizeErrorMessage(error);
@@ -259,40 +265,21 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-3 md:grid-cols-3">
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Подрядчиков в сети</p>
-            <p className="mt-1 text-2xl font-semibold">{networkSize ?? '...'}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Найдено по фильтрам</p>
-            <p className="mt-1 text-2xl font-semibold">{meta?.total ?? contractors.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Категорий работ</p>
-            <p className="mt-1 text-2xl font-semibold">{flatCategories.length}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="space-y-4 rounded-xl border bg-background p-4 shadow-sm">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold">Фильтры каталога</h2>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-4">
+      <form aria-label="Поиск подрядчиков" className="space-y-5 border-b border-border py-6" onSubmit={event => { event.preventDefault(); applyFilters(); }} onInvalidCapture={event => {
+        if (event.target instanceof HTMLElement) {
+          const details = event.target.closest('details');
+          if (details) details.open = true;
+        }
+      }}>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] xl:items-end">
           <div className="space-y-2">
-            <Label>Поиск</Label>
+            <Label htmlFor="contractor-search">Название или специализация</Label>
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input
-                className="pl-9"
+                id="contractor-search"
+                className="pl-11"
+                placeholder="Например, монолитные работы"
                 value={draftFilters.search ?? ''}
                 onChange={(event) => updateDraftFilter('search', event.target.value || undefined)}
               />
@@ -300,12 +287,12 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           </div>
 
           <div className="space-y-2">
-            <Label>Категория</Label>
+            <Label htmlFor="contractor-category">Категория</Label>
             <Select
               value={draftFilters.category_id ? String(draftFilters.category_id) : 'all'}
               onValueChange={(value) => updateDraftFilter('category_id', value === 'all' ? undefined : Number(value))}
             >
-              <SelectTrigger>
+              <SelectTrigger id="contractor-category">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -320,20 +307,33 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           </div>
 
           <div className="space-y-2">
-            <Label>Город</Label>
+            <Label htmlFor="contractor-city">Город</Label>
             <Input
+              id="contractor-city"
               value={draftFilters.city ?? ''}
               onChange={(event) => updateDraftFilter('city', event.target.value || undefined)}
             />
           </div>
 
+          <Button type="submit" className="md:self-end" disabled={isLoading}>
+            <Search aria-hidden="true" className="mr-2 h-5 w-5" />Найти подрядчика
+          </Button>
+        </div>
+
+        <details className="group">
+          <summary className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring flex min-h-11 w-fit cursor-pointer list-none items-center gap-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
+            <SlidersHorizontal aria-hidden="true" className="h-5 w-5" />
+            Уточнить поиск{additionalFilterCount > 0 ? ` · ${additionalFilterCount}` : ''}
+            <ChevronDown aria-hidden="true" className="h-5 w-5 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
           <div className="space-y-2">
-            <Label>Сортировка</Label>
+            <Label htmlFor="contractor-sort">Сортировка</Label>
             <Select
               value={draftFilters.sort_by ?? 'relevance'}
               onValueChange={(value) => updateDraftFilter('sort_by', value as MarketplaceSearchParams['sort_by'])}
             >
-              <SelectTrigger>
+              <SelectTrigger id="contractor-sort">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -347,7 +347,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           </div>
 
           <div className="space-y-2">
-            <Label>Доступность</Label>
+            <Label htmlFor="contractor-availability">Доступность</Label>
             <Select
               value={draftFilters.availability_status ?? 'all'}
               onValueChange={(value) => updateDraftFilter(
@@ -355,7 +355,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
                 value === 'all' ? undefined : value as MarketplaceSearchParams['availability_status']
               )}
             >
-              <SelectTrigger>
+              <SelectTrigger id="contractor-availability">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -370,7 +370,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           </div>
 
           <div className="space-y-2">
-            <Label>Проверка</Label>
+            <Label htmlFor="contractor-verification">Проверка</Label>
             <Select
               value={draftFilters.verification_level ?? 'all'}
               onValueChange={(value) => updateDraftFilter(
@@ -378,7 +378,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
                 value === 'all' ? undefined : value as MarketplaceSearchParams['verification_level']
               )}
             >
-              <SelectTrigger>
+              <SelectTrigger id="contractor-verification">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -393,8 +393,9 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           </div>
 
           <div className="space-y-2">
-            <Label>Рейтинг от</Label>
+            <Label htmlFor="contractor-rating">Рейтинг от</Label>
             <Input
+              id="contractor-rating"
               type="number"
               min={0}
               max={5}
@@ -408,8 +409,9 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           </div>
 
           <div className="space-y-2">
-            <Label>Команда от</Label>
+            <Label htmlFor="contractor-team">Команда от</Label>
             <Input
+              id="contractor-team"
               type="number"
               min={1}
               value={draftFilters.team_capacity_min ?? ''}
@@ -419,17 +421,19 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
               )}
             />
           </div>
-        </div>
+          </div>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Button type="submit" disabled={isLoading}>Применить условия</Button>
+            <Button type="button" variant="ghost" onClick={resetFilters}>Сбросить поиск</Button>
+          </div>
+        </details>
+      </form>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={resetFilters}>
-            Сбросить
-          </Button>
-          <Button onClick={applyFilters}>
-            <Search className="mr-2 h-4 w-4" />
-            Найти
-          </Button>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 py-2">
+        <h2 className="most-workspace-heading" aria-live="polite">
+          {isLoading ? 'Ищем подрядчиков…' : errorMessage ? 'Результаты поиска' : `Подрядчики · ${meta?.total ?? contractors.length}`}
+        </h2>
+        {hasAppliedFilters && <Button type="button" variant="ghost" onClick={resetFilters}>Сбросить фильтры</Button>}
       </div>
 
       {errorMessage && (
@@ -444,12 +448,14 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
             <div key={item} className="h-56 animate-pulse rounded-xl border bg-muted/40" />
           ))}
         </div>
+      ) : errorMessage ? (
+        <Button variant="outline" onClick={() => void loadContractors()}>Повторить поиск</Button>
       ) : contractors.length === 0 ? (
-        <div className="rounded-xl border border-dashed bg-background p-10 text-center">
-          <BriefcaseBusiness className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-          <h3 className="text-lg font-semibold">Подрядчики не найдены</h3>
-          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            Проверьте фильтры или пригласите подрядчика в закрытую сеть.
+        <div className="py-12 sm:py-16">
+          <BriefcaseBusiness aria-hidden="true" className="mb-5 h-8 w-8 text-muted-foreground" />
+          <h3 className="most-workspace-heading">{networkSize === 0 ? 'В каталоге пока нет подрядчиков' : 'По этим условиям никого не нашли'}</h3>
+          <p className="mt-3 max-w-lg text-base text-muted-foreground">
+            {networkSize === 0 ? 'Опубликованные профили появятся здесь. В них можно будет посмотреть специализацию, команду и условия работы.' : 'Попробуйте другую категорию или город. Можно сбросить уточнения и посмотреть весь каталог.'}
           </p>
         </div>
       ) : (
@@ -459,12 +465,12 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
               <CardHeader className="space-y-3 border-b">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 space-y-1">
-                    <CardTitle className="truncate text-base">{contractor.display_name}</CardTitle>
+                    <CardTitle className="break-words text-lg">{contractor.display_name}</CardTitle>
                     <p className="truncate text-sm text-muted-foreground">
                       {contractor.organization?.name ?? 'Организация'}
                     </p>
                   </div>
-                  <Badge variant="outline" className="gap-1">
+                  <Badge variant="outline" className="shrink-0 gap-1">
                     <Star className="h-3.5 w-3.5" />
                     {ratingText(contractor.category_rating?.score ?? null)}
                   </Badge>
@@ -473,21 +479,21 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
               <CardContent className="flex flex-1 flex-col gap-4 p-4">
                 <div className="grid gap-3 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
+                    <MapPin className="h-5 w-5 shrink-0" />
                     <span>{contractor.base_city ?? contractor.organization?.city ?? 'Город не указан'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
+                    <Users className="h-5 w-5 shrink-0" />
                     <span>{formatTeam(contractor)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4" />
+                    <ShieldCheck className="h-5 w-5 shrink-0" />
                     <span>{contractor.verification_level === 'verified' ? 'Проверен' : 'Проверка не завершена'}</span>
                   </div>
                 </div>
 
                 {contractor.category_match && (
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="border-t border-border pt-4">
                     <p className="font-medium">{contractor.category_match.name ?? 'Категория работ'}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Опыт: {contractor.category_match.experience_years ?? 0} лет · {formatBudgetRange(
@@ -502,15 +508,15 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
                   <p className="line-clamp-3 text-sm text-muted-foreground">{contractor.short_description}</p>
                 )}
 
-                <div className="mt-auto flex gap-2">
+                <div className="mt-auto flex flex-wrap gap-2">
                   <Button variant="outline" className="flex-1" onClick={() => void openProfile(contractor.id)}>
-                    <Eye className="mr-2 h-4 w-4" />
+                    <Eye className="mr-2 h-5 w-5 shrink-0" />
                     Профиль
                   </Button>
                   {canCreateOffer && (
                     <Button className="flex-1" onClick={() => void openOfferDialog(contractor)}>
-                      <Send className="mr-2 h-4 w-4" />
-                      Оффер
+                      <Send className="mr-2 h-5 w-5 shrink-0" />
+                      Предложить работу
                     </Button>
                   )}
                 </div>
@@ -562,8 +568,8 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
               </SheetHeader>
 
               <div className="flex flex-wrap gap-2">
-                <Badge variant="outline">{selectedProfile.availability_status}</Badge>
-                <Badge variant="outline">{selectedProfile.verification_level}</Badge>
+                <Badge variant="outline">{selectedProfile.availability_status === 'hidden' ? 'Скрыт из каталога' : availabilityOptions.find((option) => option.value === selectedProfile.availability_status)?.label ?? 'Доступность не указана'}</Badge>
+                <Badge variant="outline">{verificationOptions.find((option) => option.value === selectedProfile.verification_level)?.label ?? 'Статус проверки не указан'}</Badge>
                 {selectedProfile.published_at && <Badge variant="secondary">Опубликован</Badge>}
               </div>
 
@@ -587,7 +593,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
                       <Badge variant="outline">{ratingText(category.rating_score ?? null)}</Badge>
                     </div>
                     <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-                      <Banknote className="h-4 w-4" />
+                      <Banknote className="h-5 w-5 shrink-0" />
                       {formatBudgetRange(category.min_project_budget, category.max_project_budget)}
                     </p>
                   </div>
@@ -629,8 +635,8 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
               {canCreateOffer && (
                 <div className="sticky bottom-0 -mx-6 border-t bg-background/95 p-4 backdrop-blur">
                   <Button className="w-full" onClick={() => void openOfferDialog(selectedProfile)}>
-                    <Send className="mr-2 h-4 w-4" />
-                    Отправить оффер
+                    <Send className="mr-2 h-5 w-5 shrink-0" />
+                    Отправить предложение
                   </Button>
                 </div>
               )}
@@ -649,7 +655,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
 
       {isProfileLoading && !selectedProfile && !offerProfile && (
         <div className="fixed bottom-4 right-4 flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm shadow-lg">
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="h-5 w-5 shrink-0 animate-spin" />
           Загружаем профиль
         </div>
       )}

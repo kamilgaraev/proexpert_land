@@ -117,6 +117,8 @@ export const ProfileEditor = ({
   const [documentTitle, setDocumentTitle] = useState('');
   const [documentType, setDocumentType] = useState('license');
   const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [documentInputVersion, setDocumentInputVersion] = useState(0);
+  const [documentError, setDocumentError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -315,10 +317,16 @@ export const ProfileEditor = ({
     }
 
     setValidationError(null);
-    await onUploadDocument(documentFile, documentType, documentTitle.trim());
-    setDocumentTitle('');
-    setDocumentType('license');
-    setDocumentFile(null);
+    setDocumentError(null);
+    try {
+      await onUploadDocument(documentFile, documentType, documentTitle.trim());
+      setDocumentTitle('');
+      setDocumentType('license');
+      setDocumentFile(null);
+      setDocumentInputVersion((current) => current + 1);
+    } catch {
+      setDocumentError('Не удалось загрузить документ. Файл и название сохранены в форме — попробуйте ещё раз.');
+    }
   };
 
   return (
@@ -332,7 +340,7 @@ export const ProfileEditor = ({
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={profile.status === 'active' ? 'default' : 'secondary'}>
-                {statusLabels[profile.status] ?? profile.status}
+                {statusLabels[profile.status] ?? 'Статус не указан'}
               </Badge>
               {profile.is_visible_in_marketplace ? (
                 <Badge className="bg-emerald-600">В каталоге</Badge>
@@ -346,10 +354,10 @@ export const ProfileEditor = ({
           </div>
         </CardHeader>
         <CardContent className="space-y-6 p-6">
-          <div className="grid gap-4 md:grid-cols-[1fr_280px]">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
             <div className="space-y-2">
               <Label>Готовность к публикации</Label>
-              <Progress value={readinessPercent} className="h-2" />
+              <Progress aria-label="Готовность к публикации" value={readinessPercent} className="h-2" />
               <div className="grid gap-2 text-sm text-muted-foreground md:grid-cols-2">
                 <span className={displayName.trim() ? 'text-emerald-700' : ''}>Название</span>
                 <span className={baseCity.trim() ? 'text-emerald-700' : ''}>Город</span>
@@ -375,33 +383,33 @@ export const ProfileEditor = ({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>Название в каталоге</Label>
-              <Input value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
+              <Label htmlFor="market-profile-name">Название в каталоге</Label>
+              <Input id="market-profile-name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Базовый город</Label>
-              <Input value={baseCity} onChange={(event) => setBaseCity(event.target.value)} />
+              <Label htmlFor="market-profile-city">Базовый город</Label>
+              <Input id="market-profile-city" value={baseCity} onChange={(event) => setBaseCity(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Команда от</Label>
-              <Input type="number" value={teamSizeMin} onChange={(event) => setTeamSizeMin(event.target.value)} />
+              <Label htmlFor="market-profile-team-min">Команда от</Label>
+              <Input id="market-profile-team-min" type="number" value={teamSizeMin} onChange={(event) => setTeamSizeMin(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Команда до</Label>
-              <Input type="number" value={teamSizeMax} onChange={(event) => setTeamSizeMax(event.target.value)} />
+              <Label htmlFor="market-profile-team-max">Команда до</Label>
+              <Input id="market-profile-team-max" type="number" value={teamSizeMax} onChange={(event) => setTeamSizeMax(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Лет на рынке</Label>
-              <Input type="number" value={yearsOnMarket} onChange={(event) => setYearsOnMarket(event.target.value)} />
+              <Label htmlFor="market-profile-years">Лет на рынке</Label>
+              <Input id="market-profile-years" type="number" value={yearsOnMarket} onChange={(event) => setYearsOnMarket(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Радиус работ, км</Label>
-              <Input type="number" value={serviceRadiusKm} onChange={(event) => setServiceRadiusKm(event.target.value)} />
+              <Label htmlFor="market-profile-radius">Радиус работ, км</Label>
+              <Input id="market-profile-radius" type="number" value={serviceRadiusKm} onChange={(event) => setServiceRadiusKm(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Доступность</Label>
+              <Label htmlFor="market-profile-availability">Доступность</Label>
               <Select value={availabilityStatus} onValueChange={(value) => setAvailabilityStatus(value as MarketplaceAvailabilityStatus)}>
-                <SelectTrigger>
+                <SelectTrigger id="market-profile-availability">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -414,16 +422,16 @@ export const ProfileEditor = ({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Свободны с</Label>
-              <Input type="date" value={availableFrom} onChange={(event) => setAvailableFrom(event.target.value)} />
+              <Label htmlFor="market-profile-date">Свободны с</Label>
+              <Input id="market-profile-date" type="date" value={availableFrom} onChange={(event) => setAvailableFrom(event.target.value)} />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label>Короткое описание</Label>
-              <Input value={shortDescription} maxLength={500} onChange={(event) => setShortDescription(event.target.value)} />
+              <Label htmlFor="market-profile-summary">Короткое описание</Label>
+              <Input id="market-profile-summary" value={shortDescription} maxLength={500} onChange={(event) => setShortDescription(event.target.value)} />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label>Описание</Label>
-              <Textarea value={description} rows={5} onChange={(event) => setDescription(event.target.value)} />
+              <Label htmlFor="market-profile-description">Описание</Label>
+              <Textarea id="market-profile-description" value={description} rows={5} onChange={(event) => setDescription(event.target.value)} />
             </div>
           </div>
         </CardContent>
@@ -431,13 +439,13 @@ export const ProfileEditor = ({
 
       <Card>
         <CardHeader className="border-b">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <CardTitle>Категории работ</CardTitle>
               <CardDescription>Специализации, по которым вас смогут найти и оценить.</CardDescription>
             </div>
             <Button type="button" variant="outline" onClick={addCategory} disabled={flatCategories.length === 0}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-5 w-5 shrink-0" />
               Категория
             </Button>
           </div>
@@ -450,14 +458,14 @@ export const ProfileEditor = ({
           )}
           {categoryDrafts.map((category, index) => (
             <div key={`${category.category_id}-${index}`} className="rounded-xl border p-4">
-              <div className="grid gap-4 md:grid-cols-[1.5fr_repeat(4,1fr)_auto]">
+              <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
                 <div className="space-y-2">
-                  <Label>Категория</Label>
+                  <Label htmlFor={`market-category-${index}`}>Категория</Label>
                   <Select
                     value={String(category.category_id)}
                     onValueChange={(value) => updateCategory(index, 'category_id', Number(value))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id={`market-category-${index}`}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -470,32 +478,32 @@ export const ProfileEditor = ({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Опыт, лет</Label>
-                  <Input
+                  <Label htmlFor={`market-category-experience-${index}`}>Опыт, лет</Label>
+                  <Input id={`market-category-experience-${index}`}
                     type="number"
                     value={category.experience_years}
                     onChange={(event) => updateCategory(index, 'experience_years', event.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Бригада</Label>
-                  <Input
+                  <Label htmlFor={`market-category-team-${index}`}>Бригада</Label>
+                  <Input id={`market-category-team-${index}`}
                     type="number"
                     value={category.team_capacity}
                     onChange={(event) => updateCategory(index, 'team_capacity', event.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Бюджет от</Label>
-                  <Input
+                  <Label htmlFor={`market-category-budget-min-${index}`}>Бюджет от</Label>
+                  <Input id={`market-category-budget-min-${index}`}
                     type="number"
                     value={category.min_project_budget}
                     onChange={(event) => updateCategory(index, 'min_project_budget', event.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Бюджет до</Label>
-                  <Input
+                  <Label htmlFor={`market-category-budget-max-${index}`}>Бюджет до</Label>
+                  <Input id={`market-category-budget-max-${index}`}
                     type="number"
                     value={category.max_project_budget}
                     onChange={(event) => updateCategory(index, 'max_project_budget', event.target.value)}
@@ -509,8 +517,8 @@ export const ProfileEditor = ({
                     />
                     Основная
                   </label>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removeCategory(index)}>
-                    <Trash2 className="h-4 w-4" />
+                  <Button type="button" variant="ghost" size="icon" aria-label={`Удалить категорию ${index + 1}`} onClick={() => removeCategory(index)}>
+                    <Trash2 className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
@@ -521,13 +529,13 @@ export const ProfileEditor = ({
 
       <Card>
         <CardHeader className="border-b">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <CardTitle>География работ</CardTitle>
               <CardDescription>Города и регионы, где команда готова выходить на объект.</CardDescription>
             </div>
             <Button type="button" variant="outline" onClick={addRegion}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-5 w-5 shrink-0" />
               Регион
             </Button>
           </div>
@@ -539,18 +547,18 @@ export const ProfileEditor = ({
             </div>
           )}
           {regionDrafts.map((region, index) => (
-            <div key={index} className="grid gap-4 rounded-xl border p-4 md:grid-cols-[1fr_1fr_1fr_auto]">
+            <div key={index} className="grid gap-4 rounded-xl border p-4 lg:grid-cols-2 2xl:grid-cols-4">
               <div className="space-y-2">
-                <Label>Страна</Label>
-                <Input value={region.country} onChange={(event) => updateRegion(index, 'country', event.target.value)} />
+                <Label htmlFor={`market-region-country-${index}`}>Страна</Label>
+                <Input id={`market-region-country-${index}`} value={region.country} onChange={(event) => updateRegion(index, 'country', event.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Регион</Label>
-                <Input value={region.region} onChange={(event) => updateRegion(index, 'region', event.target.value)} />
+                <Label htmlFor={`market-region-name-${index}`}>Регион</Label>
+                <Input id={`market-region-name-${index}`} value={region.region} onChange={(event) => updateRegion(index, 'region', event.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Город</Label>
-                <Input value={region.city} onChange={(event) => updateRegion(index, 'city', event.target.value)} />
+                <Label htmlFor={`market-region-city-${index}`}>Город</Label>
+                <Input id={`market-region-city-${index}`} value={region.city} onChange={(event) => updateRegion(index, 'city', event.target.value)} />
               </div>
               <div className="flex items-end gap-3">
                 <label className="flex items-center gap-2 pb-2 text-sm">
@@ -560,8 +568,8 @@ export const ProfileEditor = ({
                   />
                   Основной
                 </label>
-                <Button type="button" variant="ghost" size="icon" onClick={() => removeRegion(index)}>
-                  <Trash2 className="h-4 w-4" />
+                <Button type="button" variant="ghost" size="icon" aria-label={`Удалить регион ${index + 1}`} onClick={() => removeRegion(index)}>
+                  <Trash2 className="h-5 w-5" />
                 </Button>
               </div>
             </div>
@@ -571,13 +579,13 @@ export const ProfileEditor = ({
 
       <Card>
         <CardHeader className="border-b">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <CardTitle>Портфолио работ</CardTitle>
               <CardDescription>Завершенные объекты, которые подтверждают специализацию команды.</CardDescription>
             </div>
             <Button type="button" variant="outline" onClick={addPortfolioItem}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-5 w-5 shrink-0" />
               Проект
             </Button>
           </div>
@@ -590,18 +598,18 @@ export const ProfileEditor = ({
           )}
           {portfolioDrafts.map((item, index) => (
             <div key={index} className="rounded-xl border p-4">
-              <div className="grid gap-4 md:grid-cols-[1.2fr_1fr_1fr_1fr_auto]">
+              <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
                 <div className="space-y-2">
-                  <Label>Название</Label>
-                  <Input value={item.title} onChange={(event) => updatePortfolioItem(index, 'title', event.target.value)} />
+                  <Label htmlFor={`market-portfolio-title-${index}`}>Название</Label>
+                  <Input id={`market-portfolio-title-${index}`} value={item.title} onChange={(event) => updatePortfolioItem(index, 'title', event.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Категория</Label>
+                  <Label htmlFor={`market-portfolio-category-${index}`}>Категория</Label>
                   <Select
                     value={item.category_id}
                     onValueChange={(value) => updatePortfolioItem(index, 'category_id', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id={`market-portfolio-category-${index}`}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -615,22 +623,22 @@ export const ProfileEditor = ({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Город</Label>
-                  <Input value={item.city} onChange={(event) => updatePortfolioItem(index, 'city', event.target.value)} />
+                  <Label htmlFor={`market-portfolio-city-${index}`}>Город</Label>
+                  <Input id={`market-portfolio-city-${index}`} value={item.city} onChange={(event) => updatePortfolioItem(index, 'city', event.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Дата завершения</Label>
-                  <Input type="date" value={item.completed_at} onChange={(event) => updatePortfolioItem(index, 'completed_at', event.target.value)} />
+                  <Label htmlFor={`market-portfolio-date-${index}`}>Дата завершения</Label>
+                  <Input id={`market-portfolio-date-${index}`} type="date" value={item.completed_at} onChange={(event) => updatePortfolioItem(index, 'completed_at', event.target.value)} />
                 </div>
                 <div className="flex items-end">
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removePortfolioItem(index)}>
-                    <Trash2 className="h-4 w-4" />
+                  <Button type="button" variant="ghost" size="icon" aria-label={`Удалить проект из портфолио ${index + 1}`} onClick={() => removePortfolioItem(index)}>
+                    <Trash2 className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
               <div className="mt-4 space-y-2">
-                <Label>Описание</Label>
-                <Textarea value={item.description} rows={3} onChange={(event) => updatePortfolioItem(index, 'description', event.target.value)} />
+                <Label htmlFor={`market-portfolio-description-${index}`}>Описание</Label>
+                <Textarea id={`market-portfolio-description-${index}`} value={item.description} rows={3} onChange={(event) => updatePortfolioItem(index, 'description', event.target.value)} />
               </div>
             </div>
           ))}
@@ -640,14 +648,14 @@ export const ProfileEditor = ({
       <Card>
         <CardHeader className="border-b">
           <CardTitle>Документы</CardTitle>
-          <CardDescription>Лицензии, свидетельства и подтверждающие файлы хранятся в S3-папке вашей организации.</CardDescription>
+          <CardDescription>Добавьте лицензии, свидетельства и другие документы, подтверждающие квалификацию компании.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5 p-6">
-          <div className="grid gap-4 md:grid-cols-[1fr_1fr_1.4fr_auto]">
+          <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-2">
-              <Label>Тип</Label>
-              <Select value={documentType} onValueChange={setDocumentType}>
-                <SelectTrigger>
+              <Label htmlFor="market-document-type">Тип</Label>
+              <Select value={documentType} onValueChange={setDocumentType} disabled={isUploadingDocument}>
+                <SelectTrigger id="market-document-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -659,12 +667,14 @@ export const ProfileEditor = ({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Название</Label>
-              <Input value={documentTitle} onChange={(event) => setDocumentTitle(event.target.value)} />
+              <Label htmlFor="market-document-title">Название</Label>
+              <Input id="market-document-title" disabled={isUploadingDocument} value={documentTitle} onChange={(event) => setDocumentTitle(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Файл</Label>
-              <Input
+              <Label htmlFor="market-document-file">Файл</Label>
+              <Input id="market-document-file"
+                key={documentInputVersion}
+                disabled={isUploadingDocument}
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
                 onChange={(event) => setDocumentFile(event.target.files?.[0] ?? null)}
@@ -678,6 +688,8 @@ export const ProfileEditor = ({
             </div>
           </div>
 
+          {documentError && <p role="alert" className="text-sm text-destructive">{documentError}</p>}
+
           {profile.documents.length === 0 ? (
             <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
               Документы пока не загружены.
@@ -685,7 +697,7 @@ export const ProfileEditor = ({
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {profile.documents.map((document) => (
-                <div key={document.id} className="flex items-center justify-between gap-4 rounded-xl border p-4">
+                <div key={document.id} className="flex flex-wrap items-center justify-between gap-4 rounded-xl border p-4">
                   <div className="flex min-w-0 items-center gap-3">
                     <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
                     <div className="min-w-0">
@@ -698,9 +710,10 @@ export const ProfileEditor = ({
                     variant="ghost"
                     size="icon"
                     disabled={isUploadingDocument}
+                    aria-label={`Удалить документ «${document.title}»`}
                     onClick={() => void onDeleteDocument(document.id)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-5 w-5" />
                   </Button>
                 </div>
               ))}

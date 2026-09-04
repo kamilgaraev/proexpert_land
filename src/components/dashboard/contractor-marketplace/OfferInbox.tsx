@@ -229,17 +229,19 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-4 rounded-xl border bg-background p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-xl border bg-background p-4">
         <div>
           <h2 className="text-xl font-semibold">Предложения о работе</h2>
           <p className="text-sm text-muted-foreground">
             Входящие предложения от генподрядчиков из вашей закрытой сети.
           </p>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
           <Badge variant="outline" className="h-9 justify-center px-3">
             {openOffersCount} требуют ответа
           </Badge>
+          <div className="min-w-0 space-y-2 sm:min-w-48 sm:flex-1">
+          <Label htmlFor="incoming-status">Статус предложения</Label>
           <Select
             value={statusFilter}
             onValueChange={(value) => {
@@ -247,7 +249,7 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
               setStatusFilter(value as MarketplaceOfferStatus | 'all');
             }}
           >
-            <SelectTrigger className="h-9 w-full sm:w-48">
+            <SelectTrigger id="incoming-status" className="min-h-11 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -260,8 +262,9 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
               <SelectItem value="expired">Истекшие</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={() => void loadOffers()} disabled={isLoading}>
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+          </div>
+          <Button variant="outline" className="min-h-11" onClick={() => void loadOffers()} disabled={isLoading}>
+            {isLoading ? <Loader2 className="mr-2 h-5 w-5 shrink-0 animate-spin" /> : <RefreshCw className="mr-2 h-5 w-5 shrink-0" />}
             Обновить
           </Button>
         </div>
@@ -307,19 +310,19 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
               <CardContent className="space-y-4 p-4">
                 <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
                   <div className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" />
+                    <Briefcase className="h-5 w-5 shrink-0" />
                     <span>{offer.project?.name ?? 'Проект не указан'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Banknote className="h-4 w-4" />
+                    <Banknote className="h-5 w-5 shrink-0" />
                     <span>{formatBudgetRange(offer.budget_min, offer.budget_max, offer.currency)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4" />
+                    <CalendarDays className="h-5 w-5 shrink-0" />
                     <span>{formatDate(offer.starts_at)} - {formatDate(offer.ends_at)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock3 className="h-4 w-4" />
+                    <Clock3 className="h-5 w-5 shrink-0" />
                     <span>Ответ до {formatDate(offer.expires_at)}</span>
                   </div>
                 </div>
@@ -339,7 +342,7 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
 
                 <div className="flex justify-end">
                   <Button variant="outline" size="sm" onClick={() => void openOfferDetail(offer)}>
-                    <Eye className="mr-2 h-4 w-4" />
+                    <Eye className="mr-2 h-5 w-5 shrink-0" />
                     Открыть
                   </Button>
                 </div>
@@ -419,7 +422,7 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
                   <div className="md:col-span-2">
                     <span className="text-muted-foreground">Адрес</span>
                     <p className="flex items-center gap-2 font-medium">
-                      <MapPin className="h-4 w-4" />
+                      <MapPin className="h-5 w-5 shrink-0" />
                       {selectedOffer.project.address}
                     </p>
                   </div>
@@ -480,9 +483,9 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
                   onClick={() => setDeclineOffer(selectedOffer)}
                 >
                   {actionOfferId === selectedOffer.id ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-5 w-5 shrink-0 animate-spin" />
                   ) : (
-                    <XCircle className="mr-2 h-4 w-4" />
+                    <XCircle className="mr-2 h-5 w-5 shrink-0" />
                   )}
                   Отклонить
                 </Button>
@@ -491,9 +494,9 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
                   onClick={() => void acceptSelectedOffer(selectedOffer)}
                 >
                   {actionOfferId === selectedOffer.id ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-5 w-5 shrink-0 animate-spin" />
                   ) : (
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    <CheckCircle2 className="mr-2 h-5 w-5 shrink-0" />
                   )}
                   Принять предложение
                 </Button>
@@ -512,8 +515,9 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label>Причина</Label>
+            <Label htmlFor="incoming-decline-reason">Причина</Label>
             <Textarea
+              id="incoming-decline-reason"
               value={declineReason}
               rows={4}
               maxLength={1000}
@@ -525,7 +529,7 @@ export const OfferInbox = ({ initialStatus = 'all' }: OfferInboxProps) => {
               Отмена
             </Button>
             <Button variant="destructive" onClick={() => void confirmDecline()} disabled={actionOfferId !== null}>
-              {actionOfferId !== null && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {actionOfferId !== null && <Loader2 className="mr-2 h-5 w-5 shrink-0 animate-spin" />}
               Отклонить
             </Button>
           </DialogFooter>

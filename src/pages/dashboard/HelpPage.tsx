@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HelpOverview } from '@/components/support/HelpOverview';
 import { FaqSection } from '@/components/support/FaqSection';
 import { ContactForm } from '@/components/support/ContactForm';
-import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 
 const HelpPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -21,62 +19,20 @@ const HelpPage = () => {
   };
 
   return (
-    <div className="space-y-8 pb-20">
-      {/* Заголовок */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
-      >
-        <div className="flex items-center justify-center mb-4">
-          <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-100">
-            <QuestionMarkCircleIcon className="w-8 h-8 text-primary" />
-          </div>
-        </div>
-        <h1 className="text-4xl font-bold text-foreground mb-3">Центр помощи</h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Найдите ответы на вопросы, изучите руководства или свяжитесь с нашей командой поддержки
-        </p>
-      </motion.div>
-
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-8 max-w-5xl mx-auto">
-        <div className="flex justify-center">
-          <TabsList className="bg-secondary/50 p-1 rounded-xl inline-flex">
-            <TabsTrigger value="overview" className="rounded-lg px-8 py-2 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">Обзор</TabsTrigger>
-            <TabsTrigger value="faq" className="rounded-lg px-8 py-2 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">Вопросы</TabsTrigger>
-            <TabsTrigger value="support" className="rounded-lg px-8 py-2 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">Поддержка</TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="overview" className="focus-visible:outline-none">
-          <motion.div
-             initial={{ opacity: 0, y: 10 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ duration: 0.3 }}
-          >
-            <HelpOverview onTabChange={handleTabChange} />
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="faq" className="focus-visible:outline-none">
-          <motion.div
-             initial={{ opacity: 0, y: 10 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ duration: 0.3 }}
-          >
-            <FaqSection />
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="support" className="focus-visible:outline-none">
-          <motion.div
-             initial={{ opacity: 0, y: 10 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ duration: 0.3 }}
-          >
-            <ContactForm />
-          </motion.div>
-        </TabsContent>
+    <div className="min-w-0 space-y-6">
+      <header className="space-y-2">
+        <h1 className="text-3xl font-semibold text-foreground">Помощь</h1>
+        <p className="max-w-prose text-base text-muted-foreground">Инструкции, ответы на вопросы и обращения в поддержку.</p>
+      </header>
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="min-w-0 space-y-6">
+        <TabsList aria-label="Разделы помощи" className="grid h-auto w-full grid-cols-3 rounded-lg border border-border bg-secondary/50 p-1 sm:w-fit">
+          <TabsTrigger value="overview" className="min-h-11 rounded-md px-3 py-2 text-sm data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-none sm:px-6">Обзор</TabsTrigger>
+          <TabsTrigger value="faq" className="min-h-11 rounded-md px-3 py-2 text-sm data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-none sm:px-6">Вопросы</TabsTrigger>
+          <TabsTrigger value="support" className="min-h-11 rounded-md px-3 py-2 text-sm data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-none sm:px-6">Поддержка</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview"><HelpOverview onTabChange={handleTabChange} /></TabsContent>
+        <TabsContent value="faq"><FaqSection /></TabsContent>
+        <TabsContent value="support"><ContactForm /></TabsContent>
       </Tabs>
     </div>
   );

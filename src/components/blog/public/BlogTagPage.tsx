@@ -1,208 +1,190 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import BlogArticleCard from './BlogArticleCard';
-import BlogPublicLayout from './BlogPublicLayout';
-import BlogSidebar from './BlogSidebar';
-import { getBlogListMeta } from './blogPresentation';
-import { filterBlogArticlesByTagSlug, getBlogTagDisplayName, getBlogTagSearchTerm, resolveBlogTagBySlug } from './blogTags';
-import { SectionHeader } from '@/components/marketing/MarketingPrimitives';
-import { useSEO } from '@/hooks/useSEO';
-import type { BlogArticle, BlogTag } from '@/types/blog';
-import { blogPublicApi } from '@/utils/blogPublicApi';
+import { useEffect, useState } from "react";
+import { isAxiosError } from "axios";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import BlogArticleCard from "./BlogArticleCard";
+import BlogPagination from "./BlogPagination";
+import BlogPublicLayout from "./BlogPublicLayout";
+import BlogSidebar from "./BlogSidebar";
+import { getBlogListMeta } from "./blogPresentation";
+import { useSEO } from "@/hooks/useSEO";
+import type { BlogTagInitialData } from "@/types/blog";
+import { readBlogIndexQuery, type BlogIndexQuery } from "@/utils/blogIndexQuery";
+import {
+  applyBlogTagArticles,
+  createBlogTagData,
+  getBlogTagName,
+  getBlogTagSeo,
+  normalizeBlogTagQuery,
+} from "@/utils/blogTagListing";
+import { blogPublicApi } from "@/utils/blogPublicApi";
 
-const BlogTagPage = () => {
-  const { slug } = useParams<{ slug: string }>();
-  const [articles, setArticles] = useState<BlogArticle[]>([]);
-  const [tag, setTag] = useState<BlogTag | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [error, setError] = useState<string | null>(null);
-  const tagDisplayName = getBlogTagDisplayName(slug, tag);
+interface BlogTagPageProps {
+  initialData?: BlogTagInitialData;
+}
 
-  useSEO({
-    title: tagDisplayName ? `Тег #${tagDisplayName} - блог МОСТ` : 'Теги блога МОСТ',
-    description: tagDisplayName ? `Подборка статей МОСТ по тегу #${tagDisplayName}.` : 'Подборка статей МОСТ по тегам.',
-    keywords: tagDisplayName ? `${tagDisplayName}, блог МОСТ, строительство` : 'теги блога МОСТ',
-    noIndex: true,
-    type: 'website',
-  });
+const BlogTagContent = ({
+  slug,
+  query,
+  initialData,
+}: BlogTagPageProps & { slug: string; query: BlogIndexQuery }) => {
+  const [data, setData] = useState(
+    () => initialData ?? createBlogTagData(slug, query),
+  );
+  const [loading, setLoading] = useState(
+    !data.articlesLoaded &&
+      !data.notFound &&
+      !data.pageNotFound &&
+      !data.unavailable,
+  );
+  const tagName = getBlogTagName(data);
+  const page = query.page ?? 1;
+  const search = query.search;
+  useSEO(getBlogTagSeo(data, query));
 
   useEffect(() => {
-    const fetchArticles = async () => {
+    let cancelled = false;
+    const initial = initialData ?? createBlogTagData(slug, { page, search });
+    if (initial.articlesLoaded || initial.notFound || initial.pageNotFound) return;
+    const loadArticles = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        setError(null);
-        setTag(null);
-
-        if (!slug) {
-          setArticles([]);
-          setHasMore(false);
-          setCurrentPage(1);
-          return;
+        const { data: payload } = await blogPublicApi.getArticles({
+          tag_slug: slug,
+          page,
+          per_page: 12,
+          search: search || undefined,
+        });
+        const next = applyBlogTagArticles(initial, payload.data, payload.meta);
+        if (!cancelled) setData(next);
+      } catch (error) {
+        if (!cancelled) {
+          setData({
+            ...initial,
+            unavailable: !(
+              isAxiosError(error) && error.response?.status === 404
+            ),
+            notFound: isAxiosError(error) && error.response?.status === 404,
+          });
         }
-
-        const tagsResponse = await blogPublicApi.getTags(50);
-        const tagsData = (tagsResponse.data as { data: BlogTag[] }).data;
-        const resolvedTag = resolveBlogTagBySlug(tagsData, slug);
-        setTag(resolvedTag);
-
-        const response = await blogPublicApi.searchArticles(getBlogTagSearchTerm(slug, resolvedTag), 12);
-        const payload = response.data as { data?: BlogArticle[] };
-        const rawArticles = payload.data || [];
-        const nextArticles = filterBlogArticlesByTagSlug(rawArticles, slug);
-
-        setArticles(nextArticles);
-        setCurrentPage(1);
-        setHasMore(rawArticles.length === 12);
-      } catch (fetchError) {
-        console.error('Error fetching articles by tag:', fetchError);
-        setError('Не удалось загрузить подборку по тегу.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
-
-    fetchArticles();
-  }, [slug]);
-
-  const handleLoadMore = async () => {
-    const searchTerm = getBlogTagSearchTerm(slug, tag);
-
-    if (!searchTerm) {
-      return;
-    }
-
-    try {
-      setLoadingMore(true);
-
-      const nextPage = currentPage + 1;
-      const response = await blogPublicApi.searchArticles(searchTerm, nextPage * 12);
-      const payload = response.data as { data?: BlogArticle[] };
-      const rawArticles = payload.data || [];
-      const nextArticles = filterBlogArticlesByTagSlug(rawArticles, slug);
-
-      setArticles(nextArticles);
-      setCurrentPage(nextPage);
-      setHasMore(rawArticles.length === nextPage * 12);
-    } catch (fetchError) {
-      console.error('Error loading more tag articles:', fetchError);
-      setError('Не удалось загрузить дополнительные статьи по тегу.');
-    } finally {
-      setLoadingMore(false);
-    }
-  };
+    void loadArticles();
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, page, search, initialData]);
 
   return (
     <BlogPublicLayout
-      eyebrow="Тег блога"
-      title={tagDisplayName ? `Материалы по тегу #${tagDisplayName}` : 'Материалы по тегу'}
-      description="Теги помогают быстро собрать статьи по одной узкой теме без лишних переходов по категориям."
-      nav={[
-        { label: 'Лента тега', href: '#blog-feed' },
-        { label: 'Все статьи', href: '#blog-tag-actions' },
-        { label: 'Контакты', href: '#blog-cta' },
-      ]}
-      aside={
-        <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-construction-700">
-            Как использовать тег
-          </div>
-          <div className="mt-4 grid gap-3">
-            {[
-              'Собрать подборку по одной теме для внутренней команды.',
-              'Перейти из статьи к соседним материалам по тому же вопросу.',
-              'Использовать тег как быстрый маршрут перед демонстрацией.',
-            ].map((item) => (
-              <div key={item} className="rounded-[1.15rem] bg-concrete-50 px-4 py-4 text-sm leading-7 text-steel-700">
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
+      title={
+        data.notFound
+          ? "Тема не найдена"
+          : data.pageNotFound
+            ? "Страница не найдена"
+            : tagName
+              ? `Статьи: ${tagName}`
+              : "Статьи по теме"
       }
+      description="Практические материалы о работе строительной команды."
+      nav={[
+        { label: "Статьи по теме", href: "#blog-feed" },
+        { label: "Все статьи", href: "#blog-tag-actions" },
+        { label: "Контакты", href: "#blog-cta" },
+      ]}
     >
-      <section id="blog-tag-actions" className="py-16 lg:py-20">
-        <div className="container-custom">
-          <SectionHeader
-            eyebrow="Маршрут"
-            title="Используйте тег как короткий срез по теме."
-            description="Если нужно расширить выборку, переходите к общей ленте блога или к категориям через сайдбар."
-          />
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              to="/blog"
-              className="inline-flex w-full min-w-0 flex-wrap items-center justify-center rounded-full bg-steel-950 px-5 py-3 text-center text-sm font-semibold text-white whitespace-normal [overflow-wrap:anywhere] transition hover:bg-steel-900 sm:w-auto"
-            >
-              Открыть все статьи
-            </Link>
-          </div>
+      <section id="blog-tag-actions" className="most-blog-filters">
+        <div className="most-container">
+          <Link to="/blog" className="most-blog-read">
+            Открыть все статьи
+          </Link>
         </div>
       </section>
-
-      <section id="blog-feed" className="bg-concrete-50 py-16 lg:py-20">
-        <div className="container-custom grid gap-8 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
+      <section id="blog-feed" className="most-blog-section">
+        <div className="most-container most-blog-list-layout">
           <div>
-            <div className="rounded-[1.75rem] border border-steel-200 bg-white p-6 shadow-sm">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-steel-500">
-                Лента тега
-              </div>
-              <h2 className="mt-2 text-3xl font-bold text-steel-950">#{tagDisplayName}</h2>
-              <p className="mt-4 text-sm leading-7 text-steel-600">
-                {error ? error : getBlogListMeta(articles.length)}
-              </p>
+            <div className="most-blog-feed-intro">
+              <h2>Статьи по теме</h2>
+              {!loading &&
+              !data.unavailable &&
+              !data.notFound &&
+              !data.pageNotFound ? (
+                <p>{getBlogListMeta(data.articles.length)}</p>
+              ) : null}
             </div>
-
             {loading ? (
-              <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <div className="most-blog-grid" aria-label="Загружаем статьи">
                 {Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className="rounded-[1.75rem] border border-steel-200 bg-white p-5 shadow-sm">
-                    <div className="aspect-[16/10] animate-pulse rounded-[1.35rem] bg-concrete-100" />
-                    <div className="mt-5 h-4 w-32 animate-pulse rounded bg-concrete-100" />
-                    <div className="mt-4 h-8 w-4/5 animate-pulse rounded bg-concrete-100" />
-                    <div className="mt-3 h-20 animate-pulse rounded bg-concrete-100" />
+                  <div key={index} className="most-blog-skeleton">
+                    <div className="aspect-[16/10] animate-pulse bg-concrete-100" />
+                    <div className="mt-5 h-4 w-32 animate-pulse bg-concrete-100" />
+                    <div className="mt-4 h-8 w-4/5 animate-pulse bg-concrete-100" />
                   </div>
                 ))}
               </div>
-            ) : articles.length ? (
+            ) : data.unavailable ? (
+              <div className="most-blog-notice" role="alert">
+                <h3>Материалы временно недоступны</h3>
+                <p>Не удалось загрузить материалы этой темы. Попробуйте позже.</p>
+              </div>
+            ) : data.articles.length ? (
               <>
-                <div className="mt-6 grid gap-5 md:grid-cols-2">
-                  {articles.map((article) => (
+                <div className="most-blog-grid">
+                  {data.articles.map((article) => (
                     <BlogArticleCard key={article.id} article={article} />
                   ))}
                 </div>
-                {hasMore ? (
-                  <div className="mt-8">
-                    <button
-                      type="button"
-                      onClick={handleLoadMore}
-                      disabled={loadingMore}
-                      className={`inline-flex w-full min-w-0 flex-wrap items-center justify-center rounded-full px-5 py-3 text-center text-sm font-semibold whitespace-normal [overflow-wrap:anywhere] transition sm:w-auto ${
-                        loadingMore
-                          ? 'cursor-not-allowed bg-steel-300 text-white'
-                          : 'bg-steel-950 text-white hover:bg-steel-900'
-                      }`}
-                    >
-                      {loadingMore ? 'Загружаем статьи' : 'Показать еще'}
-                    </button>
-                  </div>
-                ) : null}
+                <BlogPagination
+                  pathname={`/blog/tag/${encodeURIComponent(slug)}`}
+                  query={query}
+                  hasNext={page < data.pagination.last_page}
+                />
               </>
-            ) : !loading ? (
-              <div className="mt-6 rounded-[1.75rem] border border-steel-200 bg-white p-8 shadow-sm">
-                <h3 className="text-2xl font-bold text-steel-950">По этому тегу пока нет материалов</h3>
-                <p className="mt-4 text-sm leading-7 text-steel-600">
-                  Вернитесь к общей ленте или воспользуйтесь поиском и категориями в правой колонке.
-                </p>
+            ) : (
+              <div className="most-blog-notice">
+                <h3>
+                  {data.pageNotFound
+                    ? "Страница не найдена"
+                    : data.notFound
+                      ? "Выберите другую тему"
+                      : "По этой теме пока нет материалов"}
+                </h3>
+                <p>Вернитесь к общей ленте или выберите другую тему.</p>
+                {data.pageNotFound ? (
+                  <Link
+                    to={`/blog/tag/${encodeURIComponent(slug)}`}
+                    className="most-blog-read"
+                  >
+                    К началу подборки
+                  </Link>
+                ) : null}
               </div>
-            ) : null}
+            )}
           </div>
-
           <BlogSidebar />
         </div>
       </section>
     </BlogPublicLayout>
+  );
+};
+
+const BlogTagPage = ({ initialData }: BlogTagPageProps = {}) => {
+  const { slug = "" } = useParams<{ slug: string }>();
+  const [params] = useSearchParams();
+  const query = normalizeBlogTagQuery(readBlogIndexQuery(params));
+  const queryKey = createBlogTagData(slug, query).queryKey;
+  return (
+    <BlogTagContent
+      key={`${slug}:${queryKey}`}
+      slug={slug}
+      query={query}
+      initialData={
+        initialData?.slug === slug && initialData.queryKey === queryKey
+          ? initialData
+          : undefined
+      }
+    />
   );
 };
 

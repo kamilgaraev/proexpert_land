@@ -1,20 +1,20 @@
 import { useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Eye, 
-  EyeOff, 
-  ArrowRight, 
-  ArrowLeft, 
-  Check, 
-  User, 
-  Mail, 
-  Lock, 
-  Phone, 
-  Building2, 
-  MapPin, 
-  AlertTriangle, 
-  Camera, 
+import {
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  User,
+  Mail,
+  Lock,
+  Phone,
+  Building2,
+  MapPin,
+  AlertTriangle,
+  Camera,
   X,
   Loader2
 } from 'lucide-react';
@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { parseCommercialIntent, rememberCommercialIntent } from '@/utils/commercialIntent';
+import '@/styles/auth.css';
 
 const getPackageCountLabel = (count: number): string => {
   const lastTwoDigits = count % 100;
@@ -60,7 +61,7 @@ const RegisterPage = () => {
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [phone, setPhone] = useState('');
   const [position, setPosition] = useState('');
-  
+
   // Org Data
   const [organizationName, setOrganizationName] = useState('');
   const [organizationLegalName, setOrganizationLegalName] = useState('');
@@ -72,7 +73,7 @@ const RegisterPage = () => {
   const [organizationCity, setOrganizationCity] = useState('');
   const [organizationPostalCode, setOrganizationPostalCode] = useState('');
   const [organizationCountry] = useState('Россия');
-  
+
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
@@ -83,10 +84,10 @@ const RegisterPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const registrationKeyRef = useRef(createRegistrationKey());
   const submittingRef = useRef(false);
-  
+
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  
+
   const { register } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -155,7 +156,7 @@ const RegisterPage = () => {
         setValidationErrors(prev => ({ ...prev, avatar: 'Допустимые форматы: JPG, PNG, GIF' }));
         return;
       }
-      
+
       setAvatarFile(file);
       setValidationErrors(prev => ({ ...prev, avatar: '' }));
       const reader = new FileReader();
@@ -174,27 +175,27 @@ const RegisterPage = () => {
 
   const validateStep1 = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!name.trim()) errors.name = 'Укажите ваше имя';
     if (!email.trim()) errors.email = 'Укажите email';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Укажите корректный email';
-    
+
     if (!password) errors.password = 'Укажите пароль';
     else if (password.length < 8) errors.password = 'Пароль должен содержать не менее 8 символов';
     else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(password)) errors.password = 'Пароль должен содержать минимум одну заглавную букву, одну строчную букву и одну цифру';
-    
+
     if (!passwordConfirmation) errors.passwordConfirmation = 'Подтвердите пароль';
     else if (password !== passwordConfirmation) errors.passwordConfirmation = 'Пароли не совпадают';
-    
+
     return errors;
   };
 
   const validateStep2 = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!organizationName.trim()) errors.organizationName = 'Укажите название организации';
     if (!agreeTerms) errors.agreeTerms = 'Вы должны согласиться с условиями предоставления услуг';
-    
+
     return errors;
   };
 
@@ -205,7 +206,7 @@ const RegisterPage = () => {
       setError('Пожалуйста, исправьте ошибки в форме');
       return;
     }
-    
+
     setValidationErrors({});
     setError('');
     setCurrentStep(2);
@@ -222,24 +223,24 @@ const RegisterPage = () => {
     if (submittingRef.current) {
       return;
     }
-    
+
     if (currentStep === 1) {
       handleNext();
       return;
     }
-    
+
     const errors = validateStep2();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       setError('Пожалуйста, исправьте ошибки в форме');
       return;
     }
-    
+
     setError('');
     setValidationErrors({});
     setIsLoading(true);
     submittingRef.current = true;
-    
+
     try {
       const formData = new FormData();
       formData.append('name', name);
@@ -265,7 +266,7 @@ const RegisterPage = () => {
       }
       await register(formData, registrationKeyRef.current);
       rememberCommercialIntent(commercialIntent);
-      
+
       navigate('/email-sent', { state: { email } });
     } catch (err: any) {
       console.error('Ошибка при регистрации:', err);
@@ -273,7 +274,7 @@ const RegisterPage = () => {
       if (err?.status === 409 || err?.status === 422) {
         registrationKeyRef.current = createRegistrationKey();
       }
-      
+
       if (err.message?.includes('Не удалось подключиться к серверу')) {
         // setShowNetworkError(true);
         setError('Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.');
@@ -326,63 +327,44 @@ const RegisterPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center py-8 px-4">
-       <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none bg-[url('https://img.freepik.com/free-vector/construction-set-icons_1284-13233.jpg')] bg-repeat bg-[length:400px]"></div>
+    <div className="most-workspace most-auth-page">
 
-      <motion.div 
-        className="w-full max-w-4xl bg-card border rounded-3xl shadow-2xl overflow-hidden relative z-10"
-        initial={{ opacity: 0, scale: 0.98 }}
+
+      <motion.div
+        className="most-auth-shell most-auth-shell--registration"
+        initial={false}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
       >
-        
+
         {/* Header */}
-        <div className="bg-primary px-8 py-6">
-            <div className="flex items-center justify-between mb-6">
-                <Link to="/" className="flex items-center gap-3 text-primary-foreground">
-                     <img src="/logo-white.svg" alt="" className="h-11 w-11 object-contain" />
+        <div className="most-auth-registration-header">
+            <div className="most-auth-registration-brand">
+                <Link to="/" className="flex items-center gap-3 text-foreground">
+                     <img src="/logo.svg" alt="" className="h-11 w-11 object-contain" />
                      <span className="text-xl font-extrabold tracking-tight">МОСТ</span>
                 </Link>
-                 <Link 
-                    to="/login" 
-                    className="text-primary-foreground/80 hover:text-primary-foreground text-sm font-medium transition-colors"
+                 <Link
+                    to="/login"
+                    className="text-primary hover:underline text-sm font-medium"
                 >
                     Уже есть аккаунт? Войти
                 </Link>
             </div>
-            
-            <h1 className="text-2xl font-bold text-primary-foreground mb-2">Создание аккаунта</h1>
-             <p className="text-primary-foreground/70 text-sm">Присоединяйтесь к МОСТ для управления строительными проектами</p>
+
+            <h1 className="text-3xl font-bold text-foreground mb-2">Создание аккаунта</h1>
+             <p className="text-muted-foreground text-base">Сначала ваши данные, затем — информация о компании.</p>
 
              {/* Progress Steps */}
-            <ol className="mt-8 flex items-center" aria-label="Этапы регистрации">
-                {steps.map((step, index) => (
-                    <li
-                        key={step.id}
-                        className="flex items-center"
-                        aria-label={`${step.name}: ${step.description}`}
-                        aria-current={currentStep === step.id ? 'step' : undefined}
-                    >
-                        <div className={cn(
-                            "flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all",
-                            currentStep >= step.id 
-                                ? "bg-white border-white text-primary" 
-                                : "border-white/40 text-white/40"
-                        )}>
-                            {currentStep > step.id ? <Check className="w-4 h-4" /> : <span className="text-xs font-bold">{step.id}</span>}
-                        </div>
-                        <div className="ml-3 hidden sm:block">
-                            <div className={cn("text-sm font-medium", currentStep >= step.id ? "text-white" : "text-white/60")}>{step.name}</div>
-                            <div className="text-[10px] text-white/50">{step.description}</div>
-                        </div>
-                         {index < steps.length - 1 && (
-                            <div className={cn(
-                                "mx-4 h-[2px] w-12 transition-all",
-                                currentStep > step.id ? "bg-white" : "bg-white/20"
-                            )} />
-                        )}
-                    </li>
-                ))}
+            <ol className="most-auth-steps" aria-label="Этапы регистрации">
+              {steps.map((step) => (
+                <li key={step.id} className="most-auth-step" aria-label={`${step.name}: ${step.description}`} aria-current={currentStep === step.id ? 'step' : undefined}>
+                  <span className="most-auth-step-number" aria-hidden="true">
+                    {currentStep > step.id ? <Check className="h-5 w-5" /> : step.id}
+                  </span>
+                  <span>{step.name}</span>
+                </li>
+              ))}
             </ol>
         </div>
 
@@ -403,7 +385,7 @@ const RegisterPage = () => {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-8">
+        <form onSubmit={handleSubmit} className="most-auth-registration-form">
              {commercialIntent.length > 0 ? (
               <div className="mb-6 rounded-2xl border border-construction-200 bg-construction-50 px-5 py-4">
                 <div className="text-sm font-semibold text-steel-950">
@@ -458,7 +440,7 @@ const RegisterPage = () => {
                                 </div>
                                 {hasError('name') && <p className="text-xs text-destructive">{getErrorMessage('name')}</p>}
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
                                 <div className="relative">
@@ -472,15 +454,15 @@ const RegisterPage = () => {
                                 <Label htmlFor="password">Пароль</Label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input 
-                                        id="password" 
+                                    <Input
+                                        id="password"
                                         name="password"
-                                        type={showPassword ? 'text' : 'password'} 
+                                        type={showPassword ? 'text' : 'password'}
                                         autoComplete="new-password"
-                                        value={password} 
-                                        onChange={e => setPassword(e.target.value)} 
-                                        className={cn(getInputClassName('password'), "pr-10")} 
-                                        placeholder="••••••••" 
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                        className={cn(getInputClassName('password'), "pr-10")}
+                                        placeholder="••••••••"
                                     />
                                     <button type="button" aria-label="Показать пароль" aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)} className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-muted-foreground hover:text-foreground">
                                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -493,15 +475,15 @@ const RegisterPage = () => {
                                 <Label htmlFor="passwordConfirmation">Подтверждение пароля</Label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input 
-                                        id="passwordConfirmation" 
+                                    <Input
+                                        id="passwordConfirmation"
                                         name="passwordConfirmation"
-                                        type={showPasswordConfirmation ? 'text' : 'password'} 
+                                        type={showPasswordConfirmation ? 'text' : 'password'}
                                         autoComplete="new-password"
-                                        value={passwordConfirmation} 
-                                        onChange={e => setPasswordConfirmation(e.target.value)} 
-                                        className={cn(getInputClassName('passwordConfirmation'), "pr-10")} 
-                                        placeholder="••••••••" 
+                                        value={passwordConfirmation}
+                                        onChange={e => setPasswordConfirmation(e.target.value)}
+                                        className={cn(getInputClassName('passwordConfirmation'), "pr-10")}
+                                        placeholder="••••••••"
                                     />
                                     <button type="button" aria-label="Показать подтверждение пароля" aria-pressed={showPasswordConfirmation} onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)} className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-muted-foreground hover:text-foreground">
                                         {showPasswordConfirmation ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -560,7 +542,7 @@ const RegisterPage = () => {
                                 <Label htmlFor="organizationTaxNumber">ИНН</Label>
                                 <Input id="organizationTaxNumber" name="organizationTaxNumber" inputMode="numeric" autoComplete="off" value={organizationTaxNumber} onChange={e => setOrganizationTaxNumber(e.target.value)} className="h-11" placeholder="1234567890" />
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <Label htmlFor="organizationRegistrationNumber">ОГРН</Label>
                                 <Input id="organizationRegistrationNumber" name="organizationRegistrationNumber" inputMode="numeric" autoComplete="off" value={organizationRegistrationNumber} onChange={e => setOrganizationRegistrationNumber(e.target.value)} className="h-11" placeholder="1234567890123" />
@@ -627,7 +609,7 @@ const RegisterPage = () => {
                  )}
              </AnimatePresence>
 
-             <div className="mt-8 flex items-center justify-between pt-6 border-t">
+             <div className="most-auth-form-actions">
                 {currentStep > 1 ? (
                     <Button type="button" variant="outline" onClick={handleBack} className="h-12 px-6">
                         <ArrowLeft className="w-4 h-4 mr-2" /> Назад
@@ -636,9 +618,9 @@ const RegisterPage = () => {
                     <div />
                 )}
 
-                <Button 
-                    type="submit" 
-                    className="h-12 px-8 shadow-lg shadow-primary/25" 
+                <Button
+                    type="submit"
+                    className="h-12 px-6 sm:px-8"
                     disabled={isLoading}
                 >
                     {isLoading ? (

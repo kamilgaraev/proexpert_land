@@ -22,7 +22,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
       "contract-management",
       "schedule-management",
     ],
-    packageSlugs: ["objects-execution"],
+    packageSlugs: ["planning-schedules"],
     sourceOfTruth: [
       "prohelper/app/BusinessModules/Features/ProjectManagement",
       "prohelper/app/BusinessModules/Features/ScheduleManagement",
@@ -33,7 +33,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
   },
   {
     id: "site-requests",
-    title: "Заявки с объекта и полевой контроль",
+    title: "Заявки с объекта",
     businessContour: "Проекты и исполнение",
     summary:
       "Прораб и команда площадки передают потребности и факт работ напрямую в систему.",
@@ -48,7 +48,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ["mobile", "admin"],
     maturity: "stable",
     moduleSlugs: ["site-requests", "time-tracking"],
-    packageSlugs: ["objects-execution"],
+    packageSlugs: ["projects-processes", "workforce-output"],
     sourceOfTruth: [
       "prohelper/app/BusinessModules/Features/SiteRequests",
       "prohelper/app/BusinessModules/Features/TimeTracking",
@@ -99,10 +99,10 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ["admin", "lk"],
     maturity: "stable",
     moduleSlugs: ["payments", "act-reporting", "advance-accounting"],
-    packageSlugs: ["finance-acts"],
+    packageSlugs: [],
     sourceOfTruth: [
       "prohelper/app/BusinessModules/Core/Payments",
-      "prohelper/config/Packages/finance-acts.json",
+      "prohelper/config/Packages/finance-contracts.json",
       "prohelper_admin/src/pages/Finance",
     ],
     cta: "Финансы и документы",
@@ -112,7 +112,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     title: "ПИР и проектная документация",
     businessContour: "ПИР и ПТО",
     summary:
-      "Проектная и рабочая документация (ПД и РД), формат IFC для информационных моделей, замечания, нормоконтроль и выпуск комплектов связаны с объектом.",
+      "Ведите проектную и рабочую документацию по объектам. Сохраняйте версии, собирайте замечания и готовьте комплекты к выпуску.",
     publicClaim:
       "Карточка комплекта показывает версии, замечания, ответственных и текущий статус.",
     audiences: ["ПИР", "ПТО", "Девелопер", "Генподрядчик"],
@@ -124,10 +124,10 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ["admin", "lk"],
     maturity: "stable",
     moduleSlugs: ["design-management", "budget-estimates", "file-management"],
-    packageSlugs: ["estimates-pto"],
+    packageSlugs: ["pto-handover"],
     sourceOfTruth: [
       "prohelper/config/ModuleList/features/design-management.json",
-      "prohelper/config/Packages/estimates-pto.json",
+      "prohelper/config/Packages/pto-handover.json",
       "docs/workflows/construction-erp-coverage.md",
     ],
     cta: "ПИР и документация",
@@ -137,7 +137,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     title: "Качество, дефекты и приемка",
     businessContour: "Качество и сдача",
     summary:
-      "Инспекции, дефекты, исполнительная документация и перечень замечаний при приёмке (punch-list) связываются с передачей результата заказчику.",
+      "Фиксируйте дефекты, назначайте ответственных и проверяйте устранение. Готовьте исполнительные документы и перечни замечаний к приёмке.",
     publicClaim:
       "Карточка дефекта связывает замечание с зоной объекта и показывает статус, срок, ответственного и повторную проверку.",
     audiences: ["Стройконтроль", "ПТО", "Генподрядчик", "Заказчик"],
@@ -153,7 +153,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
       "handover-acceptance",
       "executive-documentation",
     ],
-    packageSlugs: ["site-quality-handover"],
+    packageSlugs: ["pto-handover"],
     sourceOfTruth: [
       "prohelper/config/ModuleList/features/quality-control.json",
       "prohelper/config/ModuleList/features/handover-acceptance.json",
@@ -183,10 +183,10 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ["admin", "mobile"],
     maturity: "stable",
     moduleSlugs: ["safety-management", "brigades", "file-management"],
-    packageSlugs: ["construction-safety"],
+    packageSlugs: ["quality-safety"],
     sourceOfTruth: [
       "prohelper/config/ModuleList/features/safety-management.json",
-      "prohelper/config/Packages/construction-safety.json",
+      "prohelper/config/Packages/quality-safety.json",
     ],
     cta: "Охрана труда",
   },
@@ -207,11 +207,11 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ["admin", "mobile"],
     maturity: "stable",
     moduleSlugs: ["machinery-operations", "production-labor", "time-tracking"],
-    packageSlugs: ["machinery-and-labor"],
+    packageSlugs: ["machinery", "workforce-output"],
     sourceOfTruth: [
       "prohelper/config/ModuleList/features/machinery-operations.json",
       "prohelper/config/ModuleList/features/production-labor.json",
-      "prohelper/config/Packages/machinery-and-labor.json",
+      "prohelper/config/Packages/machinery.json",
     ],
     cta: "Техника и выработка",
   },
@@ -237,11 +237,11 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ["admin", "mobile"],
     maturity: "stable",
     moduleSlugs: ["workforce-management", "production-labor", "time-tracking"],
-    packageSlugs: ["workforce-management"],
+    packageSlugs: ["workforce-output"],
     sourceOfTruth: [
       "prohelper/config/ModuleList/features/workforce-management.json",
       "prohelper/config/ModuleList/features/production-labor.json",
-      "prohelper/config/Packages/workforce-management.json",
+      "prohelper/config/Packages/workforce-output.json",
     ],
     cta: "Персонал и трудозатраты",
   },
@@ -262,10 +262,10 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ["admin", "lk"],
     maturity: "stable",
     moduleSlugs: ["change-management", "budget-estimates", "payments"],
-    packageSlugs: ["change-control"],
+    packageSlugs: ["finance-contracts"],
     sourceOfTruth: [
       "prohelper/config/ModuleList/features/change-management.json",
-      "prohelper/config/Packages/change-control.json",
+      "prohelper/config/Packages/finance-contracts.json",
     ],
     cta: "Изменения и претензии",
   },
@@ -274,7 +274,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     title: "Отчетность и управленческий контроль",
     businessContour: "Аналитика и контроль",
     summary:
-      "Сводная панель показывает зафиксированные статусы, отклонения и сигналы по проектам, финансам, ресурсам и рабочим потокам.",
+      "Сравнивайте показатели объектов, находите отклонения по срокам и затратам. Отчёты используют данные, которые команда ведёт в МОСТ.",
     publicClaim:
       "Сводная панель показывает доступные данные по проектам, финансам, ресурсам и рабочим процессам.",
     audiences: ["Руководитель", "Собственник", "Финансовый блок"],
@@ -291,11 +291,8 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
       "reports",
       "data-export",
     ],
-    packageSlugs: ["holding-analytics"],
-    sourceOfTruth: [
-      "prohelper/config/Packages/holding-analytics.json",
-      "prohelper_land/src/components/multi-org",
-    ],
+    packageSlugs: [],
+    sourceOfTruth: ["prohelper_land/src/components/multi-org"],
     cta: "Отчётность и контроль",
   },
   {
@@ -315,9 +312,8 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ["holding", "admin", "lk"],
     maturity: "stable",
     moduleSlugs: ["multi-organization", "dashboard-widgets", "data-filters"],
-    packageSlugs: ["holding-analytics"],
+    packageSlugs: [],
     sourceOfTruth: [
-      "prohelper/config/Packages/holding-analytics.json",
       "prohelper_land/src/components/multi-org",
       "prohelper_land/src/HoldingRouter.tsx",
     ],
@@ -325,7 +321,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
   },
   {
     id: "1c-integration",
-    title: "Интеграция с 1С и мастер-данные",
+    title: "Обмен данными с 1С",
     businessContour: "Интеграции и данные",
     summary:
       "Обмен с 1С настраивается для согласованных справочников, документов и направления передачи данных конкретной компании.",
@@ -339,8 +335,8 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     ],
     surfaces: ["admin", "lk"],
     maturity: "early_access",
-    moduleSlugs: ["integrations", "data-filters"],
-    packageSlugs: ["holding-analytics"],
+    moduleSlugs: ["one-c-basic-exchange"],
+    packageSlugs: ["finance-contracts"],
     sourceOfTruth: [
       "prohelper/app/BusinessModules/Addons/Integrations",
       "prohelper/app/Models/OneCIntegrationProfile.php",
@@ -353,7 +349,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     title: "Маркетплейс подрядчиков",
     businessContour: "Подбор исполнителей",
     summary:
-      "Профили, категории, поиск, списки кандидатов, приглашения и предложения поддерживают подбор подрядчика до договорной работы.",
+      "Ищите кандидатов в подключённой сети организаций, сохраняйте списки и направляйте адресные приглашения. Подбор не гарантирует заключение договора.",
     publicClaim:
       "Карточка подбора хранит кандидатов, категории поиска и отправленные приглашения.",
     audiences: ["Генподрядчик", "Руководитель проекта", "Подрядчик"],
@@ -365,7 +361,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ["admin", "lk"],
     maturity: "stable",
     moduleSlugs: ["contractor-marketplace", "contract-management"],
-    packageSlugs: ["objects-execution"],
+    packageSlugs: [],
     sourceOfTruth: [
       "prohelper/app/BusinessModules/Features/ContractorMarketplace",
       "prohelper_land/src/pages/dashboard/contractor-marketplace",
@@ -375,12 +371,12 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
   },
   {
     id: "project-pulse",
-    title: "Project Pulse",
+    title: "Сводка для руководителя",
     businessContour: "Управленческие сигналы",
     summary:
-      "Пилотная функция собирает доступные факты по проектам, снабжению, финансам, людям, графику и заявкам в ежедневную сводку для руководителя.",
+      "Сформируйте сводку за выбранную дату по работам, снабжению, финансам и заявкам. Она помогает выбрать вопросы для проверки руководителем. Пробное внедрение и доступ согласуются отдельно.",
     publicClaim:
-      "Сводка Project Pulse собирает зафиксированные сигналы и связывает каждый сигнал с исходным процессом. Решение и ответственного назначает пользователь.",
+      "Сводка показывает сигналы, источники фактов и рекомендуемые следующие действия. Руководитель проверяет их в рабочих процессах.",
     audiences: [
       "Руководитель строительства",
       "Руководитель проекта",
@@ -389,17 +385,17 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     outcomes: [
       "Сигнал содержит объект и источник зафиксированного факта.",
       "Сводка группирует сигналы для управленческой проверки.",
-      "История хранит назначенное действие, ответственного и результат проверки.",
+      "Сохранённая сводка содержит факты и рекомендации на момент её формирования.",
     ],
     surfaces: ["admin", "lk", "holding"],
     maturity: "early_access",
     moduleSlugs: ["ai-assistant", "dashboard-widgets", "reports"],
-    packageSlugs: ["holding-analytics"],
+    packageSlugs: ["projects-processes"],
     sourceOfTruth: [
       "prohelper/app/BusinessModules/Features/AIAssistant",
       "prohelper/app/BusinessModules/Features/ProjectManagement",
       "prohelper_land/src/components/multi-org",
     ],
-    cta: "Обсудить пилот Project Pulse",
+    cta: "Обсудить пробное внедрение",
   },
 ];

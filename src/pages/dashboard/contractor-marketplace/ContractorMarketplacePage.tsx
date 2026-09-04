@@ -195,6 +195,7 @@ const ContractorMarketplacePage = () => {
       const message = normalizeErrorMessage(error);
       setErrorMessage(message);
       toast.error(message);
+      throw error;
     } finally {
       setIsUploadingDocument(false);
     }
@@ -219,11 +220,11 @@ const ContractorMarketplacePage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Каталог подрядчиков</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Закрытый профиль для сотрудничества с генподрядчиками, входящие предложения и рабочие категории.
+            Подберите подрядчика для объекта, изучите его опыт и предложите работу.
           </p>
         </div>
         <Button variant="outline" onClick={() => void loadInitialData()} disabled={isLoading}>
@@ -256,7 +257,7 @@ const ContractorMarketplacePage = () => {
           defaultValue={canSearchContractors ? 'search' : canViewProfile ? 'profile' : 'incoming'}
           className="space-y-5"
         >
-          <TabsList className="grid w-full grid-cols-2 md:flex md:w-auto">
+          <TabsList aria-label="Разделы каталога подрядчиков" className="grid h-auto w-full grid-cols-2 gap-0 rounded-none border-b border-border bg-transparent p-0 md:flex md:justify-start [&>button]:min-h-12 [&>button]:rounded-none [&>button]:border-b-2 [&>button]:border-transparent [&>button]:px-5 [&>button]:shadow-none [&>button[data-state=active]]:border-primary [&>button[data-state=active]]:bg-transparent [&>button>svg]:h-5 [&>button>svg]:w-5">
             {canSearchContractors && (
               <TabsTrigger value="search" className="gap-2">
                 <Search className="h-4 w-4" />

@@ -12,7 +12,7 @@ import {
   Search, 
   X,
   Wallet, 
-  ShieldCheck, 
+  ArrowUpRight,
   User,
   LogOut,
   Settings
@@ -32,6 +32,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { NotificationBell } from '@/components/dashboard/notifications';
 import { MobileSidebar } from './sidebar';
 import { cn } from '@/lib/utils';
+import type { OrganizationBalance } from '@/utils/api';
 import {
   buildDashboardSearchItems,
   findDashboardSearchItems,
@@ -42,7 +43,7 @@ import {
 interface HeaderProps {
   user: any;
   showBalance?: boolean;
-  balance: any;
+  balance: OrganizationBalance | null;
   balanceError: any;
   refreshBalance: () => void;
   onLogout: () => void;
@@ -152,29 +153,27 @@ export function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="most-workspace-header sticky top-0 z-40 w-full border-b">
       <div className="flex h-16 items-center px-4 sm:px-6 md:px-8">
         <MobileSidebar {...sidebarProps} />
         
-        <div className="ml-4 hidden md:flex md:items-center md:gap-4 lg:gap-6">
+        <div className="hidden shrink-0 2xl:flex 2xl:items-center 2xl:pr-6">
           {/* Breadcrumbs Placeholder - can be made dynamic */}
            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <img src="/logo.svg" alt="" className="h-5 w-5 object-contain" />
-                <span>МОСТ</span>
-                <span>/</span>
+
                 <span className="text-foreground font-medium">
                     Личный кабинет
                 </span>
            </div>
         </div>
 
-        <div className="ml-auto flex items-center space-x-4">
+        <div className="ml-auto flex min-w-0 items-center gap-2 xl:gap-4">
           <div
-            className="relative hidden w-80 md:block xl:w-96"
+            className="relative hidden w-56 min-w-0 xl:block 2xl:w-80"
             onBlur={handleSearchBlur}
           >
             <form onSubmit={handleSearchSubmit}>
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
                 value={searchQuery}
@@ -185,22 +184,22 @@ export function Header({
                 }}
                 onFocus={() => setIsSearchOpen(true)}
                 onKeyDown={handleSearchKeyDown}
-                placeholder="Поиск по кабинету"
+                placeholder="Поиск"
                 aria-label="Поиск по личному кабинету"
                 aria-expanded={isSearchOpen && Boolean(trimmedSearchQuery)}
                 aria-controls="dashboard-search-results"
                 autoComplete="off"
-                className="h-10 rounded-xl border-primary/30 bg-background pl-10 pr-10 text-sm shadow-sm focus-visible:border-primary focus-visible:ring-primary"
+                className="h-11 rounded-md border-input bg-card pl-11 pr-11 shadow-none focus-visible:ring-0"
               />
               {trimmedSearchQuery ? (
                 <button
                   type="button"
-                  className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   aria-label="Очистить поиск"
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={clearSearch}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               ) : null}
             </form>
@@ -237,7 +236,7 @@ export function Header({
                             </div>
                           ) : null}
                         </div>
-                        <ArrowRight className="h-4 w-4 shrink-0" />
+                        <ArrowRight className="h-5 w-5 shrink-0" />
                       </button>
                     ))}
                   </div>
@@ -256,7 +255,7 @@ export function Header({
                         Откроем раздел проектов с этим запросом
                       </div>
                     </div>
-                    <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" />
                   </button>
                 )}
               </div>
@@ -266,7 +265,7 @@ export function Header({
           {showBalance && (
            <Link 
                 to="/dashboard/billing" 
-                className="hidden sm:flex items-center px-3 py-1.5 bg-gradient-to-r from-safety-500/10 to-safety-600/10 hover:from-safety-500/20 hover:to-safety-600/20 border border-safety-200 rounded-lg transition-all group"
+                className="most-workspace-balance hidden shrink-0 items-center gap-3 rounded border border-border bg-card px-3 py-1.5 transition-colors hover:border-foreground/30 hover:bg-accent sm:flex"
                 onClick={(e: any) => {
                   if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
@@ -275,14 +274,15 @@ export function Header({
                 }}
                 title="Ctrl+Click для обновления баланса"
             >
-                <Wallet className="h-4 w-4 mr-2 text-safety-600 group-hover:scale-110 transition-transform" />
+                <Wallet className="h-5 w-5 text-muted-foreground" />
                 <div className="flex flex-col items-start">
-                     <span className="text-[10px] text-muted-foreground leading-none">Баланс</span>
-                     <span className="text-sm font-bold text-safety-700 leading-none mt-1">
+                     <span className="text-xs text-muted-foreground leading-none">Баланс</span>
+                     <span className="mt-0.5 whitespace-nowrap text-base font-semibold leading-snug tabular-nums text-foreground">
                         {balance !== null ? (
                             <>
-                            {balance.balance_formatted}
-                            {balance.currency && <span className="ml-1 text-[10px]">{balance.currency}</span>}
+                            {balance.currency === 'RUB'
+                              ? new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(balance.balance_cents / 100)
+                              : `${balance.balance_formatted} ${balance.currency}`}
                             </>
                         ) : balanceError ? (
                             'Ошибка'
@@ -300,24 +300,24 @@ export function Header({
             </div>
 
              {/* Admin Panel Link */}
-             <Button variant="ghost" size="sm" className="hidden lg:flex text-muted-foreground" asChild>
-                <a href="https://admin.1мост.рф/" target="_blank" rel="noopener noreferrer">
-                    <ShieldCheck className="h-4 w-4 mr-2" />
-                    Админ
+             <Button variant="ghost" size="sm" className="hidden shrink-0 border border-foreground/10 bg-foreground px-4 font-semibold text-background hover:bg-foreground/90 hover:text-background lg:flex" asChild>
+                <a href="https://admin.1мост.рф/" target="_blank" rel="noopener noreferrer" title="Управление строительством — откроется в новой вкладке">
+                    Работа с объектами
+                    <ArrowUpRight aria-hidden="true" className="h-5 w-5 ml-2 shrink-0" />
                 </a>
              </Button>
 
             {/* User Profile Dropdown */}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                    <Button variant="ghost" className="relative h-11 w-11 rounded-full" aria-label="Меню профиля">
                         <Avatar className="h-9 w-9 border">
                             <AvatarImage src={user?.avatar_url} alt={user?.name} />
                             <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
                         </Avatar>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuContent className="most-workspace w-64" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
                             <p className="text-sm font-medium leading-none">{user?.name || 'Пользователь'}</p>
@@ -330,20 +330,20 @@ export function Header({
                     <DropdownMenuGroup>
                         <DropdownMenuItem asChild>
                             <Link to="/dashboard/profile">
-                                <User className="mr-2 h-4 w-4" />
+                                <User className="mr-2 h-5 w-5" />
                                 <span>Мой профиль</span>
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                             <Link to="/dashboard/settings">
-                                <Settings className="mr-2 h-4 w-4" />
+                                <Settings className="mr-2 h-5 w-5" />
                                 <span>Настройки кабинета</span>
                             </Link>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
-                        <LogOut className="mr-2 h-4 w-4" />
+                        <LogOut className="mr-2 h-5 w-5" />
                         <span>Выйти</span>
                     </DropdownMenuItem>
                 </DropdownMenuContent>

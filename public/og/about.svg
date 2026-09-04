@@ -1,65 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="preview-title">
+<title id="preview-title">МОСТ связывает офис и площадку — МОСТ</title>
+<rect width="1200" height="630" fill="#F6F2F1" />
+<style>
+text { font-family: 'IBM Plex Sans', sans-serif; fill: #252721; }
+.brand { font-size: 36px; font-weight: 700; }
+.domain { font-size: 23px; fill: #60645D; }
+.title { font-size: 58px; font-weight: 700; }
+.subtitle { font-size: 27px; fill: #60645D; }
+</style>
+<svg x="64" y="42" width="60" height="48" xmlns="http://www.w3.org/2000/svg" viewBox="18 26 176 140" role="img" aria-labelledby="title desc">
+  <title id="title">Знак МОСТ</title>
+  <desc id="desc">Геометрический знак МОСТ с двумя опорами, диагональными лентами и оранжевой связью</desc>
   <defs>
-    <linearGradient id="panel-about" x1="760" y1="82" x2="1128" y2="548" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#1F2937" />
-      <stop offset="1" stop-color="#0F172A" />
+    <linearGradient id="mark-dark" x1="25" y1="34" x2="183" y2="151" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#07111B"/>
+      <stop offset=".48" stop-color="#0B0F14"/>
+      <stop offset="1" stop-color="#273646"/>
     </linearGradient>
-    <linearGradient id="accent-about" x1="0" y1="0" x2="1" y2="0">
-      <stop stop-color="#B45309" />
-      <stop offset="1" stop-color="#FDE68A" />
-    </linearGradient>
-    <style>
-      .brand { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 0.22em; fill: #111827; }
-      .domain { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.24em; fill: #475569; }
-      .title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 52px; font-weight: 800; fill: #111827; }
-      .subtitle { font-family: 'Segoe UI', Arial, sans-serif; font-size: 25px; font-weight: 600; fill: #475569; }
-      .footer { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 700; fill: #111827; }
-      .panel-title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 0.14em; fill: #F8FAFC; }
-      .panel-copy { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #CBD5E1; }
-      .capability { font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 700; fill: #F8FAFC; }
-      .stamp { font-family: 'Segoe UI', Arial, sans-serif; font-size: 44px; font-weight: 900; letter-spacing: 0.04em; fill: #F8FAFC; opacity: 0.08; }
-    </style>
   </defs>
-  <rect width="1200" height="630" fill="#F8FAFC" />
-  <path d="M696 0H1200V630H620C724 496 751 334 696 0Z" fill="#F1F5F9" />
-  <path d="M82 514H602" stroke="#CBD5E1" stroke-width="1" stroke-opacity="0.6" />
-  <path d="M82 548H528" stroke="#E2E8F0" stroke-width="1" />
-  <circle cx="1046" cy="98" r="142" fill="#B45309" fill-opacity="0.10" />
-  <circle cx="1002" cy="520" r="186" fill="#FDE68A" fill-opacity="0.18" />
-  <rect x="760" y="78" width="368" height="474" rx="34" fill="url(#panel-about)" />
-  <path d="M814 158H1080" stroke="#FDE68A" stroke-width="2" stroke-opacity="0.35" />
-  <text x="802" y="144" class="panel-title">ЕДИНЫЙ КОНТУР</text>
-  <text x="802" y="184" class="panel-copy">для строительных процессов</text>
-  <g>
-    <rect x="802" y="222" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#FDE68A" stroke-opacity="0.18" />
-    <circle cx="830" cy="246" r="5" fill="#FDE68A" />
-    <text x="850" y="253" class="capability">Объекты</text>
-  </g>
-<g>
-    <rect x="802" y="286" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#FDE68A" stroke-opacity="0.18" />
-    <circle cx="830" cy="310" r="5" fill="#FDE68A" />
-    <text x="850" y="317" class="capability">Снабжение</text>
-  </g>
-<g>
-    <rect x="802" y="350" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#FDE68A" stroke-opacity="0.18" />
-    <circle cx="830" cy="374" r="5" fill="#FDE68A" />
-    <text x="850" y="381" class="capability">Документы</text>
-  </g>
-<g>
-    <rect x="802" y="414" width="300" height="48" rx="16" fill="#FFFFFF" fill-opacity="0.08" stroke="#FDE68A" stroke-opacity="0.18" />
-    <circle cx="830" cy="438" r="5" fill="#FDE68A" />
-    <text x="850" y="445" class="capability">Финансы</text>
-  </g>
-  <text x="798" y="520" class="stamp">МОСТ</text>
-  <rect x="82" y="86" width="228" height="48" rx="24" fill="#B45309" />
-  <text x="108" y="117" class="brand" fill="#FFFFFF">О ПРОДУКТЕ</text>
-  <text x="336" y="117" class="domain">МОСТ</text>
-  <text x="82" y="214" class="title">МОСТ собирает строительные</text>
-<text x="82" y="278" class="title">процессы в один контур</text>
-  <text x="82" y="370" class="subtitle">Подход к запуску, роли продукта и управляемая</text>
-<text x="82" y="408" class="subtitle">цифровизация</text>
-  <rect x="82" y="468" width="254" height="7" rx="3.5" fill="url(#accent-about)" />
-  <text x="82" y="536" class="footer">Объекты, документы, команда и финансы в одной системе</text>
-  <text x="82" y="572" class="domain">МОСТ</text>
+  <path d="M0 0 C2.64 0 5.28 0 8 0 C9.65 1.65 11.3 3.3 13 5 C13 34.37 13 63.74 13 94 C12.67 94.33 12.34 94.66 12 95 C5.07 95 -1.86 95 -9 95 C-9.33 94.67 -9.66 94.34 -10 94 C-10 75.52 -10 57.04 -10 38 C-16.27 42.29 -22.54 46.58 -29 51 C-33.95 54.63 -38.9 58.26 -44 62 C-49.61 65.96 -55.22 69.92 -61 74 C-63.475 74.495 -63.475 74.495 -66 75 C-66 66.09 -66 57.18 -66 48 C-62.7 45.36 -59.4 42.72 -56 40 C-49.4 35.38 -42.8 30.76 -36 26 C-30.06 21.71 -24.12 17.42 -18 13 C-12.39 9.04 -6.78 5.08 -1 1 C-0.67 0.67 -0.34 0.34 0 0 Z" transform="translate(174 34)" fill="url(#mark-dark)"/>
+  <path d="M0 0 C2.64 0 5.28 0 8 0 C12.62 3.3 17.24 6.6 22 10 C27.94 14.29 33.88 18.58 40 23 C46.93 27.95 46.93 27.95 54 33 C59.94 37.29 65.88 41.58 72 46 C72.66 46.66 73.32 47.32 74 48 C74 56.91 74 65.82 74 75 C72.35 74.67 70.7 74.34 69 74 C63.72 70.04 58.44 66.08 53 62 C45.08 56.555 45.08 56.555 37 51 C31.39 47.04 25.78 43.08 20 39 C18.35 38.67 16.7 38.34 15 38 C8.73 33.38 2.46 28.76 -4 24 C-4 17.4 -4 10.8 -4 4 C-2.68 2.68 -1.36 1.36 0 0 Z" transform="translate(30 34)" fill="url(#mark-dark)"/>
+  <path d="M0 0 C3.465 1.98 3.465 1.98 7 4 C12.28 7.96 17.56 11.92 23 16 C23 32.5 23 49 23 66 C22.01 66.495 22.01 66.495 21 67 C14.4 67 7.8 67 1 67 C0.67 66.67 0.34 66.34 0 66 C0 44.22 0 22.44 0 0 Z" transform="translate(26 62)" fill="url(#mark-dark)"/>
+  <path d="M0 0 C6.6 0 13.2 0 20 0 C20.66 0.33 21.32 0.66 22 1 C22 4.3 22 7.6 22 11 C59.95 11 97.9 11 137 11 C137 7.7 137 4.4 137 1 C137.33 0.67 137.66 0.34 138 0 C144.93 0 151.86 0 159 0 C159.33 0.33 159.66 0.66 160 1 C160 8.59 160 16.18 160 24 C159.67 24.33 159.34 24.66 159 25 C152.07 25 145.14 25 138 25 C137.67 24.67 137.34 24.34 137 24 C137 21.03 137 18.06 137 15 C99.05 15 61.1 15 22 15 C22 17.97 22 20.94 22 24 C21.67 24.33 21.34 24.66 21 25 C14.07 25 7.14 25 0 25 C-0.66 24.67 -1.32 24.34 -2 24 C-2 16.74 -2 9.48 -2 2 C-1.34 1.34 -0.68 0.68 0 0 Z" transform="translate(27 135)" fill="#FF8A00"/>
+</svg>
+
+<text x="138" y="80" class="brand">МОСТ</text>
+<text x="1136" y="77" class="domain" text-anchor="end">1мост.рф</text>
+<text x="64" y="196" class="title">МОСТ связывает</text>
+<text x="64" y="266" class="title">офис и площадку</text>
+<text x="64" y="328" class="subtitle">Ежедневная работа на объекте становится основой решений.</text>
+<g stroke="#60645D" stroke-width="2" fill="none" stroke-linejoin="round">
+  <path d="M64 527V471H286V527M64 497H286M64 521H286M96 471V527M154 471V527M220 471V527M272 471V527" />
+  <path d="M96 471V456M154 471V456M220 471V456M272 471V456" />
+  <path d="M140 469V420H290L176 400V469M140 420L176 400M176 420L206 410M206 420L232 414M257 420L232 414M140 443L176 420M140 443L176 464M279 420V450M274 450H284" />
+  <path d="M880 527V443H1136V527M880 469H1136M880 495H1136M880 521H1136M910 443V527M944 443V527M978 443V527M1012 443V527M1046 443V527M1080 443V527M1114 443V527" />
+  <path d="M880 443L914 425H1136M914 425V443" />
+</g>
+<path d="M450 536V613M450 536L600 613L750 536V613" stroke="#252721" stroke-width="9" fill="none" stroke-linejoin="miter" />
+<path d="M64 531H1136" stroke="#F16A28" stroke-width="5" />
+<path d="M441 614H459M741 614H759" stroke="#F16A28" stroke-width="5" />
 </svg>

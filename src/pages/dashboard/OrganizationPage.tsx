@@ -55,6 +55,21 @@ const getSaveErrorMessage = (error: unknown): string => {
     : defaultSaveErrorMessage;
 };
 
+const organizationFormValues = (organization: Organization): OrganizationUpdateData => ({
+  name: organization.name || "",
+  legal_name: organization.legal_name || "",
+  tax_number: organization.tax_number || "",
+  registration_number: organization.registration_number || "",
+  okpo: organization.okpo || "",
+  phone: organization.phone || "",
+  email: organization.email || "",
+  address: organization.address || "",
+  city: organization.city || "",
+  postal_code: organization.postal_code || "",
+  country: organization.country || "Россия",
+  description: organization.description || "",
+});
+
 const OrganizationPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -83,21 +98,7 @@ const OrganizationPage = () => {
         setOrganization(response.data.organization);
         setRecommendations(response.data.recommendations);
         setUserMessage(response.data.user_message);
-        setFormData({
-          name: response.data.organization.name || "",
-          legal_name: response.data.organization.legal_name || "",
-          tax_number: response.data.organization.tax_number || "",
-          registration_number:
-            response.data.organization.registration_number || "",
-          okpo: response.data.organization.okpo || "",
-          phone: response.data.organization.phone || "",
-          email: response.data.organization.email || "",
-          address: response.data.organization.address || "",
-          city: response.data.organization.city || "",
-          postal_code: response.data.organization.postal_code || "",
-          country: response.data.organization.country || "Россия",
-          description: response.data.organization.description || "",
-        });
+        setFormData(organizationFormValues(response.data.organization));
       }
     } catch (error) {
       toast.error("Не удалось загрузить данные организации");
@@ -230,14 +231,14 @@ const OrganizationPage = () => {
           variant={userMessage.type === "error" ? "destructive" : "default"}
           className={
             userMessage.type === "success"
-              ? "border-green-500 text-green-700 bg-green-50"
+              ? "border-border bg-card text-foreground [&>svg]:text-emerald-700"
               : userMessage.type === "warning"
                 ? "border-yellow-500 text-yellow-700 bg-yellow-50"
                 : ""
           }
         >
           {userMessage.type === "success" ? (
-            <CheckCircle className="h-4 w-4" />
+            <CheckCircle className="h-5 w-5" aria-hidden="true" />
           ) : userMessage.type === "warning" ? (
             <AlertTriangle className="h-4 w-4" />
           ) : userMessage.type === "error" ? (
@@ -246,7 +247,7 @@ const OrganizationPage = () => {
             <Info className="h-4 w-4" />
           )}
           <AlertTitle className="ml-2">{userMessage.title}</AlertTitle>
-          <AlertDescription className="ml-2">
+          <AlertDescription className={userMessage.type === "success" ? "ml-2 text-muted-foreground" : "ml-2"}>
             {userMessage.message}
             {userMessage.action === "verify" && (
               <div className="mt-3">
@@ -268,6 +269,7 @@ const OrganizationPage = () => {
                   size="sm"
                   variant="outline"
                   onClick={() => {
+                    setFormData(organizationFormValues(organization));
                     setSaveError(null);
                     setIsEditing(true);
                   }}
@@ -299,7 +301,7 @@ const OrganizationPage = () => {
             <div className="flex flex-col items-end gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Статус:</span>
-                <Badge variant={getStatusVariant(recommendations.status)}>
+                <Badge variant={getStatusVariant(recommendations.status)} className={getStatusVariant(recommendations.status) === "default" ? "border-border bg-secondary text-foreground" : undefined}>
                   {getStatusLabel(recommendations.status_text)}
                 </Badge>
               </div>
@@ -329,6 +331,7 @@ const OrganizationPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => {
+                  setFormData(organizationFormValues(organization));
                   setSaveError(null);
                   setIsEditing(true);
                 }}

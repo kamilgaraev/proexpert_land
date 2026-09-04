@@ -158,7 +158,7 @@ export interface UserInvitation {
   name: string;
   role_slugs: string[];
   role_names: string[];
-  status: 'pending' | 'accepted' | 'expired';
+  status: 'pending' | 'accepted' | 'expired' | 'cancelled';
   status_text: string;
   status_color: string;
   expires_at: string;
@@ -308,7 +308,8 @@ export const useUserManagement = () => {
     email: string;
     name: string;
     role_slugs: string[];
-    metadata?: Record<string, any>;
+    custom_role_ids?: number[];
+    metadata?: Record<string, unknown>;
   }) => {
     try {
       setLoading(true);

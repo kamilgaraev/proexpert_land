@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { StrictMode } from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 
@@ -88,13 +88,95 @@ afterAll(() => {
   server.close();
 });
 
-const renderPage = (initialData: BlogIndexInitialData, initialEntry = '/blog') => render(
-  <StrictMode>
-    <MemoryRouter initialEntries={[initialEntry]}>
-      <BlogPublicPage initialData={initialData} />
-    </MemoryRouter>
-  </StrictMode>,
-);
+const renderPage = (initialData: BlogIndexInitialData, initialEntry = '/blog') => {
+  const result = render(<StrictMode><MemoryRouter initialEntries={[initialEntry]}><BlogPublicPage initialData={initialData} /></MemoryRouter></StrictMode>);
+  result.container.querySelector('details')?.setAttribute('open', '');
+  return result;
+};
+
+const HistoryControls = () => {
+  const navigate = useNavigate();
+  return <><button onClick={() => navigate(-1)}>Назад</button><button onClick={() => navigate(1)}>Вперёд</button></>;
+};
+
+describe('BlogPublicPage URL pages', () => {
+  it('keeps unavailable SSR data noindex during hydration and clears it after a successful retry', async () => {
+    renderPage({ articles: [], categories: [category], pagination: { current_page: 1, last_page: 1, per_page: 12, total: 0 }, articlesLoaded: false, categoriesLoaded: true, queryKey: BASE_QUERY_KEY, unavailable: true });
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toContain('noindex');
+    await screen.findByRole('heading', { name: article.title });
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).not.toContain('noindex');
+  });
+
+  it('keeps failed article requests noindex instead of declaring an empty successful page', async () => {
+    server.use(http.get(apiUrl('/api/v1/blog/articles'), () => new HttpResponse(null, { status: 503 })));
+    renderPage({ articles: [], categories: [category], pagination: { current_page: 1, last_page: 1, per_page: 12, total: 0 }, articlesLoaded: false, categoriesLoaded: true, queryKey: BASE_QUERY_KEY, unavailable: true });
+    await screen.findByText('Не удалось загрузить статьи. Попробуйте обновить страницу позже.');
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toContain('noindex');
+    expect(screen.queryByRole('heading', { name: 'Статьи не найдены' })).toBeNull();
+  });
+  it('restores the requested page through browser history without appending old results', async () => {
+    const pages: string[] = [];
+    server.use(http.get(apiUrl('/api/v1/blog/articles'), ({ request }) => {
+      const page = new URL(request.url).searchParams.get('page') || '1';
+      pages.push(page);
+      return HttpResponse.json({ success: true, data: { data: [{ ...article, title: `История ${page}` }], meta: { current_page: Number(page), last_page: 2, per_page: 12, total: 13 } } });
+    }));
+    render(<MemoryRouter initialEntries={['/blog?page=2']}><HistoryControls /><BlogPublicPage initialData={{ articles: [article], categories: [category], pagination: { current_page: 2, last_page: 2, per_page: 12, total: 13 }, articlesLoaded: true, categoriesLoaded: true, queryKey: 'category=&search=&page=2' }} /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('link', { name: 'Предыдущая' }));
+    await screen.findByRole('heading', { name: 'История 1' });
+    fireEvent.click(screen.getByRole('button', { name: 'Назад' }));
+    await screen.findByRole('heading', { name: 'История 2' });
+    expect(screen.queryByRole('heading', { name: 'История 1' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Вперёд' }));
+    await screen.findByRole('heading', { name: 'История 1' });
+    expect(pages).toEqual(['1', '2', '1']);
+  });
+
+  it('shows a catalogue failure rather than an endless loader or an unfiltered list', async () => {
+    server.use(http.get(apiUrl('/api/v1/blog/categories'), () => new HttpResponse(null, { status: 503 })));
+    renderPage({ articles: [], categories: [], pagination: { current_page: 1, last_page: 1, per_page: 12, total: 0 }, articlesLoaded: false, categoriesLoaded: false, queryKey: 'category=management&search=&page=1' }, '/blog?category=management');
+    await screen.findByText('Не удалось загрузить категории. Попробуйте обновить страницу позже.');
+    expect(requests.articles).toBe(0);
+    expect(screen.queryByRole('heading', { name: 'Статьи не найдены' })).not.toBeInTheDocument();
+  });
+  it('hydrates page 2 without a duplicate request and renders real previous/next URLs', async () => {
+    renderPage({ articles: [article], categories: [category], pagination: { current_page: 2, last_page: 3, per_page: 12, total: 30 }, articlesLoaded: true, categoriesLoaded: true, queryKey: 'category=&search=&page=2' }, '/blog?page=2');
+    expect(screen.getByRole('heading', { name: article.title })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Предыдущая' })).toHaveAttribute('href', '/blog');
+    expect(screen.getByRole('link', { name: 'Следующая' })).toHaveAttribute('href', '/blog?page=3');
+    await act(async () => { await Promise.resolve(); });
+    expect(requests.articles).toBe(0);
+    expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute('href', 'https://1мост.рф/blog?page=2');
+  });
+
+  it('replaces the list on next and previous navigation while preserving filters', async () => {
+    const pages: string[] = [];
+    server.use(http.get(apiUrl('/api/v1/blog/articles'), ({ request }) => {
+      const params = new URL(request.url).searchParams;
+      const page = params.get('page') || '1';
+      pages.push(page);
+      expect(params.get('search')).toBe('budget');
+      expect(params.get('category_id')).toBe('7');
+      return HttpResponse.json({ success: true, data: { data: [{ ...article, title: `Материал страницы ${page}` }], meta: { current_page: Number(page), last_page: 2, per_page: 12, total: 13 } } });
+    }));
+    renderPage({ articles: [article], categories: [category], pagination: { current_page: 1, last_page: 2, per_page: 12, total: 13 }, articlesLoaded: true, categoriesLoaded: true, queryKey: 'category=management&search=budget&page=1' }, '/blog?category=management&search=budget');
+    fireEvent.click(screen.getByRole('link', { name: 'Следующая' }));
+    await screen.findByRole('heading', { name: 'Материал страницы 2' });
+    expect(screen.queryByRole('heading', { name: article.title })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('link', { name: 'Предыдущая' }));
+    await screen.findByRole('heading', { name: 'Материал страницы 1' });
+    expect(pages).toEqual(['2', '1']);
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toContain('noindex');
+  });
+
+  it('rejects an invalid page without showing stale SSR content or requesting page 1', async () => {
+    renderPage({ articles: [article], categories: [category], pagination: { current_page: 1, last_page: 1, per_page: 12, total: 1 }, articlesLoaded: true, categoriesLoaded: true, queryKey: BASE_QUERY_KEY }, '/blog?page=invalid');
+    expect(screen.getByRole('heading', { name: 'Страница не найдена' })).toBeVisible();
+    expect(screen.queryByRole('heading', { name: article.title })).not.toBeInTheDocument();
+    await act(async () => { await Promise.resolve(); });
+    expect(requests.articles).toBe(0);
+  });
+});
 
 describe('BlogPublicPage SSR hydration', () => {
   it('includes the initial article link in server-rendered HTML', () => {
@@ -222,7 +304,7 @@ describe('BlogPublicPage SSR hydration', () => {
     expect(requests.categories).toBe(1);
   });
 
-  it('requests page 1 when the URL contains a search query and stale page number', async () => {
+  it('requests the exact page and search from the URL', async () => {
     const observedQueries: Array<{ page: string | null; search: string | null }> = [];
 
     server.use(
@@ -254,7 +336,9 @@ describe('BlogPublicPage SSR hydration', () => {
     }, '/blog?search=budget&page=4');
 
     await waitFor(() => expect(requests.articles).toBe(1));
-    expect(observedQueries).toEqual([{ page: '1', search: 'budget' }]);
+    expect(observedQueries).toEqual([{ page: '4', search: 'budget' }]);
+    await screen.findByRole('heading', { name: 'Страница не найдена' });
+    expect(screen.queryByRole('heading', { name: article.title })).not.toBeInTheDocument();
   });
 
   it('keeps the newest category response when an older request resolves last', async () => {
@@ -333,7 +417,7 @@ describe('BlogPublicPage SSR hydration', () => {
     expect(requestedPages).toEqual(['1', '1']);
   });
 
-  it('loads page 2 after reloading a URL that contains a stale page number', async () => {
+  it('restores page 2 instead of accumulating page 1 articles after reload', async () => {
     const requestedPages: string[] = [];
     const nextArticle = {
       ...article,
@@ -365,9 +449,7 @@ describe('BlogPublicPage SSR hydration', () => {
       articlesLoaded: true,
       categoriesLoaded: true,
       queryKey: BASE_QUERY_KEY,
-    }, '/blog?page=4');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Показать еще' }));
+    }, '/blog?page=2');
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: nextArticle.title })).toBeVisible();

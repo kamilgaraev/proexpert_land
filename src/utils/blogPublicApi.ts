@@ -80,10 +80,14 @@ export const blogPublicApi = {
     params.append('status', 'published');
     if (filters?.category_id) params.append('category_id', filters.category_id.toString());
     if (filters?.search) params.append('search', filters.search);
+    if (filters?.tag_slug) params.append('tag_slug', filters.tag_slug);
     if (filters?.per_page) params.append('per_page', filters.per_page.toString());
     if (filters?.page) params.append('page', filters.page.toString());
 
     const response = await api.get(`/articles?${params.toString()}`);
+    if (filters?.tag_slug && response.data?.success !== true) {
+      throw new Error('Invalid blog tag response');
+    }
 
     return normalizeArticleCollectionPayload(
       unwrapCollectionPayload<BlogArticle>(response as { data: LandingEnvelope<WrappedCollectionPayload<BlogArticle>> }),
@@ -112,6 +116,19 @@ export const blogPublicApi = {
 
   getCategories: async (): Promise<ApiResult<WrappedItemPayload<BlogCategory[]>>> => {
     const response = await api.get('/categories');
+    const payload = response.data;
+    const categories = Array.isArray(payload?.data) ? payload.data : payload?.data?.data;
+    if (
+      payload?.success !== true ||
+      !Array.isArray(categories) ||
+      categories.some((category: unknown) => {
+        if (!category || typeof category !== 'object') return true;
+        const value = category as Partial<BlogCategory>;
+        return typeof value.slug !== 'string' || typeof value.name !== 'string' || typeof value.is_active !== 'boolean';
+      })
+    ) {
+      throw new Error('Invalid blog category response');
+    }
 
     const result = wrapResourceCollectionPayload<BlogCategory>(
       response as { data: LandingEnvelope<{ data: BlogCategory[] }> },

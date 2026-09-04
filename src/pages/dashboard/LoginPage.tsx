@@ -5,7 +5,6 @@ import {
   Eye, 
   EyeOff, 
   ArrowRight, 
-  ShieldCheck, 
   User, 
   Lock,
   AlertTriangle
@@ -15,9 +14,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EmailVerificationModal } from '@/components/dashboard/EmailVerificationModal';
+import '@/styles/auth.css';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
+  const location = useLocation();
+  const [email, setEmail] = useState(() => typeof location.state?.email === 'string' ? location.state.email : '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -27,9 +28,18 @@ const LoginPage = () => {
   
   const { login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  const from = location.state?.from?.pathname || '/dashboard';
+  const requestedLocation = location.state?.from;
+  const requestedPath = requestedLocation?.pathname;
+  const from = typeof requestedPath === 'string'
+    && requestedPath.startsWith('/')
+    && !requestedPath.startsWith('//')
+    && !requestedPath.includes('\\')
+    ? {
+        pathname: requestedPath,
+        search: typeof requestedLocation.search === 'string' ? requestedLocation.search : '',
+        hash: typeof requestedLocation.hash === 'string' ? requestedLocation.hash : '',
+      }
+    : '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,38 +80,33 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#fff_0%,#fff8f1_46%,#f8fafc_100%)] flex items-center justify-center p-4 lg:p-8">
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute left-[8%] top-[10%] h-72 w-72 rounded-full bg-orange-200/35 blur-3xl" />
-        <div className="absolute bottom-[8%] right-[10%] h-80 w-80 rounded-full bg-sky-100/60 blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.94),rgba(255,255,255,0.78)_42%,rgba(248,250,252,0.96)_100%)]" />
-      </div>
+    <div className="most-workspace most-auth-page most-auth-login">
+      <header className="most-auth-login-header">
+        <Link to="/" aria-label="МОСТ — главная"><img src="/logo.svg" alt="" /><span>МОСТ</span></Link>
+        <Link to="/register">Создать аккаунт <ArrowRight aria-hidden="true" /></Link>
+      </header>
 
       <motion.div 
-        className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-card border rounded-3xl shadow-2xl overflow-hidden relative z-10"
-        initial={{ opacity: 0, y: 20 }}
+        className="most-auth-shell most-auth-shell--split"
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         
         {/* Left Panel - Form */}
-        <div className="p-8 lg:p-16 flex flex-col justify-center">
+        <div className="most-auth-content flex flex-col justify-center">
           <div className="mb-8">
-            <Link to="/" className="inline-flex items-center mb-8 gap-3 transition-opacity hover:opacity-80">
-              <img src="/logo.svg" alt="" className="h-12 w-12 object-contain" />
-              <span className="text-2xl font-extrabold tracking-tight text-foreground">МОСТ</span>
-            </Link>
-            
             <h1 className="text-3xl lg:text-4xl font-bold tracking-tight mb-3">
-              С возвращением
+              Вход в МОСТ
             </h1>
             <p className="text-muted-foreground text-lg">
-              Введите свои данные для входа в систему
+              К проектам, команде и работе на объекте.
             </p>
           </div>
 
           {error && (
             <motion.div 
+              role="alert"
               className="mb-6 bg-destructive/10 border border-destructive/20 rounded-xl p-4 flex gap-3 items-start text-destructive"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -160,7 +165,7 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="most-auth-options">
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
@@ -181,7 +186,7 @@ const LoginPage = () => {
 
             <Button 
               type="submit" 
-              className="w-full h-12 text-base shadow-lg shadow-primary/20" 
+              className="w-full h-12 text-base"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -206,34 +211,13 @@ const LoginPage = () => {
           </div>
         </div>
 
-        {/* Right Panel - Visuals */}
-        <div className="hidden lg:flex bg-muted relative overflow-hidden p-12 flex-col justify-between">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-orange-600 mix-blend-multiply z-10" />
-            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2531&auto=format&fit=crop')] bg-cover bg-center grayscale opacity-50 z-0" />
-            
-            <div className="relative z-20 text-white mt-12">
-                <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-8">
-                    <ShieldCheck className="h-8 w-8 text-white" />
-                </div>
-                <h2 className="text-4xl font-bold mb-6 leading-tight">
-                    Строим будущее<br/>вместе с вами
-                </h2>
-                <p className="text-white/80 text-lg max-w-md leading-relaxed">
-                    Полный контроль над строительными проектами, финансами и командой в единой экосистеме МОСТ.
-                </p>
-            </div>
-
-            <div className="relative z-20 grid grid-cols-2 gap-4 mt-auto">
-                <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20">
-                    <div className="text-3xl font-bold text-white mb-1">15+</div>
-                    <div className="text-white/70 text-sm">Инструментов управления</div>
-                </div>
-                <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20">
-                    <div className="text-3xl font-bold text-white mb-1">24/7</div>
-                    <div className="text-white/70 text-sm">Поддержка и доступность</div>
-                </div>
-            </div>
-        </div>
+        <aside className="most-auth-brand-panel">
+          <div className="most-auth-brand-copy">
+            <h2>Между офисом<br />и стройкой — МОСТ.</h2>
+            <p>Один объект. Общая работа.</p>
+          </div>
+          <img className="most-auth-brand-scene" src="/images/marketing/most-bridge-v2-1774.webp" alt="Мост соединяет строительную площадку и офис" width="1774" height="887" />
+        </aside>
 
       </motion.div>
 

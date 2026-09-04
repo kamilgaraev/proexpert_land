@@ -37,9 +37,9 @@ const LineChart: React.FC<LineChartProps> = ({ labels, values, title }) => {
       {
         label: title,
         data: values,
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59,130,246,0.2)',
-        tension: 0.4,
+        borderColor: '#ae4612',
+        backgroundColor: 'rgba(174,70,18,0.08)',
+        tension: 0,
         fill: true,
       },
     ],
@@ -48,6 +48,7 @@ const LineChart: React.FC<LineChartProps> = ({ labels, values, title }) => {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: false as const,
     plugins: {
       legend: {
         display: false,
@@ -89,9 +90,15 @@ const LineChart: React.FC<LineChartProps> = ({ labels, values, title }) => {
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
       {title && <h3 className="mb-4 text-sm font-medium text-steel-600">{title}</h3>}
-      <div className="relative min-h-0 flex-1">
-        <Line data={data} options={options} />
-      </div>
+      {values.length === 0 ? (
+        <p className="my-auto text-center text-sm text-muted-foreground">Нет данных за выбранный период</p>
+      ) : values.every(value => value === 0) ? (
+        <p className="my-auto text-center text-sm text-muted-foreground">За выбранный период все значения равны нулю</p>
+      ) : (
+        <div className="relative min-h-0 min-w-0 flex-1">
+          <Line data={data} options={options} role="img" aria-label={title || 'Изменение показателя по периодам'} />
+        </div>
+      )}
     </div>
   );
 };

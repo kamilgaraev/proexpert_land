@@ -17,6 +17,14 @@ const getGraphTypes = (structuredDataTag: string) =>
   parseStructuredDataGraph(structuredDataTag)['@graph'].map((node) => node['@type']);
 
 describe('buildServerSeoPayload', () => {
+  it('preserves an explicit paginated canonical in SSR and structured data', () => {
+    const payload = buildServerSeoPayload('/blog', { canonicalUrl: 'https://1мост.рф/blog?page=2#feed' });
+    expect(payload.canonicalUrl).toBe('https://1мост.рф/blog?page=2');
+    expect(payload.allMeta).toContain('content="https://1мост.рф/blog?page=2"');
+    expect(parseStructuredDataGraph(payload.structuredDataTag)['@graph'].find((node) => node['@type'] === 'CollectionPage')?.url).toBe('https://1мост.рф/blog?page=2');
+    const automatic = buildServerSeoPayload('/features?utm_source=tracking#details');
+    expect(automatic.canonicalUrl).toBe('https://1мост.рф/features');
+  });
   it('renders home SEO payload with faq schema and home og image', () => {
     const payload = buildServerSeoPayload('/');
 
