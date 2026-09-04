@@ -533,6 +533,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
         title: "От записи прораба к проверенному факту по объекту",
         description:
           "Команда фиксирует день один раз, а связанные данные остаются доступны ПТО и руководителю.",
+        note: "Записи связаны с объектом, датой и ответственными сотрудниками.",
         metrics: [
           {
             label: "Площадка",
