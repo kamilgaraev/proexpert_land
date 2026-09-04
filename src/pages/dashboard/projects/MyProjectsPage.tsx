@@ -15,23 +15,30 @@ export const MyProjectsPage = () => {
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') ?? '');
   const [activeTab, setActiveTab] = useState('my_projects');
 
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
   useEffect(() => {
+    let active = true;
     const fetchProjects = async () => {
+      setIsLoading(true);
+      setLoadError(false);
       try {
-        setIsLoading(true);
         const response = await api.get('/my-projects');
-        const responseData = response.data as any;
-        const projectsData = responseData.data?.projects || responseData.data || [];
-        setProjects(projectsData);
-      } catch (error) {
-        console.error('Ошибка загрузки проектов:', error);
+        const responseData = response.data as { data?: ProjectOverview[] | { projects?: ProjectOverview[] } };
+        const data = responseData.data;
+        const projectsData = Array.isArray(data) ? data : data?.projects;
+        if (!Array.isArray(projectsData)) throw new Error('Invalid projects response');
+        if (active) setProjects(projectsData);
+      } catch {
+        if (active) setLoadError(true);
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     };
-
-    fetchProjects();
-  }, []);
+    void fetchProjects();
+    return () => { active = false; };
+  }, [attempt]);
 
   useEffect(() => {
     setSearchTerm(searchParams.get('search') ?? '');
@@ -70,8 +77,8 @@ export const MyProjectsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 pb-20 md:p-8">
-      <div className="mx-auto max-w-6xl space-y-7">
+    <div className="most-workspace-projects">
+      <div className="space-y-7">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Проекты</h1>
@@ -80,28 +87,28 @@ export const MyProjectsPage = () => {
             </p>
           </div>
           <Button 
-            className="h-11 rounded-xl bg-primary px-5 font-semibold text-primary-foreground shadow-[0_12px_28px_rgba(249,115,22,0.22)] transition-all hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_16px_34px_rgba(249,115,22,0.28)]"
+            className="h-11 rounded-md bg-primary px-5 font-semibold text-primary-foreground shadow-none hover:bg-primary/90"
             onClick={() => {
               window.location.href = 'https://admin.1мост.рф/projects/create';
             }}
           >
-            <PlusIcon className="mr-2 h-4 w-4" />
+            <PlusIcon aria-hidden="true" className="mr-2 h-5 w-5" />
             Создать проект
           </Button>
         </div>
 
-        <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-4 border-b border-border pb-5 xl:flex-row xl:items-center xl:justify-between">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
-            <TabsList className="grid h-11 w-full grid-cols-2 rounded-xl bg-slate-100 p-1 md:flex md:w-auto">
+            <TabsList className="grid h-11 w-full grid-cols-2 rounded-md bg-muted p-1 md:flex md:w-auto">
               <TabsTrigger
                 value="my_projects"
-                className="h-full rounded-lg px-5 font-semibold text-slate-600 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                className="h-full rounded px-5 font-medium text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-none"
               >
                 Мои проекты
               </TabsTrigger>
               <TabsTrigger
                 value="participating"
-                className="h-full rounded-lg px-5 font-semibold text-slate-600 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                className="h-full rounded px-5 font-medium text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-none"
               >
                 Я участвую
               </TabsTrigger>
@@ -109,24 +116,31 @@ export const MyProjectsPage = () => {
           </Tabs>
 
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search aria-hidden="true" className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Поиск проектов..."
+              aria-label="Поиск проектов по названию или адресу"
+              placeholder="Название или адрес"
               value={searchTerm}
               onChange={(e) => handleSearchTermChange(e.target.value)}
-              className="h-11 rounded-xl border-slate-200 bg-white pl-10 text-sm focus-visible:ring-primary"
+              className="h-11 rounded-md border-input bg-card pl-11 shadow-none focus-visible:ring-0"
             />
           </div>
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 2xl:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-[340px] animate-pulse rounded-2xl border border-slate-200 bg-white" />
+              <div key={i} className="h-[340px] animate-pulse rounded-lg border border-border bg-card" />
             ))}
           </div>
+        ) : loadError ? (
+          <div role="alert" className="rounded-lg border border-border bg-card p-6">
+            <h2 className="most-workspace-heading">Не удалось загрузить проекты</h2>
+            <p className="my-3 text-muted-foreground">Проверьте подключение и попробуйте ещё раз.</p>
+            <Button variant="outline" onClick={() => setAttempt(value => value + 1)}>Повторить загрузку</Button>
+          </div>
         ) : filteredProjects.length > 0 ? (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 2xl:grid-cols-3">
             {filteredProjects.map((project) => (
               <ProjectCard
                 key={project.id}
@@ -136,7 +150,7 @@ export const MyProjectsPage = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center">
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border px-5 py-16 text-center">
             <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 text-slate-300">
               <FolderIcon className="h-10 w-10" />
             </div>
