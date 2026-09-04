@@ -17,7 +17,8 @@ import { EmailVerificationModal } from '@/components/dashboard/EmailVerification
 import '@/styles/auth.css';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
+  const location = useLocation();
+  const [email, setEmail] = useState(() => typeof location.state?.email === 'string' ? location.state.email : '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -27,9 +28,18 @@ const LoginPage = () => {
   
   const { login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  const from = location.state?.from?.pathname || '/dashboard';
+  const requestedLocation = location.state?.from;
+  const requestedPath = requestedLocation?.pathname;
+  const from = typeof requestedPath === 'string'
+    && requestedPath.startsWith('/')
+    && !requestedPath.startsWith('//')
+    && !requestedPath.includes('\\')
+    ? {
+        pathname: requestedPath,
+        search: typeof requestedLocation.search === 'string' ? requestedLocation.search : '',
+        hash: typeof requestedLocation.hash === 'string' ? requestedLocation.hash : '',
+      }
+    : '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
