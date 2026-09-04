@@ -1,4 +1,6 @@
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Send } from 'lucide-react';
 import { UserInvitation } from '../../../hooks/useUserManagement';
 
 interface InvitationsListProps {
@@ -12,13 +14,13 @@ const InvitationsList: React.FC<InvitationsListProps> = ({ invitations, loading,
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-secondary text-foreground';
       case 'accepted':
-        return 'bg-green-100 text-green-800';
+        return 'bg-secondary text-foreground';
       case 'expired':
-        return 'bg-red-100 text-red-800';
+        return 'bg-secondary text-muted-foreground';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-secondary text-foreground';
     }
   };
 
@@ -40,14 +42,14 @@ const InvitationsList: React.FC<InvitationsListProps> = ({ invitations, loading,
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Приглашения</h2>
           <p className="text-sm text-gray-600">Отслеживайте статус отправленных приглашений</p>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium" onClick={onInvite}>
-          Отправить приглашение
-        </button>
+        <Button type="button" className="w-full sm:w-auto" onClick={onInvite}>
+          <Send aria-hidden="true" className="mr-2 h-5 w-5" />Пригласить сотрудника
+        </Button>
       </div>
 
       {invitations.length === 0 ? (
@@ -56,7 +58,7 @@ const InvitationsList: React.FC<InvitationsListProps> = ({ invitations, loading,
           <p className="mt-1 text-sm text-gray-500">Отправьте первое приглашение участнику</p>
         </div>
       ) : (
-        <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+        <div className="overflow-x-auto rounded border border-border">
           <table className="min-w-full divide-y divide-gray-300">
             <thead className="bg-gray-50">
               <tr>
@@ -85,8 +87,8 @@ const InvitationsList: React.FC<InvitationsListProps> = ({ invitations, loading,
                 <tr key={invitation.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
-                        <span className="text-sm font-medium text-yellow-600">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-secondary">
+                        <span className="text-sm font-medium text-foreground">
                           {invitation.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
@@ -101,7 +103,7 @@ const InvitationsList: React.FC<InvitationsListProps> = ({ invitations, loading,
                       {invitation.role_names.map((roleName, index) => (
                         <span
                           key={index}
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                          className="inline-flex items-center rounded border border-border px-2 py-1 text-xs font-medium text-foreground"
                         >
                           {roleName}
                         </span>
