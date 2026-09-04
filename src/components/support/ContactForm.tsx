@@ -60,11 +60,11 @@ export function ContactForm() {
   };
 
   return (
-    <Card className="border-border shadow-sm max-w-2xl mx-auto">
+    <Card className="max-w-3xl rounded-lg border-border shadow-none">
       <CardHeader>
         <CardTitle className="text-2xl font-bold">Написать в поддержку</CardTitle>
         <CardDescription>
-          Заполните форму ниже, и мы ответим вам в течение 24 часов
+          Опишите вопрос и укажите почту, на которую вам удобно получить ответ.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -74,7 +74,7 @@ export function ContactForm() {
             <div>
               <p className="font-bold text-emerald-800">Сообщение отправлено</p>
               <p className="text-sm text-emerald-600 mt-1">
-                Мы получили ваш запрос и уже работаем над ним. Ответ придет на указанную почту.
+                Ваше обращение принято. Ответ придёт на указанную почту.
               </p>
               <Button variant="link" className="text-emerald-700 p-0 h-auto mt-2" onClick={() => setSuccess(false)}>
                  Отправить еще одно сообщение
@@ -125,7 +125,7 @@ export function ContactForm() {
             <div className="space-y-2">
               <Label htmlFor="type">Тип обращения</Label>
               <Select value={formData.type} onValueChange={handleSelectChange}>
-                <SelectTrigger>
+                <SelectTrigger id="type" className="min-h-11 text-base">
                   <SelectValue placeholder="Выберите тип вопроса" />
                 </SelectTrigger>
                 <SelectContent>
@@ -168,7 +168,7 @@ export function ContactForm() {
                 'Отправка...'
               ) : (
                 <>
-                  <PaperAirplaneIcon className="w-4 h-4 mr-2" />
+                  <PaperAirplaneIcon className="mr-2 h-5 w-5" aria-hidden="true" />
                   Отправить сообщение
                 </>
               )}

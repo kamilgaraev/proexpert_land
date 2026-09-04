@@ -12,7 +12,7 @@ export function HelpOverview({ onTabChange }: HelpOverviewProps) {
         <section className="rounded-lg border border-border bg-white p-5 sm:p-6">
           <ChatBubbleLeftRightIcon className="mb-5 h-7 w-7 text-primary" aria-hidden="true" />
           <h2 className="mb-2 text-xl font-semibold">Нужна помощь с работой в МОСТ?</h2>
-          <p className="mb-5 max-w-prose text-base text-muted-foreground">Опишите, что вы хотели сделать и на каком шаге возник вопрос. Приложите снимок экрана, если он поможет разобраться.</p>
+          <p className="mb-5 max-w-prose text-base text-muted-foreground">Опишите, что вы хотели сделать и на каком шаге возник вопрос. Укажите раздел системы и результат, который вы ожидали.</p>
           <button type="button" onClick={() => onTabChange('support')} className="inline-flex min-h-11 items-center gap-3 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90">
             Написать обращение <ArrowRightIcon className="h-5 w-5 shrink-0" aria-hidden="true" />
           </button>

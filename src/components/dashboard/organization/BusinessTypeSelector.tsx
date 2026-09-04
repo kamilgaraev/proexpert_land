@@ -40,7 +40,7 @@ export const BusinessTypeSelector = ({
               value={type.value}
               checked={selectedType === type.value}
               onChange={() => onChange(type.value)}
-              className="mt-1 h-5 w-5 shrink-0 accent-primary"
+              className="mt-1 h-5 w-5 shrink-0 accent-primary focus-visible:!outline-none"
               aria-label={type.label}
             />
             <span className="min-w-0 flex-1 space-y-1">
