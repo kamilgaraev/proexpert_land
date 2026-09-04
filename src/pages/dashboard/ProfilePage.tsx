@@ -97,7 +97,6 @@ const ProfilePage = () => {
     if (email !== user.email) formData.append('email', email);
     if (phone !== (user.phone || '')) formData.append('phone', phone);
     if (position !== (user.position || '')) formData.append('position', position);
-    formData.append('_method', 'PATCH');
 
     if (avatarFile) {
       formData.append('avatar', avatarFile);
@@ -117,6 +116,8 @@ const ProfilePage = () => {
       setIsSaving(false);
       return;
     }
+
+    formData.append('_method', 'PATCH');
 
     try {
       const response = await userService.updateProfile(formData);
@@ -346,7 +347,7 @@ const ProfilePage = () => {
 
             {/* Форма */}
             <form id="profile-form" onSubmit={handleSubmit} className="p-5 sm:p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {/* Имя */}
                 <div>
                   <label htmlFor="profile-name" className="block text-sm font-medium text-steel-700 mb-2">
@@ -498,7 +499,7 @@ const ProfilePage = () => {
               {/* Дополнительная информация */}
               <div className="mt-8 pt-8 border-t border-steel-200">
                 <h4 className="text-lg font-semibold text-steel-900 mb-4">Дополнительная информация</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                   <div className="flex items-center justify-between gap-3 p-4 bg-steel-50 rounded-md">
                     <div>
                       <p className="font-medium text-steel-900">Дата регистрации</p>
