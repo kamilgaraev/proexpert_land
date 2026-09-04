@@ -1,3 +1,7 @@
+import { ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+
 interface ProfileCompletenessWidgetProps {
   completeness: number;
   missingFields?: string[];
@@ -6,10 +10,10 @@ interface ProfileCompletenessWidgetProps {
 }
 
 const FIELD_LABELS: Record<string, string> = {
-  capabilities: 'Возможности организации',
+  capabilities: 'Направления деятельности',
   primary_business_type: 'Основной режим работы',
   specializations: 'Специализации',
-  certifications: 'Сертификаты',
+  certifications: 'Сертификаты и допуски',
   description: 'Описание организации',
   contacts: 'Контактная информация',
 };
@@ -20,126 +24,47 @@ export const ProfileCompletenessWidget = ({
   onComplete,
   className = '',
 }: ProfileCompletenessWidgetProps) => {
-  const radius = 50;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (completeness / 100) * circumference;
-
-  const getCompletenessColor = () => {
-    if (completeness >= 90) {
-      return 'text-green-600';
-    }
-
-    if (completeness >= 70) {
-      return 'text-construction-600';
-    }
-
-    if (completeness >= 50) {
-      return 'text-yellow-600';
-    }
-
-    return 'text-red-600';
-  };
-
-  const getCompletenessStrokeColor = () => {
-    if (completeness >= 90) {
-      return '#10b981';
-    }
-
-    if (completeness >= 70) {
-      return '#ea580c';
-    }
-
-    if (completeness >= 50) {
-      return '#eab308';
-    }
-
-    return '#ef4444';
-  };
+  const progress = Number.isFinite(completeness) ? Math.min(100, Math.max(0, completeness)) : 0;
 
   return (
-    <div className={`rounded-lg border border-gray-200 bg-white p-6 ${className}`}>
-      <h3 className="mb-4 text-lg font-semibold text-gray-900">Полнота профиля</h3>
-
-      <div className="mb-6 flex items-center justify-center">
-        <div className="relative">
-          <svg className="transform -rotate-90" width="140" height="140">
-            <circle cx="70" cy="70" r={radius} stroke="#e5e7eb" strokeWidth="8" fill="none" />
-            <circle
-              cx="70"
-              cy="70"
-              r={radius}
-              stroke={getCompletenessStrokeColor()}
-              strokeWidth="8"
-              fill="none"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              className="transition-all duration-500 ease-out"
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <div className={`text-3xl font-bold ${getCompletenessColor()}`}>{completeness}%</div>
-              <div className="mt-1 text-xs text-gray-500">заполнено</div>
-            </div>
+    <Card className={`min-w-0 ${className}`}>
+      <CardContent className="space-y-5 p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h3 className="text-lg font-semibold">Полнота профиля</h3>
+          <span className="text-2xl font-semibold tabular-nums">{progress}%</span>
+        </div>
+        <div
+          role="progressbar"
+          aria-label="Полнота профиля"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress}
+          className="h-1.5 overflow-hidden rounded-full bg-muted"
+        >
+          <div className="h-full rounded-full bg-foreground" style={{ width: `${progress}%` }} />
+        </div>
+        {missingFields.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Осталось заполнить:</p>
+            <ul className="space-y-2 text-sm">
+              {missingFields.map((field) => (
+                <li key={field}>{FIELD_LABELS[field] || 'Данные организации'}</li>
+              ))}
+            </ul>
           </div>
-        </div>
-      </div>
-
-      {missingFields.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-gray-700">Осталось заполнить:</h4>
-          <ul className="space-y-2">
-            {missingFields.map((field) => (
-              <li key={field} className="flex items-start space-x-2 text-sm">
-                <svg
-                  className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-                <span className="text-gray-700">{FIELD_LABELS[field] || field}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {completeness >= 100 ? (
-        <div className="mt-4 flex items-center space-x-2 rounded-lg border border-green-200 bg-green-50 p-3">
-          <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span className="text-sm font-medium text-green-800">Профиль полностью заполнен!</span>
-        </div>
-      ) : (
-        onComplete && (
-          <button
-            onClick={onComplete}
-            className="mt-4 w-full rounded-lg bg-construction-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-construction-700 focus:outline-none focus:ring-2 focus:ring-construction-500 focus:ring-offset-2"
-          >
-            Завершить настройку профиля
-          </button>
-        )
-      )}
-
-      {completeness < 80 && (
-        <p className="mt-3 text-center text-xs text-gray-500">
-          Рекомендуем заполнить профиль минимум на 80% для лучших результатов
-        </p>
-      )}
-    </div>
+        )}
+        {progress >= 100 ? (
+          <p className="flex items-start gap-2 text-sm">
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            Профиль полностью заполнен
+          </p>
+        ) : onComplete ? (
+          <Button variant="outline" onClick={onComplete} className="h-auto min-h-11 w-full gap-2 whitespace-normal py-3 text-left">
+            <span className="min-w-0 flex-1">Завершить настройку профиля</span>
+            <ArrowUpRight className="h-5 w-5 shrink-0" aria-hidden="true" />
+          </Button>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 };
