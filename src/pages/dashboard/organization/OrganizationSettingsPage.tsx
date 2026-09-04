@@ -332,7 +332,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
               />
             ) : (
               <div className="flex items-center gap-4 rounded-lg border border-blue-100 bg-blue-50/50 p-4">
-                <div className="text-3xl">🏗️</div>
+                <Briefcase className="h-7 w-7 shrink-0 text-primary" aria-hidden="true" />
                 <div>
                   <p className="font-bold text-foreground">
                     {primaryBusinessType ? BUSINESS_TYPE_LABELS[primaryBusinessType] : null}
