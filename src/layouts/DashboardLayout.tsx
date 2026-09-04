@@ -30,6 +30,8 @@ import {
   prioritizeWorkspaceNavigation,
 } from '@/utils/workspaceOrchestration';
 
+import '@/styles/workspace.css';
+
 const DashboardLayout = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
@@ -276,9 +278,9 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="most-workspace flex min-h-screen flex-col">
       <Sidebar {...sidebarProps} />
-      <div className="flex flex-1 flex-col md:pl-72">
+      <div className="most-workspace-main flex min-w-0 flex-1 flex-col">
         <Header
           user={user}
           showBalance={canViewBilling}

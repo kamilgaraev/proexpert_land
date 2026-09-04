@@ -152,7 +152,7 @@ export function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="most-workspace-header sticky top-0 z-40 w-full border-b">
       <div className="flex h-16 items-center px-4 sm:px-6 md:px-8">
         <MobileSidebar {...sidebarProps} />
         
@@ -170,7 +170,7 @@ export function Header({
 
         <div className="ml-auto flex items-center space-x-4">
           <div
-            className="relative hidden w-80 md:block xl:w-96"
+            className="relative hidden w-56 lg:block xl:w-80"
             onBlur={handleSearchBlur}
           >
             <form onSubmit={handleSearchSubmit}>
@@ -190,7 +190,7 @@ export function Header({
                 aria-expanded={isSearchOpen && Boolean(trimmedSearchQuery)}
                 aria-controls="dashboard-search-results"
                 autoComplete="off"
-                className="h-10 rounded-xl border-primary/30 bg-background pl-10 pr-10 text-sm shadow-sm focus-visible:border-primary focus-visible:ring-primary"
+                className="h-11 rounded-md border-input bg-card pl-10 pr-10 shadow-none"
               />
               {trimmedSearchQuery ? (
                 <button
@@ -266,7 +266,7 @@ export function Header({
           {showBalance && (
            <Link 
                 to="/dashboard/billing" 
-                className="hidden sm:flex items-center px-3 py-1.5 bg-gradient-to-r from-safety-500/10 to-safety-600/10 hover:from-safety-500/20 hover:to-safety-600/20 border border-safety-200 rounded-lg transition-all group"
+                className="most-workspace-balance hidden sm:flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
                 onClick={(e: any) => {
                   if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
@@ -275,14 +275,14 @@ export function Header({
                 }}
                 title="Ctrl+Click для обновления баланса"
             >
-                <Wallet className="h-4 w-4 mr-2 text-safety-600 group-hover:scale-110 transition-transform" />
+                <Wallet className="h-5 w-5 text-muted-foreground" />
                 <div className="flex flex-col items-start">
-                     <span className="text-[10px] text-muted-foreground leading-none">Баланс</span>
-                     <span className="text-sm font-bold text-safety-700 leading-none mt-1">
+                     <span className="text-xs text-muted-foreground leading-none">Баланс</span>
+                     <span className="text-sm font-semibold text-foreground leading-snug mt-1">
                         {balance !== null ? (
                             <>
                             {balance.balance_formatted}
-                            {balance.currency && <span className="ml-1 text-[10px]">{balance.currency}</span>}
+                            {balance.currency && <span className="ml-1 text-xs">{balance.currency}</span>}
                             </>
                         ) : balanceError ? (
                             'Ошибка'
@@ -310,14 +310,14 @@ export function Header({
             {/* User Profile Dropdown */}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                    <Button variant="ghost" className="relative h-11 w-11 rounded-full" aria-label="Меню профиля">
                         <Avatar className="h-9 w-9 border">
                             <AvatarImage src={user?.avatar_url} alt={user?.name} />
                             <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
                         </Avatar>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuContent className="most-workspace w-64" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
                             <p className="text-sm font-medium leading-none">{user?.name || 'Пользователь'}</p>

@@ -1,12 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LogOut, Menu as MenuIcon } from 'lucide-react';
-
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import type { WorkspaceSummary } from '@/utils/workspaceOrchestration';
 
 interface NavigationItem {
@@ -39,13 +37,7 @@ const getActiveNavigationHref = (pathname: string, navigation: NavigationItem[])
     .filter((item) => isNavigationMatch(pathname, item))
     .sort((first, second) => second.href.length - first.href.length)[0]?.href;
 
-const SidebarContent = ({
-  navigation,
-  supportNavigation,
-  onLogout,
-  pathname,
-  workspaceSummary,
-}: {
+const SidebarContent = ({ navigation, supportNavigation, onLogout, pathname, workspaceSummary }: {
   navigation: NavigationItem[];
   supportNavigation: NavigationItem[];
   onLogout: () => void;
@@ -53,191 +45,84 @@ const SidebarContent = ({
   workspaceSummary?: WorkspaceSummary | null;
 }) => {
   const activeNavigationHref = getActiveNavigationHref(pathname, navigation);
+  const activeSupportHref = getActiveNavigationHref(pathname, supportNavigation);
 
   return (
-  <div className="flex h-full flex-col gap-4 py-4">
-    <div className="mb-4 flex h-12 items-center px-6">
-      <div className="flex items-center gap-3">
-        <img src="/logo.svg" alt="" className="h-10 w-10 object-contain" />
-        <div className="flex flex-col">
-          <span className="text-lg font-bold leading-none tracking-tight">МОСТ</span>
-          <span className="mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-            Личный кабинет
-          </span>
+    <div className="most-workspace-sidebar-content">
+      <Link to="/dashboard" className="most-workspace-brand" aria-label="МОСТ — личный кабинет">
+        <img src="/logo.svg" alt="" />
+        <span>МОСТ</span>
+      </Link>
+      {workspaceSummary ? (
+        <div className="most-workspace-context">
+          <p className="font-semibold">{workspaceSummary.label}</p>
+          <p className="most-workspace-caption">{workspaceSummary.description}</p>
+          {workspaceSummary.modeLabels.length > 0 && (
+            <p className="most-workspace-caption mt-2">{workspaceSummary.modeLabels.join(' · ')}</p>
+          )}
         </div>
-      </div>
-    </div>
-
-    {workspaceSummary ? (
-      <div className="px-4">
-        <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/8 via-background to-orange-50 px-4 py-3 shadow-sm">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Основной режим
-          </p>
-          <p className="mt-2 text-sm font-semibold text-foreground">
-            {workspaceSummary.label}
-          </p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            {workspaceSummary.description}
-          </p>
-          {workspaceSummary.modeLabels.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {workspaceSummary.modeLabels.map((modeLabel) => (
-                <Badge key={modeLabel} variant="secondary" className="rounded-full">
-                  {modeLabel}
-                </Badge>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </div>
-    ) : null}
-
-    <ScrollArea className="flex-1 px-4">
-      <div className="flex flex-col gap-1.5 py-2">
-        {navigation.map((item) => {
-          const isActive = activeNavigationHref === item.href;
-
-          return (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={cn(
-                'group relative flex items-center gap-3 overflow-hidden rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200',
-                isActive
-                  ? 'bg-primary/10 text-primary shadow-sm'
-                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-              )}
-            >
-              {isActive ? (
-                <div className="absolute bottom-0 left-0 top-0 w-1 rounded-r-full bg-primary" />
-              ) : null}
-              <item.icon
-                className={cn(
-                  'h-5 w-5 transition-transform group-hover:scale-110',
-                  isActive
-                    ? 'text-primary'
-                    : 'text-muted-foreground group-hover:text-foreground'
-                )}
-              />
-              <div className="flex flex-1 flex-col">
-                <span className={cn('leading-none', isActive ? 'font-bold' : 'font-medium')}>
-                  {item.name}
-                </span>
-                {item.description && !isActive ? (
-                  <span className="mt-1 line-clamp-1 text-[10px] font-normal opacity-0 transition-opacity group-hover:opacity-70">
-                    {item.description}
-                  </span>
-                ) : null}
-              </div>
-              {item.badge ? (
-                <Badge
-                  variant="destructive"
-                  className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] shadow-sm"
-                >
-                  {item.badge}
-                </Badge>
-              ) : null}
+      ) : null}
+      <ScrollArea className="min-h-0 flex-1">
+        <nav aria-label="Разделы кабинета" className="most-workspace-nav">
+          {navigation.map((item) => (
+            <Link key={item.href} to={item.href}
+              aria-current={activeNavigationHref === item.href ? 'page' : undefined}
+              className={cn('most-workspace-nav-link', activeNavigationHref === item.href && 'is-active')}>
+              <item.icon aria-hidden="true" />
+              <span className="min-w-0 flex-1">{item.name}</span>
+              {item.badge ? <span className="most-workspace-nav-badge">{item.badge}</span> : null}
             </Link>
-          );
-        })}
-      </div>
-
-      <div className="mx-2 my-6 h-[1px] bg-gradient-to-r from-transparent via-border to-transparent" />
-
-      <div className="flex flex-col gap-1.5">
-        <div className="mb-2 px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground opacity-70">
-          Поддержка
-        </div>
-        {supportNavigation.map((item) => {
-          const isActive = pathname === item.href;
-
-          return (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={cn(
-                'group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200',
-                isActive
-                  ? 'bg-secondary font-bold text-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-              )}
-            >
-              <item.icon
-                className={cn(
-                  'h-5 w-5',
-                  isActive
-                    ? 'text-foreground'
-                    : 'text-muted-foreground group-hover:text-foreground'
-                )}
-              />
+          ))}
+        </nav>
+        <nav aria-label="Помощь и инструкции" className="most-workspace-nav most-workspace-nav-support">
+          {supportNavigation.map((item) => (
+            <Link key={item.href} to={item.href}
+              aria-current={activeSupportHref === item.href ? 'page' : undefined}
+              className={cn('most-workspace-nav-link', activeSupportHref === item.href && 'is-active')}>
+              <item.icon aria-hidden="true" />
               <span>{item.name}</span>
             </Link>
-          );
-        })}
+          ))}
+        </nav>
+      </ScrollArea>
+      <div className="most-workspace-sidebar-footer">
+        <Button variant="ghost" className="most-workspace-logout" onClick={onLogout}>
+          <LogOut aria-hidden="true" />
+          Выйти
+        </Button>
       </div>
-    </ScrollArea>
-
-    <div className="mt-auto px-4 pb-4">
-      <Button
-        variant="ghost"
-        className="h-12 w-full justify-start gap-3 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-        onClick={onLogout}
-      >
-        <LogOut className="h-5 w-5" />
-        <span>Выйти из системы</span>
-      </Button>
     </div>
-  </div>
   );
 };
 
-export function Sidebar({
-  navigation,
-  supportNavigation,
-  onLogout,
-  workspaceSummary,
-}: SidebarProps) {
+export function Sidebar({ navigation, supportNavigation, onLogout, workspaceSummary }: SidebarProps) {
   const location = useLocation();
-
   return (
-    <aside className="z-50 hidden border-r bg-background/95 shadow-sm backdrop-blur-xl md:fixed md:inset-y-0 md:flex md:w-72 md:flex-col">
-      <SidebarContent
-        navigation={navigation}
-        supportNavigation={supportNavigation}
-        onLogout={onLogout}
-        pathname={location.pathname}
-        workspaceSummary={workspaceSummary}
-      />
+    <aside className="most-workspace-sidebar">
+      <SidebarContent navigation={navigation} supportNavigation={supportNavigation}
+        onLogout={onLogout} pathname={location.pathname} workspaceSummary={workspaceSummary} />
     </aside>
   );
 }
 
-export function MobileSidebar({
-  navigation,
-  supportNavigation,
-  onLogout,
-  workspaceSummary,
-}: SidebarProps) {
+export function MobileSidebar({ navigation, supportNavigation, onLogout, workspaceSummary }: SidebarProps) {
   const location = useLocation();
   const [open, setOpen] = React.useState(false);
-
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden">
-          <MenuIcon className="h-5 w-5" />
-          <span className="sr-only">Toggle Menu</span>
+        <Button variant="ghost" size="icon" className="md:hidden" aria-label="Открыть меню кабинета">
+          <MenuIcon className="h-6 w-6" aria-hidden="true" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0 sm:w-80">
-        <SidebarContent
-          navigation={navigation}
-          supportNavigation={supportNavigation}
-          onLogout={onLogout}
-          pathname={location.pathname}
-          workspaceSummary={workspaceSummary}
-        />
+      <SheetContent side="left" className="most-workspace most-workspace-mobile-sidebar"
+        aria-label="Меню кабинета" aria-describedby={undefined}
+        onClickCapture={(event) => {
+          if (event.target instanceof Element && event.target.closest('a[href]')) setOpen(false);
+        }}>
+        <SheetTitle className="sr-only">Меню кабинета</SheetTitle>
+        <SidebarContent navigation={navigation} supportNavigation={supportNavigation}
+          onLogout={onLogout} pathname={location.pathname} workspaceSummary={workspaceSummary} />
       </SheetContent>
     </Sheet>
   );
