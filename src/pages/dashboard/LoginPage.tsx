@@ -80,7 +80,11 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="most-workspace most-auth-page">
+    <div className="most-workspace most-auth-page most-auth-login">
+      <header className="most-auth-login-header">
+        <Link to="/" aria-label="МОСТ — главная"><img src="/logo.svg" alt="" /><span>МОСТ</span></Link>
+        <Link to="/register">Создать аккаунт <ArrowRight aria-hidden="true" /></Link>
+      </header>
 
       <motion.div 
         className="most-auth-shell most-auth-shell--split"
@@ -92,16 +96,11 @@ const LoginPage = () => {
         {/* Left Panel - Form */}
         <div className="most-auth-content flex flex-col justify-center">
           <div className="mb-8">
-            <Link to="/" className="inline-flex items-center mb-8 gap-3 transition-opacity hover:opacity-80">
-              <img src="/logo.svg" alt="" className="h-12 w-12 object-contain" />
-              <span className="text-2xl font-extrabold tracking-tight text-foreground">МОСТ</span>
-            </Link>
-            
             <h1 className="text-3xl lg:text-4xl font-bold tracking-tight mb-3">
-              С возвращением
+              Вход в МОСТ
             </h1>
             <p className="text-muted-foreground text-lg">
-              Введите свои данные для входа в систему
+              К проектам, команде и работе на объекте.
             </p>
           </div>
 
@@ -213,14 +212,11 @@ const LoginPage = () => {
         </div>
 
         <aside className="most-auth-brand-panel">
-          <h2>Между офисом и стройкой — МОСТ.</h2>
-          <p>Вернитесь к проектам, команде и документам компании. Продолжайте работу с того места, где остановились.</p>
-          <svg className="most-auth-bridge" viewBox="0 0 480 220" fill="none" aria-hidden="true">
-            <path d="M12 92H468" stroke="hsl(var(--primary))" strokeWidth="4" />
-            <path d="M112 184V92L240 184L368 92V184" stroke="currentColor" strokeWidth="8" strokeLinejoin="round" />
-            <path d="M20 92V50H76V92M30 50V20M64 50V20M20 68H76M404 92V12H458V92M414 30H448M414 48H448M414 66H448" stroke="currentColor" strokeWidth="2" />
-            <path d="M94 188H130M350 188H386" stroke="hsl(var(--primary))" strokeWidth="4" />
-          </svg>
+          <div className="most-auth-brand-copy">
+            <h2>Между офисом<br />и стройкой — МОСТ.</h2>
+            <p>Один объект. Общая работа.</p>
+          </div>
+          <img className="most-auth-brand-scene" src="/images/marketing/most-bridge-v2-1774.webp" alt="Мост соединяет строительную площадку и офис" width="1774" height="887" />
         </aside>
 
       </motion.div>

@@ -11,11 +11,14 @@ body:has(.most-workspace) {
   --workspace-section-gap: clamp(1.5rem, 1.2rem + 0.8vw, 2.5rem);
   --workspace-icon: 1.375rem;
   --workspace-control-height: 2.75rem;
-  --workspace-radius: 0.5rem;
-  --background: 40 20% 97%;
-  --foreground: 80 7% 13%;
+  --workspace-radius: 0.25rem;
+  --workspace-action: #f16a28;
+  --workspace-action-hover: #e86020;
+  --workspace-action-foreground: #191f19;
+  --background: 12 22% 95.5%;
+  --foreground: 210 43% 5.5%;
   --card: 0 0% 100%;
-  --card-foreground: 80 7% 13%;
+  --card-foreground: 210 43% 5.5%;
   --popover: 0 0% 100%;
   --popover-foreground: 80 7% 13%;
   --muted: 40 12% 94%;
@@ -29,6 +32,8 @@ body:has(.most-workspace) {
   --border: 40 8% 84%;
   --input: 40 8% 76%;
   --ring: 20 90% 38%;
+  --destructive: 0 65% 38%;
+  --destructive-foreground: 0 0% 100%;
   min-width: 0;
   color: hsl(var(--foreground));
   background: hsl(var(--background));
@@ -52,6 +57,31 @@ body:has(.most-workspace) {
 
 .most-workspace-header {
   background: hsl(var(--background));
+}
+
+:is(.most-workspace, body:has(.most-workspace)) .most-ui-button {
+  min-height: var(--workspace-control-height);
+  border-radius: var(--workspace-radius);
+  box-shadow: none;
+}
+
+:is(.most-workspace, body:has(.most-workspace)) .most-ui-button-primary {
+  background: var(--workspace-action);
+  color: var(--workspace-action-foreground);
+  font-weight: 600;
+}
+
+:is(.most-workspace, body:has(.most-workspace)) .most-ui-button-primary:hover {
+  background: var(--workspace-action-hover);
+}
+
+:is(.most-workspace, body:has(.most-workspace)) .most-ui-card {
+  border-radius: var(--workspace-radius);
+  box-shadow: none;
+}
+
+:is(.most-workspace, body:has(.most-workspace)) .most-ui-button:focus-visible {
+  box-shadow: none;
 }
 
 .most-workspace-sidebar {
@@ -120,6 +150,7 @@ body:has(.most-workspace) {
 }
 
 .most-workspace-page h1 {
+  font-weight: 600;
   font-size: var(--workspace-text-title);
   line-height: 1.2;
   letter-spacing: -0.025em;
@@ -150,8 +181,25 @@ body:has(.most-workspace) {
   border-radius: var(--workspace-radius);
 }
 
+:is(.most-workspace, body:has(.most-workspace)) :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]) {
+  background: hsl(var(--card));
+}
+
 :is(.most-workspace, body:has(.most-workspace)) :is(input, select, textarea):focus-visible {
   box-shadow: none;
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+body:has(.most-workspace) [role="dialog"] {
+  background: hsl(var(--card));
+  border-radius: var(--workspace-radius);
+}
+
+@media (max-width: 639px) {
+  body:has(.most-workspace) [role="dialog"] {
+    max-width: calc(100vw - 2rem);
+  }
 }
 
 :is(.most-workspace, body:has(.most-workspace)) :where(th, td) {
