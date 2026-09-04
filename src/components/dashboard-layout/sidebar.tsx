@@ -56,10 +56,6 @@ const SidebarContent = ({ navigation, supportNavigation, onLogout, pathname, wor
       {workspaceSummary ? (
         <div className="most-workspace-context">
           <p className="font-semibold">{workspaceSummary.label}</p>
-          <p className="most-workspace-caption">{workspaceSummary.description}</p>
-          {workspaceSummary.modeLabels.length > 0 && (
-            <p className="most-workspace-caption mt-2">{workspaceSummary.modeLabels.join(' · ')}</p>
-          )}
         </div>
       ) : null}
       <ScrollArea className="min-h-0 flex-1">

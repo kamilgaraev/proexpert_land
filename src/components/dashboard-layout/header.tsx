@@ -32,6 +32,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { NotificationBell } from '@/components/dashboard/notifications';
 import { MobileSidebar } from './sidebar';
 import { cn } from '@/lib/utils';
+import type { OrganizationBalance } from '@/utils/api';
 import {
   buildDashboardSearchItems,
   findDashboardSearchItems,
@@ -42,7 +43,7 @@ import {
 interface HeaderProps {
   user: any;
   showBalance?: boolean;
-  balance: any;
+  balance: OrganizationBalance | null;
   balanceError: any;
   refreshBalance: () => void;
   onLogout: () => void;
@@ -174,7 +175,7 @@ export function Header({
             onBlur={handleSearchBlur}
           >
             <form onSubmit={handleSearchSubmit}>
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
                 value={searchQuery}
@@ -190,17 +191,17 @@ export function Header({
                 aria-expanded={isSearchOpen && Boolean(trimmedSearchQuery)}
                 aria-controls="dashboard-search-results"
                 autoComplete="off"
-                className="h-11 rounded-md border-input bg-card pl-10 pr-10 shadow-none"
+                className="h-11 rounded-md border-input bg-card pl-11 pr-11 shadow-none focus-visible:ring-0"
               />
               {trimmedSearchQuery ? (
                 <button
                   type="button"
-                  className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   aria-label="Очистить поиск"
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={clearSearch}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               ) : null}
             </form>
@@ -237,7 +238,7 @@ export function Header({
                             </div>
                           ) : null}
                         </div>
-                        <ArrowRight className="h-4 w-4 shrink-0" />
+                        <ArrowRight className="h-5 w-5 shrink-0" />
                       </button>
                     ))}
                   </div>
@@ -256,7 +257,7 @@ export function Header({
                         Откроем раздел проектов с этим запросом
                       </div>
                     </div>
-                    <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" />
                   </button>
                 )}
               </div>
@@ -281,8 +282,9 @@ export function Header({
                      <span className="text-sm font-semibold text-foreground leading-snug mt-1">
                         {balance !== null ? (
                             <>
-                            {balance.balance_formatted}
-                            {balance.currency && <span className="ml-1 text-xs">{balance.currency}</span>}
+                            {balance.currency === 'RUB'
+                              ? new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(balance.balance_cents / 100)
+                              : `${balance.balance_formatted} ${balance.currency}`}
                             </>
                         ) : balanceError ? (
                             'Ошибка'
@@ -302,7 +304,7 @@ export function Header({
              {/* Admin Panel Link */}
              <Button variant="ghost" size="sm" className="hidden lg:flex text-muted-foreground" asChild>
                 <a href="https://admin.1мост.рф/" target="_blank" rel="noopener noreferrer">
-                    <ShieldCheck className="h-4 w-4 mr-2" />
+                    <ShieldCheck className="h-5 w-5 mr-2" />
                     Админ
                 </a>
              </Button>
@@ -330,20 +332,20 @@ export function Header({
                     <DropdownMenuGroup>
                         <DropdownMenuItem asChild>
                             <Link to="/dashboard/profile">
-                                <User className="mr-2 h-4 w-4" />
+                                <User className="mr-2 h-5 w-5" />
                                 <span>Мой профиль</span>
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                             <Link to="/dashboard/settings">
-                                <Settings className="mr-2 h-4 w-4" />
+                                <Settings className="mr-2 h-5 w-5" />
                                 <span>Настройки кабинета</span>
                             </Link>
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
-                        <LogOut className="mr-2 h-4 w-4" />
+                        <LogOut className="mr-2 h-5 w-5" />
                         <span>Выйти</span>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
