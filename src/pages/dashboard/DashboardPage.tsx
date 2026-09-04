@@ -6,7 +6,6 @@ import {
   FileText,
   CheckCircle,
   Wallet,
-  Clock,
   AlertTriangle,
   ArrowUpRight,
   ArrowDownRight,
@@ -83,7 +82,7 @@ const DashboardPage = () => {
         setLandingData(landingResult.value.data);
       } else {
         setLandingData(null);
-        setDashboardError('Не удалось загрузить данные дашборда. Попробуйте обновить страницу.');
+        setDashboardError('Не удалось загрузить сводку. Попробуйте обновить страницу.');
       }
 
       setDashboardLoading(false);
@@ -105,25 +104,25 @@ const DashboardPage = () => {
       name: 'Проекты',
       value: landingData.projects?.total || 0,
       icon: Building2,
-      description: 'Активных объектов'
+      description: 'Всего объектов'
     },
     {
       name: 'Контракты',
       value: landingData.contracts?.total || 0,
       icon: FileText,
-      description: 'Подписанных договоров'
+      description: 'Всего договоров'
     },
     {
       name: 'Команда',
       value: landingData.team?.total || 0,
       icon: Users,
-      description: 'Сотрудников в штате'
+      description: 'Пользователей организации'
     },
     {
       name: 'Акты',
       value: landingData.acts?.total || 0,
       icon: CheckCircle,
-      description: 'Закрытых работ'
+      description: 'Всего актов'
     },
   ] : [];
 
@@ -136,15 +135,15 @@ const DashboardPage = () => {
       variant: 'default' as const
     },
     {
-      name: 'Пригласить прораба',
+      name: 'Сотрудники',
       description: 'Добавить сотрудника',
       href: '/dashboard/admins',
       icon: Users,
       variant: 'outline' as const
     },
     {
-      name: 'Партнеры и бонусы',
-      description: 'Приглашения подрядчиков',
+      name: 'Приглашения подрядчиков',
+      description: 'Пригласить компанию к работе',
       href: '/dashboard/contractor-invitations',
       icon: BarChart,
       variant: 'outline' as const
@@ -160,13 +159,9 @@ const DashboardPage = () => {
           <p className="text-muted-foreground">Сводная информация по вашим проектам и финансам.</p>
         </div>
         <div className="flex items-center gap-2">
-           <span className="text-sm text-muted-foreground flex items-center bg-muted px-3 py-1 rounded-full">
-             <Clock className="h-3 w-3 mr-2" />
-             Обновлено: {new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-           </span>
            <Button asChild>
              <Link to="https://admin.1мост.рф/projects/create">
-               <Plus className="h-4 w-4 mr-2" />
+               <Plus className="h-5 w-5 mr-2" />
                Новый проект
              </Link>
            </Button>
@@ -176,7 +171,7 @@ const DashboardPage = () => {
       {dashboardLoading && !landingData && (
         <Card className="border-dashed">
           <CardContent className="py-10 text-center text-muted-foreground">
-            Загружаем данные дашборда...
+            Загружаем сводку…
           </CardContent>
         </Card>
       )}
@@ -192,33 +187,32 @@ const DashboardPage = () => {
 
       {/* Stats Grid */}
       {landingData && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
              {/* Financial Card - Featured */}
-             <Card className="bg-gradient-to-br from-primary to-orange-600 text-primary-foreground border-none shadow-lg md:col-span-2 relative overflow-hidden">
-                <div className="absolute right-0 top-0 h-full w-1/2 bg-white/5 skew-x-12 -translate-x-10 pointer-events-none"></div>
+             <Card className="border-border bg-card shadow-none rounded-lg md:col-span-2">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-primary-foreground/90">
-                    Финансовый баланс
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Баланс организации
                   </CardTitle>
-                  <Wallet className="h-4 w-4 text-primary-foreground/70" />
+                  <Wallet className="h-5 w-5 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">{formatCurrency(landingData.financial?.balance || 0)}</div>
-                  <p className="text-xs text-primary-foreground/70 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Доступные средства
                   </p>
                   
                   <div className="grid grid-cols-2 gap-4 mt-6">
-                      <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
-                          <div className="flex items-center text-green-100 text-xs mb-1">
-                             <ArrowUpRight className="h-3 w-3 mr-1" />
+                      <div className="min-w-0 border-t border-border pt-3">
+                          <div className="flex items-center text-muted-foreground text-xs mb-1">
+                             <ArrowUpRight className="h-5 w-5 mr-1" />
                              Поступления
                           </div>
                           <div className="font-semibold text-lg">{formatCurrency(landingData.financial?.credits_this_month || 0)}</div>
                       </div>
-                      <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
-                          <div className="flex items-center text-red-100 text-xs mb-1">
-                             <ArrowDownRight className="h-3 w-3 mr-1" />
+                      <div className="min-w-0 border-t border-border pt-3">
+                          <div className="flex items-center text-muted-foreground text-xs mb-1">
+                             <ArrowDownRight className="h-5 w-5 mr-1" />
                              Расходы
                           </div>
                           <div className="font-semibold text-lg">{formatCurrency(landingData.financial?.debits_this_month || 0)}</div>
@@ -228,12 +222,12 @@ const DashboardPage = () => {
               </Card>
 
              {statCards.slice(0, 2).map((stat) => (
-                <Card key={stat.name} className="shadow-sm hover:shadow-md transition-shadow">
+                <Card key={stat.name} className="rounded-lg border-border shadow-none">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
                         {stat.name}
                     </CardTitle>
-                    <stat.icon className="h-4 w-4 text-muted-foreground" />
+                    <stat.icon className="h-5 w-5 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                     <div className="text-2xl font-bold">{stat.value}</div>
@@ -247,14 +241,14 @@ const DashboardPage = () => {
       )}
 
       {landingData && (
-         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+         <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
               {statCards.slice(2).map((stat) => (
-                <Card key={stat.name} className="shadow-sm hover:shadow-md transition-shadow">
+                <Card key={stat.name} className="rounded-lg border-border shadow-none">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
                         {stat.name}
                     </CardTitle>
-                    <stat.icon className="h-4 w-4 text-muted-foreground" />
+                    <stat.icon className="h-5 w-5 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                     <div className="text-2xl font-bold">{stat.value}</div>
@@ -264,20 +258,20 @@ const DashboardPage = () => {
                     </CardContent>
                 </Card>
              ))}
-              <Card className="md:col-span-2 bg-muted/50 border-dashed">
+              <Card className="md:col-span-2 rounded-lg border-border bg-card shadow-none">
                  <CardHeader className="pb-2">
                      <CardTitle className="text-base">Быстрые действия</CardTitle>
                  </CardHeader>
-                 <CardContent className="grid grid-cols-2 gap-2">
+                 <CardContent className="grid grid-cols-1 gap-3 xl:grid-cols-2">
                      {quickActions.map((action) => (
-                         <Button key={action.name} variant="outline" className="h-auto py-3 justify-start text-left bg-background" asChild>
+                         <Button key={action.name} variant="outline" className="h-auto min-h-14 whitespace-normal rounded-md py-3 justify-start text-left bg-card shadow-none" asChild>
                              <Link to={action.href}>
-                                 <div className="bg-primary/10 p-2 rounded-md mr-3">
-                                     <action.icon className="h-4 w-4 text-primary" />
+                                 <div className="mr-3 shrink-0">
+                                     <action.icon className="h-5 w-5 text-primary" />
                                  </div>
                                  <div className="flex flex-col">
                                      <span className="font-medium">{action.name}</span>
-                                     <span className="text-[10px] text-muted-foreground font-normal">{action.description}</span>
+                                     <span className="text-xs text-muted-foreground font-normal">{action.description}</span>
                                  </div>
                              </Link>
                          </Button>
@@ -289,8 +283,8 @@ const DashboardPage = () => {
 
       {/* Charts */}
       {landingData && (
-         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-             <Card className="lg:col-span-4">
+         <div className="grid gap-4 xl:grid-cols-7">
+             <Card className="rounded-lg shadow-none xl:col-span-4">
                  <CardHeader>
                      <CardTitle>Проекты по месяцам</CardTitle>
                      <CardDescription>Динамика создания новых объектов</CardDescription>
@@ -303,7 +297,7 @@ const DashboardPage = () => {
                     />
                  </CardContent>
              </Card>
-             <Card className="lg:col-span-3">
+             <Card className="rounded-lg shadow-none xl:col-span-3">
                  <CardHeader>
                      <CardTitle>Статус проектов</CardTitle>
                      <CardDescription>Распределение по этапам</CardDescription>
@@ -317,7 +311,7 @@ const DashboardPage = () => {
       
       {/* Additional Charts */}
       {landingData && (
-         <div className="grid gap-4 md:grid-cols-3">
+         <div className="grid gap-4 2xl:grid-cols-3">
             <Card>
                  <CardHeader>
                      <CardTitle className="text-sm">Контракты</CardTitle>
@@ -344,7 +338,7 @@ const DashboardPage = () => {
             </Card>
             <Card>
                  <CardHeader>
-                     <CardTitle className="text-sm">Баланс (Динамика)</CardTitle>
+                     <CardTitle className="text-sm">Изменение баланса</CardTitle>
                  </CardHeader>
                  <CardContent className="h-[240px] pl-2 pr-4 pb-6">
                     <LineChart

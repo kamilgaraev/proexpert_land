@@ -111,6 +111,6 @@ describe('DashboardPage', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText('Не удалось загрузить данные дашборда. Попробуйте обновить страницу.')).toBeInTheDocument();
+    expect(await screen.findByText('Не удалось загрузить сводку. Попробуйте обновить страницу.')).toBeInTheDocument();
   });
 });

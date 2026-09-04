@@ -286,16 +286,16 @@ body::selection {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-secondary;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #f97316, #eab308);
+  background: #85867e;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #ea580c, #ca8a04);
+  background: #62655b;
 }
 
 /* Legacy buttons and cards kept for backward compatibility until full migration */
