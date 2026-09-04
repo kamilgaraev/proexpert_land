@@ -157,7 +157,7 @@ export function Header({
       <div className="flex h-16 items-center px-4 sm:px-6 md:px-8">
         <MobileSidebar {...sidebarProps} />
         
-        <div className="ml-4 hidden md:flex md:items-center md:gap-4 lg:gap-6">
+        <div className="hidden shrink-0 xl:flex xl:items-center xl:pr-6">
           {/* Breadcrumbs Placeholder - can be made dynamic */}
            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
 
@@ -167,9 +167,9 @@ export function Header({
            </div>
         </div>
 
-        <div className="ml-auto flex items-center space-x-4">
+        <div className="ml-auto flex min-w-0 items-center gap-2 xl:gap-4">
           <div
-            className="relative hidden w-56 lg:block xl:w-80"
+            className="relative hidden min-w-0 w-48 lg:block xl:w-80"
             onBlur={handleSearchBlur}
           >
             <form onSubmit={handleSearchSubmit}>
