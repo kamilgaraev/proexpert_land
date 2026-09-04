@@ -1,6 +1,7 @@
+import { useRef } from 'react';
 import { Mail, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
 
 interface EmailVerificationModalProps {
@@ -9,94 +10,42 @@ interface EmailVerificationModalProps {
   onClose?: () => void;
 }
 
-export const EmailVerificationModal = ({ 
-  isOpen, 
-  email,
-  onClose 
-}: EmailVerificationModalProps) => {
-  const {
-    canResend,
-    resendCooldown,
-    resendVerificationEmail,
-    loading
-  } = useEmailVerification();
-
-  if (!isOpen) return null;
+export const EmailVerificationModal = ({ isOpen, email, onClose }: EmailVerificationModalProps) => {
+  const { canResend, resendCooldown, resendVerificationEmail, loading, error } = useEmailVerification();
+  const returnFocus = useRef<HTMLElement | null>(null);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="text-center pb-4">
-          <div className="mx-auto mb-4">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-yellow-100 rounded-full">
-              <Mail className="w-12 h-12 text-yellow-600" />
-            </div>
-          </div>
-          <CardTitle className="text-2xl">
-            Подтвердите ваш email
-          </CardTitle>
-          <CardDescription className="text-base mt-2">
-            Для входа в систему необходимо подтвердить email адрес
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-            <p className="text-sm text-blue-800 mb-2">
-              Мы отправили письмо с подтверждением на адрес:
-            </p>
-            {email && (
-              <p className="font-semibold text-blue-900">
-                {email}
-              </p>
-            )}
-          </div>
-
-          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
-            <p className="text-sm text-yellow-800">
-              <strong>Не видите письмо?</strong> Проверьте папку "Спам" или "Промоакции". 
-              Письмо должно прийти в течение нескольких минут.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <Button
-              onClick={resendVerificationEmail}
-              disabled={!canResend || loading}
-              className="w-full"
-              size="lg"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Отправка...
-                </>
-              ) : !canResend ? (
-                <>
-                  <RefreshCw className="w-5 h-5 mr-2" />
-                  Повторить через {resendCooldown}с
-                </>
-              ) : (
-                <>
-                  <Mail className="w-5 h-5 mr-2" />
-                  Отправить письмо повторно
-                </>
-              )}
-            </Button>
-
-            {onClose && (
-              <Button
-                onClick={onClose}
-                variant="outline"
-                className="w-full"
-                size="lg"
-              >
-                Закрыть
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <Dialog open={isOpen} onOpenChange={open => { if (!open) onClose?.(); }}>
+      <DialogContent
+        className="most-workspace w-[calc(100%-2rem)] max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-xl p-6 sm:p-8 shadow-none"
+        onOpenAutoFocus={() => { returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; }}
+        onCloseAutoFocus={event => {
+          if (returnFocus.current?.isConnected) {
+            event.preventDefault();
+            returnFocus.current.focus();
+          }
+        }}
+      >
+        <DialogHeader className="pr-8 text-left">
+          <Mail className="mb-3 h-8 w-8 text-primary" aria-hidden="true" />
+          <DialogTitle className="text-2xl leading-tight">Подтвердите почту</DialogTitle>
+          <DialogDescription className="pt-2 text-base leading-relaxed">
+            Откройте письмо от МОСТ и перейдите по ссылке, чтобы продолжить вход.
+          </DialogDescription>
+        </DialogHeader>
+        {email && <p className="break-all font-medium">{email}</p>}
+        <p className="border-t pt-4 text-muted-foreground">
+          Если письма нет во входящих, проверьте папки «Спам» и «Промоакции». Можно запросить новое письмо.
+        </p>
+        {error && <p role="alert" className="text-destructive">Не удалось отправить письмо. Попробуйте ещё раз позже.</p>}
+        <div className="flex flex-col gap-3 pt-2">
+          <Button onClick={resendVerificationEmail} disabled={!canResend || loading} className="min-h-12 h-auto whitespace-normal py-3">
+            {loading ? <Loader2 className="h-5 w-5 shrink-0 animate-spin" aria-hidden="true" /> : !canResend ? <RefreshCw className="h-5 w-5 shrink-0" aria-hidden="true" /> : <Mail className="h-5 w-5 shrink-0" aria-hidden="true" />}
+            {loading ? 'Отправка…' : !canResend ? `Повторить через ${resendCooldown} с` : 'Отправить письмо повторно'}
+          </Button>
+          {onClose && <Button onClick={onClose} variant="outline" className="min-h-12">Вернуться ко входу</Button>}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
-
