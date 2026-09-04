@@ -519,22 +519,22 @@ const BillingPage = () => {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded border border-border border-t-2 border-t-foreground/60 bg-secondary/50 p-6 shadow-none" aria-labelledby="enterprise-offer-title">
+      <section className="overflow-hidden rounded border border-foreground bg-foreground p-6 text-background shadow-none sm:p-8" aria-labelledby="enterprise-offer-title">
         <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div>
-            <div className="mb-3 flex items-center gap-2 text-sm font-medium text-muted-foreground"><Building2 aria-hidden="true" className="h-5 w-5 shrink-0" />Для крупных компаний</div>
-            <h2 id="enterprise-offer-title" className="text-2xl font-semibold text-slate-950 sm:text-3xl">Корпоративный уровень</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Настроим МОСТ под структуру компании, подключим нужные интеграции и поможем командам перейти на единую систему работы.</p>
-            <ul className="mt-5 grid gap-x-8 gap-y-3 border-t border-border pt-5 text-sm text-foreground sm:grid-cols-2">
+            <div className="mb-3 flex items-center gap-2 text-sm font-medium text-background/75"><Building2 aria-hidden="true" className="h-5 w-5 shrink-0" />Для крупных компаний</div>
+            <h2 id="enterprise-offer-title" className="text-2xl font-semibold text-background sm:text-3xl">Корпоративный уровень</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-background/80">Настроим МОСТ под структуру компании, подключим нужные интеграции и поможем командам перейти на единую систему работы.</p>
+            <ul className="mt-5 grid gap-x-8 gap-y-3 border-t border-background/20 pt-5 text-sm text-background sm:grid-cols-2">
               {['Персональная настройка', 'Приоритетная поддержка', 'Обучение и запуск', 'Особые условия оплаты'].map((benefit) => (
                 <li key={benefit} className="flex items-start gap-2">
-                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-background/70" />
                   {benefit}
                 </li>
               ))}
             </ul>
           </div>
-          <Button type="button" variant="outline" size="lg" className="w-full bg-card lg:w-auto" onClick={() => setEnterpriseInquiryOpen(true)}>
+          <Button type="button" variant="outline" size="lg" className="w-full border-background bg-background text-foreground hover:border-background hover:bg-background/90 hover:text-foreground lg:w-auto" onClick={() => setEnterpriseInquiryOpen(true)}>
             <Headphones aria-hidden="true" className="mr-2 h-5 w-5 shrink-0" />Обсудить подключение
           </Button>
         </div>
