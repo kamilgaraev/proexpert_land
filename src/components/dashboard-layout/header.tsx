@@ -157,7 +157,7 @@ export function Header({
       <div className="flex h-16 items-center px-4 sm:px-6 md:px-8">
         <MobileSidebar {...sidebarProps} />
         
-        <div className="hidden shrink-0 xl:flex xl:items-center xl:pr-6">
+        <div className="hidden shrink-0 2xl:flex 2xl:items-center 2xl:pr-6">
           {/* Breadcrumbs Placeholder - can be made dynamic */}
            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
 
@@ -169,7 +169,7 @@ export function Header({
 
         <div className="ml-auto flex min-w-0 items-center gap-2 xl:gap-4">
           <div
-            className="relative hidden min-w-0 w-48 lg:block xl:w-80"
+            className="relative hidden w-56 min-w-0 xl:block 2xl:w-80"
             onBlur={handleSearchBlur}
           >
             <form onSubmit={handleSearchSubmit}>
@@ -184,7 +184,7 @@ export function Header({
                 }}
                 onFocus={() => setIsSearchOpen(true)}
                 onKeyDown={handleSearchKeyDown}
-                placeholder="Поиск по кабинету"
+                placeholder="Поиск"
                 aria-label="Поиск по личному кабинету"
                 aria-expanded={isSearchOpen && Boolean(trimmedSearchQuery)}
                 aria-controls="dashboard-search-results"
@@ -265,7 +265,7 @@ export function Header({
           {showBalance && (
            <Link 
                 to="/dashboard/billing" 
-                className="most-workspace-balance hidden sm:flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
+                className="most-workspace-balance hidden shrink-0 items-center gap-3 rounded border border-border bg-card px-3 py-1.5 transition-colors hover:border-foreground/30 hover:bg-accent sm:flex"
                 onClick={(e: any) => {
                   if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
@@ -277,7 +277,7 @@ export function Header({
                 <Wallet className="h-5 w-5 text-muted-foreground" />
                 <div className="flex flex-col items-start">
                      <span className="text-xs text-muted-foreground leading-none">Баланс</span>
-                     <span className="text-sm font-semibold text-foreground leading-snug mt-1">
+                     <span className="mt-0.5 whitespace-nowrap text-base font-semibold leading-snug tabular-nums text-foreground">
                         {balance !== null ? (
                             <>
                             {balance.currency === 'RUB'
@@ -300,7 +300,7 @@ export function Header({
             </div>
 
              {/* Admin Panel Link */}
-             <Button variant="ghost" size="sm" className="hidden lg:flex text-muted-foreground" asChild>
+             <Button variant="ghost" size="sm" className="hidden shrink-0 border border-foreground/10 bg-foreground px-4 font-semibold text-background hover:bg-foreground/90 hover:text-background lg:flex" asChild>
                 <a href="https://admin.1мост.рф/" target="_blank" rel="noopener noreferrer" title="Управление строительством — откроется в новой вкладке">
                     Работа с объектами
                     <ArrowUpRight aria-hidden="true" className="h-5 w-5 ml-2 shrink-0" />
