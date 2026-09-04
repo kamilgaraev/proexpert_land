@@ -67,17 +67,17 @@ function TeamWorkspace({ scope, actorId, organizationId, canAssignRoles, canCrea
       </header>
       <Tabs defaultValue="employees" className="min-w-0">
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
-          <div className="max-w-full overflow-x-auto">
-            <TabsList aria-label="Разделы команды" className="h-auto justify-start gap-1 bg-transparent p-0">
-              <TabsTrigger value="employees" className="min-h-11 px-4 data-[state=active]:bg-secondary data-[state=active]:shadow-none">
-                <Users aria-hidden="true" className="mr-2 h-5 w-5" />Сотрудники
+          <div className="w-full min-w-0 sm:w-auto">
+            <TabsList aria-label="Разделы команды" className="grid h-auto w-full auto-cols-fr grid-flow-col gap-1 bg-transparent p-0 sm:flex sm:justify-start">
+              <TabsTrigger value="employees" className="min-h-11 min-w-0 flex-col gap-2 px-1 py-3 sm:flex-row sm:px-4 sm:py-2 data-[state=active]:bg-secondary data-[state=active]:shadow-none">
+                <Users aria-hidden="true" className="h-5 w-5 shrink-0" />Сотрудники
               </TabsTrigger>
-              <TabsTrigger value="invitations" className="min-h-11 px-4 data-[state=active]:bg-secondary data-[state=active]:shadow-none">
-                <Send aria-hidden="true" className="mr-2 h-5 w-5" />Приглашения
+              <TabsTrigger value="invitations" className="min-h-11 min-w-0 flex-col gap-2 px-1 py-3 sm:flex-row sm:px-4 sm:py-2 data-[state=active]:bg-secondary data-[state=active]:shadow-none">
+                <Send aria-hidden="true" className="h-5 w-5 shrink-0" />Приглашения
               </TabsTrigger>
               {canViewRoles && (
-                <TabsTrigger value="roles" className="min-h-11 px-4 data-[state=active]:bg-secondary data-[state=active]:shadow-none">
-                  <ShieldCheck aria-hidden="true" className="mr-2 h-5 w-5" />Роли и права
+                <TabsTrigger value="roles" className="min-h-11 min-w-0 flex-col gap-2 px-1 py-3 sm:flex-row sm:px-4 sm:py-2 data-[state=active]:bg-secondary data-[state=active]:shadow-none">
+                  <ShieldCheck aria-hidden="true" className="h-5 w-5 shrink-0" />Роли и права
                 </TabsTrigger>
               )}
             </TabsList>
