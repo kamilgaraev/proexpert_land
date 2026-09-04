@@ -256,7 +256,7 @@ const ContractorMarketplacePage = () => {
           defaultValue={canSearchContractors ? 'search' : canViewProfile ? 'profile' : 'incoming'}
           className="space-y-5"
         >
-          <TabsList className="grid w-full grid-cols-2 md:flex md:w-auto">
+          <TabsList aria-label="Разделы каталога подрядчиков" className="grid h-auto w-full grid-cols-2 gap-1 xl:flex xl:w-fit [&>button]:min-h-11 [&>button>svg]:h-5 [&>button>svg]:w-5">
             {canSearchContractors && (
               <TabsTrigger value="search" className="gap-2">
                 <Search className="h-4 w-4" />

@@ -286,12 +286,13 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           <h2 className="text-lg font-semibold">Фильтры каталога</h2>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
           <div className="space-y-2">
-            <Label>Поиск</Label>
+            <Label htmlFor="contractor-search">Поиск</Label>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
+                id="contractor-search"
                 className="pl-9"
                 value={draftFilters.search ?? ''}
                 onChange={(event) => updateDraftFilter('search', event.target.value || undefined)}
@@ -300,12 +301,12 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           </div>
 
           <div className="space-y-2">
-            <Label>Категория</Label>
+            <Label htmlFor="contractor-category">Категория</Label>
             <Select
               value={draftFilters.category_id ? String(draftFilters.category_id) : 'all'}
               onValueChange={(value) => updateDraftFilter('category_id', value === 'all' ? undefined : Number(value))}
             >
-              <SelectTrigger>
+              <SelectTrigger id="contractor-category">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -320,20 +321,21 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           </div>
 
           <div className="space-y-2">
-            <Label>Город</Label>
+            <Label htmlFor="contractor-city">Город</Label>
             <Input
+              id="contractor-city"
               value={draftFilters.city ?? ''}
               onChange={(event) => updateDraftFilter('city', event.target.value || undefined)}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Сортировка</Label>
+            <Label htmlFor="contractor-sort">Сортировка</Label>
             <Select
               value={draftFilters.sort_by ?? 'relevance'}
               onValueChange={(value) => updateDraftFilter('sort_by', value as MarketplaceSearchParams['sort_by'])}
             >
-              <SelectTrigger>
+              <SelectTrigger id="contractor-sort">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -347,7 +349,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           </div>
 
           <div className="space-y-2">
-            <Label>Доступность</Label>
+            <Label htmlFor="contractor-availability">Доступность</Label>
             <Select
               value={draftFilters.availability_status ?? 'all'}
               onValueChange={(value) => updateDraftFilter(
@@ -355,7 +357,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
                 value === 'all' ? undefined : value as MarketplaceSearchParams['availability_status']
               )}
             >
-              <SelectTrigger>
+              <SelectTrigger id="contractor-availability">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -370,7 +372,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           </div>
 
           <div className="space-y-2">
-            <Label>Проверка</Label>
+            <Label htmlFor="contractor-verification">Проверка</Label>
             <Select
               value={draftFilters.verification_level ?? 'all'}
               onValueChange={(value) => updateDraftFilter(
@@ -378,7 +380,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
                 value === 'all' ? undefined : value as MarketplaceSearchParams['verification_level']
               )}
             >
-              <SelectTrigger>
+              <SelectTrigger id="contractor-verification">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -393,8 +395,9 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           </div>
 
           <div className="space-y-2">
-            <Label>Рейтинг от</Label>
+            <Label htmlFor="contractor-rating">Рейтинг от</Label>
             <Input
+              id="contractor-rating"
               type="number"
               min={0}
               max={5}
@@ -408,8 +411,9 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
           </div>
 
           <div className="space-y-2">
-            <Label>Команда от</Label>
+            <Label htmlFor="contractor-team">Команда от</Label>
             <Input
+              id="contractor-team"
               type="number"
               min={1}
               value={draftFilters.team_capacity_min ?? ''}
