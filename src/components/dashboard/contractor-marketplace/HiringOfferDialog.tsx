@@ -244,13 +244,13 @@ export const HiringOfferDialog = ({
 
           <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
             <div className="space-y-2">
-              <Label>Проект</Label>
+              <Label htmlFor="hiring-project">Проект</Label>
               <Select
                 value={projectId === null ? undefined : String(projectId)}
                 disabled={projectsLoading || submitting}
                 onValueChange={(value) => setProjectId(Number(value))}
               >
-                <SelectTrigger>
+                <SelectTrigger id="hiring-project">
                   <SelectValue placeholder="Выберите проект" />
                 </SelectTrigger>
                 <SelectContent>
@@ -264,13 +264,13 @@ export const HiringOfferDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label>Роль</Label>
+              <Label htmlFor="hiring-role">Роль</Label>
               <Select
                 value={role}
                 disabled={submitting}
                 onValueChange={(value) => setRole(value as OfferRole)}
               >
-                <SelectTrigger>
+                <SelectTrigger id="hiring-role">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -298,13 +298,13 @@ export const HiringOfferDialog = ({
           )}
 
           <div className="space-y-2">
-            <Label>Название предложения</Label>
-            <Input value={title} disabled={submitting} onChange={(event) => setTitle(event.target.value)} />
+            <Label htmlFor="hiring-title">Название предложения</Label>
+            <Input id="hiring-title" value={title} disabled={submitting} onChange={(event) => setTitle(event.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label>Сообщение подрядчику</Label>
-            <Textarea
+            <Label htmlFor="hiring-message">Сообщение подрядчику</Label>
+            <Textarea id="hiring-message"
               value={message}
               rows={4}
               disabled={submitting}
@@ -312,31 +312,31 @@ export const HiringOfferDialog = ({
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-5">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-2">
-              <Label>Начало</Label>
-              <Input type="date" value={startsAt} disabled={submitting} onChange={(event) => setStartsAt(event.target.value)} />
+              <Label htmlFor="hiring-start">Начало</Label>
+              <Input id="hiring-start" type="date" value={startsAt} disabled={submitting} onChange={(event) => setStartsAt(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Завершение</Label>
-              <Input type="date" value={endsAt} disabled={submitting} onChange={(event) => setEndsAt(event.target.value)} />
+              <Label htmlFor="hiring-end">Завершение</Label>
+              <Input id="hiring-end" type="date" value={endsAt} disabled={submitting} onChange={(event) => setEndsAt(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Бюджет от</Label>
-              <Input type="number" value={budgetMin} disabled={submitting} onChange={(event) => setBudgetMin(event.target.value)} />
+              <Label htmlFor="hiring-budget-min">Бюджет от</Label>
+              <Input id="hiring-budget-min" type="number" value={budgetMin} disabled={submitting} onChange={(event) => setBudgetMin(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Бюджет до</Label>
-              <Input type="number" value={budgetMax} disabled={submitting} onChange={(event) => setBudgetMax(event.target.value)} />
+              <Label htmlFor="hiring-budget-max">Бюджет до</Label>
+              <Input id="hiring-budget-max" type="number" value={budgetMax} disabled={submitting} onChange={(event) => setBudgetMax(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Действует до</Label>
-              <Input type="date" value={expiresAt} disabled={submitting} onChange={(event) => setExpiresAt(event.target.value)} />
+              <Label htmlFor="hiring-expiry">Действует до</Label>
+              <Input id="hiring-expiry" type="date" value={expiresAt} disabled={submitting} onChange={(event) => setExpiresAt(event.target.value)} />
             </div>
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="font-semibold">Пакеты работ</h3>
               <Button
                 type="button"
@@ -345,7 +345,7 @@ export const HiringOfferDialog = ({
                 disabled={submitting || categoryOptions.length === 0}
                 onClick={addWorkPackage}
               >
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="mr-2 h-5 w-5" />
                 Добавить пакет
               </Button>
             </div>
@@ -354,13 +354,13 @@ export const HiringOfferDialog = ({
               <div key={index} className="space-y-4 rounded-xl border p-4">
                 <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_40px]">
                   <div className="space-y-2">
-                    <Label>Категория</Label>
+                    <Label htmlFor={`hiring-category-${index}`}>Категория</Label>
                     <Select
                       value={workPackage.category_id === null ? undefined : String(workPackage.category_id)}
                       disabled={submitting}
                       onValueChange={(value) => updateWorkPackage(index, 'category_id', Number(value))}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id={`hiring-category-${index}`}>
                         <SelectValue placeholder="Категория работ" />
                       </SelectTrigger>
                       <SelectContent>
@@ -373,8 +373,8 @@ export const HiringOfferDialog = ({
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Название работ</Label>
-                    <Input
+                    <Label htmlFor={`hiring-work-title-${index}`}>Название работ</Label>
+                    <Input id={`hiring-work-title-${index}`}
                       value={workPackage.title}
                       disabled={submitting}
                       onChange={(event) => updateWorkPackage(index, 'title', event.target.value)}
@@ -385,17 +385,18 @@ export const HiringOfferDialog = ({
                       type="button"
                       variant="ghost"
                       size="icon"
+                      aria-label={`Удалить пакет работ ${index + 1}`}
                       disabled={submitting || workPackages.length === 1}
                       onClick={() => removeWorkPackage(index)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Описание</Label>
-                  <Textarea
+                  <Label htmlFor={`hiring-work-description-${index}`}>Описание</Label>
+                  <Textarea id={`hiring-work-description-${index}`}
                     value={workPackage.description}
                     rows={3}
                     disabled={submitting}
@@ -403,10 +404,10 @@ export const HiringOfferDialog = ({
                   />
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-6">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <div className="space-y-2">
-                    <Label>Объем</Label>
-                    <Input
+                    <Label htmlFor={`hiring-quantity-${index}`}>Объём</Label>
+                    <Input id={`hiring-quantity-${index}`}
                       type="number"
                       value={workPackage.quantity}
                       disabled={submitting}
@@ -414,16 +415,16 @@ export const HiringOfferDialog = ({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Ед. изм.</Label>
-                    <Input
+                    <Label htmlFor={`hiring-unit-${index}`}>Единица измерения</Label>
+                    <Input id={`hiring-unit-${index}`}
                       value={workPackage.unit}
                       disabled={submitting}
                       onChange={(event) => updateWorkPackage(index, 'unit', event.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Бюджет от</Label>
-                    <Input
+                    <Label htmlFor={`hiring-work-budget-min-${index}`}>Бюджет от</Label>
+                    <Input id={`hiring-work-budget-min-${index}`}
                       type="number"
                       value={workPackage.budget_min}
                       disabled={submitting}
@@ -431,8 +432,8 @@ export const HiringOfferDialog = ({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Бюджет до</Label>
-                    <Input
+                    <Label htmlFor={`hiring-work-budget-max-${index}`}>Бюджет до</Label>
+                    <Input id={`hiring-work-budget-max-${index}`}
                       type="number"
                       value={workPackage.budget_max}
                       disabled={submitting}
@@ -440,8 +441,8 @@ export const HiringOfferDialog = ({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Начало</Label>
-                    <Input
+                    <Label htmlFor={`hiring-work-start-${index}`}>Начало</Label>
+                    <Input id={`hiring-work-start-${index}`}
                       type="date"
                       value={workPackage.starts_at}
                       disabled={submitting}
@@ -449,8 +450,8 @@ export const HiringOfferDialog = ({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Завершение</Label>
-                    <Input
+                    <Label htmlFor={`hiring-work-end-${index}`}>Завершение</Label>
+                    <Input id={`hiring-work-end-${index}`}
                       type="date"
                       value={workPackage.ends_at}
                       disabled={submitting}
