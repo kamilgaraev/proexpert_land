@@ -1,5 +1,47 @@
 # МОСТ — прочитать первым после восстановления контекста
 
+## Переход к ЛК — 4 сентября, 03:20
+
+Маркетинг принят для перехода к ЛК: docs/marketing/HANDOFF-20260904.md содержит результат, evidence и честные ограничения (индексация закрыта пользователем, письмо/Метрика отчёты не подтверждены, nginxwebpTTL и оставшиесязависимости как сопровождение). ffbd8da6 workflow33820755028 SUCCESS. Не возвращаться к бесконечной косметике маркетинга; общаяцель включает техническиеостатки и ЛК.
+
+БЭКАП ЛК УЖЕ СОЗДАН И ПРОВЕРЕН. e5e0b0cf PUSHED: добавлены backup-lk/verify-lk-backup/restore-lk-backup в существующийdeploy.yml. Run33821261125 SUCCESS, толькоlk-baseline. Архив7.9МБ `/var/backups/most-lk/before-redesign-20260904/release.tgz`, SHA256 `a8cc3f862aaba24832dfff945127e984e1d691c585065c8589a1386c21aeaf36`; source иcurrent `/var/www/prohelper_lk/releases/20260902145800-7a836ec`. tarcompareисходника,sha256,распаковка,index/assets,tarcompareраспаковкиуспешны. Переключенияcurrentнебыло. Руководство docs/lk/backup-and-restore.md обновлено фактом (пока некоммит). Вworkflowзащитаотчужогопути/перезаписи,общаяconcurrency,атомарноеrestoreсconfirmRESTORE-LK-20260904. YAML/js-yaml ивсеembeddedbash -n PASS,GortexreviewAPPROVE. CI-monitor изgithub-workflowsskill отсутствует ивskill ивrepo, используетсяghfallback, пользователюсказано. Context7GHworkflowпрочитан. Запрософициальнойwebdocsполучилtimeout,Context7далнужнуюсхему.
+
+Можно начинать UI ЛК. Прочитаны актуальные DashboardLayout::DashboardLayout, sidebar.tsx целиком,page-wrapper.tsx, черновойworkspace.css и design-system-brief. КОДЛКЕЩЁНЕИЗМЕНЁН. Следующийлогическийблок: scopedmost-workspaceтокены/подключениеLayout;широкийPageWrapperбезmax-w-7xlиslideвсегоэкрана;sidebar безградиентов/caps/10px,доступныйactive/menu,закрытиепринавигации. Права/перенаправленияLayoutне трогать. Нужно readheaderдлясогласованнойоболочки,editingcontexts+impact передмутацией. MobileSheetportal потребуетmost-workspaceкласс длянаследованиятокенов. Потомлокальнаябраузернаяприёмка на выделенномаккаунте,не деплоитьвслепую. workspace.cssнеотслеживаемыйчерновикнеподключён.
+
+Skills frontend-design иbrainstormingпрочитаны; проектнаяспецификацияужесуществует, пользовательявноотменилпромежуточныесогласования, потомуapprovalgateне спрашивать. Пользователюобъявленнаправление: светлаятёплаярабочаясистема,графит,оранжевыйакцент. Реакт19.1.0оставить. Текущиевкладки свои20contact,21home390;user2/4не трогать. WORKING-STATE/HANDOFF/backup-guide требуетсязакоммитить. ЧужойAGENTS/node_modulesне включать. ЦельACTIVE.
+
+
+## Актуально: ffbd8da6, 4 сентября 03:11
+
+Предыдущий выпуск e5b93654 /33820212829 SUCCESS (первое наблюдение сетевойtimeout, затем in_progress, затем success; не перезапускали). ContactForm цель только после подтвержденияAPI опубликована.
+
+ffbd8da6 PUSHED, workflow33820755028 targetmarketing ЗАПУЩЕН: trackYandexEvent теперь ym params вместо hit, обычные события не создают искусственные просмотры. Context7 /yandex/metrica-tag подтверждает hit как artificial pageview и params как параметры визита.6тестов YandexMetrika PASS, ESLint2файла PASS. Проверены прежнийSPAhit/отсутствиепервогодубля/уходвприватныйраздел плюс отсутствиецелей/событийбезсогласия. Gortex stageddetect/testtargets/guards/review выполнены: REVIEW MEDIUM,0findings,testcovered. Контрактсигнатуры и consentgate сохранены. Не утверждать настройкуцелей в кабинетеМетрики или фактические10визитов.
+
+Создана docs/marketing/evidence/audit-matrix-20260904.md: сводка A01–A12 с доказательствами и остатком. Прочитаны blog-pagination,blog-tag-backend-production,blog-tag-frontend-review,blog-legal-production. Свежие publicGET: /blog/tag/pto200,H1ПТО,selfcanonical,noindex; /blog?page=2 404,selfcanonicalpage2,noindex,при10публикациях корректно. Своя IAB21 productionглавная390×844: полныйснимок осмотрен, высота6886px=8.16экрана,scrollWidth390,broken0; историяпоследовательная. viewport ПОКА390×844, вернуть1280 при desktop. Пользовательские вкладки2/4не трогать. Своя20contact,21home.
+
+Следующий блок: дождаться33820755028; решить остаток прямогоNginxкэширования/доказательствазакрытиямаркетинга, затем ОБЯЗАТЕЛЬНЫЙ проверенныйбэкапЛК доизмененияегоUI. ЛКне внедрён,резервещёне сделан. WORKING-STATE незакоммичен, не путать с отправленнойматрицей. node_modulestrackedизмененияне включать,чужойAGENTSне трогать. ЦельACTIVE.
+
+
+## Текущая точка после e5b93654 — 4 сентября, 03:03
+
+Workflow33819372831 SUCCESS; своя свежая IAB20 production/contact1280×720: фокус textarea один outline2px#9a3412, shadow none, overflow0, screenshot просмотрен. Старые вкладки17–19 исчезли; пользовательские2/4 не трогали.
+
+e5b93654 PUSHED: contact_form теперь только после подтверждения успешного ответа API, button_click остаётся до отправки. MSW2теста PASS, ESLint PASS. Первый прогон2AbortError happy-dom cleanup не засчитан; только анимационная обёртка в тесте заменена статической, повтор успешен. Gortex detect/get_test_targets/check_guards выполнены; тестовых рёбер нет, guards нет. Staged review BLOCK по fanout тестового mock,0findings, фактические2регрессионные проверки выполнены. Workflow33820212829 targetmarketing ЗАПУЩЕН, итог ещё проверить, не повторять dispatch.
+
+Обновлён evidence/acceptance-20260904.md. Прочитаны seo-and-consistency-release (A01 закрыт productioncrawl84URL0битыхпар; A04серверные6категорий) и technical-seo-final-review (его старый долг пагинации смотреть с последующими blog-pagination/query-contract evidence). Осталось свести A01–A12 по существующим доказательствам, не повторять всю работу и не генерировать новые сцены. Найденная реальная A12ошибка исправлена выше. Доставку/настройку целей в кабинете Метрики не подтверждали.
+
+Кэш: publicHEAD heroWebP отдаётся напрямую Nginx1.24 безCache-Control/Expires; Node server/index.cjs уже ставитгодстатики, поэтому его правка не исправитNginx. Вworkflowdeploy.yml нет управленияNginx; прочитан полностью кромепервыхстрокдо75(ранее читались). Возможен остаточный инфраструктурный пункт, не слепойпатч. Lighthouse image-density рекомендации нельзя принимать механически: CSS494px×DPR1.75 объясняет1024вариант. Маркетинг ещё не принят целиком; ЛКбэкап ещё НЕ создан, редизайн НЕ внедрён. После готовности сайта ОБЯЗАТЕЛЬНО создать/проверитьLKрезерв доизмененияUI. ЦельACTIVE.
+
+
+## Актуально после ea1fe7a3 — 4 сентября
+
+4ed594c0 workflow33818412330 SUCCESS. Свежая своя IAB18 /contact подтвердила три ссылки rgb154,52,18 и underline. Старая IAB17 при клиентском переходе ещё держала прежний JS — это не отказ выпуска, свежая загрузка подтверждена. Полный Lighthouse повторно не запускался; расчёт контраста6.01:1.
+
+Найден и исправлен двойной фокус формы: ea1fe7a3 PUSHED, только8строк scopedCSS marketing.css. Text/email/textarea focus имеют нейтральную границу и box-shadow:none; focus-visible2px#9a3412/offset2px. Своя локальная IAB19 /contact1280×720, textarea нажата, computedstyles и screenshot подтверждают один контур. Gortex detect/reviewAPPROVE0, unit-тесты для CSS не запускались. Ранее f1edaf8b PUSHED:7редакционных замен IntegrationsPage, убраны внутренние формулировки, условия отдельных интеграций сохранены; GortexreviewAPPROVE. Оба входят в новый workflow33819372831 targetmarketing ЗАПУЩЕН, проверить итог и freshproduction.
+
+Своя IAB17 /security и /integrations1280 осмотрены; структура и тексты прочитаны, редакционные замечания исправлены выше. Старая вкладка16 отсутствует, не использовать. IAB18productioncontact,IAB19localcontact. ЛК не внедрён, его бэкап ещё не выполнен. Следом закрывать оставшиеся пункты итоговой матрицы маркетинга, не ждать индексации. Не начинать новую косметическую концепцию.
+
+
 ## Текущая точка — после 4ed594c0
 
 33961b25 workflow33818156199 SUCCESS, обновления зависимостей и SSR-adapter опубликованы. Контраст ContactForm закоммичен4ed594c0 PUSHED, workflow33818412330 ещё in_progress на Install dependencies (проверено gh jobs), НЕ повторять выпуск. Расчёт нового цвета#9a3412 на#ebe9e2=6.01:1. Только3ссылки и underline; ESLintPASS,Gortexreview REVIEW0findings,поведенческие тесты не повторялись для цветов.
