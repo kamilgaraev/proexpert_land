@@ -12,7 +12,7 @@ import {
   Search, 
   X,
   Wallet, 
-  ShieldCheck, 
+  ArrowUpRight,
   User,
   LogOut,
   Settings
@@ -160,9 +160,7 @@ export function Header({
         <div className="ml-4 hidden md:flex md:items-center md:gap-4 lg:gap-6">
           {/* Breadcrumbs Placeholder - can be made dynamic */}
            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <img src="/logo.svg" alt="" className="h-5 w-5 object-contain" />
-                <span>МОСТ</span>
-                <span>/</span>
+
                 <span className="text-foreground font-medium">
                     Личный кабинет
                 </span>
@@ -303,9 +301,9 @@ export function Header({
 
              {/* Admin Panel Link */}
              <Button variant="ghost" size="sm" className="hidden lg:flex text-muted-foreground" asChild>
-                <a href="https://admin.1мост.рф/" target="_blank" rel="noopener noreferrer">
-                    <ShieldCheck className="h-5 w-5 mr-2" />
-                    Админ
+                <a href="https://admin.1мост.рф/" target="_blank" rel="noopener noreferrer" title="Управление строительством — откроется в новой вкладке">
+                    Работа с объектами
+                    <ArrowUpRight aria-hidden="true" className="h-5 w-5 ml-2 shrink-0" />
                 </a>
              </Button>
 
