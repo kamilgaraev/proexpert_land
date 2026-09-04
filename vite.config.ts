@@ -73,18 +73,14 @@ export default defineConfig({
             // Это предотвратит circular dependencies
           }
         },
-        chunkFileNames: (chunkInfo) => {
-          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop().replace('.tsx', '').replace('.ts', '') : 'chunk';
-          return `assets/${facadeModuleId}-[hash].js`;
-        },
-        entryFileNames: (chunkInfo) => {
-          // Не хешируем pageFiles и importBuild для vite-plugin-ssr
-          if (chunkInfo.name === 'pageFiles' || chunkInfo.name === 'importBuild') {
-            return '[name].js';
-          }
-          return 'assets/[name]-[hash].js';
-        },
-        assetFileNames: 'assets/[name]-[hash][extname]'
+        ...(isLkBuild ? {
+          chunkFileNames: (chunkInfo) => {
+            const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop()?.replace('.tsx', '').replace('.ts', '') : 'chunk';
+            return `assets/${facadeModuleId}-[hash].js`;
+          },
+          entryFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash][extname]',
+        } : {}),
       }
     },
     // Не даём commonjs-плагину повторно обрабатывать чистые ESM-модули
