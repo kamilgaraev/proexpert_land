@@ -12,6 +12,7 @@
   { "path": "/contact", "pageKey": "contact", "priority": 0.78, "changefreq": "monthly" },
   { "path": "/blog", "pageKey": "blog", "priority": 0.72, "changefreq": "weekly" },
   { "path": "/foreman-software", "pageKey": "foreman-software", "priority": 0.9, "changefreq": "weekly" },
+  { "path": "/general-work-journal", "pageKey": "general-work-journal", "priority": 0.94, "changefreq": "weekly" },
   { "path": "/construction-crm", "pageKey": "construction-crm", "priority": 0.9, "changefreq": "weekly" },
   { "path": "/construction-erp", "pageKey": "construction-erp", "priority": 0.9, "changefreq": "weekly" },
   { "path": "/material-accounting", "pageKey": "material-accounting", "priority": 0.89, "changefreq": "weekly" },

@@ -127,6 +127,12 @@ const editorialScenes: Partial<
     smallSrc: "/images/marketing/most-handover-window-branded-v3-720.webp",
     alt: "Специалисты проверяют окно и документы в готовом помещении перед сдачей",
   },
+  "general-work-journal": {
+    src: "/images/marketing/most-general-work-journal-branded-v1.webp",
+    smallSrc:
+      "/images/marketing/most-general-work-journal-branded-v1-720.webp",
+    alt: "Прораб и инженер ПТО сверяют запись общего журнала работ на строительной площадке",
+  },
   "foreman-software": {
     src: "/images/marketing/most-foreman-planning-branded-v1.webp",
     smallSrc: "/images/marketing/most-foreman-planning-branded-v1-720.webp",
