@@ -1566,6 +1566,19 @@ export const rolesComparisonService = {
 
 // Обновленный сервис управления пользователями
 export const userManagementService = {
+  getOrganizationTeamRoles: async (signal: AbortSignal): Promise<unknown> => {
+    const response = await api.get<unknown>('/user-management/available-roles', { params: { scope: 'all' }, signal });
+    return response.data;
+  },
+
+  changeOrganizationTeamRole: async (memberId: number, roleData: {
+    system_roles?: string[];
+    custom_role_ids?: number[];
+    action: 'add' | 'remove';
+  }, signal: AbortSignal): Promise<unknown> => {
+    const response = await api.post<unknown>(`/user-management/organization-users/${memberId}/roles`, { ...roleData, scope: 'all' }, { signal });
+    return response.data;
+  },
   getRoles: async (): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get('/user-management/roles');
     return response;
@@ -1608,6 +1621,7 @@ export const userManagementService = {
     email: string;
     name: string;
     role_slugs: string[];
+    custom_role_ids?: number[];
     metadata?: Record<string, unknown>;
   }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.post('/user-management/invitations', invitationData);
@@ -1653,6 +1667,11 @@ export const userManagementService = {
     return response.data;
   },
 
+  setOrganizationTeamAccess: async (memberId: number, active: boolean, signal: AbortSignal): Promise<unknown> => {
+    const response = await api.patch<unknown>(`/user-management/organization-users/${memberId}/access`, { is_active: active }, { signal });
+    return response.data;
+  },
+
   // Управление ролями пользователей - обновлено для кастомных ролей
   getUserRoles: async (userId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const response = await api.get(`/user-management/organization-users/${userId}/roles`);
@@ -1672,8 +1691,8 @@ export const userManagementService = {
     return response;
   },
 
-  grantOrganizationOwner: async (userId: number): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
-    const response = await api.post(`/user-management/organization-users/${userId}/grant-owner`);
+  grantOrganizationOwner: async (userId: number, signal?: AbortSignal): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
+    const response = await api.post(`/user-management/organization-users/${userId}/grant-owner`, undefined, { signal });
     return response;
   },
 

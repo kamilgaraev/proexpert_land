@@ -43,3 +43,47 @@ export function parseOrganizationTeamPage(value: unknown): OrganizationTeamPage 
 export async function getOrganizationTeam(query: OrganizationTeamQuery, signal: AbortSignal): Promise<OrganizationTeamPage> {
   return parseOrganizationTeamPage(await userManagementService.getOrganizationTeam(query, signal));
 }
+
+export async function grantOrganizationTeamOwner(memberId: number, signal: AbortSignal): Promise<void> {
+  const failure = 'Не удалось назначить владельца компании. Обновите список и проверьте его роль перед повторной попыткой.';
+  if (!Number.isSafeInteger(memberId) || memberId < 1) throw new Error(failure);
+
+  let result: unknown;
+  try {
+    const response = await userManagementService.grantOrganizationOwner(memberId, signal);
+    result = response.data;
+  } catch (error: unknown) {
+    const status = isRecord(error) && isRecord(error.response) ? error.response.status : null;
+    if (status === 403) throw new Error('Назначать владельцев может только владелец компании с правом назначения ролей.');
+    if (status === 404) throw new Error('Сотрудник больше не доступен в этой компании. Обновите список.');
+    if (status === 422) throw new Error('Сотрудника нельзя назначить владельцем. Проверьте, открыт ли ему доступ к компании.');
+    throw new Error(failure);
+  }
+
+  if (!isRecord(result) || result.success !== true || !isRecord(result.data)
+    || !isRecord(result.data.user) || result.data.user.id !== memberId
+    || result.data.role_slug !== 'organization_owner') throw new Error(failure);
+}
+
+export async function setOrganizationTeamAccess(memberId: number, active: boolean, signal: AbortSignal): Promise<void> {
+  const failure = 'Не удалось изменить доступ сотрудника. Попробуйте ещё раз.';
+  if (!Number.isSafeInteger(memberId) || memberId < 1 || typeof active !== 'boolean') {
+    throw new Error(failure);
+  }
+
+  let result: unknown;
+  try {
+    result = await userManagementService.setOrganizationTeamAccess(memberId, active, signal);
+  } catch (error: unknown) {
+    const status = isRecord(error) && isRecord(error.response) ? error.response.status : null;
+    if (status === 403) throw new Error('У вас нет права изменять доступ этого сотрудника.');
+    if (status === 404) throw new Error('Сотрудник больше не доступен в этой компании. Обновите список.');
+    if (status === 422) throw new Error('Доступ этого сотрудника нельзя изменить. Обновите список и проверьте его статус.');
+    throw new Error(failure);
+  }
+
+  if (!isRecord(result) || result.success !== true || !isRecord(result.data)
+    || result.data.id !== memberId || result.data.is_active !== active) {
+    throw new Error(failure);
+  }
+}

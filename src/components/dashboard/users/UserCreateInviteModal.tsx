@@ -1,5 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import OrangeModal from '@/components/shared/OrangeModal';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useCustomRoles } from '@/hooks/useCustomRoles';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
@@ -9,16 +11,18 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void;
+  canInvite?: boolean;
 }
 
 type Mode = 'invitation' | 'direct';
 
-const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => {
+const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave, canInvite = true }) => {
   const { roles, fetchRoles, sendInvitation, createUserWithCustomRoles } = useUserManagement();
   const { customRoles, fetchCustomRoles } = useCustomRoles();
 
-  const [mode, setMode] = useState<Mode>('invitation');
+  const [mode, setMode] = useState<Mode>(canInvite ? 'invitation' : 'direct');
   const [loading, setLoading] = useState(false);
+  const submitting = useRef(false);
   const [query, setQuery] = useState('');
   const [showEmailVerificationNotice, setShowEmailVerificationNotice] = useState(false);
   const [form, setForm] = useState({
@@ -71,8 +75,9 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
   };
 
   const submit = async () => {
+    if (showEmailVerificationNotice || submitting.current || (mode === 'invitation' && !canInvite)) return;
+    submitting.current = true;
     setLoading(true);
-    setShowEmailVerificationNotice(false);
     const normalizedEmail = form.email.trim().toLowerCase();
 
     try {
@@ -98,6 +103,7 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
           name: form.name,
           email: normalizedEmail,
           role_slugs: form.role_slugs,
+          custom_role_ids: form.custom_role_ids,
           metadata: {}
         });
         onSave();
@@ -105,35 +111,39 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
     } catch (error: any) {
       toast.error(error.message || 'Ошибка создания пользователя');
     } finally {
+      submitting.current = false;
       setLoading(false);
     }
   };
 
+  const close = () => {
+    if (submitting.current) return;
+    if (showEmailVerificationNotice) onSave();
+    else onClose();
+  };
+
   return (
-    <OrangeModal
-      isOpen={isOpen}
-      title={mode === 'direct' ? 'Добавить сотрудника' : 'Пригласить сотрудника'}
-      primaryLabel={mode === 'direct' ? 'Создать' : 'Отправить'}
-      onPrimary={submit}
-      onClose={onClose}
-      isProcessing={loading}
-      widthClassName="max-w-3xl"
-    >
-      <div className="space-y-5">
+    <Dialog open={isOpen} onOpenChange={open => { if (!open) close(); }}>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:rounded-md" onPointerDownOutside={event => event.preventDefault()} onEscapeKeyDown={event => { if (submitting.current) event.preventDefault(); }}>
+        <DialogHeader className="border-b border-border px-5 py-5 pr-14 text-left sm:px-7">
+          <DialogTitle>{mode === 'direct' ? 'Добавить сотрудника' : 'Пригласить сотрудника'}</DialogTitle>
+          <DialogDescription>Укажите рабочую почту и выберите роли сотрудника в компании.</DialogDescription>
+        </DialogHeader>
+      <div className="min-h-0 space-y-5 overflow-y-auto overscroll-contain px-5 py-6 sm:px-7">
         {showEmailVerificationNotice && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
-            <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div role="status" className="bg-secondary border border-border rounded-md p-4 flex items-start gap-3">
+            <ExclamationTriangleIcon className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <h4 className="text-sm font-semibold text-yellow-900 mb-1">Пользователь создан успешно</h4>
-              <p className="text-sm text-yellow-800">
-                На его email отправлено письмо для подтверждения адреса. Пользователь сможет войти в систему только после подтверждения email.
+              <h4 className="text-sm font-semibold text-foreground mb-1">Сотрудник добавлен</h4>
+              <p className="text-sm text-muted-foreground">
+                Почта сотрудника пока не подтверждена. Повторно добавлять его не нужно.
               </p>
               <button
                 onClick={() => {
                   setShowEmailVerificationNotice(false);
                   onSave();
                 }}
-                className="mt-3 text-sm font-medium text-yellow-900 hover:text-yellow-700 underline"
+                className="mt-3 text-sm font-medium text-foreground hover:text-foreground underline"
               >
                 Понятно
               </button>
@@ -141,43 +151,48 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
           </div>
         )}
 
-        <div className="flex gap-2 bg-gray-50 p-1 rounded-lg w-fit">
-          <button
-            className={`px-3 py-1.5 rounded-md text-sm font-medium ${mode === 'invitation' ? 'bg-white text-orange-700 border border-orange-200' : 'text-gray-700'}`}
+        <fieldset disabled={loading || showEmailVerificationNotice} className="min-w-0 space-y-5 disabled:opacity-60">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Способ добавления сотрудника">
+          {canInvite && <Button
+            variant={mode === 'invitation' ? 'secondary' : 'ghost'}
+            aria-pressed={mode === 'invitation'}
             onClick={() => setMode('invitation')}
+            disabled={!canInvite || loading}
             type="button"
           >
             Приглашение
-          </button>
-          <button
-            className={`px-3 py-1.5 rounded-md text-sm font-medium ${mode === 'direct' ? 'bg-white text-orange-700 border border-orange-200' : 'text-gray-700'}`}
+          </Button>}
+          <Button
+            variant={mode === 'direct' ? 'secondary' : 'ghost'}
+            aria-pressed={mode === 'direct'}
             onClick={() => setMode('direct')}
+            disabled={loading}
             type="button"
           >
             Создать напрямую
-          </button>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="employee-invite-name" className="block text-sm font-medium text-gray-700 mb-1">Имя *</label>
-            <input id="employee-invite-name" autoComplete="name" className="w-full px-3 py-2 border rounded-lg" value={form.name} onChange={e => setForm(v => ({...v, name: e.target.value}))} />
+            <label htmlFor="employee-invite-name" className="block text-sm font-medium text-foreground mb-1">Имя *</label>
+            <Input id="employee-invite-name" autoComplete="name" className="w-full" value={form.name} onChange={e => setForm(v => ({...v, name: e.target.value}))} />
           </div>
           <div>
-            <label htmlFor="employee-invite-email" className="block text-sm font-medium text-gray-700 mb-1">Рабочая почта *</label>
-            <input id="employee-invite-email" type="email" autoComplete="email" className="w-full px-3 py-2 border rounded-lg" value={form.email} onChange={e => setForm(v => ({...v, email: e.target.value}))} />
+            <label htmlFor="employee-invite-email" className="block text-sm font-medium text-foreground mb-1">Рабочая почта *</label>
+            <Input id="employee-invite-email" type="email" autoComplete="email" className="w-full" value={form.email} onChange={e => setForm(v => ({...v, email: e.target.value}))} />
           </div>
         </div>
 
         {mode === 'direct' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="employee-invite-password" className="block text-sm font-medium text-gray-700 mb-1">Пароль *</label>
-              <input id="employee-invite-password" autoComplete="new-password" type="password" className="w-full px-3 py-2 border rounded-lg" value={form.password} onChange={e => setForm(v => ({...v, password: e.target.value}))} />
+              <label htmlFor="employee-invite-password" className="block text-sm font-medium text-foreground mb-1">Пароль *</label>
+              <Input id="employee-invite-password" autoComplete="new-password" type="password" className="w-full" value={form.password} onChange={e => setForm(v => ({...v, password: e.target.value}))} />
             </div>
             <div>
-              <label htmlFor="employee-invite-password-confirmation" className="block text-sm font-medium text-gray-700 mb-1">Повторите пароль *</label>
-              <input id="employee-invite-password-confirmation" autoComplete="new-password" type="password" className="w-full px-3 py-2 border rounded-lg" value={form.password_confirmation} onChange={e => setForm(v => ({...v, password_confirmation: e.target.value}))} />
+              <label htmlFor="employee-invite-password-confirmation" className="block text-sm font-medium text-foreground mb-1">Повторите пароль *</label>
+              <Input id="employee-invite-password-confirmation" autoComplete="new-password" type="password" className="w-full" value={form.password_confirmation} onChange={e => setForm(v => ({...v, password_confirmation: e.target.value}))} />
             </div>
             <label className="flex items-center gap-2 text-sm col-span-full">
               <input type="checkbox" checked={form.send_credentials} onChange={e => setForm(v => ({...v, send_credentials: e.target.checked}))} />
@@ -187,37 +202,37 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
         )}
 
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium text-gray-700">Роли</div>
-            <input
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm font-medium text-foreground">Роли</div>
+            <Input
               aria-label="Поиск по ролям"
               placeholder="Поиск по ролям"
-              className="px-3 py-2 border rounded-lg w-64"
+              className="w-full sm:w-64"
               value={query}
               onChange={e => setQuery(e.target.value)}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border rounded-lg p-3">
-              <div className="text-xs font-semibold text-gray-600 mb-2">Готовые роли</div>
+            <div className="border border-border rounded-md p-3">
+              <div className="text-xs font-semibold text-muted-foreground mb-2">Готовые роли</div>
               <div className="space-y-1 max-h-44 overflow-y-auto">
                 {filteredSystemRoles.map((r: any) => (
                   <label key={r.slug} className="flex items-start gap-2 text-sm">
                     <input type="checkbox" checked={form.role_slugs.includes(r.slug)} onChange={() => toggleSystemRole(r.slug)} />
                     <span>
-                      <span className="block font-medium text-gray-800">{r.name}</span>
+                      <span className="block font-medium text-foreground">{r.name}</span>
                       {r.permission_preview?.length ? (
-                        <span className="block text-xs text-gray-500">{r.permission_preview.slice(0, 3).join(', ')}</span>
+                        <span className="block text-xs text-muted-foreground">{r.permission_preview.slice(0, 3).join(', ')}</span>
                       ) : null}
                     </span>
                   </label>
                 ))}
-                {filteredSystemRoles.length === 0 && <div className="text-xs text-gray-400">Ничего не найдено</div>}
+                {filteredSystemRoles.length === 0 && <div className="text-xs text-muted-foreground">Ничего не найдено</div>}
               </div>
             </div>
-            <div className="border rounded-lg p-3">
-              <div className="text-xs font-semibold text-gray-600 mb-2">Роли компании</div>
+            <div className="border border-border rounded-md p-3">
+              <div className="text-xs font-semibold text-muted-foreground mb-2">Роли компании</div>
               <div className="space-y-1 max-h-44 overflow-y-auto">
                 {filteredCustomRoles.map((r: any) => (
                   <label key={r.id} className="flex items-center gap-2 text-sm">
@@ -225,13 +240,21 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
                     <span>{r.name}</span>
                   </label>
                 ))}
-                {filteredCustomRoles.length === 0 && <div className="text-xs text-gray-400">Ничего не найдено</div>}
+                {filteredCustomRoles.length === 0 && <div className="text-xs text-muted-foreground">Ничего не найдено</div>}
               </div>
             </div>
           </div>
         </div>
+        </fieldset>
       </div>
-    </OrangeModal>
+        <DialogFooter className="shrink-0 gap-2 border-t border-border px-5 py-4 sm:px-7">
+          <Button variant="outline" onClick={close} disabled={loading}>{showEmailVerificationNotice ? 'Закрыть' : 'Отменить'}</Button>
+          <Button onClick={showEmailVerificationNotice ? onSave : submit} disabled={loading}>
+            {loading ? 'Сохранение…' : showEmailVerificationNotice ? 'Готово' : mode === 'direct' ? 'Создать' : 'Отправить'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

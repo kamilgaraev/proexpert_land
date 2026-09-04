@@ -308,7 +308,8 @@ export const useUserManagement = () => {
     email: string;
     name: string;
     role_slugs: string[];
-    metadata?: Record<string, any>;
+    custom_role_ids?: number[];
+    metadata?: Record<string, unknown>;
   }) => {
     try {
       setLoading(true);

@@ -10,7 +10,7 @@ interface InvitationsListProps {
   invitations: UserInvitation[];
   loading: boolean;
   onRefresh: () => void | Promise<void>;
-  onInvite: () => void;
+  onInvite?: () => void;
 }
 
 const statusLabels: Record<string, string> = {
@@ -72,7 +72,7 @@ const InvitationsList = ({ invitations, loading, onRefresh, onInvite }: Invitati
           <h2 id="team-invitations-title" className="text-xl font-semibold text-foreground">Приглашения</h2>
           <p className="mt-1 text-sm text-muted-foreground">Сотрудники получают ссылку на почту и присоединяются к вашей компании.</p>
         </div>
-        {canInvite && <Button type="button" className="w-full shrink-0 sm:w-auto" onClick={onInvite} disabled={!!pending}>
+        {canInvite && onInvite && <Button type="button" className="w-full shrink-0 sm:w-auto" onClick={onInvite} disabled={!!pending}>
           <Send aria-hidden="true" className="mr-2 h-5 w-5" />Пригласить сотрудника
         </Button>}
       </div>
@@ -88,7 +88,7 @@ const InvitationsList = ({ invitations, loading, onRefresh, onInvite }: Invitati
         <div className="rounded border border-border bg-card px-5 py-12 text-center">
           <Send aria-hidden="true" className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
           <h3 className="text-lg font-medium text-foreground">Приглашений пока нет</h3>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">{canInvite ? 'Пригласите сотрудника, чтобы вместе работать с объектами и документами.' : 'Здесь появятся приглашения, отправленные вашей компанией.'}</p>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">{canInvite && onInvite ? 'Пригласите сотрудника, чтобы вместе работать с объектами и документами.' : 'Здесь появятся приглашения, отправленные вашей компанией.'}</p>
         </div>
       ) : (
         <ul className="divide-y divide-border rounded border border-border bg-card">
