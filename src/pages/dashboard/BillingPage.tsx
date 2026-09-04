@@ -450,11 +450,11 @@ const BillingPage = () => {
   )).length ?? 0;
 
   return (
-    <main className="mx-auto max-w-7xl space-y-6 pb-24">
-      <header className="rounded-2xl border border-slate-200 bg-white px-6 py-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:px-7">
+    <div className="min-w-0 space-y-6 pb-8">
+      <header className="border-b border-border pb-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">Пакеты и оплата</p>
+            
             <h1 className="text-3xl font-bold tracking-tight text-slate-950">Пакеты для вашей команды</h1>
             <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">Подключайте только нужные возможности. МОСТ без оплаты остаётся доступен всегда, а стоимость и дата следующей оплаты обновляются автоматически.</p>
           </div>
@@ -478,12 +478,12 @@ const BillingPage = () => {
         <p className="mt-2 max-w-3xl text-sm leading-6 text-blue-900">Состав, условия оплаты и изменения корпоративного контура согласуются с персональным менеджером МОСТ. Самостоятельное подключение, пробный доступ и изменение пакетов для этой организации недоступны.</p>
       </section> : null}
 
-      {renewal?.scheduledChange ? <section className="rounded-2xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
+      {renewal?.scheduledChange ? <section className="rounded-lg border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
         <strong>Запланировано сокращение состава</strong>
         <p className="mt-2">После {formatDateTime(renewal.scheduledChange.applyAt)} останется {namesFor(renewal.scheduledChange.targetPackageSlugs) || 'МОСТ без оплаты'}; будет отключён {namesFor(scheduledRemoved)}. До этой даты текущий доступ сохраняется.</p>
       </section> : null}
 
-      {paymentState !== 'idle' ? <section className="rounded-2xl border bg-white p-5" role="status">
+      {paymentState !== 'idle' ? <section className="rounded-lg border bg-white p-5" role="status">
         <div className="flex items-center gap-3">{paymentState === 'waiting' ? <Loader2 className="h-5 w-5 animate-spin" /> : paymentState === 'success' ? <Check className="h-5 w-5 text-emerald-600" /> : <AlertCircle className="h-5 w-5 text-orange-600" />}<strong>{paymentState === 'waiting' ? 'Проверяем оплату' : paymentState === 'success' ? 'Оплата подтверждена' : paymentState === 'failed' ? 'Оплата не прошла' : paymentState === 'canceled' ? 'Оплата отменена' : paymentState === 'refunded' ? 'Оплата возвращена' : paymentState === 'timeout' ? 'Подтверждение ещё не получено' : 'Не удалось проверить оплату'}</strong></div>
         {paymentState === 'success' && paymentOrder ? <p className="mt-2 text-sm text-muted-foreground">Оплачено {formatMoney(paymentOrder.amountMinor, paymentOrder.currency)}. Состав: {orderComposition(paymentOrder)}. Следующая дата оплаты: {formatDateTime(paymentOrder.periodEndAt)}. Доступ обновлён.</p> : paymentState === 'success' ? <p className="mt-2 text-sm text-muted-foreground">Средства списаны с баланса организации. Пакеты уже доступны команде.</p> : null}
         {paymentState === 'refunded' ? <p className="mt-2 text-sm text-muted-foreground">Возврат подтверждён. Оплата не считается успешной.</p> : null}
@@ -492,10 +492,10 @@ const BillingPage = () => {
 
       <section className="grid gap-4 md:grid-cols-3">
         <Card className="md:col-span-1"><CardContent className="p-6"><ShieldCheck className="h-7 w-7 text-emerald-600" /><h2 className="mt-4 text-xl font-semibold">МОСТ без оплаты</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Организация, сотрудники, проекты и основные рабочие данные доступны без оплаты.</p><Badge variant="secondary" className="mt-4">Доступен всегда</Badge></CardContent></Card>
-        <Card className="md:col-span-2"><CardContent className="grid gap-5 p-6 sm:grid-cols-3"><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Ваш доступ</span><p className="mt-2 font-semibold">{accessSourceLabel}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Оплачено до</span><p className="mt-2 font-semibold">{formatDateTime(currentPeriodStart)} — {formatDateTime(currentPeriodEnd)}</p></div><div><span className="text-xs uppercase tracking-wider text-muted-foreground">Автоплатёж</span><p className="mt-2 font-semibold">{renewal?.savedMethodAvailable ? 'Настроен' : 'Не настроен'}</p></div><div className="sm:col-span-3 flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Баланс организации можно использовать, когда на нём достаточно средств для полной оплаты.</p>{!isCorporate && renewal?.autoRenewEnabled && canManage ? <Button variant="outline" onClick={() => void disableRenewal()} disabled={actionBusy === 'renewal'}>Отключить автопродление</Button> : !isCorporate ? <Badge variant="outline">Автопродление отключено</Badge> : null}</div></CardContent></Card>
+        <Card className="md:col-span-2"><CardContent className="grid gap-5 p-6 sm:grid-cols-3"><div><span className="text-sm text-muted-foreground">Ваш доступ</span><p className="mt-2 font-semibold">{accessSourceLabel}</p></div><div><span className="text-sm text-muted-foreground">Оплачено до</span><p className="mt-2 font-semibold">{formatDateTime(currentPeriodStart)} — {formatDateTime(currentPeriodEnd)}</p></div><div><span className="text-sm text-muted-foreground">Автоплатёж</span><p className="mt-2 font-semibold">{renewal?.savedMethodAvailable ? 'Настроен' : 'Не настроен'}</p></div><div className="sm:col-span-3 flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Баланс организации можно использовать, когда на нём достаточно средств для полной оплаты.</p>{!isCorporate && renewal?.autoRenewEnabled && canManage ? <Button variant="outline" onClick={() => void disableRenewal()} disabled={actionBusy === 'renewal'}>Отключить автопродление</Button> : !isCorporate ? <Badge variant="outline">Автопродление отключено</Badge> : null}</div></CardContent></Card>
       </section>
 
-      <section className="rounded-2xl border border-orange-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]" aria-labelledby="full-suite-title">
+      <section className="rounded-lg border border-orange-200 bg-white p-6 shadow-none" aria-labelledby="full-suite-title">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-orange-600"><Sparkles className="h-4 w-4" />Все возможности МОСТ</div>
@@ -505,7 +505,7 @@ const BillingPage = () => {
           {!isCorporate && canManage ? <Button
             size="lg"
             variant={fullSuite ? 'outline' : 'default'}
-            className={fullSuite ? 'border-orange-300 bg-orange-50 text-orange-800 hover:bg-orange-100 hover:text-orange-900' : 'bg-orange-500 text-white hover:bg-orange-600'}
+            className={fullSuite ? 'border-orange-300 bg-orange-50 text-orange-800 hover:bg-orange-100 hover:text-orange-900' : 'bg-primary text-primary-foreground hover:bg-primary/90'}
             disabled={isGrace}
             onClick={() => {
               if (fullSuite) {
@@ -519,7 +519,7 @@ const BillingPage = () => {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-blue-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]" aria-labelledby="enterprise-offer-title">
+      <section className="overflow-hidden rounded-lg border border-blue-200 bg-white p-6 shadow-none" aria-labelledby="enterprise-offer-title">
         <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div>
             <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-blue-700"><Building2 className="h-4 w-4" />Для крупных компаний</div>
@@ -540,11 +540,11 @@ const BillingPage = () => {
 
       <EnterpriseInquiryDialog open={enterpriseInquiryOpen} onOpenChange={setEnterpriseInquiryOpen} />
 
-      <section className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="grid min-w-0 grid-cols-1 items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-10">
           <section className="space-y-4" aria-labelledby="connected-packages-title">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Ваш текущий доступ</p>
+              
               <h2 id="connected-packages-title" className="mt-2 text-2xl font-semibold">Подключённые пакеты</h2>
               <p className="mt-1 text-sm text-muted-foreground">Эти возможности уже доступны вашей команде.</p>
             </div>
@@ -565,13 +565,13 @@ const BillingPage = () => {
                   onDetails={() => setDetailsPackage(item)}
                 />;
               })}
-            </div> : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-sm text-slate-600">Платные пакеты пока не подключены. Все основные возможности МОСТ остаются доступны без оплаты.</div>}
+            </div> : <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-sm text-slate-600">Платные пакеты пока не подключены. Все основные возможности МОСТ остаются доступны без оплаты.</div>}
           </section>
 
           {availablePackages.length > 0 || !limitsSummary ? <section className="space-y-4" aria-labelledby="available-packages-title">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-600">Каталог</p>
+                
                 <h2 id="available-packages-title" className="mt-2 text-2xl font-semibold">Добавить возможности</h2>
                 <p className="mt-1 text-sm text-muted-foreground">Выберите направления, которые нужны команде сейчас.</p>
               </div>
@@ -594,15 +594,15 @@ const BillingPage = () => {
                   onDetails={() => setDetailsPackage(item)}
                 />;
               })}
-            </div> : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-sm text-slate-600">Все пакеты уже подключены.</div>}
+            </div> : <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-sm text-slate-600">Все пакеты уже подключены.</div>}
           </section> : null}
         </div>
 
-        {!isCorporate ? <aside id="order-summary" className="space-y-4 xl:sticky xl:top-6">
-          <Card className="overflow-hidden border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"><div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-950">Ваши изменения</div><CardContent className="space-y-5 p-5">
-            {quote?.recommendation === 'full_suite' && !fullSuite ? <button type="button" onClick={selectFullSuite} disabled={!canManage || isGrace} className="w-full rounded-2xl border border-orange-300 bg-orange-50 p-4 text-left text-sm text-orange-950"><Sparkles className="mb-2 h-5 w-5 text-orange-600" /><strong>Полный комплект выгоднее</strong><span className="mt-1 block text-xs">Рекомендация не меняет выбор автоматически.</span></button> : null}
+        {!isCorporate ? <aside id="order-summary" className="space-y-4 min-w-0 xl:sticky xl:top-24">
+          <Card className="overflow-hidden border-slate-200 shadow-none"><div className="border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-950">Ваши изменения</div><CardContent className="space-y-5 p-5">
+            {quote?.recommendation === 'full_suite' && !fullSuite ? <button type="button" onClick={selectFullSuite} disabled={!canManage || isGrace} className="w-full rounded-lg border border-orange-300 bg-orange-50 p-4 text-left text-sm text-orange-950"><Sparkles className="mb-2 h-5 w-5 text-orange-600" /><strong>Полный комплект выгоднее</strong><span className="mt-1 block text-xs">Рекомендация не меняет выбор автоматически.</span></button> : null}
             {quoteLoading ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Обновляем стоимость</div> : quoteError ? <p className="text-sm text-red-700">{quoteError}</p> : quote ? <>
-              {!hasChanges ? <div className="rounded-2xl bg-emerald-50 p-4"><strong className="text-emerald-900">Изменений нет</strong><p className="mt-1 text-xs leading-5 text-emerald-800">Текущий состав останется без изменений.</p></div> : null}
+              {!hasChanges ? <div className="rounded-lg bg-emerald-50 p-4"><strong className="text-emerald-900">Изменений нет</strong><p className="mt-1 text-xs leading-5 text-emerald-800">Текущий состав останется без изменений.</p></div> : null}
               <div className="space-y-3 border-y py-4">
                 <div className="flex justify-between text-sm"><span>Сейчас подключено</span><strong>{formatMoney(currentMonthlyMinor, quote.currency)}</strong></div>
                 {hasChanges ? <><div className="flex justify-between text-sm"><span>Следующий период</span><strong data-testid="monthly-total">{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong></div><div className="flex justify-between text-sm"><span>К оплате сейчас</span><strong className="text-lg">{formatMoney(quote.amountDueNowMinor, quote.currency)}</strong></div></> : <div className="flex justify-between text-sm"><span>Следующий период</span><strong data-testid="monthly-total">{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong></div>}
@@ -622,7 +622,7 @@ const BillingPage = () => {
                     <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
                       <div className={`h-full ${limit.status === 'exceeded' || limit.status === 'critical' ? 'bg-red-500' : limit.status === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(100, limit.percent)}%` }} />
                     </div>
-                    <p className="text-[11px] leading-4 text-slate-500">База: {quotaValue(limit.sources.freeBase, limit.unit)} · пакеты: {quotaValue(limit.sources.packages, limit.unit)} · сверх: {quotaValue(limit.sources.paidAddons, limit.unit)}</p>
+                    <p className="text-xs leading-5 text-slate-500">База: {quotaValue(limit.sources.freeBase, limit.unit)} · пакеты: {quotaValue(limit.sources.packages, limit.unit)} · сверх: {quotaValue(limit.sources.paidAddons, limit.unit)}</p>
                   </div>)}
                 </div>
               </div> : null}
@@ -643,7 +643,7 @@ const BillingPage = () => {
         onOpenChange={(open) => { if (!open) setDetailsPackage(null); }}
       />
 
-      {limitsSummary ? <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]" aria-labelledby="resource-purchase-title">
+      {limitsSummary ? <section className="space-y-5 rounded-lg border border-slate-200 bg-white p-6 shadow-none" aria-labelledby="resource-purchase-title">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700"><SlidersHorizontal className="h-4 w-4" />{availablePackages.length === 0 ? 'Каталог · дополнительные ресурсы' : 'Дополнительные ресурсы'}</div>
@@ -680,7 +680,7 @@ const BillingPage = () => {
                   <Button type="button" variant="outline" size="icon" disabled={!availableForCheckout || quantity <= resource.min} aria-label={`Уменьшить ${resource.name}`} onClick={() => setResourceQuantity(resource.slug, quantity - resource.step, resource.min)}><Minus className="h-4 w-4" /></Button>
                   <input
                     aria-label={`Количество ${resource.name}`}
-                    className="h-10 w-24 rounded-md border border-slate-200 px-3 text-center text-sm font-semibold"
+                    className="h-11 w-24 rounded-md border border-slate-200 px-3 text-center text-base font-semibold"
                     type="number"
                     min={resource.min}
                     step={resource.step}
@@ -707,11 +707,11 @@ const BillingPage = () => {
       </section> : null}
 
       <section className="space-y-4" aria-labelledby="history-title">
-        <div className="flex items-center gap-3"><History className="h-6 w-6" /><div><h2 id="history-title" className="text-2xl font-semibold">История оплат</h2><p className="text-sm text-muted-foreground">Безопасный журнал заказов, оплат и возвратов.</p></div></div>
-        {!history?.items.length ? <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground"><PackageCheck className="mx-auto mb-3 h-7 w-7" />Операций пока нет</div> : <div className="overflow-x-auto rounded-2xl border"><table className="w-full min-w-[720px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-muted-foreground"><tr><th className="p-4">Дата</th><th className="p-4">Состав</th><th className="p-4">Сумма</th><th className="p-4">Состояние</th><th className="p-4">Возвраты</th></tr></thead><tbody>{history.items.map((order) => <tr key={order.orderId} className="border-t"><td className="p-4">{formatDateTime(order.createdAt)}</td><td className="p-4">{order.offerType === 'full_suite' ? 'Полный комплект' : `${order.selectedPackageSlugs.length} пак.`}</td><td className="p-4 font-medium">{formatMoney(order.amountMinor, order.currency)}</td><td className="p-4"><Badge variant="outline">{orderStatusLabel[order.status] ?? order.status}</Badge></td><td className="p-4">{order.refundsSummary.count ? formatMoney(order.refundsSummary.amountMinor, order.currency) : '—'}</td></tr>)}</tbody></table></div>}
+        <div className="flex items-center gap-3"><History className="h-6 w-6" /><div><h2 id="history-title" className="text-2xl font-semibold">История оплат</h2><p className="text-sm text-muted-foreground">Заказы, платежи и возвраты вашей организации.</p></div></div>
+        {!history?.items.length ? <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground"><PackageCheck className="mx-auto mb-3 h-7 w-7" />Операций пока нет</div> : <div className="min-w-0 overflow-x-auto rounded-lg border"><table className="w-full min-w-[720px] text-left text-sm"><thead className="bg-slate-50 text-sm text-muted-foreground"><tr><th className="p-4">Дата</th><th className="p-4">Состав</th><th className="p-4">Сумма</th><th className="p-4">Состояние</th><th className="p-4">Возвраты</th></tr></thead><tbody>{history.items.map((order) => <tr key={order.orderId} className="border-t"><td className="p-4">{formatDateTime(order.createdAt)}</td><td className="p-4">{order.offerType === 'full_suite' ? 'Полный комплект' : `${order.selectedPackageSlugs.length} пак.`}</td><td className="p-4 font-medium">{formatMoney(order.amountMinor, order.currency)}</td><td className="p-4"><Badge variant="outline">{orderStatusLabel[order.status] ?? order.status}</Badge></td><td className="p-4">{order.refundsSummary.count ? formatMoney(order.refundsSummary.amountMinor, order.currency) : '—'}</td></tr>)}</tbody></table></div>}
         {history && history.meta.lastPage > 1 ? <div className="flex justify-end gap-2"><Button variant="outline" disabled={historyPage <= 1 || actionBusy === 'history'} onClick={() => void loadHistoryPage(historyPage - 1)}>Назад</Button><Button variant="outline" disabled={historyPage >= history.meta.lastPage || actionBusy === 'history'} onClick={() => void loadHistoryPage(historyPage + 1)}>Далее</Button></div> : null}
       </section>
-    </main>
+    </div>
   );
 };
 

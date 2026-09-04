@@ -197,7 +197,7 @@ describe('BillingPage commercial packages', () => {
     const pageHeader = pageTitle.closest('header');
     const fullSuiteSection = screen.getByRole('heading', { name: 'Полный комплект' }).closest('section');
 
-    expect(pageHeader).toHaveClass('bg-white');
+    expect(screen.queryByText('Пакеты и оплата')).not.toBeInTheDocument();
     expect(pageHeader).not.toHaveClass('bg-slate-950');
     expect(fullSuiteSection).toHaveClass('bg-white');
     expect(fullSuiteSection).not.toHaveClass('bg-slate-950');
