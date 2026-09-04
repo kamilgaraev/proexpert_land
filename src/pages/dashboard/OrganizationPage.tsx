@@ -231,14 +231,14 @@ const OrganizationPage = () => {
           variant={userMessage.type === "error" ? "destructive" : "default"}
           className={
             userMessage.type === "success"
-              ? "border-green-500 text-green-700 bg-green-50"
+              ? "border-border bg-card text-foreground [&>svg]:text-emerald-700"
               : userMessage.type === "warning"
                 ? "border-yellow-500 text-yellow-700 bg-yellow-50"
                 : ""
           }
         >
           {userMessage.type === "success" ? (
-            <CheckCircle className="h-4 w-4" />
+            <CheckCircle className="h-5 w-5" aria-hidden="true" />
           ) : userMessage.type === "warning" ? (
             <AlertTriangle className="h-4 w-4" />
           ) : userMessage.type === "error" ? (
@@ -247,7 +247,7 @@ const OrganizationPage = () => {
             <Info className="h-4 w-4" />
           )}
           <AlertTitle className="ml-2">{userMessage.title}</AlertTitle>
-          <AlertDescription className="ml-2">
+          <AlertDescription className={userMessage.type === "success" ? "ml-2 text-muted-foreground" : "ml-2"}>
             {userMessage.message}
             {userMessage.action === "verify" && (
               <div className="mt-3">
@@ -301,7 +301,7 @@ const OrganizationPage = () => {
             <div className="flex flex-col items-end gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Статус:</span>
-                <Badge variant={getStatusVariant(recommendations.status)}>
+                <Badge variant={getStatusVariant(recommendations.status)} className={getStatusVariant(recommendations.status) === "default" ? "border-border bg-secondary text-foreground" : undefined}>
                   {getStatusLabel(recommendations.status_text)}
                 </Badge>
               </div>
