@@ -13,7 +13,7 @@ function Example() {
 
 async function openModal() {
   render(<Example />);
-  const trigger = screen.getByRole('button', { name: 'Войти', exact: true });
+  const trigger = screen.getByRole('button', { name: 'Войти' });
   trigger.focus();
   fireEvent.click(trigger);
   await screen.findByRole('dialog', { name: 'Подтвердите почту' });
