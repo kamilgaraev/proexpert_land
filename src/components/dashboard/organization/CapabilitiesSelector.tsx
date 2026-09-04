@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import type { OrganizationCapability, CapabilityInfo } from '@/types/organization-profile';
 import type { CommercialPackageSlug } from '@/data/marketing/packages';
 import { getRecommendedPackages } from '@/utils/recommendedPackages';
@@ -12,15 +13,17 @@ interface CapabilitiesSelectorProps {
 }
 
 const CAPABILITY_LABELS: Record<OrganizationCapability, string> = {
-  'general_contracting': 'Генеральный подряд',
-  'subcontracting': 'Субподрядные работы',
-  'design': 'Проектирование',
-  'construction_supervision': 'Строительный контроль',
-  'equipment_rental': 'Аренда техники',
-  'materials_supply': 'Поставка материалов',
-  'consulting': 'Консалтинг',
-  'facility_management': 'Эксплуатация объектов'
+  general_contracting: 'Генеральный подряд',
+  subcontracting: 'Субподрядные работы',
+  design: 'Проектирование',
+  construction_supervision: 'Строительный контроль',
+  equipment_rental: 'Аренда техники',
+  materials_supply: 'Поставка материалов',
+  consulting: 'Консалтинг',
+  facility_management: 'Эксплуатация объектов',
 };
+
+const capabilities = Object.keys(CAPABILITY_LABELS) as OrganizationCapability[];
 
 export const CapabilitiesSelector = ({
   selectedCapabilities,
@@ -28,127 +31,63 @@ export const CapabilitiesSelector = ({
   onChange,
   onPackageClick,
   showRecommendations = false,
-  disabled = false
+  disabled = false,
 }: CapabilitiesSelectorProps) => {
-  const safeSelectedCapabilities = selectedCapabilities || [];
-  const safeAvailableCapabilities = availableCapabilities || [];
+  const selected = selectedCapabilities || [];
+  const available = availableCapabilities || [];
+  const recommendedPackages = getRecommendedPackages(selected.flatMap(capability =>
+    available.find(item => item.value === capability)?.recommended_modules || [],
+  ));
 
-  const handleToggle = (capability: OrganizationCapability) => {
+  const toggle = (capability: OrganizationCapability) => {
     if (disabled) return;
-
-    if (safeSelectedCapabilities.includes(capability)) {
-      onChange(safeSelectedCapabilities.filter(c => c !== capability));
-    } else {
-      onChange([...safeSelectedCapabilities, capability]);
-    }
+    onChange(selected.includes(capability)
+      ? selected.filter(item => item !== capability)
+      : [...selected, capability]);
   };
-
-  const getCapabilityInfo = (capability: OrganizationCapability): CapabilityInfo | undefined => {
-    return safeAvailableCapabilities.find(c => c.value === capability);
-  };
-
-  const capabilities: OrganizationCapability[] = [
-    'general_contracting',
-    'subcontracting',
-    'design',
-    'construction_supervision',
-    'equipment_rental',
-    'materials_supply',
-    'consulting',
-    'facility_management'
-  ];
-
-  const selectedModules = safeSelectedCapabilities.flatMap(cap => {
-    const info = getCapabilityInfo(cap);
-    return info?.recommended_modules || [];
-  });
-
-  const recommendedPackages = getRecommendedPackages(selectedModules);
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {capabilities.map(capability => {
-          const isSelected = safeSelectedCapabilities.includes(capability);
-          const capInfo = getCapabilityInfo(capability);
-
-          return (
-            <div
-              key={capability}
-              className={`
-                relative border-2 rounded-lg p-4 cursor-pointer transition-all duration-200
-                ${isSelected 
-                  ? 'border-construction-500 bg-construction-50 shadow-md' 
-                  : 'border-gray-200 bg-white hover:border-construction-300 hover:shadow-sm'
-                }
-                ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-              `}
-              onClick={() => handleToggle(capability)}
-            >
-              <div className="flex items-start space-x-3">
-                <div className={`
-                  flex-shrink-0 w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center
-                  ${isSelected 
-                    ? 'bg-construction-500 border-construction-500' 
-                    : 'bg-white border-gray-300'
-                  }
-                `}>
-                  {isSelected && (
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium ${isSelected ? 'text-construction-900' : 'text-gray-900'}`}>
-                    {CAPABILITY_LABELS[capability]}
-                  </p>
-                  {capInfo && (
-                    <p className="text-xs text-gray-600 mt-1">
-                      {capInfo.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {showRecommendations && safeSelectedCapabilities.length > 0 && recommendedPackages.length > 0 && (
-        <div className="mt-6 p-4 bg-gradient-to-r from-construction-50 to-orange-50 border border-construction-200 rounded-lg">
-          <div className="flex items-start space-x-2">
-            <svg className="w-5 h-5 text-construction-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="flex-1">
-              <h4 className="text-sm font-semibold text-construction-900 mb-2">Рекомендуемые пакеты</h4>
-              <div className="flex flex-wrap gap-2">
-                {recommendedPackages.map((item) => (
-                  <button
-                    key={item.slug}
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onPackageClick(item.slug);
-                    }}
-                    className="inline-flex items-center rounded-full border border-construction-300 bg-white px-3 py-1 text-xs font-medium text-construction-700 hover:bg-construction-100"
-                  >
-                    {item.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+    <div className="space-y-5">
+      <fieldset disabled={disabled} className="min-w-0">
+        <legend className="sr-only">Направления деятельности</legend>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          {capabilities.map(capability => {
+            const isSelected = selected.includes(capability);
+            const info = available.find(item => item.value === capability);
+            return (
+              <label key={capability} className={`flex min-w-0 items-start gap-3 rounded border p-4 ${isSelected ? 'border-foreground/40 bg-secondary/40' : 'border-border bg-background'} ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-foreground/40'}`}>
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => toggle(capability)}
+                  aria-label={CAPABILITY_LABELS[capability]}
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-current focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                />
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium text-foreground">{CAPABILITY_LABELS[capability]}</span>
+                  {info && <span className="mt-1 block text-sm text-muted-foreground">{info.description}</span>}
+                </span>
+              </label>
+            );
+          })}
         </div>
+      </fieldset>
+      {showRecommendations && selected.length > 0 && recommendedPackages.length > 0 && (
+        <section className="space-y-3 border-t border-border pt-4" aria-label="Рекомендуемые пакеты">
+          <h4 className="text-sm font-semibold">Рекомендуемые пакеты</h4>
+          <div className="flex flex-wrap gap-2">
+            {recommendedPackages.map(item => (
+              <Button key={item.slug} type="button" variant="outline" size="sm"
+                onClick={() => onPackageClick(item.slug)} className="h-auto whitespace-normal text-left">
+                {item.name}
+              </Button>
+            ))}
+          </div>
+        </section>
       )}
-
-      {safeSelectedCapabilities.length === 0 && (
-        <p className="text-sm text-gray-500 text-center py-4">
-          Выберите хотя бы одну возможность вашей организации
-        </p>
+      {selected.length === 0 && (
+        <p className="text-sm text-muted-foreground">Выберите хотя бы одно направление деятельности.</p>
       )}
     </div>
   );
 };
-
