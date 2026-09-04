@@ -171,13 +171,9 @@ export const trackYandexEvent = (eventName: string, params?: Record<string, unkn
     return;
   }
 
-  window.ym?.(YANDEX_METRIKA_COUNTER_ID, 'hit', window.location.href, {
-    title: document.title,
-    referer: document.referrer,
-    params: {
-      event: eventName,
-      ...params,
-    },
+  window.ym?.(YANDEX_METRIKA_COUNTER_ID, 'params', {
+    event: eventName,
+    ...params,
   });
 };
 
