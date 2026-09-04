@@ -43,7 +43,15 @@ export function ContactForm() {
     setSuccess(false);
     
     try {
-      await supportService.submitSupportRequest(formData);
+      const response = await supportService.submitSupportRequest(formData);
+      if (response.status < 200 || response.status >= 300 || response.data?.success === false) {
+        setError(response.status === 422
+          ? 'Проверьте заполненные поля. Тема должна быть не длиннее 255 символов, сообщение — 5000 символов.'
+          : response.status === 429
+            ? 'Слишком много обращений. Подождите немного и попробуйте снова.'
+            : 'Не удалось отправить обращение. Текст сохранён в форме — попробуйте ещё раз.');
+        return;
+      }
       setSuccess(true);
       setFormData({
         name: '',
@@ -52,8 +60,8 @@ export function ContactForm() {
         message: '',
         type: 'Общий вопрос',
       });
-    } catch (err: any) {
-      setError(err.message || 'Произошла ошибка при отправке запроса');
+    } catch {
+      setError('Не удалось отправить обращение. Проверьте соединение и попробуйте ещё раз. Текст сохранён в форме.');
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +77,7 @@ export function ContactForm() {
       </CardHeader>
       <CardContent>
         {success && (
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <div role="status" className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6 flex items-start gap-3">
             <CheckCircleIcon className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-bold text-emerald-800">Сообщение отправлено</p>
@@ -84,7 +92,7 @@ export function ContactForm() {
         )}
         
         {error && (
-          <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <div role="alert" className="bg-red-50 border border-red-100 rounded-xl p-4 mb-6 flex items-start gap-3">
             <ExclamationTriangleIcon className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-bold text-red-800">Ошибка отправки</p>
@@ -141,6 +149,7 @@ export function ContactForm() {
               <Label htmlFor="subject">Тема</Label>
               <Input
                 id="subject"
+                maxLength={255}
                 name="subject"
                 value={formData.subject}
                 onChange={handleChange}
@@ -153,6 +162,7 @@ export function ContactForm() {
               <Label htmlFor="message">Сообщение</Label>
               <Textarea
                 id="message"
+                maxLength={5000}
                 name="message"
                 value={formData.message}
                 onChange={handleChange}
