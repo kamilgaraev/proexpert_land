@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { supportService } from '@/utils/api';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CheckCircleIcon, ExclamationTriangleIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
 
 export function ContactForm() {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -43,7 +45,11 @@ export function ContactForm() {
     setSuccess(false);
     
     try {
-      const response = await supportService.submitSupportRequest(formData);
+      const response = await supportService.submitSupportRequest({
+        ...formData,
+        name: user?.name ?? formData.name,
+        email: user?.email ?? formData.email,
+      });
       if (response.status < 200 || response.status >= 300 || response.data?.success === false) {
         setError(response.status === 422
           ? 'Проверьте заполненные поля. Тема должна быть не длиннее 255 символов, сообщение — 5000 символов.'
@@ -72,7 +78,7 @@ export function ContactForm() {
       <CardHeader>
         <CardTitle className="text-2xl font-bold">Написать в поддержку</CardTitle>
         <CardDescription>
-          Опишите вопрос и укажите почту, на которую вам удобно получить ответ.
+          {user ? 'Опишите вопрос. Ответ придёт на почту вашего аккаунта.' : 'Опишите вопрос и укажите почту для ответа.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -109,7 +115,8 @@ export function ContactForm() {
                 <Input
                   id="name"
                   name="name"
-                  value={formData.name}
+                  value={user?.name ?? formData.name}
+                  readOnly={Boolean(user)}
                   onChange={handleChange}
                   placeholder="Иван Иванов"
                   required
@@ -122,7 +129,8 @@ export function ContactForm() {
                   id="email"
                   name="email"
                   type="email"
-                  value={formData.email}
+                  value={user?.email ?? formData.email}
+                  readOnly={Boolean(user)}
                   onChange={handleChange}
                   placeholder="ivan@example.com"
                   required
