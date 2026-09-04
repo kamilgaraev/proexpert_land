@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { InjectFilterEntry } from "vite-plugin-ssr/types";
+import type { InjectFilterEntry } from "vike/types";
 import sansCyrillic from "@/assets/fonts/ibm-plex/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxaKYbABA.woff2?url";
 import sansLatin from "@/assets/fonts/ibm-plex/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.woff2?url";
 import { filterMarketingAssets } from "./marketingAssetFilter";

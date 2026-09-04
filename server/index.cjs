@@ -1,7 +1,7 @@
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
-const { renderPage } = require('vite-plugin-ssr/server');
+const { renderPage } = require('vike/server');
 const { respondWithSitemap } = require('./sitemap.cjs');
 // Регистрация pageFiles и client манифеста, сгенерированных Vite
 require(path.resolve(__dirname, './importBuild.cjs'));

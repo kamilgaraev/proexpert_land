@@ -1,16 +1,15 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-// @ts-ignore - vite-plugin-ssr типы не публикует для /plugin
-import ssr from 'vite-plugin-ssr/plugin';
+import ssr from 'vike/plugin';
 import path from 'path';
-import { ssrBuildCompatibility } from './scripts/ssrBuildCompatibility';
+
 
 // Если собираем личный кабинет (BUILD_TARGET=lk) — SSR не нужен.
 const isLkBuild = process.env.BUILD_TARGET === 'lk';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: isLkBuild ? [react()] : [react(), ssr(), ssrBuildCompatibility()],
+  plugins: isLkBuild ? [react()] : [react(), ssr()],
   define: {
     '$': 'undefined',
     'jQuery': 'undefined',
@@ -37,6 +36,7 @@ export default defineConfig({
   // чтобы при переходе на вложенные маршруты (/blog) браузер не запрашивал /blog/assets/…
   base: '/',
   build: {
+    target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
     manifest: 'manifest.json',
     // Включаем минификацию
     minify: 'terser',

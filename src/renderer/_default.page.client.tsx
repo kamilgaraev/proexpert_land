@@ -1,6 +1,6 @@
 import { useEffect, type ComponentType, type ReactNode } from "react";
 import { createRoot, hydrateRoot, type Root } from "react-dom/client";
-import type { PageContextClient } from "vite-plugin-ssr/types";
+import type { PageContextClient } from "vike/types";
 import { PageShell } from "./PageShell";
 import { preparePageShell } from "./pageShellLoader";
 import { BrowserRouter } from "react-router-dom";

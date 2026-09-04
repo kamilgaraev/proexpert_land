@@ -4,10 +4,10 @@ import type { ComponentType } from "react";
 import {
   escapeInject,
   dangerouslySkipEscape,
-} from "vite-plugin-ssr";
-import type { PageContextServer } from "vite-plugin-ssr/types";
+} from "vike";
+import type { PageContextServer } from "vike/types";
 // @ts-ignore
-import { redirect } from "vite-plugin-ssr/abort";
+import { redirect } from "vike/abort";
 // @ts-ignore
 import { StaticRouter } from "react-router-dom";
 import { PageShell } from "./PageShell";
