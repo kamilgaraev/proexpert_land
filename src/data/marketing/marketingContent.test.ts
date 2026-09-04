@@ -1274,7 +1274,7 @@ describe("marketing content consistency", () => {
     const titles = new Set<string>();
     const descriptions = new Set<string>();
 
-    expect(marketingSitemapRoutes).toHaveLength(41);
+    expect(marketingSitemapRoutes).toHaveLength(42);
 
     for (const { pageKey, path: route } of marketingSitemapRoutes) {
       const meta = marketingSeo[pageKey];

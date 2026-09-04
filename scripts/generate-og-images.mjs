@@ -14,6 +14,11 @@ const palette = {
 
 const items = [
   {
+    key: "general-work-journal",
+    title: "Электронный\nобщий журнал работ",
+    subtitle: "Работы за смену, ресурсы и проверка записей по объекту.",
+  },
+  {
     key: "default",
     title: "Между офисом\nи стройкой — МОСТ.",
     subtitle: "Система управления строительством",

@@ -32,6 +32,36 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     cta: "Управление объектами",
   },
   {
+    id: "general-work-journal",
+    title: "Электронный общий журнал работ",
+    businessContour: "Проекты и исполнение",
+    summary:
+      "Ежедневные записи объединяют выполненные объёмы, людей, технику, материалы, условия работ и согласование по объекту.",
+    publicClaim:
+      "Данные общего журнала связывают дату и участок работ с фактическими объёмами, ресурсами, замечаниями и ответственными.",
+    audiences: ["Прораб", "ПТО", "Руководитель проекта", "Стройконтроль"],
+    outcomes: [
+      "Данные журнала ведутся по дням и сохраняют описание выполненных работ.",
+      "Данные фактических объёмов связываются со сметой и задачами графика.",
+      "Документы используют согласованную запись о выполненных работах.",
+    ],
+    surfaces: ["admin", "mobile"],
+    maturity: "stable",
+    moduleSlugs: [
+      "schedule-management",
+      "budget-estimates",
+      "executive-documentation",
+    ],
+    packageSlugs: ["planning-schedules", "pto-handover"],
+    sourceOfTruth: [
+      "prohelper/app/Models/ConstructionJournalEntry.php",
+      "prohelper/app/BusinessModules/Features/BudgetEstimates/Services/ConstructionJournalService.php",
+      "prohelper/app/Services/Mobile/MobileConstructionJournalService.php",
+      "prohelper/app/Services/ConstructionJournal/JournalExportWorkflowService.php",
+    ],
+    cta: "Общий журнал работ",
+  },
+  {
     id: "site-requests",
     title: "Заявки с объекта",
     businessContour: "Проекты и исполнение",

@@ -226,6 +226,7 @@ function App({
           <Route path="/developers" element={<DevelopersPage />} />
           <Route path="/enterprise" element={<EnterprisePage />} />
           <Route path="/foreman-software" element={<SeoClusterPage pageKey="foreman-software" />} />
+          <Route path="/general-work-journal" element={<SeoClusterPage pageKey="general-work-journal" />} />
           <Route path="/construction-crm" element={<SeoClusterPage pageKey="construction-crm" />} />
           <Route path="/construction-erp" element={<SeoClusterPage pageKey="construction-erp" />} />
           <Route path="/material-accounting" element={<SeoClusterPage pageKey="material-accounting" />} />

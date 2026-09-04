@@ -19,6 +19,7 @@ export const marketingPaths = {
   security: "/security",
   blog: "/blog",
   foremanSoftware: "/foreman-software",
+  generalWorkJournal: "/general-work-journal",
   constructionCrm: "/construction-crm",
   constructionErp: "/construction-erp",
   materialAccounting: "/material-accounting",
@@ -136,6 +137,13 @@ export const marketingSeo: Record<string, MarketingSeoMeta> = {
       "Практические статьи МОСТ о графиках работ, снабжении, подрядчиках, документах, бюджете и ежедневном управлении стройкой.",
     keywords:
       "блог о строительстве, цифровизация строительства, учет материалов, контроль подрядчиков, статьи МОСТ",
+  },
+  "general-work-journal": {
+    title: "Электронный общий журнал работ в строительстве | МОСТ",
+    description:
+      "Электронный общий журнал работ МОСТ связывает ежедневные записи, объёмы, людей, технику, материалы, согласование и экспорт по объекту.",
+    keywords:
+      "электронный общий журнал работ, общий журнал работ в строительстве, журнал работ на объекте, электронный журнал строительства",
   },
   "foreman-software": {
     title: "Программа для прораба: задачи и контроль работ | МОСТ",
