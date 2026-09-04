@@ -187,7 +187,7 @@ const DashboardPage = () => {
 
       {/* Stats Grid */}
       {landingData && (
-        <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">
              {/* Financial Card - Featured */}
              <Card className="border-border bg-card shadow-none rounded-lg md:col-span-2">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -241,7 +241,7 @@ const DashboardPage = () => {
       )}
 
       {landingData && (
-         <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">
               {statCards.slice(2).map((stat) => (
                 <Card key={stat.name} className="rounded-lg border-border shadow-none">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -283,8 +283,8 @@ const DashboardPage = () => {
 
       {/* Charts */}
       {landingData && (
-         <div className="grid gap-4 xl:grid-cols-7">
-             <Card className="rounded-lg shadow-none xl:col-span-4">
+         <div className="grid grid-cols-1 gap-4 xl:grid-cols-7">
+             <Card className="min-w-0 rounded-lg shadow-none xl:col-span-4">
                  <CardHeader>
                      <CardTitle>Проекты по месяцам</CardTitle>
                      <CardDescription>Динамика создания новых объектов</CardDescription>
@@ -297,7 +297,7 @@ const DashboardPage = () => {
                     />
                  </CardContent>
              </Card>
-             <Card className="rounded-lg shadow-none xl:col-span-3">
+             <Card className="min-w-0 rounded-lg shadow-none xl:col-span-3">
                  <CardHeader>
                      <CardTitle>Статус проектов</CardTitle>
                      <CardDescription>Распределение по этапам</CardDescription>
@@ -311,8 +311,8 @@ const DashboardPage = () => {
       
       {/* Additional Charts */}
       {landingData && (
-         <div className="grid gap-4 2xl:grid-cols-3">
-            <Card>
+         <div className="grid grid-cols-1 gap-4 2xl:grid-cols-3">
+            <Card className="min-w-0 rounded-lg shadow-none">
                  <CardHeader>
                      <CardTitle className="text-sm">Контракты</CardTitle>
                  </CardHeader>
@@ -324,7 +324,7 @@ const DashboardPage = () => {
                     />
                  </CardContent>
             </Card>
-            <Card>
+            <Card className="min-w-0 rounded-lg shadow-none">
                  <CardHeader>
                      <CardTitle className="text-sm">Завершённые работы</CardTitle>
                  </CardHeader>
@@ -336,7 +336,7 @@ const DashboardPage = () => {
                     />
                  </CardContent>
             </Card>
-            <Card>
+            <Card className="min-w-0 rounded-lg shadow-none">
                  <CardHeader>
                      <CardTitle className="text-sm">Изменение баланса</CardTitle>
                  </CardHeader>
