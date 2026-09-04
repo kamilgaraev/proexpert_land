@@ -4,7 +4,7 @@ const fs = require('fs');
 const { renderPage } = require('vike/server');
 const { respondWithSitemap } = require('./sitemap.cjs');
 // Регистрация pageFiles и client манифеста, сгенерированных Vite
-require(path.resolve(__dirname, './importBuild.cjs'));
+require(path.resolve(__dirname, './entry.mjs'));
 
 const distDir = path.resolve(__dirname, '../client');
 
