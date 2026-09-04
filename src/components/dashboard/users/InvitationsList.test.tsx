@@ -98,6 +98,12 @@ describe('Приглашения сотрудников', () => {
     expect(screen.queryByRole('button', { name: /Отменить приглашение/ })).not.toBeInTheDocument();
   });
 
+  it('отличает истёкшую ссылку ожидающего приглашения и разрешает её перевыпуск', () => {
+    renderList([{ ...invitation, is_expired: true, can_be_accepted: false }]);
+    expect(screen.getByText('Срок ссылки истёк')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: `Повторить приглашение ${invitation.email}` })).toBeEnabled();
+  });
+
   it('открывает создание приглашения из пустого состояния', () => {
     const { onInvite } = renderList([]);
     fireEvent.click(screen.getByRole('button', { name: 'Пригласить сотрудника' }));

@@ -108,7 +108,7 @@ const InvitationsList = ({ invitations, loading, onRefresh, onInvite }: Invitati
                 <div className="space-y-2 text-sm">
                   <span className="inline-flex items-center gap-2 text-foreground">
                     <StatusIcon aria-hidden="true" className={`h-4 w-4 shrink-0 ${status === 'accepted' ? 'text-emerald-700' : 'text-muted-foreground'}`} />
-                    {statusLabels[status] ?? 'Статус уточняется'}
+                    {isPending && invitation.is_expired ? 'Срок ссылки истёк' : statusLabels[status] ?? 'Статус уточняется'}
                   </span>
                   <dl className="space-y-1 text-muted-foreground">
                     <div className="flex flex-wrap gap-x-2"><dt>Срок приглашения:</dt><dd>{formatDate(invitation.expires_at)}</dd></div>
