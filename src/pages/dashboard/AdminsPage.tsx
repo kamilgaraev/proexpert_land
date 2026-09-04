@@ -477,16 +477,15 @@ const AdminsPage = () => {
     }
 
     return (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-5">
             {filteredAdmins.map((admin, index) => (
               <motion.div
                 key={admin.id}
-                className="bg-card rounded-3xl p-6 shadow-lg shadow-primary/5 border border-border hover:shadow-xl hover:border-primary/50 transition-all duration-300 group relative overflow-hidden"
+                className="min-w-0 bg-card rounded-lg p-5 border border-border sm:p-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
               >
-                <div className="absolute top-0 right-0 -mt-8 -mr-8 w-24 h-24 bg-primary/10 rounded-full transition-transform group-hover:scale-150 duration-500"></div>
 
                 <div className="relative z-10">
                    <div className="flex items-center space-x-4 mb-6">
@@ -507,7 +506,7 @@ const AdminsPage = () => {
                         )}
                      </div>
                      <div className="flex-1 min-w-0">
-                       <h3 className="text-lg font-bold text-foreground truncate mb-1">{admin.name}</h3>
+                       <h3 className="most-workspace-heading break-words mb-2">{admin.name}</h3>
                        <div className="flex flex-wrap gap-1.5">
                          {getDisplayRoles(admin).map((role) => (
                            <span
@@ -523,17 +522,17 @@ const AdminsPage = () => {
                    </div>
 
                    <div className="space-y-3 mb-6">
-                     <div className="flex items-center text-sm text-muted-foreground bg-secondary p-2.5 rounded-xl">
-                       <EnvelopeIcon className="w-4 h-4 mr-3 text-muted-foreground flex-shrink-0" />
-                       <span className="truncate font-medium">{admin.email}</span>
+                     <div className="flex items-start text-sm text-muted-foreground">
+                       <EnvelopeIcon className="w-5 h-5 mr-3 text-muted-foreground flex-shrink-0" />
+                       <span className="min-w-0 break-all">{admin.email}</span>
                      </div>
                      
-                     <div className="flex items-center justify-between text-sm bg-secondary p-2.5 rounded-xl">
-                       <div className="flex items-center">
+                     <div className="flex flex-wrap items-center gap-2 text-sm">
+                       <div className="flex flex-wrap items-center gap-y-1">
                          {isEmailVerified(admin) ? (
                            <>
-                             <CheckCircleIcon className="w-4 h-4 mr-2 text-green-600 flex-shrink-0" />
-                             <span className="text-green-700 font-medium">Email подтвержден</span>
+                             <CheckCircleIcon className="w-5 h-5 mr-2 text-green-600 flex-shrink-0" />
+                             <span className="text-green-700 font-medium">Почта подтверждена</span>
                              {admin.email_verified_at && (
                                <span className="text-muted-foreground ml-2 text-xs">
                                  {formatDateTime(admin.email_verified_at)}
@@ -542,15 +541,15 @@ const AdminsPage = () => {
                            </>
                          ) : (
                            <>
-                             <ExclamationTriangleIcon className="w-4 h-4 mr-2 text-red-600 flex-shrink-0" />
-                             <span className="text-red-700 font-medium">Email не подтвержден</span>
+                             <ExclamationTriangleIcon className="w-5 h-5 mr-2 text-red-600 flex-shrink-0" />
+                             <span className="text-red-700 font-medium">Почта не подтверждена</span>
                            </>
                          )}
                        </div>
                      </div>
                      
-                     <div className="flex items-center text-sm text-muted-foreground bg-secondary p-2.5 rounded-xl">
-                       <CalendarIcon className="w-4 h-4 mr-3 text-muted-foreground flex-shrink-0" />
+                     <div className="flex items-start text-sm text-muted-foreground">
+                       <CalendarIcon className="w-5 h-5 mr-3 text-muted-foreground flex-shrink-0" />
                        <span className="font-medium">Добавлен: {formatDate(admin.created_at)}</span>
                      </div>
                    </div>
@@ -569,7 +568,7 @@ const AdminsPage = () => {
                            </>
                          ) : (
                            <>
-                             <EnvelopeIcon className="w-4 h-4" />
+                             <EnvelopeIcon className="w-5 h-5" />
                              Отправить письмо повторно
                            </>
                          )}
@@ -595,16 +594,17 @@ const AdminsPage = () => {
                        whileHover={{ scale: 1.02 }}
                        whileTap={{ scale: 0.98 }}
                      >
-                       <PencilIcon className="w-4 h-4 mr-2" />
+                       <PencilIcon className="w-5 h-5 mr-2" />
                        Изменить
                      </motion.button>
                      <motion.button
+                       aria-label={`Удалить администратора ${admin.name}`}
                        onClick={() => handleOpenDeleteConfirmModal(admin)}
                        className="px-3 py-2.5 bg-background border border-border text-red-500 rounded-xl hover:bg-red-50 hover:border-red-200 transition-all shadow-sm"
                        whileHover={{ scale: 1.02 }}
                        whileTap={{ scale: 0.98 }}
                      >
-                       <TrashIcon className="w-4 h-4" />
+                       <TrashIcon className="w-5 h-5" />
                      </motion.button>
                    </div>
                 </div>
@@ -615,8 +615,8 @@ const AdminsPage = () => {
   };
 
   return (
-    <div className="space-y-8 min-h-screen bg-background p-4 md:p-8 pb-20">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="space-y-7">
+      <div className="min-w-0 space-y-7">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
@@ -628,12 +628,12 @@ const AdminsPage = () => {
           {activeTab === 'admins' && (
             <motion.button
               onClick={handleOpenCreateModal}
-              className="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-2xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 font-bold"
+              className="inline-flex min-h-11 items-center justify-center px-5 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-medium"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <PlusIcon className="w-5 h-5 mr-2" />
-              Добавить админа
+              Добавить администратора
             </motion.button>
           )}
         </div>
@@ -676,49 +676,6 @@ const AdminsPage = () => {
            })}
         </div>
 
-        {/* Summary Cards */}
-        <motion.div 
-           className="grid grid-cols-1 md:grid-cols-3 gap-6"
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.6 }}
-        >
-           <div className="bg-card rounded-3xl p-6 shadow-sm border border-border relative overflow-hidden">
-              <div className="absolute right-0 top-0 -mt-4 -mr-4 w-24 h-24 bg-primary/10 rounded-full opacity-50"></div>
-              <div className="relative z-10">
-                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
-                    <UsersIcon className="w-6 h-6 text-primary" />
-                 </div>
-                 <p className="text-muted-foreground font-medium text-sm mb-1">Администраторы</p>
-                 <p className="text-3xl font-bold text-foreground">{admins.length}</p>
-              </div>
-           </div>
-           
-           <div className="bg-card rounded-3xl p-6 shadow-sm border border-border relative overflow-hidden">
-              <div className="absolute right-0 top-0 -mt-4 -mr-4 w-24 h-24 bg-blue-50 rounded-full opacity-50"></div>
-              <div className="relative z-10">
-                 <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
-                    <UserPlusIcon className="w-6 h-6 text-blue-600" />
-                 </div>
-                 <p className="text-muted-foreground font-medium text-sm mb-1">Пользователи</p>
-                 <p className="text-3xl font-bold text-foreground">{users.length}</p>
-              </div>
-           </div>
-
-           <div className="bg-card rounded-3xl p-6 shadow-sm border border-border relative overflow-hidden">
-              <div className="absolute right-0 top-0 -mt-4 -mr-4 w-24 h-24 bg-green-50 rounded-full opacity-50"></div>
-              <div className="relative z-10">
-                 <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mb-4">
-                    <PaperAirplaneIcon className="w-6 h-6 text-green-600" />
-                 </div>
-                 <p className="text-muted-foreground font-medium text-sm mb-1">Приглашения</p>
-                 <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold text-foreground">{invitations.filter(i => i.status === 'pending').length}</p>
-                    <p className="text-sm text-muted-foreground">ожидают</p>
-                 </div>
-              </div>
-           </div>
-        </motion.div>
 
         {/* Roles Banner */}
         <ProtectedComponent 
@@ -728,12 +685,11 @@ const AdminsPage = () => {
           showFallback={false}
         >
           <motion.div
-            className="bg-gradient-to-r from-slate-50 to-white rounded-3xl p-8 shadow-sm border border-border relative overflow-hidden group"
+            className="rounded-lg p-5 border border-border bg-card"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-orange-100/50 rounded-full blur-3xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             
             <div className="relative z-10 flex items-center justify-between flex-wrap gap-6">
               <div>
@@ -744,7 +700,7 @@ const AdminsPage = () => {
                    <h3 className="text-xl font-bold text-foreground">Настройка ролей доступа</h3>
                 </div>
                 <p className="text-muted-foreground max-w-lg">
-                  Создавайте кастомные роли и гибко настраивайте права доступа для сотрудников вашей организации
+                  Определите, какие разделы и действия доступны сотрудникам.
                 </p>
               </div>
               <button
@@ -770,10 +726,11 @@ const AdminsPage = () => {
               </div>
               <input
                 type="text"
-                placeholder="Поиск администратора..."
+                aria-label="Поиск администратора по имени или почте"
+                placeholder="Имя или почта"
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="w-full pl-11 pr-4 py-3 bg-background border border-border rounded-2xl focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none shadow-sm font-medium text-foreground placeholder:text-muted-foreground"
+                className="w-full min-h-11 pl-11 pr-4 py-3 bg-card border border-input rounded-md text-foreground placeholder:text-muted-foreground"
               />
             </div>
           </motion.div>
