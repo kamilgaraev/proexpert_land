@@ -459,8 +459,8 @@ const BillingPage = () => {
             <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">Подключайте только нужные возможности. МОСТ без оплаты остаётся доступен всегда, а стоимость и дата следующей оплаты обновляются автоматически.</p>
           </div>
           <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><span className="block text-xs text-slate-500">Состояние</span><strong className="mt-1 block text-slate-950">{isCorporate ? 'Корпоративный уровень' : isGrace ? 'Льготный период' : currentPaidSlugs.length ? 'Оплачено' : 'МОСТ без оплаты'}</strong></div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><span className="block text-xs text-slate-500">Следующая дата</span><strong className="mt-1 block text-slate-950">{formatDateTime(renewal?.nextBillingAt ?? null)}</strong></div>
+            <div className="rounded border border-border bg-card px-4 py-3"><span className="block text-xs text-slate-500">Состояние</span><strong className="mt-1 block text-slate-950">{isCorporate ? 'Корпоративный уровень' : isGrace ? 'Льготный период' : currentPaidSlugs.length ? 'Оплачено' : 'МОСТ без оплаты'}</strong></div>
+            <div className="rounded border border-border bg-card px-4 py-3"><span className="block text-xs text-slate-500">Следующая дата</span><strong className="mt-1 block text-slate-950">{formatDateTime(renewal?.nextBillingAt ?? null)}</strong></div>
           </div>
         </div>
       </header>
@@ -472,13 +472,13 @@ const BillingPage = () => {
         </div>
       </section> : null}
 
-      {isCorporate ? <section className="rounded-[24px] border border-blue-200 bg-blue-50 p-6" aria-labelledby="corporate-title">
-        <Badge className="mb-3 bg-blue-700">Корпоративный уровень</Badge>
-        <h2 id="corporate-title" className="text-2xl font-semibold text-blue-950">Персональное сопровождение</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-blue-900">Состав, условия оплаты и изменения корпоративного контура согласуются с персональным менеджером МОСТ. Самостоятельное подключение, пробный доступ и изменение пакетов для этой организации недоступны.</p>
+      {isCorporate ? <section className="rounded border border-border bg-secondary/50 p-6" aria-labelledby="corporate-title">
+        <Badge className="mb-3 rounded bg-foreground text-background">Корпоративный уровень</Badge>
+        <h2 id="corporate-title" className="text-2xl font-semibold text-foreground">Персональное сопровождение</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-foreground">Состав, условия оплаты и изменения корпоративного контура согласуются с персональным менеджером МОСТ. Самостоятельное подключение, пробный доступ и изменение пакетов для этой организации недоступны.</p>
       </section> : null}
 
-      {renewal?.scheduledChange ? <section className="rounded-lg border border-blue-200 bg-blue-50 p-5 text-sm text-blue-950">
+      {renewal?.scheduledChange ? <section className="rounded border border-border border-l-2 border-l-foreground/60 bg-secondary/50 p-5 text-sm text-foreground">
         <strong>Запланировано сокращение состава</strong>
         <p className="mt-2">После {formatDateTime(renewal.scheduledChange.applyAt)} останется {namesFor(renewal.scheduledChange.targetPackageSlugs) || 'МОСТ без оплаты'}; будет отключён {namesFor(scheduledRemoved)}. До этой даты текущий доступ сохраняется.</p>
       </section> : null}
@@ -519,21 +519,23 @@ const BillingPage = () => {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-lg border border-blue-200 bg-white p-6 shadow-none" aria-labelledby="enterprise-offer-title">
+      <section className="overflow-hidden rounded border border-border border-t-2 border-t-foreground/60 bg-secondary/50 p-6 shadow-none" aria-labelledby="enterprise-offer-title">
         <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div>
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-blue-700"><Building2 className="h-4 w-4" />Для крупных компаний</div>
+            <div className="mb-3 flex items-center gap-2 text-sm font-medium text-muted-foreground"><Building2 aria-hidden="true" className="h-5 w-5 shrink-0" />Для крупных компаний</div>
             <h2 id="enterprise-offer-title" className="text-2xl font-semibold text-slate-950 sm:text-3xl">Корпоративный уровень</h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Настроим МОСТ под структуру компании, подключим нужные интеграции и поможем командам перейти на единую систему работы.</p>
-            <div className="mt-5 flex flex-wrap gap-2 text-xs font-medium text-slate-700">
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2">Персональная настройка</span>
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2">Приоритетная поддержка</span>
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2">Обучение и запуск</span>
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2">Особые условия оплаты</span>
-            </div>
+            <ul className="mt-5 grid gap-x-8 gap-y-3 border-t border-border pt-5 text-sm text-foreground sm:grid-cols-2">
+              {['Персональная настройка', 'Приоритетная поддержка', 'Обучение и запуск', 'Особые условия оплаты'].map((benefit) => (
+                <li key={benefit} className="flex items-start gap-2">
+                  <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                  {benefit}
+                </li>
+              ))}
+            </ul>
           </div>
-          <Button type="button" size="lg" className="w-full bg-blue-700 hover:bg-blue-800 lg:w-auto" onClick={() => setEnterpriseInquiryOpen(true)}>
-            <Headphones className="mr-2 h-4 w-4" />Обсудить подключение
+          <Button type="button" variant="outline" size="lg" className="w-full bg-card lg:w-auto" onClick={() => setEnterpriseInquiryOpen(true)}>
+            <Headphones aria-hidden="true" className="mr-2 h-5 w-5 shrink-0" />Обсудить подключение
           </Button>
         </div>
       </section>
@@ -627,7 +629,7 @@ const BillingPage = () => {
                 </div>
               </div> : null}
               {hasChanges ? <div className="space-y-2 text-xs text-muted-foreground"><p>Подключаем: {namesFor(quote.addedPackageSlugs) || 'нет'}</p><p>Отключаем со следующего периода: {namesFor(quote.removedPackageSlugs) || 'нет'}</p><p>Дата изменения: {formatDateTime(quote.periodEndAt)}</p></div> : null}
-              {hasReduction ? <p className="rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-900">Уже оплаченный доступ сохранится до конца периода. Затем выбранные пакеты отключатся.</p> : null}
+              {hasReduction ? <p className="rounded-xl bg-blue-50 p-3 text-xs leading-5 text-foreground">Уже оплаченный доступ сохранится до конца периода. Затем выбранные пакеты отключатся.</p> : null}
               {hasChanges && canManage && !isGrace && !hasReduction ? <label className={`flex items-start gap-3 rounded-xl border p-3 text-xs leading-5 ${canPayFromBalance ? 'cursor-pointer border-blue-200 bg-blue-50/60' : 'bg-slate-50 text-muted-foreground'}`}><input type="checkbox" className="mt-1 h-4 w-4" checked={payFromBalance} disabled={!canPayFromBalance || balanceLoading || Boolean(balanceError)} onChange={(event) => setPayFromBalance(event.target.checked)} aria-label="Оплатить с баланса" /><span><strong className="flex items-center gap-1 text-foreground"><WalletCards className="h-4 w-4" />Оплатить с баланса организации</strong><span className="mt-1 block">{balanceLoading ? 'Проверяем доступную сумму…' : balanceError ? 'Баланс временно недоступен.' : canPayFromBalance ? `Доступно ${formatMoney(balanceMinor, quote.currency)}. После оплаты останется ${formatMoney(balanceMinor - quote.amountDueNowMinor, quote.currency)}.` : `Доступно ${formatMoney(balanceMinor, quote.currency)}. Для полной оплаты не хватает ${formatMoney(Math.max(0, quote.amountDueNowMinor - balanceMinor), quote.currency)}.`}</span></span></label> : null}
               {hasChanges && canManage && !isGrace && !hasReduction && requiresAutoRenewConsent && !useBalanceForCheckout ? <label className="flex items-start gap-3 rounded-xl border p-3 text-xs leading-5"><input type="checkbox" className="mt-1 h-4 w-4" checked={autoRenewConsent} onChange={(event) => setAutoRenewConsent(event.target.checked)} aria-label="Согласен на автоматическое списание" /><span>Согласен на автоматическое списание <strong>{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong> каждые 30 дней. Отключить можно здесь же.</span></label> : null}
               {hasChanges && canManage ? <Button className="w-full" size="lg" onClick={() => void submitContour()} disabled={isGrace || actionBusy === 'checkout' || (!hasReduction && !useBalanceForCheckout && requiresAutoRenewConsent && !autoRenewConsent)}>{isGrace ? <><LockKeyhole className="mr-2 h-4 w-4" />Изменение заблокировано</> : hasReduction ? 'Запланировать сокращение' : useBalanceForCheckout ? <><WalletCards className="mr-2 h-4 w-4" />Оплатить с баланса</> : <><CreditCard className="mr-2 h-4 w-4" />Перейти к оплате</>}</Button> : null}
@@ -650,7 +652,7 @@ const BillingPage = () => {
             <h2 id="resource-purchase-title" className="text-2xl font-semibold text-slate-950">Купить дополнительный объём</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Выберите только тот объём, который нужен сверх подключённых пакетов. Стоимость обновляется автоматически.</p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+          <div className="rounded border border-border bg-card px-4 py-3 text-sm">
             <span className="block text-xs text-slate-500">Сейчас оплачено сверх пакетов</span>
             <strong className="mt-1 block text-slate-950">{formatMoney(limitsSummary.monthlyResourceAmountMinor, limitsSummary.currency)}</strong>
           </div>
@@ -674,7 +676,7 @@ const BillingPage = () => {
                   </div>
                   <p className="mt-1 text-xs text-slate-500">Сейчас дополнительно: +{quotaValue(resource.currentQuantity, resource.unit)} · {compactMoney(resource.pricing.priceMinor, resource.pricing.currency)} за единицу</p>
                   {resource.requiresPackage && !availableForCheckout ? <p className="mt-2 text-xs leading-5 text-slate-600">Нужен пакет: {packageNames.get(resource.requiresPackage) ?? resource.requiresPackage}</p> : null}
-                  {needsManager ? <p className="mt-3 rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-900">Для такого объёма менеджер подготовит индивидуальные условия.</p> : null}
+                  {needsManager ? <p className="mt-3 rounded-xl bg-blue-50 p-3 text-xs leading-5 text-foreground">Для такого объёма менеджер подготовит индивидуальные условия.</p> : null}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button type="button" variant="outline" size="icon" disabled={!availableForCheckout || quantity <= resource.min} aria-label={`Уменьшить ${resource.name}`} onClick={() => setResourceQuantity(resource.slug, quantity - resource.step, resource.min)}><Minus className="h-4 w-4" /></Button>
@@ -699,7 +701,7 @@ const BillingPage = () => {
             <p className="mt-1 text-xs text-slate-500">Позиций изменено: {changedResourceCount}</p>
             {quoteLoading && hasResourceChanges ? <p className="mt-3 flex items-center gap-2 text-sm text-slate-600"><Loader2 className="h-4 w-4 animate-spin" />Обновляем стоимость</p> : quoteError && hasResourceChanges ? <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-800">{quoteError}</p> : resourceQuote ? <>
               <p className="mt-4 text-3xl font-semibold text-slate-950">{compactMoney(resourceQuote.amountMinor, resourceQuote.currency)}</p>
-              {resourceQuote.requiresManager ? <p className="mt-3 rounded-xl bg-blue-50 p-3 text-sm leading-5 text-blue-900">Для такого объёма менеджер подготовит индивидуальные условия.</p> : <p className="mt-3 text-sm leading-6 text-slate-600">Стоимость рассчитана по выбранному дополнительному объёму.</p>}
+              {resourceQuote.requiresManager ? <p className="mt-3 rounded-xl bg-blue-50 p-3 text-sm leading-5 text-foreground">Для такого объёма менеджер подготовит индивидуальные условия.</p> : <p className="mt-3 text-sm leading-6 text-slate-600">Стоимость рассчитана по выбранному дополнительному объёму.</p>}
               <Button className="mt-4 w-full" onClick={() => void submitContour()} disabled={!canManage || isGrace || actionBusy === 'checkout' || resourceQuote.requiresManager || (!useBalanceForCheckout && requiresAutoRenewConsent && !autoRenewConsent)}>{resourceQuote.requiresManager ? 'Обсудить условия' : useBalanceForCheckout ? <><WalletCards className="mr-2 h-4 w-4" />Оплатить с баланса</> : <><CreditCard className="mr-2 h-4 w-4" />Перейти к оплате</>}</Button>
             </> : <p className="mt-3 text-sm leading-6 text-slate-600">Измените дополнительный объём, чтобы увидеть ежемесячную стоимость.</p>}
           </aside>
