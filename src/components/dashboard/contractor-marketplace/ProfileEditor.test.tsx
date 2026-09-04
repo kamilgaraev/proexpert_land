@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { MarketplaceContractorProfile, MarketplaceWorkCategory } from '@/types/contractor-marketplace';
 import { ProfileEditor } from './ProfileEditor';
@@ -12,13 +12,38 @@ const profile: MarketplaceContractorProfile = {
   portfolio_items: [], documents: [], created_at: null, updated_at: null,
 };
 
-function setup() {
+function setup(onUploadDocument = vi.fn<(...args: [File, string, string]) => Promise<void>>().mockResolvedValue(undefined)) {
   const onSave = vi.fn();
   const view = render(<ProfileEditor profile={profile} categories={categories} organization={null} organizationProfile={null}
     isSaving={false} isPublishing={false} isUploadingDocument={false} onSave={onSave}
-    onPublish={vi.fn()} onPause={vi.fn()} onUploadDocument={vi.fn()} onDeleteDocument={vi.fn()} />);
+    onPublish={vi.fn()} onPause={vi.fn()} onUploadDocument={onUploadDocument} onDeleteDocument={vi.fn()} />);
   return { ...view, onSave };
 }
+
+describe('ProfileEditor document upload', () => {
+  it('preserves the file and title on failure and clears both after a successful retry', async () => {
+    const upload = vi.fn<(...args: [File, string, string]) => Promise<void>>()
+      .mockRejectedValueOnce(new Error('Connection interrupted'))
+      .mockResolvedValueOnce(undefined);
+    setup(upload);
+    const file = new File(['test document'], 'license.pdf', { type: 'application/pdf' });
+    const fileInput = screen.getByLabelText('Файл') as HTMLInputElement;
+    fireEvent.change(screen.getByRole('textbox', { name: /^Название$/ }), { target: { value: 'Лицензия компании' } });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Загрузить' }));
+    expect(await screen.findByText(/Не удалось загрузить документ/)).toHaveAttribute('role', 'alert');
+    expect(screen.getByRole('textbox', { name: /^Название$/ })).toHaveValue('Лицензия компании');
+    expect(fileInput.files?.[0]).toBe(file);
+    expect(screen.queryByText(/Connection interrupted/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Загрузить' }));
+    await waitFor(() => expect(screen.getByRole('textbox', { name: /^Название$/ })).toHaveValue(''));
+    expect(upload).toHaveBeenNthCalledWith(1, file, 'license', 'Лицензия компании');
+    expect(upload).toHaveBeenNthCalledWith(2, file, 'license', 'Лицензия компании');
+    expect(screen.getByLabelText('Файл')).not.toBe(fileInput);
+    expect((screen.getByLabelText('Файл') as HTMLInputElement).files).toHaveLength(0);
+    expect(screen.queryByText(/Не удалось загрузить документ/)).not.toBeInTheDocument();
+  });
+});
 
 describe('ProfileEditor field accessibility', () => {
   it('labels basic fields and removes implementation details', () => {

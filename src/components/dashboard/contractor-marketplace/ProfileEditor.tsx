@@ -117,6 +117,8 @@ export const ProfileEditor = ({
   const [documentTitle, setDocumentTitle] = useState('');
   const [documentType, setDocumentType] = useState('license');
   const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [documentInputVersion, setDocumentInputVersion] = useState(0);
+  const [documentError, setDocumentError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -315,10 +317,16 @@ export const ProfileEditor = ({
     }
 
     setValidationError(null);
-    await onUploadDocument(documentFile, documentType, documentTitle.trim());
-    setDocumentTitle('');
-    setDocumentType('license');
-    setDocumentFile(null);
+    setDocumentError(null);
+    try {
+      await onUploadDocument(documentFile, documentType, documentTitle.trim());
+      setDocumentTitle('');
+      setDocumentType('license');
+      setDocumentFile(null);
+      setDocumentInputVersion((current) => current + 1);
+    } catch {
+      setDocumentError('Не удалось загрузить документ. Файл и название сохранены в форме — попробуйте ещё раз.');
+    }
   };
 
   return (
@@ -646,7 +654,7 @@ export const ProfileEditor = ({
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="market-document-type">Тип</Label>
-              <Select value={documentType} onValueChange={setDocumentType}>
+              <Select value={documentType} onValueChange={setDocumentType} disabled={isUploadingDocument}>
                 <SelectTrigger id="market-document-type">
                   <SelectValue />
                 </SelectTrigger>
@@ -660,11 +668,13 @@ export const ProfileEditor = ({
             </div>
             <div className="space-y-2">
               <Label htmlFor="market-document-title">Название</Label>
-              <Input id="market-document-title" value={documentTitle} onChange={(event) => setDocumentTitle(event.target.value)} />
+              <Input id="market-document-title" disabled={isUploadingDocument} value={documentTitle} onChange={(event) => setDocumentTitle(event.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="market-document-file">Файл</Label>
               <Input id="market-document-file"
+                key={documentInputVersion}
+                disabled={isUploadingDocument}
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
                 onChange={(event) => setDocumentFile(event.target.files?.[0] ?? null)}
@@ -677,6 +687,8 @@ export const ProfileEditor = ({
               </Button>
             </div>
           </div>
+
+          {documentError && <p role="alert" className="text-sm text-destructive">{documentError}</p>}
 
           {profile.documents.length === 0 ? (
             <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">

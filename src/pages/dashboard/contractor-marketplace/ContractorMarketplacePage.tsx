@@ -195,6 +195,7 @@ const ContractorMarketplacePage = () => {
       const message = normalizeErrorMessage(error);
       setErrorMessage(message);
       toast.error(message);
+      throw error;
     } finally {
       setIsUploadingDocument(false);
     }
