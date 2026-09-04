@@ -112,7 +112,7 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
   return (
     <OrangeModal
       isOpen={isOpen}
-      title={mode === 'direct' ? 'Создать пользователя' : 'Пригласить пользователя'}
+      title={mode === 'direct' ? 'Добавить сотрудника' : 'Пригласить сотрудника'}
       primaryLabel={mode === 'direct' ? 'Создать' : 'Отправить'}
       onPrimary={submit}
       onClose={onClose}
@@ -160,24 +160,24 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Имя *</label>
-            <input className="w-full px-3 py-2 border rounded-lg" value={form.name} onChange={e => setForm(v => ({...v, name: e.target.value}))} />
+            <label htmlFor="employee-invite-name" className="block text-sm font-medium text-gray-700 mb-1">Имя *</label>
+            <input id="employee-invite-name" autoComplete="name" className="w-full px-3 py-2 border rounded-lg" value={form.name} onChange={e => setForm(v => ({...v, name: e.target.value}))} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-            <input className="w-full px-3 py-2 border rounded-lg" value={form.email} onChange={e => setForm(v => ({...v, email: e.target.value}))} />
+            <label htmlFor="employee-invite-email" className="block text-sm font-medium text-gray-700 mb-1">Рабочая почта *</label>
+            <input id="employee-invite-email" type="email" autoComplete="email" className="w-full px-3 py-2 border rounded-lg" value={form.email} onChange={e => setForm(v => ({...v, email: e.target.value}))} />
           </div>
         </div>
 
         {mode === 'direct' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Пароль *</label>
-              <input type="password" className="w-full px-3 py-2 border rounded-lg" value={form.password} onChange={e => setForm(v => ({...v, password: e.target.value}))} />
+              <label htmlFor="employee-invite-password" className="block text-sm font-medium text-gray-700 mb-1">Пароль *</label>
+              <input id="employee-invite-password" autoComplete="new-password" type="password" className="w-full px-3 py-2 border rounded-lg" value={form.password} onChange={e => setForm(v => ({...v, password: e.target.value}))} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Подтверждение *</label>
-              <input type="password" className="w-full px-3 py-2 border rounded-lg" value={form.password_confirmation} onChange={e => setForm(v => ({...v, password_confirmation: e.target.value}))} />
+              <label htmlFor="employee-invite-password-confirmation" className="block text-sm font-medium text-gray-700 mb-1">Повторите пароль *</label>
+              <input id="employee-invite-password-confirmation" autoComplete="new-password" type="password" className="w-full px-3 py-2 border rounded-lg" value={form.password_confirmation} onChange={e => setForm(v => ({...v, password_confirmation: e.target.value}))} />
             </div>
             <label className="flex items-center gap-2 text-sm col-span-full">
               <input type="checkbox" checked={form.send_credentials} onChange={e => setForm(v => ({...v, send_credentials: e.target.checked}))} />
@@ -190,7 +190,8 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
           <div className="flex items-center justify-between mb-2">
             <div className="text-sm font-medium text-gray-700">Роли</div>
             <input
-              placeholder="Поиск по ролям..."
+              aria-label="Поиск по ролям"
+              placeholder="Поиск по ролям"
               className="px-3 py-2 border rounded-lg w-64"
               value={query}
               onChange={e => setQuery(e.target.value)}
@@ -199,7 +200,7 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="border rounded-lg p-3">
-              <div className="text-xs font-semibold text-gray-600 mb-2">Системные роли</div>
+              <div className="text-xs font-semibold text-gray-600 mb-2">Готовые роли</div>
               <div className="space-y-1 max-h-44 overflow-y-auto">
                 {filteredSystemRoles.map((r: any) => (
                   <label key={r.slug} className="flex items-start gap-2 text-sm">
@@ -216,7 +217,7 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave }) => 
               </div>
             </div>
             <div className="border rounded-lg p-3">
-              <div className="text-xs font-semibold text-gray-600 mb-2">Кастомные роли</div>
+              <div className="text-xs font-semibold text-gray-600 mb-2">Роли компании</div>
               <div className="space-y-1 max-h-44 overflow-y-auto">
                 {filteredCustomRoles.map((r: any) => (
                   <label key={r.id} className="flex items-center gap-2 text-sm">
