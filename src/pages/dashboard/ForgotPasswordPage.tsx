@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
+import {
   ArrowLeft,
   Mail,
   CheckCircle,
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authService } from '@utils/api';
+import '@/styles/auth.css';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -21,20 +22,20 @@ const ForgotPasswordPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email) {
       setError('Пожалуйста, введите ваш email');
       return;
     }
-    
+
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError('Пожалуйста, введите корректный email');
       return;
     }
-    
+
     setError('');
     setIsLoading(true);
-    
+
     try {
       await authService.requestPasswordReset(email);
       setIsSuccess(true);
@@ -58,11 +59,11 @@ const ForgotPasswordPage = () => {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-         <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none bg-[url('https://img.freepik.com/free-vector/construction-set-icons_1284-13233.jpg')] bg-repeat bg-[length:400px]"></div>
-        
-        <motion.div 
-          className="w-full max-w-md bg-card border rounded-3xl shadow-2xl p-8 text-center relative z-10"
+      <div className="most-workspace most-auth-page">
+
+
+        <motion.div
+          className="most-auth-shell most-auth-content text-center"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
@@ -70,22 +71,22 @@ const ForgotPasswordPage = () => {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
-          
+
           <h1 className="text-2xl font-bold mb-4">
             Письмо отправлено!
           </h1>
-          
+
           <p className="text-muted-foreground mb-6 leading-relaxed">
             Мы отправили инструкции по восстановлению пароля на адрес{' '}
             <span className="font-semibold text-foreground">{email}</span>
           </p>
-          
+
           <div className="bg-muted rounded-xl p-4 mb-6">
             <p className="text-muted-foreground text-sm">
               Не получили письмо? Проверьте папку "Спам" или попробуйте снова через несколько минут.
             </p>
           </div>
-          
+
           <Button asChild className="w-full h-12 text-base">
             <Link to="/login">
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -98,11 +99,11 @@ const ForgotPasswordPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none bg-[url('https://img.freepik.com/free-vector/construction-set-icons_1284-13233.jpg')] bg-repeat bg-[length:400px]"></div>
+    <div className="most-workspace most-auth-page">
 
-      <motion.div 
-        className="w-full max-w-md bg-card border rounded-3xl shadow-2xl p-8 relative z-10"
+
+      <motion.div
+        className="most-auth-shell most-auth-content"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -112,7 +113,7 @@ const ForgotPasswordPage = () => {
             <img src="/logo.svg" alt="" className="h-12 w-12 object-contain" />
             <span className="text-2xl font-extrabold tracking-tight text-foreground">МОСТ</span>
           </Link>
-          
+
           <h1 className="text-2xl font-bold mb-2">
             Восстановление пароля
           </h1>
@@ -122,7 +123,8 @@ const ForgotPasswordPage = () => {
         </div>
 
         {error && (
-          <motion.div 
+          <motion.div
+            role="alert"
             className="mb-6 bg-destructive/10 border border-destructive/20 rounded-xl p-4 flex items-start gap-3 text-destructive"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -140,23 +142,23 @@ const ForgotPasswordPage = () => {
             <Label htmlFor="email">Email адрес</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="email" 
+              <Input
+                id="email"
                 name="email"
-                type="email" 
+                type="email"
                 autoComplete="email"
-                value={email} 
-                onChange={e => setEmail(e.target.value)} 
-                className="pl-10 h-11" 
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="pl-10 h-11"
                 placeholder="name@example.com"
-                required 
+                required
               />
             </div>
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full h-12 text-base shadow-lg shadow-primary/20" 
+          <Button
+            type="submit"
+            className="w-full h-12 text-base"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -171,8 +173,8 @@ const ForgotPasswordPage = () => {
         </form>
 
         <div className="mt-8 pt-6 border-t text-center">
-          <Link 
-            to="/login" 
+          <Link
+            to="/login"
             className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors font-medium"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

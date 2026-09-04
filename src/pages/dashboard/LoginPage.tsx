@@ -5,7 +5,6 @@ import {
   Eye, 
   EyeOff, 
   ArrowRight, 
-  ShieldCheck, 
   User, 
   Lock,
   AlertTriangle
@@ -15,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EmailVerificationModal } from '@/components/dashboard/EmailVerificationModal';
+import '@/styles/auth.css';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -70,22 +70,17 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#fff_0%,#fff8f1_46%,#f8fafc_100%)] flex items-center justify-center p-4 lg:p-8">
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute left-[8%] top-[10%] h-72 w-72 rounded-full bg-orange-200/35 blur-3xl" />
-        <div className="absolute bottom-[8%] right-[10%] h-80 w-80 rounded-full bg-sky-100/60 blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.94),rgba(255,255,255,0.78)_42%,rgba(248,250,252,0.96)_100%)]" />
-      </div>
+    <div className="most-workspace most-auth-page">
 
       <motion.div 
-        className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-card border rounded-3xl shadow-2xl overflow-hidden relative z-10"
-        initial={{ opacity: 0, y: 20 }}
+        className="most-auth-shell most-auth-shell--split"
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         
         {/* Left Panel - Form */}
-        <div className="p-8 lg:p-16 flex flex-col justify-center">
+        <div className="most-auth-content flex flex-col justify-center">
           <div className="mb-8">
             <Link to="/" className="inline-flex items-center mb-8 gap-3 transition-opacity hover:opacity-80">
               <img src="/logo.svg" alt="" className="h-12 w-12 object-contain" />
@@ -102,6 +97,7 @@ const LoginPage = () => {
 
           {error && (
             <motion.div 
+              role="alert"
               className="mb-6 bg-destructive/10 border border-destructive/20 rounded-xl p-4 flex gap-3 items-start text-destructive"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -160,7 +156,7 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="most-auth-options">
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
@@ -181,7 +177,7 @@ const LoginPage = () => {
 
             <Button 
               type="submit" 
-              className="w-full h-12 text-base shadow-lg shadow-primary/20" 
+              className="w-full h-12 text-base"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -206,34 +202,16 @@ const LoginPage = () => {
           </div>
         </div>
 
-        {/* Right Panel - Visuals */}
-        <div className="hidden lg:flex bg-muted relative overflow-hidden p-12 flex-col justify-between">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-orange-600 mix-blend-multiply z-10" />
-            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2531&auto=format&fit=crop')] bg-cover bg-center grayscale opacity-50 z-0" />
-            
-            <div className="relative z-20 text-white mt-12">
-                <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-8">
-                    <ShieldCheck className="h-8 w-8 text-white" />
-                </div>
-                <h2 className="text-4xl font-bold mb-6 leading-tight">
-                    Строим будущее<br/>вместе с вами
-                </h2>
-                <p className="text-white/80 text-lg max-w-md leading-relaxed">
-                    Полный контроль над строительными проектами, финансами и командой в единой экосистеме МОСТ.
-                </p>
-            </div>
-
-            <div className="relative z-20 grid grid-cols-2 gap-4 mt-auto">
-                <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20">
-                    <div className="text-3xl font-bold text-white mb-1">15+</div>
-                    <div className="text-white/70 text-sm">Инструментов управления</div>
-                </div>
-                <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20">
-                    <div className="text-3xl font-bold text-white mb-1">24/7</div>
-                    <div className="text-white/70 text-sm">Поддержка и доступность</div>
-                </div>
-            </div>
-        </div>
+        <aside className="most-auth-brand-panel">
+          <h2>Между офисом и стройкой — МОСТ.</h2>
+          <p>Вернитесь к проектам, команде и документам компании. Продолжайте работу с того места, где остановились.</p>
+          <svg className="most-auth-bridge" viewBox="0 0 480 220" fill="none" aria-hidden="true">
+            <path d="M12 92H468" stroke="hsl(var(--primary))" strokeWidth="4" />
+            <path d="M112 184V92L240 184L368 92V184" stroke="currentColor" strokeWidth="8" strokeLinejoin="round" />
+            <path d="M20 92V50H76V92M30 50V20M64 50V20M20 68H76M404 92V12H458V92M414 30H448M414 48H448M414 66H448" stroke="currentColor" strokeWidth="2" />
+            <path d="M94 188H130M350 188H386" stroke="hsl(var(--primary))" strokeWidth="4" />
+          </svg>
+        </aside>
 
       </motion.div>
 
