@@ -70,7 +70,7 @@ export const useEmailVerification = (user?: User | null): UseEmailVerificationRe
 
       return () => clearInterval(interval);
     }
-  }, [checkCooldown]);
+  }, [checkCooldown, state.canResend]);
 
   useEffect(() => {
     if (user) {
