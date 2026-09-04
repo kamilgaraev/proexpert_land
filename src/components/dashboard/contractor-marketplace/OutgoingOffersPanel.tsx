@@ -251,7 +251,7 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
       patchOffer(updatedOffer);
       setCancelTarget(null);
       setCancelReason('');
-      toast.success('Оффер отменен');
+      toast.success('Предложение отменено');
     } catch (error) {
       const message = normalizeErrorMessage(error);
       setErrorMessage(message);
@@ -361,7 +361,7 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
     <div className="space-y-5">
       <div className="flex flex-col gap-4 rounded-xl border bg-background p-4 shadow-sm md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Исходящие офферы</h2>
+          <h2 className="text-xl font-semibold">Исходящие предложения</h2>
           <p className="text-sm text-muted-foreground">
             Предложения, отправленные подрядчикам из закрытой сети.
           </p>
@@ -424,7 +424,7 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
       ) : offers.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-background p-10 text-center">
           <Briefcase className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-          <h3 className="text-lg font-semibold">Офферов пока нет</h3>
+          <h3 className="text-lg font-semibold">Предложений пока нет</h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             Выберите подрядчика в каталоге и отправьте предложение по проекту.
           </p>
@@ -643,7 +643,7 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
                     onClick={() => setCancelTarget(selectedOffer)}
                   >
                     <XCircle className="mr-2 h-4 w-4" />
-                    Отменить оффер
+                    Отменить предложение
                   </Button>
                 </div>
               )}
@@ -655,12 +655,12 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
       <Dialog open={cancelTarget !== null} onOpenChange={(open) => !open && setCancelTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Отменить оффер</DialogTitle>
+            <DialogTitle>Отменить предложение</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <Alert>
               <AlertDescription>
-                Подрядчик больше не сможет принять это предложение. Уже принятые офферы отменить нельзя.
+                Подрядчик больше не сможет принять это предложение. Уже принятые предложения отменить нельзя.
               </AlertDescription>
             </Alert>
             <div className="space-y-2">
@@ -679,7 +679,7 @@ export const OutgoingOffersPanel = ({ canCancelOffer, canReviewOffer }: Outgoing
             </Button>
             <Button variant="destructive" onClick={() => void confirmCancel()} disabled={actionOfferId !== null}>
               {actionOfferId !== null && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Отменить оффер
+              Отменить предложение
             </Button>
           </DialogFooter>
         </DialogContent>

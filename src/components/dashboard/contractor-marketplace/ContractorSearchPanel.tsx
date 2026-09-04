@@ -246,7 +246,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
     try {
       await contractorMarketplaceApi.createOffer(payload);
       setOfferProfile(null);
-      toast.success('Оффер подрядчику отправлен');
+      toast.success('Предложение подрядчику отправлено');
       await loadContractors();
     } catch (error) {
       const message = normalizeErrorMessage(error);
@@ -514,7 +514,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
                   {canCreateOffer && (
                     <Button className="flex-1" onClick={() => void openOfferDialog(contractor)}>
                       <Send className="mr-2 h-4 w-4" />
-                      Оффер
+                      Предложить работу
                     </Button>
                   )}
                 </div>
@@ -566,8 +566,8 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
               </SheetHeader>
 
               <div className="flex flex-wrap gap-2">
-                <Badge variant="outline">{selectedProfile.availability_status}</Badge>
-                <Badge variant="outline">{selectedProfile.verification_level}</Badge>
+                <Badge variant="outline">{selectedProfile.availability_status === 'hidden' ? 'Скрыт из каталога' : availabilityOptions.find((option) => option.value === selectedProfile.availability_status)?.label ?? 'Доступность не указана'}</Badge>
+                <Badge variant="outline">{verificationOptions.find((option) => option.value === selectedProfile.verification_level)?.label ?? 'Статус проверки не указан'}</Badge>
                 {selectedProfile.published_at && <Badge variant="secondary">Опубликован</Badge>}
               </div>
 
@@ -634,7 +634,7 @@ export const ContractorSearchPanel = ({ categories, canCreateOffer }: Contractor
                 <div className="sticky bottom-0 -mx-6 border-t bg-background/95 p-4 backdrop-blur">
                   <Button className="w-full" onClick={() => void openOfferDialog(selectedProfile)}>
                     <Send className="mr-2 h-4 w-4" />
-                    Отправить оффер
+                    Отправить предложение
                   </Button>
                 </div>
               )}

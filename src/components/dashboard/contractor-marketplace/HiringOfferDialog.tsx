@@ -129,7 +129,7 @@ export const HiringOfferDialog = ({
 
     setProjectId((current) => current ?? availableProjects[0]?.id ?? null);
     setRole('contractor');
-    setTitle(profile?.display_name ? `Офер для ${profile.display_name}` : '');
+    setTitle(profile?.display_name ? `Предложение для ${profile.display_name}` : '');
     setMessage('');
     setStartsAt('');
     setEndsAt('');
@@ -164,12 +164,12 @@ export const HiringOfferDialog = ({
     }
 
     if (projectId === null) {
-      setValidationError('Выберите проект для оффера.');
+      setValidationError('Выберите проект для предложения.');
       return null;
     }
 
     if (title.trim() === '') {
-      setValidationError('Заполните название оффера.');
+      setValidationError('Заполните название предложения.');
       return null;
     }
 
@@ -224,14 +224,14 @@ export const HiringOfferDialog = ({
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && !submitting && onClose()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Офер подрядчику</DialogTitle>
+          <DialogTitle>Предложение подрядчику</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5">
           {profile && (
             <Alert>
               <AlertDescription>
-                Офер будет отправлен подрядчику {profile.display_name ?? 'из каталога'} по выбранному проекту.
+                Предложение будет отправлено подрядчику {profile.display_name ?? 'из каталога'} по выбранному проекту.
               </AlertDescription>
             </Alert>
           )}
@@ -293,12 +293,12 @@ export const HiringOfferDialog = ({
 
           {!projectsLoading && availableProjects.length === 0 && (
             <Alert variant="destructive">
-              <AlertDescription>Нет активных проектов для отправки оффера.</AlertDescription>
+              <AlertDescription>Нет активных проектов для отправки предложения.</AlertDescription>
             </Alert>
           )}
 
           <div className="space-y-2">
-            <Label>Название оффера</Label>
+            <Label>Название предложения</Label>
             <Input value={title} disabled={submitting} onChange={(event) => setTitle(event.target.value)} />
           </div>
 
@@ -472,7 +472,7 @@ export const HiringOfferDialog = ({
             disabled={submitting || projectsLoading || availableProjects.length === 0 || categoryOptions.length === 0}
           >
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Отправить оффер
+            Отправить предложение
           </Button>
         </DialogFooter>
       </DialogContent>
