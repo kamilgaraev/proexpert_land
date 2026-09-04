@@ -190,13 +190,6 @@ const ContactForm = ({
 
     try {
       trackButtonClick("public_contact_submit", `contact_form_${variant}`);
-      trackContactForm(variant, {
-        subject: selectedSubject.value,
-        page_source: preparedPayload.page_source,
-        has_company: Boolean(preparedPayload.company),
-        has_phone: false,
-      });
-
       const response = await fetch(`${getPublicApiBase()}/api/public/contact`, {
         method: "POST",
         headers: {
@@ -227,6 +220,12 @@ const ContactForm = ({
         return;
       }
 
+      trackContactForm(variant, {
+        subject: selectedSubject.value,
+        page_source: preparedPayload.page_source,
+        has_company: Boolean(preparedPayload.company),
+        has_phone: false,
+      });
       setSuccessMessage(
         result.message ?? "Заявка принята. Мы напишем на указанную почту.",
       );

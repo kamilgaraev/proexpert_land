@@ -21,9 +21,13 @@ import {
 import ContactForm from "./ContactForm";
 import { COOKIE_CONSENT_VERSION } from "@/utils/marketingConsent";
 
-const { notify } = vi.hoisted(() => ({ notify: vi.fn() }));
+const { notify, trackButtonClick, trackContactForm } = vi.hoisted(() => ({
+  notify: vi.fn(),
+  trackButtonClick: vi.fn(),
+  trackContactForm: vi.fn(),
+}));
 vi.mock("@/hooks/useAnalytics", () => ({
-  default: () => ({ trackButtonClick: vi.fn(), trackContactForm: vi.fn() }),
+  default: () => ({ trackButtonClick, trackContactForm }),
 }));
 vi.mock("@/components/shared/NotificationService", () => ({
   default: { show: notify },
@@ -33,6 +37,14 @@ vi.mock("@/components/shared/SuccessModal", () => ({
     isOpen ? <div role="status">{message}</div> : null,
 }));
 
+vi.mock("framer-motion", () => ({
+  motion: {
+    div: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+      <div className={className}>{children}</div>
+    ),
+  },
+}));
+
 const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 beforeEach(() => vi.stubEnv("VITE_API_URL", "http://localhost/api/v1/landing"));
@@ -40,6 +52,7 @@ afterEach(() => {
   cleanup();
   server.resetHandlers();
   vi.unstubAllEnvs();
+  vi.clearAllMocks();
 });
 afterAll(() => server.close());
 
@@ -88,6 +101,13 @@ describe("Marketing contact request", () => {
       consent_version: COOKIE_CONSENT_VERSION,
       page_source: "/#contact",
     });
+    expect(trackButtonClick).toHaveBeenCalledTimes(1);
+    expect(trackContactForm).toHaveBeenCalledExactlyOnceWith("compact", {
+      subject: "demo",
+      page_source: "/#contact",
+      has_company: false,
+      has_phone: false,
+    });
     expect(received).not.toHaveProperty("company");
     expect(screen.getByLabelText("Имя")).toHaveValue("");
     expect(screen.getByRole("checkbox")).not.toBeChecked();
@@ -110,6 +130,8 @@ describe("Marketing contact request", () => {
         expect.objectContaining({ message: "Заявка не принята" }),
       ),
     );
+    expect(trackButtonClick).toHaveBeenCalledTimes(1);
+    expect(trackContactForm).not.toHaveBeenCalled();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Имя")).toHaveValue("  Анна  ");
     expect(screen.getByLabelText("Рабочая почта")).toHaveValue(
