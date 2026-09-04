@@ -21,7 +21,6 @@ describe('Sidebar', () => {
     render(
       <MemoryRouter
         initialEntries={['/dashboard/organization/settings']}
-        future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
       >
         <Sidebar
           navigation={[

@@ -6,8 +6,7 @@ import {
   screen,
 } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
-import { Link, MemoryRouter } from "react-router-dom";
-import { StaticRouter } from "react-router-dom/server";
+import { Link, MemoryRouter, StaticRouter } from "react-router-dom";
 import type { PropsWithChildren } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PageShell } from "./PageShell";

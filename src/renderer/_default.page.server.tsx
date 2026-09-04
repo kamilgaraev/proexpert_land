@@ -9,7 +9,7 @@ import type { PageContextServer } from "vite-plugin-ssr/types";
 // @ts-ignore
 import { redirect } from "vite-plugin-ssr/abort";
 // @ts-ignore
-import { StaticRouter } from "react-router-dom/server";
+import { StaticRouter } from "react-router-dom";
 import { PageShell } from "./PageShell";
 import { preparePageShell } from "./pageShellLoader";
 import { buildServerSeoPayload } from "./serverSeo";
