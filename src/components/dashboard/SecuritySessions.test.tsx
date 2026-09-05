@@ -89,6 +89,27 @@ describe('SecuritySessions', () => {
     expect(securitySessionService.listPage).toHaveBeenLastCalledWith('active', 1, expect.any(AbortSignal));
   });
 
+  it('сохраняет фокус при загрузке страницы и блокирует повторный переход', async () => {
+    let finish!: (value: Awaited<ReturnType<typeof securitySessionService.listPage>>) => void;
+    vi.mocked(securitySessionService.listPage)
+      .mockResolvedValueOnce({ sessions: [current], currentPage: 1, lastPage: 2, total: 21 })
+      .mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    render(<SecuritySessions />);
+    await screen.findByText('Мой компьютер');
+    const next = screen.getByRole('button', { name: 'Далее' });
+    next.focus();
+    fireEvent.click(next);
+    expect(next).toHaveFocus();
+    expect(next).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(next);
+    expect(securitySessionService.listPage).toHaveBeenCalledTimes(2);
+    await act(async () => finish({ sessions: [other], currentPage: 2, lastPage: 2, total: 21 }));
+    expect(await screen.findByText('Всего: 21 · Страница 2 из 2')).toBeInTheDocument();
+    expect(next).toHaveFocus();
+    fireEvent.click(next);
+    expect(securitySessionService.listPage).toHaveBeenCalledTimes(2);
+  });
+
   it('отменяет чтение при уходе со страницы', async () => {
     const view = render(<SecuritySessions />);
     await screen.findByText('Мой компьютер');

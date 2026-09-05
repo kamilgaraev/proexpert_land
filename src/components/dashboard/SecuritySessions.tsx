@@ -114,13 +114,13 @@ export function SecuritySessions() {
           ))}
         </ul>
       )}
-      {!loading && !loadError && <nav aria-label="Страницы входов" className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">Всего: {total} · Страница {query.page} из {lastPage}</p>
+      <nav aria-label="Страницы входов" className="flex flex-wrap items-center justify-between gap-3">
+        <p aria-live="polite" className="text-sm text-muted-foreground">{loading ? 'Обновляем список…' : loadError ? 'Сведения о страницах недоступны.' : `Всего: ${total} · Страница ${query.page} из ${lastPage}`}</p>
         <div className="flex gap-2">
-          <Button variant="outline" disabled={query.page <= 1 || saving} onClick={() => setQuery((current) => ({ ...current, page: current.page - 1 }))}>Назад</Button>
-          <Button variant="outline" disabled={query.page >= lastPage || saving} onClick={() => setQuery((current) => ({ ...current, page: current.page + 1 }))}>Далее</Button>
+          <Button variant="outline" className="aria-disabled:opacity-50" aria-disabled={loading || loadError || query.page <= 1 || saving} onClick={() => { if (!loading && !loadError && !saving && query.page > 1) setQuery((current) => ({ ...current, page: current.page - 1 })); }}>Назад</Button>
+          <Button variant="outline" className="aria-disabled:opacity-50" aria-disabled={loading || loadError || query.page >= lastPage || saving} onClick={() => { if (!loading && !loadError && !saving && query.page < lastPage) setQuery((current) => ({ ...current, page: current.page + 1 })); }}>Далее</Button>
         </div>
-      </nav>}
+      </nav>
       <Dialog open={selected !== null} onOpenChange={(open) => { if (!open && !pending.current) setSelected(null); }}>
         <DialogContent onCloseAutoFocus={(event) => {
           event.preventDefault();
