@@ -15,17 +15,29 @@ import { preparePageShell } from "./pageShellLoader";
 import { buildServerSeoPayload } from "./serverSeo";
 import { resolveServerRouterLocation } from "./serverRouterLocation";
 import { isMarketingPublicPath } from "@/utils/publicSite";
+import { getCabinetRedirect } from "@/utils/cabinetRedirect";
 import { filterMarketingAssets } from "./marketingAssetFilter";
 
 type ServerPageContext = PageContextServer & {
   Page: ComponentType<Record<string, unknown>>;
   pageProps?: Record<string, unknown>;
   documentProps?: Parameters<typeof buildServerSeoPayload>[1];
+  requestHostname?: string;
 };
 
 export async function render(pageContext: ServerPageContext) {
   const pathname = pageContext.urlPathname || "/";
   const routerLocation = resolveServerRouterLocation(pageContext);
+  const cabinetTarget = getCabinetRedirect(
+    pageContext.requestHostname || "",
+    pathname,
+    new URL(routerLocation, "https://xn--1-xtbgmf.xn--p1ai").search,
+  );
+
+  if (cabinetTarget) {
+    throw redirect(cabinetTarget as `https://${string}`, 302);
+  }
+
   const seoPayload = buildServerSeoPayload(
     pathname,
     pageContext.documentProps,

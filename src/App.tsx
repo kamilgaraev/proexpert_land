@@ -34,6 +34,7 @@ import EmailSentPage from '@pages/dashboard/EmailSentPage';
 const VerifyEmailPage = lazy(() => import('@pages/dashboard/VerifyEmailPage'));
 const UserInvitationAcceptPage = lazy(() => import('@pages/dashboard/UserInvitationAcceptPage'));
 import DashboardProtectedRoute from '@components/DashboardProtectedRoute';
+import { CabinetDomainGuard } from '@components/CabinetDomainGuard';
 import { HoldingPanelRouteGuard } from '@/components/multi-org/HoldingPanelRouteGuard';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 import { useCanAccess, usePermissions } from '@/hooks/usePermissions';
@@ -214,6 +215,7 @@ function App({
       />
       <AppErrorBoundary resetKey={`${location.pathname}${location.search}`}>
         <Suspense fallback={<AppLoadingFallback />}>
+          <CabinetDomainGuard>
           <Routes>
         {/* Публичные маршруты */}
         <Route element={<LandingLayout />}>
@@ -415,6 +417,7 @@ function App({
         {/* Страница 404 для несуществующих маршрутов */}
         <Route path="*" element={<NotFoundPage />} />
           </Routes>
+          </CabinetDomainGuard>
         </Suspense>
       </AppErrorBoundary>
       <ToastContainer 
