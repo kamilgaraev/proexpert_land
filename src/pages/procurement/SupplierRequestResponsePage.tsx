@@ -1,5 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import '@/styles/workspace.css';
+import { usePageTitle } from '@/hooks/useSEO';
 
 interface PublicSupplierRequestLine {
   id: number;
@@ -91,10 +95,14 @@ const calculateExcludedVatAmount = (amountWithoutVat: number, vatRate: number): 
 
 const SupplierRequestResponsePage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
+  usePageTitle('Предложение поставщика — МОСТ');
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [loadError, setLoadError] = useState<{ message: string; retryable: boolean } | null>(null);
   const [request, setRequest] = useState<PublicSupplierRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const submitButton = useRef<HTMLButtonElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [form, setForm] = useState<ProposalFormState>({
@@ -113,23 +121,37 @@ const SupplierRequestResponsePage: React.FC = () => {
   });
 
   useEffect(() => {
+    const controller = new AbortController();
     const loadRequest = async () => {
       if (!token) {
-        setError('Ссылка недействительна');
+        setLoadError({ message: 'Ссылка недействительна. Попросите заказчика прислать новую.', retryable: false });
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        setError(null);
+        setLoadError(null);
+        setRequest(null);
         const response = await fetch(`${API_BASE_DOMAIN}/api/v1/procurement/supplier-requests/${token}`, {
           headers: { Accept: 'application/json' },
+          signal: controller.signal,
         });
+        if (controller.signal.aborted) return;
+        if (response.status === 404 || response.status === 410) {
+          setLoadError({
+            message: response.status === 410
+              ? 'Срок действия ссылки истёк. Попросите заказчика прислать новую.'
+              : 'Заявка не найдена. Проверьте ссылку или обратитесь к заказчику.',
+            retryable: false,
+          });
+          return;
+        }
+        if (!response.ok) throw new Error('request_failed');
         const payload = await response.json();
-
-        if (!response.ok || payload.success === false) {
-          throw new Error(payload.message || 'Не удалось загрузить заявку');
+        if (controller.signal.aborted) return;
+        if (payload.success === false || !Array.isArray(payload.data?.lines)) {
+          throw new Error('invalid_response');
         }
 
         const data = payload.data as PublicSupplierRequest;
@@ -145,15 +167,18 @@ const SupplierRequestResponsePage: React.FC = () => {
             comment: '',
           })),
         }));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Не удалось загрузить заявку');
+      } catch {
+        if (!controller.signal.aborted) {
+          setLoadError({ message: 'Не удалось загрузить заявку. Проверьте соединение и попробуйте ещё раз.', retryable: true });
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
     void loadRequest();
-  }, [token]);
+    return () => controller.abort();
+  }, [token, loadAttempt]);
 
   const subtotalAmount = useMemo(() => (
     form.items.reduce((sum, item) => sum + (Number(item.unit_price || 0) * item.quantity), 0)
@@ -228,16 +253,21 @@ const SupplierRequestResponsePage: React.FC = () => {
           })),
         }),
       });
-      const payload = await response.json();
-
-      if (!response.ok || payload.success === false) {
-        throw new Error(payload.message || 'Не удалось отправить КП');
+      if (!response.ok) {
+        setError(response.status === 422
+          ? 'Проверьте цены и условия предложения. Заполненные данные сохранены.'
+          : response.status === 409 || response.status === 410
+            ? 'По этой ссылке больше нельзя отправить предложение. Уточните статус заявки у заказчика.'
+            : 'Не удалось подтвердить отправку. Уточните у заказчика, получено ли предложение, прежде чем отправлять его повторно.');
+        return;
       }
+      const payload = await response.json();
+      if (payload.success === false) throw new Error('proposal_rejected');
 
-      setSuccess(payload.message || 'КП отправлено');
+      setSuccess('Предложение отправлено заказчику.');
       setRequest((prev) => prev ? { ...prev, can_submit: false, status: 'responded', status_label: 'Есть ответ' } : prev);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось отправить КП');
+    } catch {
+      setError('Не удалось подтвердить отправку. Уточните у заказчика, получено ли предложение, прежде чем отправлять его повторно.');
     } finally {
       setSubmitting(false);
     }
@@ -245,14 +275,14 @@ const SupplierRequestResponsePage: React.FC = () => {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-slate-50 flex items-center justify-center px-6">
+      <main className="most-workspace min-h-screen bg-background flex items-center justify-center px-6" aria-busy="true">
         <div className="text-slate-600 font-medium">Загрузка заявки...</div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
+    <main className="most-workspace min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
         <div className="mb-6 flex items-center gap-3">
           <img src="/logo.svg" alt="МОСТ" className="h-10 w-auto" />
@@ -263,24 +293,28 @@ const SupplierRequestResponsePage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div role="alert" className="mb-5 border border-destructive/30 bg-card px-4 py-3 text-sm text-foreground">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div role="status" className="mb-5 border border-border bg-card px-4 py-3 text-sm text-foreground">
             {success}
           </div>
         )}
 
         {!request ? (
-          <section className="rounded-xl bg-white p-8 shadow-sm">
-            <p className="text-slate-700">Заявка не найдена.</p>
+          <section className="border border-border bg-card p-6 sm:p-8" aria-labelledby="supplier-request-error">
+            <h2 id="supplier-request-error" className="text-xl font-semibold text-foreground">Не удалось открыть заявку</h2>
+            <p role="alert" className="mt-3 text-muted-foreground">{loadError?.message}</p>
+            {loadError?.retryable && (
+              <Button className="mt-6" onClick={() => setLoadAttempt((attempt) => attempt + 1)}>Попробовать ещё раз</Button>
+            )}
           </section>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
-            <section className="rounded-xl bg-white p-6 shadow-sm">
+            <section className="border border-border bg-card p-5 sm:p-6">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
                   <p className="text-sm text-slate-500">Заявка {request.request_number}</p>
@@ -298,7 +332,7 @@ const SupplierRequestResponsePage: React.FC = () => {
               </div>
             </section>
 
-            <section className="rounded-xl bg-white p-6 shadow-sm">
+            <section className="border border-border bg-card p-5 sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-950">Позиции</h2>
@@ -355,7 +389,7 @@ const SupplierRequestResponsePage: React.FC = () => {
               </div>
             </section>
 
-            <section className="rounded-xl bg-white p-6 shadow-sm">
+            <section className="border border-border bg-card p-5 sm:p-6">
               <h2 className="text-lg font-semibold text-slate-950">Условия</h2>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <Field label="Валюта" value={form.currency} onChange={(value) => setForm((prev) => ({ ...prev, currency: value }))} />
@@ -400,14 +434,14 @@ const SupplierRequestResponsePage: React.FC = () => {
               </div>
             </section>
 
-            <section className="rounded-xl bg-white p-6 shadow-sm">
+            <section className="border border-border bg-card p-5 sm:p-6">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-950">Итог КП</h2>
                   <p className="mt-1 text-sm text-slate-500">
                     Итог пересчитывается из позиций, доставки и выбранного режима НДС.
                   </p>
-                  <div className="mt-4 min-w-[18rem] space-y-2 text-sm">
+                  <div className="mt-4 min-w-0 space-y-2 text-sm">
                     <AmountRow label="Материалы" value={moneyWithCurrency(subtotalAmount, form.currency)} />
                     <AmountRow label="Доставка" value={moneyWithCurrency(deliveryAmount, form.currency)} />
                     <AmountRow label={isVatExcluded ? 'Сумма без НДС' : 'Сумма с НДС'} value={moneyWithCurrency(amountBeforeVat, form.currency)} />
@@ -421,23 +455,18 @@ const SupplierRequestResponsePage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <button
-                  type="submit"
-                  disabled={!request.can_submit || submitting}
-                  className="rounded-lg bg-orange-600 px-6 py-3 font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300"
-                >
+                <Button ref={submitButton} type="submit" disabled={!request.can_submit || submitting}>
                   {submitting ? 'Отправка...' : 'Отправить КП'}
-                </button>
+                </Button>
               </div>
             </section>
 
-            {confirmOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4">
-                <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-                  <h2 className="text-lg font-semibold text-slate-950">Подтвердите отправку КП</h2>
-                  <p className="mt-2 text-sm text-slate-600">
+            <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                <DialogContent className="most-workspace max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto" onCloseAutoFocus={(event) => { event.preventDefault(); submitButton.current?.focus(); }}>
+                  <DialogTitle>Подтвердите отправку КП</DialogTitle>
+                  <DialogDescription>
                     Проверьте сумму и условия перед отправкой. После отправки изменить КП по этой ссылке нельзя.
-                  </p>
+                  </DialogDescription>
                   <div className="mt-4 space-y-2 rounded-lg bg-slate-50 p-4 text-sm">
                     <AmountRow label="Материалы" value={moneyWithCurrency(subtotalAmount, form.currency)} />
                     <AmountRow label="Доставка" value={moneyWithCurrency(deliveryAmount, form.currency)} />
@@ -445,26 +474,15 @@ const SupplierRequestResponsePage: React.FC = () => {
                     <AmountRow label="Итого" value={moneyWithCurrency(totalAmount, form.currency)} strong />
                   </div>
                   <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setConfirmOpen(false)}
-                      disabled={submitting}
-                      className="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
+                    <Button type="button" variant="outline" onClick={() => setConfirmOpen(false)} disabled={submitting}>
                       Вернуться к редактированию
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void sendProposal()}
-                      disabled={submitting}
-                      className="rounded-lg bg-orange-600 px-4 py-2 font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:bg-slate-300"
-                    >
+                    </Button>
+                    <Button type="button" onClick={() => void sendProposal()} disabled={submitting}>
                       {submitting ? 'Отправка...' : 'Подтвердить отправку'}
-                    </button>
+                    </Button>
                   </div>
-                </div>
-              </div>
-            )}
+                </DialogContent>
+            </Dialog>
           </form>
         )}
       </div>
