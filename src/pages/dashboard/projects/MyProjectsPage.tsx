@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ProjectOverview } from '@/types/projects-overview';
+import { usePageTitle } from '@/hooks/useSEO';
 
 export const MyProjectsPage = () => {
+  usePageTitle('Проекты — МОСТ');
   const [searchParams, setSearchParams] = useSearchParams();
   const [projects, setProjects] = useState<ProjectOverview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -154,7 +156,7 @@ export const MyProjectsPage = () => {
             <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 text-slate-300">
               <FolderIcon className="h-10 w-10" />
             </div>
-            <h3 className="mb-2 text-xl font-bold text-foreground">Проекты не найдены</h3>
+            <h2 className="mb-2 text-xl font-bold text-foreground">Проекты не найдены</h2>
             <p className="mx-auto max-w-sm text-muted-foreground">
               {searchTerm
                 ? 'Попробуйте изменить параметры поиска'
