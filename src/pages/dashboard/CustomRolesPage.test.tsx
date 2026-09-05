@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import CustomRolesPage from './CustomRolesPage';
 
+const roleState = vi.hoisted(() => ({ loading: false, roles: [] as Array<Record<string, unknown>> }));
 const createCustomRole = vi.fn();
 const updateCustomRole = vi.fn();
 const deleteCustomRole = vi.fn();
@@ -10,7 +11,7 @@ const cloneCustomRole = vi.fn();
 
 vi.mock('@hooks/useCustomRoles', () => ({
   useCustomRoles: () => ({
-    customRoles: [],
+    customRoles: roleState.roles,
     availablePermissions: {
       system_permissions: [],
       module_permissions: {
@@ -27,7 +28,7 @@ vi.mock('@hooks/useCustomRoles', () => ({
         estimates: 'Сметы',
       },
     },
-    loading: false,
+    loading: roleState.loading,
     error: null,
     createCustomRole,
     updateCustomRole,
@@ -49,6 +50,8 @@ vi.mock('@components/shared/NotificationService', () => ({
 describe('CustomRolesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    roleState.loading = false;
+    roleState.roles = [];
     createCustomRole.mockResolvedValue({});
     updateCustomRole.mockResolvedValue({});
     deleteCustomRole.mockResolvedValue({});
@@ -71,6 +74,30 @@ describe('CustomRolesPage', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(createCustomRole).not.toHaveBeenCalled();
     await waitFor(() => expect(trigger).toHaveFocus());
+  });
+
+  it('preserves the first role form while the hook is saving', () => {
+    const view = render(<CustomRolesPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Создать роль' })[0]);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Название роли *' }), { target: { value: 'Снабжение' } });
+    roleState.loading = true;
+    view.rerender(<CustomRolesPage />);
+    expect(screen.getByRole('textbox', { name: 'Название роли *' })).toHaveValue('Снабжение');
+    roleState.loading = false;
+    view.rerender(<CustomRolesPage />);
+    expect(screen.getByRole('textbox', { name: 'Название роли *' })).toHaveValue('Снабжение');
+  });
+
+  it('copies a role through the named dialog', async () => {
+    roleState.roles = [{ id: 7, name: 'Склад', system_permissions: [], module_permissions: {}, is_active: true, created_at: '2026-09-01' }];
+    render(<CustomRolesPage />);
+    fireEvent.click(screen.getByRole('button', { name: 'Копировать роль «Склад»' }));
+    expect(screen.getByRole('dialog', { name: 'Копировать роль' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Создать копию' })).toBeDisabled();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Название новой роли' }), { target: { value: 'Второй склад' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Создать копию' }));
+    await waitFor(() => expect(cloneCustomRole).toHaveBeenCalledWith(7, 'Второй склад'));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
   it('selects all module permissions from the role modal', async () => {

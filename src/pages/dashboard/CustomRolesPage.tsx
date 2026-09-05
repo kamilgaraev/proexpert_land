@@ -310,7 +310,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                         type="checkbox"
                         checked={formData.interface_access.includes(interface_.key)}
                         onChange={() => toggleInterfaceAccess(interface_.key)}
-                        className="h-4 w-4 text-primary focus:ring-primary border-border rounded"
+                        className="h-4 w-4 shrink-0 accent-primary focus:ring-primary border-border rounded"
                       />
                       <span className="ml-2 text-sm text-foreground">{interface_.label}</span>
                     </label>
@@ -331,7 +331,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                             type="checkbox"
                             checked={formData.system_permissions.includes(permission.key)}
                             onChange={() => toggleSystemPermission(permission.key)}
-                            className="h-4 w-4 text-primary focus:ring-primary border-border rounded mt-0.5"
+                            className="h-4 w-4 shrink-0 accent-primary focus:ring-primary border-border rounded mt-0.5"
                           />
                           <div className="ml-2">
                             <span className="text-sm font-medium text-foreground">{permission.name}</span>
@@ -408,7 +408,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                                 type="checkbox"
                                 checked={formData.module_permissions?.[module]?.includes(permission.key) || false}
                                 onChange={() => toggleModulePermission(module, permission.key)}
-                                className="h-4 w-4 text-primary focus:ring-primary border-border rounded mt-0.5"
+                                className="h-4 w-4 shrink-0 accent-primary focus:ring-primary border-border rounded mt-0.5"
                               />
                               <div className="ml-2">
                                 <span className="text-sm font-medium text-foreground">{permission.name}</span>
@@ -455,6 +455,7 @@ const CustomRolesPage = () => {
   const [deletingRole, setDeletingRole] = useState<CustomRole | null>(null);
   const [cloningRole, setCloningRole] = useState<CustomRole | null>(null);
   const [cloneName, setCloneName] = useState('');
+  const cloneFocusRef = useRef<HTMLElement | null>(null);
 
   const handleCreateRole = async (roleData: CreateCustomRoleData) => {
     await createCustomRole(roleData);
@@ -494,7 +495,7 @@ const CustomRolesPage = () => {
       setCloneName('');
       NotificationService.show({
         type: 'success',
-        title: 'Роль клонирована',
+        title: 'Роль скопирована',
         message: `Создана копия роли "${cloneName}"`
       });
     } catch (error: any) {
@@ -506,18 +507,18 @@ const CustomRolesPage = () => {
     }
   };
 
-  if (loading && customRoles.length === 0) {
-    return <PageLoading message="Загрузка кастомных ролей..." />;
+  if (loading && customRoles.length === 0 && !showCreateModal && !editingRole && !cloningRole && !deletingRole) {
+    return <PageLoading message="Загружаем роли…" />;
   }
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8 space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-3xl font-bold text-foreground">Управление ролями</h1>
           <p className="text-muted-foreground mt-2">
-            Создавайте и настраивайте кастомные роли для пользователей организации
+            Настройте, какие разделы и действия доступны сотрудникам
           </p>
         </div>
 
@@ -531,13 +532,10 @@ const CustomRolesPage = () => {
             </div>
           }
         >
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-orange-700 font-medium shadow-sm"
-          >
-            <PlusIcon className="w-4 h-4 mr-2" />
+          <Button onClick={() => setShowCreateModal(true)} className="shrink-0">
+            <PlusIcon aria-hidden="true" />
             Создать роль
-          </button>
+          </Button>
         </ProtectedComponent>
       </div>
 
@@ -553,30 +551,26 @@ const CustomRolesPage = () => {
       {/* Roles Grid */}
       <div className="bg-card shadow-sm rounded-2xl border border-border">
         {customRoles.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="px-5 py-12 text-center">
             <ShieldCheckIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">Нет кастомных ролей</h3>
-            <p className="text-muted-foreground mb-4">Создайте первую роль для управления доступом пользователей</p>
+            <h2 className="text-lg font-medium text-foreground mb-2">Дополнительных ролей пока нет</h2>
+            <p className="text-muted-foreground mb-4">Создайте роль, если сотруднику нужен свой набор прав</p>
             <ProtectedComponent permission="roles.create_custom" role="organization_owner" requireAll={false}>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-orange-700 font-medium"
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
+              <Button variant="outline" onClick={() => setShowCreateModal(true)}>
+                <PlusIcon aria-hidden="true" />
                 Создать роль
-              </button>
+              </Button>
             </ProtectedComponent>
           </div>
         ) : (
           <div className="divide-y divide-border">
             {customRoles.map((role) => (
               <div key={role.id} className="p-6 hover:bg-secondary/50 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex flex-wrap items-center gap-3">
                       <h3 className="text-lg font-semibold text-foreground">{role.name}</h3>
-                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${role.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-secondary text-foreground'
-                        }`}>
+                      <span className="inline-flex rounded-sm border border-border bg-muted px-2 py-1 text-xs font-medium text-foreground">
                         {role.is_active ? 'Активна' : 'Неактивна'}
                       </span>
                     </div>
@@ -585,7 +579,7 @@ const CustomRolesPage = () => {
                       <p className="text-muted-foreground mb-3">{role.description}</p>
                     )}
 
-                    <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
                       <div className="flex items-center">
                         <CheckIcon className="w-4 h-4 mr-1" />
                         <span>{role.system_permissions.length} системных прав</span>
@@ -607,29 +601,17 @@ const CustomRolesPage = () => {
                       requireAll={false}
                       showFallback={false}
                     >
-                      <button
-                        onClick={() => setEditingRole(role)}
-                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg"
-                        title="Редактировать роль"
-                      >
-                        <PencilIcon className="w-4 h-4" />
-                      </button>
+                      <Button variant="outline" size="icon" onClick={() => setEditingRole(role)} aria-label={`Редактировать роль «${role.name}»`}>
+                        <PencilIcon aria-hidden="true" />
+                      </Button>
 
-                      <button
-                        onClick={() => setCloningRole(role)}
-                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg"
-                        title="Клонировать роль"
-                      >
-                        <DocumentDuplicateIcon className="w-4 h-4" />
-                      </button>
+                      <Button variant="outline" size="icon" onClick={() => setCloningRole(role)} aria-label={`Копировать роль «${role.name}»`}>
+                        <DocumentDuplicateIcon aria-hidden="true" />
+                      </Button>
 
-                      <button
-                        onClick={() => setDeletingRole(role)}
-                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                        title="Удалить роль"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
+                      <Button variant="outline" size="icon" onClick={() => setDeletingRole(role)} aria-label={`Удалить роль «${role.name}»`}>
+                        <TrashIcon aria-hidden="true" />
+                      </Button>
                     </ProtectedComponent>
                   </div>
                 </div>
@@ -669,44 +651,36 @@ const CustomRolesPage = () => {
 
       {/* Clone Modal */}
       {cloningRole && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-bold mb-4">Клонировать роль</h3>
-            <p className="text-gray-600 mb-4">
-              Создать копию роли "{cloningRole.name}"
-            </p>
+        <Dialog open onOpenChange={(open) => { if (!open && !loading) { setCloningRole(null); setCloneName(''); } }}>
+          <DialogContent className="w-[calc(100%-2rem)] max-w-md sm:rounded-md"
+            onOpenAutoFocus={() => { cloneFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; }}
+            onCloseAutoFocus={(event) => { event.preventDefault(); cloneFocusRef.current?.focus(); }}
+            onPointerDownOutside={(event) => event.preventDefault()}>
+            <DialogHeader className="pr-8 text-left">
+              <DialogTitle>Копировать роль</DialogTitle>
+              <DialogDescription>Создать копию роли «{cloningRole.name}» с тем же набором прав.</DialogDescription>
+            </DialogHeader>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="clone-role-name" className="block text-sm font-medium text-foreground mb-2">
                 Название новой роли
               </label>
               <input
+                id="clone-role-name"
                 type="text"
                 value={cloneName}
                 onChange={(e) => setCloneName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                className="min-h-11 w-full rounded-sm border border-input bg-background px-3 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 placeholder={`Копия ${cloningRole.name}`}
               />
             </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={() => {
-                  setCloningRole(null);
-                  setCloneName('');
-                }}
-                className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                Отменить
-              </button>
-              <button
-                onClick={handleCloneRole}
-                disabled={!cloneName.trim()}
-                className="flex-1 py-2 px-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
-              >
-                Клонировать
-              </button>
-            </div>
-          </div>
-        </div>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" disabled={loading} onClick={() => { setCloningRole(null); setCloneName(''); }}>Отменить</Button>
+              <Button onClick={handleCloneRole} disabled={loading || !cloneName.trim()}>
+                {loading ? 'Копирование…' : 'Создать копию'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
