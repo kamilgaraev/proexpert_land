@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '@hooks/useAuth';
+import { useDashboardPageTitle } from '@/hooks/useDashboardPageTitle';
 import { useBalance } from '@hooks/useBalance';
 import { useActiveModules, useCanAccess } from '@/hooks/usePermissions';
 import { useProfileOnboarding } from '@/hooks/useProfileOnboarding';
@@ -36,6 +37,7 @@ const DashboardLayout = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  useDashboardPageTitle(location.pathname);
 
   const { shouldShowOnboarding, hideOnboarding, skipOnboarding } = useProfileOnboarding();
   const { profile, fetchProfile } = useOrganizationProfile();
