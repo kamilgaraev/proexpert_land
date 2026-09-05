@@ -4,7 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card"
 
 const faqData = [
   {
@@ -38,7 +38,7 @@ export function FaqSection() {
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="px-0 pt-0">
-        <CardTitle className="text-2xl font-bold">Часто задаваемые вопросы</CardTitle>
+        <h2 className="text-2xl font-semibold">Часто задаваемые вопросы</h2>
         <CardDescription>
           Ответы на самые популярные вопросы о работе с платформой
         </CardDescription>
