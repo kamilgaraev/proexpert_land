@@ -48,7 +48,7 @@ describe('KnowledgeBasePage controls', () => {
     renderPage();
     fireEvent.click(await screen.findByRole('button', { name: 'Начало работы' }));
     expect(screen.getByRole('button', { name: 'Начало работы' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: 'Все', exact: true })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'Все' })).toHaveAttribute('aria-pressed', 'false');
     fireEvent.change(screen.getByRole('textbox', { name: 'Поиск по инструкциям' }), { target: { value: 'пароль' } });
     await waitFor(() => expect(knowledgeHubApi.searchArticles).toHaveBeenLastCalledWith({ category: 'start', page: 1, per_page: 12, q: 'пароль' }));
   });
