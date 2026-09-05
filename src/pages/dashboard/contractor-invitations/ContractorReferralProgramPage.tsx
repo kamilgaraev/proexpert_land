@@ -26,7 +26,7 @@ const rewardRules = [
   },
   {
     title: 'Проверка после периода',
-    description: 'Начисление проходит после окончания первого оплаченного периода, если подписка не отменена заранее.',
+    description: 'Бонус начисляется после окончания первого оплаченного периода, если заказ оплачен и по платежу не было возврата.',
     icon: Clock3,
   },
   {
@@ -39,7 +39,7 @@ const rewardRules = [
 const antiFraudRules = [
   'Не начисляем бонус за приглашение своей же организации.',
   'Не начисляем бонус, если у организаций совпадают ИНН, email или телефон.',
-  'Не начисляем бонус, если приглашенная организация отменила подписку до окончания первого оплаченного периода.',
+  'Не начисляем бонус, если заказ отменён или по первому платежу оформлен полный либо частичный возврат до начисления.',
   'Бонус доступен только за первую платную подписку приглашенной организации.',
 ];
 
@@ -105,11 +105,11 @@ const ContractorReferralProgramPage: React.FC = () => {
             </div>
             <div className="rounded-xl border border-border bg-secondary/30 p-5">
               <p className="text-sm text-muted-foreground">Приглашенная организация</p>
-              <p className="mt-1 text-2xl font-bold text-foreground">20% welcome-бонусом</p>
+              <p className="mt-1 text-2xl font-bold text-foreground">20% от первого платежа</p>
               <p className="mt-2 text-sm text-muted-foreground">Максимум 20 000 ₽ на баланс МОСТ после проверки периода.</p>
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Сумма округляется до 1 000 ₽. Для отдельных стартовых тарифов могут применяться фиксированные бонусы, если это указано в условиях оплаты.
+              Бонус округляется до ближайшей 1 000 ₽, затем применяется указанный максимум. Например, при первом платеже 10 000 ₽ пригласившая организация получит 3 000 ₽, а приглашённая — 2 000 ₽.
             </p>
           </CardContent>
         </Card>
@@ -117,17 +117,17 @@ const ContractorReferralProgramPage: React.FC = () => {
         <Card className="border-border shadow-sm">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
                 <ShieldCheck className="h-5 w-5" />
               </div>
-              <CardTitle>Антифрод-правила</CardTitle>
+              <CardTitle>Когда бонус не начисляется</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
               {antiFraudRules.map((rule) => (
                 <li key={rule} className="flex gap-3 text-sm leading-relaxed text-muted-foreground">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 flex-none text-emerald-600" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 flex-none text-muted-foreground" />
                   <span>{rule}</span>
                 </li>
               ))}
