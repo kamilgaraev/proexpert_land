@@ -32,6 +32,7 @@ export function KnowledgeHubSearch({
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            aria-label="Поиск по инструкциям"
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Поиск по базе знаний"
@@ -45,10 +46,11 @@ export function KnowledgeHubSearch({
       </form>
 
       {categories.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div role="group" aria-label="Категории инструкций" className="flex flex-wrap gap-2">
           <Button
             type="button"
             variant={!selectedCategory ? 'default' : 'outline'}
+            aria-pressed={!selectedCategory}
             size="sm"
             onClick={() => onCategoryChange(undefined)}
           >
@@ -59,6 +61,7 @@ export function KnowledgeHubSearch({
               key={category.slug}
               type="button"
               variant={selectedCategory === category.slug ? 'default' : 'outline'}
+              aria-pressed={selectedCategory === category.slug}
               size="sm"
               onClick={() => onCategoryChange(category.slug)}
             >

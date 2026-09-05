@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { KnowledgeArticleReader } from '@/components/support/KnowledgeArticleReader';
 import { knowledgeHubApi } from '@/utils/knowledgeHubApi';
@@ -9,6 +10,7 @@ const KnowledgeArticlePage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [article, setArticle] = useState<KnowledgeArticleDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [revision, setRevision] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ const KnowledgeArticlePage = () => {
       })
       .catch(() => {
         if (isMounted) {
-          setError('Материал не найден.');
+          setError('Не удалось загрузить материал. Проверьте подключение и попробуйте ещё раз.');
           setArticle(null);
         }
       })
@@ -43,7 +45,7 @@ const KnowledgeArticlePage = () => {
     return () => {
       isMounted = false;
     };
-  }, [slug]);
+  }, [slug, revision]);
 
   if (isLoading) {
     return (
@@ -57,9 +59,14 @@ const KnowledgeArticlePage = () => {
 
   if (error || !article) {
     return (
-      <div className="mx-auto max-w-3xl rounded-lg border border-border bg-background p-8 text-center">
-        <p className="text-sm text-muted-foreground">{error ?? 'Материал не найден.'}</p>
-      </div>
+      <section className="space-y-4 border border-border bg-background p-6">
+        <h1 className="text-2xl font-semibold">Материал недоступен</h1>
+        <p role="alert" className="text-base text-muted-foreground">{error ?? 'Материал не найден.'}</p>
+        <div className="flex flex-wrap gap-3">
+          {slug && <Button onClick={() => setRevision((value) => value + 1)}>Повторить загрузку</Button>}
+          <Button asChild variant="outline"><Link to="/dashboard/help/knowledge">Все инструкции</Link></Button>
+        </div>
+      </section>
     );
   }
 

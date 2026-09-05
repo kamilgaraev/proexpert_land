@@ -32,7 +32,7 @@ const ArticleTree = ({ nodes }: { nodes: KnowledgeArticleTreeNode[] }) => {
 
   return (
     <div className="rounded-lg border border-border bg-background p-4">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Структура</h2>
+      <h2 className="mb-3 text-base font-semibold text-foreground">Содержание</h2>
       <ul className="space-y-2">
         {nodes.map((node) => (
           <li key={node.slug}>
@@ -73,7 +73,9 @@ const KnowledgeBasePage = () => {
   const [page, setPage] = useState(1);
   const [isOverviewLoading, setIsOverviewLoading] = useState(true);
   const [isArticlesLoading, setIsArticlesLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [overviewError, setOverviewError] = useState<string | null>(null);
+  const [articlesError, setArticlesError] = useState<string | null>(null);
+  const [revision, setRevision] = useState(0);
 
   const isSearchMode = query.trim().length >= 2;
 
@@ -81,6 +83,7 @@ const KnowledgeBasePage = () => {
     let isMounted = true;
 
     setIsOverviewLoading(true);
+    setOverviewError(null);
     Promise.all([
       knowledgeHubApi.getOverview(),
       knowledgeHubApi.getTree({ category: selectedCategory }),
@@ -93,7 +96,7 @@ const KnowledgeBasePage = () => {
       })
       .catch(() => {
         if (isMounted) {
-          setError('Не удалось загрузить базу знаний.');
+          setOverviewError('Не удалось загрузить категории и содержание инструкций.');
         }
       })
       .finally(() => {
@@ -107,12 +110,13 @@ const KnowledgeBasePage = () => {
     };
   };
 
-  useEffect(loadOverview, [selectedCategory]);
+  useEffect(loadOverview, [selectedCategory, revision]);
 
   useEffect(() => {
     let isMounted = true;
 
     setIsArticlesLoading(true);
+    setArticlesError(null);
     const filters = {
       category: selectedCategory,
       page,
@@ -131,12 +135,12 @@ const KnowledgeBasePage = () => {
         if (isMounted) {
           setArticles(response.data);
           setMeta(response.meta);
-          setError(null);
+          setArticlesError(null);
         }
       })
       .catch(() => {
         if (isMounted) {
-          setError('Не удалось загрузить материалы.');
+          setArticlesError('Не удалось загрузить материалы.');
           setArticles([]);
           setMeta(emptyMeta);
         }
@@ -150,7 +154,7 @@ const KnowledgeBasePage = () => {
     return () => {
       isMounted = false;
     };
-  }, [isSearchMode, page, query, selectedCategory]);
+  }, [isSearchMode, page, query, selectedCategory, revision]);
 
   const categories: KnowledgeCategory[] = overview?.categories ?? [];
   const featured = useMemo(() => overview?.featured_articles ?? [], [overview]);
@@ -177,7 +181,7 @@ const KnowledgeBasePage = () => {
             Руководства, практики и подсказки по работе в личном кабинете.
           </p>
         </div>
-        <Button variant="outline" className="gap-2" onClick={() => setPage(1)}>
+        <Button variant="outline" className="gap-2" disabled={isOverviewLoading || isArticlesLoading} onClick={() => setRevision((value) => value + 1)}>
           <RefreshCw className="h-4 w-4" />
           Обновить
         </Button>
@@ -242,16 +246,18 @@ const KnowledgeBasePage = () => {
         categories={categories}
         onQueryChange={handleQueryChange}
         onCategoryChange={handleCategoryChange}
-        onSubmit={() => setPage(1)}
+        onSubmit={() => { setPage(1); setRevision((value) => value + 1); }}
       />
 
       {query.trim().length === 1 && (
         <p className="text-sm text-muted-foreground">Введите минимум два символа для полнотекстового поиска.</p>
       )}
 
-      {error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {error}
+      {(overviewError || articlesError) && (
+        <div role="alert" className="space-y-2 border border-border bg-background px-4 py-3 text-sm">
+          {overviewError && <p>{overviewError}</p>}
+          {articlesError && <p>{articlesError}</p>}
+          <Button variant="outline" disabled={isOverviewLoading || isArticlesLoading} onClick={() => setRevision((value) => value + 1)}>Повторить загрузку</Button>
         </div>
       )}
 
@@ -267,7 +273,7 @@ const KnowledgeBasePage = () => {
                 <Skeleton key={item} className="h-56" />
               ))}
             </div>
-          ) : articles.length > 0 ? (
+          ) : articlesError ? null : articles.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
               {articles.map((article) => (
                 <KnowledgeArticleCard
