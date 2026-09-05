@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { KnowledgeArticleReader } from '@/components/support/KnowledgeArticleReader';
 import { knowledgeHubApi } from '@/utils/knowledgeHubApi';
@@ -10,6 +11,8 @@ const ChangelogDetailPage = () => {
   const [entry, setEntry] = useState<KnowledgeArticleDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
     if (!slug) {
@@ -30,7 +33,7 @@ const ChangelogDetailPage = () => {
       })
       .catch(() => {
         if (isMounted) {
-          setError('Обновление не найдено.');
+          setError('Не удалось загрузить обновление. Проверьте подключение и попробуйте ещё раз.');
           setEntry(null);
         }
       })
@@ -43,7 +46,7 @@ const ChangelogDetailPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [slug]);
+  }, [slug, revision]);
 
   if (isLoading) {
     return (
@@ -57,9 +60,14 @@ const ChangelogDetailPage = () => {
 
   if (error || !entry) {
     return (
-      <div className="mx-auto max-w-3xl rounded-lg border border-border bg-background p-8 text-center">
-        <p className="text-sm text-muted-foreground">{error ?? 'Обновление не найдено.'}</p>
-      </div>
+      <section className="mx-auto max-w-3xl space-y-4 rounded-lg border border-border bg-card p-8">
+        <h1 className="text-2xl font-semibold">Обновление недоступно</h1>
+        <p role="alert" className="text-muted-foreground">{error ?? 'Обновление не найдено.'}</p>
+        <div className="flex flex-wrap gap-3">
+          {slug && <Button variant="outline" onClick={() => setRevision((current) => current + 1)}>Повторить загрузку</Button>}
+          <Button asChild variant="ghost"><Link to="/dashboard/help/changelog">Все обновления</Link></Button>
+        </div>
+      </section>
     );
   }
 
