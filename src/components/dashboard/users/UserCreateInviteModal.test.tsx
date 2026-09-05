@@ -16,6 +16,29 @@ vi.mock('@/hooks/useCustomRoles', () => ({
   }),
 }));
 afterEach(cleanup);
+
+it('не показывает пустые роли и не отправляет приглашение во время загрузки', async () => {
+  let resolve!: () => void;
+  api.fetchRoles.mockReturnValueOnce(new Promise<void>(done => { resolve = done; }));
+  render(<UserCreateInviteModal isOpen onSave={vi.fn()} onClose={vi.fn()} />);
+  expect(screen.getByRole('status')).toHaveTextContent('Загружаем роли');
+  expect(screen.queryByText('Ничего не найдено')).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Отправить' })).toBeDisabled();
+  resolve();
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Отправить' })).toBeEnabled());
+});
+
+it('повторяет неудачную загрузку ролей без потери полей', async () => {
+  api.fetchRoles.mockRejectedValueOnce(new Error('Unavailable'));
+  render(<UserCreateInviteModal isOpen onSave={vi.fn()} onClose={vi.fn()} />);
+  fireEvent.change(screen.getByLabelText('Имя *'), { target: { value: 'Анна' } });
+  expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось загрузить роли');
+  expect(screen.getByRole('button', { name: 'Отправить' })).toBeDisabled();
+  fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку ролей' }));
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Отправить' })).toBeEnabled());
+  expect(screen.getByLabelText('Имя *')).toHaveValue('Анна');
+  expect(api.fetchRoles).toHaveBeenCalledTimes(2);
+});
 beforeEach(() => {
   vi.clearAllMocks();
   api.createUserWithCustomRoles.mockResolvedValue({ data: { user: { id: 12, email_verified_at: null } } });
@@ -38,6 +61,7 @@ it.each(['Готово', 'Закрыть'])('после создания дей�
   render(<UserCreateInviteModal isOpen canInvite={false} onSave={onSave} onClose={onClose} />);
   fireEvent.change(screen.getByLabelText('Имя *'), { target: { value: 'Анна' } });
   fireEvent.change(screen.getByLabelText('Рабочая почта *'), { target: { value: 'anna@example.test' } });
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Создать' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
   expect(await screen.findByText('Сотрудник добавлен')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Создать' })).not.toBeInTheDocument();
@@ -54,7 +78,7 @@ it('передаёт выбранную роль компании в пригл�
   render(<UserCreateInviteModal isOpen onSave={vi.fn()} onClose={vi.fn()} />);
   fireEvent.change(screen.getByLabelText('Имя *'), { target: { value: 'Анна' } });
   fireEvent.change(screen.getByLabelText('Рабочая почта *'), { target: { value: 'ANNA@example.test' } });
-  fireEvent.click(screen.getByText('Прораб'));
+  fireEvent.click(await screen.findByText('Прораб'));
   fireEvent.click(screen.getByRole('button', { name: 'Отправить' }));
   await waitFor(() => expect(api.sendInvitation).toHaveBeenCalledWith({
     name: 'Анна',
@@ -71,6 +95,7 @@ it('не отправляет второй запрос пока создани�
   const onClose = vi.fn();
   render(<UserCreateInviteModal isOpen canInvite={false} onSave={vi.fn()} onClose={onClose} />);
   const create = screen.getByRole('button', { name: 'Создать' });
+  await waitFor(() => expect(create).toBeEnabled());
   fireEvent.click(create);
   fireEvent.click(create);
   expect(api.createUserWithCustomRoles).toHaveBeenCalledTimes(1);

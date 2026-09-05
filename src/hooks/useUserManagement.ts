@@ -202,11 +202,13 @@ export const useUserManagement = () => {
   const [users, setUsers] = useState<OrganizationUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rolesError, setRolesError] = useState<string | null>(null);
 
   const fetchRoles = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+      setRolesError(null);
 
       const response = await customRolesService.getAvailableRoles();
       const payload = response?.data;
@@ -233,6 +235,7 @@ export const useUserManagement = () => {
       setRoles([...normalizedCustomRoles, ...normalizedSystemRoles]);
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки ролей');
+      setRolesError('Не удалось загрузить роли.');
       setRoles([]);
     } finally {
       setLoading(false);
@@ -457,6 +460,7 @@ export const useUserManagement = () => {
     users,
     loading,
     error,
+    rolesError,
     fetchRoles,
     fetchInvitations,
     fetchUsers,
