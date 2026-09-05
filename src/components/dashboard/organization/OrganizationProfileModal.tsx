@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, CheckCircle, ArrowRight, ArrowLeft, X, Loader2 } from 'lucide-react';
+import { CheckCircle, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useOrganizationProfile } from '@/hooks/useOrganizationProfile';
 import { getPrimaryWorkspaceRoute, resolvePrimaryBusinessType } from '@/utils/organizationProfile';
 import type { OrganizationCapability } from '@/types/organization-profile';
@@ -187,34 +188,20 @@ export const OrganizationProfileModal = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center bg-black/50 p-4">
-        <div
-          className="relative max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <button
-            onClick={handleSkip}
-            className="absolute right-4 top-4 z-10 p-2 text-gray-400 transition-colors hover:text-gray-600"
-            title="Пропустить"
-          >
-            <X className="h-6 w-6" />
-          </button>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open && !isSaving) handleSkip(); }}>
+      <DialogContent className="most-workspace max-h-[90dvh] w-[calc(100%-2rem)] max-w-4xl overflow-y-auto p-5 sm:p-8">
 
           <div className="h-2 bg-gray-100">
             <div
-              className="h-full bg-gradient-to-r from-construction-500 to-construction-600 transition-all duration-500"
+              className="h-full bg-foreground"
               style={{ width: `${progress}%` }}
             />
           </div>
 
-          <div className="max-h-[calc(90vh-100px)] overflow-y-auto p-8">
-            <div className="mb-8 text-center">
-              <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-construction-100">
-                <Building2 className="h-8 w-8 text-construction-600" />
-              </div>
-              <h2 className="mb-2 text-3xl font-bold text-gray-900">{steps[currentStepIndex].title}</h2>
-              <p className="text-gray-600">{steps[currentStepIndex].description}</p>
+          <div className="min-w-0">
+            <div className="mb-6 pr-8">
+              <DialogTitle className="mb-2 text-2xl font-semibold">{steps[currentStepIndex].title}</DialogTitle>
+              <DialogDescription>{steps[currentStepIndex].description}</DialogDescription>
             </div>
 
             {loading && currentStepIndex === 0 ? (
@@ -268,8 +255,8 @@ export const OrganizationProfileModal = ({
                 {currentStep === 'complete' && (
                   <Card>
                     <CardContent className="p-8 text-center">
-                      <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-                        <CheckCircle className="h-12 w-12 text-green-600" />
+                      <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                        <CheckCircle className="h-12 w-12 text-muted-foreground" />
                       </div>
                       <h3 className="mb-2 text-2xl font-bold text-gray-900">Профиль успешно настроен</h3>
                       <p className="mb-4 text-gray-600">
@@ -284,7 +271,7 @@ export const OrganizationProfileModal = ({
               </div>
             )}
 
-            <div className="flex items-center justify-between border-t pt-6">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-6">
               <div className="flex items-center space-x-2">
                 {steps.map((step, index) => (
                   <div
@@ -296,7 +283,7 @@ export const OrganizationProfileModal = ({
                 ))}
               </div>
 
-              <div className="flex items-center space-x-3">
+              <div className="flex flex-wrap items-center gap-3">
                 {currentStepIndex > 0 && currentStep !== 'complete' && (
                   <Button variant="outline" onClick={handleBack} disabled={isSaving}>
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -323,8 +310,7 @@ export const OrganizationProfileModal = ({
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };

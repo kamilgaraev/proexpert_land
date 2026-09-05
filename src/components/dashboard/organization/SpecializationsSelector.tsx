@@ -1,4 +1,8 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
+import { Search, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface SpecializationsSelectorProps {
   selectedSpecializations: string[];
@@ -7,143 +11,69 @@ interface SpecializationsSelectorProps {
 }
 
 const SPECIALIZATIONS = [
-  { value: 'building_construction', label: 'Промышленное и гражданское строительство', icon: '🏢' },
-  { value: 'road_construction', label: 'Дорожное строительство', icon: '🛣️' },
-  { value: 'bridge_construction', label: 'Мостовое строительство', icon: '🌉' },
-  { value: 'electrical_works', label: 'Электромонтажные работы', icon: '⚡' },
-  { value: 'plumbing_works', label: 'Сантехнические работы', icon: '🚰' },
-  { value: 'hvac_systems', label: 'Системы отопления и вентиляции', icon: '🌡️' },
-  { value: 'roofing_works', label: 'Кровельные работы', icon: '🏠' },
-  { value: 'facade_works', label: 'Фасадные работы', icon: '🎨' },
-  { value: 'foundation_works', label: 'Фундаментные работы', icon: '⚒️' },
-  { value: 'interior_finishing', label: 'Внутренняя отделка', icon: '🖼️' },
-  { value: 'landscape_works', label: 'Благоустройство территории', icon: '🌳' },
-  { value: 'demolition_works', label: 'Демонтажные работы', icon: '🔨' }
+  { value: 'building_construction', label: 'Промышленное и гражданское строительство' },
+  { value: 'road_construction', label: 'Дорожное строительство' },
+  { value: 'bridge_construction', label: 'Мостовое строительство' },
+  { value: 'electrical_works', label: 'Электромонтажные работы' },
+  { value: 'plumbing_works', label: 'Сантехнические работы' },
+  { value: 'hvac_systems', label: 'Системы отопления и вентиляции' },
+  { value: 'roofing_works', label: 'Кровельные работы' },
+  { value: 'facade_works', label: 'Фасадные работы' },
+  { value: 'foundation_works', label: 'Фундаментные работы' },
+  { value: 'interior_finishing', label: 'Внутренняя отделка' },
+  { value: 'landscape_works', label: 'Благоустройство территории' },
+  { value: 'demolition_works', label: 'Демонтажные работы' },
 ];
 
-export const SpecializationsSelector = ({
-  selectedSpecializations,
-  onChange,
-  disabled = false
-}: SpecializationsSelectorProps) => {
+export const SpecializationsSelector = ({ selectedSpecializations, onChange, disabled = false }: SpecializationsSelectorProps) => {
+  const searchId = useId();
   const [searchQuery, setSearchQuery] = useState('');
-  const safeSelectedSpecializations = selectedSpecializations || [];
-
-  const handleToggle = (specialization: string) => {
+  const selected = selectedSpecializations || [];
+  const toggle = (value: string) => {
     if (disabled) return;
-
-    if (safeSelectedSpecializations.includes(specialization)) {
-      onChange(safeSelectedSpecializations.filter(s => s !== specialization));
-    } else {
-      onChange([...safeSelectedSpecializations, specialization]);
-    }
+    onChange(selected.includes(value) ? selected.filter(item => item !== value) : [...selected, value]);
   };
-
-  const filteredSpecializations = SPECIALIZATIONS.filter(spec =>
-    spec.label.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = SPECIALIZATIONS.filter(item => item.label.toLowerCase().includes(searchQuery.trim().toLowerCase()));
 
   return (
     <div className="space-y-4">
-      <div className="relative">
-        <input
-          type="text"
-          placeholder="Поиск специализации..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-construction-500"
-          disabled={disabled}
-        />
-        <svg
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
+      <div className="space-y-2">
+        <Label htmlFor={searchId}>Найти специализацию</Label>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input id={searchId} type="search" value={searchQuery} onChange={event => setSearchQuery(event.target.value)} disabled={disabled} className="pl-10" />
+        </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
-        {filteredSpecializations.map(spec => {
-          const isSelected = safeSelectedSpecializations.includes(spec.value);
-
-          return (
-            <div
-              key={spec.value}
-              className={`
-                border-2 rounded-lg p-3 cursor-pointer transition-all duration-200
-                ${isSelected 
-                  ? 'border-construction-500 bg-construction-50' 
-                  : 'border-gray-200 bg-white hover:border-construction-300'
-                }
-                ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-              `}
-              onClick={() => handleToggle(spec.value)}
-            >
-              <div className="flex items-center space-x-3">
-                <div className={`
-                  flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center
-                  ${isSelected 
-                    ? 'bg-construction-500 border-construction-500' 
-                    : 'bg-white border-gray-300'
-                  }
-                `}>
-                  {isSelected && (
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
-                <span className="text-xl">{spec.icon}</span>
-                <span className={`text-sm font-medium ${isSelected ? 'text-construction-900' : 'text-gray-900'}`}>
-                  {spec.label}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {safeSelectedSpecializations.length > 0 && (
-        <div className="pt-2 border-t border-gray-200">
-          <p className="text-sm text-gray-600 mb-2">
-            Выбрано специализаций: <span className="font-semibold">{safeSelectedSpecializations.length}</span>
-          </p>
+      <fieldset disabled={disabled} className="min-w-0">
+        <legend className="sr-only">Специализации</legend>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          {filtered.map(item => (
+            <label key={item.value} className={`flex min-w-0 items-start gap-3 rounded border p-3 ${selected.includes(item.value) ? 'border-foreground/40 bg-secondary/40' : 'border-border bg-background'} ${disabled ? 'opacity-60' : 'cursor-pointer hover:border-foreground/40'}`}>
+              <input type="checkbox" checked={selected.includes(item.value)} onChange={() => toggle(item.value)}
+                className="mt-0.5 h-5 w-5 shrink-0 accent-current focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" />
+              <span className="min-w-0 text-sm font-medium">{item.label}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      {filtered.length === 0 && <p role="status" className="text-sm text-muted-foreground">Специализации не найдены</p>}
+      {selected.length > 0 && (
+        <div className="space-y-2 border-t border-border pt-4">
+          <p className="text-sm text-muted-foreground">Выбрано специализаций: {selected.length}</p>
           <div className="flex flex-wrap gap-2">
-            {safeSelectedSpecializations.map(specValue => {
-              const spec = SPECIALIZATIONS.find(s => s.value === specValue);
-              return spec ? (
-                <span
-                  key={specValue}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-construction-100 text-construction-800"
-                >
-                  <span className="mr-1">{spec.icon}</span>
-                  {spec.label}
-                  {!disabled && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggle(specValue);
-                      }}
-                      className="ml-2 hover:text-construction-600"
-                    >
-                      ×
-                    </button>
-                  )}
-                </span>
+            {selected.map(value => {
+              const item = SPECIALIZATIONS.find(option => option.value === value);
+              return item ? (
+                <Button key={value} type="button" variant="outline" size="sm" disabled={disabled}
+                  aria-label={`Убрать специализацию «${item.label}»`} onClick={() => toggle(value)}
+                  className="h-auto gap-2 whitespace-normal text-left">
+                  <span className="min-w-0">{item.label}</span><X className="h-4 w-4 shrink-0" aria-hidden="true" />
+                </Button>
               ) : null;
             })}
           </div>
         </div>
       )}
-
-      {filteredSpecializations.length === 0 && (
-        <p className="text-sm text-gray-500 text-center py-4">
-          Специализации не найдены
-        </p>
-      )}
     </div>
   );
 };
-

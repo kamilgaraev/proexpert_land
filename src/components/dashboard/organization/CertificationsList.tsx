@@ -1,4 +1,8 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
+import { FileCheck2, Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface CertificationsListProps {
   certifications: string[];
@@ -6,133 +10,59 @@ interface CertificationsListProps {
   disabled?: boolean;
 }
 
-export const CertificationsList = ({
-  certifications,
-  onChange,
-  disabled = false
-}: CertificationsListProps) => {
+export const CertificationsList = ({ certifications, onChange, disabled = false }: CertificationsListProps) => {
+  const inputId = useId();
   const [newCertification, setNewCertification] = useState('');
   const [isAdding, setIsAdding] = useState(false);
-  const safeCertifications = certifications || [];
-
-  const handleAdd = () => {
-    if (newCertification.trim() && !safeCertifications.includes(newCertification.trim())) {
-      onChange([...safeCertifications, newCertification.trim()]);
-      setNewCertification('');
-      setIsAdding(false);
-    }
-  };
-
-  const handleRemove = (certification: string) => {
-    onChange(safeCertifications.filter(c => c !== certification));
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAdd();
-    } else if (e.key === 'Escape') {
-      setIsAdding(false);
-      setNewCertification('');
-    }
+  const items = certifications || [];
+  const value = newCertification.trim();
+  const duplicate = value !== '' && items.includes(value);
+  const cancel = () => { setIsAdding(false); setNewCertification(''); };
+  const add = () => {
+    if (disabled || !value || duplicate) return;
+    onChange([...items, value]);
+    cancel();
   };
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        {safeCertifications.length > 0 ? (
-          <div className="space-y-2">
-            {safeCertifications.map((cert, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
-              >
-                <div className="flex items-center space-x-3 flex-1">
-                  <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">{cert}</span>
-                </div>
-                {!disabled && (
-                  <button
-                    onClick={() => handleRemove(cert)}
-                    className="flex-shrink-0 p-1 text-gray-400 hover:text-red-600 transition-colors"
-                    title="Удалить"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            ))}
+      {items.length > 0 ? (
+        <ul className="divide-y divide-border border-y border-border">
+          {items.map((item, index) => (
+            <li key={`${item}-${index}`} className="flex min-w-0 items-start gap-3 py-3">
+              <FileCheck2 className="mt-2 h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <span className="min-w-0 flex-1 break-words py-2 text-sm">{item}</span>
+              {!disabled && (
+                <Button type="button" variant="ghost" size="icon" aria-label={`Удалить сертификат «${item}»`}
+                  onClick={() => onChange(items.filter(cert => cert !== item))}>
+                  <Trash2 className="h-5 w-5" aria-hidden="true" />
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : <p className="text-sm text-muted-foreground">Сертификаты не добавлены</p>}
+      {!disabled && (isAdding ? (
+        <div className="space-y-3">
+          <Label htmlFor={inputId}>Название сертификата</Label>
+          <Input id={inputId} value={newCertification} onChange={event => setNewCertification(event.target.value)}
+            placeholder="Например, ISO 9001" autoFocus aria-invalid={duplicate} aria-describedby={duplicate ? `${inputId}-error` : undefined}
+            onKeyDown={event => {
+              if (event.key === 'Enter') { event.preventDefault(); add(); }
+              if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancel(); }
+            }} />
+          {duplicate && <p id={`${inputId}-error`} role="status" className="text-sm text-muted-foreground">Этот сертификат уже добавлен.</p>}
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" onClick={add} disabled={!value || duplicate}>Добавить</Button>
+            <Button type="button" variant="outline" onClick={cancel}>Отмена</Button>
           </div>
-        ) : (
-          <div className="text-center py-8 px-4 border-2 border-dashed border-gray-300 rounded-lg">
-            <svg className="mx-auto w-12 h-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p className="text-sm text-gray-500">
-              Сертификаты не добавлены
-            </p>
-          </div>
-        )}
-      </div>
-
-      {!disabled && (
-        <div className="pt-4 border-t border-gray-200">
-          {isAdding ? (
-            <div className="space-y-2">
-              <input
-                type="text"
-                value={newCertification}
-                onChange={(e) => setNewCertification(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder="Название сертификата (например, ISO 9001)"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-construction-500"
-                autoFocus
-              />
-              <div className="flex space-x-2">
-                <button
-                  onClick={handleAdd}
-                  disabled={!newCertification.trim()}
-                  className="px-4 py-2 bg-construction-600 text-white text-sm font-medium rounded-lg hover:bg-construction-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Добавить
-                </button>
-                <button
-                  onClick={() => {
-                    setIsAdding(false);
-                    setNewCertification('');
-                  }}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Отмена
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => setIsAdding(true)}
-              className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:border-construction-400 hover:text-construction-600 transition-colors flex items-center justify-center space-x-2"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Добавить сертификат</span>
-            </button>
-          )}
         </div>
-      )}
-
-      {safeCertifications.length > 0 && (
-        <p className="text-xs text-gray-500">
-          Добавлено сертификатов: <span className="font-semibold">{safeCertifications.length}</span>
-        </p>
-      )}
+      ) : (
+        <Button type="button" variant="outline" onClick={() => setIsAdding(true)} className="gap-2">
+          <Plus className="h-5 w-5" aria-hidden="true" />Добавить сертификат
+        </Button>
+      ))}
+      {items.length > 0 && <p className="text-sm text-muted-foreground">Добавлено сертификатов: {items.length}</p>}
     </div>
   );
 };
-
