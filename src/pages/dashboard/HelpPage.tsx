@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HelpOverview } from '@/components/support/HelpOverview';
@@ -7,15 +6,14 @@ import { ContactForm } from '@/components/support/ContactForm';
 
 const HelpPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const defaultTab = searchParams.get('tab') || 'overview';
-  const [activeTab, setActiveTab] = useState(defaultTab);
-
-  useEffect(() => {
-    setSearchParams({ tab: activeTab });
-  }, [activeTab, setSearchParams]);
+  const requestedTab = searchParams.get('tab');
+  const activeTab = requestedTab === 'faq' || requestedTab === 'support' ? requestedTab : 'overview';
 
   const handleTabChange = (value: string) => {
-    setActiveTab(value);
+    if (value === activeTab) return;
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('tab', value);
+    setSearchParams(nextParams);
   };
 
   return (
