@@ -335,7 +335,7 @@ export const ProfileEditor = ({
         <CardHeader className="border-b">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <CardTitle className="text-xl">Профиль в каталоге подрядчиков</CardTitle>
+              <CardTitle as="h2" className="text-xl">Профиль в каталоге подрядчиков</CardTitle>
               <CardDescription>Карточка, которую увидят генподрядчики из вашей закрытой сети.</CardDescription>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -367,7 +367,7 @@ export const ProfileEditor = ({
             </div>
             <Alert className={canPublish ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : ''}>
               {canPublish ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-              <AlertTitle>{canPublish ? 'Можно публиковать' : 'Профиль не готов'}</AlertTitle>
+              <AlertTitle as="p">{canPublish ? 'Можно публиковать' : 'Профиль не готов'}</AlertTitle>
               <AlertDescription>
                 {canPublish ? 'Профиль пройдет в закрытый каталог после публикации.' : 'Заполните обязательные поля для публикации.'}
               </AlertDescription>
@@ -441,7 +441,7 @@ export const ProfileEditor = ({
         <CardHeader className="border-b">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <CardTitle>Категории работ</CardTitle>
+              <CardTitle as="h2">Категории работ</CardTitle>
               <CardDescription>Специализации, по которым вас смогут найти и оценить.</CardDescription>
             </div>
             <Button type="button" variant="outline" onClick={addCategory} disabled={flatCategories.length === 0}>
@@ -531,7 +531,7 @@ export const ProfileEditor = ({
         <CardHeader className="border-b">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <CardTitle>География работ</CardTitle>
+              <CardTitle as="h2">География работ</CardTitle>
               <CardDescription>Города и регионы, где команда готова выходить на объект.</CardDescription>
             </div>
             <Button type="button" variant="outline" onClick={addRegion}>
@@ -581,7 +581,7 @@ export const ProfileEditor = ({
         <CardHeader className="border-b">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <CardTitle>Портфолио работ</CardTitle>
+              <CardTitle as="h2">Портфолио работ</CardTitle>
               <CardDescription>Завершенные объекты, которые подтверждают специализацию команды.</CardDescription>
             </div>
             <Button type="button" variant="outline" onClick={addPortfolioItem}>
@@ -647,7 +647,7 @@ export const ProfileEditor = ({
 
       <Card>
         <CardHeader className="border-b">
-          <CardTitle>Документы</CardTitle>
+          <CardTitle as="h2">Документы</CardTitle>
           <CardDescription>Добавьте лицензии, свидетельства и другие документы, подтверждающие квалификацию компании.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5 p-6">
@@ -722,19 +722,19 @@ export const ProfileEditor = ({
         </CardContent>
       </Card>
 
-      <div className="sticky bottom-4 z-10 rounded-2xl border bg-background/95 p-3 shadow-lg backdrop-blur">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
-          <Button variant="outline" onClick={handleSave} disabled={isSaving || isPublishing}>
+      <div className="sticky bottom-0 z-10 border-t bg-background p-2 sm:rounded sm:border sm:p-3">
+        <div className="grid grid-cols-2 gap-2 md:flex md:items-center md:justify-end">
+          <Button className="h-auto min-h-11 whitespace-normal px-3 py-2" variant="outline" onClick={handleSave} disabled={isSaving || isPublishing}>
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Сохранить профиль
           </Button>
           {profile.status === 'active' ? (
-            <Button variant="secondary" onClick={onPause} disabled={isSaving || isPublishing}>
+            <Button className="h-auto min-h-11 whitespace-normal px-3 py-2" variant="secondary" onClick={onPause} disabled={isSaving || isPublishing}>
               {isPublishing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Скрыть из каталога
             </Button>
           ) : (
-            <Button onClick={onPublish} disabled={!canPublish || isSaving || isPublishing}>
+            <Button className="h-auto min-h-11 whitespace-normal px-3 py-2" onClick={onPublish} disabled={!canPublish || isSaving || isPublishing}>
               {isPublishing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Опубликовать
             </Button>
