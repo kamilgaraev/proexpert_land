@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { knowledgeHubApi } from '@/utils/knowledgeHubApi';
 import type { KnowledgeArticleDetail, KnowledgeFeedbackReaction } from '@/types/knowledgeHub';
 import { KnowledgeArticleCard } from './KnowledgeArticleCard';
+import '@/styles/knowledge-article.css';
 
 interface KnowledgeArticleReaderProps {
   article: KnowledgeArticleDetail;
@@ -91,7 +92,7 @@ export function KnowledgeArticleReader({ article, backTo, relatedBasePath }: Kno
           </div>
 
           <div
-            className="prose prose-slate max-w-none prose-headings:scroll-mt-24 prose-headings:text-foreground prose-p:leading-8 prose-a:text-primary"
+            className="most-knowledge-content"
             dangerouslySetInnerHTML={{ __html: content }}
           />
 
