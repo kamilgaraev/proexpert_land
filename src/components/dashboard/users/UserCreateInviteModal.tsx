@@ -17,8 +17,12 @@ interface Props {
 type Mode = 'invitation' | 'direct';
 
 const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave, canInvite = true }) => {
-  const { roles, fetchRoles, sendInvitation, createUserWithCustomRoles } = useUserManagement();
-  const { customRoles, fetchCustomRoles } = useCustomRoles();
+  const { roles, fetchRoles, sendInvitation, createUserWithCustomRoles, rolesError: systemRolesError } = useUserManagement();
+  const { customRoles, fetchCustomRoles, error: customRolesError } = useCustomRoles();
+  const [rolesPending, setRolesPending] = useState(true);
+  const [rolesFailed, setRolesFailed] = useState(false);
+  const [rolesRevision, setRolesRevision] = useState(0);
+  const rolesUnavailable = rolesPending || rolesFailed || Boolean(systemRolesError || customRolesError);
 
   const [mode, setMode] = useState<Mode>(canInvite ? 'invitation' : 'direct');
   const [loading, setLoading] = useState(false);
@@ -37,10 +41,16 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave, canIn
 
   useEffect(() => {
     if (!isOpen) return;
-    // лениво тянем данные для выбора ролей
-    fetchRoles().catch(() => {});
-    fetchCustomRoles().catch(() => {});
-  }, [isOpen, fetchRoles, fetchCustomRoles]);
+    let active = true;
+    setRolesPending(true);
+    setRolesFailed(false);
+    Promise.allSettled([fetchRoles(), fetchCustomRoles()]).then(results => {
+      if (!active) return;
+      setRolesFailed(results.some(result => result.status === 'rejected'));
+      setRolesPending(false);
+    });
+    return () => { active = false; };
+  }, [isOpen, fetchRoles, fetchCustomRoles, rolesRevision]);
 
   const systemRoles = useMemo(() => roles.filter((r: any) => r.is_system), [roles]);
 
@@ -75,7 +85,7 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave, canIn
   };
 
   const submit = async () => {
-    if (showEmailVerificationNotice || submitting.current || (mode === 'invitation' && !canInvite)) return;
+    if (rolesUnavailable || showEmailVerificationNotice || submitting.current || (mode === 'invitation' && !canInvite)) return;
     submitting.current = true;
     setLoading(true);
     const normalizedEmail = form.email.trim().toLowerCase();
@@ -213,7 +223,12 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave, canIn
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {rolesPending ? <p role="status" className="text-sm text-muted-foreground">Загружаем роли…</p> : rolesUnavailable ? (
+            <div className="space-y-3">
+              <p role="alert">Не удалось загрузить роли. Повторите загрузку, чтобы выбрать доступ сотрудника.</p>
+              <Button type="button" variant="outline" onClick={() => setRolesRevision(value => value + 1)}>Повторить загрузку ролей</Button>
+            </div>
+          ) : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="border border-border rounded-md p-3">
               <div className="text-xs font-semibold text-muted-foreground mb-2">Готовые роли</div>
               <div className="space-y-1 max-h-44 overflow-y-auto">
@@ -243,13 +258,13 @@ const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave, canIn
                 {filteredCustomRoles.length === 0 && <div className="text-xs text-muted-foreground">Ничего не найдено</div>}
               </div>
             </div>
-          </div>
+          </div>}
         </div>
         </fieldset>
       </div>
         <DialogFooter className="shrink-0 gap-2 border-t border-border px-5 py-4 sm:px-7">
           <Button variant="outline" onClick={close} disabled={loading}>{showEmailVerificationNotice ? 'Закрыть' : 'Отменить'}</Button>
-          <Button onClick={showEmailVerificationNotice ? onSave : submit} disabled={loading}>
+          <Button onClick={showEmailVerificationNotice ? onSave : submit} disabled={loading || (!showEmailVerificationNotice && rolesUnavailable)}>
             {loading ? 'Сохранение…' : showEmailVerificationNotice ? 'Готово' : mode === 'direct' ? 'Создать' : 'Отправить'}
           </Button>
         </DialogFooter>
