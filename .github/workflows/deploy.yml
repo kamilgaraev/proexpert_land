@@ -21,6 +21,7 @@ on:
           - backup-lk
           - verify-lk-backup
           - restore-lk-backup
+          - inspect-lk
       confirm_restore:
         description: Enter RESTORE-MARKETING-20260902 or RESTORE-LK-20260904 for the matching baseline
         required: false
@@ -31,6 +32,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  inspect-lk:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'inspect-lk'
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Inspect LK cache configuration
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: root
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -eu
+            readlink -f /var/www/prohelper_lk/current
+            python3 - <<'PY'
+            import re
+            import subprocess
+            config = subprocess.check_output(['nginx', '-T'], text=True, stderr=subprocess.DEVNULL)
+            for section in re.split(r'(?m)(?=^# configuration file )', config):
+                if 'lk.xn--1-xtbgmf.xn--p1ai' not in section and 'lk.1мост.рф' not in section:
+                    continue
+                for line in section.splitlines():
+                    if re.match(r'^# configuration file |^\s*(?:server\s*\{|location\s|server_name\s|root\s|index\s|try_files\s|expires\s|add_header\s+(?:Cache-Control|X-Robots-Tag)\s|\})', line):
+                        print(line)
+            PY
+            curl -fsSI -H 'Host: lk.xn--1-xtbgmf.xn--p1ai' http://127.0.0.1/dashboard/custom-roles | sed -n -E '/^(HTTP\/|[Cc]ache-[Cc]ontrol:|[Ee][Tt]ag:|[Ll]ast-[Mm]odified:|[Xx]-[Rr]obots-[Tt]ag:|[Ll]ocation:)/p'
+
   marketing-baseline:
     if: github.event_name == 'workflow_dispatch' && (inputs.target == 'backup-marketing' || inputs.target == 'verify-marketing-backup' || inputs.target == 'restore-marketing-backup')
     runs-on: ubuntu-latest
