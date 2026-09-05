@@ -178,8 +178,8 @@ const ProfilePage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h1 className="text-3xl font-bold text-steel-900 mb-2">Профиль пользователя</h1>
-        <p className="text-steel-600 text-lg">Управляйте своими личными данными и настройками</p>
+        <h1 className="text-3xl font-bold text-steel-900 mb-2">Мой профиль</h1>
+        <p className="text-steel-600 text-lg">Имя, фотография и рабочие контакты.</p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -190,7 +190,7 @@ const ProfilePage = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <div className="bg-white rounded-lg p-5 sm:p-8 border border-steel-200">
+          <div className="bg-card p-5 sm:p-8 border border-border">
             <div className="text-center">
               <div className="relative inline-block">
                 <div className="w-32 h-32 rounded-full overflow-hidden border border-steel-200 p-1">
@@ -212,7 +212,7 @@ const ProfilePage = () => {
                 {isEditing && (
                   <div className="absolute -bottom-2 -right-2">
                     <label htmlFor="avatar-upload" className="cursor-pointer">
-                      <div className="w-11 h-11 bg-construction-600 rounded-full flex items-center justify-center hover:bg-construction-700 transition-colors">
+                      <div className="w-11 h-11 bg-foreground rounded-full flex items-center justify-center">
                         <CameraIcon className="w-5 h-5 text-white" />
                         <span className="sr-only">Загрузить аватар</span>
                       </div>
@@ -236,13 +236,13 @@ const ProfilePage = () => {
                   {verificationLoading ? (
                     <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
                   ) : isVerified === true ? (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                      <CheckCircle className="w-3 h-3" />
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted text-muted-foreground text-sm font-medium rounded-sm">
+                      <CheckCircle className="w-4 h-4" />
                       Подтвержден
                     </div>
                   ) : isVerified === false ? (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
-                      <XCircle className="w-3 h-3" />
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted text-foreground text-sm font-medium rounded-sm">
+                      <XCircle className="w-4 h-4" />
                       Не подтвержден
                     </div>
                   ) : null}
@@ -258,7 +258,7 @@ const ProfilePage = () => {
                     >
                       {verificationLoading ? (
                         <>
-                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                           Отправка...
                         </>
                       ) : !canResend ? (
@@ -272,16 +272,15 @@ const ProfilePage = () => {
               </div>
 
               {isEditing && avatarPreview && (
-                <motion.button
+                <Button
                   type="button"
                   onClick={handleRemoveAvatar}
                   className="mt-4 inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  variant="ghost"
                 >
                   <TrashIcon className="w-5 h-5 mr-2 shrink-0" />
                   Удалить аватар
-                </motion.button>
+                </Button>
               )}
             </div>
           </div>
@@ -294,44 +293,42 @@ const ProfilePage = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="bg-white rounded-lg border border-steel-200 min-w-0">
+          <div className="bg-card border border-border min-w-0">
             {/* Заголовок формы */}
             <div className="px-5 sm:px-8 py-6 border-b border-steel-200">
-              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+              <div className="flex flex-col 2xl:flex-row 2xl:items-center justify-between gap-5">
                 <div>
-                  <h3 className="text-xl font-bold text-steel-900">Личная информация</h3>
+                  <h2 className="text-xl font-semibold text-foreground">Личная информация</h2>
                   <p className="text-steel-600 mt-1">Основные данные вашего профиля</p>
                 </div>
                 {!isEditing ? (
-                  <motion.button
+                  <Button
                     type="button"
                     onClick={() => setIsEditing(true)}
-                    className="inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 bg-construction-600 text-white rounded-md hover:bg-construction-700 transition-colors"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    className="shrink-0"
+                    variant="outline"
                   >
                     <PencilIcon className="w-5 h-5 mr-2 shrink-0" />
                     Редактировать
-                  </motion.button>
+                  </Button>
                 ) : (
                   <div className="flex flex-wrap gap-3">
-                    <motion.button
+                    <Button
                       type="button"
                       onClick={handleCancelEdit}
-                      className="inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 border border-steel-300 text-steel-700 rounded-md hover:bg-steel-50 transition-colors"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      variant="outline"
+                      disabled={isSaving}
+
                     >
                       <XMarkIcon className="w-5 h-5 mr-2 shrink-0" />
                       Отмена
-                    </motion.button>
-                    <motion.button
+                    </Button>
+                    <Button
                       type="submit"
                       form="profile-form"
                       disabled={isSaving}
-                      className="inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 bg-construction-600 text-white rounded-md hover:bg-construction-700 transition-colors disabled:opacity-50"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      className="shrink-0"
+
                     >
                       {isSaving ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
@@ -339,7 +336,7 @@ const ProfilePage = () => {
                         <CheckIcon className="w-5 h-5 mr-2 shrink-0" />
                       )}
                       {isSaving ? 'Сохранение...' : 'Сохранить'}
-                    </motion.button>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -361,13 +358,13 @@ const ProfilePage = () => {
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-sm bg-background text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring transition-colors ${
                         validationErrors.name ? 'border-red-300' : 'border-steel-300'
                       }`}
                       placeholder="Введите ваше полное имя"
                     />
                   ) : (
-                    <div className="px-4 py-3 bg-steel-50 rounded-xl text-steel-900 font-medium">
+                    <div className="px-4 py-3 bg-muted rounded-sm text-steel-900 font-medium">
                       {user.name || 'Не указано'}
                     </div>
                   )}
@@ -389,7 +386,7 @@ const ProfilePage = () => {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-sm bg-background text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring transition-colors ${
                         validationErrors.email ? 'border-red-300' : 'border-steel-300'
                       }`}
                       placeholder="Введите ваш email"
@@ -401,13 +398,13 @@ const ProfilePage = () => {
                         {verificationLoading ? (
                           <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
                         ) : isVerified === true ? (
-                          <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                            <CheckCircle className="w-3 h-3" />
+                          <div className="inline-flex items-center gap-1 px-2 py-1 bg-muted text-muted-foreground text-sm font-medium rounded-sm">
+                            <CheckCircle className="w-4 h-4" />
                             Подтвержден
                           </div>
                         ) : isVerified === false ? (
-                          <div className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
-                            <XCircle className="w-3 h-3" />
+                          <div className="inline-flex items-center gap-1 px-2 py-1 bg-muted text-foreground text-sm font-medium rounded-sm">
+                            <XCircle className="w-4 h-4" />
                             Не подтвержден
                           </div>
                         ) : null}
@@ -422,7 +419,7 @@ const ProfilePage = () => {
                         >
                           {verificationLoading ? (
                             <>
-                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                               Отправка...
                             </>
                           ) : !canResend ? (
@@ -452,13 +449,13 @@ const ProfilePage = () => {
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-sm bg-background text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring transition-colors ${
                         validationErrors.phone ? 'border-red-300' : 'border-steel-300'
                       }`}
                       placeholder="+7 (999) 123-45-67"
                     />
                   ) : (
-                    <div className="px-4 py-3 bg-steel-50 rounded-xl text-steel-900 font-medium">
+                    <div className="px-4 py-3 bg-muted rounded-sm text-steel-900 font-medium">
                       {user.phone || 'Не указан'}
                     </div>
                   )}
@@ -480,13 +477,13 @@ const ProfilePage = () => {
                       type="text"
                       value={position}
                       onChange={(e) => setPosition(e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-construction-500 focus:border-construction-500 transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-sm bg-background text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring transition-colors ${
                         validationErrors.position ? 'border-red-300' : 'border-steel-300'
                       }`}
                       placeholder="Например: Главный инженер"
                     />
                   ) : (
-                    <div className="px-4 py-3 bg-steel-50 rounded-xl text-steel-900 font-medium">
+                    <div className="px-4 py-3 bg-muted rounded-sm text-steel-900 font-medium">
                       {user.position || 'Не указана'}
                     </div>
                   )}
@@ -498,7 +495,7 @@ const ProfilePage = () => {
 
               {/* Дополнительная информация */}
               <div className="mt-8 pt-8 border-t border-steel-200">
-                <h4 className="text-lg font-semibold text-steel-900 mb-4">Дополнительная информация</h4>
+                <h3 className="text-lg font-semibold text-foreground mb-4">Об аккаунте</h3>
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                   <div className="flex items-center justify-between gap-3 p-4 bg-steel-50 rounded-md">
                     <div>
@@ -507,8 +504,8 @@ const ProfilePage = () => {
                         {user.created_at ? new Date(user.created_at).toLocaleDateString('ru-RU') : 'Не указана'}
                       </p>
                     </div>
-                    <div className="w-10 h-10 bg-construction-100 rounded-lg flex items-center justify-center">
-                      <IdentificationIcon className="w-5 h-5 text-construction-600" />
+                    <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                      <IdentificationIcon className="w-5 h-5 text-muted-foreground" />
                     </div>
                   </div>
 
@@ -519,8 +516,8 @@ const ProfilePage = () => {
                         {user.updated_at ? new Date(user.updated_at).toLocaleDateString('ru-RU') : 'Не указано'}
                       </p>
                     </div>
-                    <div className="w-10 h-10 bg-safety-100 rounded-lg flex items-center justify-center">
-                      <PencilIcon className="w-5 h-5 text-safety-600" />
+                    <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                      <PencilIcon className="w-5 h-5 text-muted-foreground" />
                     </div>
                   </div>
                 </div>
