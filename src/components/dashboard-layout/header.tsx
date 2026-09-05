@@ -188,7 +188,7 @@ export function Header({
                 aria-expanded={isSearchOpen && Boolean(trimmedSearchQuery)}
                 aria-controls="dashboard-search-results"
                 autoComplete="off"
-                className="h-11 rounded-md border-input bg-card pl-11 pr-11 shadow-none focus-visible:ring-0"
+                className="h-11 rounded-md border-input bg-card pl-11 pr-11 shadow-none focus-visible:ring-0 [&::-webkit-search-cancel-button]:appearance-none"
               />
               {trimmedSearchQuery ? (
                 <button

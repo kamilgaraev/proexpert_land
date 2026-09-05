@@ -82,12 +82,15 @@ describe("OrganizationPage save errors", () => {
   it("restores saved contacts after discarding an edit", async () => {
     render(<MemoryRouter><OrganizationPage /></MemoryRouter>);
     fireEvent.click(await screen.findByRole("button", { name: /Редактировать/ }));
+    expect(screen.getByLabelText("Название организации")).toHaveFocus();
     expect(screen.getByLabelText("Телефон")).toHaveValue(organizationResponse.data.organization.phone);
     expect(screen.getByLabelText("Email")).toHaveValue(organizationResponse.data.organization.email);
     fireEvent.change(screen.getByLabelText("Телефон"), { target: { value: "" } });
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "" } });
     fireEvent.click(screen.getByRole("button", { name: "Отменить" }));
+    expect(screen.getByRole("button", { name: /Редактировать/ })).toHaveFocus();
     fireEvent.click(screen.getByRole("button", { name: /Редактировать/ }));
+    expect(screen.getByLabelText("Название организации")).toHaveFocus();
     expect(screen.getByLabelText("Телефон")).toHaveValue(organizationResponse.data.organization.phone);
     expect(screen.getByLabelText("Email")).toHaveValue(organizationResponse.data.organization.email);
     expect(apiMocks.update).not.toHaveBeenCalled();
@@ -155,6 +158,7 @@ describe("OrganizationPage save errors", () => {
     fireEvent.click(screen.getByRole("button", { name: "Сохранить" }));
 
     expect(await screen.findByText("12345678")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Редактировать/ })).toHaveFocus();
     expect(screen.queryByText("Данные организации не найдены")).toBeNull();
   });
 });

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -78,6 +78,7 @@ const OrganizationPage = () => {
   const [userMessage, setUserMessage] = useState<UserMessage | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const restoreEditFocus = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -114,6 +115,7 @@ const OrganizationPage = () => {
       const response = await organizationService.update(formData);
       if (response.success) {
         setOrganization(response.data.organization);
+        restoreEditFocus.current = true;
         setIsEditing(false);
         await loadOrganization();
         setRecommendationsKey((prev) => prev + 1);
@@ -328,6 +330,12 @@ const OrganizationPage = () => {
           <div className="flex justify-end mb-4">
             {!isEditing && (
               <Button
+                ref={(button) => {
+                  if (button && restoreEditFocus.current) {
+                    restoreEditFocus.current = false;
+                    button.focus();
+                  }
+                }}
                 variant="outline"
                 size="sm"
                 onClick={() => {
@@ -363,6 +371,7 @@ const OrganizationPage = () => {
                   </Label>
                   <Input
                     id="organization-name"
+                    autoFocus
                     value={formData.name || ""}
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, name: e.target.value }))
@@ -543,7 +552,9 @@ const OrganizationPage = () => {
                 <Button
                   variant="ghost"
                   type="button"
+                  disabled={isSaving}
                   onClick={() => {
+                    restoreEditFocus.current = true;
                     setSaveError(null);
                     setIsEditing(false);
                   }}

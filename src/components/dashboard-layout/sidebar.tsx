@@ -60,7 +60,7 @@ const SidebarContent = ({ navigation, supportNavigation, onLogout, pathname, wor
       ) : null}
       <ScrollArea className="min-h-0 flex-1">
         <div className="px-4 pb-4 lg:hidden">
-          <Button asChild className="w-full border border-foreground/10 bg-foreground text-background hover:bg-foreground/90 hover:text-background">
+          <Button asChild variant="ghost" className="w-full border border-foreground/10 bg-foreground text-background hover:bg-foreground/90 hover:text-background">
             <a href="https://admin.1мост.рф/" target="_blank" rel="noopener noreferrer" title="Управление строительством — откроется в новой вкладке">
               Работа с объектами
               <ArrowUpRight aria-hidden="true" className="ml-2 h-5 w-5 shrink-0" />
