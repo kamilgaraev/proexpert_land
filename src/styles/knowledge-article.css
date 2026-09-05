@@ -1,0 +1,97 @@
+.most-knowledge-content {
+  min-width: 0;
+  color: hsl(var(--foreground));
+  font-size: var(--workspace-text-body, 1rem);
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.most-knowledge-content > * + * {
+  margin-top: 1em;
+}
+
+.most-knowledge-content :is(h1, h2, h3, h4, h5, h6) {
+  margin-top: 1.75em;
+  margin-bottom: 0.6em;
+  font-weight: 600;
+  line-height: 1.3;
+  scroll-margin-top: 6rem;
+  text-wrap: pretty;
+}
+
+.most-knowledge-content :is(h1, h2) {
+  font-size: var(--workspace-text-section, 1.5rem);
+}
+
+.most-knowledge-content h3 {
+  font-size: var(--workspace-text-lead, 1.125rem);
+}
+
+.most-knowledge-content > :first-child {
+  margin-top: 0;
+}
+
+.most-knowledge-content :is(ul, ol) {
+  padding-inline-start: 1.5em;
+}
+
+.most-knowledge-content ul { list-style: disc; }
+.most-knowledge-content ol { list-style: decimal; }
+.most-knowledge-content li + li { margin-top: 0.5em; }
+.most-knowledge-content li > :is(ul, ol) { margin-top: 0.5em; }
+
+.most-knowledge-content a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.most-knowledge-content a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.most-knowledge-content blockquote {
+  border-inline-start: 2px solid hsl(var(--border));
+  padding-inline-start: 1.25em;
+  color: hsl(var(--muted-foreground));
+}
+
+.most-knowledge-content :is(img, video) {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--workspace-radius, 0.25rem);
+}
+
+.most-knowledge-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: var(--workspace-text-label, 0.9375rem);
+}
+
+.most-knowledge-content :is(th, td) {
+  padding: 0.75em 1em;
+  border: 1px solid hsl(var(--border));
+  text-align: start;
+  vertical-align: top;
+}
+
+.most-knowledge-content th {
+  background: hsl(var(--muted));
+  font-weight: 600;
+}
+
+.most-knowledge-content pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 1em;
+  background: hsl(var(--muted));
+  border-radius: var(--workspace-radius, 0.25rem);
+  font-size: var(--workspace-text-label, 0.9375rem);
+}
+
+.most-knowledge-content hr {
+  margin-block: 2em;
+  border-color: hsl(var(--border));
+}
