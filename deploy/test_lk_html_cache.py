@@ -29,6 +29,13 @@ class CachePolicyTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 configure(content)
 
+    def test_waits_for_reloaded_workers_to_serve_headers(self):
+        valid = 'HTTP/1.1 200 OK\nCache-Control: no-cache\nX-Robots-Tag: noindex, nofollow\n'
+        with patch('lk_html_cache.subprocess.check_output', side_effect=['HTTP/1.1 200 OK', valid, valid, valid]) as request, patch('lk_html_cache.time.sleep') as sleep:
+            verify()
+        self.assertEqual(request.call_count, 4)
+        sleep.assert_called_once_with(0.5)
+
     def test_rejects_missing_cache_header(self):
         with patch('lk_html_cache.subprocess.check_output', return_value='HTTP/1.1 200 OK\nX-Robots-Tag: noindex, nofollow\n'):
             with self.assertRaises(RuntimeError):
