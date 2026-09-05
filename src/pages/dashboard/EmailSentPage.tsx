@@ -2,8 +2,10 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import '@/styles/auth.css';
+import { usePageTitle } from '@/hooks/useSEO';
 
 export const EmailSentPage = () => {
+  usePageTitle('Подтверждение почты — МОСТ');
   const navigate = useNavigate();
   const location = useLocation();
   const email = typeof location.state?.email === 'string' ? location.state.email : null;

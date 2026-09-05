@@ -15,8 +15,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EmailVerificationModal } from '@/components/dashboard/EmailVerificationModal';
 import '@/styles/auth.css';
+import { usePageTitle } from '@/hooks/useSEO';
 
 const LoginPage = () => {
+  usePageTitle('Вход — МОСТ');
   const location = useLocation();
   const [email, setEmail] = useState(() => typeof location.state?.email === 'string' ? location.state.email : '');
   const [password, setPassword] = useState('');

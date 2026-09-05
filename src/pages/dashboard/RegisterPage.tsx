@@ -27,6 +27,7 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { parseCommercialIntent, rememberCommercialIntent } from '@/utils/commercialIntent';
 import '@/styles/auth.css';
+import { usePageTitle } from '@/hooks/useSEO';
 
 const getPackageCountLabel = (count: number): string => {
   const lastTwoDigits = count % 100;
@@ -54,6 +55,7 @@ const createRegistrationKey = (): string => {
 };
 
 const RegisterPage = () => {
+  usePageTitle('Создание аккаунта — МОСТ');
   // User Data
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -204,6 +206,7 @@ const RegisterPage = () => {
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       setError('Пожалуйста, исправьте ошибки в форме');
+      document.getElementById(Object.keys(errors)[0])?.focus();
       return;
     }
 
@@ -233,6 +236,7 @@ const RegisterPage = () => {
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       setError('Пожалуйста, исправьте ошибки в форме');
+      document.getElementById(Object.keys(errors)[0])?.focus();
       return;
     }
 
@@ -416,14 +420,14 @@ const RegisterPage = () => {
                                      avatarPreview ? "border-primary" : "border-muted-foreground/20 group-hover:border-primary"
                                  )}>
                                      {avatarPreview ? (
-                                         <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                                         <img src={avatarPreview} alt="Фото профиля" className="w-full h-full object-cover" />
                                      ) : (
                                          <Camera className="w-8 h-8 text-muted-foreground/50" />
                                      )}
                                  </div>
                                  <input name="avatar" type="file" accept="image/*" aria-label="Загрузить фото профиля" onChange={handleAvatarChange} className="absolute inset-0 opacity-0 cursor-pointer" />
                                  {avatarPreview && (
-                                     <button type="button" onClick={removeAvatar} className="absolute -top-1 -right-1 bg-destructive text-white p-1 rounded-full shadow-sm hover:bg-destructive/90">
+                                     <button type="button" aria-label="Удалить фото профиля" onClick={removeAvatar} className="absolute -top-1 -right-1 bg-destructive text-white p-1 rounded-full shadow-sm hover:bg-destructive/90">
                                          <X className="w-3 h-3" />
                                      </button>
                                  )}
@@ -436,18 +440,18 @@ const RegisterPage = () => {
                                 <Label htmlFor="name">Полное имя</Label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input id="name" name="name" autoComplete="name" value={name} onChange={e => setName(e.target.value)} className={getInputClassName('name')} placeholder="Иван Иванов" />
+                                    <Input aria-invalid={hasError('name')} aria-describedby={hasError('name') ? 'name-error' : undefined} id="name" name="name" autoComplete="name" value={name} onChange={e => setName(e.target.value)} className={getInputClassName('name')} placeholder="Иван Иванов" />
                                 </div>
-                                {hasError('name') && <p className="text-xs text-destructive">{getErrorMessage('name')}</p>}
+                                {hasError('name') && <p id="name-error" className="text-xs text-destructive">{getErrorMessage('name')}</p>}
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input id="email" name="email" type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} className={getInputClassName('email')} placeholder="ivan@example.com" />
+                                    <Input aria-invalid={hasError('email')} aria-describedby={hasError('email') ? 'email-error' : undefined} id="email" name="email" type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} className={getInputClassName('email')} placeholder="ivan@example.com" />
                                 </div>
-                                {hasError('email') && <p className="text-xs text-destructive">{getErrorMessage('email')}</p>}
+                                {hasError('email') && <p id="email-error" className="text-xs text-destructive">{getErrorMessage('email')}</p>}
                             </div>
 
                              <div className="space-y-2">
@@ -456,6 +460,8 @@ const RegisterPage = () => {
                                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                     <Input
                                         id="password"
+                                        aria-invalid={hasError('password')}
+                                        aria-describedby={hasError('password') ? 'password-error' : undefined}
                                         name="password"
                                         type={showPassword ? 'text' : 'password'}
                                         autoComplete="new-password"
@@ -468,7 +474,7 @@ const RegisterPage = () => {
                                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </button>
                                 </div>
-                                {hasError('password') && <p className="text-xs text-destructive">{getErrorMessage('password')}</p>}
+                                {hasError('password') && <p id="password-error" className="text-xs text-destructive">{getErrorMessage('password')}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -477,6 +483,8 @@ const RegisterPage = () => {
                                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                     <Input
                                         id="passwordConfirmation"
+                                        aria-invalid={hasError('passwordConfirmation')}
+                                        aria-describedby={hasError('passwordConfirmation') ? 'passwordConfirmation-error' : undefined}
                                         name="passwordConfirmation"
                                         type={showPasswordConfirmation ? 'text' : 'password'}
                                         autoComplete="new-password"
@@ -489,7 +497,7 @@ const RegisterPage = () => {
                                         {showPasswordConfirmation ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </button>
                                 </div>
-                                {hasError('passwordConfirmation') && <p className="text-xs text-destructive">{getErrorMessage('passwordConfirmation')}</p>}
+                                {hasError('passwordConfirmation') && <p id="passwordConfirmation-error" className="text-xs text-destructive">{getErrorMessage('passwordConfirmation')}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -525,6 +533,8 @@ const RegisterPage = () => {
                                 <Label htmlFor="organizationName">Название организации</Label>
                                 <AutocompleteInput
                                     id="organizationName"
+                                    aria-invalid={hasError('organizationName')}
+                                    aria-describedby={hasError('organizationName') ? 'organizationName-error' : undefined}
                                     name="organizationName"
                                     autoComplete="organization"
                                     value={organizationName}
@@ -535,7 +545,7 @@ const RegisterPage = () => {
                                     icon={<Building2 className="h-4 w-4 text-muted-foreground" />}
                                     isLoading={isDaDataLoading}
                                 />
-                                {hasError('organizationName') && <p className="text-xs text-destructive">{getErrorMessage('organizationName')}</p>}
+                                {hasError('organizationName') && <p id="organizationName-error" className="text-xs text-destructive">{getErrorMessage('organizationName')}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -598,12 +608,12 @@ const RegisterPage = () => {
 
                         <div className="pt-4 border-t">
                             <label className="flex items-start gap-3 cursor-pointer">
-                                <input name="agreeTerms" type="checkbox" className="mt-1 w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} />
+                                <input id="agreeTerms" aria-invalid={hasError('agreeTerms')} aria-describedby={hasError('agreeTerms') ? 'agreeTerms-error' : undefined} name="agreeTerms" type="checkbox" className="mt-1 w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} />
                                 <span className="text-sm text-muted-foreground">
                                     Я согласен с <Link to="/terms" className="text-primary hover:underline">условиями предоставления услуг</Link> и <Link to="/privacy" className="text-primary hover:underline">политикой конфиденциальности</Link>
                                 </span>
                             </label>
-                            {hasError('agreeTerms') && <p className="text-xs text-destructive mt-1">{getErrorMessage('agreeTerms')}</p>}
+                            {hasError('agreeTerms') && <p id="agreeTerms-error" className="text-xs text-destructive mt-1">{getErrorMessage('agreeTerms')}</p>}
                         </div>
                      </motion.div>
                  )}

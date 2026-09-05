@@ -6,6 +6,7 @@ import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import '@/styles/auth.css';
+import { usePageTitle } from '@/hooks/useSEO';
 
 const createEmailHash = async (email: string): Promise<string> => {
   const digest = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(email));
@@ -16,6 +17,7 @@ const createEmailHash = async (email: string): Promise<string> => {
 };
 
 export const VerifyEmailPage = () => {
+  usePageTitle('Подтверждение почты — МОСТ');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const idParam = searchParams.get('id');
@@ -125,8 +127,8 @@ export const VerifyEmailPage = () => {
         <CardHeader className="text-center p-0 pb-5">
           <div className="mx-auto mb-4">
             {verificationState.status === 'success' ? (
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full">
-                <CheckCircle className="w-12 h-12 text-green-600" />
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-muted rounded-full">
+                <CheckCircle className="w-12 h-12 text-foreground" />
               </div>
             ) : (
               <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full">

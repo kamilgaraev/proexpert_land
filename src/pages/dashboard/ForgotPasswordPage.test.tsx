@@ -11,6 +11,13 @@ vi.mock('@utils/api', () => ({
   },
 }));
 
+vi.mock('framer-motion', async () => {
+  const { createElement } = await import('react');
+  return { motion: { div: (props: Record<string, unknown>) => createElement('div', Object.fromEntries(
+    Object.entries(props).filter(([key]) => !['initial', 'animate', 'transition'].includes(key)),
+  )) } };
+});
+
 const requestPasswordResetMock = vi.mocked(authService.requestPasswordReset);
 
 const renderPage = () => render(
