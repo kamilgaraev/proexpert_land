@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrganizationProfile } from '@/hooks/useOrganizationProfile';
 import { useOrganizationVerification } from '@/hooks/useOrganizationVerification';
@@ -68,6 +68,15 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
     'capabilities' | 'business_type' | 'specializations' | 'certifications' | null
   >(null);
   const [isSaving, setIsSaving] = useState(false);
+  const editorHeading = useRef<HTMLHeadingElement>(null);
+  const focusEditor = useCallback(() => {
+    editorHeading.current?.focus({ preventScroll: true });
+    editorHeading.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
+  }, []);
+
+  useEffect(() => {
+    if (editingSection) focusEditor();
+  }, [editingSection, focusEditor]);
 
   const [localCapabilities, setLocalCapabilities] = useState<OrganizationCapability[]>([]);
   const [localBusinessType, setLocalBusinessType] = useState<OrganizationCapability | null>(null);
@@ -164,7 +173,23 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
       missing.push('specializations');
     }
 
+    if (!profile.certifications || profile.certifications.length === 0) {
+      missing.push('certifications');
+    }
+
     return missing;
+  };
+
+  const completeProfile = () => {
+    const sections: Record<string, NonNullable<typeof editingSection>> = {
+      capabilities: 'capabilities',
+      primary_business_type: 'business_type',
+      specializations: 'specializations',
+      certifications: 'certifications',
+    };
+    const nextSection = sections[getMissingFields()[0]] || 'capabilities';
+    if (editingSection === nextSection) focusEditor();
+    else setEditingSection(nextSection);
   };
 
   if (loading && !profile) {
@@ -194,7 +219,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
           <div className="flex items-center gap-3">
             <div className="rounded-lg border bg-background p-2 shadow-sm">{icon}</div>
             <div>
-              <h3 className="text-lg font-bold leading-none">{title}</h3>
+              <h3 ref={isEditing ? editorHeading : undefined} tabIndex={isEditing ? -1 : undefined} className="scroll-mt-24 text-lg font-bold leading-none">{title}</h3>
               {isEmpty && !isEditing && (
                 <p className="mt-1 flex items-center gap-1 text-xs text-destructive">
                   <AlertTriangle className="h-3 w-3" />
@@ -404,7 +429,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
             <ProfileCompletenessWidget
               completeness={profile.profile_completeness}
               missingFields={getMissingFields()}
-              onComplete={() => setEditingSection('capabilities')}
+              onComplete={completeProfile}
             />
           )}
 
