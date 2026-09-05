@@ -60,7 +60,10 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  const pageContext = await renderPage({ urlOriginal: req.url });
+  const pageContext = await renderPage({
+    urlOriginal: req.url,
+    requestHostname: (req.headers.host || '').split(':')[0],
+  });
   const { httpResponse } = pageContext;
   if (!httpResponse) {
     if (path.extname(url)) {
