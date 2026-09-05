@@ -7,7 +7,7 @@ export interface AutocompleteOption {
   data?: unknown;
 }
 
-interface AutocompleteInputProps {
+interface AutocompleteInputProps extends Pick<React.AriaAttributes, 'aria-invalid' | 'aria-describedby'> {
   id?: string;
   name?: string;
   autoComplete?: string;
@@ -33,6 +33,8 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   icon,
   disabled = false,
   isLoading = false,
+  'aria-invalid': ariaInvalid,
+  'aria-describedby': ariaDescribedBy,
 }) => {
   const generatedId = useId().replace(/:/g, '');
   const inputId = id ?? `autocomplete-${generatedId}`;
@@ -167,7 +169,8 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
           aria-expanded={isOpen}
           aria-controls={listboxId}
           aria-activedescendant={activeOptionId}
-          aria-describedby={statusMessage ? statusId : undefined}
+          aria-invalid={ariaInvalid}
+          aria-describedby={[ariaDescribedBy, statusMessage ? statusId : undefined].filter(Boolean).join(' ') || undefined}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={handleKeyDown}

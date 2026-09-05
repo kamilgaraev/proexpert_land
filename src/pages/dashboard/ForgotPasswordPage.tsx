@@ -13,8 +13,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authService } from '@utils/api';
 import '@/styles/auth.css';
+import { usePageTitle } from '@/hooks/useSEO';
 
 const ForgotPasswordPage = () => {
+  usePageTitle('Восстановление пароля — МОСТ');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -68,8 +70,8 @@ const ForgotPasswordPage = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 text-green-600" />
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-8 h-8 text-foreground" />
           </div>
 
           <h1 className="text-2xl font-bold mb-4">
@@ -78,7 +80,7 @@ const ForgotPasswordPage = () => {
 
           <p className="text-muted-foreground mb-6 leading-relaxed">
             Мы отправили инструкции по восстановлению пароля на адрес{' '}
-            <span className="font-semibold text-foreground">{email}</span>
+            <span className="break-all font-semibold text-foreground">{email}</span>
           </p>
 
           <div className="bg-muted rounded-xl p-4 mb-6">

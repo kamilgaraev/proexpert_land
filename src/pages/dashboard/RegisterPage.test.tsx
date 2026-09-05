@@ -5,6 +5,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { commercialIntentStorageKey } from '@/utils/commercialIntent';
 import RegisterPage from './RegisterPage';
 
+vi.mock('framer-motion', async () => {
+  const { createElement, Fragment } = await import('react');
+  return {
+    motion: { div: (props: Record<string, unknown>) => createElement('div', Object.fromEntries(
+      Object.entries(props).filter(([key]) => !['initial', 'animate', 'exit', 'transition'].includes(key)),
+    )) },
+    AnimatePresence: ({ children }: { children: import('react').ReactNode }) => createElement(Fragment, null, children),
+  };
+});
+
 const registerMock = vi.fn();
 
 vi.mock('@/hooks/useAuth', () => ({

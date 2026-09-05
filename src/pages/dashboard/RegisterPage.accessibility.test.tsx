@@ -15,6 +15,16 @@ vi.mock("@/hooks/useDaData", () => ({
   }),
 }));
 
+vi.mock('framer-motion', async () => {
+  const { createElement, Fragment } = await import('react');
+  return {
+    motion: { div: (props: Record<string, unknown>) => createElement('div', Object.fromEntries(
+      Object.entries(props).filter(([key]) => !['initial', 'animate', 'exit', 'transition'].includes(key)),
+    )) },
+    AnimatePresence: ({ children }: { children: import('react').ReactNode }) => createElement(Fragment, null, children),
+  };
+});
+
 import RegisterPage from "./RegisterPage";
 
 const renderPage = () =>
@@ -28,6 +38,17 @@ const renderPage = () =>
 // Found by /qa on 2026-08-29
 // Report: .gstack/qa-reports/qa-report-most-full-2026-08-28.md
 describe("RegisterPage accessibility", () => {
+  it('связывает ошибки с полями и фокусирует первое неверное поле', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Далее' }));
+    const name = screen.getByLabelText('Полное имя');
+    expect(name).toHaveFocus();
+    expect(name).toHaveAttribute('aria-invalid', 'true');
+    expect(name).toHaveAccessibleDescription('Укажите ваше имя');
+    expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('Укажите email');
+    expect(screen.getByLabelText('Пароль')).toHaveAccessibleDescription('Укажите пароль');
+  });
+
   it("именует этапы регистрации и отмечает текущий этап", () => {
     renderPage();
 
