@@ -23,10 +23,13 @@ const ChangelogPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [revision, setRevision] = useState(0);
+
   useEffect(() => {
     let isMounted = true;
 
     setIsLoading(true);
+    setError(null);
     knowledgeHubApi.getChangelog({
       q: query.trim() || undefined,
       page,
@@ -55,7 +58,7 @@ const ChangelogPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [page, query]);
+  }, [page, query, revision]);
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
@@ -65,7 +68,7 @@ const ChangelogPage = () => {
   return (
     <div className="mx-auto max-w-5xl space-y-8 pb-20">
       <div className="space-y-2">
-        <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+        <div className="inline-flex h-11 w-11 items-center justify-center rounded-md bg-muted text-muted-foreground">
           <History className="h-5 w-5" />
         </div>
         <h1 className="text-3xl font-bold text-foreground">Обновления</h1>
@@ -80,13 +83,17 @@ const ChangelogPage = () => {
           value={query}
           onChange={(event) => handleQueryChange(event.target.value)}
           placeholder="Поиск по обновлениям"
+          aria-label="Поиск по обновлениям"
           className="pl-9"
         />
       </div>
 
       {error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {error}
+        <div className="space-y-3 rounded-lg border border-border bg-card p-4">
+          <p role="alert" className="text-sm text-foreground">{error}</p>
+          <Button variant="outline" onClick={() => setRevision((current) => current + 1)}>
+            Повторить загрузку
+          </Button>
         </div>
       )}
 
@@ -96,7 +103,7 @@ const ChangelogPage = () => {
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
         </div>
-      ) : entries.length > 0 ? (
+      ) : error ? null : entries.length > 0 ? (
         <ChangelogTimeline entries={entries} />
       ) : (
         <Card className="border-border shadow-sm">
@@ -110,7 +117,7 @@ const ChangelogPage = () => {
         <div className="flex items-center justify-center gap-3">
           <Button
             variant="outline"
-            disabled={meta.current_page <= 1}
+            disabled={isLoading || meta.current_page <= 1}
             onClick={() => setPage((current) => Math.max(1, current - 1))}
           >
             Назад
@@ -120,7 +127,7 @@ const ChangelogPage = () => {
           </span>
           <Button
             variant="outline"
-            disabled={meta.current_page >= meta.last_page}
+            disabled={isLoading || meta.current_page >= meta.last_page}
             onClick={() => setPage((current) => Math.min(meta.last_page, current + 1))}
           >
             Вперед
