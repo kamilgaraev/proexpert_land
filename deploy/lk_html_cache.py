@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 import subprocess
 import tempfile
+import time
 
 
 HOST = 'lk.xn--1-xtbgmf.xn--p1ai'
@@ -45,12 +46,17 @@ def atomic_write(path, content, mode):
 
 def verify():
     for route in ['/index.html', '/login', '/dashboard/custom-roles']:
-        headers = subprocess.check_output([
-            'curl', '--fail', '--silent', '--show-error', '--head', '--max-time', '15',
-            '--resolve', f'{HOST}:443:127.0.0.1', f'https://{HOST}{route}',
-        ], text=True).lower()
-        if 'cache-control: no-cache' not in headers or 'x-robots-tag: noindex, nofollow' not in headers:
-            raise RuntimeError(f'HTML headers did not pass verification: {route}')
+        for attempt in range(10):
+            headers = subprocess.check_output([
+                'curl', '--fail', '--silent', '--show-error', '--head', '--max-time', '5',
+                '--resolve', f'{HOST}:443:127.0.0.1', f'https://{HOST}{route}',
+            ], text=True).lower()
+            if 'cache-control: no-cache' in headers and 'x-robots-tag: noindex, nofollow' in headers:
+                break
+            if attempt == 9:
+                observed = [line for line in headers.splitlines() if line.startswith(('http/', 'cache-control:', 'x-robots-tag:'))]
+                raise RuntimeError(f'HTML headers did not pass verification: {route}: {observed}')
+            time.sleep(0.5)
 
 
 def apply(path, backup_directory):
