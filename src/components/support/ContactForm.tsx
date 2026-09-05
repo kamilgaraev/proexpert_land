@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { CheckCircleIcon, ExclamationTriangleIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
 
 export function ContactForm() {
@@ -76,22 +76,22 @@ export function ContactForm() {
   return (
     <Card className="max-w-3xl rounded-lg border-border shadow-none">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Написать в поддержку</CardTitle>
+        <h2 className="text-2xl font-semibold">Написать в поддержку</h2>
         <CardDescription>
           {user ? 'Опишите вопрос. Ответ придёт на почту вашего аккаунта.' : 'Опишите вопрос и укажите почту для ответа.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {success && (
-          <div role="status" className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6 flex items-start gap-3">
-            <CheckCircleIcon className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+          <div role="status" className="bg-secondary/50 border border-border p-4 mb-6 flex items-start gap-3">
+            <CheckCircleIcon className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-emerald-800">Сообщение отправлено</p>
-              <p className="text-sm text-emerald-600 mt-1">
+              <p className="font-semibold text-foreground">Сообщение отправлено</p>
+              <p className="text-sm text-muted-foreground mt-1">
                 Ваше обращение принято. Ответ придёт на указанную почту.
               </p>
-              <Button variant="link" className="text-emerald-700 p-0 h-auto mt-2" onClick={() => setSuccess(false)}>
-                 Отправить еще одно сообщение
+              <Button variant="link" className="p-0 h-auto mt-2" onClick={() => setSuccess(false)}>
+                 Написать ещё одно сообщение
               </Button>
             </div>
           </div>
