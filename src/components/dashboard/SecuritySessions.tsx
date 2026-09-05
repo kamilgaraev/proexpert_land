@@ -17,6 +17,9 @@ export function SecuritySessions() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [revision, setRevision] = useState(0);
+  const [query, setQuery] = useState<{ group: 'active' | 'history'; page: number }>({ group: 'active', page: 1 });
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [selected, setSelected] = useState<SecuritySession | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
@@ -35,15 +38,22 @@ export function SecuritySessions() {
     const controller = new AbortController();
     setLoading(true);
     setLoadError(false);
-    securitySessionService.list(controller.signal).then((data) => {
-      if (!controller.signal.aborted) setSessions(data);
+    securitySessionService.listPage(query.group, query.page, controller.signal).then((data) => {
+      if (controller.signal.aborted) return;
+      if (data.currentPage > data.lastPage) {
+        setQuery((current) => ({ ...current, page: data.lastPage }));
+        return;
+      }
+      setSessions(data.sessions);
+      setLastPage(data.lastPage);
+      setTotal(data.total);
     }).catch(() => {
       if (!controller.signal.aborted) setLoadError(true);
     }).finally(() => {
       if (!controller.signal.aborted) setLoading(false);
     });
     return () => controller.abort();
-  }, [revision]);
+  }, [revision, query]);
 
   const revoke = async () => {
     if (!selected || selected.is_current || selected.status !== 'active' || pending.current) return;
@@ -56,6 +66,7 @@ export function SecuritySessions() {
       setSessions((items) => items.map((item) => item.id === selected.id ? { ...item, status: 'revoked' } : item));
       setSelected(null);
       setNotice('Вход на выбранном устройстве завершён.');
+      setRevision((value) => value + 1);
     } catch {
       if (mounted.current) setSaveError(true);
     } finally {
@@ -74,6 +85,10 @@ export function SecuritySessions() {
         <Button variant="outline" disabled={loading || saving} onClick={() => { setNotice(''); setRevision((value) => value + 1); }}>
           <RefreshCw className="mr-2 h-5 w-5" aria-hidden="true" />Обновить
         </Button>
+      </div>
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Какие входы показать">
+        <Button variant={query.group === 'active' ? 'default' : 'outline'} aria-pressed={query.group === 'active'} disabled={saving} onClick={() => setQuery({ group: 'active', page: 1 })}>Активные устройства</Button>
+        <Button variant={query.group === 'history' ? 'default' : 'outline'} aria-pressed={query.group === 'history'} disabled={saving} onClick={() => setQuery({ group: 'history', page: 1 })}>История входов</Button>
       </div>
       {notice && <p role="status" className="text-sm">{notice}</p>}
       {loading ? <p role="status" className="py-6 text-muted-foreground">Загружаем устройства…</p> : loadError ? (
@@ -99,6 +114,13 @@ export function SecuritySessions() {
           ))}
         </ul>
       )}
+      {!loading && !loadError && <nav aria-label="Страницы входов" className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">Всего: {total} · Страница {query.page} из {lastPage}</p>
+        <div className="flex gap-2">
+          <Button variant="outline" disabled={query.page <= 1 || saving} onClick={() => setQuery((current) => ({ ...current, page: current.page - 1 }))}>Назад</Button>
+          <Button variant="outline" disabled={query.page >= lastPage || saving} onClick={() => setQuery((current) => ({ ...current, page: current.page + 1 }))}>Далее</Button>
+        </div>
+      </nav>}
       <Dialog open={selected !== null} onOpenChange={(open) => { if (!open && !pending.current) setSelected(null); }}>
         <DialogContent onCloseAutoFocus={(event) => {
           event.preventDefault();
