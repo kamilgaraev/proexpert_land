@@ -43,7 +43,30 @@ const responseData = (value: unknown): unknown => {
   return response.data;
 };
 
+export interface SecuritySessionPage {
+  sessions: SecuritySession[];
+  currentPage: number;
+  lastPage: number;
+  total: number;
+}
+
 export const securitySessionService = {
+  async listPage(group: 'active' | 'history', page: number, signal?: AbortSignal): Promise<SecuritySessionPage> {
+    const response = await api.get<unknown>('/security/sessions', {
+      signal,
+      params: { group, page, per_page: 20 },
+    });
+    const sessions = responseData(response.data);
+    const meta = objectValue(objectValue(response.data)?.meta);
+    if (!Array.isArray(sessions) || !sessions.every(isSession)
+      || !meta || !Number.isSafeInteger(meta.current_page) || Number(meta.current_page) < 1
+      || !Number.isSafeInteger(meta.last_page) || Number(meta.last_page) < 1
+      || !Number.isSafeInteger(meta.total) || Number(meta.total) < 0) {
+      throw new Error('Не удалось получить список устройств. Попробуйте ещё раз.');
+    }
+    return { sessions, currentPage: Number(meta.current_page), lastPage: Number(meta.last_page), total: Number(meta.total) };
+  },
+
   async list(signal?: AbortSignal): Promise<SecuritySession[]> {
     const response = await api.get<unknown>('/security/sessions', { signal });
     const sessions = responseData(response.data);

@@ -48,6 +48,18 @@ describe('securitySessionService', () => {
     await expect(securitySessionService.revoke(14)).rejects.toBe(failure);
   });
 
+  it('передаёт фильтр и страницу серверу и читает метаданные', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: { success: true, data: [session], meta: { current_page: 2, last_page: 3, total: 41 } } });
+    const controller = new AbortController();
+    await expect(securitySessionService.listPage('history', 2, controller.signal)).resolves.toEqual({ sessions: [session], currentPage: 2, lastPage: 3, total: 41 });
+    expect(api.get).toHaveBeenLastCalledWith('/security/sessions', { signal: controller.signal, params: { group: 'history', page: 2, per_page: 20 } });
+  });
+
+  it.each([undefined, { current_page: 1, last_page: 0, total: 0 }, { current_page: 1, last_page: 1, total: -1 }])('не скрывает отсутствие или повреждение данных страниц', async (meta) => {
+    vi.mocked(api.get).mockResolvedValue({ data: { success: true, data: [], meta } });
+    await expect(securitySessionService.listPage('active', 1)).rejects.toThrow();
+  });
+
   it('не отправляет запрос с некорректным идентификатором', async () => {
     await expect(securitySessionService.revoke(-1)).rejects.toThrow();
     expect(api.delete).not.toHaveBeenCalled();
