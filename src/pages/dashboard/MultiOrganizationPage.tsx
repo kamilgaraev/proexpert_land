@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { usePageTitle } from '@/hooks/useSEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BuildingOfficeIcon,
@@ -20,6 +23,7 @@ import { useMultiOrganization } from '@hooks/useMultiOrganization';
 import type { CreateHoldingRequest, AddChildOrganizationRequest } from '@utils/api';
 
 const MultiOrganizationPage = () => {
+  usePageTitle('Группа компаний — МОСТ');
   const {
     availability,
     hierarchy,
@@ -156,19 +160,19 @@ const MultiOrganizationPage = () => {
 
   if (!availability?.available && !loading && !hierarchy) {
     return (
-      <div className="min-h-screen bg-slate-50 p-8">
-        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+      <div className="py-4 sm:py-8">
+        <div className="mx-auto max-w-4xl border border-border bg-card p-6 text-center sm:p-10">
           <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
              <BuildingOffice2Icon className="h-8 w-8 text-orange-500" />
           </div>
-          <h3 className="text-2xl font-bold text-slate-900 mb-3">Модуль мультиорганизации</h3>
+          <h1 className="mb-3 text-2xl font-bold text-foreground">Группа компаний</h1>
           <p className="text-slate-500 mb-8 max-w-md mx-auto leading-relaxed">
             Управляйте группой компаний, филиалами и дочерними структурами в одном интерфейсе. 
             Для доступа к функционалу необходимо активировать модуль.
           </p>
-          <button className="bg-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-200">
-            Перейти к активации
-          </button>
+          <Button asChild>
+            <Link to="/dashboard/billing">Посмотреть условия подключения</Link>
+          </Button>
         </div>
       </div>
     );
