@@ -154,7 +154,7 @@ export function Header({
 
   return (
     <header className="most-workspace-header sticky top-0 z-40 w-full border-b">
-      <div className="flex h-16 items-center px-4 sm:px-6 md:px-8">
+      <div className="flex min-h-16 flex-wrap items-center gap-y-2 px-4 py-2 sm:px-6 md:px-8">
         <MobileSidebar {...sidebarProps} />
         
         <div className="hidden shrink-0 2xl:flex 2xl:items-center 2xl:pr-6">
@@ -167,9 +167,8 @@ export function Header({
            </div>
         </div>
 
-        <div className="ml-auto flex min-w-0 items-center gap-2 xl:gap-4">
           <div
-            className="relative hidden w-56 min-w-0 xl:block 2xl:w-80"
+            className="relative order-last w-full min-w-0 xl:order-none xl:ml-auto xl:w-56 2xl:w-80"
             onBlur={handleSearchBlur}
           >
             <form onSubmit={handleSearchSubmit}>
@@ -262,10 +261,11 @@ export function Header({
             ) : null}
           </div>
 
+        <div className="ml-auto flex min-w-0 items-center gap-2 xl:ml-4 xl:gap-4">
           {showBalance && (
            <Link 
                 to="/dashboard/billing" 
-                className="most-workspace-balance hidden shrink-0 items-center gap-3 rounded border border-border bg-card px-3 py-1.5 transition-colors hover:border-foreground/30 hover:bg-accent sm:flex"
+                className="most-workspace-balance flex min-w-0 items-center gap-2 rounded border border-border bg-card px-2 py-1.5 transition-colors hover:border-foreground/30 hover:bg-accent sm:gap-3 sm:px-3"
                 onClick={(e: any) => {
                   if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();

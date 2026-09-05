@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LogOut, Menu as MenuIcon } from 'lucide-react';
+import { ArrowUpRight, LogOut, Menu as MenuIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -59,6 +59,14 @@ const SidebarContent = ({ navigation, supportNavigation, onLogout, pathname, wor
         </div>
       ) : null}
       <ScrollArea className="min-h-0 flex-1">
+        <div className="px-4 pb-4 lg:hidden">
+          <Button asChild className="w-full border border-foreground/10 bg-foreground text-background hover:bg-foreground/90 hover:text-background">
+            <a href="https://admin.1мост.рф/" target="_blank" rel="noopener noreferrer" title="Управление строительством — откроется в новой вкладке">
+              Работа с объектами
+              <ArrowUpRight aria-hidden="true" className="ml-2 h-5 w-5 shrink-0" />
+            </a>
+          </Button>
+        </div>
         <nav aria-label="Разделы кабинета" className="most-workspace-nav">
           {navigation.map((item) => (
             <Link key={item.href} to={item.href}
