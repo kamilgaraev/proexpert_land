@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Bell, KeyRound, UserRound } from 'lucide-react';
+import { NotificationPreferences } from '@/components/dashboard/NotificationPreferences';
 import { SecuritySessions } from '@/components/dashboard/SecuritySessions';
 import { Button } from '@/components/ui/button';
 
@@ -45,6 +46,7 @@ const SettingsPage = () => (
         </article>
       ))}
     </section>
+    <NotificationPreferences />
     <SecuritySessions />
   </div>
 );
