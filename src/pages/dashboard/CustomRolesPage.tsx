@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCustomRoles } from '@hooks/useCustomRoles';
 import { CustomRole, CreateCustomRoleData } from '@utils/api';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
@@ -9,7 +9,6 @@ import {
   DocumentDuplicateIcon,
   UsersIcon,
   ShieldCheckIcon,
-  XMarkIcon,
   CheckIcon,
   ChevronDownIcon,
   ExclamationTriangleIcon
@@ -17,6 +16,9 @@ import {
 import ConfirmActionModal from '@components/shared/ConfirmActionModal';
 import { PageLoading } from '@components/common/PageLoading';
 import NotificationService from '@components/shared/NotificationService';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 interface CustomRoleFormModalProps {
   role?: CustomRole;
@@ -51,6 +53,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
   });
 
   const [loading, setLoading] = useState(false);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const [activeTab, setActiveTab] = useState<'basic' | 'permissions' | 'modules'>('basic');
   const [expandedModules, setExpandedModules] = useState<Set<string>>(() => new Set());
 
@@ -233,70 +236,61 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-background rounded-xl shadow-lg w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden border border-border">
-        {/* Header */}
-        <div className="p-6 border-b border-border">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-foreground">
-              {role ? 'Редактировать роль' : 'Создать новую роль'}
-            </h3>
-            <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-              <XMarkIcon className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open && !loading) onClose(); }}>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-4xl flex-col gap-0 overflow-hidden p-0 sm:rounded-md" onPointerDownOutside={(event) => event.preventDefault()}
+        onOpenAutoFocus={() => { returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; }}
+        onCloseAutoFocus={(event) => { event.preventDefault(); returnFocusRef.current?.focus(); }}>
+        <DialogHeader className="border-b border-border p-5 pr-14 text-left sm:p-6 sm:pr-14">
+          <DialogTitle>{role ? 'Редактировать роль' : 'Создать роль'}</DialogTitle>
+          <DialogDescription>Укажите название и выберите доступные сотруднику разделы и действия.</DialogDescription>
+        </DialogHeader>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="flex min-h-0 flex-1 flex-col">
 
         {/* Tabs */}
         <div className="border-b border-border">
-          <nav className="flex -mb-px">
+          <TabsList aria-label="Настройка роли" className="grid h-auto w-full grid-cols-3 gap-1 rounded-none bg-transparent p-2">
             {[
               { key: 'basic', label: 'Основное', icon: ShieldCheckIcon },
               { key: 'permissions', label: 'Права доступа', icon: CheckIcon },
               { key: 'modules', label: 'Модули', icon: UsersIcon }
             ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
-                className={`flex items-center px-6 py-3 text-sm font-medium border-b-2 ${activeTab === tab.key
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                  }`}
-              >
-                <tab.icon className="w-4 h-4 mr-2" />
+              <TabsTrigger key={tab.key} value={tab.key} className="min-h-11 min-w-0 whitespace-normal px-2 py-2 text-center leading-snug">
+                <tab.icon className="mr-2 hidden h-5 w-5 shrink-0 sm:block" aria-hidden="true" />
                 {tab.label}
-              </button>
+              </TabsTrigger>
             ))}
-          </nav>
+          </TabsList>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 200px)' }}>
+        <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
           {/* Basic Info Tab */}
-          {activeTab === 'basic' && (
-            <div className="space-y-6">
+          <TabsContent value="basic" className="m-0 space-y-6">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label htmlFor="custom-role-name" className="block text-sm font-medium text-foreground mb-2">
                   Название роли *
                 </label>
                 <input
+                  id="custom-role-name"
+                  required
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-input bg-background rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-foreground"
+                  className="w-full min-h-11 rounded-sm border border-input bg-background px-3 py-2 text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                   placeholder="Введите название роли"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label htmlFor="custom-role-description" className="block text-sm font-medium text-foreground mb-2">
                   Описание
                 </label>
                 <textarea
+                  id="custom-role-description"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   rows={3}
-                  className="w-full px-3 py-2 border border-input bg-background rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-foreground"
+                  className="w-full min-h-11 rounded-sm border border-input bg-background px-3 py-2 text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                   placeholder="Краткое описание роли"
                 />
               </div>
@@ -308,7 +302,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                 <div className="space-y-2">
                   {[
                     { key: 'lk', label: 'Личный кабинет' },
-                    { key: 'admin', label: 'Админ-панель' },
+                    { key: 'admin', label: 'Работа с объектами' },
                     { key: 'mobile', label: 'Мобильное приложение' }
                   ].map(interface_ => (
                     <label key={interface_.key} className="flex items-center">
@@ -323,12 +317,9 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                   ))}
                 </div>
               </div>
-            </div>
-          )}
+          </TabsContent>
 
-          {/* System Permissions Tab */}
-          {activeTab === 'permissions' && (
-            <div className="space-y-6">
+          <TabsContent value="permissions" className="m-0 space-y-6">
               {availablePermissions?.system_permissions && (
                 <>
                   <div>
@@ -354,28 +345,13 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                   </div>
                 </>
               )}
-            </div>
-          )}
+          </TabsContent>
 
-          {/* Module Permissions Tab */}
-          {activeTab === 'modules' && (
-            <div className="space-y-6">
+          <TabsContent value="modules" className="m-0 space-y-6">
               {availablePermissions?.module_permissions && (
                 <div className="flex flex-wrap items-center justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={selectAllModulePermissions}
-                    className="inline-flex items-center rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10"
-                  >
-                    Выбрать все
-                  </button>
-                  <button
-                    type="button"
-                    onClick={clearAllModulePermissions}
-                    className="inline-flex items-center rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary"
-                  >
-                    Снять все
-                  </button>
+                  <Button variant="outline" onClick={selectAllModulePermissions}>Выбрать все</Button>
+                  <Button variant="outline" onClick={clearAllModulePermissions}>Снять все</Button>
                 </div>
               )}
               {availablePermissions?.module_permissions && Object.entries(availablePermissions.module_permissions).map(([module, permissions]: [string, any]) => {
@@ -407,8 +383,8 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                           <span className="block text-sm text-muted-foreground">Выбрано прав: {selectedCount} из {permissionKeys.length}</span>
                         </span>
                       </button>
-                      <button
-                        type="button"
+                      <Button
+                        variant="outline"
                         aria-label={moduleSelectionLabel}
                         disabled={permissionKeys.length === 0}
                         onClick={() => {
@@ -418,10 +394,10 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                             selectModulePermissions(module, permissions);
                           }
                         }}
-                        className="inline-flex items-center justify-center rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="shrink-0"
                       >
                         {isFullySelected ? 'Снять модуль' : 'Выбрать модуль'}
-                      </button>
+                      </Button>
                     </div>
                     {isExpanded && (
                       <div id={`module-permissions-${module}`} className="border-t border-border p-4">
@@ -448,28 +424,17 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                   </div>
                 );
               })}
-            </div>
-          )}
+          </TabsContent>
         </div>
-
-        {/* Footer */}
-        <div className="p-6 border-t border-border flex justify-end space-x-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-secondary font-medium"
-          >
-            Отменить
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 font-medium"
-          >
-            {loading ? 'Сохранение...' : (role ? 'Обновить' : 'Создать')}
-          </button>
-        </div>
-      </div>
-    </div>
+        </Tabs>
+        <DialogFooter className="gap-2 border-t border-border p-5 sm:p-6">
+          <Button variant="outline" onClick={onClose} disabled={loading}>Отменить</Button>
+          <Button onClick={handleSave} disabled={loading}>
+            {loading ? 'Сохранение…' : (role ? 'Сохранить' : 'Создать')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

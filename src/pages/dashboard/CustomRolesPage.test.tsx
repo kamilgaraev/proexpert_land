@@ -55,6 +55,24 @@ describe('CustomRolesPage', () => {
     cloneCustomRole.mockResolvedValue({});
   });
 
+  it('names the dialog and fields and closes without saving', async () => {
+    render(<CustomRolesPage />);
+    const trigger = screen.getAllByRole('button', { name: 'Создать роль' })[0];
+    trigger.focus();
+    fireEvent.click(trigger);
+
+    expect(screen.getByRole('dialog', { name: 'Создать роль' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Название роли *' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Основное' })).toHaveFocus();
+    expect(screen.getByRole('textbox', { name: 'Описание' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Основное' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Закрыть диалог' }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(createCustomRole).not.toHaveBeenCalled();
+    await waitFor(() => expect(trigger).toHaveFocus());
+  });
+
   it('selects all module permissions from the role modal', async () => {
     render(<CustomRolesPage />);
 
@@ -62,7 +80,7 @@ describe('CustomRolesPage', () => {
     fireEvent.change(screen.getByPlaceholderText('Введите название роли'), {
       target: { value: 'Полный доступ' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Модули' }));
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Модули' }), { button: 0, ctrlKey: false });
     fireEvent.click(screen.getByRole('button', { name: 'Выбрать все' }));
     fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
 
@@ -80,7 +98,7 @@ describe('CustomRolesPage', () => {
     render(<CustomRolesPage />);
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Создать роль' })[0]);
-    fireEvent.click(screen.getByRole('button', { name: 'Модули' }));
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Модули' }), { button: 0, ctrlKey: false });
 
     expect(screen.getByRole('button', { name: 'Развернуть модуль Склад' })).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('checkbox', { name: 'Просмотр склада' })).not.toBeInTheDocument();
@@ -98,7 +116,7 @@ describe('CustomRolesPage', () => {
     fireEvent.change(screen.getByPlaceholderText('Введите название роли'), {
       target: { value: 'Складской доступ' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Модули' }));
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Модули' }), { button: 0, ctrlKey: false });
     fireEvent.click(screen.getByRole('button', { name: 'Выбрать все права модуля Склад' }));
     fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
 
