@@ -21,6 +21,8 @@ export function SecuritySessions() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [notice, setNotice] = useState('');
+  const returnFocus = useRef<HTMLButtonElement | null>(null);
+  const heading = useRef<HTMLHeadingElement | null>(null);
   const pending = useRef(false);
   const mounted = useRef(false);
 
@@ -66,7 +68,7 @@ export function SecuritySessions() {
     <section aria-labelledby="security-sessions-title" className="space-y-4 border-t border-border pt-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 id="security-sessions-title" className="text-xl font-semibold">Устройства и входы</h2>
+          <h2 ref={heading} tabIndex={-1} id="security-sessions-title" className="text-xl font-semibold">Устройства и входы</h2>
           <p className="mt-1 text-sm text-muted-foreground">Завершите вход на устройстве, которым больше не пользуетесь.</p>
         </div>
         <Button variant="outline" disabled={loading || saving} onClick={() => { setNotice(''); setRevision((value) => value + 1); }}>
@@ -92,13 +94,17 @@ export function SecuritySessions() {
                   {session.is_current ? <p className="text-sm font-medium">Это устройство</p> : session.status !== 'active' && <p className="text-sm text-muted-foreground">{session.status === 'revoked' ? 'Вход завершён' : session.status === 'expired' ? 'Срок входа истёк' : 'Состояние не определено'}</p>}
                 </div>
               </div>
-              {!session.is_current && session.status === 'active' && <Button variant="outline" onClick={() => { setSaveError(false); setSelected(session); }}>Завершить вход<span className="sr-only">: {session.device_name || 'устройство'}</span></Button>}
+              {!session.is_current && session.status === 'active' && <Button variant="outline" onClick={(event) => { returnFocus.current = event.currentTarget; setSaveError(false); setSelected(session); }}>Завершить вход<span className="sr-only">: {session.device_name || 'устройство'}</span></Button>}
             </li>
           ))}
         </ul>
       )}
       <Dialog open={selected !== null} onOpenChange={(open) => { if (!open && !pending.current) setSelected(null); }}>
-        <DialogContent>
+        <DialogContent onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          const target = returnFocus.current?.isConnected ? returnFocus.current : heading.current;
+          target?.focus({ preventScroll: true });
+        }}>
           <DialogHeader>
             <DialogTitle>Завершить вход?</DialogTitle>
             <DialogDescription>На устройстве «{selected?.device_name || 'Устройство не определено'}» потребуется снова войти в МОСТ. Этот вход останется активным.</DialogDescription>

@@ -27,6 +27,7 @@ describe('SecuritySessions', () => {
     const dialog = await openConfirmation();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Отмена' }));
     expect(securitySessionService.revoke).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.getByRole('button', { name: /Завершить вход\s*:\s*Другой компьютер/ })).toHaveFocus());
   });
 
   it('различает ошибку загрузки и пустой список, позволяет повторить запрос', async () => {
@@ -49,6 +50,7 @@ describe('SecuritySessions', () => {
     expect(await screen.findByText('Вход на выбранном устройстве завершён.')).toBeInTheDocument();
     expect(screen.getByText('Вход завершён')).toBeInTheDocument();
     expect(securitySessionService.revoke).toHaveBeenLastCalledWith(2);
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Устройства и входы' })).toHaveFocus());
   });
 
   it('не отправляет повторное завершение пока запрос выполняется', async () => {
