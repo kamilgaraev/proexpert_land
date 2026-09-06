@@ -17,6 +17,9 @@ export const Page = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [markingAll, setMarkingAll] = useState(false);
+  const markingAllRef = useRef(false);
   const perPage = 15;
   const headingRef = useRef<HTMLHeadingElement>(null);
   const requestVersionRef = useRef(0);
@@ -45,7 +48,12 @@ export const Page = () => {
       if (controller.signal.aborted || requestVersionRef.current !== requestVersion) {
         return;
       }
+      if (currentPage > response.meta.last_page) {
+        setCurrentPage(Math.max(1, response.meta.last_page));
+        return;
+      }
       setLoadError(null);
+      setUnreadCount(response.meta.unread_count);
       setNotifications(response.data);
       setTotalPages(response.meta.last_page);
       setTotal(response.meta.total);
@@ -65,6 +73,7 @@ export const Page = () => {
   useEffect(() => {
     setNotifications([]);
     setTotal(0);
+    setUnreadCount(0);
     setTotalPages(1);
     setLoadError(null);
     void fetchNotifications();
@@ -78,11 +87,9 @@ export const Page = () => {
       await notificationService.markAsRead(notificationId);
       if (requestVersionRef.current !== requestVersion
         || contextSignatureRef.current !== operationContextSignature) return;
-      setNotifications(prev =>
-        prev.map(n =>
-          n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n
-        )
-      );
+      headingRef.current?.focus();
+      setNotifications([]);
+      await fetchNotifications();
     } catch (error) {
       if (requestVersionRef.current !== requestVersion
         || contextSignatureRef.current !== operationContextSignature) return;
@@ -92,6 +99,10 @@ export const Page = () => {
   };
 
   const handleMarkAllAsRead = async () => {
+    if (markingAllRef.current) return;
+    markingAllRef.current = true;
+    setMarkingAll(true);
+    const operationContextSignature = contextSignature;
     const requestVersion = requestVersionRef.current;
     const operationOrganizationId = organizationId;
     try {
@@ -100,10 +111,11 @@ export const Page = () => {
         || organizationIdRef.current !== operationOrganizationId) {
         return;
       }
-      setNotifications(prev =>
-        prev.map(n => ({ ...n, read_at: new Date().toISOString() }))
-      );
-      toast.success('Все уведомления отмечены прочитанными');
+      if (contextSignatureRef.current !== operationContextSignature) return;
+      headingRef.current?.focus();
+      toast.success('Уведомления отмечены прочитанными');
+      setNotifications([]);
+      await fetchNotifications();
     } catch (error) {
       if (requestVersionRef.current !== requestVersion
         || organizationIdRef.current !== operationOrganizationId) {
@@ -111,6 +123,9 @@ export const Page = () => {
       }
       console.error('Ошибка при отметке всех уведомлений:', error);
       toast.error('Не удалось отметить все уведомления');
+    } finally {
+      markingAllRef.current = false;
+      setMarkingAll(false);
     }
   };
 
@@ -122,9 +137,9 @@ export const Page = () => {
       if (requestVersionRef.current !== requestVersion
         || contextSignatureRef.current !== operationContextSignature) return;
       headingRef.current?.focus();
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      setTotal(prev => Math.max(0, prev - 1));
       toast.success('Уведомление удалено');
+      setNotifications([]);
+      await fetchNotifications();
     } catch (error) {
       if (requestVersionRef.current !== requestVersion
         || contextSignatureRef.current !== operationContextSignature) return;
@@ -164,8 +179,6 @@ export const Page = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const unreadCount = notifications.filter(n => !n.read_at).length;
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="bg-white rounded-lg shadow-sm">
@@ -181,6 +194,7 @@ export const Page = () => {
             {unreadCount > 0 && (
               <Button
                 onClick={handleMarkAllAsRead}
+                disabled={markingAll || loading}
                 variant="outline"
               >
                 Отметить все прочитанными
