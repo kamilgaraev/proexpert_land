@@ -121,7 +121,7 @@ export const useCustomRoles = () => {
       setLoading(true);
       const response = await customRolesService.createCustomRole(roleData);
       const ok = (response?.status ?? 0) >= 200 && (response?.status ?? 0) < 300;
-      if (ok || (response.data && response.data.success)) {
+      if (response.data?.success !== false && (ok || response.data?.success === true)) {
         setError(null);
         await fetchCustomRoles(); // Обновляем список
         return response.data;
@@ -140,7 +140,7 @@ export const useCustomRoles = () => {
       setLoading(true);
       const response = await customRolesService.updateCustomRole(roleId, roleData);
       const ok = (response?.status ?? 0) >= 200 && (response?.status ?? 0) < 300;
-      if (ok || (response.data && response.data.success)) {
+      if (response.data?.success !== false && (ok || response.data?.success === true)) {
         setError(null);
         await fetchCustomRoles(); // Обновляем список
         return response.data;
@@ -159,7 +159,7 @@ export const useCustomRoles = () => {
       setLoading(true);
       const response = await customRolesService.deleteCustomRole(roleId);
       const ok = (response?.status ?? 0) >= 200 && (response?.status ?? 0) < 300;
-      if (ok || (response.data && response.data.success)) {
+      if (response.data?.success !== false && (ok || response.data?.success === true)) {
         setError(null);
         await fetchCustomRoles(); // Обновляем список
         return response.data;
@@ -178,7 +178,7 @@ export const useCustomRoles = () => {
       setLoading(true);
       const response = await customRolesService.cloneCustomRole(roleId, newName);
       const ok = (response?.status ?? 0) >= 200 && (response?.status ?? 0) < 300;
-      if (ok || (response.data && response.data.success)) {
+      if (response.data?.success !== false && (ok || response.data?.success === true)) {
         setError(null);
         await fetchCustomRoles(); // Обновляем список
         return response.data;
