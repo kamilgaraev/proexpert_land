@@ -96,6 +96,95 @@ describe('NotificationsPage lifecycle', () => {
     vi.mocked(notificationService.executeAction).mockResolvedValue(undefined);
   });
 
+  it('removes a marked item from unread results using the refreshed server snapshot', async () => {
+    const empty = response('unused', { read: true });
+    empty.data = [];
+    empty.meta.total = 0;
+    vi.mocked(notificationService.getNotifications)
+      .mockResolvedValueOnce(response('unread'))
+      .mockResolvedValueOnce(response('unread'))
+      .mockResolvedValueOnce(empty);
+    render(<Page />);
+    await screen.findByTestId('notification-unread');
+    fireEvent.click(screen.getByRole('button', { name: 'Непрочитанные' }));
+    await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledTimes(2));
+    await screen.findByTestId('notification-unread');
+    fireEvent.click(screen.getByTestId('read-unread'));
+    await screen.findByText('У вас нет непрочитанных уведомлений');
+    expect(notificationService.getNotifications).toHaveBeenLastCalledWith(1, 15, 'unread', 44, expect.any(AbortSignal));
+    expect(screen.getByText(/Всего:/)).toHaveTextContent('Всего: 0');
+    expect(screen.getByRole('heading', { name: 'Уведомления' })).toHaveFocus();
+  });
+
+  it('returns to the last existing page after deleting its final item', async () => {
+    const emptyLastPage = response('unused', { page: 2 });
+    emptyLastPage.data = [];
+    emptyLastPage.meta.total = 15;
+    vi.mocked(notificationService.getNotifications)
+      .mockResolvedValueOnce(response('first', { pages: 2 }))
+      .mockResolvedValueOnce(response('last', { pages: 2, page: 2 }))
+      .mockResolvedValueOnce(emptyLastPage)
+      .mockResolvedValueOnce(response('remaining'));
+    render(<Page />);
+    await screen.findByTestId('notification-first');
+    fireEvent.click(screen.getByRole('button', { name: 'Страница 2' }));
+    await screen.findByTestId('notification-last');
+    fireEvent.click(screen.getByTestId('delete-last'));
+    await screen.findByTestId('notification-remaining');
+    expect(notificationService.getNotifications).toHaveBeenLastCalledWith(1, 15, 'all', 44, expect.any(AbortSignal));
+    expect(screen.queryByRole('button', { name: 'Страница 2' })).not.toBeInTheDocument();
+  });
+
+  it('uses aggregate unread count and preserves notifications newer than mark-all snapshot', async () => {
+    const pending = deferred<{ count: number; sequence_cut: number }>();
+    const initial = response('old', { read: true, pages: 2 });
+    initial.meta.unread_count = 18;
+    vi.mocked(notificationService.markAllAsRead).mockReturnValueOnce(pending.promise);
+    vi.mocked(notificationService.getNotifications)
+      .mockResolvedValueOnce(initial)
+      .mockResolvedValueOnce(response('new-after-cut'));
+    render(<Page />);
+    await screen.findByTestId('notification-old');
+    expect(screen.getByText(/Всего:/)).toHaveTextContent('Непрочитанных: 18');
+    const markAll = screen.getByRole('button', { name: 'Отметить все прочитанными' });
+    fireEvent.click(markAll);
+    fireEvent.click(markAll);
+    expect(markAll).toBeDisabled();
+    expect(notificationService.markAllAsRead).toHaveBeenCalledOnce();
+    await act(async () => { pending.resolve({ count: 18, sequence_cut: 2 }); await pending.promise; });
+    await screen.findByTestId('notification-new-after-cut');
+    expect(screen.getByTestId('notification-new-after-cut')).toHaveAttribute('data-read', 'false');
+    expect(screen.getByText(/Всего:/)).toHaveTextContent('Непрочитанных: 1');
+  });
+
+  it('does not restore a deleted item when refreshing the list fails', async () => {
+    vi.mocked(notificationService.getNotifications)
+      .mockResolvedValueOnce(response('deleted'))
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce(response('remaining'));
+    render(<Page />);
+    await screen.findByTestId('notification-deleted');
+    fireEvent.click(screen.getByTestId('delete-deleted'));
+    await screen.findByRole('alert');
+    expect(screen.queryByTestId('notification-deleted')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку' }));
+    await screen.findByTestId('notification-remaining');
+    expect(notificationService.deleteNotification).toHaveBeenCalledOnce();
+  });
+
+  it('allows retry after mark-all fails', async () => {
+    vi.mocked(notificationService.getNotifications).mockResolvedValue(response('unread'));
+    vi.mocked(notificationService.markAllAsRead).mockRejectedValueOnce(new Error('offline'));
+    render(<Page />);
+    await screen.findByTestId('notification-unread');
+    const markAll = screen.getByRole('button', { name: 'Отметить все прочитанными' });
+    fireEvent.click(markAll);
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Не удалось отметить все уведомления'));
+    expect(markAll).not.toBeDisabled();
+    fireEvent.click(markAll);
+    await waitFor(() => expect(notificationService.markAllAsRead).toHaveBeenCalledTimes(2));
+  });
+
   it('shows a persistent loading error and retries without showing an empty result', async () => {
     vi.mocked(notificationService.getNotifications)
       .mockRejectedValueOnce(new Error('offline'))
