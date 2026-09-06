@@ -1,5 +1,6 @@
 import {
   useMemo,
+  useRef,
   useState,
   type ComponentProps,
   type FocusEvent,
@@ -65,6 +66,7 @@ export function Header({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [activeResultIndex, setActiveResultIndex] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const dashboardSearchItems = useMemo(
     () =>
@@ -99,6 +101,7 @@ export function Header({
   };
 
   const clearSearch = () => {
+    searchInputRef.current?.focus();
     setSearchQuery('');
     closeSearch();
   };
@@ -122,11 +125,6 @@ export function Header({
   };
 
   const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      clearSearch();
-      return;
-    }
-
     if (!isSearchOpen || searchResults.length === 0) {
       return;
     }
@@ -170,10 +168,18 @@ export function Header({
           <div
             className="relative order-last w-full min-w-0 xl:order-none xl:ml-auto xl:w-56 2xl:w-80"
             onBlur={handleSearchBlur}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+                clearSearch();
+              }
+            }}
           >
             <form onSubmit={handleSearchSubmit}>
               <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input
+                ref={searchInputRef}
                 type="search"
                 value={searchQuery}
                 onChange={(event) => {
