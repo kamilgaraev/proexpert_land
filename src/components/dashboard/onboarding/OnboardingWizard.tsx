@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useOrganizationProfile } from '@/hooks/useOrganizationProfile';
 import { getPrimaryWorkspaceRoute, resolvePrimaryBusinessType } from '@/utils/organizationProfile';
@@ -29,6 +30,8 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   } = useOrganizationProfile();
 
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const saveInFlight = useRef(false);
 
   useEffect(() => {
     fetchAvailableCapabilities();
@@ -75,7 +78,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     return true;
   };
 
-  const handleNext = async () => {
+  const advanceStep = async () => {
     if (onboarding.currentStep === 'capabilities' && onboarding.data.capabilities.length > 0) {
       try {
         setIsSaving(true);
@@ -149,39 +152,56 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     onboarding.goNext();
   };
 
+  const handleNext = async () => {
+    if (saveInFlight.current || !canProceed()) return;
+    if (onboarding.currentStep === 'welcome') {
+      onboarding.goNext();
+      return;
+    }
+    saveInFlight.current = true;
+    setSaveError(null);
+    try {
+      await advanceStep();
+    } catch {
+      setSaveError('Не удалось сохранить настройки. Ваш выбор остался в форме. Повторите попытку, когда соединение восстановится.');
+    } finally {
+      saveInFlight.current = false;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-construction-50 via-white to-orange-50 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8">
-          <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">Настройка профиля организации</h1>
-            <button onClick={() => onboarding.reset()} className="text-sm text-gray-500 hover:text-gray-700">
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+            <h1 className="text-3xl font-bold text-foreground">Настройка профиля организации</h1>
+            <Button variant="ghost" disabled={isSaving} onClick={() => { setSaveError(null); onboarding.reset(); }}>
               Сбросить
-            </button>
+            </Button>
           </div>
 
           <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
             <div
-              className="h-full bg-gradient-to-r from-construction-500 to-construction-600 transition-all duration-500 ease-out"
+              className="h-full bg-primary transition-[width] duration-300 ease-out motion-reduce:transition-none"
               style={{ width: `${onboarding.progress}%` }}
             />
           </div>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-muted-foreground">
             Шаг {onboarding.allSteps.findIndex((step) => step.id === onboarding.currentStep) + 1} из{' '}
             {onboarding.allSteps.length}
           </p>
         </div>
 
-        <div className="rounded-2xl bg-white p-8 shadow-xl">
+        <div className="rounded-sm border border-border bg-card p-5 sm:p-8">
           {onboarding.currentStep === 'welcome' && (
             <div className="space-y-6 text-center">
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-construction-500 to-orange-600">
-                <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                <svg className="h-10 w-10 text-foreground" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-gray-900">Добро пожаловать в МОСТ</h2>
-              <p className="mx-auto max-w-2xl text-lg text-gray-600">
+              <h2 className="text-3xl font-bold text-foreground">Добро пожаловать в МОСТ</h2>
+              <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
                 Сначала отметьте все направления, которыми компания реально занимается, а затем выберите основной
                 режим работы для личного кабинета.
               </p>
@@ -191,8 +211,8 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           {onboarding.currentStep === 'capabilities' && (
             <div className="space-y-6">
               <div className="mb-8 text-center">
-                <h2 className="mb-2 text-2xl font-bold text-gray-900">Направления деятельности</h2>
-                <p className="text-gray-600">Выберите все направления, которыми занимается организация</p>
+                <h2 className="mb-2 text-2xl font-bold text-foreground">Направления деятельности</h2>
+                <p className="text-muted-foreground">Выберите все направления, которыми занимается организация</p>
               </div>
               <CapabilitiesSelector
                 selectedCapabilities={onboarding.data.capabilities}
@@ -207,8 +227,8 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           {onboarding.currentStep === 'business_type' && (
             <div className="space-y-6">
               <div className="mb-8 text-center">
-                <h2 className="mb-2 text-2xl font-bold text-gray-900">Основной режим работы</h2>
-                <p className="text-gray-600">
+                <h2 className="mb-2 text-2xl font-bold text-foreground">Основной режим работы</h2>
+                <p className="text-muted-foreground">
                   Этот режим будет открываться первым и задаст приоритет рекомендациям по пакетам и действиям
                 </p>
               </div>
@@ -223,8 +243,8 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           {onboarding.currentStep === 'specializations' && (
             <div className="space-y-6">
               <div className="mb-8 text-center">
-                <h2 className="mb-2 text-2xl font-bold text-gray-900">Специализации</h2>
-                <p className="text-gray-600">Укажите специализации организации, если хотите уточнить профиль</p>
+                <h2 className="mb-2 text-2xl font-bold text-foreground">Специализации</h2>
+                <p className="text-muted-foreground">Укажите специализации организации, если хотите уточнить профиль</p>
               </div>
               <SpecializationsSelector
                 selectedSpecializations={onboarding.data.specializations}
@@ -236,8 +256,8 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           {onboarding.currentStep === 'certifications' && (
             <div className="space-y-6">
               <div className="mb-8 text-center">
-                <h2 className="mb-2 text-2xl font-bold text-gray-900">Сертификаты и допуски</h2>
-                <p className="text-gray-600">Этот шаг можно пропустить и вернуться к нему позже</p>
+                <h2 className="mb-2 text-2xl font-bold text-foreground">Сертификаты и допуски</h2>
+                <p className="text-muted-foreground">Этот шаг можно пропустить и вернуться к нему позже</p>
               </div>
               <CertificationsList
                 certifications={onboarding.data.certifications}
@@ -249,13 +269,13 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
           {onboarding.currentStep === 'complete' && (
             <div className="space-y-8">
               <div className="space-y-6 text-center">
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-emerald-600">
-                  <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                  <svg className="h-10 w-10 text-foreground" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900">Профиль готов</h2>
-                <p className="mx-auto max-w-2xl text-lg text-gray-600">
+                <h2 className="text-3xl font-bold text-foreground">Профиль готов</h2>
+                <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
                   Мы сохранили выбранные направления и собрали стартовый раздел под основной режим работы.
                 </p>
               </div>
@@ -272,16 +292,17 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
             </div>
           )}
 
-          <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-6">
-            <button
-              onClick={onboarding.goPrev}
+          {saveError && <p role="alert" className="mt-6 rounded-sm border border-border bg-muted p-4 text-sm text-foreground">{saveError}</p>}
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
+            <Button
+              variant="outline"
+              onClick={() => { setSaveError(null); onboarding.goPrev(); }}
               disabled={!onboarding.canGoPrev || isSaving}
-              className="rounded-lg border border-gray-300 bg-white px-6 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              ← Назад
-            </button>
+              Назад
+            </Button>
 
-            <div className="flex space-x-2">
+            <div className="hidden space-x-2 sm:flex" aria-hidden="true">
               {onboarding.allSteps.map((step) => (
                 <div
                   key={step.id}
@@ -294,13 +315,12 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
               ))}
             </div>
 
-            <button
+            <Button
               onClick={handleNext}
               disabled={!canProceed() || isSaving}
-              className="rounded-lg bg-construction-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-construction-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {onboarding.currentStep === 'complete' ? 'Начать работу' : 'Далее'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
