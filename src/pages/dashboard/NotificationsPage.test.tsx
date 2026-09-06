@@ -82,11 +82,41 @@ const response = (id: string, options: { read?: boolean; pages?: number; page?: 
 
 describe('NotificationsPage lifecycle', () => {
   beforeEach(() => {
+    vi.resetAllMocks();
     organizationId = 44;
     vi.mocked(notificationService.markAsRead).mockResolvedValue();
     vi.mocked(notificationService.markAllAsRead).mockResolvedValue({ count: 0, sequence_cut: 1 });
     vi.mocked(notificationService.deleteNotification).mockResolvedValue();
     vi.mocked(notificationService.executeAction).mockResolvedValue(undefined);
+  });
+
+  it('shows a persistent loading error and retries without showing an empty result', async () => {
+    vi.mocked(notificationService.getNotifications)
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce(response('recovered'));
+    render(<Page />);
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Не удалось загрузить уведомления'));
+    expect(screen.queryByText('Нет уведомлений')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку' }));
+    expect(screen.getByRole('heading', { name: 'Уведомления' })).toHaveFocus();
+    await waitFor(() => expect(screen.getByTestId('notification-recovered')).toBeInTheDocument());
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('resets pagination when the filter changes and never keeps previous-filter items after failure', async () => {
+    vi.mocked(notificationService.getNotifications)
+      .mockResolvedValueOnce(response('first', { pages: 3 }))
+      .mockResolvedValueOnce(response('second', { pages: 3, page: 2 }))
+      .mockRejectedValueOnce(new Error('offline'));
+    render(<Page />);
+    await waitFor(() => expect(screen.getByTestId('notification-first')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Страница 2' }));
+    await waitFor(() => expect(screen.getByTestId('notification-second')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'Непрочитанные' }));
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    expect(notificationService.getNotifications).toHaveBeenLastCalledWith(1, 15, 'unread', 44, expect.any(AbortSignal));
+    expect(screen.queryByTestId('notification-second')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Непрочитанные' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('keeps organization B when a deferred organization A request resolves later', async () => {
@@ -121,9 +151,9 @@ describe('NotificationsPage lifecycle', () => {
     render(<Page />);
     await waitFor(() => expect(screen.getByTestId('notification-initial')).toBeInTheDocument());
 
-    fireEvent.click(screen.getByRole('button', { name: '2' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Страница 2' }));
     await waitFor(() => expect(notificationService.getNotifications).toHaveBeenCalledTimes(2));
-    fireEvent.click(screen.getAllByRole('button')[1]);
+    fireEvent.click(screen.getByRole('button', { name: 'Непрочитанные' }));
     await waitFor(() => expect(screen.getByTestId('notification-newest-filter')).toBeInTheDocument());
 
     await act(async () => {

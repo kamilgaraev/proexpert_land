@@ -8,6 +8,7 @@ interface UseNotificationsReturn {
   notifications: Notification[];
   unreadCount: number;
   loading: boolean;
+  loadError: string | null;
   refreshNotifications: () => Promise<void>;
   refreshUnreadCount: () => Promise<void>;
   markAsRead: (notificationId: string) => Promise<void>;
@@ -159,6 +160,7 @@ export const useNotifications = (
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const lifecycleEpochRef = useRef(0);
   const listRequestVersionRef = useRef(0);
   const snapshotRequestVersionRef = useRef(0);
@@ -310,6 +312,7 @@ export const useNotifications = (
         return;
       }
 
+      setLoadError(null);
       response.data.forEach(notification => knownNotificationsRef.current.set(notification.id, notification));
 
       const fetched = response.data
@@ -368,7 +371,10 @@ export const useNotifications = (
         }
       }
     } catch (error) {
-      if (lifecycleEpochRef.current === epoch && !controller.signal.aborted) {
+      if (lifecycleEpochRef.current === epoch
+        && !controller.signal.aborted
+        && listRequestVersionRef.current === requestVersion) {
+        setLoadError('Не удалось загрузить уведомления. Попробуйте ещё раз.');
         console.error('Ошибка при загрузке уведомлений:', error);
       }
     } finally {
@@ -648,6 +654,7 @@ export const useNotifications = (
     publishNotifications([]);
     publishUnreadCount(0);
     setLoading(false);
+    setLoadError(null);
 
     if (!userId || !token) {
       return () => {
@@ -799,6 +806,7 @@ export const useNotifications = (
     notifications,
     unreadCount,
     loading,
+    loadError,
     refreshNotifications,
     refreshUnreadCount,
     markAsRead,

@@ -4,17 +4,21 @@ import type { Notification, NotificationFilter } from '../../types/notification'
 import { NotificationItem } from '../../components/dashboard/notifications/NotificationItem';
 import { toast } from 'react-toastify';
 import { useAuth } from '@hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { BellIcon, CircleAlertIcon } from 'lucide-react';
 
 export const Page = () => {
   const { user } = useAuth();
   const organizationId = user?.current_organization_id ?? null;
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [filter, setFilter] = useState<NotificationFilter>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const perPage = 15;
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const requestVersionRef = useRef(0);
   const requestControllerRef = useRef<AbortController | null>(null);
   const organizationIdRef = useRef(organizationId);
@@ -41,6 +45,7 @@ export const Page = () => {
       if (controller.signal.aborted || requestVersionRef.current !== requestVersion) {
         return;
       }
+      setLoadError(null);
       setNotifications(response.data);
       setTotalPages(response.meta.last_page);
       setTotal(response.meta.total);
@@ -49,7 +54,7 @@ export const Page = () => {
         return;
       }
       console.error('Ошибка при загрузке уведомлений:', error);
-      toast.error('Не удалось загрузить уведомления');
+      setLoadError('Не удалось загрузить уведомления. Попробуйте ещё раз.');
     } finally {
       if (requestVersionRef.current === requestVersion) {
         setLoading(false);
@@ -58,6 +63,10 @@ export const Page = () => {
   }, [currentPage, filter, organizationId]);
 
   useEffect(() => {
+    setNotifications([]);
+    setTotal(0);
+    setTotalPages(1);
+    setLoadError(null);
     void fetchNotifications();
     return () => requestControllerRef.current?.abort();
   }, [fetchNotifications]);
@@ -132,6 +141,11 @@ export const Page = () => {
     }
   };
 
+  const handleFilterChange = (nextFilter: NotificationFilter) => {
+    setCurrentPage(1);
+    setFilter(nextFilter);
+  };
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -143,66 +157,71 @@ export const Page = () => {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="bg-white rounded-lg shadow-sm">
         <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Уведомления</h1>
+              <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-gray-900">Уведомления</h1>
               <p className="text-sm text-gray-600 mt-1">
                 Всего: {total} {unreadCount > 0 && `• Непрочитанных: ${unreadCount}`}
               </p>
             </div>
 
             {unreadCount > 0 && (
-              <button
+              <Button
                 onClick={handleMarkAllAsRead}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                variant="outline"
               >
                 Отметить все прочитанными
-              </button>
+              </Button>
             )}
           </div>
 
-          <div className="flex gap-2 mt-4">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button
+              onClick={() => handleFilterChange('all')}
+              aria-pressed={filter === 'all'}
+              variant={filter === 'all' ? 'secondary' : 'ghost'}
             >
               Все
-            </button>
-            <button
-              onClick={() => setFilter('unread')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'unread'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+            </Button>
+            <Button
+              onClick={() => handleFilterChange('unread')}
+              aria-pressed={filter === 'unread'}
+              variant={filter === 'unread' ? 'secondary' : 'ghost'}
             >
               Непрочитанные
-            </button>
-            <button
-              onClick={() => setFilter('read')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'read'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+            </Button>
+            <Button
+              onClick={() => handleFilterChange('read')}
+              aria-pressed={filter === 'read'}
+              variant={filter === 'read' ? 'secondary' : 'ghost'}
             >
               Прочитанные
-            </button>
+            </Button>
           </div>
         </div>
 
         <div>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
+          {loadError && (
+            <div className="m-6 rounded-lg border border-border bg-secondary/30 p-4">
+              <div role="alert" className="flex items-start gap-3 text-sm text-foreground">
+                <CircleAlertIcon aria-hidden="true" className="h-5 w-5 shrink-0 text-muted-foreground" />
+                <p>{loadError}</p>
+              </div>
+              <Button variant="outline" className="mt-3" disabled={loading} onClick={() => {
+                headingRef.current?.focus();
+                void fetchNotifications();
+              }}>
+                {loading ? 'Загружаем…' : 'Повторить загрузку'}
+              </Button>
+            </div>
+          )}
+          {loadError && notifications.length === 0 ? null : loading ? (
+            <div role="status" aria-label="Загрузка уведомлений" className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4">
-              <div className="text-6xl mb-4">🔔</div>
+              <BellIcon aria-hidden="true" className="mb-4 h-10 w-10 text-muted-foreground" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 Нет уведомлений
               </h3>
@@ -231,14 +250,14 @@ export const Page = () => {
 
         {totalPages > 1 && (
           <div className="p-6 border-t border-gray-200">
-            <div className="flex items-center justify-center gap-2">
-              <button
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                variant="outline"
               >
                 Назад
-              </button>
+              </Button>
 
               <div className="flex gap-1">
                 {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
@@ -254,28 +273,27 @@ export const Page = () => {
                   }
 
                   return (
-                    <button
+                    <Button
                       key={pageNum}
                       onClick={() => handlePageChange(pageNum)}
-                      className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                        currentPage === pageNum
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      aria-label={`Страница ${pageNum}`}
+                      aria-current={currentPage === pageNum ? 'page' : undefined}
+                      variant={currentPage === pageNum ? 'secondary' : 'ghost'}
+                      className="h-10 w-10 p-0 tabular-nums"
                     >
                       {pageNum}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
 
-              <button
+              <Button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                variant="outline"
               >
                 Вперед
-              </button>
+              </Button>
             </div>
           </div>
         )}
