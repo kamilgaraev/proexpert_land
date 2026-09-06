@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useOrganizationProfile } from '@/hooks/useOrganizationProfile';
@@ -20,6 +20,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const onboarding = useOnboarding();
   const {
     profile,
+    fetchProfile,
     availableCapabilities,
     fetchAvailableCapabilities,
     updateBusinessType,
@@ -33,9 +34,30 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   const [saveError, setSaveError] = useState<string | null>(null);
   const saveInFlight = useRef(false);
 
+  const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const initialized = useRef(false);
+  const { updateCapabilities: setCapabilities, updateBusinessType: setBusinessType, updateSpecializations: setSpecializations, updateCertifications: setCertifications } = onboarding;
+  const loadInitialData = useCallback(async () => {
+    setIsLoadingInitialData(true);
+    try {
+      await Promise.all([fetchProfile(), fetchAvailableCapabilities()]);
+    } finally {
+      setIsLoadingInitialData(false);
+    }
+  }, [fetchProfile, fetchAvailableCapabilities]);
+
+  useEffect(() => { void loadInitialData(); }, [loadInitialData]);
+
   useEffect(() => {
-    fetchAvailableCapabilities();
-  }, [fetchAvailableCapabilities]);
+    if (!profile || initialized.current || isLoadingInitialData || availableCapabilities.length === 0) return;
+    initialized.current = true;
+    setCapabilities(profile.capabilities);
+    setBusinessType(profile.primary_business_type);
+    setSpecializations(profile.specializations);
+    setCertifications(profile.certifications);
+    setIsInitialized(true);
+  }, [profile, isLoadingInitialData, availableCapabilities.length, setCapabilities, setBusinessType, setSpecializations, setCertifications]);
 
   useEffect(() => {
     const nextBusinessType = resolvePrimaryBusinessType(
@@ -67,6 +89,7 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
   };
 
   const canProceed = () => {
+    if (!isInitialized || isLoadingInitialData) return false;
     if (onboarding.currentStep === 'capabilities') {
       return onboarding.data.capabilities.length > 0;
     }
@@ -104,11 +127,6 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     }
 
     if (onboarding.currentStep === 'specializations') {
-      if (onboarding.data.specializations.length === 0) {
-        onboarding.goNext();
-        return;
-      }
-
       try {
         setIsSaving(true);
         await updateSpecializations(onboarding.data.specializations);
@@ -121,11 +139,6 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     }
 
     if (onboarding.currentStep === 'certifications') {
-      if (onboarding.data.certifications.length === 0) {
-        onboarding.goNext();
-        return;
-      }
-
       try {
         setIsSaving(true);
         await updateCertifications(onboarding.data.certifications);
@@ -292,6 +305,8 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
             </div>
           )}
 
+          {isLoadingInitialData && <p role="status" className="mt-6 text-sm text-muted-foreground">Загружаем настройки компании…</p>}
+          {!isLoadingInitialData && !isInitialized && <div role="alert" className="mt-6 space-y-3 rounded-sm border border-border bg-muted p-4"><p>Не удалось загрузить настройки компании. Повторите попытку.</p><Button variant="outline" onClick={() => void loadInitialData()}>Повторить загрузку</Button></div>}
           {saveError && <p role="alert" className="mt-6 rounded-sm border border-border bg-muted p-4 text-sm text-foreground">{saveError}</p>}
           <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
             <Button
