@@ -17,6 +17,8 @@ import ConfirmActionModal from '@components/shared/ConfirmActionModal';
 import { PageLoading } from '@components/common/PageLoading';
 import NotificationService from '@components/shared/NotificationService';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import type { Permission } from '@hooks/useCustomRoles';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
@@ -53,6 +55,19 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
   });
 
   const [loading, setLoading] = useState(false);
+  const saveInFlight = useRef(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [permissionSearch, setPermissionSearch] = useState('');
+  const normalizedSearch = permissionSearch.trim().toLocaleLowerCase('ru');
+  const matchesPermission = (permission: Permission) => !normalizedSearch || `${permission.name} ${permission.description || ''}`.toLocaleLowerCase('ru').includes(normalizedSearch);
+  const visibleSystemPermissions = (availablePermissions?.system_permissions || []).filter(matchesPermission);
+  const visibleModules = Object.entries(availablePermissions?.module_permissions || {}).flatMap(([module, permissions]) => {
+    const allPermissions = Array.isArray(permissions) ? permissions as Permission[] : [];
+    const moduleName = availablePermissions?.module_groups?.[module] || module;
+    const matchesModule = !normalizedSearch || moduleName.toLocaleLowerCase('ru').includes(normalizedSearch);
+    const visiblePermissions = matchesModule ? allPermissions : allPermissions.filter(matchesPermission);
+    return visiblePermissions.length ? [{ module, moduleName, allPermissions, visiblePermissions }] : [];
+  });
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const [activeTab, setActiveTab] = useState<'basic' | 'permissions' | 'modules'>('basic');
   const [expandedModules, setExpandedModules] = useState<Set<string>>(() => new Set());
@@ -90,11 +105,16 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
       }
       setActiveTab('basic');
       setExpandedModules(new Set());
+      setPermissionSearch('');
+      setSaveError(null);
     }
   }, [isOpen, role]);
 
   const handleSave = async () => {
+    if (saveInFlight.current || !availablePermissions) return;
     if (!formData.name.trim()) {
+      setSaveError('Укажите название роли.');
+      setActiveTab('basic');
       NotificationService.show({
         type: 'error',
         title: 'Ошибка валидации',
@@ -103,7 +123,9 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
       return;
     }
 
+    saveInFlight.current = true;
     setLoading(true);
+    setSaveError(null);
     try {
       await onSave(formData);
       onClose();
@@ -112,13 +134,10 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
         title: 'Успешно',
         message: role ? 'Роль обновлена' : 'Роль создана'
       });
-    } catch (error: any) {
-      NotificationService.show({
-        type: 'error',
-        title: 'Ошибка',
-        message: error.message
-      });
+    } catch {
+      setSaveError('Не удалось сохранить роль. Введённые данные сохранены в форме. Попробуйте ещё раз.');
     } finally {
+      saveInFlight.current = false;
       setLoading(false);
     }
   };
@@ -262,7 +281,15 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
           </TabsList>
         </div>
 
-        {/* Content */}
+        {activeTab !== 'basic' && (
+          <div className="space-y-2 border-b border-border px-5 py-3 sm:px-6">
+            <label htmlFor="role-permission-search" className="text-sm font-medium">Найти право или раздел</label>
+            <div className="flex items-center gap-2">
+              <Input id="role-permission-search" type="search" value={permissionSearch} onChange={event => setPermissionSearch(event.target.value)} placeholder="Например, склад или документы" />
+              {permissionSearch && <Button variant="ghost" onClick={() => setPermissionSearch('')}>Сбросить</Button>}
+            </div>
+          </div>
+        )}
         <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
           {/* Basic Info Tab */}
           <TabsContent value="basic" className="m-0 space-y-6">
@@ -320,12 +347,13 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
           </TabsContent>
 
           <TabsContent value="permissions" className="m-0 space-y-6">
+              {normalizedSearch && visibleSystemPermissions.length === 0 && <p role="status" className="text-muted-foreground">Права не найдены. Измените запрос или сбросьте поиск.</p>}
               {availablePermissions?.system_permissions && (
                 <>
                   <div>
                     <h4 className="text-lg font-medium text-foreground mb-4">Системные права</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {availablePermissions.system_permissions.map((permission: any) => (
+                      {visibleSystemPermissions.map((permission: Permission) => (
                         <label key={permission.key} className="flex items-start">
                           <input
                             type="checkbox"
@@ -348,19 +376,20 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
           </TabsContent>
 
           <TabsContent value="modules" className="m-0 space-y-6">
-              {availablePermissions?.module_permissions && (
+              {normalizedSearch && visibleModules.length === 0 && <p role="status" className="text-muted-foreground">Права не найдены. Измените запрос или сбросьте поиск.</p>}
+              {!normalizedSearch && availablePermissions?.module_permissions && (
                 <div className="flex flex-wrap items-center justify-end gap-3">
                   <Button variant="outline" onClick={selectAllModulePermissions}>Выбрать все</Button>
                   <Button variant="outline" onClick={clearAllModulePermissions}>Снять все</Button>
                 </div>
               )}
-              {availablePermissions?.module_permissions && Object.entries(availablePermissions.module_permissions).map(([module, permissions]: [string, any]) => {
-                const moduleName = availablePermissions?.module_groups?.[module] || module;
-                const permissionList = Array.isArray(permissions) ? permissions : [];
+              {visibleModules.map(({ module, moduleName, allPermissions, visiblePermissions }) => {
+                const permissions = allPermissions;
+                const permissionList = visiblePermissions;
                 const permissionKeys = getPermissionKeys(permissions);
                 const selectedPermissions = formData.module_permissions?.[module] || [];
                 const selectedCount = permissionKeys.filter(permission => selectedPermissions.includes(permission)).length;
-                const isExpanded = expandedModules.has(module);
+                const isExpanded = !!normalizedSearch || expandedModules.has(module);
                 const isFullySelected = permissionKeys.length > 0 && permissionKeys.every(permission => selectedPermissions.includes(permission));
                 const moduleSelectionLabel = isFullySelected
                   ? `Снять все права модуля ${moduleName}`
@@ -371,6 +400,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                     <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                       <button
                         type="button"
+                        disabled={!!normalizedSearch}
                         aria-expanded={isExpanded}
                         aria-controls={`module-permissions-${module}`}
                         aria-label={isExpanded ? `Свернуть модуль ${moduleName}` : `Развернуть модуль ${moduleName}`}
@@ -383,7 +413,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                           <span className="block text-sm text-muted-foreground">Выбрано прав: {selectedCount} из {permissionKeys.length}</span>
                         </span>
                       </button>
-                      <Button
+                      {!normalizedSearch && <Button
                         variant="outline"
                         aria-label={moduleSelectionLabel}
                         disabled={permissionKeys.length === 0}
@@ -397,7 +427,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                         className="shrink-0"
                       >
                         {isFullySelected ? 'Снять модуль' : 'Выбрать модуль'}
-                      </Button>
+                      </Button>}
                     </div>
                     {isExpanded && (
                       <div id={`module-permissions-${module}`} className="border-t border-border p-4">
@@ -427,9 +457,11 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
           </TabsContent>
         </div>
         </Tabs>
+        {saveError && <p role="alert" className="border-t border-border px-5 py-3 text-sm text-destructive sm:px-6">{saveError}</p>}
+        {!availablePermissions && <p role="status" className="px-5 py-3 text-sm text-muted-foreground sm:px-6">Права пока не загружены. Закройте форму и повторите загрузку на странице ролей.</p>}
         <DialogFooter className="gap-2 border-t border-border p-5 sm:p-6">
           <Button variant="outline" onClick={onClose} disabled={loading}>Отменить</Button>
-          <Button onClick={handleSave} disabled={loading}>
+          <Button onClick={handleSave} disabled={loading || !availablePermissions}>
             {loading ? 'Сохранение…' : (role ? 'Сохранить' : 'Создать')}
           </Button>
         </DialogFooter>
@@ -448,6 +480,8 @@ const CustomRolesPage = () => {
     updateCustomRole,
     deleteCustomRole,
     cloneCustomRole,
+    fetchCustomRoles,
+    fetchAvailablePermissions,
   } = useCustomRoles();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -540,11 +574,12 @@ const CustomRolesPage = () => {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" />
-            <div className="text-red-800">{error}</div>
+        <div role="alert" className="rounded-md border border-border bg-card p-4">
+          <div className="flex items-center gap-2">
+            <ExclamationTriangleIcon aria-hidden="true" className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <p>Не удалось выполнить действие с ролями. Проверьте соединение и повторите попытку.</p>
           </div>
+          <Button variant="outline" className="mt-3" onClick={() => { void fetchCustomRoles(); void fetchAvailablePermissions(); }} disabled={loading}>Повторить загрузку</Button>
         </div>
       )}
 

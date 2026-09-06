@@ -3,16 +3,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import CustomRolesPage from './CustomRolesPage';
 
-const roleState = vi.hoisted(() => ({ loading: false, roles: [] as Array<Record<string, unknown>> }));
+const roleState = vi.hoisted(() => ({ loading: false, permissionsUnavailable: false, error: null as string | null, roles: [] as Array<Record<string, unknown>> }));
 const createCustomRole = vi.fn();
 const updateCustomRole = vi.fn();
 const deleteCustomRole = vi.fn();
 const cloneCustomRole = vi.fn();
+const fetchCustomRoles = vi.fn();
+const fetchAvailablePermissions = vi.fn();
 
 vi.mock('@hooks/useCustomRoles', () => ({
   useCustomRoles: () => ({
     customRoles: roleState.roles,
-    availablePermissions: {
+    availablePermissions: roleState.permissionsUnavailable ? null : {
       system_permissions: [],
       module_permissions: {
         warehouse: [
@@ -29,7 +31,9 @@ vi.mock('@hooks/useCustomRoles', () => ({
       },
     },
     loading: roleState.loading,
-    error: null,
+    error: roleState.error,
+    fetchCustomRoles,
+    fetchAvailablePermissions,
     createCustomRole,
     updateCustomRole,
     deleteCustomRole,
@@ -51,6 +55,8 @@ describe('CustomRolesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     roleState.loading = false;
+    roleState.permissionsUnavailable = false;
+    roleState.error = null;
     roleState.roles = [];
     createCustomRole.mockResolvedValue({});
     updateCustomRole.mockResolvedValue({});
@@ -86,6 +92,22 @@ describe('CustomRolesPage', () => {
     roleState.loading = false;
     view.rerender(<CustomRolesPage />);
     expect(screen.getByRole('textbox', { name: 'Название роли *' })).toHaveValue('Снабжение');
+  });
+
+  it('prevents saving without loaded permissions and offers a safe load retry', () => {
+    roleState.permissionsUnavailable = true;
+    roleState.error = 'Internal server failure';
+    render(<CustomRolesPage />);
+    expect(screen.getByRole('alert')).not.toHaveTextContent('Internal server failure');
+    fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку' }));
+    expect(fetchCustomRoles).toHaveBeenCalledTimes(1);
+    expect(fetchAvailablePermissions).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Создать роль' })[0]);
+    fireEvent.change(screen.getByPlaceholderText('Введите название роли'), { target: { value: 'Снабжение' } });
+    expect(screen.getByText(/Права пока не загружены/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Создать' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
+    expect(createCustomRole).not.toHaveBeenCalled();
   });
 
   it('copies a role through the named dialog', async () => {
@@ -134,6 +156,54 @@ describe('CustomRolesPage', () => {
 
     expect(screen.getByRole('button', { name: 'Свернуть модуль Склад' })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('checkbox', { name: 'Просмотр склада' })).toBeInTheDocument();
+  });
+
+  it('preserves selected permissions when searching another module and retrying a failed save', async () => {
+    createCustomRole.mockRejectedValueOnce(new Error('Internal server failure'));
+    render(<CustomRolesPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Создать роль' })[0]);
+    fireEvent.change(screen.getByPlaceholderText('Введите название роли'), { target: { value: 'Складской доступ' } });
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Модули' }), { button: 0, ctrlKey: false });
+    const search = screen.getByRole('searchbox', { name: 'Найти право или раздел' });
+    fireEvent.change(search, { target: { value: 'Просмотр склада' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Просмотр склада' }));
+    fireEvent.change(search, { target: { value: 'Сметы' } });
+    expect(screen.queryByRole('checkbox', { name: 'Просмотр склада' })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'AI-генерация смет' })).not.toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Не удалось сохранить роль'));
+    expect(screen.queryByText('Internal server failure')).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(createCustomRole).toHaveBeenCalledTimes(2);
+    for (const [data] of createCustomRole.mock.calls) {
+      expect(data).toEqual(expect.objectContaining({ name: 'Складской доступ', module_permissions: { warehouse: ['warehouse.view'] } }));
+    }
+  });
+
+  it('does not offer bulk selection of hidden permissions during search', () => {
+    render(<CustomRolesPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Создать роль' })[0]);
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Модули' }), { button: 0, ctrlKey: false });
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Просмотр склада' } });
+    expect(screen.queryByRole('button', { name: 'Выбрать все' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Выбрать все права модуля Склад' })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Просмотр склада' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Сбросить' }));
+    expect(screen.getByRole('button', { name: 'Выбрать все' })).toBeInTheDocument();
+  });
+
+  it('shows an empty permission search and restores module groups after reset', () => {
+    render(<CustomRolesPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Создать роль' })[0]);
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Модули' }), { button: 0, ctrlKey: false });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Найти право или раздел' }), { target: { value: 'Несуществующее право' } });
+    expect(screen.getByRole('status')).toHaveTextContent('Права не найдены');
+    fireEvent.click(screen.getByRole('button', { name: 'Сбросить' }));
+    expect(screen.getByRole('searchbox')).toHaveValue('');
+    expect(screen.getByRole('button', { name: 'Развернуть модуль Склад' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Развернуть модуль Сметы' })).toBeInTheDocument();
   });
 
   it('selects permissions only for the chosen module', async () => {
