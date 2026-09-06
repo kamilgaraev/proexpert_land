@@ -285,7 +285,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
           <div className="space-y-2 border-b border-border px-5 py-3 sm:px-6">
             <label htmlFor="role-permission-search" className="text-sm font-medium">Найти право или раздел</label>
             <div className="flex items-center gap-2">
-              <Input id="role-permission-search" type="search" value={permissionSearch} onChange={event => setPermissionSearch(event.target.value)} placeholder="Например, склад или документы" />
+              <Input id="role-permission-search" type="text" role="searchbox" value={permissionSearch} onChange={event => setPermissionSearch(event.target.value)} placeholder="Например, склад или документы" />
               {permissionSearch && <Button variant="ghost" onClick={() => setPermissionSearch('')}>Сбросить</Button>}
             </div>
           </div>
@@ -348,7 +348,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
 
           <TabsContent value="permissions" className="m-0 space-y-6">
               {normalizedSearch && visibleSystemPermissions.length === 0 && <p role="status" className="text-muted-foreground">Права не найдены. Измените запрос или сбросьте поиск.</p>}
-              {availablePermissions?.system_permissions && (
+              {visibleSystemPermissions.length > 0 && (
                 <>
                   <div>
                     <h4 className="text-lg font-medium text-foreground mb-4">Системные права</h4>
