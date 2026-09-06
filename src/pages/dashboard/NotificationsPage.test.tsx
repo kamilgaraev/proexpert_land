@@ -24,13 +24,19 @@ vi.mock('../../services/notificationService', () => ({
 vi.mock('../../components/dashboard/notifications/NotificationItem', () => ({
   NotificationItem: ({
     notification,
+    onDelete,
+    onMarkAsRead,
     onExecuteAction,
   }: {
     notification: Notification;
+    onDelete: (id: string) => Promise<void>;
+    onMarkAsRead: (id: string) => Promise<void>;
     onExecuteAction: (url: string, method: string) => void;
   }) => (
     <div data-testid={`notification-${notification.id}`} data-read={String(Boolean(notification.read_at))}>
       {notification.data.title}
+      <button data-testid={`delete-${notification.id}`} onClick={() => void onDelete(notification.id)}>delete</button>
+      <button data-testid={`read-${notification.id}`} onClick={() => void onMarkAsRead(notification.id)}>read</button>
       <button
         data-testid={`action-${notification.id}`}
         onClick={() => onExecuteAction(`/notifications/${notification.id}`, 'POST')}
@@ -163,6 +169,25 @@ describe('NotificationsPage lifecycle', () => {
 
     expect(screen.queryByTestId('notification-older-page')).not.toBeInTheDocument();
     expect(screen.getByTestId('notification-newest-filter')).toBeInTheDocument();
+  });
+
+  it.each(['delete', 'read'] as const)('ignores delayed %s after changing organization', async operation => {
+    const pending = deferred<void>();
+    const method = operation === 'delete' ? notificationService.deleteNotification : notificationService.markAsRead;
+    vi.mocked(method).mockReturnValueOnce(pending.promise);
+    vi.mocked(notificationService.getNotifications)
+      .mockResolvedValueOnce(response('organization-a'))
+      .mockResolvedValueOnce(response('organization-b'));
+    const view = render(<Page />);
+    await waitFor(() => expect(screen.getByTestId('notification-organization-a')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId(`${operation}-organization-a`));
+    organizationId = 45;
+    view.rerender(<Page />);
+    await waitFor(() => expect(screen.getByTestId('notification-organization-b')).toBeInTheDocument());
+    await act(async () => { pending.resolve(); await pending.promise; });
+    expect(screen.getByTestId('notification-organization-b')).toHaveAttribute('data-read', 'false');
+    expect(screen.getByText(/Всего:/)).toHaveTextContent('Всего: 1');
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   it('does not apply mark-all completion after the organization changes', async () => {

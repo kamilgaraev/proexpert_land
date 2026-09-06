@@ -72,14 +72,20 @@ export const Page = () => {
   }, [fetchNotifications]);
 
   const handleMarkAsRead = async (notificationId: string) => {
+    const operationContextSignature = contextSignature;
+    const requestVersion = requestVersionRef.current;
     try {
       await notificationService.markAsRead(notificationId);
+      if (requestVersionRef.current !== requestVersion
+        || contextSignatureRef.current !== operationContextSignature) return;
       setNotifications(prev =>
         prev.map(n =>
           n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n
         )
       );
     } catch (error) {
+      if (requestVersionRef.current !== requestVersion
+        || contextSignatureRef.current !== operationContextSignature) return;
       console.error('Ошибка при отметке уведомления:', error);
       toast.error('Не удалось отметить уведомление');
     }
@@ -109,12 +115,19 @@ export const Page = () => {
   };
 
   const handleDelete = async (notificationId: string) => {
+    const operationContextSignature = contextSignature;
+    const requestVersion = requestVersionRef.current;
     try {
       await notificationService.deleteNotification(notificationId);
+      if (requestVersionRef.current !== requestVersion
+        || contextSignatureRef.current !== operationContextSignature) return;
+      headingRef.current?.focus();
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      setTotal(prev => prev - 1);
+      setTotal(prev => Math.max(0, prev - 1));
       toast.success('Уведомление удалено');
     } catch (error) {
+      if (requestVersionRef.current !== requestVersion
+        || contextSignatureRef.current !== operationContextSignature) return;
       console.error('Ошибка при удалении уведомления:', error);
       toast.error('Не удалось удалить уведомление');
     }
