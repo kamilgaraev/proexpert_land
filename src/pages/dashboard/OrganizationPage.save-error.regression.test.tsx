@@ -79,6 +79,37 @@ describe("OrganizationPage save errors", () => {
     apiMocks.getCurrent.mockResolvedValue(organizationResponse);
   });
 
+  it("keeps edits after a network failure and retries without duplicate pending requests", async () => {
+    let rejectRequest!: (reason: Error) => void;
+    apiMocks.update.mockImplementationOnce(() => new Promise((_, reject) => { rejectRequest = reject; }));
+    render(<MemoryRouter><OrganizationPage /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole("button", { name: /Редактировать/ }));
+    fireEvent.change(screen.getByLabelText("Название организации"), { target: { value: "Новое название" } });
+    const form = screen.getByRole("button", { name: "Сохранить" }).closest("form")!;
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    expect(apiMocks.update).toHaveBeenCalledTimes(1);
+    rejectRequest(new Error("offline"));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Не удалось сохранить изменения");
+    expect(screen.getByLabelText("Название организации")).toHaveValue("Новое название");
+    apiMocks.update.mockRejectedValueOnce({ response: { data: { message: "Проверьте название организации" } } });
+    fireEvent.submit(form);
+    expect(await screen.findByText("Проверьте название организации")).toBeInTheDocument();
+    expect(apiMocks.update).toHaveBeenCalledTimes(2);
+    expect(apiMocks.update).toHaveBeenLastCalledWith(expect.objectContaining({ name: "Новое название" }));
+    expect(screen.getByLabelText("Название организации")).toHaveValue("Новое название");
+  });
+
+  it("shows an unsuccessful response without discarding the form", async () => {
+    apiMocks.update.mockResolvedValue({ success: false, message: "Изменения не приняты" });
+    render(<MemoryRouter><OrganizationPage /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole("button", { name: /Редактировать/ }));
+    fireEvent.change(screen.getByLabelText("Телефон"), { target: { value: "+79000000000" } });
+    fireEvent.click(screen.getByRole("button", { name: "Сохранить" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Не удалось сохранить изменения");
+    expect(screen.getByLabelText("Телефон")).toHaveValue("+79000000000");
+  });
+
   it("restores saved contacts after discarding an edit", async () => {
     render(<MemoryRouter><OrganizationPage /></MemoryRouter>);
     fireEvent.click(await screen.findByRole("button", { name: /Редактировать/ }));

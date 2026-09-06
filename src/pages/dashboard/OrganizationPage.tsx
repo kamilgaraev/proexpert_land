@@ -80,6 +80,7 @@ const OrganizationPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const restoreEditFocus = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
+  const saveInFlight = useRef(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [formData, setFormData] = useState<OrganizationUpdateData>({});
@@ -109,10 +110,13 @@ const OrganizationPage = () => {
   };
 
   const handleSave = async () => {
+    if (saveInFlight.current) return;
+    saveInFlight.current = true;
     try {
       setIsSaving(true);
       setSaveError(null);
       const response = await organizationService.update(formData);
+      if (!response.success) throw new Error(defaultSaveErrorMessage);
       if (response.success) {
         setOrganization(response.data.organization);
         restoreEditFocus.current = true;
@@ -127,6 +131,7 @@ const OrganizationPage = () => {
       setSaveError(message);
       toast.error(message);
     } finally {
+      saveInFlight.current = false;
       setIsSaving(false);
     }
   };
