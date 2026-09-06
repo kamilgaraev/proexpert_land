@@ -28,7 +28,7 @@ export const NotificationDropdown = ({
   const unreadCount = notifications.filter(n => !n.read_at).length;
 
   return (
-    <div className="absolute right-0 top-full mt-2 w-[420px] bg-background rounded-2xl shadow-2xl border border-border z-50 max-h-[650px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-x-4 top-20 w-auto bg-background rounded-2xl shadow-2xl border border-border z-50 max-h-[calc(100dvh-6rem)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 motion-reduce:animate-none sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[420px] sm:max-h-[min(650px,calc(100dvh-6rem))]">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="flex items-center gap-2">
@@ -54,7 +54,7 @@ export const NotificationDropdown = ({
       </div>
 
       {/* Content */}
-      <ScrollArea className="flex-1 h-[400px]">
+      <ScrollArea className="min-h-0 flex-1 h-[min(400px,calc(100dvh-15rem))]">
         {notifications.length === 0 ? (
           loading ? (
             <div className="flex items-center justify-center py-20">
