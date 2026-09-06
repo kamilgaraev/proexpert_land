@@ -11,7 +11,7 @@ describe('HelpOverview', () => {
     expect(onTabChange).toHaveBeenLastCalledWith('support');
     fireEvent.click(screen.getByRole('button', { name: 'Посмотреть ответы' }));
     expect(onTabChange).toHaveBeenLastCalledWith('faq');
-    expect(screen.getByRole('link', { name: 'Открыть инструкции' })).toHaveAttribute('href', '/dashboard/help/knowledge');
+    expect(screen.getByRole('link', { name: 'Спросить помощника' })).toHaveAttribute('href', '/dashboard/help/knowledge');
     expect(screen.queryByText('+7 (800) 123-45-67')).not.toBeInTheDocument();
     expect(screen.queryByText('Открыть чат')).not.toBeInTheDocument();
   });
