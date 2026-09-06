@@ -32,6 +32,51 @@ it('показывает общую команду и серверные стр�
   expect(screen.getByRole('searchbox', { name: 'Найти сотрудника' })).toBeInTheDocument();
 });
 
+it('не запрашивает команду и не показывает действия без доступа', async () => {
+  const actions = vi.fn();
+  const request = vi.fn();
+  server.use(http.get(url, () => { request(); return HttpResponse.json({ success: true, data: [] }); }));
+  render(<OrganizationTeamDirectory scope="user1:org1" canManage={false} renderActions={actions} />);
+  expect(screen.getByText('Для просмотра команды нужен доступ к управлению сотрудниками.')).toBeInTheDocument();
+  expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  expect(actions).not.toHaveBeenCalled();
+  await new Promise(resolve => setTimeout(resolve, 350));
+  expect(request).not.toHaveBeenCalled();
+});
+
+it('находит по имени или почте и сбрасывает пустой результат', async () => {
+  const queries: string[] = [];
+  const name = 'Александр Александрович Долгополов-Североуральский';
+  const email = 'alexander.dolgopolov.department.construction@example.test';
+  server.use(http.get(url, ({ request }) => {
+    const search = new URL(request.url).searchParams.get('search') ?? '';
+    queries.push(search);
+    const data = search === 'нет совпадений' ? [] : [{ id: 1, name, email, email_verified_at: null, is_active: true, created_at: null, roles: [] }];
+    return HttpResponse.json({ success: true, data, meta: { current_page: 1, last_page: 1, per_page: 20, total: data.length } });
+  }));
+  render(<OrganizationTeamDirectory scope="user1:org1" canManage renderActions={() => null} />);
+  expect(await screen.findByRole('article', { name })).toHaveTextContent(email);
+  fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'нет совпадений' } });
+  expect(await screen.findByText('Сотрудники не найдены')).toBeInTheDocument();
+  expect(screen.queryByText('В команде пока нет сотрудников')).not.toBeInTheDocument();
+  expect(queries.at(-1)).toBe('нет совпадений');
+  fireEvent.click(screen.getByRole('button', { name: 'Сбросить поиск' }));
+  expect(await screen.findByRole('article', { name })).toHaveTextContent(email);
+  expect(screen.getByRole('searchbox')).toHaveValue('');
+  expect(queries.at(-1)).toBe('');
+});
+
+it('восстанавливает список после ошибки по кнопке повтора', async () => {
+  server.use(http.get(url, () => HttpResponse.error()));
+  render(<OrganizationTeamDirectory scope="user1:org1" canManage renderActions={() => null} />);
+  const retry = await screen.findByRole('button', { name: 'Повторить загрузку' });
+  server.use(http.get(url, () => HttpResponse.json({ success: true, data: [], meta: { current_page: 1, last_page: 1, per_page: 20, total: 0 } })));
+  fireEvent.click(retry);
+  expect(await screen.findByText('В команде пока нет сотрудников')).toBeInTheDocument();
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+});
+
 it('не маскирует ошибку ответа сообщением об отсутствии сотрудников', async () => {
   server.use(http.get(url, () => HttpResponse.json({ success: false, message: 'internal database details' }, { status: 500 })));
   render(<OrganizationTeamDirectory scope="user1:org1" canManage renderActions={() => null} />);
