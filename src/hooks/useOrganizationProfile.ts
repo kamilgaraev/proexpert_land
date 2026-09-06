@@ -141,7 +141,7 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
 
       toast.success(response.data.message || 'Направления работы обновлены');
     } catch (err: any) {
-      const errorMessage = err.message || 'Не удалось обновить направления работы';
+      const errorMessage = 'Не удалось сохранить направления работы. Повторите попытку.';
       setError(errorMessage);
       toast.error(errorMessage);
       throw err;
@@ -163,7 +163,7 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
       setProfile((currentProfile) => mergeProfileUpdate(currentProfile, response.data.data));
       toast.success(response.data.message || 'Основной режим работы успешно обновлен!');
     } catch (err: any) {
-      const errorMessage = err.message || 'Ошибка обновления типа бизнеса';
+      const errorMessage = 'Не удалось сохранить основной режим работы. Повторите попытку.';
       setError(errorMessage);
       toast.error(errorMessage);
       throw err;
@@ -197,7 +197,7 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
 
       toast.success(response.data.message || 'Специализации успешно обновлены!');
     } catch (err: any) {
-      const errorMessage = err.message || 'Ошибка обновления специализаций';
+      const errorMessage = 'Не удалось сохранить специализации. Повторите попытку.';
       setError(errorMessage);
       toast.error(errorMessage);
       throw err;
@@ -231,7 +231,7 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
 
       toast.success(response.data.message || 'Сертификаты успешно обновлены!');
     } catch (err: any) {
-      const errorMessage = err.message || 'Ошибка обновления сертификатов';
+      const errorMessage = 'Не удалось сохранить сертификаты и допуски. Повторите попытку.';
       setError(errorMessage);
       toast.error(errorMessage);
       throw err;
@@ -264,9 +264,9 @@ export const useOrganizationProfile = (): UseOrganizationProfileReturn => {
         };
       });
 
-      toast.success(response.data.message || 'Onboarding успешно завершен!');
+      toast.success('Настройка компании завершена');
     } catch (err: any) {
-      const errorMessage = err.message || 'Ошибка завершения onboarding';
+      const errorMessage = 'Не удалось завершить настройку компании. Повторите попытку.';
       setError(errorMessage);
       toast.error(errorMessage);
       throw err;
