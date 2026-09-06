@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Building2, CheckCircle2, Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -44,6 +44,7 @@ const initialForm = {
 };
 
 export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquiryDialogProps) => {
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -86,28 +87,39 @@ export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquir
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto border-slate-200 bg-white p-0 sm:max-w-2xl">
+      <DialogContent
+        className="max-h-[92vh] overflow-y-auto border-border bg-background p-0 sm:max-w-2xl"
+        onOpenAutoFocus={() => {
+          returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        }}
+        onCloseAutoFocus={(event) => {
+          if (returnFocusRef.current?.isConnected) {
+            event.preventDefault();
+            returnFocusRef.current.focus();
+          }
+        }}
+      >
         {submitted ? (
           <div className="flex flex-col items-center px-6 py-12 text-center sm:px-10">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-foreground">
               <CheckCircle2 className="h-7 w-7" />
             </div>
-            <DialogTitle className="mt-5 text-2xl text-slate-950">Заявка отправлена</DialogTitle>
-            <DialogDescription className="mt-3 max-w-md leading-6 text-slate-600">
+            <DialogTitle className="mt-5 text-2xl text-foreground">Заявка отправлена</DialogTitle>
+            <DialogDescription className="mt-3 max-w-md leading-6 text-muted-foreground">
               Специалист МОСТ изучит задачи компании и свяжется с вами выбранным способом.
             </DialogDescription>
-            <Button type="button" className="mt-7 bg-blue-700 hover:bg-blue-800" onClick={() => onOpenChange(false)}>
+            <Button type="button" className="mt-7" onClick={() => onOpenChange(false)}>
               Готово
             </Button>
           </div>
         ) : (
           <form onSubmit={submit}>
-            <DialogHeader className="border-b border-slate-200 px-6 py-6 text-left sm:px-8">
-              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+            <DialogHeader className="border-b border-border px-6 py-6 text-left sm:px-8">
+              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-foreground">
                 <Building2 className="h-5 w-5" />
               </div>
-              <DialogTitle className="text-2xl text-slate-950">Обсудить корпоративное подключение</DialogTitle>
-              <DialogDescription className="pt-1 leading-6 text-slate-600">
+              <DialogTitle className="text-2xl text-foreground">Обсудить корпоративное подключение</DialogTitle>
+              <DialogDescription className="pt-1 leading-6 text-muted-foreground">
                 Расскажите о масштабе и задачах — заявка сразу попадёт специалисту МОСТ.
               </DialogDescription>
             </DialogHeader>
@@ -144,7 +156,7 @@ export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquir
               </div>
 
               <fieldset className="space-y-3">
-                <legend className="text-sm font-semibold text-slate-950">Что важно для вашей компании</legend>
+                <legend className="text-sm font-semibold text-foreground">Что важно для вашей компании</legend>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {needOptions.map((option) => {
                     const checked = form.needs.includes(option.value);
@@ -152,7 +164,7 @@ export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquir
                       <Label
                         key={option.value}
                         htmlFor={`enterprise-need-${option.value}`}
-                        className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-slate-200 px-3 py-3 font-normal text-slate-700 transition-colors hover:border-blue-300 hover:bg-blue-50/40"
+                        className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border px-3 py-3 font-normal text-foreground transition-colors hover:border-foreground/30 hover:bg-muted"
                       >
                         <Checkbox
                           id={`enterprise-need-${option.value}`}
@@ -164,7 +176,7 @@ export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquir
                     );
                   })}
                 </div>
-                {form.needs.length === 0 ? <p className="text-xs text-slate-500">Выберите хотя бы одну задачу.</p> : null}
+                {form.needs.length === 0 ? <p className="text-xs text-muted-foreground">Выберите хотя бы одну задачу.</p> : null}
               </fieldset>
 
               <div className="grid gap-5 sm:grid-cols-2">
@@ -197,11 +209,10 @@ export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquir
               {error ? <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div> : null}
             </div>
 
-            <DialogFooter className="border-t border-slate-200 px-6 py-5 sm:px-8">
+            <DialogFooter className="border-t border-border px-6 py-5 sm:px-8">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Отмена</Button>
               <Button
                 type="submit"
-                className="bg-blue-700 hover:bg-blue-800"
                 disabled={submitting || !form.contactPhone.trim() || form.needs.length === 0}
               >
                 {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
