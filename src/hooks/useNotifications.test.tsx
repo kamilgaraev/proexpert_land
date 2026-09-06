@@ -97,6 +97,50 @@ describe('useNotifications', () => {
     vi.mocked(notificationService.executeAction).mockResolvedValue(undefined);
   });
 
+  it('exposes a load error and clears it after a successful retry', async () => {
+    vi.mocked(notificationService.getNotifications).mockRejectedValueOnce(new Error('offline'));
+    const { result } = renderHook(() => useNotifications('162', 'token-one', 44));
+    await waitFor(() => expect(result.current.loadError).toBeTruthy());
+    expect(result.current.loading).toBe(false);
+    await act(async () => { await result.current.refreshNotifications(); });
+    expect(result.current.loadError).toBeNull();
+    expect(result.current.notifications).toEqual([]);
+  });
+
+  it('preserves visible notifications when refreshing fails', async () => {
+    vi.mocked(notificationService.getNotifications).mockResolvedValueOnce(list([notification('visible')], 1));
+    const { result } = renderHook(() => useNotifications('162', 'token-one', 44));
+    await waitFor(() => expect(result.current.notifications).toHaveLength(1));
+    vi.mocked(notificationService.getNotifications).mockRejectedValueOnce(new Error('offline'));
+    await act(async () => { await result.current.refreshNotifications(); });
+    expect(result.current.loadError).toBeTruthy();
+    expect(result.current.notifications[0].id).toBe('visible');
+    expect(result.current.unreadCount).toBe(1);
+  });
+
+  it('ignores an old request failure after a newer request succeeds', async () => {
+    let rejectOld!: (reason: Error) => void;
+    vi.mocked(notificationService.getNotifications).mockImplementationOnce(() => new Promise((_resolve, reject) => { rejectOld = reject; }));
+    const { result } = renderHook(() => useNotifications('162', 'token-one', 44));
+    await act(async () => { await result.current.refreshNotifications(); });
+    await act(async () => { rejectOld(new Error('old request')); });
+    expect(result.current.loadError).toBeNull();
+    expect(result.current.loading).toBe(false);
+  });
+
+  it('clears the previous organization error before loading the next organization', async () => {
+    vi.mocked(notificationService.getNotifications).mockRejectedValueOnce(new Error('offline'));
+    const { result, rerender } = renderHook(({ organizationId }) => useNotifications('162', 'token-one', organizationId), { initialProps: { organizationId: 44 } });
+    await waitFor(() => expect(result.current.loadError).toBeTruthy());
+    const next = deferred<ReturnType<typeof list>>();
+    vi.mocked(notificationService.getNotifications).mockReturnValueOnce(next.promise);
+    rerender({ organizationId: 45 });
+    expect(result.current.loadError).toBeNull();
+    expect(result.current.loading).toBe(true);
+    await act(async () => { next.resolve(list([])); });
+    expect(result.current.loadError).toBeNull();
+  });
+
   it('subscribes to exact global and organization LK channels and enforces their organization scope', async () => {
     const echo = configureEcho();
     const { result } = renderHook(() => useNotifications('162', 'token-one', 44));

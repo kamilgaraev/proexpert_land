@@ -3,12 +3,14 @@ import type { Notification } from '../../../types/notification';
 import { NotificationItem } from './NotificationItem';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { BellIcon, CheckCheckIcon } from 'lucide-react';
+import { BellIcon, CheckCheckIcon, CircleAlertIcon } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
 interface NotificationDropdownProps {
   notifications: Notification[];
   loading: boolean;
+  loadError: string | null;
+  onRetry: () => void;
   onMarkAsRead: (id: string) => void;
   onMarkAllAsRead: () => void;
   onDelete: (id: string) => void;
@@ -19,6 +21,8 @@ interface NotificationDropdownProps {
 export const NotificationDropdown = ({
   notifications,
   loading,
+  loadError,
+  onRetry,
   onMarkAsRead,
   onMarkAllAsRead,
   onDelete,
@@ -55,9 +59,20 @@ export const NotificationDropdown = ({
 
       {/* Content */}
       <ScrollArea className="min-h-0 flex-1 h-[min(400px,calc(100dvh-15rem))]">
+        {loadError && (
+          <div className="m-4 rounded-lg border border-border bg-secondary/30 p-4">
+            <div role="alert" className="flex items-start gap-3 text-sm text-foreground">
+              <CircleAlertIcon aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+              <p>{loadError}</p>
+            </div>
+            <Button variant="outline" size="sm" className="mt-3" disabled={loading} onClick={onRetry}>
+              {loading ? 'Загружаем…' : 'Повторить загрузку'}
+            </Button>
+          </div>
+        )}
         {notifications.length === 0 ? (
-          loading ? (
-            <div className="flex items-center justify-center py-20">
+          loadError ? null : loading ? (
+            <div role="status" aria-label="Загрузка уведомлений" className="flex items-center justify-center py-20">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (

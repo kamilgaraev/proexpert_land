@@ -17,6 +17,8 @@ export const NotificationBell = () => {
     notifications,
     unreadCount,
     loading,
+    loadError,
+    refreshNotifications,
     markAsRead,
     markAllAsRead,
     deleteNotification,
@@ -88,6 +90,11 @@ export const NotificationBell = () => {
         <NotificationDropdown
           notifications={notifications}
           loading={loading}
+          loadError={loadError}
+          onRetry={() => {
+            triggerRef.current?.focus();
+            void refreshNotifications();
+          }}
           onMarkAsRead={markAsRead}
           onMarkAllAsRead={markAllAsRead}
           onDelete={deleteNotification}
