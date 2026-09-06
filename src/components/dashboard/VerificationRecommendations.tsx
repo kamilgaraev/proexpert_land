@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import { 
   LightBulbIcon, 
   ExclamationTriangleIcon,
@@ -105,7 +106,12 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
                    recommendations.field_issues.length > 0 || 
                    recommendations.verification_issues.length > 0;
 
-  const isFullyVerified = recommendations.current_score === recommendations.max_score;
+  const isFullyVerified = recommendations.status === 'verified'
+    && !recommendations.needs_verification
+    && !hasIssues;
+  const scorePercent = recommendations.max_score > 0
+    ? Math.min(100, Math.max(0, recommendations.current_score / recommendations.max_score * 100))
+    : 0;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -113,9 +119,9 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <LightBulbIcon className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-sm font-medium text-gray-900">
+            <h2 className="text-base font-semibold text-foreground">
               {isFullyVerified ? 'Статус верификации' : 'Рекомендации по верификации'}
-            </h3>
+            </h2>
           </div>
           {recommendations.potential_score_increase > 0 && !isFullyVerified && (
             <span className="text-xs bg-secondary text-foreground px-2 py-1 rounded">
@@ -136,8 +142,8 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-foreground h-2 rounded-full transition-all duration-500"
-              style={{ width: `${recommendations.current_score}%` }}
+              className="bg-foreground h-2 rounded-full"
+              style={{ width: `${scorePercent}%` }}
             ></div>
           </div>
         </div>
@@ -145,21 +151,21 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
         {isFullyVerified ? (
           <div className="flex items-start gap-3 rounded border border-border bg-secondary/30 p-3 text-foreground">
             <CheckCircleIcon aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
-            <span className="text-sm">Организация полностью верифицирована! Все данные проверены через государственные реестры.</span>
+            <span className="text-sm">Проверка организации завершена. По текущим результатам замечаний нет.</span>
           </div>
         ) : !hasIssues ? (
           <div className="flex items-start gap-3 rounded border border-border bg-secondary/30 p-3 text-foreground">
             <CheckCircleIcon aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
-            <span className="text-sm">Все данные заполнены корректно!</span>
+            <span className="text-sm">{recommendations.needs_verification ? 'Основные данные заполнены. Проверка ещё не завершена.' : 'В текущих рекомендациях нет замечаний к заполнению данных.'}</span>
           </div>
         ) : (
           <div className="space-y-3">
             {/* Незаполненные поля */}
             {recommendations.missing_fields.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                <h3 className="text-sm font-medium text-foreground">
                   Незаполненные поля
-                </h4>
+                </h3>
                 <div className="space-y-1">
                   {recommendations.missing_fields.map((field, index) => (
                     <div key={index} className="flex items-center justify-between text-sm bg-gray-50 rounded-lg p-2">
@@ -182,9 +188,9 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
             {/* Проблемы с полями */}
             {recommendations.field_issues.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                <h3 className="text-sm font-medium text-foreground">
                   Требуют исправления
-                </h4>
+                </h3>
                 <div className="space-y-1">
                   {recommendations.field_issues.map((issue, index) => (
                     <div key={index} className="flex items-center justify-between text-sm bg-yellow-50 rounded-lg p-2">
@@ -207,9 +213,9 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
             {/* Проблемы верификации */}
             {recommendations.verification_issues.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                <h3 className="text-sm font-medium text-foreground">
                   Замечания по верификации
-                </h4>
+                </h3>
                 <div className="space-y-1">
                   {recommendations.verification_issues.map((issue, index) => (
                     <div 
@@ -229,8 +235,9 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
         {/* Кнопка автоверификации - только если НЕ полностью верифицирована */}
         {!isFullyVerified && recommendations.can_auto_verify && (
           <div className="pt-2 border-t border-gray-200">
-            <button 
-              className="w-full text-xs bg-construction-50 text-construction-700 hover:bg-construction-100 rounded-lg p-2 transition-colors disabled:opacity-50"
+            <Button
+              variant="outline"
+              className="h-auto min-h-11 w-full whitespace-normal text-center"
               onClick={onVerificationRequest}
               disabled={isVerifying}
             >
@@ -240,19 +247,18 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
                   <span>Выполняется верификация...</span>
                 </div>
               ) : (
-                recommendations.potential_score_increase > 0 ? 
-                  `Запустить автоматическую верификацию для улучшения рейтинга (+${recommendations.potential_score_increase} баллов)` :
-                  'Запустить автоматическую верификацию для проверки данных через государственные реестры'
+                'Проверить данные организации'
               )}
-            </button>
+            </Button>
           </div>
         )}
 
         {/* Альтернативная кнопка если основная не показывается - только если НЕ полностью верифицирована */}
         {!isFullyVerified && !recommendations.can_auto_verify && recommendations.needs_verification && (
           <div className="pt-2 border-t border-gray-200">
-            <button 
-              className="w-full text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg p-2 transition-colors disabled:opacity-50"
+            <Button
+              variant="outline"
+              className="h-auto min-h-11 w-full whitespace-normal text-center"
               onClick={onVerificationRequest}
               disabled={isVerifying}
             >
@@ -264,7 +270,7 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
               ) : (
                 'Запустить верификацию данных'
               )}
-            </button>
+            </Button>
           </div>
         )}
 
