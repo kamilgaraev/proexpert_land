@@ -68,6 +68,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
     'capabilities' | 'business_type' | 'specializations' | 'certifications' | null
   >(null);
   const [isSaving, setIsSaving] = useState(false);
+  const returnFocusSection = useRef<typeof editingSection>(null);
   const editorHeading = useRef<HTMLHeadingElement>(null);
   const focusEditor = useCallback(() => {
     editorHeading.current?.focus({ preventScroll: true });
@@ -135,6 +136,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
         await updateCertifications(localCertifications);
       }
 
+      returnFocusSection.current = section;
       setEditingSection(null);
     } catch (error) {
       console.error('Error saving:', error);
@@ -151,6 +153,7 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
       setLocalCertifications(profile.certifications || []);
     }
 
+    returnFocusSection.current = editingSection;
     setEditingSection(null);
   };
 
@@ -233,6 +236,13 @@ export const OrganizationSettingsPage = ({ embedded = false }: OrganizationSetti
               variant="outline"
               size="sm"
               onClick={() => setEditingSection(section)}
+              aria-label={`${isEmpty ? 'Заполнить' : 'Изменить'}: ${title}`}
+              ref={(button) => {
+                if (button && returnFocusSection.current === section) {
+                  returnFocusSection.current = null;
+                  button.focus();
+                }
+              }}
               className="gap-2"
             >
               <Pencil className="h-3 w-3" />

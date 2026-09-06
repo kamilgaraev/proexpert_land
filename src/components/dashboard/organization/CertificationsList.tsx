@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { FileCheck2, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,10 +14,15 @@ export const CertificationsList = ({ certifications, onChange, disabled = false 
   const inputId = useId();
   const [newCertification, setNewCertification] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const returnAddFocus = useRef(false);
   const items = certifications || [];
   const value = newCertification.trim();
   const duplicate = value !== '' && items.includes(value);
-  const cancel = () => { setIsAdding(false); setNewCertification(''); };
+  const cancel = () => {
+    returnAddFocus.current = true;
+    setIsAdding(false);
+    setNewCertification('');
+  };
   const add = () => {
     if (disabled || !value || duplicate) return;
     onChange([...items, value]);
@@ -34,7 +39,10 @@ export const CertificationsList = ({ certifications, onChange, disabled = false 
               <span className="min-w-0 flex-1 break-words py-2 text-sm">{item}</span>
               {!disabled && (
                 <Button type="button" variant="ghost" size="icon" aria-label={`Удалить сертификат «${item}»`}
-                  onClick={() => onChange(items.filter(cert => cert !== item))}>
+                  onClick={() => {
+                    returnAddFocus.current = true;
+                    onChange(items.filter(cert => cert !== item));
+                  }}>
                   <Trash2 className="h-5 w-5" aria-hidden="true" />
                 </Button>
               )}
@@ -58,7 +66,13 @@ export const CertificationsList = ({ certifications, onChange, disabled = false 
           </div>
         </div>
       ) : (
-        <Button type="button" variant="outline" onClick={() => setIsAdding(true)} className="gap-2">
+        <Button type="button" variant="outline" onClick={() => setIsAdding(true)} className="gap-2"
+          ref={(button) => {
+            if (button && returnAddFocus.current) {
+              returnAddFocus.current = false;
+              button.focus();
+            }
+          }}>
           <Plus className="h-5 w-5" aria-hidden="true" />Добавить сертификат
         </Button>
       ))}

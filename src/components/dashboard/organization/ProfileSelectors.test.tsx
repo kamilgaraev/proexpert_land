@@ -1,9 +1,22 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { SpecializationsSelector } from './SpecializationsSelector';
 import { CertificationsList } from './CertificationsList';
 
 describe('Формы профиля компании', () => {
+  it('возвращает фокус после удаления последнего сертификата', () => {
+    const Editor = () => {
+      const [items, setItems] = useState(['ISO 9001']);
+      return <CertificationsList certifications={items} onChange={setItems} />;
+    };
+    render(<Editor />);
+    const remove = screen.getByRole('button', { name: 'Удалить сертификат «ISO 9001»' });
+    remove.focus();
+    fireEvent.click(remove);
+    expect(screen.queryByText('ISO 9001')).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Добавить сертификат' }));
+  });
   it('фильтрует специализации и сохраняет выбранные значения вне результатов поиска', () => {
     const onChange = vi.fn();
     render(<SpecializationsSelector selectedSpecializations={['road_construction', 'custom']} onChange={onChange} />);
@@ -34,9 +47,11 @@ describe('Формы профиля компании', () => {
     fireEvent.change(input, { target: { value: ' ISO 14001 ' } });
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onChange).toHaveBeenCalledWith(['ISO 9001', 'ISO 14001']);
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Добавить сертификат' }));
     fireEvent.click(screen.getByRole('button', { name: 'Добавить сертификат' }));
     fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Escape' });
     expect(screen.queryByRole('textbox')).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Добавить сертификат' }));
     fireEvent.click(screen.getByRole('button', { name: 'Удалить сертификат «ISO 9001»' }));
     expect(onChange).toHaveBeenLastCalledWith([]);
   });
