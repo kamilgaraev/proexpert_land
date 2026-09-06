@@ -5,7 +5,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/profile': 'Мой профиль',
   '/dashboard/settings': 'Настройки кабинета',
   '/dashboard/help': 'Помощь',
-  '/dashboard/help/knowledge': 'Инструкции',
+  '/dashboard/help/knowledge': 'Помощник',
   '/dashboard/help/changelog': 'Что изменилось',
   '/dashboard/support': 'Поддержка',
   '/dashboard/faq': 'Вопросы и ответы',
@@ -25,7 +25,7 @@ const pageTitles: Record<string, string> = {
 };
 
 const detailTitles: ReadonlyArray<readonly [string, string]> = [
-  ['/dashboard/help/knowledge/', 'Инструкция'],
+  ['/dashboard/help/knowledge/', 'Помощник'],
   ['/dashboard/help/changelog/', 'Обновление МОСТ'],
   ['/dashboard/projects/', 'Обзор проекта'],
   ['/dashboard/contractor-invitations/token/', 'Приглашение подрядчика'],

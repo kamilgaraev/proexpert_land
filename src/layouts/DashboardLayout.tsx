@@ -252,10 +252,10 @@ const DashboardLayout = () => {
       description: 'Вопросы и поддержка',
     },
     {
-      name: 'Инструкции',
+      name: 'Помощник МОСТ',
       href: '/dashboard/help/knowledge',
       icon: BookOpen,
-      description: 'Руководства и практики',
+      description: 'Подсказки по работе в системе',
     },
     {
       name: 'Что изменилось',

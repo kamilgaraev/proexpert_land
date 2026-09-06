@@ -19,10 +19,10 @@ export function HelpOverview({ onTabChange }: HelpOverviewProps) {
         </section>
         <section className="rounded-lg border border-border bg-white p-5 sm:p-6">
           <BookOpenIcon className="mb-5 h-7 w-7 text-primary" aria-hidden="true" />
-          <h2 className="mb-2 text-xl font-semibold">Инструкции по работе</h2>
-          <p className="mb-5 max-w-prose text-base text-muted-foreground">Найдите нужный раздел и следуйте пошаговым руководствам по работе в системе.</p>
+          <h2 className="mb-2 text-xl font-semibold">Помощник МОСТ</h2>
+          <p className="mb-5 max-w-prose text-base text-muted-foreground">Задайте вопрос и получите короткую подсказку по работе в системе.</p>
           <Link to="/dashboard/help/knowledge" className="inline-flex min-h-11 items-center gap-3 rounded-lg border border-border px-4 py-2 font-medium transition-colors hover:bg-secondary">
-            Открыть инструкции <ArrowRightIcon className="h-5 w-5 shrink-0" aria-hidden="true" />
+            Спросить помощника <ArrowRightIcon className="h-5 w-5 shrink-0" aria-hidden="true" />
           </Link>
         </section>
       </div>

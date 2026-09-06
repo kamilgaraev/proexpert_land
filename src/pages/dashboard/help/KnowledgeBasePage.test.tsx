@@ -1,55 +1,67 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { knowledgeHubApi } from '@/utils/knowledgeHubApi';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { Link, MemoryRouter } from 'react-router-dom';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { http, HttpResponse } from 'msw';
+import { setupServer } from 'msw/node';
 import KnowledgeBasePage from './KnowledgeBasePage';
 
-vi.mock('@/utils/knowledgeHubApi', () => ({ knowledgeHubApi: { getOverview: vi.fn(), getTree: vi.fn(), getArticles: vi.fn(), searchArticles: vi.fn() } }));
-const empty = { data: [], meta: { current_page: 1, per_page: 12, last_page: 1, total: 0 } };
-const renderPage = () => render(<MemoryRouter><KnowledgeBasePage /></MemoryRouter>);
+const server = setupServer(http.options('*', () => new HttpResponse(null, { status: 204 })));
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => { cleanup(); server.resetHandlers(); });
+afterAll(() => server.close());
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.mocked(knowledgeHubApi.getOverview).mockResolvedValue({ categories: [{ id: 1, slug: 'start', title: 'Начало работы', description: null, icon: null, color: null, articles_count: 0 }], featured_articles: [], latest_changelog: [], summary: { articles_count: 0, categories_count: 1, changelog_count: 0 } });
-  vi.mocked(knowledgeHubApi.getTree).mockResolvedValue([]);
-  vi.mocked(knowledgeHubApi.getArticles).mockResolvedValue(empty);
-  vi.mocked(knowledgeHubApi.searchArticles).mockResolvedValue(empty);
-});
+const renderPage = () => render(<MemoryRouter initialEntries={['/dashboard/help/knowledge?context_key=team']}><KnowledgeBasePage /></MemoryRouter>);
+const ask = () => {
+  fireEvent.change(screen.getByRole('textbox', { name: 'Ваш вопрос' }), { target: { value: 'Как пригласить сотрудника?' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Спросить' }));
+};
 
-describe('KnowledgeBasePage controls', () => {
-  it('обновляет данные, даже если уже открыта первая страница', async () => {
+describe('Помощник МОСТ', () => {
+  it('объясняет исчерпание лимита', async () => {
+    server.use(http.post('*/knowledge-hub/assistant', () => HttpResponse.json({ success: false }, { status: 429 })));
     renderPage();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Обновить' })).toBeEnabled());
-    fireEvent.click(screen.getByRole('button', { name: 'Обновить' }));
-    await waitFor(() => expect(knowledgeHubApi.getArticles).toHaveBeenCalledTimes(2));
-    expect(knowledgeHubApi.getOverview).toHaveBeenCalledTimes(2);
-    expect(knowledgeHubApi.getTree).toHaveBeenCalledTimes(2);
+    ask();
+    expect(await screen.findByRole('alert')).toHaveTextContent('Лимит обращений');
   });
 
-  it('не скрывает ошибку категорий после успешной загрузки материалов и позволяет повторить', async () => {
-    vi.mocked(knowledgeHubApi.getOverview).mockRejectedValueOnce(new Error('offline'));
-    renderPage();
-    expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось загрузить категории');
-    await screen.findByText('Материалы не найдены.');
-    expect(screen.getByRole('alert')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку' }));
-    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
-    expect(await screen.findByRole('button', { name: 'Начало работы' })).toBeInTheDocument();
+  it('очищает ответ при смене раздела', async () => {
+    server.use(http.post('*/knowledge-hub/assistant', () => HttpResponse.json({ data: {
+      answer: 'Ответ старого раздела.', status: 'answered', sources: [],
+    } })));
+    render(<MemoryRouter initialEntries={['/dashboard/help/knowledge?context_key=first']}><KnowledgeBasePage /><Link to="?context_key=second">Другой раздел</Link></MemoryRouter>);
+    ask();
+    expect(await screen.findByText('Ответ старого раздела.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('link', { name: 'Другой раздел' }));
+    expect(screen.queryByText('Ответ старого раздела.')).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Ваш вопрос' })).toHaveValue('');
   });
 
-  it('не выдаёт ошибку списка за отсутствие материалов', async () => {
-    vi.mocked(knowledgeHubApi.getArticles).mockRejectedValueOnce(new Error('offline'));
+  it('открывается без загрузки каталога статей', () => {
     renderPage();
-    expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось загрузить материалы');
-    expect(screen.queryByText('Материалы не найдены.')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Помощник МОСТ' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Спросить' })).toBeDisabled();
   });
 
-  it('имеет подписанный поиск и сообщает выбранную категорию', async () => {
+  it('передаёт контекст страницы и показывает короткий ответ', async () => {
+    server.use(http.post('*/knowledge-hub/assistant', async ({ request }) => {
+      expect(await request.json()).toEqual({ question: 'Как пригласить сотрудника?', context_key: 'team' });
+      return HttpResponse.json({ success: true, data: { answer: 'Откройте раздел сотрудников.', status: 'answered', sources: [{ id: 3, title: 'Приглашение сотрудника' }] } });
+    }));
     renderPage();
-    fireEvent.click(await screen.findByRole('button', { name: 'Начало работы' }));
-    expect(screen.getByRole('button', { name: 'Начало работы' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: 'Все' })).toHaveAttribute('aria-pressed', 'false');
-    fireEvent.change(screen.getByRole('textbox', { name: 'Поиск по инструкциям' }), { target: { value: 'пароль' } });
-    await waitFor(() => expect(knowledgeHubApi.searchArticles).toHaveBeenLastCalledWith({ category: 'start', page: 1, per_page: 12, q: 'пароль' }));
+    ask();
+    expect(await screen.findByText('Откройте раздел сотрудников.')).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('позволяет повторить вопрос после ошибки', async () => {
+    server.use(http.post('*/knowledge-hub/assistant', () => HttpResponse.error()));
+    renderPage();
+    ask();
+    expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось получить ответ');
+    expect(screen.getByRole('button', { name: 'Спросить' })).toBeEnabled();
+    server.use(http.post('*/knowledge-hub/assistant', () => HttpResponse.json({ data: { answer: 'Уточните вопрос.', status: 'insufficient_knowledge', sources: [] } })));
+    ask();
+    expect(await screen.findByText('Уточните вопрос.')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
