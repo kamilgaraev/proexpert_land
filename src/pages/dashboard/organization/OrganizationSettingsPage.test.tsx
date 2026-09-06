@@ -38,7 +38,7 @@ describe('Редакторы направлений работы', () => {
     openPage();
     fireEvent.click(screen.getByRole('button', { name: buttonName }));
     expect(document.activeElement).toBe(screen.getByRole('heading', { name: title }));
-    fireEvent.click(screen.getByRole('button', { name: 'Отменить', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Отменить' }));
     expect(document.activeElement).toBe(screen.getByRole('button', { name: buttonName }));
     expect(service.updateCapabilities).not.toHaveBeenCalled();
     expect(service.updateBusinessType).not.toHaveBeenCalled();
@@ -50,7 +50,7 @@ describe('Редакторы направлений работы', () => {
     openPage();
     fireEvent.click(screen.getByRole('button', { name: 'Изменить: Специализации' }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Дорожное строительство' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Отменить', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Отменить' }));
     fireEvent.click(screen.getByRole('button', { name: 'Изменить: Специализации' }));
     expect(screen.getByRole('checkbox', { name: 'Дорожное строительство', checked: false })).toBeTruthy();
     expect(screen.getByRole('checkbox', { name: 'Промышленное и гражданское строительство', checked: true })).toBeTruthy();
@@ -63,10 +63,10 @@ describe('Редакторы направлений работы', () => {
       openPage();
       fireEvent.click(screen.getByRole('button', { name: 'Изменить: Специализации' }));
       fireEvent.click(screen.getByRole('checkbox', { name: 'Дорожное строительство' }));
-      fireEvent.click(screen.getByRole('button', { name: 'Сохранить', exact: true }));
-      await waitFor(() => expect(screen.getByRole('button', { name: 'Сохранить', exact: true }).hasAttribute('disabled')).toBe(false));
+      fireEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Сохранить' }).hasAttribute('disabled')).toBe(false));
       expect(screen.getByRole('checkbox', { name: 'Дорожное строительство', checked: true })).toBeTruthy();
-      fireEvent.click(screen.getByRole('button', { name: 'Сохранить', exact: true }));
+      fireEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
       await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Изменить: Специализации' })));
       expect(service.updateSpecializations).toHaveBeenCalledTimes(2);
       expect(service.updateSpecializations).toHaveBeenLastCalledWith(['building_construction', 'road_construction']);
