@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useId } from 'react';
 import { useNotifications } from '../../../hooks/useNotifications';
 import { NotificationDropdown } from './NotificationDropdown';
 import { BellIcon } from '@heroicons/react/24/outline';
@@ -7,6 +7,8 @@ import { useAuth } from '@hooks/useAuth';
 export const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
   const { user, token } = useAuth();
 
   const userId = user?.id ? String(user.id) : null;
@@ -46,8 +48,28 @@ export const NotificationBell = () => {
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div
+      className="relative"
+      ref={dropdownRef}
+      onKeyDown={(event) => {
+        if (isOpen && event.key === 'Escape') {
+          event.preventDefault();
+          event.stopPropagation();
+          setIsOpen(false);
+          triggerRef.current?.focus();
+        }
+      }}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setIsOpen(false);
+        }
+      }}
+    >
       <button
+        ref={triggerRef}
+        type="button"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? panelId : undefined}
         onClick={toggleDropdown}
         className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
         aria-label="Уведомления"
@@ -62,6 +84,7 @@ export const NotificationBell = () => {
       </button>
 
       {isOpen && (
+        <div id={panelId} role="region" aria-label="Уведомления">
         <NotificationDropdown
           notifications={notifications}
           loading={loading}
@@ -71,6 +94,7 @@ export const NotificationBell = () => {
           onExecuteAction={executeAction}
           onClose={handleClose}
         />
+        </div>
       )}
     </div>
   );
