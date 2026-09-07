@@ -68,7 +68,7 @@ it.each(['Готово', 'Закрыть диалог'])('после созда�
   expect(screen.queryByLabelText('Имя *')).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Создать напрямую' })).not.toBeInTheDocument();
   expect(screen.getByRole('status')).toHaveTextContent('anna@example.test');
-  expect(screen.queryByRole('button', { name: 'Закрыть', exact: true })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /^Закрыть$/ })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: label }));
   expect(onSave).toHaveBeenCalledTimes(1);
   expect(onClose).not.toHaveBeenCalled();
