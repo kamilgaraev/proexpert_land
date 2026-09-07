@@ -55,7 +55,7 @@ it('диалог имеет название и закрывается по Esca
   expect(api.sendInvitation).not.toHaveBeenCalled();
 });
 
-it.each(['Готово', 'Закрыть'])('после создания действие %s обновляет список вместо повторной отправки', async label => {
+it.each(['Готово', 'Закрыть диалог'])('после создания действие %s обновляет список вместо повторной отправки', async label => {
   const onSave = vi.fn();
   const onClose = vi.fn();
   render(<UserCreateInviteModal isOpen canInvite={false} onSave={onSave} onClose={onClose} />);
@@ -65,8 +65,10 @@ it.each(['Готово', 'Закрыть'])('после создания дей�
   fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
   expect(await screen.findByText('Сотрудник добавлен')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Создать' })).not.toBeInTheDocument();
-  expect(screen.getByLabelText('Имя *')).toBeDisabled();
-  expect(screen.getByRole('button', { name: 'Создать напрямую' })).toBeDisabled();
+  expect(screen.queryByLabelText('Имя *')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Создать напрямую' })).not.toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveTextContent('anna@example.test');
+  expect(screen.queryByRole('button', { name: 'Закрыть', exact: true })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: label }));
   expect(onSave).toHaveBeenCalledTimes(1);
   expect(onClose).not.toHaveBeenCalled();
