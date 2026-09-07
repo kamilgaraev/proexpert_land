@@ -1,5 +1,6 @@
+import { getKnowledgeAssistantActions } from '@/utils/knowledgeAssistantApi';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { Link, MemoryRouter } from 'react-router-dom';
+import { Link, MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
@@ -17,6 +18,38 @@ const ask = () => {
 };
 
 describe('Помощник МОСТ', () => {
+
+  it('открывает проверенный раздел и не дублирует переход', async () => {
+    server.use(http.post('*/knowledge-hub/assistant', () => HttpResponse.json({ success: true, data: {
+      answer: 'Пригласите коллегу.', status: 'answered', sources: [
+        { id: 3, title: 'Приглашение', slug: 'invite-organization-user' },
+        { id: 4, title: 'Доступ', slug: 'invite-organization-user' },
+        { id: 5, title: 'Ссылка', slug: 'https://example.com' },
+      ],
+    } })));
+    render(<MemoryRouter initialEntries={['/helper']}><Routes>
+      <Route path="/helper" element={<KnowledgeBasePage />} />
+      <Route path="/dashboard/admins" element={<h1>Список сотрудников</h1>} />
+    </Routes></MemoryRouter>);
+    ask();
+    const link = await screen.findByRole('link', { name: 'Открыть сотрудников' });
+    expect(link).toHaveAttribute('href', '/dashboard/admins');
+    expect(screen.getAllByRole('link')).toHaveLength(1);
+    fireEvent.click(link);
+    expect(screen.getByRole('heading', { name: 'Список сотрудников' })).toBeTruthy();
+  });
+
+  it('не предлагает переход при уточнении, неизвестном источнике и старом формате', () => {
+    const base = { answer: 'Уточните вопрос.', status: 'answered' as const, sources: [{ id: 3, title: 'Инструкция', slug: 'invite-organization-user' }] };
+    expect(getKnowledgeAssistantActions({ ...base, needs_clarification: true })).toEqual([]);
+    expect(getKnowledgeAssistantActions({ ...base, status: 'insufficient_knowledge' })).toEqual([]);
+    expect(getKnowledgeAssistantActions({ ...base, sources: [
+      { id: 4, title: 'Произвольный адрес', slug: 'javascript:alert(1)' },
+      { id: 5, title: 'Неизвестная статья', slug: '__proto__' },
+      { id: 6, title: 'Старый формат' },
+    ] })).toEqual([]);
+  });
+
   it('объясняет исчерпание лимита', async () => {
     server.use(http.post('*/knowledge-hub/assistant', () => HttpResponse.json({ success: false }, { status: 429 })));
     renderPage();

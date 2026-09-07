@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { MessageCircle, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { askKnowledgeAssistant, type KnowledgeAssistantAnswer, type KnowledgeAssistantMessage } from '@/utils/knowledgeAssistantApi';
+import { getKnowledgeAssistantActions, askKnowledgeAssistant, type KnowledgeAssistantAnswer, type KnowledgeAssistantMessage } from '@/utils/knowledgeAssistantApi';
 
 const examples = ['Как пригласить сотрудника?', 'Как включить нужный модуль?', 'Как восстановить пароль?'];
 
@@ -107,6 +107,13 @@ const KnowledgeBasePage = () => {
             <p className="text-sm text-muted-foreground">{turn.question}</p>
             <h2 className="font-semibold">{turn.result.status === 'answered' ? 'Что нужно сделать' : turn.result.needs_clarification ? 'Уточните, пожалуйста' : 'Ответ не найден'}</h2>
             <p className="whitespace-pre-wrap leading-relaxed">{turn.result.answer}</p>
+            <div className="flex flex-wrap gap-2">
+              {getKnowledgeAssistantActions(turn.result).map(action => (
+                <Button key={action.to} asChild variant="outline">
+                  <Link to={action.to}>{action.label}</Link>
+                </Button>
+              ))}
+            </div>
             {turn.result.sources.length > 0 && (
               <p className="text-sm text-muted-foreground">По материалам: {turn.result.sources.map((source) => source.title).join(', ')}</p>
             )}
