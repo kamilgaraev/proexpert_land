@@ -28,6 +28,7 @@ import BlogTagPage from '@components/blog/public/BlogTagPage';
 import LoginPage from '@pages/dashboard/LoginPage';
 import RegisterPage from '@pages/dashboard/RegisterPage';
 import ForgotPasswordPage from '@pages/dashboard/ForgotPasswordPage';
+import ResetPasswordPage from '@pages/dashboard/ResetPasswordPage';
 import NotFoundPage from '@pages/NotFoundPage';
 import EmailSentPage from '@pages/dashboard/EmailSentPage';
 
@@ -268,6 +269,7 @@ function App({
         <Route path="/register" element={<RegisterPage />} />
         {/* Админка: страница логина */}
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/email-sent" element={<EmailSentPage />} />
         <Route path="/invitations/accept" element={<UserInvitationAcceptPage />} />
