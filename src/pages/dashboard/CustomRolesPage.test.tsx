@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import CustomRolesPage from './CustomRolesPage';
 
-const roleState = vi.hoisted(() => ({ loading: false, permissionsUnavailable: false, error: null as string | null, roles: [] as Array<Record<string, unknown>> }));
+const roleState = vi.hoisted(() => ({ loading: false, permissionsUnavailable: false, archiveAvailable: false, error: null as string | null, roles: [] as Array<Record<string, unknown>> }));
 const createCustomRole = vi.fn();
 const updateCustomRole = vi.fn();
 const deleteCustomRole = vi.fn();
@@ -15,8 +15,13 @@ vi.mock('@hooks/useCustomRoles', () => ({
   useCustomRoles: () => ({
     customRoles: roleState.roles,
     availablePermissions: roleState.permissionsUnavailable ? null : {
-      system_permissions: [],
+      system_permissions: roleState.archiveAvailable ? [
+        { key: 'admin.access', name: 'Доступ к административной панели' },
+        { key: 'legal_archive.view', name: 'Просмотр юридического архива' },
+        { key: 'legal_archive.create', name: 'Создание документов юридического архива' },
+      ] : [],
       module_permissions: {
+        ...(roleState.archiveAvailable ? { 'contract-management': [{ key: 'contracts.create', name: 'Создание договоров' }] } : {}),
         warehouse: [
           { key: 'warehouse.view', name: 'Просмотр склада' },
           { key: 'warehouse.stock.manage', name: 'Управление остатками склада' },
@@ -26,6 +31,7 @@ vi.mock('@hooks/useCustomRoles', () => ({
         ],
       },
       module_groups: {
+        'contract-management': 'Договоры',
         warehouse: 'Склад',
         estimates: 'Сметы',
       },
@@ -56,6 +62,7 @@ describe('CustomRolesPage', () => {
     vi.clearAllMocks();
     roleState.loading = false;
     roleState.permissionsUnavailable = false;
+    roleState.archiveAvailable = false;
     roleState.error = null;
     roleState.roles = [];
     createCustomRole.mockResolvedValue({});
@@ -80,6 +87,74 @@ describe('CustomRolesPage', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(createCustomRole).not.toHaveBeenCalled();
     await waitFor(() => expect(trigger).toHaveFocus());
+  });
+
+  it('groups archive rights under contracts and saves their original permission scope', async () => {
+    roleState.archiveAvailable = true;
+    render(<CustomRolesPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Создать роль' })[0]);
+    fireEvent.change(screen.getByPlaceholderText('Введите название роли'), { target: { value: 'Договоры и архив' } });
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Права доступа' }), { button: 0, ctrlKey: false });
+    expect(screen.getByRole('checkbox', { name: 'Доступ к административной панели' })).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: 'Просмотр юридического архива' })).not.toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Модули' }), { button: 0, ctrlKey: false });
+    fireEvent.click(screen.getByRole('button', { name: 'Развернуть модуль Договоры' }));
+    expect(screen.getByRole('heading', { name: 'Юридический архив' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Создание договоров' }));
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'юридический архив' } });
+    expect(screen.queryByRole('checkbox', { name: 'Создание договоров' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Просмотр юридического архива' }));
+    expect(screen.getByRole('checkbox', { name: 'Создание документов юридического архива' })).not.toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
+    await waitFor(() => expect(createCustomRole).toHaveBeenCalledWith(expect.objectContaining({
+      system_permissions: ['legal_archive.view'],
+      module_permissions: { 'contract-management': ['contracts.create'] },
+    })));
+  });
+
+  it('shows existing archive grants and clears them with contracts without removing interface rights', async () => {
+    roleState.archiveAvailable = true;
+    roleState.roles = [{ id: 7, name: 'Юрист', system_permissions: ['admin.access', 'legal_archive.view', 'legal_archive.create'], module_permissions: { 'contract-management': ['contracts.create'] }, is_active: true, created_at: '2026-09-01' }];
+    render(<CustomRolesPage />);
+    fireEvent.click(screen.getByRole('button', { name: 'Редактировать роль «Юрист»' }));
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Модули' }), { button: 0, ctrlKey: false });
+    fireEvent.click(screen.getByRole('button', { name: 'Развернуть модуль Договоры' }));
+    expect(screen.getByRole('checkbox', { name: 'Просмотр юридического архива' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Создание документов юридического архива' })).toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Снять все права модуля Договоры' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+    await waitFor(() => expect(updateCustomRole).toHaveBeenCalledWith(7, expect.objectContaining({ system_permissions: ['admin.access'], module_permissions: {} })));
+  });
+
+  it('selects archive rights with the contracts module without creating module archive grants', async () => {
+    roleState.archiveAvailable = true;
+    render(<CustomRolesPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Создать роль' })[0]);
+    fireEvent.change(screen.getByPlaceholderText('Введите название роли'), { target: { value: 'Юрист' } });
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Модули' }), { button: 0, ctrlKey: false });
+    fireEvent.click(screen.getByRole('button', { name: 'Выбрать все права модуля Договоры' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
+    await waitFor(() => expect(createCustomRole).toHaveBeenCalledWith(expect.objectContaining({
+      system_permissions: ['legal_archive.view', 'legal_archive.create'],
+      module_permissions: { 'contract-management': ['contracts.create'] },
+    })));
+  });
+
+  it('clears archive rights with all modules and preserves unrelated system rights', async () => {
+    roleState.archiveAvailable = true;
+    render(<CustomRolesPage />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Создать роль' })[0]);
+    fireEvent.change(screen.getByPlaceholderText('Введите название роли'), { target: { value: 'Юрист' } });
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Права доступа' }), { button: 0, ctrlKey: false });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Доступ к административной панели' }));
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Модули' }), { button: 0, ctrlKey: false });
+    fireEvent.click(screen.getByRole('button', { name: 'Выбрать все' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Развернуть модуль Договоры' }));
+    expect(screen.getByRole('checkbox', { name: 'Просмотр юридического архива' })).toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Снять все' }));
+    expect(screen.getByRole('checkbox', { name: 'Просмотр юридического архива' })).not.toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
+    await waitFor(() => expect(createCustomRole).toHaveBeenCalledWith(expect.objectContaining({ system_permissions: ['admin.access'], module_permissions: {} })));
   });
 
   it('preserves the first role form while the hook is saving', () => {
