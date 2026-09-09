@@ -10,6 +10,7 @@ import {
   subscribeAuthSessionInvalidation,
 } from '@utils/authTokenStorage';
 import { disconnectEcho } from '../services/echo';
+import OrganizationBoundary, { resetOrganizationChoice } from '../components/OrganizationBoundary';
 
 export interface User extends Omit<LandingUser, 'email_verified_at'> {
   email_verified_at: string | null;
@@ -184,6 +185,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [loadUser]);
 
   const login = async (email: string, password: string, rememberMe = false): Promise<void> => {
+    resetOrganizationChoice();
     const epoch = lifecycleEpochRef.current + 1;
     lifecycleEpochRef.current = epoch;
     setIsLoading(true);
@@ -297,7 +299,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       logout,
       fetchUser,
     }}>
-      {children}
+      <OrganizationBoundary key={user?.id ?? 'guest'} user={user} ready={!isLoading} logout={logout}>
+        {children}
+      </OrganizationBoundary>
     </AuthContext.Provider>
   );
 };

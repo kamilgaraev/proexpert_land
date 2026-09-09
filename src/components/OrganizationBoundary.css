@@ -1,0 +1,20 @@
+.most-org-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #f3f6fb; color: #17243a; }
+.most-org-card { width: min(100%, 560px); padding: 32px; border: 1px solid #dce3ee; border-radius: 20px; background: white; box-shadow: 0 12px 36px #17243a0c; }
+.most-org-brand { color: #275eef; font-weight: 800; letter-spacing: .12em; }
+.most-org-card h1 { font-size: 26px; margin: 16px 0 10px; }
+.most-org-card p { line-height: 1.5; margin: 12px 0; }
+.most-org-card input { box-sizing: border-box; padding: 12px; width: 100%; border: 1px solid #ccd6e5; border-radius: 8px; }
+.most-org-options { display: grid; gap: 10px; margin: 24px 0; max-height: 50vh; overflow: auto; }
+.most-org-card button { font: inherit; cursor: pointer; }
+.most-org-option { display: flex; gap: 18px; justify-content: space-between; align-items: center; width: 100%; padding: 16px; background: white; color: #17243a; border: 1px solid #ccd6e5; border-radius: 10px; text-align: left; }
+.most-org-option span:first-child { overflow-wrap: anywhere; }
+.most-org-option span:last-child { font-size: 13px; color: #275eef; flex-shrink: 0; }
+.most-org-option:hover { background: #eef3ff; border-color: #275eef; }
+.most-org-card button:focus-visible, .most-org-bar button:focus-visible { outline: 3px solid #93b4ff; outline-offset: 3px; }
+.most-org-card button:disabled { opacity: .5; cursor: wait; }
+.most-org-error { color: #b42318; }
+.most-org-logout { display: block; margin-top: 20px; padding: 8px 0; border: 0; background: transparent; color: #52627b; }
+.most-org-switch { display: block; width: 100%; padding: 12px 16px; border: 0; background: transparent; color: #2458c9; cursor: pointer; text-align: left; font: inherit; }
+.most-org-switch:hover { background: #eef3ff; }
+.most-org-switch:focus-visible { outline: 3px solid #93b4ff; outline-offset: -3px; }
+@media (max-width: 600px) { .most-org-card { padding: 20px; } .most-org-screen { padding: 12px; } .most-org-option { gap: 10px; padding: 12px; } }

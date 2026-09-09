@@ -1,5 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('../services/organizationSession', () => ({
+  organizationSession: { list: async () => [], switch: vi.fn() },
+}));
 
 import { AuthContext, AuthProvider } from './AuthContext';
 import { authService } from '@utils/api';

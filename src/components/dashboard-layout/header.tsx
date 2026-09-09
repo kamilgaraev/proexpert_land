@@ -8,6 +8,7 @@ import {
   type KeyboardEvent,
 } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { OrganizationSwitchButton } from '../OrganizationBoundary';
 import { 
   ArrowRight,
   Search, 
@@ -348,6 +349,7 @@ export function Header({
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
+                    <OrganizationSwitchButton />
                     <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
                         <LogOut className="mr-2 h-5 w-5" />
                         <span>Выйти</span>
