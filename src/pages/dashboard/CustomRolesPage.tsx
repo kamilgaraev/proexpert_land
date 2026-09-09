@@ -18,7 +18,7 @@ import { PageLoading } from '@components/common/PageLoading';
 import NotificationService from '@components/shared/NotificationService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { Permission } from '@hooks/useCustomRoles';
+import type { AvailablePermissions, Permission } from '@hooks/useCustomRoles';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
@@ -27,7 +27,7 @@ interface CustomRoleFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (roleData: CreateCustomRoleData) => Promise<void>;
-  availablePermissions: any;
+  availablePermissions: AvailablePermissions | null;
 }
 
 const INTERFACE_SYSTEM_PERMISSIONS: Record<string, string[]> = {
@@ -37,6 +37,9 @@ const INTERFACE_SYSTEM_PERMISSIONS: Record<string, string[]> = {
 const INTERFACE_GATE_PERMISSIONS: Record<string, string[]> = {
   admin: ['admin.access', 'admin.view'],
 };
+
+const CONTRACT_MODULE = 'contract-management';
+const isLegalArchivePermission = (permission: Permission) => permission.key.startsWith('legal_archive.');
 
 const getPermissionKeys = (permissions: any): string[] => (
   Array.isArray(permissions)
@@ -60,12 +63,22 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
   const [permissionSearch, setPermissionSearch] = useState('');
   const normalizedSearch = permissionSearch.trim().toLocaleLowerCase('ru');
   const matchesPermission = (permission: Permission) => !normalizedSearch || `${permission.name} ${permission.description || ''}`.toLocaleLowerCase('ru').includes(normalizedSearch);
-  const visibleSystemPermissions = (availablePermissions?.system_permissions || []).filter(matchesPermission);
-  const visibleModules = Object.entries(availablePermissions?.module_permissions || {}).flatMap(([module, permissions]) => {
+  const archivePermissions = (availablePermissions?.system_permissions || []).filter(isLegalArchivePermission);
+  const archivePermissionKeys = new Set(archivePermissions.map(permission => permission.key));
+  const groupedPermissions = { ...availablePermissions?.module_permissions };
+  if (archivePermissions.length) {
+    groupedPermissions[CONTRACT_MODULE] = [
+      ...(groupedPermissions[CONTRACT_MODULE] || []),
+      ...archivePermissions,
+    ];
+  }
+  const visibleSystemPermissions = (availablePermissions?.system_permissions || []).filter(permission => !isLegalArchivePermission(permission) && matchesPermission(permission));
+  const visibleModules = Object.entries(groupedPermissions).flatMap(([module, permissions]) => {
     const allPermissions = Array.isArray(permissions) ? permissions as Permission[] : [];
-    const moduleName = availablePermissions?.module_groups?.[module] || module;
+    const moduleName = availablePermissions?.module_groups?.[module] || (module === CONTRACT_MODULE ? 'Договоры' : module);
     const matchesModule = !normalizedSearch || moduleName.toLocaleLowerCase('ru').includes(normalizedSearch);
-    const visiblePermissions = matchesModule ? allPermissions : allPermissions.filter(matchesPermission);
+    const matchesArchiveGroup = 'юридический архив'.includes(normalizedSearch);
+    const visiblePermissions = matchesModule ? allPermissions : allPermissions.filter(permission => matchesPermission(permission) || (archivePermissionKeys.has(permission.key) && matchesArchiveGroup));
     return visiblePermissions.length ? [{ module, moduleName, allPermissions, visiblePermissions }] : [];
   });
   const returnFocusRef = useRef<HTMLElement | null>(null);
@@ -193,9 +206,12 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
 
     setFormData(prev => ({
       ...prev,
+      system_permissions: Array.from(new Set([...prev.system_permissions, ...permissionKeys.filter(key => archivePermissionKeys.has(key))])),
       module_permissions: {
         ...(prev.module_permissions || {}),
-        [module]: permissionKeys
+        ...(permissionKeys.some(key => !archivePermissionKeys.has(key))
+          ? { [module]: permissionKeys.filter(key => !archivePermissionKeys.has(key)) }
+          : {})
       }
     }));
   };
@@ -207,6 +223,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
 
       return {
         ...prev,
+        system_permissions: module === CONTRACT_MODULE ? prev.system_permissions.filter(key => !archivePermissionKeys.has(key)) : prev.system_permissions,
         module_permissions: nextModulePermissions
       };
     });
@@ -226,6 +243,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
 
     setFormData(prev => ({
       ...prev,
+      system_permissions: Array.from(new Set([...prev.system_permissions, ...archivePermissionKeys])),
       module_permissions: allModulePermissions,
     }));
   };
@@ -233,6 +251,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
   const clearAllModulePermissions = () => {
     setFormData(prev => ({
       ...prev,
+      system_permissions: prev.system_permissions.filter(key => !archivePermissionKeys.has(key)),
       module_permissions: {},
     }));
   };
@@ -377,7 +396,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
 
           <TabsContent value="modules" className="m-0 space-y-6">
               {normalizedSearch && visibleModules.length === 0 && <p role="status" className="text-muted-foreground">Права не найдены. Измените запрос или сбросьте поиск.</p>}
-              {!normalizedSearch && availablePermissions?.module_permissions && (
+              {!normalizedSearch && Object.keys(groupedPermissions).length > 0 && (
                 <div className="flex flex-wrap items-center justify-end gap-3">
                   <Button variant="outline" onClick={selectAllModulePermissions}>Выбрать все</Button>
                   <Button variant="outline" onClick={clearAllModulePermissions}>Снять все</Button>
@@ -387,7 +406,7 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                 const permissions = allPermissions;
                 const permissionList = visiblePermissions;
                 const permissionKeys = getPermissionKeys(permissions);
-                const selectedPermissions = formData.module_permissions?.[module] || [];
+                const selectedPermissions = [...(formData.module_permissions?.[module] || []), ...formData.system_permissions.filter(key => archivePermissionKeys.has(key))];
                 const selectedCount = permissionKeys.filter(permission => selectedPermissions.includes(permission)).length;
                 const isExpanded = !!normalizedSearch || expandedModules.has(module);
                 const isFullySelected = permissionKeys.length > 0 && permissionKeys.every(permission => selectedPermissions.includes(permission));
@@ -431,13 +450,18 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                     </div>
                     {isExpanded && (
                       <div id={`module-permissions-${module}`} className="border-t border-border p-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {permissionList.map((permission: any) => (
+                        {[false, true].map(archiveGroup => {
+                          const groupPermissions = permissionList.filter(permission => archivePermissionKeys.has(permission.key) === archiveGroup);
+                          if (!groupPermissions.length) return null;
+                          return <div key={String(archiveGroup)} className={archiveGroup ? 'space-y-3' : undefined}>
+                          {archiveGroup && <h4 className="mb-3 mt-4 font-medium text-foreground">Юридический архив</h4>}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {groupPermissions.map((permission: Permission) => (
                             <label key={permission.key} className="flex items-start">
                               <input
                                 type="checkbox"
-                                checked={formData.module_permissions?.[module]?.includes(permission.key) || false}
-                                onChange={() => toggleModulePermission(module, permission.key)}
+                                checked={selectedPermissions.includes(permission.key)}
+                                onChange={() => archiveGroup ? toggleSystemPermission(permission.key) : toggleModulePermission(module, permission.key)}
                                 className="h-4 w-4 shrink-0 accent-primary focus:ring-primary border-border rounded mt-0.5"
                               />
                               <div className="ml-2">
@@ -448,7 +472,9 @@ const CustomRoleFormModal = ({ role, isOpen, onClose, onSave, availablePermissio
                               </div>
                             </label>
                           ))}
-                        </div>
+                          </div>
+                          </div>;
+                        })}
                       </div>
                     )}
                   </div>
