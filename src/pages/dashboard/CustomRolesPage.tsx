@@ -38,7 +38,7 @@ const INTERFACE_GATE_PERMISSIONS: Record<string, string[]> = {
   admin: ['admin.access', 'admin.view'],
 };
 
-const CONTRACT_MODULE = 'contract-management';
+const CONTRACT_MODULE = 'contract_management';
 const isLegalArchivePermission = (permission: Permission) => permission.key.startsWith('legal_archive.');
 
 const getPermissionKeys = (permissions: any): string[] => (
