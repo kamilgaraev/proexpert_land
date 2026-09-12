@@ -8,17 +8,19 @@ export default function HeroBridgeVideo() {
   const progressRef = useRef(0);
   const [playing, setPlaying] = useState(false);
   const [enabled, setEnabled] = useState(false);
+  const [videoSource, setVideoSource] = useState<string>();
   const manuallyPaused = useRef(false);
 
   const showCopy = () => {
     progressRef.current = 1;
-    sceneRef.current?.style.setProperty("--bridge-progress", "1");
     if (sceneRef.current) sceneRef.current.dataset.stage = "complete";
   };
 
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const compact = window.matchMedia("(max-width: 767px)");
     const update = () => {
+      setVideoSource(compact.matches ? "/images/marketing/most-bridge-story-mobile.mp4" : "/images/marketing/most-bridge-story.mp4");
       setEnabled(!motion.matches);
       if (motion.matches) {
         videoRef.current?.pause();
@@ -27,7 +29,11 @@ export default function HeroBridgeVideo() {
     };
     update();
     motion.addEventListener("change", update);
-    return () => motion.removeEventListener("change", update);
+    compact.addEventListener("change", update);
+    return () => {
+      motion.removeEventListener("change", update);
+      compact.removeEventListener("change", update);
+    };
   }, []);
 
   useEffect(() => {
@@ -55,7 +61,7 @@ export default function HeroBridgeVideo() {
       document.removeEventListener("visibilitychange", syncPlayback);
       video.pause();
     };
-  }, [enabled]);
+  }, [enabled, videoSource]);
 
   const syncCopy = () => {
     const video = videoRef.current;
@@ -63,15 +69,14 @@ export default function HeroBridgeVideo() {
     if (!video || !scene) return;
     const progress = Math.max(progressRef.current, Math.min(1, Math.max(0, (video.currentTime - 1) / 7)));
     progressRef.current = progress;
-    scene.style.setProperty("--bridge-progress", String(progress));
-    scene.dataset.stage = progress >= 0.9 ? "complete" : video.currentTime > 0.3 ? "start" : "waiting";
+    scene.dataset.stage = progress >= 0.9 ? "complete" : video.currentTime >= 3 ? "transfer" : "start";
   };
 
   return (
     <div className="most-hero-film" ref={sceneRef} data-animated={enabled || undefined}>
       <video
         ref={videoRef}
-        src={enabled ? "/images/marketing/most-bridge-launch.mp4" : undefined}
+        src={enabled ? videoSource : undefined}
         poster="/images/marketing/most-bridge-v2-1774.webp"
         width={1774}
         height={887}
@@ -86,9 +91,9 @@ export default function HeroBridgeVideo() {
         onError={showCopy}
       />
       <div className="most-hero-film-story">
-        <p className="most-hero-film-start">Работа начинается<br />на площадке.</p>
-        <span className="most-hero-film-line" aria-hidden="true"><span /></span>
-        <p className="most-hero-film-finish">И становится понятной<br />в офисе.</p>
+        <p className="most-hero-film-start"><small>Площадка</small>Нужен материал.<br />Прораб создаёт заявку.</p>
+        <p className="most-hero-film-transfer"><small>Одна заявка. Общая работа.</small>От стройки —<br />к решению в офисе.</p>
+        <p className="most-hero-film-finish"><small>Офис</small>Заявка получена.<br />Снабженец готовит закупку.</p>
       </div>
       {enabled && (
         <button
