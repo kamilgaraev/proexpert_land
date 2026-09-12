@@ -20,13 +20,13 @@
 }
 @media (prefers-reduced-motion: reduce) { .most-hero-film-story p { transition: none; } }
 @media (min-width: 1024px) and (min-height: 650px) {
-  .most-hero:has(.most-hero-film) { box-sizing: border-box; height: calc(100svh - var(--most-header-height, 88px)); min-height: 560px; display: flex; flex-direction: column; padding-top: clamp(12px, 2vh, 28px); }
+  .most-hero:has(.most-hero-film) { box-sizing: border-box; padding-top: clamp(12px, 2vh, 28px); }
   .most-hero:has(.most-hero-film) .most-hero-heading { flex: 0 0 auto; }
   .most-hero:has(.most-hero-film) h1 { margin: 0; font-size: clamp(2.5rem, min(4.4vw, 7vh), 5.5rem); }
   .most-hero:has(.most-hero-film) .most-hero-intro { padding-top: 0; }
   .most-hero:has(.most-hero-film) .most-hero-intro p { font-size: clamp(1rem, 1.2vw, 1.375rem); margin: 0; }
   .most-hero:has(.most-hero-film) .most-hero-intro .most-button { margin-top: 16px; min-height: 48px; }
   .most-hero:has(.most-hero-film) .most-hero-intro .most-text-link { margin-top: 10px; }
-  .most-hero:has(.most-hero-film) .most-hero-film { flex: 1 1 0; min-height: 0; }
-  .most-hero:has(.most-hero-film) video { width: 100%; height: 100%; object-fit: contain; }
+  .most-hero:has(.most-hero-film) .most-hero-film { width: 100%; }
+  .most-hero:has(.most-hero-film) video { width: 100%; height: auto; object-fit: cover; }
 }
