@@ -7,6 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import ContactForm from "@/components/landing/ContactForm";
+import HeroBridgeVideo from "@/components/landing/HeroBridgeVideo";
 import {
   marketingFaqs,
   marketingPaths,
@@ -142,23 +143,7 @@ const HomePage = () => {
             </a>
           </div>
         </div>
-        <div className="most-bridge-scene">
-          <img
-            src="/images/marketing/most-bridge-v2-1774.webp"
-            srcSet="/images/marketing/most-bridge-v2-640.webp 640w, /images/marketing/most-bridge-v2-1024.webp 1024w, /images/marketing/most-bridge-v2-1774.webp 1774w"
-            sizes="100vw"
-            width={1774}
-            height={887}
-            alt="Мост с опорами в форме буквы М соединяет строительную площадку и офис"
-            loading="eager"
-            fetchPriority="high"
-          />
-          <ol className="most-bridge-path" aria-label="От заявки до работы">
-            <li>Заявка</li>
-            <li>Решение</li>
-            <li>Работа</li>
-          </ol>
-        </div>
+        <HeroBridgeVideo />
       </section>
 
       <section
