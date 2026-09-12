@@ -15,6 +15,20 @@ function setup(reduced = false) {
 }
 
 describe("Hero video story", () => {
+  it("holds the last frame until the visitor explicitly replays", () => {
+    const { video, getByRole } = setup();
+    expect(video.loop).toBe(false);
+    Object.defineProperty(video, "currentTime", { value: 10, configurable: true, writable: true });
+    fireEvent.ended(video);
+    const play = vi.mocked(HTMLMediaElement.prototype.play);
+    play.mockClear();
+    fireEvent(document, new Event("visibilitychange"));
+    expect(play).not.toHaveBeenCalled();
+    expect(video.currentTime).toBe(10);
+    fireEvent.click(getByRole("button", { name: "Посмотреть ещё раз" }));
+    expect(video.currentTime).toBe(0);
+    expect(play).toHaveBeenCalledOnce();
+  });
   it("keeps the completed copy visible when the video loops", () => {
     const { video, scene } = setup();
     Object.defineProperty(video, "currentTime", { value: 5, configurable: true });

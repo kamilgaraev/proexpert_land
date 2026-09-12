@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { PauseIcon, PlayIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, PauseIcon, PlayIcon } from "@heroicons/react/24/outline";
 import "./HeroBridgeVideo.css";
 
 export default function HeroBridgeVideo() {
@@ -9,6 +9,8 @@ export default function HeroBridgeVideo() {
   const [playing, setPlaying] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [videoSource, setVideoSource] = useState<string>();
+  const [ended, setEnded] = useState(false);
+  const finishedRef = useRef(false);
   const manuallyPaused = useRef(false);
 
   const showCopy = () => {
@@ -20,7 +22,7 @@ export default function HeroBridgeVideo() {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const compact = window.matchMedia("(max-width: 767px)");
     const update = () => {
-      setVideoSource(compact.matches ? "/images/marketing/most-bridge-story-mobile.mp4" : "/images/marketing/most-bridge-story.mp4");
+      if (!finishedRef.current) setVideoSource(compact.matches ? "/images/marketing/most-bridge-calm-mobile.mp4" : "/images/marketing/most-bridge-calm.mp4");
       setEnabled(!motion.matches);
       if (motion.matches) {
         videoRef.current?.pause();
@@ -42,7 +44,7 @@ export default function HeroBridgeVideo() {
     if (!enabled || !video || !scene) return;
     let visible = true;
     const syncPlayback = () => {
-      if (visible && !document.hidden && !manuallyPaused.current) {
+      if (visible && !document.hidden && !manuallyPaused.current && !finishedRef.current) {
         void video.play().catch(showCopy);
       } else {
         video.pause();
@@ -81,34 +83,48 @@ export default function HeroBridgeVideo() {
         width={1774}
         height={887}
         muted
-        loop
         playsInline
         preload="metadata"
         aria-label="Мост соединяет строительную площадку и офис"
         onTimeUpdate={syncCopy}
         onPlaying={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
+        onEnded={() => {
+          finishedRef.current = true;
+          setEnded(true);
+          setPlaying(false);
+          showCopy();
+        }}
         onError={showCopy}
       />
       <div className="most-hero-film-story">
-        <p className="most-hero-film-start"><small>Площадка</small>Нужен материал.<br />Прораб создаёт заявку.</p>
-        <p className="most-hero-film-transfer"><small>Одна заявка. Общая работа.</small>От стройки —<br />к решению в офисе.</p>
-        <p className="most-hero-film-finish"><small>Офис</small>Заявка получена.<br />Снабженец готовит закупку.</p>
+        <p className="most-hero-film-start">Задача на площадке.</p>
+        <p className="most-hero-film-finish">Решение в офисе.</p>
       </div>
       {enabled && (
         <button
           type="button"
           className="most-hero-film-control"
-          aria-label={playing ? "Приостановить видео" : "Воспроизвести видео"}
+          aria-label={ended ? "Посмотреть ещё раз" : playing ? "Приостановить видео" : "Воспроизвести видео"}
           onClick={() => {
             const video = videoRef.current;
             if (!video) return;
+            if (finishedRef.current) {
+              finishedRef.current = false;
+              setEnded(false);
+              progressRef.current = 0;
+              if (sceneRef.current) sceneRef.current.dataset.stage = "start";
+              video.currentTime = 0;
+              manuallyPaused.current = false;
+              void video.play().catch(showCopy);
+              return;
+            }
             manuallyPaused.current = !video.paused;
             if (video.paused) void video.play().catch(showCopy);
             else video.pause();
           }}
         >
-          {playing ? <PauseIcon aria-hidden="true" /> : <PlayIcon aria-hidden="true" />}
+          {ended ? <ArrowPathIcon aria-hidden="true" /> : playing ? <PauseIcon aria-hidden="true" /> : <PlayIcon aria-hidden="true" />}
         </button>
       )}
     </div>
