@@ -19,7 +19,7 @@ describe("Hero video story", () => {
     const { video, scene } = setup();
     Object.defineProperty(video, "currentTime", { value: 5, configurable: true });
     fireEvent.timeUpdate(video);
-    expect(scene.getAttribute("data-stage")).toBe("start");
+    expect(scene.getAttribute("data-stage")).toBe("transfer");
     Object.defineProperty(video, "currentTime", { value: 9, configurable: true });
     fireEvent.timeUpdate(video);
     expect(scene.getAttribute("data-stage")).toBe("complete");
