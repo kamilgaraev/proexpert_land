@@ -283,4 +283,15 @@ describe('buildServerSeoPayload', () => {
     expect(payload.statusCode).toBe(301);
     expect(payload.redirectTarget).toBe('/features');
   });
+
+  it.each([
+    ['/blog/chto-dolzhno-byt-u-pto-v-odnoy-sisteme', '/blog/ispolnitelnaya-dokumentaciya-v-stroitelstve'],
+    ['/blog/kak-prorabu-derzhat-obekt-bez-haosa', '/foreman-software'],
+  ])('redirects archived article %s even when the article loader returns 404', (source, target) => {
+    const payload = buildServerSeoPayload(source, { statusCode: 404, noIndex: true });
+
+    expect(payload.statusCode).toBe(301);
+    expect(payload.redirectTarget).toBe(target);
+    expect(payload.allMeta).toBe('');
+  });
 });

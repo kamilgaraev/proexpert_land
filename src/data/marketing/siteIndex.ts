@@ -91,6 +91,8 @@ export const marketingNoIndexExactPaths = new Set([
 ]);
 
 export const marketingRedirectRoutes: MarketingRedirectRoute[] = [
+  { path: '/blog/chto-dolzhno-byt-u-pto-v-odnoy-sisteme', target: '/blog/ispolnitelnaya-dokumentaciya-v-stroitelstve' },
+  { path: '/blog/kak-prorabu-derzhat-obekt-bez-haosa', target: '/foreman-software' },
   { path: '/docs', target: '/features' },
   { path: '/help', target: '/contact' },
   { path: '/terms', target: '/offer' },
