@@ -916,7 +916,7 @@ describe("marketing content consistency", () => {
       "pto-software": "программа для пто",
       "material-accounting": "учёт материалов в строительстве",
       "contractor-control": "система контроля работы подрядчиков",
-      "construction-procurement": "автоматизация закупок в строительстве",
+      "construction-procurement": "программа для снабжения в строительстве",
       "construction-tenders": "строительные тендеры",
       "construction-orders": "строительные заказы",
       "construction-safety": "система охраны труда на стройке",
