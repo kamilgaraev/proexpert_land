@@ -181,7 +181,7 @@ const BillingPage = () => {
         commercialBillingService.getHistory(1),
         commercialBillingService.getLimits(),
       ]);
-      if (packageItems.length !== 10) throw new Error('Каталог пакетов временно недоступен.');
+      if (packageItems.length !== 8) throw new Error('Каталог пакетов временно недоступен.');
       setPackages(packageItems);
       setRenewal(renewalState);
       setLimitsSummary(limitsData);
@@ -308,7 +308,11 @@ const BillingPage = () => {
   const togglePackage = (slug: string) => {
     if (isCorporate) return;
     setFullSuite(false);
-    setSelected((current) => current.includes(slug) ? current.filter((item) => item !== slug) : [...current, slug]);
+    setSelected((current) => {
+      if (slug === 'working-entry' && current.includes(slug)) return [];
+      if (current.includes(slug)) return current.filter((item) => item !== slug);
+      return slug === 'working-entry' ? [...current, slug] : Array.from(new Set([...current, 'working-entry', slug]));
+    });
     if (!renewal?.autoRenewEnabled || !renewal.savedMethodAvailable) setAutoRenewConsent(false);
     setActionError(null);
   };
@@ -500,7 +504,7 @@ const BillingPage = () => {
           <div className="max-w-2xl">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-orange-600"><Sparkles className="h-4 w-4" />Все возможности МОСТ</div>
             <h2 id="full-suite-title" className="text-2xl font-semibold text-slate-950">Полный комплект</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Все 10 пакетов в одном составе. Подходит командам, которым нужен единый рабочий контур без выбора отдельных направлений.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Рабочий вход и семь контуров в одном составе. Подходит командам, которым нужен единый рабочий контур без выбора отдельных направлений.</p>
           </div>
           {!isCorporate && canManage ? <Button
             size="lg"
@@ -588,7 +592,7 @@ const BillingPage = () => {
                   variant="available"
                   pendingAction={pendingAdd ? 'add' : null}
                   primaryActionLabel={isCorporate ? null : pendingAdd ? 'Убрать из изменений' : 'Добавить'}
-                  secondaryActionLabel={isCorporate ? null : item.trialUsed ? 'Пробный доступ уже использован' : 'Попробовать 3 дня'}
+                  secondaryActionLabel={isCorporate ? null : item.trialUsed ? 'Пробный доступ уже использован' : item.slug === 'working-entry' || item.trialAvailable ? 'Попробовать 3 дня' : 'После оплаты рабочего входа'}
                   secondaryActionDisabled={!item.trialAvailable || item.trialUsed || actionBusy === `trial:${item.slug}`}
                   disabled={!canManage || isGrace || isCorporate}
                   onPrimaryAction={() => togglePackage(item.slug)}

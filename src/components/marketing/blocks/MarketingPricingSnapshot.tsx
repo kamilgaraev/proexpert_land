@@ -25,7 +25,7 @@ const MarketingPricingSnapshot = () => (
             <div className="mt-2 text-sm font-semibold text-steel-700">{freeFoundationOffer.name}</div>
           </div>
           <div className="rounded-[1.3rem] border border-steel-200 bg-concrete-50 px-5 py-5">
-            <div className="text-2xl font-bold text-steel-950">10 бизнес-пакетов</div>
+            <div className="text-2xl font-bold text-steel-950">Рабочий вход</div>
             <div className="mt-2 text-sm text-steel-600">от {formatPrice(Math.min(...commercialPackages.map((item) => item.price)))}</div>
           </div>
           <div className="rounded-[1.3rem] border border-construction-300 bg-construction-50 px-5 py-5">
@@ -54,7 +54,7 @@ const MarketingPricingSnapshot = () => (
         </article>
         <article className="rounded-[1.55rem] border border-construction-300 bg-construction-50 p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-construction-800">Полный комплект</div>
-          <h3 className="mt-3 text-xl font-bold text-steel-950">Все 10 пакетов выгоднее вместе</h3>
+          <h3 className="mt-3 text-xl font-bold text-steel-950">Рабочий вход и семь контуров выгоднее вместе</h3>
           <p className="mt-3 text-sm leading-7 text-steel-700">{formatPrice(fullSuiteOffer.price)} за организацию на 30 дней вместо {formatPrice(fullSuiteOffer.separatePrice)}.</p>
           <Link to={`${marketingPaths.pricing}#full-suite`} className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-steel-950">
             Посмотреть полный комплект <ArrowUpRightIcon className="h-4 w-4" />

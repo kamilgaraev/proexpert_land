@@ -3,16 +3,20 @@ import type { MarketingAdvancedOffer, MarketingPackage } from '@/types/marketing
 export const marketingPackageCatalogSource = 'Backend МОСТ: config/Packages/*.json, config/commercial_offers.php, config/module_packages.php';
 
 export type CommercialPackageSlug =
-  | 'projects-processes'
-  | 'planning-schedules'
-  | 'estimates-norms'
-  | 'quality-safety'
-  | 'pto-handover'
+  | 'working-entry'
   | 'supply-warehouse'
   | 'finance-contracts'
+  | 'pto-handover'
+  | 'quality-safety'
   | 'workforce-output'
   | 'machinery'
   | 'sales-contractors';
+
+export const retiredEntryPackageSlugs = [
+  'projects-processes',
+  'planning-schedules',
+  'estimates-norms',
+] as const;
 
 export interface CommercialPackage extends MarketingPackage {
   number: number;
@@ -48,59 +52,19 @@ const foundationModules = [
 
 const definitions: PackageDefinition[] = [
   {
-    slug: 'projects-processes',
-    name: 'Проекты и процессы',
-    price: 9_900,
-    description: 'Управление объектами, рабочими процессами и заявками с площадки в одной системе.',
-    bestFor: 'Командам, которым важно собрать управление объектами и ответственностью в одном месте.',
-    moduleSlugs: ['site-requests', 'file-management', 'ai-assistant', 'data-export'],
-    highlights: ['Заявки с объекта', 'Файлы и документы'],
-    outcomes: ['Единый порядок работы по объектам', 'Связь офиса и строительной площадки'],
-  },
-  {
-    slug: 'planning-schedules',
-    name: 'Графики и планирование',
-    price: 7_900,
-    description: 'Календарное и оперативное планирование работ по объектам.',
-    bestFor: 'Проектным командам и площадкам, которые управляют сроками и загрузкой.',
-    moduleSlugs: ['schedule-management'],
-    highlights: ['Календарные графики', 'Оперативное планирование'],
-    outcomes: ['Управляемые сроки и последовательность работ'],
-  },
-  {
-    slug: 'estimates-norms',
-    name: 'Сметы и нормы',
-    price: 12_900,
-    description: 'Сметы, расценки, нормы и связанные расчёты для строительных проектов.',
-    bestFor: 'Сметчикам, ПТО и руководителям проектов с регулярным контролем стоимости.',
-    moduleSlugs: ['budget-estimates', 'rate-management', 'ai-estimates'],
-    highlights: ['Сметы', 'Расценки и нормы'],
-    outcomes: ['Единая сметно-нормативная база', 'Контролируемые расчёты стоимости'],
-  },
-  {
-    slug: 'quality-safety',
-    name: 'Качество и безопасность',
-    price: 9_900,
-    description: 'Контроль качества работ, охрана труда и безопасность на строительной площадке.',
-    bestFor: 'Стройконтролю и службам охраны труда на одном или нескольких объектах.',
-    moduleSlugs: ['budget-estimates', 'file-management', 'quality-control', 'safety-management', 'video-monitoring', 'access_recertification'],
-    highlights: ['Инспекции и дефекты', 'Инструктажи и безопасность'],
-    outcomes: ['Системный контроль качества', 'Управляемая охрана труда'],
-  },
-  {
-    slug: 'pto-handover',
-    name: 'ПТО и сдача',
-    price: 11_900,
-    description: 'Исполнительная и проектная документация, контроль качества и приёмка результата.',
-    bestFor: 'ПТО и инженерным командам, которые ведут объект от документации до сдачи.',
-    moduleSlugs: ['budget-estimates', 'file-management', 'quality-control', 'report-templates', 'executive-documentation', 'design-management', 'handover-acceptance'],
-    highlights: ['Исполнительная документация', 'ПИР', 'Приёмка'],
-    outcomes: ['Комплектная исполнительная документация', 'Прозрачная приёмка и сдача'],
+    slug: 'working-entry',
+    name: 'Рабочий вход',
+    price: 39_900,
+    description: 'Объекты, заявки, графики и сметы в одном платном минимуме.',
+    bestFor: 'Командам, которым нужен единый платный минимум для объектов, сроков и смет.',
+    moduleSlugs: ['site-requests', 'file-management', 'ai-assistant', 'data-export', 'schedule-management', 'budget-estimates', 'rate-management', 'ai-estimates'],
+    highlights: ['Заявки с объекта', 'Графики', 'Сметы и нормы', 'Помощник'],
+    outcomes: ['Единый порядок работы по объектам', 'Управляемые сроки', 'Единая сметно-нормативная база'],
   },
   {
     slug: 'supply-warehouse',
     name: 'Снабжение и склад',
-    price: 11_900,
+    price: 9_900,
     description: 'Закупки, складской учёт и материальный контроль по объектам.',
     bestFor: 'Снабжению и складу при работе с несколькими объектами и поставщиками.',
     moduleSlugs: ['site-requests', 'basic-warehouse', 'procurement', 'material-analytics'],
@@ -110,7 +74,7 @@ const definitions: PackageDefinition[] = [
   {
     slug: 'finance-contracts',
     name: 'Финансы и договоры',
-    price: 12_900,
+    price: 9_900,
     description: 'Договоры, бюджетирование, акты и финансовый контроль строительных проектов.',
     bestFor: 'Финансовым и договорным службам строительной компании.',
     moduleSlugs: ['budget-estimates', 'budgeting', 'change-management', 'advance-accounting', 'one-c-basic-exchange'],
@@ -118,9 +82,29 @@ const definitions: PackageDefinition[] = [
     outcomes: ['Финансовый план-факт по объектам', 'Контроль договорных изменений'],
   },
   {
+    slug: 'pto-handover',
+    name: 'ПТО и сдача',
+    price: 9_900,
+    description: 'Исполнительная и проектная документация, контроль качества и приёмка результата.',
+    bestFor: 'ПТО и инженерным командам, которые ведут объект от документации до сдачи.',
+    moduleSlugs: ['budget-estimates', 'file-management', 'quality-control', 'report-templates', 'executive-documentation', 'design-management', 'handover-acceptance'],
+    highlights: ['Исполнительная документация', 'ПИР', 'Приёмка'],
+    outcomes: ['Комплектная исполнительная документация', 'Прозрачная приёмка и сдача'],
+  },
+  {
+    slug: 'quality-safety',
+    name: 'Качество и безопасность',
+    price: 6_900,
+    description: 'Контроль качества работ, охрана труда и безопасность на строительной площадке.',
+    bestFor: 'Стройконтролю и службам охраны труда на одном или нескольких объектах.',
+    moduleSlugs: ['budget-estimates', 'file-management', 'quality-control', 'safety-management', 'video-monitoring', 'access_recertification'],
+    highlights: ['Инспекции и дефекты', 'Инструктажи и безопасность'],
+    outcomes: ['Системный контроль качества', 'Управляемая охрана труда'],
+  },
+  {
     slug: 'workforce-output',
     name: 'Персонал и выработка',
-    price: 9_900,
+    price: 7_900,
     description: 'Рабочее время, персонал, наряды и фактическая выработка по объектам.',
     bestFor: 'Производственным командам с бригадами и сдельным учетом работ.',
     moduleSlugs: ['time-tracking', 'budget-estimates', 'workforce-management', 'production-labor'],
@@ -130,7 +114,7 @@ const definitions: PackageDefinition[] = [
   {
     slug: 'machinery',
     name: 'Техника и механизмы',
-    price: 7_900,
+    price: 5_900,
     description: 'Эксплуатация техники, заявки, смены, простои и производственные показатели.',
     bestFor: 'Механикам и диспетчерам строительной техники.',
     moduleSlugs: ['budget-estimates', 'site-requests', 'machinery-operations'],
@@ -179,28 +163,40 @@ export const fullSuiteOffer = {
   slug: 'full-suite' as const,
   name: 'Полный комплект',
   price: 79_900,
-  separatePrice: 103_000,
-  savings: 23_100,
-  savingsPercent: 22.43,
+  separatePrice: 98_200,
+  savings: 18_300,
+  savingsPercent: 18.64,
   billingPeriodDays: 30,
 };
 
 export const commercialTerms = {
   trialHours: 72,
   graceDays: 7,
-  recommendationThreshold: 8,
+  recommendationThreshold: 64_000,
+  entrySlug: 'working-entry' as const,
 };
 
-export const getCommercialSelection = (slugs: readonly string[]) => {
-  const selected = new Set(slugs);
+export const getCommercialSelection = (slugs: readonly string[], fullSuite = false) => {
+  const known = new Set(commercialPackages.map((item) => item.slug));
+  const selected = new Set(
+    slugs.filter((slug): slug is CommercialPackageSlug => known.has(slug as CommercialPackageSlug)),
+  );
+  if (fullSuite || [...selected].some((slug) => slug !== commercialTerms.entrySlug)) {
+    selected.add(commercialTerms.entrySlug);
+  }
+  if (fullSuite) {
+    commercialPackages.forEach((item) => selected.add(item.slug));
+  }
+
   const selectedPackages = commercialPackages.filter((item) => selected.has(item.slug));
+  const separateTotal = selectedPackages.reduce((sum, item) => sum + item.price, 0);
 
   return {
     selectedSlugs: selectedPackages.map((item) => item.slug),
     selectedPackages,
-    total: selectedPackages.reduce((sum, item) => sum + item.price, 0),
-    recommendFullSuite: selectedPackages.length >= commercialTerms.recommendationThreshold,
-    isFullSuite: false,
+    total: fullSuite ? fullSuiteOffer.price : separateTotal,
+    recommendFullSuite: !fullSuite && separateTotal >= commercialTerms.recommendationThreshold,
+    isFullSuite: fullSuite,
   };
 };
 

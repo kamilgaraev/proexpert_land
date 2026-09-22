@@ -38,14 +38,27 @@ const PricingPage = () => {
     ? `/register?packages=${intent}`
     : "/register";
 
+  const entryPackage = commercialPackages.find(
+    (item) => item.slug === commercialTerms.entrySlug,
+  );
+  const contourPackages = commercialPackages.filter(
+    (item) => item.slug !== commercialTerms.entrySlug,
+  );
+
   const togglePackage = (slug: string) => {
     setSelectedPackageSlugs((current) => {
       const next = new Set(current);
+      if (slug === commercialTerms.entrySlug) {
+        if (next.has(slug)) return new Set();
+        next.add(slug);
+        return next;
+      }
       if (next.has(slug)) {
         next.delete(slug);
-      } else {
-        next.add(slug);
+        return next;
       }
+      next.add(commercialTerms.entrySlug);
+      next.add(slug);
       return next;
     });
   };
@@ -100,16 +113,48 @@ const PricingPage = () => {
           <div className="most-content-lead">
             <h2>Какие задачи будете вести в МОСТ?</h2>
             <p>
-              Отметьте пакеты — стоимость посчитается рядом. Каждый пакет можно
-              попробовать бесплатно, если вы ещё не подключали его в своей
-              организации: {commercialTerms.trialHours / 24} дня без банковской
-              карты.
+              Бесплатная основа уже включена. Рабочий вход можно попробовать{" "}
+              {commercialTerms.trialHours / 24} дня без банковской карты.
+              Контур пробуется один раз, когда рабочий вход уже оплачен.
             </p>
           </div>
           <div className="most-package-constructor">
             <fieldset className="most-package-options">
-              <legend className="sr-only">Выбор бизнес-пакетов</legend>
-              {commercialPackages.map((item) => (
+              <legend className="sr-only">Выбор рабочего входа и контуров</legend>
+              <div className="most-package-option is-locked" aria-disabled="true">
+                <span className="most-package-copy">
+                  <strong>Бесплатная основа</strong>
+                  <span>Организация, люди, проекты, договоры и отчёты. Этот слой не отключается.</span>
+                </span>
+                <span className="most-package-price">
+                  <strong>0 ₽</strong>
+                  <span>всегда</span>
+                </span>
+              </div>
+              {entryPackage ? (
+                <label
+                  className={`most-package-option ${selectedPackageSlugs.has(entryPackage.slug) ? "is-selected" : ""}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedPackageSlugs.has(entryPackage.slug)}
+                    onChange={() => togglePackage(entryPackage.slug)}
+                    aria-label={entryPackage.name}
+                  />
+                  <span className="most-package-copy">
+                    <strong>{entryPackage.name}</strong>
+                    <span>{entryPackage.description}</span>
+                    <span className="most-package-includes">
+                      {entryPackage.highlights.join(" · ")}
+                    </span>
+                  </span>
+                  <span className="most-package-price">
+                    <strong>{formatPrice(entryPackage.price)}</strong>
+                    <span>за 30 дней</span>
+                  </span>
+                </label>
+              ) : null}
+              {contourPackages.map((item) => (
                 <label
                   key={item.slug}
                   className={`most-package-option ${selectedPackageSlugs.has(item.slug) ? "is-selected" : ""}`}
@@ -172,7 +217,7 @@ const PricingPage = () => {
                 <div className="most-package-recommendation" role="status">
                   <strong>Сравните с полным комплектом</strong>
                   <p>
-                    Все {commercialPackages.length} пакетов стоят{" "}
+                    Рабочий вход и семь контуров стоят{" "}
                     {formatPrice(fullSuiteOffer.price)} за 30 дней. Ваш выбор
                     сохранён.
                   </p>
@@ -218,7 +263,7 @@ const PricingPage = () => {
         <div className="most-container">
           <div className="most-cta-panel is-dark most-full-suite">
             <div>
-              <h2>Все {commercialPackages.length} пакетов. Одна стоимость.</h2>
+              <h2>Рабочий вход и семь контуров. Одна стоимость.</h2>
               <p>
                 По отдельности — {formatPrice(fullSuiteOffer.separatePrice)}.
                 Полный комплект экономит {formatPrice(fullSuiteOffer.savings)}{" "}
@@ -254,9 +299,9 @@ const PricingPage = () => {
                 </span>
               </summary>
               <p>
-                Каждый пакет можно один раз бесплатно попробовать в течение{" "}
-                {commercialTerms.trialHours / 24} дней, если он раньше не
-                подключался в этой организации. Банковская карта не нужна.
+                Рабочий вход можно один раз попробовать {commercialTerms.trialHours / 24}{" "}
+                дня без банковской карты. Контур пробуется один раз и только
+                после оплаты рабочего входа. Пробный вход не открывает контуры.
               </p>
             </details>
             <details>

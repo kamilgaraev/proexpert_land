@@ -22,7 +22,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
       "contract-management",
       "schedule-management",
     ],
-    packageSlugs: ["planning-schedules"],
+    packageSlugs: ["working-entry"],
     sourceOfTruth: [
       "prohelper/app/BusinessModules/Features/ProjectManagement",
       "prohelper/app/BusinessModules/Features/ScheduleManagement",
@@ -52,7 +52,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
       "budget-estimates",
       "executive-documentation",
     ],
-    packageSlugs: ["planning-schedules", "pto-handover"],
+    packageSlugs: ["working-entry", "pto-handover"],
     sourceOfTruth: [
       "prohelper/app/Models/ConstructionJournalEntry.php",
       "prohelper/app/BusinessModules/Features/BudgetEstimates/Services/ConstructionJournalService.php",
@@ -78,7 +78,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ["mobile", "admin"],
     maturity: "stable",
     moduleSlugs: ["site-requests", "time-tracking"],
-    packageSlugs: ["projects-processes", "workforce-output"],
+    packageSlugs: ["working-entry", "workforce-output"],
     sourceOfTruth: [
       "prohelper/app/BusinessModules/Features/SiteRequests",
       "prohelper/app/BusinessModules/Features/TimeTracking",
@@ -420,7 +420,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ["admin", "lk", "holding"],
     maturity: "early_access",
     moduleSlugs: ["ai-assistant", "dashboard-widgets", "reports"],
-    packageSlugs: ["projects-processes"],
+    packageSlugs: ["working-entry"],
     sourceOfTruth: [
       "prohelper/app/BusinessModules/Features/AIAssistant",
       "prohelper/app/BusinessModules/Features/ProjectManagement",

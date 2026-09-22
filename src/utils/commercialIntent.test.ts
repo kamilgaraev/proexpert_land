@@ -13,12 +13,12 @@ describe('регистрационный коммерческий intent', () =>
   });
 
   it('переносит только известные пакеты без активации тарифа', () => {
-    expect(parseCommercialIntent('projects-processes,unknown,machinery')).toEqual([
-      'projects-processes',
+    expect(parseCommercialIntent('projects-processes,planning-schedules,unknown,machinery')).toEqual([
+      'working-entry',
       'machinery',
     ]);
-    expect(serializeCommercialIntent(['machinery', 'projects-processes'])).toBe(
-      'machinery,projects-processes',
+    expect(serializeCommercialIntent(['machinery', 'working-entry'])).toBe(
+      'machinery,working-entry',
     );
   });
 
@@ -40,7 +40,7 @@ describe('регистрационный коммерческий intent', () =>
       'projects-processes,unknown,machinery',
     );
 
-    expect(consumeCommercialIntent()).toEqual(['projects-processes', 'machinery']);
+    expect(consumeCommercialIntent()).toEqual(['working-entry', 'machinery']);
     expect(window.sessionStorage.getItem(commercialIntentStorageKey)).toBeNull();
     expect(consumeCommercialIntent()).toEqual([]);
   });
