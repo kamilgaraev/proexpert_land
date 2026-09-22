@@ -253,7 +253,7 @@ describe('buildStructuredDataGraph', () => {
     expect(organizations[0].name).toBe('МОСТ');
   });
 
-  it('публикует бесплатную основу, рабочий вход, семь контуров и полный комплект', () => {
+  it('публикует бесплатную основу, рабочий вход, шесть контуров и полный комплект', () => {
     const graph = buildStructuredDataGraph({
       ...baseInput,
       pathname: '/pricing',
@@ -263,7 +263,7 @@ describe('buildStructuredDataGraph', () => {
     const product = graph['@graph'].find((node) => node['@type'] === 'Product');
     const offers = product?.offers as Array<Record<string, unknown>>;
 
-    expect(offers).toHaveLength(10);
+    expect(offers).toHaveLength(9);
     expect(offers.map((offer) => [offer.name, offer.price])).toEqual(expect.arrayContaining([
       ['Начните бесплатно', '0'],
       ['Рабочий вход', '39900'],

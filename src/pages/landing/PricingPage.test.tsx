@@ -63,8 +63,8 @@ describe("Pricing package selection", () => {
 
   it("suggests comparison without silently selecting the full suite", () => {
     const summary = renderPricing();
-    ["Снабжение и склад", "Финансы и договоры", "ПТО и сдача"].forEach(toggle);
-    expect(summary.getByText("69 600 ₽")).toBeInTheDocument();
+    ["Снабжение и склад", "Финансы и договоры", "Персонал и выработка"].forEach(toggle);
+    expect(summary.getByText("67 600 ₽")).toBeInTheDocument();
     expect(summary.getByRole("status")).toHaveTextContent(
       "Сравните с полным комплектом",
     );
@@ -77,7 +77,7 @@ describe("Pricing package selection", () => {
       screen.getByRole("link", { name: "Выбрать полный комплект" }),
     ).toHaveAttribute("href", "/register?packages=full-suite");
 
-    toggle("ПТО и сдача");
+    toggle("Персонал и выработка");
     expect(summary.queryByRole("status")).not.toBeInTheDocument();
     expect(summary.getByText("59 700 ₽")).toBeInTheDocument();
   });

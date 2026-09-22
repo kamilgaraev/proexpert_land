@@ -13,7 +13,7 @@ describe('регистрационный коммерческий intent', () =>
   });
 
   it('переносит только известные пакеты без активации тарифа', () => {
-    expect(parseCommercialIntent('projects-processes,planning-schedules,unknown,machinery')).toEqual([
+    expect(parseCommercialIntent('projects-processes,planning-schedules,pto-handover,unknown,machinery')).toEqual([
       'working-entry',
       'machinery',
     ]);

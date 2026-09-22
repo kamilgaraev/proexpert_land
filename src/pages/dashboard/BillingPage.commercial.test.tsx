@@ -12,8 +12,8 @@ vi.mock('@/hooks/usePermissions', () => ({
 }));
 
 const baseUrl = 'https://api.xn--1-xtbgmf.xn--p1ai/api/v1/landing';
-const packageSlugs = ['working-entry', 'supply-warehouse', 'finance-contracts', 'pto-handover', 'quality-safety', 'workforce-output', 'machinery', 'sales-contractors'];
-const packages = Array.from({ length: 8 }, (_, index) => ({
+const packageSlugs = ['working-entry', 'supply-warehouse', 'finance-contracts', 'quality-safety', 'workforce-output', 'machinery', 'sales-contractors'];
+const packages = Array.from({ length: 7 }, (_, index) => ({
   slug: packageSlugs[index],
   name: `Пакет ${index + 1}`,
   description: `Описание ${index + 1}`,

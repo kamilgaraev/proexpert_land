@@ -12,6 +12,7 @@ type CommercialPackageCardProps = {
   effectiveDateLabel?: string | null;
   secondaryActionDisabled?: boolean;
   disabled?: boolean;
+  featured?: boolean;
   onPrimaryAction: () => void;
   onSecondaryAction?: () => void;
   onDetails: () => void;
@@ -32,6 +33,7 @@ export const CommercialPackageCard = ({
   effectiveDateLabel,
   secondaryActionDisabled = false,
   disabled = false,
+  featured = false,
   onPrimaryAction,
   onSecondaryAction,
   onDetails,
@@ -53,12 +55,14 @@ export const CommercialPackageCard = ({
   return (
     <article className={cn(
       'group flex min-h-60 min-w-0 flex-col overflow-hidden rounded-2xl border bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition duration-200 hover:border-slate-300 hover:shadow-md sm:p-6',
-      connected ? 'border-emerald-200' : 'border-slate-200',
+      featured && 'border-2 border-slate-950 bg-[#f7f3ee] md:col-span-2',
+      !featured && (connected ? 'border-emerald-200' : 'border-slate-200'),
       pendingAction === 'remove' && 'border-amber-300 bg-amber-50/40',
       pendingAction === 'add' && 'border-orange-300 bg-orange-50/40',
     )}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
+          {featured ? <p className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-[#a64313]">Платный минимум</p> : null}
           {statusLabel && (
             <div className={cn(
               'mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold',
@@ -79,6 +83,9 @@ export const CommercialPackageCard = ({
       </div>
 
       <p className="mt-3 text-sm leading-6 text-slate-600">{packageItem.description}</p>
+      {featured && packageItem.highlights.length > 0 ? (
+        <p className="mt-3 text-sm leading-6 text-slate-800">{packageItem.highlights.join(' · ')}</p>
+      ) : null}
       {effectiveDateLabel && <p className="mt-3 text-sm font-medium text-amber-800">{effectiveDateLabel}</p>}
 
       <div className="mt-auto grid min-w-0 gap-2 pt-6 sm:grid-cols-[auto_minmax(0,1fr)]">
