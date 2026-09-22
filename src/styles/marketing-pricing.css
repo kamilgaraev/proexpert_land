@@ -68,16 +68,20 @@
 .most-package-option.is-entry {
   margin-block: 8px;
   padding: 28px 18px;
-  background: #f7f3ee;
-  border: 1px solid #c4b5a4;
-  border-bottom: 1px solid #c4b5a4;
+  background: #fff;
+  border: 1px solid #a7f3d0;
+  border-bottom: 1px solid #a7f3d0;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
 }
 .most-package-option.is-entry.is-selected {
-  background: #f3e6d8;
-  border-color: #a64313;
+  background: #f0fdf4;
+  border-color: #6ee7b7;
+}
+.most-package-option.is-entry input {
+  accent-color: #059669;
 }
 .most-package-copy .most-package-kicker {
-  color: #a64313;
+  color: #047857;
   font-size: var(--most-type-caption);
   font-weight: 600;
   letter-spacing: 0.04em;
