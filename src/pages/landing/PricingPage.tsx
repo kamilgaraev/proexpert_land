@@ -133,7 +133,7 @@ const PricingPage = () => {
               </div>
               {entryPackage ? (
                 <label
-                  className={`most-package-option ${selectedPackageSlugs.has(entryPackage.slug) ? "is-selected" : ""}`}
+                  className={`most-package-option is-entry ${selectedPackageSlugs.has(entryPackage.slug) ? "is-selected" : ""}`}
                 >
                   <input
                     type="checkbox"
@@ -142,6 +142,7 @@ const PricingPage = () => {
                     aria-label={entryPackage.name}
                   />
                   <span className="most-package-copy">
+                    <span className="most-package-kicker">Платный минимум</span>
                     <strong>{entryPackage.name}</strong>
                     <span>{entryPackage.description}</span>
                     <span className="most-package-includes">
@@ -217,7 +218,7 @@ const PricingPage = () => {
                 <div className="most-package-recommendation" role="status">
                   <strong>Сравните с полным комплектом</strong>
                   <p>
-                    Рабочий вход и семь контуров стоят{" "}
+                    Рабочий вход и шесть контуров стоят{" "}
                     {formatPrice(fullSuiteOffer.price)} за 30 дней. Ваш выбор
                     сохранён.
                   </p>
@@ -263,7 +264,7 @@ const PricingPage = () => {
         <div className="most-container">
           <div className="most-cta-panel is-dark most-full-suite">
             <div>
-              <h2>Рабочий вход и семь контуров. Одна стоимость.</h2>
+              <h2>Рабочий вход и шесть контуров. Одна стоимость.</h2>
               <p>
                 По отдельности — {formatPrice(fullSuiteOffer.separatePrice)}.
                 Полный комплект экономит {formatPrice(fullSuiteOffer.savings)}{" "}

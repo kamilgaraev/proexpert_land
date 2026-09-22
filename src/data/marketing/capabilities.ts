@@ -52,7 +52,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
       "budget-estimates",
       "executive-documentation",
     ],
-    packageSlugs: ["working-entry", "pto-handover"],
+    packageSlugs: ["working-entry"],
     sourceOfTruth: [
       "prohelper/app/Models/ConstructionJournalEntry.php",
       "prohelper/app/BusinessModules/Features/BudgetEstimates/Services/ConstructionJournalService.php",
@@ -154,10 +154,10 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
     surfaces: ["admin", "lk"],
     maturity: "stable",
     moduleSlugs: ["design-management", "budget-estimates", "file-management"],
-    packageSlugs: ["pto-handover"],
+    packageSlugs: ["working-entry"],
     sourceOfTruth: [
       "prohelper/config/ModuleList/features/design-management.json",
-      "prohelper/config/Packages/pto-handover.json",
+      "prohelper/config/Packages/working-entry.json",
       "docs/workflows/construction-erp-coverage.md",
     ],
     cta: "ПИР и документация",
@@ -183,7 +183,7 @@ export const marketingCapabilityMatrix: MarketingCapability[] = [
       "handover-acceptance",
       "executive-documentation",
     ],
-    packageSlugs: ["pto-handover"],
+    packageSlugs: ["working-entry"],
     sourceOfTruth: [
       "prohelper/config/ModuleList/features/quality-control.json",
       "prohelper/config/ModuleList/features/handover-acceptance.json",

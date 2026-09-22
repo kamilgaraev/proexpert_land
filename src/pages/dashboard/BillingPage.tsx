@@ -181,7 +181,7 @@ const BillingPage = () => {
         commercialBillingService.getHistory(1),
         commercialBillingService.getLimits(),
       ]);
-      if (packageItems.length !== 8) throw new Error('Каталог пакетов временно недоступен.');
+      if (packageItems.length !== 7) throw new Error('Каталог пакетов временно недоступен.');
       setPackages(packageItems);
       setRenewal(renewalState);
       setLimitsSummary(limitsData);
@@ -504,7 +504,7 @@ const BillingPage = () => {
           <div className="max-w-2xl">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-orange-600"><Sparkles className="h-4 w-4" />Все возможности МОСТ</div>
             <h2 id="full-suite-title" className="text-2xl font-semibold text-slate-950">Полный комплект</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Рабочий вход и семь контуров в одном составе. Подходит командам, которым нужен единый рабочий контур без выбора отдельных направлений.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Рабочий вход и шесть контуров в одном составе. Подходит командам, которым нужен единый рабочий контур без выбора отдельных направлений.</p>
           </div>
           {!isCorporate && canManage ? <Button
             size="lg"
@@ -562,6 +562,7 @@ const BillingPage = () => {
                 return <CommercialPackageCard
                   key={item.slug}
                   packageItem={item}
+                  featured={item.slug === 'working-entry'}
                   variant="connected"
                   pendingAction={pendingRemoval ? 'remove' : null}
                   primaryActionLabel={canDisconnect ? (pendingRemoval ? 'Оставить подключённым' : 'Отключить со следующего периода') : null}
@@ -589,6 +590,7 @@ const BillingPage = () => {
                 return <CommercialPackageCard
                   key={item.slug}
                   packageItem={item}
+                  featured={item.slug === 'working-entry'}
                   variant="available"
                   pendingAction={pendingAdd ? 'add' : null}
                   primaryActionLabel={isCorporate ? null : pendingAdd ? 'Убрать из изменений' : 'Добавить'}

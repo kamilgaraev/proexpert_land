@@ -58,7 +58,6 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
       "supply-warehouse",
       "finance-contracts",
       "quality-safety",
-      "pto-handover",
     ],
     cta: "Решение для генподрядчика",
   },
@@ -88,7 +87,6 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     recommendedPackageSlugs: [
       "working-entry",
       "finance-contracts",
-      "pto-handover",
     ],
     cta: "Решение для группы компаний",
   },
@@ -117,7 +115,6 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     recommendedPackageSlugs: [
       "working-entry",
       "finance-contracts",
-      "pto-handover",
     ],
     cta: "Решение для ПТО",
   },
@@ -139,9 +136,8 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     surfaces: ["admin", "mobile", "lk"],
     capabilityIds: ["quality-handover", "project-control", "change-control"],
     recommendedPackageSlugs: [
-      "quality-safety",
-      "pto-handover",
       "working-entry",
+      "quality-safety",
     ],
     cta: "Функции качества и приемки",
   },
@@ -221,7 +217,6 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     recommendedPackageSlugs: [
       "working-entry",
       "finance-contracts",
-      "pto-handover",
     ],
     cta: "Функции управления изменениями",
   },

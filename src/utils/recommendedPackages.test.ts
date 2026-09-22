@@ -20,7 +20,7 @@ describe('рекомендации коммерческих пакетов', () 
     ]);
   });
 
-  it('покрывает рабочий вход и семь контуров единым сопоставлением', () => {
+  it('покрывает рабочий вход и шесть контуров единым сопоставлением', () => {
     const packages = getRecommendedPackages([
       'project-management',
       'schedule-management',
@@ -38,7 +38,6 @@ describe('рекомендации коммерческих пакетов', () 
       'working-entry',
       'supply-warehouse',
       'finance-contracts',
-      'pto-handover',
       'quality-safety',
       'workforce-output',
       'machinery',
