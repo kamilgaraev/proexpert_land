@@ -24,7 +24,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
       "finance-control",
     ],
     recommendedPackageSlugs: [
-      "projects-processes",
+      "working-entry",
       "supply-warehouse",
       "finance-contracts",
     ],
@@ -54,7 +54,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
       "analytics-control",
     ],
     recommendedPackageSlugs: [
-      "projects-processes",
+      "working-entry",
       "supply-warehouse",
       "finance-contracts",
       "quality-safety",
@@ -86,9 +86,8 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
       "change-control",
     ],
     recommendedPackageSlugs: [
-      "projects-processes",
+      "working-entry",
       "finance-contracts",
-      "estimates-norms",
       "pto-handover",
     ],
     cta: "Решение для группы компаний",
@@ -116,9 +115,8 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
       "change-control",
     ],
     recommendedPackageSlugs: [
-      "estimates-norms",
+      "working-entry",
       "finance-contracts",
-      "projects-processes",
       "pto-handover",
     ],
     cta: "Решение для ПТО",
@@ -143,7 +141,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     recommendedPackageSlugs: [
       "quality-safety",
       "pto-handover",
-      "projects-processes",
+      "working-entry",
     ],
     cta: "Функции качества и приемки",
   },
@@ -171,7 +169,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
     recommendedPackageSlugs: [
       "quality-safety",
       "workforce-output",
-      "projects-processes",
+      "working-entry",
     ],
     cta: "Функции охраны труда",
   },
@@ -221,7 +219,7 @@ export const marketingSolutionSegments: MarketingSolutionSegment[] = [
       "pir-project-documentation",
     ],
     recommendedPackageSlugs: [
-      "projects-processes",
+      "working-entry",
       "finance-contracts",
       "pto-handover",
     ],

@@ -37,43 +37,34 @@ describe("Pricing package selection", () => {
       summary.getByRole("link", { name: "Создать организацию" }),
     ).toHaveAttribute("href", "/register");
 
-    toggle("Проекты и процессы");
+    toggle("Рабочий вход");
     toggle("Снабжение и склад");
-    expect(summary.getByText("21 800 ₽")).toBeInTheDocument();
+    expect(summary.getByText("49 800 ₽")).toBeInTheDocument();
     expect(
       summary.getByRole("link", { name: "Продолжить с этим набором" }),
     ).toHaveAttribute(
       "href",
-      "/register?packages=projects-processes,supply-warehouse",
+      "/register?packages=working-entry,supply-warehouse",
     );
     expect(
       screen.getByRole("link", { name: /К набору \(2\)/ }),
     ).toHaveAttribute("href", "#package-summary");
 
-    toggle("Проекты и процессы");
+    toggle("Снабжение и склад");
     expect(
       summary.getByRole("link", { name: "Продолжить с этим набором" }),
-    ).toHaveAttribute("href", "/register?packages=supply-warehouse");
-    toggle("Снабжение и склад");
+    ).toHaveAttribute("href", "/register?packages=working-entry");
+    toggle("Рабочий вход");
     expect(summary.getByText("0 ₽")).toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: /К набору/ }),
     ).not.toBeInTheDocument();
   });
 
-  it("suggests comparison without silently changing eight selected packages", () => {
+  it("suggests comparison without silently selecting the full suite", () => {
     const summary = renderPricing();
-    [
-      "Проекты и процессы",
-      "Графики и планирование",
-      "Сметы и нормы",
-      "Качество и безопасность",
-      "ПТО и сдача",
-      "Снабжение и склад",
-      "Финансы и договоры",
-      "Персонал и выработка",
-    ].forEach(toggle);
-    expect(summary.getByText("87 200 ₽")).toBeInTheDocument();
+    ["Снабжение и склад", "Финансы и договоры", "ПТО и сдача"].forEach(toggle);
+    expect(summary.getByText("69 600 ₽")).toBeInTheDocument();
     expect(summary.getByRole("status")).toHaveTextContent(
       "Сравните с полным комплектом",
     );
@@ -86,8 +77,8 @@ describe("Pricing package selection", () => {
       screen.getByRole("link", { name: "Выбрать полный комплект" }),
     ).toHaveAttribute("href", "/register?packages=full-suite");
 
-    toggle("Персонал и выработка");
+    toggle("ПТО и сдача");
     expect(summary.queryByRole("status")).not.toBeInTheDocument();
-    expect(summary.getByText("77 300 ₽")).toBeInTheDocument();
+    expect(summary.getByText("59 700 ₽")).toBeInTheDocument();
   });
 });

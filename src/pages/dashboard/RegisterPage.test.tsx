@@ -61,7 +61,7 @@ describe('RegisterPage', () => {
   });
 
   it('показывает выбранные бизнес-пакеты без старого тарифа', () => {
-    renderPage('/register?packages=projects-processes,machinery');
+    renderPage('/register?packages=working-entry,machinery');
 
     expect(screen.getByText('Сохранен набор из 2 пакета')).toBeInTheDocument();
     expect(screen.queryByText(/тариф Business/i)).not.toBeInTheDocument();
@@ -79,14 +79,14 @@ describe('RegisterPage', () => {
   });
 
   it('правильно склоняет количество выбранных пакетов', () => {
-    const { unmount } = renderPage('/register?packages=projects-processes');
+    const { unmount } = renderPage('/register?packages=working-entry');
 
     expect(screen.getByText('Сохранен набор из 1 пакет')).toBeInTheDocument();
 
     unmount();
     renderPage('/register?packages=projects-processes,machinery,planning-schedules');
 
-    expect(screen.getByText('Сохранен набор из 3 пакета')).toBeInTheDocument();
+    expect(screen.getByText('Сохранен набор из 2 пакета')).toBeInTheDocument();
   });
 
   it('сохраняет intent только после успешной регистрации и не передает plan_slug', async () => {
@@ -94,7 +94,7 @@ describe('RegisterPage', () => {
     registerMock.mockReturnValue(new Promise<void>((resolve) => {
       resolveRegistration = resolve;
     }));
-    renderPage('/register?packages=projects-processes,machinery');
+    renderPage('/register?packages=working-entry,machinery');
 
     await submitValidRegistration();
 
@@ -111,7 +111,7 @@ describe('RegisterPage', () => {
 
     resolveRegistration?.();
     await waitFor(() => expect(window.sessionStorage.getItem(commercialIntentStorageKey)).toBe(
-      'projects-processes,machinery',
+      'working-entry,machinery',
     ));
   });
 

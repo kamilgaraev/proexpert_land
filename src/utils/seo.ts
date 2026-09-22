@@ -344,7 +344,7 @@ const buildPackageOffers = () => {
   return [
     createOffer(freeFoundationOffer.name, freeFoundationOffer.description, freeFoundationOffer.price),
     ...packageOffers,
-    createOffer(fullSuiteOffer.name, 'Все десять бизнес-пакетов МОСТ на 30 дней.', fullSuiteOffer.price),
+    createOffer(fullSuiteOffer.name, 'Рабочий вход и семь контуров МОСТ на 30 дней.', fullSuiteOffer.price),
   ];
 };
 

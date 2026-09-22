@@ -1,4 +1,8 @@
-import { commercialPackages, type CommercialPackageSlug } from '@/data/marketing/packages';
+import {
+  commercialPackages,
+  retiredEntryPackageSlugs,
+  type CommercialPackageSlug,
+} from '@/data/marketing/packages';
 
 export const commercialIntentStorageKey = 'most:commercial-package-intent';
 export type CommercialIntentSlug = CommercialPackageSlug | 'full-suite';
@@ -17,6 +21,9 @@ export const parseCommercialIntent = (value: string | null): CommercialIntentSlu
     value
       .split(',')
       .map((item) => item.trim())
+      .map((item) => (
+        (retiredEntryPackageSlugs as readonly string[]).includes(item) ? 'working-entry' : item
+      ))
       .filter((item): item is CommercialIntentSlug => allowedIntents.has(item as CommercialIntentSlug)),
   );
 

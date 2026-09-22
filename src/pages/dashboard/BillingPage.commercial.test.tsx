@@ -12,8 +12,8 @@ vi.mock('@/hooks/usePermissions', () => ({
 }));
 
 const baseUrl = 'https://api.xn--1-xtbgmf.xn--p1ai/api/v1/landing';
-const packageSlugs = ['projects-processes', 'planning-schedules', 'estimates-norms', 'quality-safety', 'pto-handover', 'supply-warehouse', 'finance-contracts', 'workforce-output', 'machinery', 'sales-contractors'];
-const packages = Array.from({ length: 10 }, (_, index) => ({
+const packageSlugs = ['working-entry', 'supply-warehouse', 'finance-contracts', 'pto-handover', 'quality-safety', 'workforce-output', 'machinery', 'sales-contractors'];
+const packages = Array.from({ length: 8 }, (_, index) => ({
   slug: packageSlugs[index],
   name: `Пакет ${index + 1}`,
   description: `Описание ${index + 1}`,
@@ -72,7 +72,7 @@ const server = setupServer(
     resource_addons: [
       { slug: 'extra_users', limit_key: 'users', name: 'Дополнительные пользователи', unit: 'user', current_quantity: 0, step: 1, min: 0, max_self_service: 200, requires_package: null, available: true, pricing: { model: 'linear', currency: 'RUB', price_minor: 30000, amount: '300.00' } },
       { slug: 'extra_projects', limit_key: 'projects', name: 'Дополнительные проекты', unit: 'project', current_quantity: 1, step: 1, min: 0, max_self_service: 100, requires_package: null, available: true, pricing: { model: 'linear', currency: 'RUB', price_minor: 50000, amount: '500.00' } },
-      { slug: 'extra_document_pages', limit_key: 'document_pages_month', name: 'Дополнительные страницы распознавания', unit: 'page', current_quantity: 0, step: 100, min: 0, max_self_service: 5000, requires_package: 'estimates-norms', available: false, pricing: { model: 'linear', currency: 'RUB', price_minor: 1000, amount: '10.00' } },
+      { slug: 'extra_document_pages', limit_key: 'document_pages_month', name: 'Дополнительные страницы распознавания', unit: 'page', current_quantity: 0, step: 100, min: 0, max_self_service: 5000, requires_package: 'finance-contracts', available: false, pricing: { model: 'linear', currency: 'RUB', price_minor: 1000, amount: '10.00' } },
     ],
   } })),
   http.get(`${baseUrl}/billing/balance`, () => HttpResponse.json({

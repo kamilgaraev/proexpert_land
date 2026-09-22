@@ -14,14 +14,13 @@ describe('рекомендации коммерческих пакетов', () 
     ]);
 
     expect(packages.map(({ slug, name }) => [slug, name])).toEqual([
-      ['projects-processes', 'Проекты и процессы'],
-      ['planning-schedules', 'Графики и планирование'],
+      ['working-entry', 'Рабочий вход'],
       ['supply-warehouse', 'Снабжение и склад'],
       ['sales-contractors', 'Продажи и подрядчики'],
     ]);
   });
 
-  it('покрывает все десять коммерческих пакетов единым сопоставлением', () => {
+  it('покрывает рабочий вход и семь контуров единым сопоставлением', () => {
     const packages = getRecommendedPackages([
       'project-management',
       'schedule-management',
@@ -36,13 +35,11 @@ describe('рекомендации коммерческих пакетов', () 
     ]);
 
     expect(packages.map((item) => item.slug)).toEqual([
-      'projects-processes',
-      'planning-schedules',
-      'estimates-norms',
-      'quality-safety',
-      'pto-handover',
+      'working-entry',
       'supply-warehouse',
       'finance-contracts',
+      'pto-handover',
+      'quality-safety',
       'workforce-output',
       'machinery',
       'sales-contractors',

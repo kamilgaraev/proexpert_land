@@ -16,9 +16,9 @@ describe('MarketingPricingSnapshot', () => {
     renderComponent();
 
     expect(screen.getByRole('heading', { name: /Начните бесплатно. Подключайте нужные пакеты./i })).toBeInTheDocument();
-    expect(screen.getByText('10 бизнес-пакетов')).toBeInTheDocument();
+    expect(screen.getByText('Рабочий вход')).toBeInTheDocument();
     expect(screen.getByText('79 900 ₽')).toBeInTheDocument();
-    expect(screen.getByText('экономия 23 100 ₽')).toBeInTheDocument();
+    expect(screen.getByText('экономия 18 300 ₽')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Создать организацию' })).toHaveAttribute('href', '/register');
     expect(screen.getByRole('link', { name: 'Собрать свой набор' })).toHaveAttribute('href', '/pricing#constructor');
     expect(screen.queryByText(/Start|Business|Profi|Enterprise Конструктор/)).not.toBeInTheDocument();
