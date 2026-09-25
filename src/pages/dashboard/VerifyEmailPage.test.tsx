@@ -1,9 +1,10 @@
 // @vitest-environment happy-dom
 
-import { render, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import VerifyEmailPage from './VerifyEmailPage';
+import { storeProjectInvitationReturnPath } from '@/utils/projectParticipantInvitationReturn';
 
 const mocks = vi.hoisted(() => ({
   authUser: {
@@ -34,12 +35,19 @@ const renderVerifyEmailPage = () => (
   <MemoryRouter initialEntries={['/verify-email?id=61&hash=hash&expires=1777117379&signature=signature']}>
     <Routes>
       <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/login" element={<LoginReturnProbe />} />
     </Routes>
   </MemoryRouter>
 );
 
+const LoginReturnProbe = () => {
+  const location = useLocation();
+  return <output data-testid="verification-return">{location.state?.from?.pathname}</output>;
+};
+
 describe('VerifyEmailPage', () => {
   beforeEach(() => {
+    window.sessionStorage.clear();
     mocks.authUser = {
       id: 61,
       email: 'owner@example.test',
@@ -92,5 +100,15 @@ describe('VerifyEmailPage', () => {
 
     expect(mocks.verifyEmailMock).toHaveBeenCalledTimes(1);
     expect(mocks.fetchUserMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('возвращает к приглашению после подтверждения почты', async () => {
+    storeProjectInvitationReturnPath('/project-invitations/invite-token');
+    mocks.verifyEmailMock.mockResolvedValue({ success: true, message: 'Email подтвержден' });
+    render(renderVerifyEmailPage());
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Войти и открыть приглашение' }));
+
+    expect(await screen.findByTestId('verification-return')).toHaveTextContent('/project-invitations/invite-token');
   });
 });

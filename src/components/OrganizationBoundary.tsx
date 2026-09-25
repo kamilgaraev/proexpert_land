@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { organizationSession, type OrganizationChoice } from '../services/organizationSession';
+import { readProjectInvitationReturnPath } from '../utils/projectParticipantInvitationReturn';
 import './OrganizationBoundary.css';
 
 const choiceKey = 'most-organization-choice';
@@ -75,7 +76,7 @@ export default function OrganizationBoundary({ user, ready, children, logout, on
           channel.postMessage({ type: 'changed' });
           channel.close();
         }
-        window.location.assign('/dashboard');
+        window.location.assign(readProjectInvitationReturnPath() ?? '/dashboard');
         return;
       }
       saveChoice(user.id, organization.id);

@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { parseCommercialIntent, rememberCommercialIntent } from '@/utils/commercialIntent';
+import { getSafeProjectInvitationReturnPath, storeProjectInvitationReturnPath } from '@/utils/projectParticipantInvitationReturn';
 import '@/styles/auth.css';
 import { usePageTitle } from '@/hooks/useSEO';
 
@@ -93,6 +94,7 @@ const RegisterPage = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const invitationReturnPath = getSafeProjectInvitationReturnPath(searchParams.get('next'));
   const { searchAddresses, searchCities, searchOrganizations, isLoading: isDaDataLoading } = useDaData();
   const commercialIntent = parseCommercialIntent(searchParams.get('packages'));
 
@@ -270,8 +272,9 @@ const RegisterPage = () => {
       }
       await register(formData, registrationKeyRef.current);
       rememberCommercialIntent(commercialIntent);
+      if (invitationReturnPath) storeProjectInvitationReturnPath(invitationReturnPath);
 
-      navigate('/email-sent', { state: { email } });
+      navigate('/email-sent', { state: { email, next: invitationReturnPath } });
     } catch (err: any) {
       console.error('Ошибка при регистрации:', err);
 
@@ -350,6 +353,7 @@ const RegisterPage = () => {
                 </Link>
                  <Link
                     to="/login"
+                    state={invitationReturnPath ? { from: { pathname: invitationReturnPath } } : undefined}
                     className="text-primary hover:underline text-sm font-medium"
                 >
                     Уже есть аккаунт? Войти
