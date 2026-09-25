@@ -7,6 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import '@/styles/auth.css';
 import { usePageTitle } from '@/hooks/useSEO';
+import {
+  clearProjectInvitationReturnPath,
+  getSafeProjectInvitationReturnPath,
+  readProjectInvitationReturnPath,
+} from '@/utils/projectParticipantInvitationReturn';
 
 const createEmailHash = async (email: string): Promise<string> => {
   const digest = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(email));
@@ -24,6 +29,9 @@ export const VerifyEmailPage = () => {
   const hashParam = searchParams.get('hash');
   const expiresParam = searchParams.get('expires');
   const signatureParam = searchParams.get('signature');
+  const [invitationReturnPath] = useState(() => (
+    getSafeProjectInvitationReturnPath(searchParams.get('next')) ?? readProjectInvitationReturnPath()
+  ));
   const { verifyEmail, loading } = useEmailVerification();
   const { user, isLoading: isAuthLoading, fetchUser } = useAuth();
   const processedVerificationKeyRef = useRef<string | null>(null);
@@ -96,6 +104,11 @@ export const VerifyEmailPage = () => {
   ]);
 
   const handleGoToDashboard = () => {
+    if (invitationReturnPath) {
+      clearProjectInvitationReturnPath();
+      navigate('/login', { state: { from: { pathname: invitationReturnPath } } });
+      return;
+    }
     navigate('/dashboard');
   };
 
@@ -155,7 +168,7 @@ export const VerifyEmailPage = () => {
                 className="w-full min-h-12"
                 size="lg"
               >
-                Перейти в личный кабинет
+                {invitationReturnPath ? 'Войти и открыть приглашение' : 'Перейти в личный кабинет'}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <p className="text-sm text-gray-500">

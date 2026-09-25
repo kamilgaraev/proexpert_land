@@ -34,6 +34,7 @@ import EmailSentPage from '@pages/dashboard/EmailSentPage';
 
 const VerifyEmailPage = lazy(() => import('@pages/dashboard/VerifyEmailPage'));
 const UserInvitationAcceptPage = lazy(() => import('@pages/dashboard/UserInvitationAcceptPage'));
+const ProjectParticipantInvitationPage = lazy(() => import('@pages/dashboard/ProjectParticipantInvitationPage'));
 import DashboardProtectedRoute from '@components/DashboardProtectedRoute';
 import { CabinetDomainGuard } from '@components/CabinetDomainGuard';
 import { HoldingPanelRouteGuard } from '@/components/multi-org/HoldingPanelRouteGuard';
@@ -273,6 +274,7 @@ function App({
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/email-sent" element={<EmailSentPage />} />
         <Route path="/invitations/accept" element={<UserInvitationAcceptPage />} />
+        <Route path="/project-invitations/:token" element={<ProjectParticipantInvitationPage />} />
         <Route path="/supplier-requests/:token" element={<SupplierRequestResponsePage />} />
         
         {/* Продуктовые страницы - Moved to LandingLayout */}

@@ -4,9 +4,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { login } = vi.hoisted(() => ({ login: vi.fn() }));
 vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ login }) }));
-vi.mock('@/components/dashboard/EmailVerificationModal', () => ({ EmailVerificationModal: () => null }));
+vi.mock('@/components/dashboard/EmailVerificationModal', () => ({
+  EmailVerificationModal: ({ isOpen }: { isOpen: boolean }) => isOpen ? <div role="dialog">Подтвердите почту</div> : null,
+}));
 
 import LoginPage from './LoginPage';
+import { readProjectInvitationReturnPath, storeProjectInvitationReturnPath } from '@/utils/projectParticipantInvitationReturn';
 
 function Destination() {
   const location = useLocation();
@@ -52,5 +55,33 @@ describe('LoginPage navigation', () => {
     expect(input).toHaveValue('registration@example.test');
     fireEvent.change(input, { target: { value: 'other@example.test' } });
     expect(input).toHaveValue('other@example.test');
+  });
+
+  it('восстанавливает приглашение из сессии после принудительного возврата к входу', async () => {
+    window.sessionStorage.clear();
+    storeProjectInvitationReturnPath('/project-invitations/invite-token');
+    renderLogin();
+
+    await submitLogin();
+
+    expect(await screen.findByText('/project-invitations/invite-token')).toBeInTheDocument();
+    expect(readProjectInvitationReturnPath()).toBeNull();
+  });
+
+  it('сохраняет безопасный возврат к приглашению при неподтверждённой почте', async () => {
+    window.sessionStorage.clear();
+    login.mockRejectedValue({
+      status: 403,
+      response: { data: { message: 'Пожалуйста, подтвердите ваш email адрес' } },
+    });
+    renderLogin({ from: { pathname: '/project-invitations/invite-token' } });
+
+    await waitFor(() => expect(readProjectInvitationReturnPath()).toBe('/project-invitations/invite-token'));
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'owner@example.test' } });
+    fireEvent.change(screen.getByLabelText('Пароль'), { target: { value: 'test-password' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Войти в систему' }));
+
+    expect(await screen.findByRole('dialog')).toHaveTextContent('Подтвердите почту');
+    expect(readProjectInvitationReturnPath()).toBe('/project-invitations/invite-token');
   });
 });

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -16,6 +16,12 @@ import { Label } from '@/components/ui/label';
 import { EmailVerificationModal } from '@/components/dashboard/EmailVerificationModal';
 import '@/styles/auth.css';
 import { usePageTitle } from '@/hooks/useSEO';
+import {
+  clearProjectInvitationReturnPath,
+  getSafeProjectInvitationReturnPath,
+  readProjectInvitationReturnPath,
+  storeProjectInvitationReturnPath,
+} from '@/utils/projectParticipantInvitationReturn';
 
 const LoginPage = () => {
   usePageTitle('Вход — МОСТ');
@@ -32,6 +38,11 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const requestedLocation = location.state?.from;
   const requestedPath = requestedLocation?.pathname;
+  const invitationReturnPath = getSafeProjectInvitationReturnPath(
+    typeof requestedPath === 'string'
+      ? `${requestedPath}${typeof requestedLocation.search === 'string' ? requestedLocation.search : ''}${typeof requestedLocation.hash === 'string' ? requestedLocation.hash : ''}`
+      : undefined,
+  ) ?? (!requestedLocation ? readProjectInvitationReturnPath() : null);
   const from = typeof requestedPath === 'string'
     && requestedPath.startsWith('/')
     && !requestedPath.startsWith('//')
@@ -41,7 +52,12 @@ const LoginPage = () => {
         search: typeof requestedLocation.search === 'string' ? requestedLocation.search : '',
         hash: typeof requestedLocation.hash === 'string' ? requestedLocation.hash : '',
       }
-    : '/dashboard';
+    : invitationReturnPath ?? '/dashboard';
+  const registerHref = invitationReturnPath ? `/register?next=${encodeURIComponent(invitationReturnPath)}` : '/register';
+
+  useEffect(() => {
+    if (invitationReturnPath) storeProjectInvitationReturnPath(invitationReturnPath);
+  }, [invitationReturnPath]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +72,7 @@ const LoginPage = () => {
 
     try {
       await login(email, password, rememberMe);
+      if (invitationReturnPath) clearProjectInvitationReturnPath();
       navigate(from, { replace: true });
     } catch (err: any) {
       console.error('Ошибка входа:', err);
@@ -85,7 +102,7 @@ const LoginPage = () => {
     <div className="most-workspace most-auth-page most-auth-login">
       <header className="most-auth-login-header">
         <Link to="/" aria-label="МОСТ — главная"><img src="/logo.svg" alt="" /><span>МОСТ</span></Link>
-        <Link to="/register">Создать аккаунт <ArrowRight aria-hidden="true" /></Link>
+        <Link to={registerHref}>Создать аккаунт <ArrowRight aria-hidden="true" /></Link>
       </header>
 
       <motion.div 
@@ -207,7 +224,7 @@ const LoginPage = () => {
 
           <div className="mt-8 text-center text-sm text-muted-foreground">
             Нет аккаунта?{' '}
-            <Link to="/register" className="font-semibold text-primary hover:underline underline-offset-4">
+            <Link to={registerHref} className="font-semibold text-primary hover:underline underline-offset-4">
               Зарегистрироваться
             </Link>
           </div>

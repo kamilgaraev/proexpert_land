@@ -1,17 +1,24 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Mail, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import '@/styles/auth.css';
 import { usePageTitle } from '@/hooks/useSEO';
+import { getSafeProjectInvitationReturnPath, storeProjectInvitationReturnPath } from '@/utils/projectParticipantInvitationReturn';
 
 export const EmailSentPage = () => {
   usePageTitle('Подтверждение почты — МОСТ');
   const navigate = useNavigate();
   const location = useLocation();
   const email = typeof location.state?.email === 'string' ? location.state.email : null;
+  const next = getSafeProjectInvitationReturnPath(location.state?.next);
+
+  useEffect(() => {
+    if (next) storeProjectInvitationReturnPath(next);
+  }, [next]);
 
   const handleGoToLogin = () => {
-    navigate('/login', { state: email ? { email } : undefined });
+    navigate('/login', { state: { ...(email ? { email } : {}), ...(next ? { from: { pathname: next } } : {}) } });
   };
 
   return (
