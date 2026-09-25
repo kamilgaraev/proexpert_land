@@ -61,6 +61,7 @@ logs
 *.log
 *.md
 !AGENTS.md
+!/.github/pull_request_template.md
 # Runtime data
 pids
 *.pid
