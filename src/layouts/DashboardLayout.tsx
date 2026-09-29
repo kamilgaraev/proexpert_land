@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Briefcase,
   BookOpen,
+  Bot,
   Building,
   Building2,
   HelpCircle,
@@ -246,17 +247,18 @@ const DashboardLayout = () => {
 
   const supportNavigation = [
     {
+      name: 'Помощник МОСТ',
+      href: '/dashboard/assistant',
+      icon: Bot,
+      description: 'Чаты, подтверждённые ответы и память',
+    },
+    {
       name: 'Помощь',
       href: '/dashboard/help',
       icon: HelpCircle,
       description: 'Вопросы и поддержка',
     },
-    {
-      name: 'Помощник МОСТ',
-      href: '/dashboard/help/knowledge',
-      icon: BookOpen,
-      description: 'Подсказки по работе в системе',
-    },
+    { name: 'Инструкции', href: '/dashboard/help/knowledge', icon: BookOpen, description: 'Подсказки по работе в системе' },
     {
       name: 'Что изменилось',
       href: '/dashboard/help/changelog',

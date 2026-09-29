@@ -1,0 +1,55 @@
+import { API_URL, userManagementService } from '@/utils/api';
+import { getJsonAuthHeaders } from '@/utils/authTokenStorage';
+import type { OrganizationTeamPage } from '@/types/organization-team';
+import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantChatInput, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantCreditUsage, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage } from '@/types/aiAssistant';
+
+type LandingResponse<T> = { success: boolean; message?: string; data: T; meta?: AiAssistantPaginationMeta };
+const assistantBaseUrl = API_URL.replace(/\/landing$/, '') + '/ai-assistant';
+export class AssistantApiError extends Error { constructor(message: string, public status: number) { super(message); } }
+const request = async <T>(path: string, options: RequestInit = {}): Promise<LandingResponse<T>> => {
+  const response = await fetch(`${assistantBaseUrl}${path}`, { ...options, headers: { ...getJsonAuthHeaders(), ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers } });
+  const payload = await response.json().catch(() => ({})) as Partial<LandingResponse<T>>;
+  if (!response.ok || payload.success === false || payload.data === undefined) throw new AssistantApiError(payload.message || 'Не удалось выполнить запрос к помощнику.', response.status);
+  return payload as LandingResponse<T>;
+};
+const normalizeConversation = (item: AiAssistantConversation): AiAssistantConversation => ({ ...item, id: String(item.id), user_id: String(item.user_id) });
+const normalizeMessage = (item: AiAssistantMessage): AiAssistantMessage => ({ ...item, id: String(item.id) });
+const normalizeParticipant = (item: AiAssistantParticipant): AiAssistantParticipant => ({ ...item, user_id: String(item.user_id) });
+const post = (input: unknown, signal?: AbortSignal): RequestInit => ({ method: 'POST', body: JSON.stringify(input), signal });
+export const createAiAssistantRequestId = (): string => crypto.randomUUID();
+export const aiAssistantService = {
+  getUsage: async (signal?: AbortSignal) => (await request<AiAssistantUsage>('/usage', { signal })).data,
+  getRagStatus: async (signal?: AbortSignal) => {
+    const status = (await request<AiAssistantRagStatus>('/rag/status', { signal })).data;
+    return { ...status, can_manage_document_settings: status.can_manage_document_settings === true, coverage_complete: status.coverage_complete === true && status.eligible_count_known === true && Number.isInteger(status.expected_source_count) && Number.isInteger(status.indexed_source_count) && Number(status.expected_source_count) >= 0 && Number(status.indexed_source_count) >= 0 };
+  },
+  getDocumentSettings: async (signal?: AbortSignal) => (await request<AiAssistantDocumentSettings>('/documents/settings', { signal })).data,
+  setDocumentSettings: async (input: Pick<AiAssistantDocumentSettings, 'enabled' | 'scope' | 'limit_minor'>) => (await request<AiAssistantDocumentSettings>('/documents/settings', { method: 'PUT', body: JSON.stringify({ ...input, confirmed: true }) })).data,
+  downloadReport: async (downloadUrl: string, signal?: AbortSignal) => {
+    const apiOrigin = new URL(API_URL).origin;
+    const url = new URL(downloadUrl, apiOrigin);
+    if (url.origin !== apiOrigin || !/^\/api\/v1\/ai-assistant\/reports\/[A-Za-z0-9_-]+\/download$/.test(url.pathname) || url.search || url.hash) throw new Error('Некорректная ссылка отчёта.');
+    const response = await fetch(url.href, { headers: getJsonAuthHeaders(), signal, redirect: 'error' });
+    if (!response.ok) throw new AssistantApiError('Не удалось скачать отчёт.', response.status);
+    return response.blob();
+  },
+  getConversations: async (page = 1, signal?: AbortSignal) => { const response = await request<AiAssistantConversation[]>(`/conversations?page=${page}&per_page=20`, { signal }); return { items: response.data.map(normalizeConversation), meta: response.meta ?? null }; },
+  createConversation: async (title?: string, signal?: AbortSignal) => normalizeConversation((await request<AiAssistantConversation>('/conversations', post({ title }, signal))).data),
+  deleteConversation: async (id: string) => { await request<null>(`/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
+  getHistory: async (id: string, page = 1, signal?: AbortSignal) => { const response = await request<AiAssistantMessage[]>(`/conversations/${encodeURIComponent(id)}/history?page=${page}&per_page=30`, { signal }); return { items: response.data.map(normalizeMessage), meta: response.meta ?? null }; },
+  getParticipants: async (id: string, signal?: AbortSignal) => (await request<AiAssistantParticipant[]>(`/conversations/${encodeURIComponent(id)}/participants`, { signal })).data.map(normalizeParticipant),
+  setParticipants: async (id: string, participants: AiAssistantParticipant[]) => (await request<AiAssistantParticipant[]>(`/conversations/${encodeURIComponent(id)}/participants`, { method: 'PUT', body: JSON.stringify({ participants: participants.map(({ user_id, role }) => ({ user_id, role })) }) })).data.map(normalizeParticipant),
+  getActiveMembers: async (page: number, signal?: AbortSignal) => { const response = await userManagementService.getOrganizationTeam({ search: '', page, per_page: 50 }, signal ?? new AbortController().signal) as OrganizationTeamPage; if (!Array.isArray(response.data)) throw new Error('Не удалось загрузить сотрудников.'); return { items: response.data.filter((item) => item.is_active), meta: response.meta }; },
+  getMemory: async (signal?: AbortSignal) => (await request<AiAssistantMemory[]>('/memory', { signal })).data,
+  createMemory: async (content: string, conversation_id?: string) => (await request<AiAssistantMemory>('/memory', post({ content, conversation_id, confirmed: true }))).data,
+  updateMemory: async (id: string, content: string) => (await request<AiAssistantMemory>(`/memory/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ content, confirmed: true }) })).data,
+  deleteMemory: async (id: string) => { await request<null>(`/memory/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
+  getBalance: async (signal?: AbortSignal) => (await request<AiAssistantCreditsBalance>('/credits/balance', { signal })).data,
+  getQuote: async (input: AiAssistantChatInput, signal?: AbortSignal) => (await request<AiAssistantQuote>('/credits/quote', post(input, signal))).data,
+  purchase: async (pack_id: string) => (await request<{ order_id: string; confirmation_url: string }>('/credits/purchase', post({ pack_id }))).data,
+  chat: async (input: AiAssistantChatInput & { quote_id: string }, signal?: AbortSignal) => { const result = (await request<{ request_id: string; conversation_id: string; message: AiAssistantMessage; credit_usage: AiAssistantCreditUsage }>('/chat', post(input, signal))).data; return { ...result, conversation_id: String(result.conversation_id), message: normalizeMessage(result.message) }; },
+  getRequest: async (id: string, signal?: AbortSignal) => (await request<AiAssistantRequestStatus>(`/requests/${encodeURIComponent(id)}`, { signal })).data,
+  cancelRequest: async (id: string) => (await request<AiAssistantRequestStatus>(`/requests/${encodeURIComponent(id)}/cancel`, post({}))).data,
+  previewAction: async (conversation_id: string, action: AiAssistantAction) => (await request<AiAssistantActionPreview>('/actions/preview', post({ conversation_id, action }))).data,
+  executeAction: async (conversation_id: string, preview: AiAssistantActionPreview) => (await request<{ message?: string }>('/actions/execute', post({ conversation_id, action: { id: preview.action.id, preview_token: preview.preview_token, confirmed: true } }))).data,
+};
