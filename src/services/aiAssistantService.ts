@@ -1,7 +1,7 @@
-import { API_URL, userManagementService } from '@/utils/api';
+import { API_URL, authApi, userManagementService } from '@/utils/api';
 import { getJsonAuthHeaders } from '@/utils/authTokenStorage';
 import type { OrganizationTeamPage } from '@/types/organization-team';
-import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantChatInput, AiAssistantChatResult, AiAssistantChatSubmission, AiAssistantRequestAccepted, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage } from '@/types/aiAssistant';
+import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantChatSubmission, AiAssistantRequestAccepted, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage } from '@/types/aiAssistant';
 
 type LandingResponse<T> = { success: boolean; message?: string; data: T; meta?: AiAssistantPaginationMeta };
 const assistantBaseUrl = API_URL.replace(/\/landing$/, '') + '/ai-assistant';
@@ -32,6 +32,18 @@ const fetchJsonWithTimeout = async <T,>(url: string, options: RequestInit, timeo
 };
 export const createAiAssistantRequestId = (): string => crypto.randomUUID();
 export const aiAssistantService = {
+  uploadAttachment: async (file: File, conversationId?: string, signal?: AbortSignal, onProgress?: (percent: number) => void): Promise<AiAssistantAttachment> => {
+    const form = new FormData(); form.append('image', file); if (conversationId) form.append('conversation_id', conversationId);
+    const response = await authApi.post(`${assistantBaseUrl}/attachments`, form, { signal, headers: { ...getJsonAuthHeaders(), 'Content-Type': 'multipart/form-data' }, onUploadProgress: (event) => { if (event.total) onProgress?.(Math.round(event.loaded / event.total * 100)); } });
+    return (response.data?.data ?? response.data) as AiAssistantAttachment;
+  },
+  getAttachmentContent: async (id: string, signal?: AbortSignal): Promise<Blob> => {
+    const response = await authApi.get<Blob>(`${assistantBaseUrl}/attachments/${encodeURIComponent(id)}/content`, { signal, responseType: 'blob', headers: getJsonAuthHeaders() });
+    const blob = response.data;
+    const mime = String(response.headers['content-type'] ?? blob.type).split(';')[0].trim().toLowerCase();
+    if (!blob || !['image/jpeg', 'image/png', 'image/webp'].includes(mime)) throw new AssistantApiError('Изображение недоступно.', response.status);
+    return blob;
+  },
   getUsage: async (signal?: AbortSignal) => (await request<AiAssistantUsage>('/usage', { signal })).data,
   getRagStatus: async (signal?: AbortSignal) => {
     const status = (await request<AiAssistantRagStatus>('/rag/status', { signal })).data;
