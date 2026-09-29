@@ -1,7 +1,7 @@
 import { API_URL, userManagementService } from '@/utils/api';
 import { getJsonAuthHeaders } from '@/utils/authTokenStorage';
 import type { OrganizationTeamPage } from '@/types/organization-team';
-import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantChatInput, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantCreditUsage, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage } from '@/types/aiAssistant';
+import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantChatInput, AiAssistantChatResult, AiAssistantChatSubmission, AiAssistantRequestAccepted, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage } from '@/types/aiAssistant';
 
 type LandingResponse<T> = { success: boolean; message?: string; data: T; meta?: AiAssistantPaginationMeta };
 const assistantBaseUrl = API_URL.replace(/\/landing$/, '') + '/ai-assistant';
@@ -16,6 +16,20 @@ const normalizeConversation = (item: AiAssistantConversation): AiAssistantConver
 const normalizeMessage = (item: AiAssistantMessage): AiAssistantMessage => ({ ...item, id: String(item.id) });
 const normalizeParticipant = (item: AiAssistantParticipant): AiAssistantParticipant => ({ ...item, user_id: String(item.user_id) });
 const post = (input: unknown, signal?: AbortSignal): RequestInit => ({ method: 'POST', body: JSON.stringify(input), signal });
+const fetchJsonWithTimeout = async <T,>(url: string, options: RequestInit, timeoutMs: number): Promise<{ response: Response; payload: T }> => {
+  const controller = new AbortController();
+  const sourceSignal = options.signal;
+  const abort = () => controller.abort();
+  if (sourceSignal?.aborted) abort();
+  else sourceSignal?.addEventListener('abort', abort, { once: true });
+  const timer = setTimeout(abort, timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    const payload = await response.json().catch(() => ({})) as T;
+    return { response, payload };
+  }
+  finally { clearTimeout(timer); sourceSignal?.removeEventListener('abort', abort); }
+};
 export const createAiAssistantRequestId = (): string => crypto.randomUUID();
 export const aiAssistantService = {
   getUsage: async (signal?: AbortSignal) => (await request<AiAssistantUsage>('/usage', { signal })).data,
@@ -47,8 +61,25 @@ export const aiAssistantService = {
   getBalance: async (signal?: AbortSignal) => (await request<AiAssistantCreditsBalance>('/credits/balance', { signal })).data,
   getQuote: async (input: AiAssistantChatInput, signal?: AbortSignal) => (await request<AiAssistantQuote>('/credits/quote', post(input, signal))).data,
   purchase: async (pack_id: string) => (await request<{ order_id: string; confirmation_url: string }>('/credits/purchase', post({ pack_id }))).data,
-  chat: async (input: AiAssistantChatInput & { quote_id: string }, signal?: AbortSignal) => { const result = (await request<{ request_id: string; conversation_id: string; message: AiAssistantMessage; credit_usage: AiAssistantCreditUsage }>('/chat', post(input, signal))).data; return { ...result, conversation_id: String(result.conversation_id), message: normalizeMessage(result.message) }; },
-  getRequest: async (id: string, signal?: AbortSignal) => (await request<AiAssistantRequestStatus>(`/requests/${encodeURIComponent(id)}`, { signal })).data,
+  chat: async (input: AiAssistantChatInput & { quote_id: string }, signal?: AbortSignal): Promise<AiAssistantChatSubmission> => {
+    const { response, payload } = await fetchJsonWithTimeout<{ success?: boolean; message?: string; data?: unknown }>(`${assistantBaseUrl}/chat`, { ...post({ ...input, async: true }, signal), headers: { ...getJsonAuthHeaders(), 'Content-Type': 'application/json' } }, 30_000);
+    const data = payload.data ?? payload;
+    if (!response.ok || payload.success === false) throw new AssistantApiError(payload.message || 'Не удалось выполнить запрос к помощнику.', response.status);
+    if (response.status === 202) {
+      const accepted = data as Partial<Extract<AiAssistantChatSubmission, { status: string }>>;
+      if (!accepted || typeof accepted.request_id !== 'string' || accepted.status !== 'running') throw new AssistantApiError('Не удалось подтвердить запуск запроса.', response.status);
+      return accepted as AiAssistantRequestAccepted;
+    }
+    const result = data as AiAssistantChatResult;
+    if (!result || result.request_id === undefined || result.conversation_id === undefined || !result.message || !result.credit_usage) throw new AssistantApiError(payload.message || 'Не удалось выполнить запрос к помощнику.', response.status);
+    return { ...result, conversation_id: String(result.conversation_id), message: normalizeMessage(result.message) };
+  },
+  getRequest: async (id: string, signal?: AbortSignal) => {
+    const path = `/requests/${encodeURIComponent(id)}`;
+    const { response, payload } = await fetchJsonWithTimeout<Partial<LandingResponse<AiAssistantRequestStatus>>>(`${assistantBaseUrl}${path}`, { headers: getJsonAuthHeaders(), signal }, 15_000);
+    if (!response.ok || payload.success === false || payload.data === undefined) throw new AssistantApiError(payload.message || 'Не удалось проверить состояние запроса.', response.status);
+    return payload.data;
+  },
   cancelRequest: async (id: string) => (await request<AiAssistantRequestStatus>(`/requests/${encodeURIComponent(id)}/cancel`, post({}))).data,
   previewAction: async (conversation_id: string, action: AiAssistantAction) => (await request<AiAssistantActionPreview>('/actions/preview', post({ conversation_id, action }))).data,
   executeAction: async (conversation_id: string, preview: AiAssistantActionPreview) => (await request<{ message?: string }>('/actions/execute', post({ conversation_id, action: { id: preview.action.id, preview_token: preview.preview_token, confirmed: true } }))).data,

@@ -15,11 +15,23 @@ describe('aiAssistantService', () => {
     expect(mock.mock.calls[0][0]).toBe('https://api.example/api/v1/ai-assistant/conversations?page=2&per_page=20');
   });
   it('sends identical canonical request fields in quote and approved chat', async () => {
-    const mock = respond({ quote_id: 'quote', conversation_id: 11, message: { id: 22, role: 'assistant', content: 'Ответ' } });
+    const mock = respond({ request_id: input.request_id, quote_id: 'quote', conversation_id: 11, message: { id: 22, role: 'assistant', content: 'Ответ' }, credit_usage: {} });
     await aiAssistantService.getQuote(input);
     await aiAssistantService.chat({ ...input, quote_id: 'quote' });
     expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toEqual(input);
-    expect(JSON.parse(String(mock.mock.calls[1][1]?.body))).toEqual({ ...input, quote_id: 'quote' });
+    expect(JSON.parse(String(mock.mock.calls[1][1]?.body))).toEqual({ ...input, quote_id: 'quote', async: true });
+  });
+  it('accepts async request and completed status payloads while preserving the full synchronous result', async () => {
+    const responses = [
+      new Response(JSON.stringify({ success: true, data: { request_id: input.request_id, conversation_id: '11', status: 'running', stage: 'queued' } }), { status: 202 }),
+      new Response(JSON.stringify({ success: true, data: { request_id: input.request_id, conversation_id: 11, message: { id: 22, role: 'assistant', content: 'Ответ' }, credit_usage: { charged_minor: 50 } } }), { status: 200 }),
+      new Response(JSON.stringify({ success: true, data: { request_id: input.request_id, conversation_id: '11', status: 'completed', stage: 'completed', response: { request_id: input.request_id, conversation_id: '11', message: { id: '22', role: 'assistant', content: 'Ответ' }, credit_usage: { charged_minor: 50 } } } }), { status: 200 }),
+    ];
+    const mock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => responses.shift()!);
+    await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ status: 'running', stage: 'queued' });
+    await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ conversation_id: '11', message: { id: '22' } });
+    await expect(aiAssistantService.getRequest(input.request_id)).resolves.toMatchObject({ status: 'completed', response: { message: { id: '22' }, credit_usage: { charged_minor: 50 } } });
+    expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toMatchObject({ ...input, quote_id: 'quote', async: true });
   });
   it('executes only persisted preview reference and explicit confirmation', async () => {
     const mock = respond({ message: 'Готово' });

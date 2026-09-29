@@ -6,7 +6,7 @@ import AiAssistantCoveragePanel from './AiAssistantCoveragePanel';
 import { AuthContext } from '@/contexts/AuthContext';
 import { useCanAccess } from '@/hooks/usePermissions';
 import { aiAssistantService, AssistantApiError, createAiAssistantRequestId } from '@/services/aiAssistantService';
-import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantChatInput, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantProfile, AiAssistantQuote, AiAssistantSource, AiAssistantUsage } from '@/types/aiAssistant';
+import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantChatInput, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantProfile, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantSource, AiAssistantUsage } from '@/types/aiAssistant';
 import type { OrganizationTeamMember } from '@/types/organization-team';
 
 export const assistantUnits = (minor: number) => (minor / 100).toLocaleString('ru-RU', { maximumFractionDigits: 2 });
@@ -28,20 +28,12 @@ export const assistantSourceUrl = (value?: string, projectId?: string | number |
 const assistantSourceProjectId = (source: AiAssistantSource): string | number | null | undefined => source.project_id
   ?? (['project', 'projects'].includes(source.entity_type ?? source.source_type ?? '') ? source.entity_id : undefined);
 
-const AssistantSourcePreview = ({ source }: { source: AiAssistantSource }) => (
-  <details className="mt-1">
-    <summary className="cursor-pointer underline">Предпросмотр источника</summary>
-    {source.excerpt && <p className="mt-1 whitespace-pre-wrap">{source.excerpt}</p>}
-    {(source.entity_type || source.source_type) && <p className="mt-1">Тип: {source.entity_type ?? source.source_type}</p>}
-    {source.entity_id && <p className="mt-1">Запись №{source.entity_id}</p>}
-    {source.project_id && <p className="mt-1">Объект №{source.project_id}</p>}
-    {source.provenance && <p className="mt-1">Источник: {source.provenance}</p>}
-  </details>
-);
 const failureText = (error: unknown) => error instanceof AssistantApiError && error.status === 403 ? 'У вас нет прав для этого действия.' : error instanceof Error ? error.message : 'Не удалось выполнить запрос.';
 const mergeMessages = (items: AiAssistantMessage[]) => [...new Map(items.map((item) => [item.id, item])).values()];
-const validation = { verified: 'Подтверждено источниками', partial: 'Подтверждено частично', unverified: 'Нет подтверждения источниками' };
-const stages: Record<string, string> = { queued: 'Ожидает обработки', reading: 'Читает данные', verifying: 'Проверяет ответ', cancel_requested: 'Отмена запрошена', searching: 'Ищет источники', generating: 'Готовит ответ', tools: 'Проверяет данные', completed: 'Готово', cancelled: 'Отменено', failed: 'Не удалось завершить', running: 'Выполняется' };
+const stages: Record<string, string> = { queued: 'В очереди', reading: 'Анализирует данные', generating: 'Формирует ответ', tools: 'Проверяет данные', verifying: 'Проверяет ответ', completed: 'Ответ готов', cancel_requested: 'Останавливает обработку', cancelled: 'Запрос отменён', failed: 'Не удалось завершить', sending: 'Отправляет запрос', recovering: 'Проверяет состояние запроса' };
+const stageDescriptions: Record<string, string> = { queued: 'Запрос принят и ждёт обработки.', reading: 'Собирает данные, нужные для ответа.', generating: 'Формирует ответ по собранным данным.', tools: 'Проверяет связанные данные и действия.', verifying: 'Проверяет точность ответа.', cancel_requested: 'Останавливает обработку запроса.', sending: 'Передаёт запрос помощнику.', recovering: 'Проверяет, принят ли запрос сервером.' };
+const progressStages = new Set(['queued', 'reading', 'generating', 'tools', 'verifying', 'completed', 'cancel_requested']);
+class AiAssistantRequestTerminalError extends Error {}
 type ApprovedQuote = { input: AiAssistantChatInput; quote: AiAssistantQuote };
 
 const AiAssistantPage = () => {
@@ -70,15 +62,25 @@ const AiAssistantPage = () => {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState('');
+  const [requestStartedAt, setRequestStartedAt] = useState<number | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [receivedStages, setReceivedStages] = useState<string[]>([]);
   const epoch = useRef(0);
   const mounted = useRef(false);
   const busyRef = useRef(false);
   const historyController = useRef<AbortController | null>(null);
-  const activeRequest = useRef<{ id: string; controller: AbortController; cancelled: boolean; timer?: ReturnType<typeof setTimeout> } | null>(null);
+  const activeRequest = useRef<{ id: string; controller: AbortController; cancelled: boolean; deadline: number; timer?: ReturnType<typeof setTimeout> } | null>(null);
   const isOwner = conversation?.can_manage_participants ?? (conversation?.user_id === String(user?.id));
   const canEdit = !!conversation && (conversation.can_edit ?? (isOwner || participants.some((item) => item.user_id === String(user?.id) && item.role === 'editor')));
   const canPurchaseCredits = balance?.billing_mode !== 'shadow' && balance?.charging_enabled === true && balance?.pack_purchase_enabled !== false && (balance?.can_purchase ?? balance?.can_manage_billing ?? canManageBilling);
   const current = (version: number) => mounted.current && version === epoch.current;
+  useEffect(() => {
+    if (requestStartedAt === null) return;
+    const updateElapsed = () => setElapsedSeconds(Math.floor((Date.now() - requestStartedAt) / 1000));
+    updateElapsed();
+    const timer = setInterval(updateElapsed, 1000);
+    return () => clearInterval(timer);
+  }, [requestStartedAt]);
   const run = async (operation: () => Promise<void>) => {
     if (busyRef.current) return;
     busyRef.current = true; setBusy(true); setError('');
@@ -91,7 +93,7 @@ const AiAssistantPage = () => {
     historyController.current?.abort();
     const controller = new AbortController(); historyController.current = controller;
     const version = ++epoch.current;
-    setConversation(selected); setMessages([]); setParticipants([]); setHistoryMeta(null); setApproved(null); setPreview(null); setSharing(false); setQuestion(''); setError(''); setLoading(true);
+    setConversation(selected); setMessages([]); setParticipants([]); setHistoryMeta(null); setApproved(null); setPreview(null); setSharing(false); setQuestion(''); setError(''); setLoading(true); setStage(''); setRequestStartedAt(null); setReceivedStages([]);
     try {
       const [history, people] = await Promise.all([aiAssistantService.getHistory(selected.id, 1, controller.signal), aiAssistantService.getParticipants(selected.id, controller.signal)]);
       if (current(version)) { setMessages(history.items); setHistoryMeta(history.meta); setParticipants(people); }
@@ -107,36 +109,90 @@ const AiAssistantPage = () => {
     }).catch((reason) => { if (!controller.signal.aborted) { setError(failureText(reason)); setLoading(false); } });
     return () => { mounted.current = false; epoch.current++; controller.abort(); historyController.current?.abort(); const request = activeRequest.current; if (request) { request.cancelled = true; clearTimeout(request.timer); request.controller.abort(); void aiAssistantService.cancelRequest(request.id).catch(() => undefined); } };
   }, []);
-  const requestQuote = () => run(async () => {
-    if (!conversation || !canEdit || !question.trim()) return;
-    const input: AiAssistantChatInput = { conversation_id: conversation.id, message: question.trim(), request_id: createAiAssistantRequestId(), profile, allow_actions: allowActions, context: {} };
+  async function requestQuote() {
+    return run(async () => {
+      if (!conversation || !canEdit || !question.trim()) return;
+      const input: AiAssistantChatInput = { conversation_id: conversation.id, message: question.trim(), request_id: createAiAssistantRequestId(), profile, allow_actions: allowActions, context: {} };
+      const version = epoch.current;
+      const quote = await aiAssistantService.getQuote(input);
+      const approvedQuote = { input, quote };
+      if (current(version) && quote.min_units_minor === 0 && quote.max_units_minor === 0) {
+        setApproved(null);
+        await sendApproved(approvedQuote);
+      } else if (current(version)) setApproved(approvedQuote);
+    });
+  }
+  const waitForRequest = async (active: NonNullable<typeof activeRequest.current>, version: number) => {
+    const pause = () => new Promise<void>((resolve) => {
+      const finish = () => {
+        clearTimeout(timer);
+        active.controller.signal.removeEventListener('abort', finish);
+        if (active.timer === timer) active.timer = undefined;
+        resolve();
+      };
+      const timer = setTimeout(finish, 1500);
+      active.timer = timer;
+      active.controller.signal.addEventListener('abort', finish, { once: true });
+      if (active.controller.signal.aborted) finish();
+    });
+    while (Date.now() < active.deadline && activeRequest.current === active && !active.cancelled) {
+      let state: AiAssistantRequestStatus;
+      try {
+        state = await aiAssistantService.getRequest(active.id, active.controller.signal);
+      } catch (reason) {
+        if (active.cancelled || active.controller.signal.aborted) throw reason;
+        await pause();
+        continue;
+      }
+      if (!current(version) || active.cancelled) throw new Error('Запрос остановлен.');
+      if (state.request_id !== active.id) throw new Error('Не удалось проверить состояние запроса.');
+      const receivedStage = state.stage ?? state.status;
+      setStage(receivedStage);
+      if (state.stage && progressStages.has(state.stage)) setReceivedStages((items) => items.includes(state.stage!) ? items : [...items, state.stage!]);
+      if (state.status === 'completed' && state.response) return state.response;
+      if (state.status === 'completed') throw new AiAssistantRequestTerminalError('Сервер не вернул результат запроса.');
+      if (state.status === 'failed') throw new AiAssistantRequestTerminalError(state.error_code === 'insufficient_credits' ? 'Недостаточно кредитов для выполнения запроса.' : 'Не удалось завершить запрос. Попробуйте ещё раз.');
+      if (state.status === 'cancelled') throw new AiAssistantRequestTerminalError('Запрос отменён.');
+      await pause();
+    }
+    if (active.cancelled || active.controller.signal.aborted) throw new Error('Запрос отменён.');
+    throw new Error('Запрос занимает больше обычного. Проверьте чат позже.');
+  };
+  async function sendApproved(approvedQuote: ApprovedQuote) {
+    if (!canEdit || approvedQuote.input.conversation_id !== conversation?.id) return;
+    if (Date.parse(approvedQuote.quote.expires_at) <= Date.now()) { setApproved(null); throw new Error('Оценка истекла. Рассчитайте стоимость снова.'); }
     const version = epoch.current;
-    const quote = await aiAssistantService.getQuote(input);
-    if (current(version)) setApproved({ input, quote });
-  });
-  const send = () => run(async () => {
-    if (!approved || !canEdit || approved.input.conversation_id !== conversation?.id) return;
-    if (Date.parse(approved.quote.expires_at) <= Date.now()) { setApproved(null); throw new Error('Оценка истекла. Рассчитайте стоимость снова.'); }
-    const version = epoch.current;
-    const active = { id: approved.input.request_id, controller: new AbortController(), cancelled: false, timer: undefined as ReturnType<typeof setTimeout> | undefined };
+    const active = { id: approvedQuote.input.request_id, controller: new AbortController(), cancelled: false, deadline: Date.now() + 9 * 60 * 1000, timer: undefined as ReturnType<typeof setTimeout> | undefined };
     activeRequest.current = active;
-    setStage('Готовит ответ');
-    const poll = async () => {
-      if (activeRequest.current !== active || active.cancelled) return;
-      try { const state = await aiAssistantService.getRequest(active.id, active.controller.signal); if (current(version) && !active.cancelled) setStage(stages[state.stage ?? state.status] ?? 'Выполняется'); } catch { if (active.cancelled) return; }
-      if (activeRequest.current === active && !active.cancelled) active.timer = setTimeout(() => void poll(), 1500);
-    };
-    active.timer = setTimeout(() => void poll(), 1000);
+    setRequestStartedAt(Date.now()); setElapsedSeconds(0); setReceivedStages([]); setStage('sending');
     try {
-      const result = await aiAssistantService.chat({ ...approved.input, quote_id: approved.quote.quote_id }, active.controller.signal);
-      if (current(version) && !active.cancelled && result.conversation_id === conversation?.id) {
-        setMessages((items) => mergeMessages([...items, { id: `user-${active.id}`, role: 'user', content: approved.input.message }, result.message]));
-        setQuestion(''); setApproved(null); setBalance((wallet) => wallet && result.credit_usage.available_after_minor != null ? { ...wallet, available_minor: Number(result.credit_usage.available_after_minor) } : wallet);
+      const result = await aiAssistantService.chat({ ...approvedQuote.input, quote_id: approvedQuote.quote.quote_id }, active.controller.signal);
+      if (result.request_id !== active.id) throw new Error('Не удалось проверить состояние запроса.');
+      if (!('message' in result)) setStage(result.stage);
+      const chatResult = 'message' in result ? result : await waitForRequest(active, version);
+      if (chatResult.request_id !== active.id || String(chatResult.conversation_id) !== approvedQuote.input.conversation_id) throw new Error('Результат запроса не совпадает с выбранным чатом.');
+      if (current(version) && !active.cancelled) {
+        setMessages((items) => mergeMessages([...items, { id: `user-${active.id}`, role: 'user', content: approvedQuote.input.message }, chatResult.message]));
+        setQuestion(''); setApproved(null); setBalance((wallet) => wallet && chatResult.credit_usage.available_after_minor != null ? { ...wallet, available_minor: Number(chatResult.credit_usage.available_after_minor) } : wallet);
         void aiAssistantService.getUsage().then(setUsage).catch(() => undefined);
       }
-    } catch (reason) { if (!active.cancelled) throw reason; }
-    finally { clearTimeout(active.timer); if (activeRequest.current === active) activeRequest.current = null; if (current(version)) setStage(''); }
-  });
+    } catch (reason) {
+      if (!active.cancelled && !(reason instanceof AssistantApiError) && !(reason instanceof AiAssistantRequestTerminalError)) {
+        try {
+          setStage('recovering');
+          const recovered = await waitForRequest(active, version);
+          if (recovered.request_id !== active.id || String(recovered.conversation_id) !== approvedQuote.input.conversation_id) throw new Error('Результат запроса не совпадает с выбранным чатом.');
+          if (current(version) && !active.cancelled) {
+            setMessages((items) => mergeMessages([...items, { id: `user-${active.id}`, role: 'user', content: approvedQuote.input.message }, recovered.message]));
+            setQuestion(''); setApproved(null); setBalance((wallet) => wallet && recovered.credit_usage.available_after_minor != null ? { ...wallet, available_minor: Number(recovered.credit_usage.available_after_minor) } : wallet);
+            void aiAssistantService.getUsage().then(setUsage).catch(() => undefined);
+          }
+        } catch (recoveryError) { throw recoveryError; }
+      } else if (!active.cancelled) throw reason;
+    }
+    finally { clearTimeout(active.timer); if (activeRequest.current === active) activeRequest.current = null; if (current(version)) { setStage(''); setRequestStartedAt(null); setReceivedStages([]); } }
+  }
+  const send = () => approved ? run(() => sendApproved(approved)) : undefined;
   const cancel = async () => {
     const active = activeRequest.current; if (!active || active.cancelled) return;
     try { await aiAssistantService.cancelRequest(active.id); active.cancelled = true; clearTimeout(active.timer); active.controller.abort(); setApproved(null); setStage('Отменено'); }
@@ -177,14 +233,14 @@ const AiAssistantPage = () => {
         {memory.map((item) => <div key={item.id} className="rounded border p-2 text-xs"><p>{item.content}</p><Button variant="ghost" size="sm" disabled={busy} onClick={() => { setEditingMemory(item.id); setMemoryText(item.content); }}>Изменить</Button><Button variant="ghost" size="sm" disabled={busy} onClick={() => void run(async () => { await aiAssistantService.deleteMemory(item.id); setMemory((items) => items.filter((entry) => entry.id !== item.id)); })}>Удалить</Button></div>)}
       </CardContent></Card>
     </aside>
-    <section className="min-w-0 space-y-5"><header><Bot className="mb-3 h-8 w-8 text-primary" /><h1 className="text-3xl font-bold">Помощник МОСТ</h1><p className="mt-2 text-muted-foreground">Ответы с источниками и проверкой данных.</p></header>{error && <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
+    <section className="min-w-0 space-y-5"><header><Bot className="mb-3 h-8 w-8 text-primary" /><h1 className="text-3xl font-bold">Помощник МОСТ</h1><p className="mt-2 text-muted-foreground">Помогает разобраться в данных и рабочих задачах.</p></header>{error && <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
       <Card><CardContent className="space-y-5 p-5">{loading ? <p><Loader2 className="inline h-4 w-4 animate-spin" /> Загружаем…</p> : !conversation ? <p>Выберите или создайте чат.</p> : <>
         {isOwner && <div className="flex flex-wrap gap-2"><Button variant="outline" disabled={busy} onClick={() => void openSharing()}>Настроить доступ</Button><Button variant="outline" disabled={busy} onClick={() => void run(async () => { await aiAssistantService.deleteConversation(conversation.id); epoch.current++; setConversations((items) => items.filter((item) => item.id !== conversation.id)); setConversation(null); setMessages([]); setApproved(null); setPreview(null); })}>Удалить чат</Button></div>}
         {sharing && <div className="space-y-3 rounded border p-3"><p>Доступ к чату не расширяет права на данные. Без участников чат личный.</p>{members.filter((member) => String(member.id) !== String(user?.id)).map((member) => <label key={member.id} className="flex items-center justify-between gap-3"><span>{member.name}</span><select aria-label={`Доступ: ${member.name}`} value={participants.find((item) => item.user_id === String(member.id))?.role ?? ''} onChange={(event) => { const role = event.target.value; setParticipants((items) => [...items.filter((item) => item.user_id !== String(member.id)), ...(role === 'viewer' || role === 'editor' ? [{ user_id: String(member.id), name: member.name, role } satisfies AiAssistantParticipant] : [])]); }}><option value="">Нет доступа</option><option value="viewer">Читатель</option><option value="editor">Участник</option></select></label>)}{memberMeta && memberMeta.current_page < memberMeta.last_page && <Button variant="ghost" disabled={busy} onClick={() => void run(async () => { const next = await aiAssistantService.getActiveMembers(memberMeta.current_page + 1); setMembers((items) => [...items, ...next.items]); setMemberMeta(next.meta); })}>Ещё сотрудники</Button>}<Button disabled={busy} onClick={() => void run(async () => { setParticipants(await aiAssistantService.setParticipants(conversation.id, participants)); setSharing(false); })}>Подтвердить доступ</Button><Button variant="ghost" disabled={busy} onClick={() => void run(async () => { setParticipants(await aiAssistantService.getParticipants(conversation.id)); setSharing(false); })}>Отмена</Button></div>}
         {historyMeta && historyMeta.current_page < historyMeta.last_page && <Button variant="outline" disabled={busy} onClick={() => void loadOlder()}>Предыдущие сообщения</Button>}
-        <div className="max-h-[52vh] space-y-4 overflow-y-auto pr-1">{messages.map((item) => <article key={item.id} className={item.role === 'user' ? 'ml-4 rounded-lg bg-primary p-3 text-primary-foreground' : 'mr-4 rounded-lg bg-muted p-3'}><p className="whitespace-pre-wrap">{item.content}</p>{item.role === 'assistant' && <p className="mt-2 text-xs">{validation[item.metadata?.validation_status ?? 'unverified']}</p>}{[...(item.metadata?.source_refs ?? []), ...(item.metadata?.rag_context?.sources ?? []), ...(item.metadata?.entity_references ?? [])].map((source, index) => { const sourceUrl = source.navigation?.url ?? source.url; const reportUrl = sourceUrl?.includes('/api/v1/ai-assistant/reports/') ? sourceUrl : undefined; const href = reportUrl ? undefined : assistantSourceUrl(sourceUrl, assistantSourceProjectId(source)); return <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2 text-xs"><div className="flex flex-wrap items-center gap-x-2">{reportUrl ? <Button size="sm" variant="outline" disabled={busy} onClick={() => void downloadArtifact(reportUrl, source.title ?? 'Отчёт')}>Скачать отчёт</Button> : href ? <a href={href} className="underline" target="_blank" rel="noreferrer">Открыть проект: {source.title ?? source.name ?? 'Источник'}</a> : <span>{source.title ?? source.name ?? 'Источник'}</span>}{source.entity_id && <span>· №{source.entity_id}</span>}{source.fetched_at && <span>· {new Date(source.fetched_at).toLocaleString('ru-RU')}</span>}</div>{!reportUrl && !href && <AssistantSourcePreview source={source} />}</div>; })}{item.metadata?.artifacts?.map((artifact, index) => { const url = artifact.download_url ?? artifact.url; return url ? <Button key={`artifact-${index}`} className="mt-2" variant="outline" disabled={busy} onClick={() => void downloadArtifact(url, artifact.filename ?? artifact.file_name ?? 'Отчёт')}>Скачать: {artifact.title ?? artifact.filename ?? 'Отчёт'}</Button> : null; })}{item.metadata?.fetched_at && <p className="mt-2 text-xs">Данные получены: {new Date(item.metadata.fetched_at).toLocaleString('ru-RU')}</p>}{item.metadata?.financial_provenance != null && <details className="mt-2 text-xs"><summary>Происхождение финансовых данных</summary><pre className="overflow-auto whitespace-pre-wrap">{JSON.stringify(item.metadata.financial_provenance, null, 2)}</pre></details>}{(item.metadata?.proposed_actions ?? item.metadata?.suggested_actions ?? item.metadata?.actions ?? []).map((action, index) => <Button key={index} className="mt-2" variant="outline" disabled={busy || !canEdit} onClick={() => void prepareAction(action)}>Проверить действие: {action.label ?? 'Предложенное изменение'}</Button>)}</article>)}</div>
+        <div className="max-h-[52vh] space-y-4 overflow-y-auto pr-1">{messages.map((item) => <article key={item.id} className={item.role === 'user' ? 'ml-4 rounded-lg bg-primary p-3 text-primary-foreground' : 'mr-4 rounded-lg bg-muted p-3'}><p className="whitespace-pre-wrap">{item.content}</p>{[...(item.metadata?.source_refs ?? []), ...(item.metadata?.rag_context?.sources ?? []), ...(item.metadata?.entity_references ?? [])].map((source, index) => { const sourceUrl = source.navigation?.url ?? source.url; const reportUrl = sourceUrl?.includes('/api/v1/ai-assistant/reports/') ? sourceUrl : undefined; const href = reportUrl ? undefined : assistantSourceUrl(sourceUrl, assistantSourceProjectId(source)); if (reportUrl) return <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => void downloadArtifact(reportUrl, source.title ?? 'Отчёт')}>Скачать отчёт: {source.title ?? 'Отчёт'}</Button></div>; return href ? <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2 text-xs"><a href={href} className="underline" target="_blank" rel="noreferrer">Открыть проект: {source.title ?? source.name ?? 'Источник'}</a></div> : null; })}{item.metadata?.artifacts?.map((artifact, index) => { const url = artifact.download_url ?? artifact.url; return url ? <Button key={`artifact-${index}`} className="mt-2" variant="outline" disabled={busy} onClick={() => void downloadArtifact(url, artifact.filename ?? artifact.file_name ?? 'Отчёт')}>Скачать: {artifact.title ?? artifact.filename ?? 'Отчёт'}</Button> : null; })}{(item.metadata?.proposed_actions ?? item.metadata?.suggested_actions ?? item.metadata?.actions ?? []).map((action, index) => <Button key={index} className="mt-2" variant="outline" disabled={busy || !canEdit} onClick={() => void prepareAction(action)}>Проверить действие: {action.label ?? 'Предложенное изменение'}</Button>)}</article>)}</div>
         {preview && <div className="space-y-2 rounded border border-amber-500 p-3"><p className="font-medium">{preview.title}</p><p>{preview.description}</p><details open><summary>Изменения</summary><pre className="overflow-auto whitespace-pre-wrap text-xs">{JSON.stringify({ before: preview.before, after: preview.after }, null, 2)}</pre></details>{preview.warnings?.map((warning) => <p key={warning}>{warning}</p>)}<Button disabled={busy || !canEdit || preview.executable === false} onClick={() => void run(async () => { if (Date.parse(preview.expires_at) <= Date.now()) throw new Error('Подготовка истекла. Проверьте действие снова.'); await aiAssistantService.executeAction(conversation.id, preview); setPreview(null); const history = await aiAssistantService.getHistory(conversation.id); setMessages(history.items); setHistoryMeta(history.meta); })}>Подтверждаю изменение</Button><Button variant="ghost" disabled={busy} onClick={() => setPreview(null)}>Отмена</Button></div>}
-        {!canEdit ? <p className="text-sm text-muted-foreground">Вам доступно чтение этого чата.</p> : <form onSubmit={submit} className="space-y-3"><label htmlFor="assistant-question" className="sr-only">Вопрос помощнику</label><textarea id="assistant-question" value={question} onChange={(event) => { setQuestion(event.target.value); setApproved(null); }} disabled={busy} maxLength={4000} rows={4} className="w-full rounded-md border bg-background p-3" placeholder="Опишите задачу или задайте вопрос" /><div className="flex flex-wrap items-center gap-3"><label>Подробность <select aria-label="Подробность ответа" value={profile} disabled={busy} onChange={(event) => { setProfile(event.target.value as AiAssistantProfile); setApproved(null); }}><option value="short">Кратко</option><option value="normal">Обычно</option><option value="detailed">Подробно</option></select></label><label className="text-sm"><input type="checkbox" checked={allowActions} disabled={busy} onChange={(event) => { setAllowActions(event.target.checked); setApproved(null); }} /> Предлагать изменения с подтверждением</label></div>{approved && <div className="rounded bg-amber-50 p-3 text-sm text-amber-950">Оценка расхода: от {assistantUnits(approved.quote.min_units_minor)} до {assistantUnits(approved.quote.max_units_minor)} ед. МОСТ. {balance?.billing_mode === 'shadow' ? 'Тестовый режим: списания выключены, фактическое списание — 0. ' : ''}Подтвердите максимальную оценку. Оценка до {new Date(approved.quote.expires_at).toLocaleTimeString('ru-RU')}.</div>}<div className="flex flex-wrap items-center gap-2"><Button type="submit" disabled={busy || !question.trim()}><Send className="mr-2 h-4 w-4" />{approved ? 'Подтвердить и отправить' : 'Рассчитать стоимость'}</Button>{activeRequest.current && <Button type="button" variant="outline" onClick={() => void cancel()}><Square className="mr-2 h-4 w-4" />Отменить запрос</Button>}{stage && <p role="status" className="text-sm">{stage}</p>}</div></form>}
+        {canEdit && <form onSubmit={submit} className="space-y-3"><label htmlFor="assistant-question" className="sr-only">Вопрос помощнику</label><textarea id="assistant-question" value={question} onChange={(event) => { setQuestion(event.target.value); setApproved(null); }} disabled={busy} maxLength={4000} rows={4} className="w-full rounded-md border bg-background p-3" placeholder="Опишите задачу или задайте вопрос" /><div className="flex flex-wrap items-center gap-3"><label>Подробность <select aria-label="Подробность ответа" value={profile} disabled={busy} onChange={(event) => { setProfile(event.target.value as AiAssistantProfile); setApproved(null); }}><option value="short">Кратко</option><option value="normal">Обычно</option><option value="detailed">Подробно</option></select></label><label className="text-sm"><input type="checkbox" checked={allowActions} disabled={busy} onChange={(event) => { setAllowActions(event.target.checked); setApproved(null); }} /> Предлагать изменения с подтверждением</label></div>{approved && <div className="rounded bg-amber-50 p-3 text-sm text-amber-950">Оценка расхода: от {assistantUnits(approved.quote.min_units_minor)} до {assistantUnits(approved.quote.max_units_minor)} ед. МОСТ. {balance?.billing_mode === 'shadow' ? 'Тестовый режим: списания выключены, фактическое списание — 0. ' : ''}Подтвердите максимальную оценку. Оценка до {new Date(approved.quote.expires_at).toLocaleTimeString('ru-RU')}.</div>}{busy && requestStartedAt !== null && <div role="status" aria-live="polite" className="space-y-1 rounded-md bg-muted p-3 text-sm"><p className="font-medium">{stages[stage] ?? 'Выполняет запрос'}</p>{stageDescriptions[stage] && <p className="text-muted-foreground">{stageDescriptions[stage]}</p>}<p className="text-muted-foreground">Прошло {elapsedSeconds < 60 ? `${elapsedSeconds} сек.` : `${Math.floor(elapsedSeconds / 60)} мин ${String(elapsedSeconds % 60).padStart(2, '0')} сек.`}</p>{receivedStages.length > 0 && <p className="text-xs text-muted-foreground">Этапы: {receivedStages.map((item) => stages[item]).join(' · ')}</p>}</div>}<div className="flex flex-wrap items-center gap-2"><Button type="submit" disabled={busy || !question.trim()}><Send className="mr-2 h-4 w-4" />{approved ? 'Подтвердить и отправить' : 'Рассчитать стоимость'}</Button>{activeRequest.current && <Button type="button" variant="outline" onClick={() => void cancel()}><Square className="mr-2 h-4 w-4" />Отменить запрос</Button>}</div></form>}
       </>}</CardContent></Card>
     </section>
   </div>;
