@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AiAssistantPage, { assistantSourceUrl, assistantUnits } from './AiAssistantPage';
 import { aiAssistantService } from '@/services/aiAssistantService';
 import { createAiAssistantRequestId } from '@/services/aiAssistantService';
+import type { AiAssistantProgress } from '@/types/aiAssistant';
 vi.mock('./AiAssistantCoveragePanel', () => ({ default: () => null }));
 vi.mock('@/hooks/usePermissions', () => ({ useCanAccess: () => false }));
 vi.mock('@/contexts/AuthContext', async () => ({ AuthContext: (await import('react')).createContext({ user: { id: 7 } }) }));
@@ -92,6 +93,21 @@ describe('AiAssistantPage', () => {
     expect(screen.queryByText(/Формирует ответ/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Отменить запрос' }));
     await waitFor(() => expect(screen.queryByText('Этапы: Анализирует данные')).not.toBeInTheDocument());
+  });
+  it('shows backend progress immediately and retains completed sources with a fast response', async () => {
+    const progress = deferred<Awaited<ReturnType<typeof aiAssistantService.getRequest>>>();
+    vi.mocked(aiAssistantService.chat).mockResolvedValue({ request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'queued', progress: [{ id: 31, code: 'estimates', state: 'started' }] });
+    vi.mocked(aiAssistantService.getRequest).mockReturnValue(progress.promise);
+    render(<AiAssistantPage />); await selectFirst();
+    fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Вопрос про бетон' } }); fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Подтвердить и отправить' }));
+    expect(await screen.findByText('Проверяю сметы')).toBeInTheDocument();
+    const completedProgress: AiAssistantProgress[] = [{ id: 31, code: 'estimates', state: 'completed' }, { id: 32, code: 'warehouse', state: 'completed' }];
+    progress.resolve({ request_id: 'uuid-request', conversation_id: '11', status: 'completed', progress: completedProgress, response: { request_id: 'uuid-request', conversation_id: '11', message: { id: 'fast-answer', role: 'assistant', content: 'Ответ про бетон' }, credit_usage: {}, progress: completedProgress } });
+    expect(await screen.findByText('Ответ про бетон')).toBeInTheDocument();
+    expect(screen.getByText('Сметы проверены')).toBeInTheDocument();
+    expect(screen.getByText('Склад проверен')).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
   it('clears all progress UI after a synchronous greeting response and leaves input usable', async () => {
     vi.mocked(aiAssistantService.chat).mockResolvedValue({ request_id: 'uuid-request', conversation_id: '11', message: { id: 'greeting', role: 'assistant', content: 'Привет' }, credit_usage: {} });

@@ -22,15 +22,16 @@ describe('aiAssistantService', () => {
     expect(JSON.parse(String(mock.mock.calls[1][1]?.body))).toEqual({ ...input, quote_id: 'quote', async: true });
   });
   it('accepts async request and completed status payloads while preserving the full synchronous result', async () => {
+    const progress = [{ id: 31, code: 'estimates', state: 'completed' }, { id: 32, code: 'warehouse', state: 'started' }];
     const responses = [
-      new Response(JSON.stringify({ success: true, data: { request_id: input.request_id, conversation_id: '11', status: 'running', stage: 'queued' } }), { status: 202 }),
+      new Response(JSON.stringify({ success: true, data: { request_id: input.request_id, conversation_id: '11', status: 'running', stage: 'queued', progress } }), { status: 202 }),
       new Response(JSON.stringify({ success: true, data: { request_id: input.request_id, conversation_id: 11, message: { id: 22, role: 'assistant', content: 'Ответ' }, credit_usage: { charged_minor: 50 } } }), { status: 200 }),
-      new Response(JSON.stringify({ success: true, data: { request_id: input.request_id, conversation_id: '11', status: 'completed', stage: 'completed', response: { request_id: input.request_id, conversation_id: '11', message: { id: '22', role: 'assistant', content: 'Ответ' }, credit_usage: { charged_minor: 50 } } } }), { status: 200 }),
+      new Response(JSON.stringify({ success: true, data: { request_id: input.request_id, conversation_id: '11', status: 'completed', stage: 'completed', progress, response: { request_id: input.request_id, conversation_id: '11', message: { id: '22', role: 'assistant', content: 'Ответ' }, credit_usage: { charged_minor: 50 }, progress } } }), { status: 200 }),
     ];
     const mock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => responses.shift()!);
-    await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ status: 'running', stage: 'queued' });
+    await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ status: 'running', stage: 'queued', progress });
     await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ conversation_id: '11', message: { id: '22' } });
-    await expect(aiAssistantService.getRequest(input.request_id)).resolves.toMatchObject({ status: 'completed', response: { message: { id: '22' }, credit_usage: { charged_minor: 50 } } });
+    await expect(aiAssistantService.getRequest(input.request_id)).resolves.toMatchObject({ status: 'completed', progress, response: { message: { id: '22' }, credit_usage: { charged_minor: 50 }, progress } });
     expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toMatchObject({ ...input, quote_id: 'quote', async: true });
   });
   it('executes only persisted preview reference and explicit confirmation', async () => {
@@ -59,6 +60,18 @@ describe('aiAssistantService', () => {
     await aiAssistantService.setDocumentSettings({ enabled: true, scope: 'archive', limit_minor: 12550 });
     expect(mock.mock.calls[1][1]?.method).toBe('PUT');
     expect(JSON.parse(String(mock.mock.calls[1][1]?.body))).toEqual({ enabled: true, scope: 'archive', limit_minor: 12550, confirmed: true });
+  });
+  it('drops malformed or unsupported progress entries and keeps legacy payloads valid', async () => {
+    respond({ request_id: input.request_id, conversation_id: '11', status: 'running', progress: [{ id: 0, code: 'estimates', state: 'started' }, { id: 30, code: 'intent_guess', state: 'completed' }, { id: 31, code: 'warehouse', state: 'completed' }] });
+    await expect(aiAssistantService.getRequest(input.request_id)).resolves.toMatchObject({ progress: [{ id: 31, code: 'warehouse', state: 'completed' }] });
+    const longProgress = Array.from({ length: 26 }, (_, index) => ({ id: 31 + index, code: 'warehouse', state: 'completed' }));
+    respond({ request_id: input.request_id, conversation_id: '11', status: 'running', progress: longProgress });
+    const result = await aiAssistantService.getRequest(input.request_id);
+    expect(result.progress ?? []).toHaveLength(24);
+    expect(result.progress?.[0].id).toBe(33);
+    expect(result.progress?.[23].id).toBe(56);
+    respond({ request_id: input.request_id, conversation_id: '11', status: 'running' });
+    await expect(aiAssistantService.getRequest(input.request_id)).resolves.toMatchObject({ progress: [] });
   });
   it('marks unavailable statistics without retaining diagnostic fields and accepts legacy payloads', async () => {
     respond({ status_available: false, enabled: true, ready: true, source_count: 7, chunk_count: 11, source_catalog: [{ type: 'files' }], document_coverage: { total: 4 }, archive_scan: { scanned_file_count: 4 } });

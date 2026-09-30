@@ -14,10 +14,13 @@ export interface AiAssistantCreditUsage { charged_minor?: number | string | null
 export interface AiAssistantQuote { quote_id: string; min_units_minor: number; max_units_minor: number; expires_at: string; profile: AiAssistantProfile; price_version: string }
 export interface AiAssistantChatInput { conversation_id: string; message: string; request_id: string; profile: AiAssistantProfile; allow_actions: boolean; context: Record<string, unknown>; attachment_ids?: string[] }
 export interface AiAssistantActionPreview { title: string; description?: string; action: { id: string }; preview_token: string; expires_at: string; before?: unknown; after?: unknown; warnings?: string[]; executable?: boolean }
-export interface AiAssistantChatResult { request_id: string; conversation_id: string; message: AiAssistantMessage; credit_usage: AiAssistantCreditUsage }
-export interface AiAssistantRequestAccepted { request_id: string; conversation_id: string | null; status: 'running'; stage: string }
+export type AiAssistantProgressCode = 'rag_search' | 'estimates' | 'warehouse' | 'projects' | 'contracts' | 'procurement' | 'schedule' | 'work_volumes' | 'materials' | 'reports' | 'financial_data';
+export type AiAssistantProgressState = 'started' | 'completed';
+export interface AiAssistantProgress { id: number; code: AiAssistantProgressCode; state: AiAssistantProgressState }
+export interface AiAssistantChatResult { request_id: string; conversation_id: string; message: AiAssistantMessage; credit_usage: AiAssistantCreditUsage; progress?: AiAssistantProgress[] }
+export interface AiAssistantRequestAccepted { request_id: string; conversation_id: string | null; status: 'running'; stage: string; progress?: AiAssistantProgress[] }
 export type AiAssistantChatSubmission = AiAssistantChatResult | AiAssistantRequestAccepted;
-export interface AiAssistantRequestStatus { request_id: string; conversation_id: string | null; status: 'running' | 'completed' | 'failed' | 'cancelled' | string; stage?: string; response?: AiAssistantChatResult; error_code?: string; calls_used?: number; max_calls?: number }
+export interface AiAssistantRequestStatus { request_id: string; conversation_id: string | null; status: 'running' | 'completed' | 'failed' | 'cancelled' | string; stage?: string; progress?: AiAssistantProgress[]; response?: AiAssistantChatResult; error_code?: string; calls_used?: number; max_calls?: number }
 
 
 export interface AiAssistantArtifact { title?: string | null; filename?: string | null; file_name?: string | null; download_url?: string | null; url?: string | null }
