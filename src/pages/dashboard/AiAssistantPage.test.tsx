@@ -1,13 +1,15 @@
-import { fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AiAssistantPage, { assistantSourceUrl, assistantUnits } from './AiAssistantPage';
 import { aiAssistantService } from '@/services/aiAssistantService';
+import getEcho from '@/services/echo';
 import { createAiAssistantRequestId } from '@/services/aiAssistantService';
 import type { AiAssistantProgress } from '@/types/aiAssistant';
 vi.mock('./AiAssistantCoveragePanel', () => ({ default: () => null }));
 vi.mock('@/hooks/usePermissions', () => ({ useCanAccess: () => false }));
-vi.mock('@/contexts/AuthContext', async () => ({ AuthContext: (await import('react')).createContext({ user: { id: 7 } }) }));
+vi.mock('@/contexts/AuthContext', async () => ({ AuthContext: (await import('react')).createContext({ user: { id: 7, current_organization_id: 44 } }) }));
 vi.mock('@/services/aiAssistantService', () => ({ AssistantApiError: class extends Error {}, createAiAssistantRequestId: vi.fn(() => 'uuid-request'), aiAssistantService: { getConversations: vi.fn(), getMemory: vi.fn(), getBalance: vi.fn(), getUsage: vi.fn(), getHistory: vi.fn(), getParticipants: vi.fn(), getQuote: vi.fn(), chat: vi.fn(), cancelRequest: vi.fn(), getRequest: vi.fn(), previewAction: vi.fn(), executeAction: vi.fn() } }));
+vi.mock('@/services/echo', () => ({ default: vi.fn() }));
 const deferred = <T,>() => { let resolve!: (value: T) => void; const promise = new Promise<T>((done) => { resolve = done; }); return { promise, resolve }; };
 beforeEach(() => {
   vi.mocked(aiAssistantService.getConversations).mockResolvedValue({ items: [{ id: '11', user_id: '7', title: 'Первый' }, { id: '12', user_id: '7', title: 'Второй' }], meta: null });
@@ -78,21 +80,47 @@ describe('AiAssistantPage', () => {
     expect(aiAssistantService.chat).toHaveBeenCalledTimes(1);
     expect(aiAssistantService.getRequest).toHaveBeenCalledWith('uuid-request', expect.any(AbortSignal));
   });
-  it('shows only received progress stages and explanatory elapsed status', async () => {
+  it('shows one generic activity line and an elapsed timer for legacy progress', async () => {
     const progress = deferred<Awaited<ReturnType<typeof aiAssistantService.getRequest>>>();
     vi.mocked(aiAssistantService.chat).mockResolvedValue({ request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'queued' });
     vi.mocked(aiAssistantService.getRequest).mockReturnValue(progress.promise);
     render(<AiAssistantPage />); await selectFirst();
     fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Вопрос' } }); fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Подтвердить и отправить' }));
-    expect(await screen.findByText('Запрос принят и ждёт обработки.')).toBeInTheDocument();
+    expect(await screen.findByText('В очереди')).toBeInTheDocument();
     expect(screen.getByText('Прошло 0 сек.')).toBeInTheDocument();
+    expect(screen.queryByText('Запрос принят и ждёт обработки.')).not.toBeInTheDocument();
     progress.resolve({ request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'reading' });
-    expect(await screen.findByText('Собирает данные, нужные для ответа.')).toBeInTheDocument();
-    expect(screen.getByText('Этапы: Анализирует данные')).toBeInTheDocument();
+    expect(await screen.findByText('Анализирует данные')).toBeInTheDocument();
+    expect(screen.queryByText(/Этапы:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Формирует ответ/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Отменить запрос' }));
-    await waitFor(() => expect(screen.queryByText('Этапы: Анализирует данные')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
+  });
+  it('uses scoped Echo events to wake status polling and ignores another request', async () => {
+    let realtimeHandler: ((payload: unknown) => void) | undefined;
+    const channel = { listen: vi.fn((event: string, handler: (payload: unknown) => void) => { if (event === '.assistant.request.changed') realtimeHandler = handler; return channel; }), stopListening: vi.fn() };
+    const echo = { private: vi.fn(() => channel), leave: vi.fn() };
+    vi.mocked(getEcho).mockReturnValue(echo as never);
+    vi.mocked(aiAssistantService.chat).mockResolvedValue({ request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'queued' });
+    vi.mocked(aiAssistantService.getRequest)
+      .mockResolvedValueOnce({ request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'generating', progress: [{ id: 1, code: 'estimates', state: 'started' }, { id: 2, code: 'estimates', state: 'completed' }] })
+      .mockResolvedValueOnce({ request_id: 'uuid-request', conversation_id: '11', status: 'completed', response: { request_id: 'uuid-request', conversation_id: '11', message: { id: 'event-answer', role: 'assistant', content: 'Ответ после события' }, credit_usage: {} } });
+    render(<AiAssistantPage />); await selectFirst();
+    fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Вопрос' } }); fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Подтвердить и отправить' }));
+    await waitFor(() => expect(realtimeHandler).toBeTypeOf('function'));
+    expect(echo.private).toHaveBeenCalledWith('App.Models.User.7.lk.org.44');
+    expect(await screen.findByText('Формирует ответ')).toBeInTheDocument();
+    expect(screen.queryByText('Проверяю сметы')).not.toBeInTheDocument();
+    expect(aiAssistantService.getRequest).toHaveBeenCalledTimes(1);
+    act(() => realtimeHandler?.({ request_id: 'another-request' }));
+    expect(aiAssistantService.getRequest).toHaveBeenCalledTimes(1);
+    act(() => realtimeHandler?.({ request_id: 'uuid-request' }));
+    expect(await screen.findByText('Ответ после события')).toBeInTheDocument();
+    expect(aiAssistantService.getRequest).toHaveBeenCalledTimes(2);
+    expect(channel.stopListening).toHaveBeenCalledWith('.assistant.request.changed', realtimeHandler);
+    expect(echo.leave).not.toHaveBeenCalled();
   });
   it('shows backend progress immediately and retains completed sources with a fast response', async () => {
     const progress = deferred<Awaited<ReturnType<typeof aiAssistantService.getRequest>>>();
@@ -102,11 +130,13 @@ describe('AiAssistantPage', () => {
     fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Вопрос про бетон' } }); fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Подтвердить и отправить' }));
     expect(await screen.findByText('Проверяю сметы')).toBeInTheDocument();
-    const completedProgress: AiAssistantProgress[] = [{ id: 31, code: 'estimates', state: 'completed' }, { id: 32, code: 'warehouse', state: 'completed' }];
+    expect(screen.queryByText('В очереди')).not.toBeInTheDocument();
+    const completedProgress: AiAssistantProgress[] = [{ id: 31, code: 'estimates', state: 'completed' }, { id: 32, code: 'warehouse', state: 'completed' }, { id: 33, code: 'warehouse', state: 'completed' }, { id: 34, code: 'projects', state: 'started' }];
     progress.resolve({ request_id: 'uuid-request', conversation_id: '11', status: 'completed', progress: completedProgress, response: { request_id: 'uuid-request', conversation_id: '11', message: { id: 'fast-answer', role: 'assistant', content: 'Ответ про бетон' }, credit_usage: {}, progress: completedProgress } });
     expect(await screen.findByText('Ответ про бетон')).toBeInTheDocument();
     expect(screen.getByText('Сметы проверены')).toBeInTheDocument();
-    expect(screen.getByText('Склад проверен')).toBeInTheDocument();
+    expect(screen.getAllByText('Склад проверен')).toHaveLength(1);
+    expect(screen.queryByText('Проверяю проекты')).not.toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
   it('clears all progress UI after a synchronous greeting response and leaves input usable', async () => {
@@ -155,6 +185,23 @@ describe('AiAssistantPage', () => {
     expect(screen.queryByText('Ответ готов')).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Новый вопрос' } });
     expect(screen.getByRole('button', { name: 'Рассчитать стоимость' })).toBeEnabled();
+  });
+  it('shows the server deadline only for a detailed quote', async () => {
+    vi.mocked(aiAssistantService.getQuote).mockResolvedValue({ quote_id: 'detailed-quote', min_units_minor: 50, max_units_minor: 200, expires_at: '2099-01-01T00:00:00Z', profile: 'detailed', price_version: '1', metadata: { processing_deadline_seconds: 630 } });
+    render(<AiAssistantPage />); await selectFirst();
+    fireEvent.change(screen.getByLabelText('Подробность ответа'), { target: { value: 'detailed' } });
+    fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Вопрос' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
+    expect(await screen.findByText('Подробный анализ: ожидание до 10 мин 30 сек.')).toBeInTheDocument();
+    expect(screen.getByText(/Оценка расхода/)).toBeInTheDocument();
+  });
+  it('does not show the optional deadline for a normal quote', async () => {
+    vi.mocked(aiAssistantService.getQuote).mockResolvedValue({ quote_id: 'normal-quote', min_units_minor: 50, max_units_minor: 200, expires_at: '2099-01-01T00:00:00Z', profile: 'normal', price_version: '1', metadata: { processing_deadline_seconds: 630 } });
+    render(<AiAssistantPage />); await selectFirst();
+    fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Вопрос' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
+    expect(await screen.findByText(/Оценка расхода/)).toBeInTheDocument();
+    expect(screen.queryByText(/Подробный анализ: ожидание/)).not.toBeInTheDocument();
   });
   it('recovers a lost POST acknowledgement through existing request ID without reposting', async () => {
     vi.mocked(aiAssistantService.chat).mockRejectedValue(new TypeError('Network error'));
