@@ -96,6 +96,38 @@ describe('AiAssistantCoveragePanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Сохранить бюджет' }));
     await waitFor(() => expect(aiAssistantService.setDocumentSettings).toHaveBeenCalledWith({ enabled: true, scope: 'archive', limit_minor: 12550 }));
   });
+  it('ignores a budget save that finishes after switching organizations', async () => {
+    const delayedSave = deferred<typeof settings>();
+    const delayedOrganizationBStatus = deferred<AiAssistantRagStatus>();
+    const organizationBSettings = { ...settings, spent_minor: 5200, available_minor: 4700 };
+    vi.mocked(aiAssistantService.getRagStatus)
+      .mockResolvedValueOnce({ ...status, can_manage_document_settings: true })
+      .mockReturnValueOnce(delayedOrganizationBStatus.promise);
+    vi.mocked(aiAssistantService.getDocumentSettings).mockResolvedValue(organizationBSettings);
+    vi.mocked(aiAssistantService.setDocumentSettings).mockReturnValue(delayedSave.promise);
+    const { rerender } = render(<AuthContext.Provider value={authContext(4)}><AiAssistantCoveragePanel /></AuthContext.Provider>);
+    await screen.findByLabelText('Общий лимит, единиц');
+    fireEvent.click(screen.getByLabelText('Разрешить фоновое распознавание'));
+    fireEvent.click(screen.getByLabelText('Подтверждаю бюджет и область обработки'));
+    fireEvent.click(screen.getByRole('button', { name: 'Сохранить бюджет' }));
+    expect(screen.getByRole('button', { name: 'Обновить' })).toBeDisabled();
+    rerender(<AuthContext.Provider value={authContext(5)}><AiAssistantCoveragePanel /></AuthContext.Provider>);
+    expect(screen.getByRole('button', { name: 'Обновить' })).toBeDisabled();
+    await act(async () => {
+      delayedSave.resolve({ ...settings, spent_minor: 99900, available_minor: 0 });
+      await delayedSave.promise;
+    });
+    expect(screen.getByRole('button', { name: 'Обновить' })).toBeDisabled();
+    expect(vi.mocked(aiAssistantService.getRagStatus)).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      delayedOrganizationBStatus.resolve({ ...status, can_manage_document_settings: true });
+      await delayedOrganizationBStatus.promise;
+    });
+    expect(await screen.findByText(/Потрачено: 52 ед\./)).toBeInTheDocument();
+    expect(screen.queryByText(/Потрачено: 999 ед\./)).not.toBeInTheDocument();
+    expect(vi.mocked(aiAssistantService.getRagStatus)).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole('button', { name: 'Обновить' })).toBeEnabled();
+  });
   it('parses a bounded decimal budget without rounding arbitrary fractions', () => {
     expect(assistantOcrLimit('1,25')).toBe(125);
     expect(assistantOcrLimit('1.005')).toBeNull();

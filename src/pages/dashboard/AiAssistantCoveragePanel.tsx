@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { aiAssistantService } from '@/services/aiAssistantService';
@@ -18,6 +18,13 @@ export const assistantOcrLimit = (value: string): number | null => {
 const AiAssistantCoveragePanel = () => {
   const { user } = useContext(AuthContext);
   const scopeKey = `${user?.id ?? 'guest'}:${user?.current_organization_id ?? 'none'}`;
+  const mountedRef = useRef(false);
+  const currentScopeRef = useRef(scopeKey);
+  const scopeGenerationRef = useRef(0);
+  if (currentScopeRef.current !== scopeKey) {
+    currentScopeRef.current = scopeKey;
+    scopeGenerationRef.current += 1;
+  }
   const [status, setStatus] = useState<AiAssistantRagStatus | null>(null);
   const [statusScope, setStatusScope] = useState('');
   const [settings, setSettings] = useState<AiAssistantDocumentSettings | null>(null);
@@ -27,9 +34,14 @@ const AiAssistantCoveragePanel = () => {
   const [limit, setLimit] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [busyScope, setBusyScope] = useState('');
   const [statusRetrying, setStatusRetrying] = useState(false);
   const [error, setError] = useState('');
   const [version, setVersion] = useState(0);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     let active = true;
@@ -49,7 +61,7 @@ const AiAssistantCoveragePanel = () => {
     });
     const isCurrent = () => active && !controller.signal.aborted;
     const startedAt = Date.now();
-    setBusy(true); setError(''); setStatusRetrying(false);
+    setBusy(true); setBusyScope(scopeKey); setError(''); setStatusRetrying(false);
     void (async () => {
       try {
         let result = await aiAssistantService.getRagStatus(controller.signal);
@@ -92,20 +104,28 @@ const AiAssistantCoveragePanel = () => {
       retryResolver?.();
     };
   }, [version, scopeKey]);
+  const busyForScope = busyScope === scopeKey && busy;
   const visibleStatus = statusScope === scopeKey ? status : null;
   const visibleSettings = settingsScope === scopeKey ? settings : null;
   const save = async () => {
     const minor = assistantOcrLimit(limit);
-    if (!confirmed || busy || !visibleStatus?.can_manage_document_settings || minor === null) return;
+    if (!confirmed || busyForScope || !visibleStatus?.can_manage_document_settings || minor === null) return;
     if (visibleSettings && minor < visibleSettings.spent_minor + visibleSettings.reserved_minor) { setError('Лимит не может быть меньше уже потраченных и зарезервированных кредитов.'); return; }
-    setBusy(true); setError('');
-    try { const saved = await aiAssistantService.setDocumentSettings({ enabled, scope, limit_minor: minor }); setSettings(saved); setConfirmed(false); setVersion((value) => value + 1); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : 'Не удалось сохранить бюджет.'); }
-    finally { setBusy(false); }
+    const saveScope = scopeKey;
+    const saveGeneration = scopeGenerationRef.current;
+    const isCurrentSave = () => mountedRef.current && currentScopeRef.current === saveScope && scopeGenerationRef.current === saveGeneration;
+    setBusy(true); setBusyScope(saveScope); setError('');
+    try {
+      const saved = await aiAssistantService.setDocumentSettings({ enabled, scope, limit_minor: minor });
+      if (!isCurrentSave()) return;
+      setSettings(saved); setSettingsScope(saveScope); setConfirmed(false); setVersion((value) => value + 1);
+    }
+    catch (reason) { if (isCurrentSave()) setError(reason instanceof Error ? reason.message : 'Не удалось сохранить бюджет.'); }
+    finally { if (isCurrentSave()) setBusy(false); }
   };
   const documents = visibleStatus?.document_coverage;
   const archive = visibleStatus?.archive_scan;
-  return <Card><CardContent className="space-y-3 p-4"><div className="flex items-center justify-between gap-2"><p className="font-medium">Готовность данных</p><Button size="sm" variant="ghost" disabled={busy} onClick={() => setVersion((value) => value + 1)}>Обновить</Button></div>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}{!visibleStatus ? <p className="text-xs text-muted-foreground">{busy ? 'Проверяем данные…' : 'Состояние пока неизвестно.'}</p> : <>
+  return <Card><CardContent className="space-y-3 p-4"><div className="flex items-center justify-between gap-2"><p className="font-medium">Готовность данных</p><Button size="sm" variant="ghost" disabled={busyForScope} onClick={() => setVersion((value) => value + 1)}>Обновить</Button></div>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}{!visibleStatus ? <p className="text-xs text-muted-foreground">{busyForScope ? 'Проверяем данные…' : 'Состояние пока неизвестно.'}</p> : <>
     {!visibleStatus.status_available ? <><p className="text-sm">{statusRetrying ? 'Получаем актуальную статистику…' : 'Статистика временно недоступна.'}</p><p className="text-xs">Недоступность статистики сама по себе не означает, что помощник не отвечает.</p></> : <>
     <p className="text-sm">{!visibleStatus.enabled ? 'Поиск по данным отключён.' : visibleStatus.coverage_complete && visibleStatus.eligible_count_known ? 'Все доступные источники обработаны.' : visibleStatus.processing ? 'Источники обрабатываются.' : 'Часть данных может отсутствовать в поиске.'}</p>
     <p className="text-xs">Источники: {visibleStatus.eligible_count_known && visibleStatus.indexed_source_count !== null && visibleStatus.expected_source_count !== null ? `${visibleStatus.indexed_source_count} из ${visibleStatus.expected_source_count}` : 'полнота пока неизвестна'}. Ожидают: {visibleStatus.pending_source_count ?? 'неизвестно'}. Устарели: {visibleStatus.stale_source_count ?? 'неизвестно'}.</p>
@@ -114,7 +134,7 @@ const AiAssistantCoveragePanel = () => {
     {documents ? <div className="space-y-1 text-xs"><p className="font-medium">Документы: готово {documents.ready} из {documents.total}</p><p>Ожидают обработки: {documents.pending}. Нужно распознавание: {documents.ocr_required}. Распознаются: {documents.ocr_processing}.</p><p>Ошибки: {documents.failed}. Формат не поддерживается: {documents.unsupported}. Пустые: {documents.empty}.</p><p>Обработано фрагментов: {documents.processed_units}. Распознано страниц: {documents.ocr_completed_pages} из {documents.total_pages}.</p></div> : <p className="text-xs">Покрытие документов пока неизвестно.</p>}
     </>}
     {archive && <p className="text-xs">Архив: проверено {archive.scanned_file_count ?? '—'} из {archive.expected_file_count ?? '—'} файлов. {archive.processing ? 'Проверка продолжается.' : archive.completed_at ? `Проверка завершена ${new Date(archive.completed_at).toLocaleString('ru-RU')}.` : 'Проверка ещё не завершена.'}</p>}
-    {visibleStatus.can_manage_document_settings && visibleSettings && <form className="space-y-2 border-t pt-3" onSubmit={(event) => { event.preventDefault(); void save(); }}><p className="text-sm font-medium">Бюджет распознавания</p><p className="text-xs">Потрачено: {units(visibleSettings.spent_minor)} ед. · зарезервировано: {units(visibleSettings.reserved_minor)} ед. · осталось: {units(visibleSettings.available_minor)} ед.</p><label className="block text-xs"><input type="checkbox" checked={enabled} disabled={busy} onChange={(event) => { setEnabled(event.target.checked); setConfirmed(false); }} /> Разрешить фоновое распознавание</label><label className="block text-xs">Документы <select aria-label="Область распознавания" value={scope} disabled={busy} onChange={(event) => { setScope(event.target.value === 'archive' ? 'archive' : 'new'); setConfirmed(false); }}><option value="new">Только новые</option><option value="archive">Новые и архив</option></select></label><label className="block text-xs" htmlFor="assistant-ocr-limit">Общий лимит, единиц</label><input id="assistant-ocr-limit" className="w-full rounded border bg-background p-2 text-sm" value={limit} inputMode="decimal" disabled={busy} onChange={(event) => { setLimit(event.target.value); setConfirmed(false); }} /><p className="text-xs">Распознавание расходует кредиты в пределах подтверждённого лимита.</p><label className="block text-xs"><input type="checkbox" checked={confirmed} disabled={busy} onChange={(event) => setConfirmed(event.target.checked)} /> Подтверждаю бюджет и область обработки</label><Button size="sm" type="submit" disabled={busy || !confirmed || assistantOcrLimit(limit) === null}>Сохранить бюджет</Button></form>}
+    {visibleStatus.can_manage_document_settings && visibleSettings && <form className="space-y-2 border-t pt-3" onSubmit={(event) => { event.preventDefault(); void save(); }}><p className="text-sm font-medium">Бюджет распознавания</p><p className="text-xs">Потрачено: {units(visibleSettings.spent_minor)} ед. · зарезервировано: {units(visibleSettings.reserved_minor)} ед. · осталось: {units(visibleSettings.available_minor)} ед.</p><label className="block text-xs"><input type="checkbox" checked={enabled} disabled={busyForScope} onChange={(event) => { setEnabled(event.target.checked); setConfirmed(false); }} /> Разрешить фоновое распознавание</label><label className="block text-xs">Документы <select aria-label="Область распознавания" value={scope} disabled={busyForScope} onChange={(event) => { setScope(event.target.value === 'archive' ? 'archive' : 'new'); setConfirmed(false); }}><option value="new">Только новые</option><option value="archive">Новые и архив</option></select></label><label className="block text-xs" htmlFor="assistant-ocr-limit">Общий лимит, единиц</label><input id="assistant-ocr-limit" className="w-full rounded border bg-background p-2 text-sm" value={limit} inputMode="decimal" disabled={busyForScope} onChange={(event) => { setLimit(event.target.value); setConfirmed(false); }} /><p className="text-xs">Распознавание расходует кредиты в пределах подтверждённого лимита.</p><label className="block text-xs"><input type="checkbox" checked={confirmed} disabled={busyForScope} onChange={(event) => setConfirmed(event.target.checked)} /> Подтверждаю бюджет и область обработки</label><Button size="sm" type="submit" disabled={busyForScope || !confirmed || assistantOcrLimit(limit) === null}>Сохранить бюджет</Button></form>}
   </>}</CardContent></Card>;
 };
 export default AiAssistantCoveragePanel;
