@@ -1,23 +1,82 @@
-import { fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AiAssistantCoveragePanel, { assistantOcrLimit } from './AiAssistantCoveragePanel';
 import { aiAssistantService } from '@/services/aiAssistantService';
+import { AuthContext, type AuthContextType } from '@/contexts/AuthContext';
 import type { AiAssistantRagStatus } from '@/types/aiAssistant';
 vi.mock('@/services/aiAssistantService', () => ({ aiAssistantService: { getRagStatus: vi.fn(), getDocumentSettings: vi.fn(), setDocumentSettings: vi.fn() } }));
 const status: AiAssistantRagStatus = { status_available: true, enabled: true, ready: true, source_count: 10, chunk_count: 20, expected_source_count: null, indexed_source_count: null, pending_source_count: null, stale_source_count: null, eligible_count_known: false, coverage_complete: false, processing: false, lag_seconds: null, lag_exceeded: false, source_catalog: [], can_manage_document_settings: false, document_coverage: { total: 8, ready: 3, pending: 1, ocr_required: 2, ocr_processing: 1, failed: 1, unsupported: 0, empty: 0, processed_units: 30, total_pages: 12, ocr_completed_pages: 5 }, archive_scan: { expected_file_count: 9, scanned_file_count: 6, last_file_id: 20, completed_at: null, processing: true } };
 const settings = { enabled: false, scope: 'new' as const, limit_minor: 10000, reserved_minor: 100, spent_minor: 200, available_minor: 9700, scanned_count: 6, last_file_id: 20, scan_completed_at: null };
+const unavailableStatus = { ...status, status_available: false, source_count: null, chunk_count: null, document_coverage: null, archive_scan: null, source_catalog: [] };
+const deferred = <T,>() => { let resolve!: (value: T) => void; const promise = new Promise<T>((done) => { resolve = done; }); return { promise, resolve }; };
+const authContext = (organizationId: number): AuthContextType => ({ user: { id: 7, current_organization_id: organizationId } as AuthContextType['user'], token: 'test-token', isAuthenticated: true, isLoading: false, login: async () => {}, register: async () => {}, logout: async () => {}, fetchUser: async () => {} });
 beforeEach(() => { vi.mocked(aiAssistantService.getRagStatus).mockResolvedValue(status); vi.mocked(aiAssistantService.getDocumentSettings).mockResolvedValue(settings); vi.mocked(aiAssistantService.setDocumentSettings).mockResolvedValue(settings); });
-afterEach(() => { cleanup(); vi.clearAllMocks(); });
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.useRealTimers(); });
 describe('AiAssistantCoveragePanel', () => {
   it('shows unavailable status without stale coverage details', async () => {
-    vi.mocked(aiAssistantService.getRagStatus).mockResolvedValue({ ...status, status_available: false, source_count: null, chunk_count: null, document_coverage: null, archive_scan: null, source_catalog: [] });
-    render(<AiAssistantCoveragePanel />);
-    expect(await screen.findByText('Статистика временно недоступна.')).toBeInTheDocument();
+    vi.mocked(aiAssistantService.getRagStatus).mockResolvedValue(unavailableStatus);
+    render(<AuthContext.Provider value={authContext(4)}><AiAssistantCoveragePanel /></AuthContext.Provider>);
+    expect(await screen.findByText('Получаем актуальную статистику…')).toBeInTheDocument();
     expect(screen.getByText(/Недоступность статистики сама по себе/)).toBeInTheDocument();
     expect(screen.queryByText(/Документы: готово/)).not.toBeInTheDocument();
   });
+  it('retries an unknown snapshot until it becomes ready, then stops', async () => {
+    vi.useFakeTimers();
+    vi.mocked(aiAssistantService.getRagStatus).mockResolvedValueOnce(unavailableStatus).mockResolvedValueOnce(status);
+    render(<AuthContext.Provider value={authContext(4)}><AiAssistantCoveragePanel /></AuthContext.Provider>);
+    await act(async () => { await Promise.resolve(); });
+    expect(screen.getByText('Получаем актуальную статистику…')).toBeInTheDocument();
+    expect(aiAssistantService.getRagStatus).toHaveBeenCalledTimes(1);
+    await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
+    expect(screen.getByText(/полнота пока неизвестна/)).toBeInTheDocument();
+    expect(aiAssistantService.getRagStatus).toHaveBeenCalledTimes(2);
+    await act(async () => { await vi.advanceTimersByTimeAsync(90_000); });
+    expect(aiAssistantService.getRagStatus).toHaveBeenCalledTimes(2);
+  });
+  it('stops unknown-snapshot retries after a terminal authorization error', async () => {
+    vi.useFakeTimers();
+    vi.mocked(aiAssistantService.getRagStatus).mockResolvedValueOnce(unavailableStatus).mockRejectedValueOnce(Object.assign(new Error('Forbidden'), { status: 403 }));
+    render(<AuthContext.Provider value={authContext(4)}><AiAssistantCoveragePanel /></AuthContext.Provider>);
+    await act(async () => { await Promise.resolve(); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(1500); });
+    expect(screen.getByRole('alert')).toHaveTextContent('Forbidden');
+    expect(aiAssistantService.getRagStatus).toHaveBeenCalledTimes(2);
+    await act(async () => { await vi.advanceTimersByTimeAsync(90_000); });
+    expect(aiAssistantService.getRagStatus).toHaveBeenCalledTimes(2);
+  });
+  it('cancels the pending retry timer on unmount', async () => {
+    vi.useFakeTimers();
+    let signal: AbortSignal | undefined;
+    vi.mocked(aiAssistantService.getRagStatus).mockImplementation((requestSignal) => { signal = requestSignal; return Promise.resolve(unavailableStatus); });
+    const { unmount } = render(<AuthContext.Provider value={authContext(4)}><AiAssistantCoveragePanel /></AuthContext.Provider>);
+    await act(async () => { await Promise.resolve(); });
+    expect(aiAssistantService.getRagStatus).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Получаем актуальную статистику…')).toBeInTheDocument();
+    unmount();
+    expect(signal?.aborted).toBe(true);
+    await act(async () => { await vi.advanceTimersByTimeAsync(90_000); });
+    expect(aiAssistantService.getRagStatus).toHaveBeenCalledTimes(1);
+  });
+  it('aborts polling on unmount and ignores the in-flight old-organization snapshot', async () => {
+    vi.useFakeTimers();
+    const oldStatus = deferred<AiAssistantRagStatus>();
+    const currentStatus = deferred<AiAssistantRagStatus>();
+    let oldSignal: AbortSignal | undefined;
+    vi.mocked(aiAssistantService.getRagStatus).mockImplementationOnce((signal) => { oldSignal = signal; return oldStatus.promise; }).mockImplementationOnce(() => currentStatus.promise);
+    const { rerender, unmount } = render(<AuthContext.Provider value={authContext(4)}><AiAssistantCoveragePanel /></AuthContext.Provider>);
+    await act(async () => { await Promise.resolve(); });
+    rerender(<AuthContext.Provider value={authContext(5)}><AiAssistantCoveragePanel /></AuthContext.Provider>);
+    expect(oldSignal?.aborted).toBe(true);
+    await act(async () => { oldStatus.resolve({ ...status, document_coverage: { ...status.document_coverage!, ready: 99 } }); await Promise.resolve(); });
+    expect(screen.queryByText(/готово 99 из/)).not.toBeInTheDocument();
+    expect(aiAssistantService.getRagStatus).toHaveBeenCalledTimes(2);
+    unmount();
+    expect((vi.mocked(aiAssistantService.getRagStatus).mock.calls[1][0] as AbortSignal).aborted).toBe(true);
+    await act(async () => { await vi.advanceTimersByTimeAsync(90_000); });
+    expect(aiAssistantService.getRagStatus).toHaveBeenCalledTimes(2);
+  });
   it('does not claim complete coverage from search readiness or expose owner controls', async () => {
-    render(<AiAssistantCoveragePanel />);
+    render(<AuthContext.Provider value={authContext(4)}><AiAssistantCoveragePanel /></AuthContext.Provider>);
     await screen.findByText(/полнота пока неизвестна/);
     expect(screen.queryByText('Все доступные источники обработаны.')).not.toBeInTheDocument();
     expect(screen.getByText(/Документы: готово 3 из 8/)).toBeInTheDocument();
@@ -27,7 +86,7 @@ describe('AiAssistantCoveragePanel', () => {
   });
   it('requires explicit confirmation, sends minor units and selected archive scope', async () => {
     vi.mocked(aiAssistantService.getRagStatus).mockResolvedValue({ ...status, can_manage_document_settings: true });
-    render(<AiAssistantCoveragePanel />);
+    render(<AuthContext.Provider value={authContext(4)}><AiAssistantCoveragePanel /></AuthContext.Provider>);
     await screen.findByLabelText('Общий лимит, единиц');
     fireEvent.change(screen.getByLabelText('Общий лимит, единиц'), { target: { value: '125,50' } });
     fireEvent.change(screen.getByLabelText('Область распознавания'), { target: { value: 'archive' } });
