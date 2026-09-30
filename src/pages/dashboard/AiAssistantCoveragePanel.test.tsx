@@ -4,11 +4,18 @@ import AiAssistantCoveragePanel, { assistantOcrLimit } from './AiAssistantCovera
 import { aiAssistantService } from '@/services/aiAssistantService';
 import type { AiAssistantRagStatus } from '@/types/aiAssistant';
 vi.mock('@/services/aiAssistantService', () => ({ aiAssistantService: { getRagStatus: vi.fn(), getDocumentSettings: vi.fn(), setDocumentSettings: vi.fn() } }));
-const status: AiAssistantRagStatus = { enabled: true, ready: true, source_count: 10, chunk_count: 20, expected_source_count: null, indexed_source_count: null, pending_source_count: null, stale_source_count: null, eligible_count_known: false, coverage_complete: false, processing: false, lag_seconds: null, lag_exceeded: false, source_catalog: [], can_manage_document_settings: false, document_coverage: { total: 8, ready: 3, pending: 1, ocr_required: 2, ocr_processing: 1, failed: 1, unsupported: 0, empty: 0, processed_units: 30, total_pages: 12, ocr_completed_pages: 5 }, archive_scan: { expected_file_count: 9, scanned_file_count: 6, last_file_id: 20, completed_at: null, processing: true } };
+const status: AiAssistantRagStatus = { status_available: true, enabled: true, ready: true, source_count: 10, chunk_count: 20, expected_source_count: null, indexed_source_count: null, pending_source_count: null, stale_source_count: null, eligible_count_known: false, coverage_complete: false, processing: false, lag_seconds: null, lag_exceeded: false, source_catalog: [], can_manage_document_settings: false, document_coverage: { total: 8, ready: 3, pending: 1, ocr_required: 2, ocr_processing: 1, failed: 1, unsupported: 0, empty: 0, processed_units: 30, total_pages: 12, ocr_completed_pages: 5 }, archive_scan: { expected_file_count: 9, scanned_file_count: 6, last_file_id: 20, completed_at: null, processing: true } };
 const settings = { enabled: false, scope: 'new' as const, limit_minor: 10000, reserved_minor: 100, spent_minor: 200, available_minor: 9700, scanned_count: 6, last_file_id: 20, scan_completed_at: null };
 beforeEach(() => { vi.mocked(aiAssistantService.getRagStatus).mockResolvedValue(status); vi.mocked(aiAssistantService.getDocumentSettings).mockResolvedValue(settings); vi.mocked(aiAssistantService.setDocumentSettings).mockResolvedValue(settings); });
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 describe('AiAssistantCoveragePanel', () => {
+  it('shows unavailable status without stale coverage details', async () => {
+    vi.mocked(aiAssistantService.getRagStatus).mockResolvedValue({ ...status, status_available: false, source_count: null, chunk_count: null, document_coverage: null, archive_scan: null, source_catalog: [] });
+    render(<AiAssistantCoveragePanel />);
+    expect(await screen.findByText('Статистика временно недоступна.')).toBeInTheDocument();
+    expect(screen.getByText(/Недоступность статистики сама по себе/)).toBeInTheDocument();
+    expect(screen.queryByText(/Документы: готово/)).not.toBeInTheDocument();
+  });
   it('does not claim complete coverage from search readiness or expose owner controls', async () => {
     render(<AiAssistantCoveragePanel />);
     await screen.findByText(/полнота пока неизвестна/);

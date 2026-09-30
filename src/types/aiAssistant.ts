@@ -24,7 +24,7 @@ export interface AiAssistantArtifact { title?: string | null; filename?: string 
 export interface AiAssistantDocumentSettings { enabled: boolean; scope: 'new' | 'archive'; limit_minor: number; reserved_minor: number; spent_minor: number; available_minor: number; scanned_count: number; last_file_id: number | null; scan_completed_at: string | null }
 export interface AiAssistantDocumentCoverage { total: number; ready: number; pending: number; ocr_required: number; ocr_processing: number; failed: number; unsupported: number; empty: number; processed_units: number; total_pages: number; ocr_completed_pages: number }
 export interface AiAssistantRagStatus {
-  enabled: boolean; ready: boolean; source_count: number; chunk_count: number;
+  status_available: boolean; enabled: boolean; ready: boolean; source_count: number | null; chunk_count: number | null;
   expected_source_count: number | null; indexed_source_count: number | null; pending_source_count: number | null; stale_source_count: number | null;
   eligible_count_known: boolean; coverage_complete: boolean; processing: boolean; lag_seconds: number | null; lag_exceeded: boolean; coverage_snapshot_at?: string | null;
   source_catalog: { type: string; enabled: boolean; expected_count: number | null; indexed_count: number | null; pending_count: number | null; error: string | null }[];

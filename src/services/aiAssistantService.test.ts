@@ -60,6 +60,13 @@ describe('aiAssistantService', () => {
     expect(mock.mock.calls[1][1]?.method).toBe('PUT');
     expect(JSON.parse(String(mock.mock.calls[1][1]?.body))).toEqual({ enabled: true, scope: 'archive', limit_minor: 12550, confirmed: true });
   });
+  it('marks unavailable statistics without retaining diagnostic fields and accepts legacy payloads', async () => {
+    respond({ status_available: false, enabled: true, ready: true, source_count: 7, chunk_count: 11, source_catalog: [{ type: 'files' }], document_coverage: { total: 4 }, archive_scan: { scanned_file_count: 4 } });
+    await expect(aiAssistantService.getRagStatus()).resolves.toMatchObject({ status_available: false, enabled: false, ready: false, source_count: null, chunk_count: null, eligible_count_known: false, coverage_complete: false, source_catalog: [] });
+    const legacy = respond({ enabled: true, ready: true, coverage_complete: true, eligible_count_known: true, expected_source_count: 2, indexed_source_count: 2 });
+    await expect(aiAssistantService.getRagStatus()).resolves.toMatchObject({ status_available: true, coverage_complete: true, source_count: null, chunk_count: null });
+    expect(legacy.mock.calls[0][0]).toContain('/ai-assistant/rag/status');
+  });
   it('downloads protected reports with Authorization and rejects external or token-query URLs', async () => {
     saveAuthToken('session-token');
     const mock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response('pdf', { status: 200 }));
