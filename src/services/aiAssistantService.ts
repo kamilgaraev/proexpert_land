@@ -47,7 +47,13 @@ export const aiAssistantService = {
   getUsage: async (signal?: AbortSignal) => (await request<AiAssistantUsage>('/usage', { signal })).data,
   getRagStatus: async (signal?: AbortSignal) => {
     const status = (await request<AiAssistantRagStatus>('/rag/status', { signal })).data;
-    return { ...status, can_manage_document_settings: status.can_manage_document_settings === true, coverage_complete: status.coverage_complete === true && status.eligible_count_known === true && Number.isInteger(status.expected_source_count) && Number.isInteger(status.indexed_source_count) && Number(status.expected_source_count) >= 0 && Number(status.indexed_source_count) >= 0 };
+    if (status.status_available === false) return {
+      status_available: false, enabled: false, ready: false, source_count: null, chunk_count: null,
+      expected_source_count: null, indexed_source_count: null, pending_source_count: null, stale_source_count: null,
+      eligible_count_known: false, coverage_complete: false, processing: false, lag_seconds: null, lag_exceeded: false,
+      source_catalog: [], can_manage_document_settings: false,
+    } satisfies AiAssistantRagStatus;
+    return { ...status, status_available: true, source_count: Number.isFinite(status.source_count) ? status.source_count : null, chunk_count: Number.isFinite(status.chunk_count) ? status.chunk_count : null, can_manage_document_settings: status.can_manage_document_settings === true, coverage_complete: status.coverage_complete === true && status.eligible_count_known === true && Number.isInteger(status.expected_source_count) && Number.isInteger(status.indexed_source_count) && Number(status.expected_source_count) >= 0 && Number(status.indexed_source_count) >= 0 };
   },
   getDocumentSettings: async (signal?: AbortSignal) => (await request<AiAssistantDocumentSettings>('/documents/settings', { signal })).data,
   setDocumentSettings: async (input: Pick<AiAssistantDocumentSettings, 'enabled' | 'scope' | 'limit_minor'>) => (await request<AiAssistantDocumentSettings>('/documents/settings', { method: 'PUT', body: JSON.stringify({ ...input, confirmed: true }) })).data,
