@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AiAssistantPage, { assistantSourceUrl, assistantUnits } from './AiAssistantPage';
-import { aiAssistantService } from '@/services/aiAssistantService';
+import { aiAssistantService, AssistantApiError } from '@/services/aiAssistantService';
 import getEcho from '@/services/echo';
 import { createAiAssistantRequestId } from '@/services/aiAssistantService';
 import type { AiAssistantProgress } from '@/types/aiAssistant';
@@ -212,6 +212,38 @@ describe('AiAssistantPage', () => {
     expect(await screen.findByText('Восстановленный ответ')).toBeInTheDocument();
     expect(aiAssistantService.chat).toHaveBeenCalledTimes(1);
     expect(aiAssistantService.getRequest).toHaveBeenCalledWith('uuid-request', expect.any(AbortSignal));
+  });
+
+  it('resends an unaccepted request with the same quote and refreshes chat titles and order', async () => {
+    vi.mocked(aiAssistantService.chat).mockRejectedValueOnce(new TypeError('Network error'))
+      .mockResolvedValueOnce({ request_id: 'uuid-request', conversation_id: '11', message: { id: 'retry-answer', role: 'assistant', content: 'Повтор принят' }, credit_usage: {} });
+    vi.mocked(aiAssistantService.getRequest).mockResolvedValueOnce({ request_id: 'uuid-request', conversation_id: null, status: 'not_submitted', stage: 'not_submitted' });
+    render(<AiAssistantPage />); await selectFirst();
+    vi.mocked(aiAssistantService.getConversations).mockResolvedValueOnce({ items: [{ id: '12', user_id: '7', title: 'Второй' }, { id: '11', user_id: '7', title: 'Название после ответа' }], meta: null });
+    fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Вопрос' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Подтвердить и отправить' }));
+    expect(await screen.findByText('Повтор принят')).toBeInTheDocument();
+    expect(aiAssistantService.chat).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(aiAssistantService.chat).mock.calls[1][0]).toEqual(vi.mocked(aiAssistantService.chat).mock.calls[0][0]);
+    expect(aiAssistantService.getQuote).toHaveBeenCalledTimes(1);
+    await screen.findByRole('button', { name: 'Название после ответа' });
+    const buttons = screen.getAllByRole('button');
+    expect(buttons.indexOf(screen.getByRole('button', { name: 'Второй' }))).toBeLessThan(buttons.indexOf(screen.getByRole('button', { name: 'Название после ответа' })));
+  });
+
+  it('preserves the question and requires a new quote after an expired unaccepted request', async () => {
+    vi.mocked(aiAssistantService.chat).mockRejectedValueOnce(new TypeError('Network error'));
+    const expired = Object.assign(new AssistantApiError('expired', 404), { status: 404 });
+    vi.mocked(aiAssistantService.getRequest).mockRejectedValueOnce(expired);
+    render(<AiAssistantPage />); await selectFirst();
+    fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Сохранённый вопрос' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Подтвердить и отправить' }));
+    await screen.findByText('Запрос не принят или оценка истекла. Рассчитайте стоимость снова.');
+    expect(screen.getByLabelText('Вопрос помощнику')).toHaveValue('Сохранённый вопрос');
+    expect(screen.getByRole('button', { name: 'Рассчитать стоимость' })).toBeEnabled();
+    expect(aiAssistantService.chat).toHaveBeenCalledTimes(1);
   });
   it('releases pending poll on cancel and allows a new request', async () => {
     const cancel = deferred<Awaited<ReturnType<typeof aiAssistantService.cancelRequest>>>();
