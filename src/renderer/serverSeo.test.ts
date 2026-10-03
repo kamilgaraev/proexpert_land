@@ -287,6 +287,8 @@ describe('buildServerSeoPayload', () => {
   it.each([
     ['/blog/chto-dolzhno-byt-u-pto-v-odnoy-sisteme', '/blog/ispolnitelnaya-dokumentaciya-v-stroitelstve'],
     ['/blog/kak-prorabu-derzhat-obekt-bez-haosa', '/foreman-software'],
+    ['/blog/kak-kontrolirovat-podryadchikov-na-obekte-bez-razborok', '/contractor-control'],
+    ['/blog/chto-rukovoditel-stroitelstva-dolzhen-videt-kazhdoe-utro', '/project-pulse'],
   ])('redirects archived article %s even when the article loader returns 404', (source, target) => {
     const payload = buildServerSeoPayload(source, { statusCode: 404, noIndex: true });
 

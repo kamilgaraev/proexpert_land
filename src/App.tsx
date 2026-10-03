@@ -93,6 +93,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import YandexMetrika from '@components/analytics/YandexMetrika';
 import { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
 import { initSEOTracking } from '@utils/seoTracking';
+import { captureMarketingAttribution, clearMarketingAttribution } from '@/utils/marketingAttribution';
+import { COOKIE_CONSENT_EVENT, hasAnalyticsConsent } from '@/utils/marketingConsent';
+import { isCabinetHost, isPrimaryMarketingHost } from '@/utils/publicSite';
 import type { BlogArticle, BlogCategoryInitialData, BlogIndexInitialData, BlogTagInitialData } from '@/types/blog';
 
 interface AppProps {
@@ -151,6 +154,17 @@ function App({
   useEffect(() => {
     initSEOTracking();
   }, []);
+
+  useEffect(() => {
+    if (!isPrimaryMarketingHost(window.location.hostname) && !isCabinetHost(window.location.hostname)) return;
+    captureMarketingAttribution(location.search);
+    const syncAttribution = () => {
+      if (hasAnalyticsConsent()) captureMarketingAttribution(location.search);
+      else clearMarketingAttribution();
+    };
+    window.addEventListener(COOKIE_CONSENT_EVENT, syncAttribution);
+    return () => window.removeEventListener(COOKIE_CONSENT_EVENT, syncAttribution);
+  }, [location.search]);
 
   const isHoldingSubdomain = () => {
     if (typeof window === 'undefined') {

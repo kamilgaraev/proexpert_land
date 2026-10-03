@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import {
-  COOKIE_CONSENT_EVENT,
-  hasAnalyticsConsent,
-} from '@/utils/marketingConsent';
-import {
-  isMarketingPublicPath,
-  isPrimaryMarketingHost,
-} from '@/utils/publicSite';
+import { COOKIE_CONSENT_EVENT, hasAnalyticsConsent } from '@/utils/marketingConsent';
+import { isCabinetHost, isConversionPath, isMarketingPublicPath, isPrimaryMarketingHost } from '@/utils/publicSite';
 import { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
 
 export { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
@@ -26,155 +20,93 @@ interface YandexMetrikaProps {
   enableAccurateTrackBounce?: boolean;
 }
 
+type TrackingMode = 'marketing' | 'conversion' | null;
 const SCRIPT_ID = 'prohelper-yandex-metrika';
-const NOSCRIPT_ID = 'prohelper-yandex-metrika-noscript';
+const CONVERSION_GOALS = new Set(['registration', 'email_verified', 'purchase']);
 
-const canEnableMetrika = (pathname: string) => {
-  if (typeof window === 'undefined') {
-    return false;
+const trackingMode = (pathname: string): TrackingMode => {
+  if (typeof window === 'undefined' || !hasAnalyticsConsent()) return null;
+  const hostname = window.location.hostname;
+  if (isConversionPath(pathname) && (isPrimaryMarketingHost(hostname) || isCabinetHost(hostname))) return 'conversion';
+  return isPrimaryMarketingHost(hostname) && isMarketingPublicPath(pathname) ? 'marketing' : null;
+};
+
+const loadMetrika = () => {
+  if (!window.ym) {
+    const commands: unknown[][] = [];
+    window.ym = Object.assign((...args: unknown[]) => { commands.push(args); }, { a: commands, l: Date.now() });
   }
-
-  return (
-    hasAnalyticsConsent() &&
-    isPrimaryMarketingHost(window.location.hostname) &&
-    isMarketingPublicPath(pathname)
-  );
+  if (document.getElementById(SCRIPT_ID)) return;
+  const script = document.createElement('script');
+  script.id = SCRIPT_ID;
+  script.async = true;
+  script.src = 'https://mc.yandex.ru/metrika/tag.js';
+  document.head.appendChild(script);
 };
 
-const removeMetrikaNodes = () => {
-  const script = document.getElementById(SCRIPT_ID);
-  const noscript = document.getElementById(NOSCRIPT_ID);
-
-  script?.remove();
-  noscript?.remove();
-};
-
-const YandexMetrika = ({
-  counterId,
-  enableWebvisor = true,
-  enableClickmap = true,
-  enableTrackLinks = true,
-  enableAccurateTrackBounce = true,
-}: YandexMetrikaProps) => {
+const YandexMetrika = ({ counterId, enableWebvisor = true, enableClickmap = true,
+  enableTrackLinks = true, enableAccurateTrackBounce = true }: YandexMetrikaProps) => {
   const location = useLocation();
-  const [enabled, setEnabled] = useState(() => canEnableMetrika(location.pathname));
+  const [consent, setConsent] = useState(hasAnalyticsConsent);
   const previousUrlRef = useRef<string | null>(null);
+  const mode = consent ? trackingMode(location.pathname) : null;
 
   useEffect(() => {
-    const syncState = () => {
-      setEnabled(canEnableMetrika(location.pathname));
-    };
-
-    syncState();
-    window.addEventListener(COOKIE_CONSENT_EVENT, syncState as EventListener);
-
+    const syncConsent = () => setConsent(hasAnalyticsConsent());
+    window.addEventListener(COOKIE_CONSENT_EVENT, syncConsent);
+    window.addEventListener('focus', syncConsent);
     return () => {
-      window.removeEventListener(COOKIE_CONSENT_EVENT, syncState as EventListener);
+      window.removeEventListener(COOKIE_CONSENT_EVENT, syncConsent);
+      window.removeEventListener('focus', syncConsent);
     };
-  }, [location.pathname]);
+  }, []);
 
   useEffect(() => {
-    if (!enabled) {
-      removeMetrikaNodes();
-      previousUrlRef.current = null;
-      return;
-    }
+    previousUrlRef.current = null;
+    if (!mode) return;
+    loadMetrika();
+    const marketing = mode === 'marketing';
+    window.ym?.(counterId, 'init', {
+      ssr: true, defer: true,
+      clickmap: marketing && enableClickmap,
+      trackLinks: marketing && enableTrackLinks,
+      accurateTrackBounce: marketing && enableAccurateTrackBounce,
+      webvisor: marketing && enableWebvisor,
+      ecommerce: marketing ? 'dataLayer' : false,
+      sendTitle: marketing,
+      url: marketing ? window.location.href : window.location.origin + '/conversion',
+      referrer: marketing ? document.referrer : '',
+    });
+    return () => { window.ym?.(counterId, 'destruct'); };
+  }, [counterId, mode, enableWebvisor, enableClickmap, enableTrackLinks, enableAccurateTrackBounce]);
 
-    const currentUrl = new URL(
-      `${location.pathname}${location.search}${location.hash}`,
-      window.location.origin,
-    ).href;
-
-    if (!document.getElementById(SCRIPT_ID)) {
-      const script = document.createElement('script');
-      script.id = SCRIPT_ID;
-      script.type = 'text/javascript';
-      script.async = true;
-      script.innerHTML = `
-        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js?id=${counterId}", "ym");
-
-        ym(${counterId}, "init", {
-          ssr:true,
-          ${enableClickmap ? 'clickmap:true,' : ''}
-          ${enableTrackLinks ? 'trackLinks:true,' : ''}
-          ${enableAccurateTrackBounce ? 'accurateTrackBounce:true,' : ''}
-          ${enableWebvisor ? 'webvisor:true,' : ''}
-          ecommerce:"dataLayer",
-          referrer:document.referrer,
-          url:location.href
-        });
-      `;
-      document.head.appendChild(script);
-    }
-
-    if (!document.getElementById(NOSCRIPT_ID)) {
-      const noscript = document.createElement('noscript');
-      noscript.id = NOSCRIPT_ID;
-      noscript.innerHTML = `<div><img src="https://mc.yandex.ru/watch/${counterId}" style="position:absolute; left:-9999px;" alt="" /></div>`;
-      document.body.appendChild(noscript);
-    }
-
+  useEffect(() => {
+    if (mode !== 'marketing') return;
+    const currentUrl = new URL(location.pathname + location.search + location.hash, window.location.origin).href;
     const previousUrl = previousUrlRef.current;
+    if (previousUrl === currentUrl) return;
     previousUrlRef.current = currentUrl;
-
-    if (previousUrl === null || previousUrl === currentUrl) {
-      return;
-    }
-
-    const hitTimer = window.setTimeout(() => {
-      window.ym?.(counterId, 'hit', currentUrl, {
-        title: document.title,
-        referer: previousUrl,
-      });
+    const timer = window.setTimeout(() => {
+      window.ym?.(counterId, 'hit', currentUrl, { title: document.title, referer: previousUrl ?? document.referrer });
     }, 250);
-
-    return () => {
-      window.clearTimeout(hitTimer);
-    };
-  }, [
-    counterId,
-    enableAccurateTrackBounce,
-    enableClickmap,
-    enableTrackLinks,
-    enableWebvisor,
-    enabled,
-    location.hash,
-    location.pathname,
-    location.search,
-  ]);
+    return () => window.clearTimeout(timer);
+  }, [counterId, mode, location.pathname, location.search, location.hash]);
 
   return null;
 };
 
-const isAnalyticsTrackingEnabled = () => {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-
-  return canEnableMetrika(window.location.pathname);
-};
-
-export const trackYandexGoal = (goalName: string, params?: Record<string, unknown>) => {
-  if (!isAnalyticsTrackingEnabled()) {
-    return;
-  }
-
+export const trackYandexGoal = (goalName: string, params?: Record<string, unknown>): boolean => {
+  const mode = typeof window === 'undefined' ? null : trackingMode(window.location.pathname);
+  if (!mode || (mode === 'conversion' && !CONVERSION_GOALS.has(goalName))) return false;
+  loadMetrika();
   window.ym?.(YANDEX_METRIKA_COUNTER_ID, 'reachGoal', goalName, params);
+  return true;
 };
 
 export const trackYandexEvent = (eventName: string, params?: Record<string, unknown>) => {
-  if (!isAnalyticsTrackingEnabled()) {
-    return;
-  }
-
-  window.ym?.(YANDEX_METRIKA_COUNTER_ID, 'params', {
-    event: eventName,
-    ...params,
-  });
+  if (typeof window === 'undefined' || trackingMode(window.location.pathname) !== 'marketing') return;
+  loadMetrika();
+  window.ym?.(YANDEX_METRIKA_COUNTER_ID, 'params', { event: eventName, ...params });
 };
 
 export default YandexMetrika;

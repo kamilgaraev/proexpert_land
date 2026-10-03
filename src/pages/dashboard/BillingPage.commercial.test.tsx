@@ -6,7 +6,8 @@ import { setupServer } from 'msw/node';
 import BillingPage from './BillingPage';
 import { saveAuthToken } from '@/utils/authTokenStorage';
 
-const { access } = vi.hoisted(() => ({ access: { manage: true, view: true } }));
+const { access, trackPaidOrder } = vi.hoisted(() => ({ access: { manage: true, view: true }, trackPaidOrder: vi.fn() }));
+vi.mock('@/utils/conversionTracking', () => ({ trackPaidOrder }));
 vi.mock('@/hooks/usePermissions', () => ({
   useCanAccess: ({ permission }: { permission?: string }) => permission === 'billing.manage' ? access.manage : access.view,
 }));
@@ -359,8 +360,11 @@ describe('BillingPage commercial packages', () => {
 
     await waitFor(() => expect(historyCalls).toBeGreaterThanOrEqual(2));
     if (status === 'paid') {
+      expect(trackPaidOrder).toHaveBeenCalledWith(expect.objectContaining({ orderId: 'order-terminal', status: 'paid', amountMinor: 100000, testMode: false }));
       expect(screen.getByText(/Состав: Пакет 2\./)).toBeInTheDocument();
       expect(screen.queryByText(/Состав: Пакет 1, Пакет 2/)).not.toBeInTheDocument();
+    } else {
+      expect(trackPaidOrder).not.toHaveBeenCalled();
     }
   });
 

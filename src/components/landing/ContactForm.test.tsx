@@ -20,6 +20,7 @@ import {
 } from "vitest";
 import ContactForm from "./ContactForm";
 import { COOKIE_CONSENT_VERSION } from "@/utils/marketingConsent";
+import { captureMarketingAttribution, clearMarketingAttribution } from "@/utils/marketingAttribution";
 
 const { notify, trackButtonClick, trackContactForm } = vi.hoisted(() => ({
   notify: vi.fn(),
@@ -47,7 +48,10 @@ vi.mock("framer-motion", () => ({
 
 const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
-beforeEach(() => vi.stubEnv("VITE_API_URL", "http://localhost/api/v1/landing"));
+beforeEach(() => {
+  vi.stubEnv("VITE_API_URL", "http://localhost/api/v1/landing");
+  clearMarketingAttribution();
+});
 afterEach(() => {
   cleanup();
   server.resetHandlers();
@@ -82,6 +86,8 @@ describe("Marketing contact request", () => {
         return HttpResponse.json({ success: true, message: "Заявка принята" });
       }),
     );
+    captureMarketingAttribution('?utm_source=yandex&utm_campaign=materials');
+    captureMarketingAttribution('');
     fillRequest();
     const submit = screen.getByRole("button", { name: "Отправить заявку" });
     expect(submit).toBeDisabled();
@@ -100,6 +106,8 @@ describe("Marketing contact request", () => {
       consent_to_personal_data: true,
       consent_version: COOKIE_CONSENT_VERSION,
       page_source: "/#contact",
+      utm_source: "yandex",
+      utm_campaign: "materials",
     });
     expect(trackButtonClick).toHaveBeenCalledTimes(1);
     expect(trackContactForm).toHaveBeenCalledExactlyOnceWith("compact", {
