@@ -14,6 +14,7 @@ import SuccessModal from "@/components/shared/SuccessModal";
 import { marketingPaths } from "@/data/marketingRegistry";
 import useAnalytics from "@/hooks/useAnalytics";
 import { COOKIE_CONSENT_VERSION } from "@/utils/marketingConsent";
+import { getMarketingAttribution } from "@/utils/marketingAttribution";
 
 interface ContactFormData {
   name: string;
@@ -42,28 +43,6 @@ const getPublicApiBase = () => {
     "https://api.1мост.рф";
 
   return rawBase.replace(/\/api\/v1\/landing\/?$/, "");
-};
-
-const getUtmPayload = () => {
-  if (typeof window === "undefined") {
-    return {
-      utm_source: undefined,
-      utm_medium: undefined,
-      utm_campaign: undefined,
-      utm_term: undefined,
-      utm_content: undefined,
-    };
-  }
-
-  const searchParams = new URLSearchParams(window.location.search);
-
-  return {
-    utm_source: searchParams.get("utm_source") ?? undefined,
-    utm_medium: searchParams.get("utm_medium") ?? undefined,
-    utm_campaign: searchParams.get("utm_campaign") ?? undefined,
-    utm_term: searchParams.get("utm_term") ?? undefined,
-    utm_content: searchParams.get("utm_content") ?? undefined,
-  };
 };
 
 const normalizeOptional = (value: string) => {
@@ -179,7 +158,7 @@ const ContactForm = ({
       consent_to_personal_data: formData.consentToPersonalData,
       consent_version: COOKIE_CONSENT_VERSION,
       page_source: `${location.pathname}${location.hash}`,
-      ...getUtmPayload(),
+      ...getMarketingAttribution(),
     };
 
     const preparedPayload = Object.fromEntries(
@@ -276,7 +255,7 @@ const ContactForm = ({
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5 ym-hide-content ym-disable-submit">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <label className="block">
               <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">

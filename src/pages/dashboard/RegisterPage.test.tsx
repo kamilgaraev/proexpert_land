@@ -16,6 +16,8 @@ vi.mock('framer-motion', async () => {
 });
 
 const registerMock = vi.fn();
+const conversions = vi.hoisted(() => ({ track: vi.fn() }));
+vi.mock('@/utils/conversionTracking', () => ({ trackConversionOnce: conversions.track }));
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({
@@ -101,6 +103,7 @@ describe('RegisterPage', () => {
     await waitFor(() => expect(registerMock).toHaveBeenCalledTimes(1));
     expect(window.sessionStorage.getItem(commercialIntentStorageKey)).toBeNull();
     const formData = registerMock.mock.calls[0][0] as FormData;
+    expect(conversions.track).not.toHaveBeenCalled();
     const idempotencyKey = registerMock.mock.calls[0][1] as string;
     expect(formData.has('plan_slug')).toBe(false);
     expect(formData.get('terms_accepted')).toBe('true');
@@ -113,6 +116,7 @@ describe('RegisterPage', () => {
     await waitFor(() => expect(window.sessionStorage.getItem(commercialIntentStorageKey)).toBe(
       'working-entry,machinery',
     ));
+    expect(conversions.track).toHaveBeenCalledExactlyOnceWith('registration', idempotencyKey, { method: 'email' });
   });
 
   it('не сохраняет intent после ошибки регистрации', async () => {
@@ -123,6 +127,7 @@ describe('RegisterPage', () => {
 
     await waitFor(() => expect(registerMock).toHaveBeenCalledTimes(1));
     expect(window.sessionStorage.getItem(commercialIntentStorageKey)).toBeNull();
+    expect(conversions.track).not.toHaveBeenCalled();
   });
 
   it('очищает старый intent после успешной бесплатной регистрации', async () => {

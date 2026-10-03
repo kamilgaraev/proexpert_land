@@ -38,6 +38,7 @@ const renderMetrika = (path = '/') =>
 
 describe('YandexMetrika', () => {
   beforeEach(() => {
+    (window as unknown as { happyDOM: { settings: { handleDisabledFileLoadingAsSuccess: boolean } } }).happyDOM.settings.handleDisabledFileLoadingAsSuccess = true;
     vi.useFakeTimers();
     document.head.innerHTML = '';
     document.body.innerHTML = '';
@@ -86,31 +87,38 @@ describe('YandexMetrika', () => {
     renderMetrika();
 
     const script = document.querySelector('#prohelper-yandex-metrika');
-    const source = script?.textContent ?? '';
-
-    expect(source).toContain('ym(110599591, "init"');
-    expect(source).toContain('ssr:true');
-    expect(source).toContain('ecommerce:"dataLayer"');
-    expect(source).not.toContain('trackHash');
+    expect(script?.getAttribute('src')).toBe('https://mc.yandex.ru/metrika/tag.js');
+    expect(window.ym).toHaveBeenCalledWith(110599591, 'init', expect.objectContaining({ ssr: true, defer: true, ecommerce: 'dataLayer' }));
+    expect(vi.mocked(window.ym!).mock.calls[0][2]).not.toHaveProperty('trackHash');
   });
 
-  it('не дублирует первичный просмотр ручным hit', () => {
+  it('учитывает регистрацию без записи формы и приватного URL', () => {
+    renderMetrika('/register?email=private@example.com&signature=secret');
+    expect(window.ym).toHaveBeenCalledWith(110599591, 'init', expect.objectContaining({
+      defer: true, webvisor: false, clickmap: false, trackLinks: false, sendTitle: false,
+      url: expect.not.stringContaining('private'),
+    }));
+  });
+
+  it('отправляет один первичный просмотр при отключённой автоматической отправке', () => {
     renderMetrika('/features');
 
     act(() => {
       vi.runAllTimers();
     });
 
-    expect(window.ym).not.toHaveBeenCalledWith(
+    expect(window.ym).toHaveBeenCalledWith(
       110599591,
       'hit',
       expect.any(String),
       expect.any(Object),
     );
+    expect(vi.mocked(window.ym!).mock.calls.filter((call) => call[1] === 'hit')).toHaveLength(1);
   });
 
   it('отправляет один hit на новый SPA URL и не дублирует тот же URL', () => {
     const view = renderMetrika('/');
+    act(() => { vi.runAllTimers(); });
 
     view.rerender(
       <MemoryRouter initialEntries={['/']}>
@@ -123,7 +131,7 @@ describe('YandexMetrika', () => {
       vi.runAllTimers();
     });
 
-    expect(window.ym).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(window.ym!).mock.calls.filter((call) => call[1] === 'hit')).toHaveLength(2);
     expect(window.ym).toHaveBeenCalledWith(
       110599591,
       'hit',
@@ -141,7 +149,7 @@ describe('YandexMetrika', () => {
       vi.runAllTimers();
     });
 
-    expect(window.ym).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(window.ym!).mock.calls.filter((call) => call[1] === 'hit')).toHaveLength(2);
   });
 
   it('не отправляет внутренний маршрут после ухода с маркетинговой страницы', () => {
@@ -158,8 +166,8 @@ describe('YandexMetrika', () => {
       vi.runAllTimers();
     });
 
-    expect(window.ym).not.toHaveBeenCalled();
-    expect(document.querySelector('#prohelper-yandex-metrika')).toBeNull();
+    expect(window.ym).toHaveBeenCalledWith(110599591, 'destruct');
+    expect(vi.mocked(window.ym!).mock.calls.some((call) => call[1] === 'hit')).toBe(false);
     expect(document.querySelector('#prohelper-yandex-metrika-noscript')).toBeNull();
   });
 });

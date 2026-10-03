@@ -29,6 +29,7 @@ import { parseCommercialIntent, rememberCommercialIntent } from '@/utils/commerc
 import { getSafeProjectInvitationReturnPath, storeProjectInvitationReturnPath } from '@/utils/projectParticipantInvitationReturn';
 import '@/styles/auth.css';
 import { usePageTitle } from '@/hooks/useSEO';
+import { trackConversionOnce } from '@/utils/conversionTracking';
 
 const getPackageCountLabel = (count: number): string => {
   const lastTwoDigits = count % 100;
@@ -271,6 +272,7 @@ const RegisterPage = () => {
         formData.append('avatar', avatarFile);
       }
       await register(formData, registrationKeyRef.current);
+      trackConversionOnce('registration', registrationKeyRef.current, { method: 'email' });
       rememberCommercialIntent(commercialIntent);
       if (invitationReturnPath) storeProjectInvitationReturnPath(invitationReturnPath);
 

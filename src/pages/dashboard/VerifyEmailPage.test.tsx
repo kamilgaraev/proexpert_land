@@ -14,7 +14,10 @@ const mocks = vi.hoisted(() => ({
   },
   fetchUserMock: vi.fn(),
   verifyEmailMock: vi.fn(),
+  trackConversion: vi.fn(),
 }));
+
+vi.mock('@/utils/conversionTracking', () => ({ trackConversionOnce: mocks.trackConversion }));
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({
@@ -72,6 +75,7 @@ describe('VerifyEmailPage', () => {
     await waitFor(() => {
       expect(mocks.fetchUserMock).toHaveBeenCalledTimes(1);
     });
+    expect(mocks.trackConversion).toHaveBeenCalledExactlyOnceWith('email_verified', '61', { method: 'email' });
   });
 
   it('does not verify the same signed link again after user refresh changes auth state', async () => {

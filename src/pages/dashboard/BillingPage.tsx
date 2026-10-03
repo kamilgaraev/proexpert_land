@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useCanAccess } from '@/hooks/usePermissions';
 import { useBalance } from '@/hooks/useBalance';
 import { consumeCommercialIntent } from '@/utils/commercialIntent';
+import { trackPaidOrder } from '@/utils/conversionTracking';
 import {
   commercialBillingService,
   createCheckoutIntentKey,
@@ -269,6 +270,7 @@ const BillingPage = () => {
       const order = await pollCommercialOrder(orderId, { signal });
       setPaymentOrder(order);
       if (order.status === 'paid') {
+        trackPaidOrder(order);
         setPaymentState('success');
         window.sessionStorage.removeItem(pendingOrderStorageKey);
         await refreshCommercialState(true);
@@ -373,6 +375,7 @@ const BillingPage = () => {
         resources: selectedResourceAddons,
       });
       if (checkout.status === 'paid' && checkout.paymentSource === 'balance') {
+        trackPaidOrder(checkout);
         forgetCheckoutIntentKey(fingerprint);
         setPayFromBalance(false);
         setPaymentOrder(null);

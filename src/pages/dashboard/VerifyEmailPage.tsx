@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import '@/styles/auth.css';
 import { usePageTitle } from '@/hooks/useSEO';
+import { trackConversionOnce } from '@/utils/conversionTracking';
 import {
   clearProjectInvitationReturnPath,
   getSafeProjectInvitationReturnPath,
@@ -79,6 +80,7 @@ export const VerifyEmailPage = () => {
       const result = await verifyEmail(id, hash, expires, signature);
 
       if (result.success) {
+        trackConversionOnce('email_verified', id, { method: 'email' });
         await Promise.resolve(fetchUser()).catch(() => undefined);
       }
       

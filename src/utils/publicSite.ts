@@ -37,3 +37,9 @@ export const isPrimaryMarketingHost = (hostname: string): boolean => {
 
   return PRIMARY_MARKETING_HOSTS.has(hostname.toLowerCase());
 };
+
+export const isCabinetHost = (hostname: string): boolean =>
+  ['lk.1мост.рф', 'lk.xn--1-xtbgmf.xn--p1ai'].includes(hostname.toLowerCase());
+
+export const isConversionPath = (pathname: string): boolean =>
+  ['/register', '/email-sent', '/verify-email', '/dashboard/billing'].includes(pathname.replace(/\/+$/, ''));
