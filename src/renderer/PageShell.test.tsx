@@ -10,6 +10,13 @@ import { Link, MemoryRouter, StaticRouter } from "react-router-dom";
 import type { PropsWithChildren } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PageShell } from "./PageShell";
+import { saveCookieConsent } from '@/utils/marketingConsent';
+import { clearMarketingAttribution, getMarketingAttribution } from '@/utils/marketingAttribution';
+
+vi.mock('@/utils/publicSite', async (original) => ({
+  ...await original<typeof import('@/utils/publicSite')>(),
+  isPrimaryMarketingHost: () => true,
+}));
 
 const loader = vi.hoisted(() => ({
   ready: null as null | ((props: PropsWithChildren) => React.ReactNode),
@@ -41,6 +48,8 @@ const mount = (pathname = "/") =>
   );
 
 beforeEach(() => {
+  window.localStorage.clear();
+  clearMarketingAttribution();
   loader.ready = null;
   loader.load.mockReset();
 });
@@ -48,6 +57,15 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("PageShell provider boundary", () => {
+  it('подключает аналитику и сохраняет источник для публичной SSR-страницы без App', () => {
+    (window as unknown as { happyDOM: { settings: { handleDisabledFileLoadingAsSuccess: boolean } } }).happyDOM.settings.handleDisabledFileLoadingAsSuccess = true;
+    window.ym = vi.fn();
+    saveCookieConsent(true);
+    mount('/?utm_source=yandex&utm_campaign=materials');
+    expect(window.ym).toHaveBeenCalledWith(110599591, 'init', expect.objectContaining({defer:true}));
+    expect(getMarketingAttribution()).toEqual({utm_source:'yandex',utm_campaign:'materials'});
+    expect(loader.load).not.toHaveBeenCalled();
+  });
   it("renders public content without loading private code", () => {
     mount();
     expect(screen.getByText("Содержимое страницы")).toBeInTheDocument();

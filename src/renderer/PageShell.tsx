@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { isMarketingPublicPath } from "@/utils/publicSite";
+import SiteTracking from '@/components/analytics/SiteTracking';
 import {
   getPrivatePageShell,
   loadPrivatePageShell,
@@ -44,7 +45,7 @@ export function PageShell({ children }: PageShellProps) {
   }, [isPublic, PrivateShell, attempt]);
 
   if (isPublic) {
-    return <React.StrictMode>{children}</React.StrictMode>;
+    return <React.StrictMode><SiteTracking />{children}</React.StrictMode>;
   }
 
   if (!PrivateShell) {
@@ -69,6 +70,7 @@ export function PageShell({ children }: PageShellProps) {
 
   return (
     <React.StrictMode>
+      <SiteTracking />
       <PrivateShell>{children}</PrivateShell>
     </React.StrictMode>
   );

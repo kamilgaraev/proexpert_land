@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import SiteTracking from './components/analytics/SiteTracking';
 import { AuthProvider } from '@contexts/AuthContext';
 import { PermissionsProvider } from '@/contexts/PermissionsContext';
 import { installPreloadErrorRecovery } from '@utils/preloadRecovery';
@@ -22,6 +23,7 @@ handleSpaRedirect();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
+      <SiteTracking />
       <AuthProvider>
         <PermissionsProvider autoLoad={true} interfaceType="lk" refreshInterval={900000}>
           <App />
