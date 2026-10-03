@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppErrorBoundary } from '@components/common/AppErrorBoundary';
 import { AppLoadingFallback } from '@components/common/AppLoadingFallback';
@@ -90,12 +90,6 @@ const ProjectDetailsPage = lazy(() => import('@pages/dashboard/projects/ProjectD
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import YandexMetrika from '@components/analytics/YandexMetrika';
-import { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
-import { initSEOTracking } from '@utils/seoTracking';
-import { captureMarketingAttribution, clearMarketingAttribution } from '@/utils/marketingAttribution';
-import { COOKIE_CONSENT_EVENT, hasAnalyticsConsent } from '@/utils/marketingConsent';
-import { isCabinetHost, isPrimaryMarketingHost } from '@/utils/publicSite';
 import type { BlogArticle, BlogCategoryInitialData, BlogIndexInitialData, BlogTagInitialData } from '@/types/blog';
 
 interface AppProps {
@@ -149,22 +143,6 @@ function App({
   initialBlogArticleNotFoundSlug,
 }: AppProps = {}) {
   const location = useLocation();
-  const yandexMetrikaId = YANDEX_METRIKA_COUNTER_ID;
-
-  useEffect(() => {
-    initSEOTracking();
-  }, []);
-
-  useEffect(() => {
-    if (!isPrimaryMarketingHost(window.location.hostname) && !isCabinetHost(window.location.hostname)) return;
-    captureMarketingAttribution(location.search);
-    const syncAttribution = () => {
-      if (hasAnalyticsConsent()) captureMarketingAttribution(location.search);
-      else clearMarketingAttribution();
-    };
-    window.addEventListener(COOKIE_CONSENT_EVENT, syncAttribution);
-    return () => window.removeEventListener(COOKIE_CONSENT_EVENT, syncAttribution);
-  }, [location.search]);
 
   const isHoldingSubdomain = () => {
     if (typeof window === 'undefined') {
@@ -192,13 +170,6 @@ function App({
   if (isHoldingSubdomain()) {
     return (
       <>
-        <YandexMetrika 
-          counterId={yandexMetrikaId}
-          enableWebvisor={true}
-          enableClickmap={true}
-          enableTrackLinks={true}
-          enableAccurateTrackBounce={true}
-        />
         <AppErrorBoundary resetKey={`${location.pathname}${location.search}`}>
           <Suspense fallback={<AppLoadingFallback />}>
             <HoldingRouter />
@@ -222,13 +193,6 @@ function App({
 
   return (
     <>
-      <YandexMetrika 
-        counterId={yandexMetrikaId}
-        enableWebvisor={true}
-        enableClickmap={true}
-        enableTrackLinks={true}
-        enableAccurateTrackBounce={true}
-      />
       <AppErrorBoundary resetKey={`${location.pathname}${location.search}`}>
         <Suspense fallback={<AppLoadingFallback />}>
           <CabinetDomainGuard>
