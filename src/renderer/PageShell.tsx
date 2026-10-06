@@ -7,7 +7,7 @@ import {
   loadPrivatePageShell,
   type PrivateShellComponent,
 } from "./pageShellLoader";
-import "../index.css";
+import "../styles/marketing-base.css";
 
 interface PageShellProps {
   children: React.ReactNode;
