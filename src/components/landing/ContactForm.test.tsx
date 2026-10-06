@@ -1,5 +1,6 @@
 import {
   cleanup,
+  act,
   fireEvent,
   render,
   screen,
@@ -53,6 +54,7 @@ beforeEach(() => {
   clearMarketingAttribution();
 });
 afterEach(() => {
+  vi.useRealTimers();
   cleanup();
   server.resetHandlers();
   vi.unstubAllEnvs();
@@ -80,9 +82,11 @@ const fillRequest = () => {
 describe("Marketing contact request", () => {
   it("requires consent and submits a demonstration request with its page source", async () => {
     let received: Record<string, unknown> | undefined;
+    let contentType: string | null = null;
     server.use(
       http.post("http://localhost/api/public/contact", async ({ request }) => {
-        received = (await request.json()) as Record<string, unknown>;
+        contentType = request.headers.get("Content-Type");
+        received = Object.fromEntries(new URLSearchParams(await request.text()));
         return HttpResponse.json({ success: true, message: "Заявка принята" });
       }),
     );
@@ -103,7 +107,7 @@ describe("Marketing contact request", () => {
       email: "anna@example.test",
       subject: "Запрос демонстрации",
       message: "Нужны заявки на материалы для трёх объектов.",
-      consent_to_personal_data: true,
+      consent_to_personal_data: "true",
       consent_version: COOKIE_CONSENT_VERSION,
       page_source: "/#contact",
       utm_source: "yandex",
@@ -117,6 +121,7 @@ describe("Marketing contact request", () => {
       has_phone: false,
     });
     expect(received).not.toHaveProperty("company");
+    expect(contentType).toMatch(/^application\/x-www-form-urlencoded(?:;|$)/);
     expect(screen.getByLabelText("Имя")).toHaveValue("");
     expect(screen.getByRole("checkbox")).not.toBeChecked();
   });
@@ -148,5 +153,53 @@ describe("Marketing contact request", () => {
     expect(
       screen.getByRole("button", { name: "Отправить заявку" }),
     ).toBeEnabled();
+  });
+
+  it("preserves data after a network failure and sends again only on a manual retry", async () => {
+    let attempts = 0;
+    server.use(
+      http.post("http://localhost/api/public/contact", () => {
+        attempts += 1;
+        return attempts === 1
+          ? HttpResponse.error()
+          : HttpResponse.json({ success: true, message: "Заявка принята" });
+      }),
+    );
+    fillRequest();
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Отправить заявку" }));
+    await waitFor(() =>
+      expect(notify).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Ошибка соединения" }),
+      ),
+    );
+    expect(attempts).toBe(1);
+    expect(trackContactForm).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Рабочая почта")).toHaveValue("anna@example.test");
+    expect(screen.getByRole("checkbox")).toBeChecked();
+    fireEvent.click(screen.getByRole("button", { name: "Отправить заявку" }));
+    await waitFor(() => expect(screen.getByRole("status")).toBeInTheDocument());
+    expect(attempts).toBe(2);
+    expect(trackContactForm).toHaveBeenCalledTimes(1);
+  });
+
+  it("releases the submit button when the connection does not respond", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(globalThis, "fetch").mockImplementation((_input, options) =>
+      new Promise((_resolve, reject) => {
+        options?.signal?.addEventListener("abort", () =>
+          reject(new DOMException("Request aborted", "AbortError")),
+        );
+      }),
+    );
+    fillRequest();
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Отправить заявку" }));
+    expect(screen.getByRole("button", { name: "Отправляем заявку" })).toBeDisabled();
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
+    expect(notify).toHaveBeenCalledWith(expect.objectContaining({ title: "Ошибка соединения" }));
+    expect(screen.getByRole("button", { name: "Отправить заявку" })).toBeEnabled();
+    expect(screen.getByLabelText("Рабочая почта")).toHaveValue("anna@example.test");
+    expect(trackContactForm).not.toHaveBeenCalled();
   });
 });

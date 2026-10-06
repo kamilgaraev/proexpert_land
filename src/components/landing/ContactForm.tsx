@@ -167,15 +167,20 @@ const ContactForm = ({
       ),
     );
 
+    const abortController = new AbortController();
+    const timeoutId = window.setTimeout(() => abortController.abort(), 15_000);
+
     try {
       trackButtonClick("public_contact_submit", `contact_form_${variant}`);
       const response = await fetch(`${getPublicApiBase()}/api/public/contact`, {
         method: "POST",
         headers: {
           Accept: "application/json",
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify(preparedPayload),
+        body: new URLSearchParams(
+          Object.entries(preparedPayload).map(([key, value]) => [key, String(value)]),
+        ),
+        signal: abortController.signal,
       });
 
       const result = (await response.json().catch(() => null)) as {
@@ -225,6 +230,7 @@ const ContactForm = ({
           "Не удалось отправить заявку. Проверьте соединение и попробуйте еще раз.",
       });
     } finally {
+      window.clearTimeout(timeoutId);
       setIsSubmitting(false);
     }
   };
