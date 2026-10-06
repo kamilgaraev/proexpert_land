@@ -16,6 +16,7 @@ import {
 import useAnalytics from "@/hooks/useAnalytics";
 import { useSEO } from "@/hooks/useSEO";
 import { serializeCommercialIntent } from "@/utils/commercialIntent";
+import "@/styles/marketing-pricing.css";
 
 const formatPrice = (value: number) => `${value.toLocaleString("ru-RU")} ₽`;
 
