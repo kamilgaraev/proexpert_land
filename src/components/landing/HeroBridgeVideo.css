@@ -1,10 +1,11 @@
 .most-hero-film { position: relative; width: 100%; margin-top: 10px; overflow: hidden; isolation: isolate; background: var(--most-paper); }
-.most-hero-film-media { position: relative; }
+.most-hero-film-media { position: relative; filter: brightness(1.06); mix-blend-mode: multiply; }
 .most-hero-film-media img,
-.most-hero-film video { display: block; width: 100%; height: auto; aspect-ratio: 2; object-fit: cover; filter: brightness(1.06); mix-blend-mode: multiply; }
+.most-hero-film video { display: block; width: 100%; height: auto; aspect-ratio: 2; object-fit: cover; }
+.most-hero-film-media img { position: relative; z-index: 1; visibility: visible; }
 .most-hero-film video { position: absolute; inset: 0; visibility: hidden; }
 .most-hero-film[data-poster-ready] video { visibility: visible; }
-.most-hero-film[data-poster-ready] .most-hero-film-media img { visibility: hidden; }
+.most-hero-film[data-video-ready] .most-hero-film-media img { visibility: hidden; }
 .most-hero-film-story { position: absolute; top: 16%; left: 32%; width: 40%; display: grid; pointer-events: none; }
 .most-hero-film-story p { grid-area: 1 / 1; margin: 0; color: var(--most-ink); font-size: clamp(1rem, .65rem + 1.2vw, 2rem); font-weight: 500; line-height: 1.3; letter-spacing: -.025em; text-align: center; transition: opacity 700ms ease, transform 900ms cubic-bezier(.22,1,.36,1); }
 .most-hero-film-start { opacity: 1; transform: translateY(0); }
