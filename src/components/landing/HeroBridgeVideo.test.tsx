@@ -1,9 +1,24 @@
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import HeroBridgeVideo from "./HeroBridgeVideo";
+const videoStyles = readFileSync("src/components/landing/HeroBridgeVideo.css", "utf8");
 
-afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+let style: HTMLStyleElement;
+let styleVersion = 0;
+const posterVisibility = (poster: HTMLImageElement) => {
+  style.textContent = videoStyles + "\n".repeat(++styleVersion);
+  return getComputedStyle(poster).visibility;
+};
+beforeEach(() => {
+  styleVersion = 0;
+  style = document.createElement("style");
+  style.textContent = videoStyles;
+  document.head.append(style);
+});
+
+afterEach(() => { cleanup(); style.remove(); vi.restoreAllMocks(); });
 
 function setup(reduced = false, loadPoster = true, mobile = false) {
   vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
@@ -23,6 +38,14 @@ function setup(reduced = false, loadPoster = true, mobile = false) {
 }
 
 describe("Hero video story", () => {
+  it("keeps the poster visible until the first video frame and restores it on failure", () => {
+    const { poster, video } = setup();
+    expect(posterVisibility(poster)).toBe("visible");
+    fireEvent.playing(video);
+    expect(posterVisibility(poster)).toBe("hidden");
+    fireEvent.error(video);
+    expect(posterVisibility(poster)).toBe("visible");
+  });
   it("renders a responsive high-priority poster before hydration without requesting video", () => {
     const html = renderToString(<HeroBridgeVideo />);
     const document = new DOMParser().parseFromString(html, "text/html");
@@ -79,10 +102,11 @@ describe("Hero video story", () => {
     expect(scene.getAttribute("data-stage")).toBe("complete");
   });
   it("uses the poster without loading video for reduced motion", () => {
-    const { video, scene, queryByRole } = setup(true);
+    const { poster, video, scene, queryByRole } = setup(true);
     expect(video.getAttribute("src")).toBeNull();
     expect(scene.getAttribute("data-stage")).toBe("complete");
     expect(queryByRole("button")).toBeNull();
+    expect(posterVisibility(poster)).toBe("visible");
   });
   it("shows both messages when video loading fails", () => {
     const { video, scene } = setup();

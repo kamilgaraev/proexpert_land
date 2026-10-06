@@ -11,6 +11,7 @@ export default function HeroBridgeVideo() {
   const [enabled, setEnabled] = useState(false);
   const [videoSource, setVideoSource] = useState<string>();
   const [posterSource, setPosterSource] = useState<string>();
+  const [hasVideoFrame, setHasVideoFrame] = useState(false);
   const [ended, setEnded] = useState(false);
   const finishedRef = useRef(false);
   const manuallyPaused = useRef(false);
@@ -28,9 +29,13 @@ export default function HeroBridgeVideo() {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const compact = window.matchMedia("(max-width: 767px)");
     const update = () => {
-      if (!finishedRef.current) setVideoSource(compact.matches ? "/images/marketing/most-bridge-calm-mobile.mp4" : "/images/marketing/most-bridge-calm.mp4");
+      if (!finishedRef.current) {
+        setVideoSource(compact.matches ? "/images/marketing/most-bridge-calm-mobile.mp4" : "/images/marketing/most-bridge-calm.mp4");
+        setHasVideoFrame(false);
+      }
       setEnabled(!motion.matches);
       if (motion.matches) {
+        setHasVideoFrame(false);
         videoRef.current?.pause();
         showCopy();
       }
@@ -81,7 +86,7 @@ export default function HeroBridgeVideo() {
   };
 
   return (
-    <div className="most-hero-film" ref={sceneRef} data-animated={enabled || undefined} data-poster-ready={!!posterSource || undefined}>
+    <div className="most-hero-film" ref={sceneRef} data-animated={enabled || undefined} data-poster-ready={!!posterSource || undefined} data-video-ready={hasVideoFrame || undefined}>
       <div className="most-hero-film-media">
         <img
           ref={posterRef}
@@ -109,8 +114,12 @@ export default function HeroBridgeVideo() {
           playsInline
           preload="none"
           aria-label="Мост соединяет строительную площадку и офис"
+          aria-hidden={!hasVideoFrame || undefined}
           onTimeUpdate={syncCopy}
-          onPlaying={() => setPlaying(true)}
+          onPlaying={() => {
+            setHasVideoFrame(true);
+            setPlaying(true);
+          }}
           onPause={() => setPlaying(false)}
           onEnded={() => {
             finishedRef.current = true;
@@ -118,7 +127,11 @@ export default function HeroBridgeVideo() {
             setPlaying(false);
             showCopy();
           }}
-          onError={showCopy}
+          onError={() => {
+            setHasVideoFrame(false);
+            setPlaying(false);
+            showCopy();
+          }}
         />
       </div>
       <div className="most-hero-film-story">
