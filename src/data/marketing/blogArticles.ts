@@ -5,10 +5,9 @@ import type {
 
 export const marketingBlogArticles = {
   foremanOrder: {
-    title:
-      "Общий журнал работ в строительстве: как вести и заполнять в 2026 году",
+    title: "Общий журнал работ: образцы заполнения и ведение в 2026 году",
     href: "/blog/obshchiy-zhurnal-rabot-v-stroitelstve",
-    purpose: "Как фиксировать выполненные работы и вести записи с площадки.",
+    purpose: "Три примера записей и порядок подготовки данных с площадки.",
   },
   ptoWorkspace: {
     title:

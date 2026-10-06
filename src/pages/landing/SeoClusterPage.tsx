@@ -1,6 +1,9 @@
 import type { CSSProperties } from "react";
 import { ArrowUpRightIcon, PlusIcon } from "@heroicons/react/24/outline";
 import ContactForm from "@/components/landing/ContactForm";
+import JournalShowcase, {
+  JournalHero,
+} from "@/components/marketing/JournalShowcase";
 import {
   MarketingLink,
   PageHero,
@@ -47,7 +50,8 @@ const editorialScenes: Partial<
   },
   subcontracting: {
     src: "/images/marketing/most-subcontract-walkthrough-branded-v1.webp",
-    smallSrc: "/images/marketing/most-subcontract-walkthrough-branded-v1-720.webp",
+    smallSrc:
+      "/images/marketing/most-subcontract-walkthrough-branded-v1-720.webp",
     alt: "Руководитель проекта и субподрядчик осматривают участок электромонтажных работ",
   },
   "project-pulse": {
@@ -129,8 +133,7 @@ const editorialScenes: Partial<
   },
   "general-work-journal": {
     src: "/images/marketing/most-general-work-journal-branded-v1.webp",
-    smallSrc:
-      "/images/marketing/most-general-work-journal-branded-v1-720.webp",
+    smallSrc: "/images/marketing/most-general-work-journal-branded-v1-720.webp",
     alt: "Прораб и инженер ПТО сверяют запись общего журнала работ на строительной площадке",
   },
   "foreman-software": {
@@ -197,6 +200,7 @@ const editorialScenes: Partial<
 
 const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
   const page = marketingSeoLandingPages[pageKey];
+  const isJournalPage = pageKey === "general-work-journal";
   const editorialScene = editorialScenes[pageKey];
   const scene = materialScenarios.has(pageKey)
     ? "material"
@@ -220,7 +224,9 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
             href: "#contact-form",
             primary: true,
           },
-          { label: "Смотреть все решения", href: marketingPaths.solutions },
+          isJournalPage
+            ? { label: "Посмотреть журнал", href: "#journal-interface" }
+            : { label: "Смотреть все решения", href: marketingPaths.solutions },
         ]}
         nav={[
           { label: "Задачи команды", href: "#audience" },
@@ -232,30 +238,36 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
           { label: "Вопросы и условия", href: "#faq" },
         ]}
         aside={
-          <figure
-            className={`most-scenario-scene${editorialScene ? " most-scenario-photo" : ""}`}
-            aria-hidden={editorialScene ? undefined : true}
-          >
-            <img
-              src={
-                editorialScene?.src ??
-                `/images/marketing/most-${scene}-story-1440.webp`
-              }
-              srcSet={
-                editorialScene
-                  ? `${editorialScene.smallSrc} 720w, ${editorialScene.src} 1536w`
-                  : `/images/marketing/most-${scene}-story-720.webp 720w, /images/marketing/most-${scene}-story-1440.webp 1440w`
-              }
-              sizes="(max-width: 1079px) calc(100vw - 40px), 48vw"
-              width={editorialScene ? 1536 : 1672}
-              height={editorialScene ? 1024 : 941}
-              alt={editorialScene?.alt ?? ""}
-              fetchPriority="high"
-              decoding="async"
-            />
-          </figure>
+          isJournalPage ? (
+            <JournalHero />
+          ) : (
+            <figure
+              className={`most-scenario-scene${editorialScene ? " most-scenario-photo" : ""}`}
+              aria-hidden={editorialScene ? undefined : true}
+            >
+              <img
+                src={
+                  editorialScene?.src ??
+                  `/images/marketing/most-${scene}-story-1440.webp`
+                }
+                srcSet={
+                  editorialScene
+                    ? `${editorialScene.smallSrc} 720w, ${editorialScene.src} 1536w`
+                    : `/images/marketing/most-${scene}-story-720.webp 720w, /images/marketing/most-${scene}-story-1440.webp 1440w`
+                }
+                sizes="(max-width: 1079px) calc(100vw - 40px), 48vw"
+                width={editorialScene ? 1536 : 1672}
+                height={editorialScene ? 1024 : 941}
+                alt={editorialScene?.alt ?? ""}
+                fetchPriority="high"
+                decoding="async"
+              />
+            </figure>
+          )
         }
       />
+
+      {isJournalPage ? <JournalShowcase /> : null}
 
       <section id="audience" className="most-scenario-section">
         <div className="most-container most-scenario-context">
