@@ -1,3 +1,5 @@
+import { legalFixture } from '@/test/legalFixture';
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null }) }));
 import {
   cleanup,
   fireEvent,
@@ -106,8 +108,7 @@ describe("Marketing contact request", () => {
       consent_to_personal_data: true,
       consent_version: COOKIE_CONSENT_VERSION,
       page_source: "/#contact",
-      utm_source: "yandex",
-      utm_campaign: "materials",
+      analytics_consent: false,
     });
     expect(trackButtonClick).toHaveBeenCalledTimes(1);
     expect(trackContactForm).toHaveBeenCalledExactlyOnceWith("compact", {
@@ -117,6 +118,8 @@ describe("Marketing contact request", () => {
       has_phone: false,
     });
     expect(received).not.toHaveProperty("company");
+    expect(received).not.toHaveProperty("utm_source");
+    expect(received).not.toHaveProperty("utm_campaign");
     expect(screen.getByLabelText("Имя")).toHaveValue("");
     expect(screen.getByRole("checkbox")).not.toBeChecked();
   });

@@ -1,8 +1,10 @@
+import { legalFixture, analyticsProofFixture } from '@/test/legalFixture';
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null }) }));
 import { act, render } from '@testing-library/react';
 import { useEffect } from 'react';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { COOKIE_CONSENT_VERSION } from '@/utils/marketingConsent';
+import { COOKIE_CONSENT_VERSION, setAnalyticsAvailability } from '@/utils/marketingConsent';
 
 vi.mock('@/utils/publicSite', async (importOriginal) => {
   const original = await importOriginal<typeof import('@/utils/publicSite')>();
@@ -43,13 +45,15 @@ describe('YandexMetrika', () => {
     document.head.innerHTML = '';
     document.body.innerHTML = '';
     window.localStorage.clear();
+    setAnalyticsAvailability(true, analyticsProofFixture.documentHash);
     window.localStorage.setItem(
       'prohelper.cookie-consent',
       JSON.stringify({
         essential: true,
         analytics: true,
         version: COOKIE_CONSENT_VERSION,
-        decidedAt: '2026-07-11T00:00:00.000Z',
+        decidedAt: new Date().toISOString(),
+        ...analyticsProofFixture,
       }),
     );
     window.ym = vi.fn();
@@ -88,7 +92,7 @@ describe('YandexMetrika', () => {
 
     const script = document.querySelector('#prohelper-yandex-metrika');
     expect(script?.getAttribute('src')).toBe('https://mc.yandex.ru/metrika/tag.js');
-    expect(window.ym).toHaveBeenCalledWith(110599591, 'init', expect.objectContaining({ ssr: true, defer: true, ecommerce: 'dataLayer' }));
+    expect(window.ym).toHaveBeenCalledWith(110599591, 'init', expect.objectContaining({ ssr: true, defer: true, ecommerce: false, webvisor: false, trackLinks: false }));
     expect(vi.mocked(window.ym!).mock.calls[0][2]).not.toHaveProperty('trackHash');
   });
 
@@ -135,7 +139,7 @@ describe('YandexMetrika', () => {
     expect(window.ym).toHaveBeenCalledWith(
       110599591,
       'hit',
-      expect.stringMatching(/\/features\?source=menu#details$/),
+      expect.stringMatching(/\/features$/),
       expect.objectContaining({ referer: expect.stringMatching(/\/$/) }),
     );
 

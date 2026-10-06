@@ -73,7 +73,7 @@ assertMarketingSitemapRoutes(sitemapRoutes);
 
 export const marketingSitemapRoutes: MarketingSitemapRoute[] = sitemapRoutes;
 
-export const marketingNoIndexPaths = new Set(['/privacy', '/offer', '/cookies']);
+export const marketingNoIndexPaths = new Set(['/privacy', '/offer', '/cookies', '/data-processing', '/personal-data-consent', '/marketing-consent', '/auto-renewal', '/account-rules', '/legal/archive/2026-03-25/privacy', '/legal/archive/2026-03-25/offer', '/legal/archive/2026-03-25/cookies']);
 
 export const marketingNoIndexPrefixes = [
   '/dashboard',

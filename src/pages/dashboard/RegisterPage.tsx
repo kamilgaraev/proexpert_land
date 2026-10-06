@@ -1,4 +1,7 @@
 import { useRef, useState } from 'react';
+import { useLegalManifest } from '@/hooks/useLegalManifest';
+import { LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
+import { OrganizationLegalAcceptance, emptyLegalChoice, allLegalChoices } from '@/components/legal/OrganizationLegalAcceptance';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -78,7 +81,9 @@ const RegisterPage = () => {
   const [organizationPostalCode, setOrganizationPostalCode] = useState('');
   const [organizationCountry] = useState('Россия');
 
-  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [legalChoice, setLegalChoice] = useState(emptyLegalChoice);
+  const agreeTerms = allLegalChoices(legalChoice);
+  const { manifest: legalManifest, error: legalError } = useLegalManifest();
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -200,11 +205,13 @@ const RegisterPage = () => {
 
     if (!organizationName.trim()) errors.organizationName = 'Укажите название организации';
     if (!agreeTerms) errors.agreeTerms = 'Вы должны согласиться с условиями предоставления услуг';
+    if (!legalManifest?.commercial_ready) errors.agreeTerms = legalError ?? LEGAL_UNAVAILABLE;
 
     return errors;
   };
 
   const handleNext = () => {
+    if (!legalManifest?.commercial_ready) { setError(legalError ?? LEGAL_UNAVAILABLE); return; }
     const errors = validateStep1();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
@@ -268,6 +275,13 @@ const RegisterPage = () => {
       if (organizationCountry) formData.append('organization_country', organizationCountry);
       formData.append('terms_accepted', 'true');
       formData.append('privacy_accepted', 'true');
+      formData.append('processing_accepted', String(legalChoice.processing));
+      formData.append('representative_authority', String(legalChoice.authority));
+      if (legalManifest) {
+        for (const [key, hash] of Object.entries(legalAcceptancePayload(legalManifest, ['offer', 'processing', 'privacy']).legal_documents)) {
+          formData.append(`legal_documents[${key}]`, hash ?? '');
+        }
+      }
       if (avatarFile) {
         formData.append('avatar', avatarFile);
       }
@@ -613,12 +627,8 @@ const RegisterPage = () => {
                         </div>
 
                         <div className="pt-4 border-t">
-                            <label className="flex items-start gap-3 cursor-pointer">
-                                <input id="agreeTerms" aria-invalid={hasError('agreeTerms')} aria-describedby={hasError('agreeTerms') ? 'agreeTerms-error' : undefined} name="agreeTerms" type="checkbox" className="mt-1 w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} />
-                                <span className="text-sm text-muted-foreground">
-                                    Я согласен с <Link to="/terms" className="text-primary hover:underline">условиями предоставления услуг</Link> и <Link to="/privacy" className="text-primary hover:underline">политикой конфиденциальности</Link>
-                                </span>
-                            </label>
+                            <OrganizationLegalAcceptance value={legalChoice} onChange={setLegalChoice} />
+                            {!legalManifest?.commercial_ready && <p role="status" className="mt-3 text-sm text-muted-foreground">{legalError ?? LEGAL_UNAVAILABLE}</p>}
                             {hasError('agreeTerms') && <p id="agreeTerms-error" className="text-xs text-destructive mt-1">{getErrorMessage('agreeTerms')}</p>}
                         </div>
                      </motion.div>

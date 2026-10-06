@@ -11,6 +11,8 @@ export type EnterpriseNeed =
   | 'priority_support';
 
 export interface EnterpriseInquiryInput {
+  consentToPersonalData: boolean;
+  legal_documents: Record<string, string | undefined>;
   contactPhone: string;
   companySize: EnterpriseCompanySize;
   preferredContact: EnterprisePreferredContact;

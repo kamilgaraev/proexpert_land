@@ -43,6 +43,7 @@ import { useCanAccess, usePermissions } from '@/hooks/usePermissions';
 
 // Layouts - загружаем статически (нужны для структуры)
 import DashboardLayout from '@layouts/DashboardLayout';
+import DocumentPage from '@/pages/legal/DocumentPage';
 
 // Lazy loading для dashboard страниц (тяжелые компоненты)
 const DashboardPage = lazy(() => import('@pages/dashboard/DashboardPage'));
@@ -243,6 +244,14 @@ function App({
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/offer" element={<OfferPage />} />
           <Route path="/cookies" element={<CookiesPage />} />
+          <Route path="/data-processing" element={<DocumentPage documentKey="processing" />} />
+          <Route path="/personal-data-consent" element={<DocumentPage documentKey="contactConsent" />} />
+          <Route path="/marketing-consent" element={<DocumentPage documentKey="marketingConsent" />} />
+          <Route path="/auto-renewal" element={<DocumentPage documentKey="renewal" />} />
+          <Route path="/account-rules" element={<DocumentPage documentKey="accountRules" />} />
+          <Route path="/legal/archive/2026-03-25/privacy" element={<DocumentPage documentKey="archive:privacy" />} />
+          <Route path="/legal/archive/2026-03-25/offer" element={<DocumentPage documentKey="archive:offer" />} />
+          <Route path="/legal/archive/2026-03-25/cookies" element={<DocumentPage documentKey="archive:cookies" />} />
         </Route>
         
         <Route path="/login" element={<LoginPage />} />

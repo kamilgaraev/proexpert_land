@@ -1,3 +1,5 @@
+import { legalFixture } from '@/test/legalFixture';
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null }) }));
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -43,6 +45,7 @@ describe('Приглашение сотрудника', () => {
     open();
     fireEvent.change(await screen.findByLabelText('Пароль'), { target: { value: 'test-password-1' } });
     fireEvent.change(screen.getByLabelText('Повторите пароль'), { target: { value: 'test-password-1' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: /Принимаю правила/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Принять приглашение' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('попросите коллегу проверить приглашение');
     expect(screen.queryByText(/Проверьте подключение|internal invitation state/)).not.toBeInTheDocument();
@@ -55,6 +58,7 @@ describe('Приглашение сотрудника', () => {
     open();
     fireEvent.change(await screen.findByLabelText('Пароль'), { target: { value: 'test-password-1' } });
     fireEvent.change(screen.getByLabelText('Повторите пароль'), { target: { value: 'test-password-2' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: /Принимаю правила/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Принять приглашение' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Пароли не совпадают');
     expect(accept).not.toHaveBeenCalled();

@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { COOKIE_CONSENT_EVENT, hasAnalyticsConsent } from '@/utils/marketingConsent';
 import { isCabinetHost, isConversionPath, isMarketingPublicPath, isPrimaryMarketingHost } from '@/utils/publicSite';
 import { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
+import { useLegalManifest } from '@/hooks/useLegalManifest';
+import { isKnownMarketingPath } from '@/data/marketing/siteIndex';
 
 export { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
 
@@ -23,12 +25,24 @@ interface YandexMetrikaProps {
 type TrackingMode = 'marketing' | 'conversion' | null;
 const SCRIPT_ID = 'prohelper-yandex-metrika';
 const CONVERSION_GOALS = new Set(['registration', 'email_verified', 'purchase']);
+const analyticsUrl = (input: string): string => {
+  const url = new URL(input, window.location.origin);
+  const query = new URLSearchParams();
+  for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']) {
+    const value = url.searchParams.get(key);
+    if (value) query.set(key, value.slice(0, 160));
+  }
+  return url.origin + url.pathname + (query.size ? `?${query}` : '');
+};
+const safeReferrer = () => {
+  try { return document.referrer ? new URL(document.referrer).origin : ''; } catch { return ''; }
+};
 
 const trackingMode = (pathname: string): TrackingMode => {
   if (typeof window === 'undefined' || !hasAnalyticsConsent()) return null;
   const hostname = window.location.hostname;
   if (isConversionPath(pathname) && (isPrimaryMarketingHost(hostname) || isCabinetHost(hostname))) return 'conversion';
-  return isPrimaryMarketingHost(hostname) && isMarketingPublicPath(pathname) ? 'marketing' : null;
+  return isPrimaryMarketingHost(hostname) && isMarketingPublicPath(pathname) && isKnownMarketingPath(pathname) ? 'marketing' : null;
 };
 
 const loadMetrika = () => {
@@ -44,20 +58,23 @@ const loadMetrika = () => {
   document.head.appendChild(script);
 };
 
-const YandexMetrika = ({ counterId, enableWebvisor = true, enableClickmap = true,
+const YandexMetrika = ({ counterId, enableWebvisor = false, enableClickmap = false,
   enableTrackLinks = true, enableAccurateTrackBounce = true }: YandexMetrikaProps) => {
   const location = useLocation();
+  const { manifest } = useLegalManifest();
   const [consent, setConsent] = useState(hasAnalyticsConsent);
   const previousUrlRef = useRef<string | null>(null);
-  const mode = consent ? trackingMode(location.pathname) : null;
+  const mode = consent && manifest?.analytics_ready ? trackingMode(location.pathname) : null;
 
   useEffect(() => {
     const syncConsent = () => setConsent(hasAnalyticsConsent());
     window.addEventListener(COOKIE_CONSENT_EVENT, syncConsent);
     window.addEventListener('focus', syncConsent);
+    window.addEventListener('storage', syncConsent);
     return () => {
       window.removeEventListener(COOKIE_CONSENT_EVENT, syncConsent);
       window.removeEventListener('focus', syncConsent);
+      window.removeEventListener('storage', syncConsent);
     };
   }, []);
 
@@ -69,25 +86,25 @@ const YandexMetrika = ({ counterId, enableWebvisor = true, enableClickmap = true
     window.ym?.(counterId, 'init', {
       ssr: true, defer: true,
       clickmap: marketing && enableClickmap,
-      trackLinks: marketing && enableTrackLinks,
+      trackLinks: false,
       accurateTrackBounce: marketing && enableAccurateTrackBounce,
-      webvisor: marketing && enableWebvisor,
-      ecommerce: marketing ? 'dataLayer' : false,
+      webvisor: false,
+      ecommerce: false,
       sendTitle: marketing,
-      url: marketing ? window.location.href : window.location.origin + '/conversion',
-      referrer: marketing ? document.referrer : '',
+      url: marketing ? analyticsUrl(window.location.href) : window.location.origin + '/conversion',
+      referrer: marketing ? safeReferrer() : '',
     });
     return () => { window.ym?.(counterId, 'destruct'); };
   }, [counterId, mode, enableWebvisor, enableClickmap, enableTrackLinks, enableAccurateTrackBounce]);
 
   useEffect(() => {
     if (mode !== 'marketing') return;
-    const currentUrl = new URL(location.pathname + location.search + location.hash, window.location.origin).href;
+    const currentUrl = analyticsUrl(location.pathname + location.search);
     const previousUrl = previousUrlRef.current;
     if (previousUrl === currentUrl) return;
     previousUrlRef.current = currentUrl;
     const timer = window.setTimeout(() => {
-      window.ym?.(counterId, 'hit', currentUrl, { title: document.title, referer: previousUrl ?? document.referrer });
+      window.ym?.(counterId, 'hit', currentUrl, { title: document.title, referer: previousUrl ?? safeReferrer() });
     }, 250);
     return () => window.clearTimeout(timer);
   }, [counterId, mode, location.pathname, location.search, location.hash]);

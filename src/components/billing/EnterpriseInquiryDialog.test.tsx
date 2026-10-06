@@ -1,4 +1,7 @@
+import { legalFixture } from '@/test/legalFixture';
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null }) }));
 import { useState } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EnterpriseInquiryDialog } from './EnterpriseInquiryDialog';
@@ -8,10 +11,10 @@ vi.mock('@/services/enterpriseInquiryService', () => ({ createEnterpriseInquiry 
 
 function Harness() {
   const [open, setOpen] = useState(false);
-  return <>
+  return <MemoryRouter><>
     <button onClick={() => setOpen(true)}>Обсудить подключение</button>
     <EnterpriseInquiryDialog open={open} onOpenChange={setOpen} />
-  </>;
+  </></MemoryRouter>;
 }
 
 async function openDialog() {
@@ -45,6 +48,7 @@ describe('Корпоративное подключение', () => {
     const trigger = await openDialog();
     fireEvent.change(screen.getByLabelText('Телефон для связи'), { target: { value: '+7 900 000-00-00' } });
     fireEvent.click(screen.getByRole('checkbox', { name: 'Особые правила доступа' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /Даю отдельное согласие/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Отправить заявку' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Готово' }));
     await waitFor(() => expect(trigger).toHaveFocus());
