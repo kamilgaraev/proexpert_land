@@ -7,9 +7,13 @@ const videoStyles = readFileSync("src/components/landing/HeroBridgeVideo.css", "
 
 let style: HTMLStyleElement;
 let styleVersion = 0;
-const posterVisibility = (poster: HTMLImageElement) => {
+const elementVisibility = (element: HTMLElement) => {
   style.textContent = videoStyles + "\n".repeat(++styleVersion);
-  return getComputedStyle(poster).visibility;
+  return getComputedStyle(element).visibility;
+};
+const elementOpacity = (element: HTMLElement) => {
+  style.textContent = videoStyles + "\n".repeat(++styleVersion);
+  return getComputedStyle(element).opacity;
 };
 beforeEach(() => {
   styleVersion = 0;
@@ -40,11 +44,14 @@ function setup(reduced = false, loadPoster = true, mobile = false) {
 describe("Hero video story", () => {
   it("keeps the poster visible until the first video frame and restores it on failure", () => {
     const { poster, video } = setup();
-    expect(posterVisibility(poster)).toBe("visible");
+    expect(elementVisibility(poster)).toBe("visible");
+    expect(elementOpacity(video)).toBe("0");
     fireEvent.playing(video);
-    expect(posterVisibility(poster)).toBe("hidden");
+    expect(elementVisibility(poster)).toBe("hidden");
+    expect(elementOpacity(video)).toBe("1");
     fireEvent.error(video);
-    expect(posterVisibility(poster)).toBe("visible");
+    expect(elementVisibility(poster)).toBe("visible");
+    expect(elementOpacity(video)).toBe("0");
   });
   it("renders a responsive high-priority poster before hydration without requesting video", () => {
     const html = renderToString(<HeroBridgeVideo />);
@@ -106,7 +113,7 @@ describe("Hero video story", () => {
     expect(video.getAttribute("src")).toBeNull();
     expect(scene.getAttribute("data-stage")).toBe("complete");
     expect(queryByRole("button")).toBeNull();
-    expect(posterVisibility(poster)).toBe("visible");
+    expect(elementVisibility(poster)).toBe("visible");
   });
   it("shows both messages when video loading fails", () => {
     const { video, scene } = setup();
