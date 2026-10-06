@@ -935,7 +935,7 @@ export const supportService = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_URL}/support/request`, {
+    const response = await fetch(`${API_URL}/support`, {
       method: 'POST',
       headers,
       body: JSON.stringify(requestData)
