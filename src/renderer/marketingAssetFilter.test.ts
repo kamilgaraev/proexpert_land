@@ -17,7 +17,7 @@ const asset = (
 });
 
 describe("marketing font preload policy", () => {
-  it("omits the home stylesheet request only when the same styles are inlined", () => {
+  it("omits private global styles when the home uses compact public styles", () => {
     const entries = [
       asset("/assets/static/src_index-b3c78705.DbkF-H4Q.css", "style", true),
       asset("/assets/static/src_styles_marketing-ec99112c.CgmWnpbl.css", "style", true),

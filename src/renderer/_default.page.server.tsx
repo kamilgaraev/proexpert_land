@@ -17,7 +17,7 @@ import { resolveServerRouterLocation } from "./serverRouterLocation";
 import { isMarketingPublicPath } from "@/utils/publicSite";
 import { getCabinetRedirect } from "@/utils/cabinetRedirect";
 import { filterMarketingAssets } from "./marketingAssetFilter";
-import homeStyles from "../index.css?inline";
+import homeStyles from "../styles/marketing-base.css?inline";
 
 type ServerPageContext = PageContextServer & {
   Page: ComponentType<Record<string, unknown>>;

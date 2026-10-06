@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const imports = vi.hoisted(() => ({ loaded: vi.fn() }));
+const imports = vi.hoisted(() => ({ loaded: vi.fn(), styles: vi.fn() }));
+vi.mock("../index.css", () => {
+  imports.styles();
+  return {};
+});
 vi.mock("./PrivatePageShell", () => {
   imports.loaded();
   return { default: () => null };
@@ -9,9 +13,18 @@ vi.mock("./PrivatePageShell", () => {
 beforeEach(() => {
   vi.resetModules();
   imports.loaded.mockClear();
+  imports.styles.mockClear();
 });
 
 describe("page shell preparation", () => {
+  it("loads full styles for non-home pages without requesting them for the home", async () => {
+    const loader = await import("./pageShellLoader");
+    await loader.preparePageShell("/");
+    expect(imports.styles).not.toHaveBeenCalled();
+    await loader.preparePageShell("/pricing");
+    expect(imports.styles).toHaveBeenCalledOnce();
+    expect(imports.loaded).not.toHaveBeenCalled();
+  });
   it("does not evaluate private providers for public SSR or hydration", async () => {
     const loader = await import("./pageShellLoader");
     await loader.preparePageShell("/");

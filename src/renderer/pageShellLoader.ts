@@ -29,6 +29,9 @@ export function loadPrivatePageShell(): Promise<PrivateShellComponent> {
 }
 
 export async function preparePageShell(pathname: string): Promise<void> {
+  if (pathname !== "/") {
+    await import("../index.css");
+  }
   if (!isMarketingPublicPath(pathname)) {
     await loadPrivatePageShell();
   }
