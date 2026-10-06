@@ -27,6 +27,7 @@ import {
   marketingSurfaceMeta,
 } from "@/data/marketingRegistry";
 import type { MarketingMaturity, MarketingSurface } from "@/types/marketing";
+import "@/styles/marketing-pages.css";
 import "@/styles/marketing-legal.css";
 
 const packageIcons: Record<string, ComponentType<{ className?: string }>> = {
