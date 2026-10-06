@@ -17,6 +17,7 @@ import { resolveServerRouterLocation } from "./serverRouterLocation";
 import { isMarketingPublicPath } from "@/utils/publicSite";
 import { getCabinetRedirect } from "@/utils/cabinetRedirect";
 import { filterMarketingAssets } from "./marketingAssetFilter";
+import homeStyles from "../index.css?inline";
 
 type ServerPageContext = PageContextServer & {
   Page: ComponentType<Record<string, unknown>>;
@@ -27,6 +28,7 @@ type ServerPageContext = PageContextServer & {
 
 export async function render(pageContext: ServerPageContext) {
   const pathname = pageContext.urlPathname || "/";
+  const inlineHomeStyles = pathname === "/";
   const routerLocation = resolveServerRouterLocation(pageContext);
   const cabinetTarget = getCabinetRedirect(
     pageContext.requestHostname || "",
@@ -67,6 +69,7 @@ export async function render(pageContext: ServerPageContext) {
         ${dangerouslySkipEscape(seoPayload.faviconTags)}
         <link rel="canonical" href="${seoPayload.canonicalUrl}" />
         ${dangerouslySkipEscape(seoPayload.structuredDataTag)}
+        ${inlineHomeStyles ? escapeInject`<style id="most-home-styles">${dangerouslySkipEscape(homeStyles)}</style>` : ""}
       </head>
       <body>
         <div id="root">${dangerouslySkipEscape(html)}</div>
@@ -76,7 +79,7 @@ export async function render(pageContext: ServerPageContext) {
   return {
     documentHtml,
     injectFilter: isMarketingPublicPath(pathname)
-      ? filterMarketingAssets
+      ? (assets: Parameters<typeof filterMarketingAssets>[0]) => filterMarketingAssets(assets, inlineHomeStyles)
       : undefined,
     pageContext: {
       abortStatusCode:
