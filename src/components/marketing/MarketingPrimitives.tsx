@@ -327,45 +327,47 @@ export const LegalDocumentView = ({
             <Link to="/legal/archive/2026-10-06/offer" className="underline">Архив редакции 6 октября 2026</Link>
             <Link to="/legal/archive/2026-03-25/offer" className="underline">Архив редакции 25 марта 2026</Link>
           </nav>
-          {!archiveKey && providerEntries.length > 0 && <article className="most-legal-article"><h2>Реквизиты</h2>
-            <dl className="mt-4 space-y-2 text-sm">{providerEntries.map(([key, label]) => <div key={key}><dt className="font-semibold">{label}</dt><dd>{manifest?.provider[key]}</dd></div>)}</dl>
-          </article>}
-          {!archiveKey && Boolean(manifest?.subprocessors.length) && <article className="most-legal-article"><h2>Привлечённые обработчики</h2>
-            <ul className="mt-5 space-y-3 text-sm">{manifest?.subprocessors.map((processor) => <li key={`${processor.name}:${processor.purpose}`}>{processor.name}, {processor.address}; страна: {processor.country}; функция: {processor.purpose}; данные: {processor.data}; роль: {processor.role}.</li>)}</ul>
-          </article>}
-          <details className="most-legal-highlights">
-            <summary>Ключевые положения</summary>
-            <div className="mt-5 space-y-3">
-              {document.highlights.map((item) => (
-                <div key={item} className="most-legal-highlight">
-                  {item}
-                </div>
+          <div className="min-w-0 space-y-5">
+            <details className="most-legal-highlights">
+              <summary>Ключевые положения</summary>
+              <div className="mt-5 space-y-3">
+                {document.highlights.map((item) => (
+                  <div key={item} className="most-legal-highlight">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </details>
+
+            <div className="space-y-5">
+              {document.sections.map((section) => (
+                <article key={section.title} className="most-legal-article">
+                  <h2 className="text-2xl font-bold text-steel-950">
+                    {section.title}
+                  </h2>
+                  <div className="mt-4 space-y-4 text-sm leading-7 text-steel-700">
+                    {section.paragraphs.map((paragraph) => (
+                      <p key={paragraph}>{renderText(paragraph)}</p>
+                    ))}
+                  </div>
+                  {section.bullets?.length ? (
+                    <ul className="mt-5 grid gap-3">
+                      {section.bullets.map((bullet) => (
+                        <li key={bullet} className="most-legal-bullet">
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </article>
               ))}
             </div>
-          </details>
-
-          <div className="space-y-5">
-            {document.sections.map((section) => (
-              <article key={section.title} className="most-legal-article">
-                <h2 className="text-2xl font-bold text-steel-950">
-                  {section.title}
-                </h2>
-                <div className="mt-4 space-y-4 text-sm leading-7 text-steel-700">
-                  {section.paragraphs.map((paragraph) => (
-                    <p key={paragraph}>{renderText(paragraph)}</p>
-                  ))}
-                </div>
-                {section.bullets?.length ? (
-                  <ul className="mt-5 grid gap-3">
-                    {section.bullets.map((bullet) => (
-                      <li key={bullet} className="most-legal-bullet">
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </article>
-            ))}
+            {!archiveKey && providerEntries.length > 0 && <article className="most-legal-article"><h2>Реквизиты</h2>
+              <dl className="mt-4 space-y-2 text-sm">{providerEntries.map(([key, label]) => <div key={key}><dt className="font-semibold">{label}</dt><dd>{manifest?.provider[key]}</dd></div>)}</dl>
+            </article>}
+            {!archiveKey && Boolean(manifest?.subprocessors.length) && <article className="most-legal-article"><h2>Привлечённые обработчики</h2>
+              <ul className="mt-5 space-y-3 text-sm">{manifest?.subprocessors.map((processor) => <li key={`${processor.name}:${processor.purpose}`}>{processor.name}, {processor.address}; страна: {processor.country}; функция: {processor.purpose}; данные: {processor.data}; роль: {processor.role}.</li>)}</ul>
+            </article>}
           </div>
         </div>
       </section>
