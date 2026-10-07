@@ -32,7 +32,7 @@ const CookieBanner = () => {
         document.cookie = `${name}=; Domain=xn--1-xtbgmf.xn--p1ai; Path=/; Max-Age=0; SameSite=Lax; Secure`;
       }
       if (!previous?.receiptId) { setVisible(false); return; }
-    } else if (!manifest?.analytics_ready) return;
+    } else if (!manifest) return;
     setBusy(true);
     try {
       const receiptId = await recordAnalyticsChoice(analytics, manifest, visitorId, previous?.receiptId);
@@ -97,7 +97,7 @@ const CookieBanner = () => {
           <button
             type="button"
             onClick={() => void choose(true)}
-            disabled={busy || !manifest?.analytics_ready}
+            disabled={busy || !manifest}
             className="most-button"
           >
             Разрешить аналитику

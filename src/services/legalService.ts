@@ -28,7 +28,7 @@ export const fetchLegalManifest = async (signal?: AbortSignal): Promise<LegalMan
   }
   const choice = getCookieConsent();
   let active = false;
-  if (payload.data.analytics_ready && choice?.analytics && choice.receiptId && choice.visitorId
+  if (choice?.analytics && choice.receiptId && choice.visitorId
     && choice.documentHash === payload.data.documents.cookies?.sha256) {
     try {
       const statusResponse = await fetch(`${legalApiBase()}/api/public/legal/analytics-status`, { method: 'POST', signal,

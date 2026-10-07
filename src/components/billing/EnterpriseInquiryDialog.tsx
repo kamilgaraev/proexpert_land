@@ -75,7 +75,7 @@ export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquir
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!form.contactPhone.trim() || form.needs.length === 0 || !form.consentToPersonalData || !manifest?.privacy_ready) return;
+    if (!form.contactPhone.trim() || form.needs.length === 0 || !form.consentToPersonalData || !manifest) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -213,14 +213,14 @@ export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquir
 
               {error ? <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div> : null}
               <label className="flex items-start gap-3 text-sm"><input type="checkbox" checked={form.consentToPersonalData} onChange={(event) => setForm((current) => ({ ...current, consentToPersonalData: event.target.checked }))} /><span>Даю <Link to="/personal-data-consent" target="_blank" className="underline">отдельное согласие на обработку данных обращения</Link> для ответа выбранным способом. Рекламная подписка не оформляется.</span></label>
-              {!manifest?.privacy_ready && <p role="status" className="text-sm">{legalError ?? LEGAL_UNAVAILABLE}</p>}
+              {!manifest && <p role="status" className="text-sm">{legalError ?? LEGAL_UNAVAILABLE}</p>}
             </div>
 
             <DialogFooter className="border-t border-border px-6 py-5 sm:px-8">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Отмена</Button>
               <Button
                 type="submit"
-                disabled={submitting || !form.contactPhone.trim() || form.needs.length === 0 || !form.consentToPersonalData || !manifest?.privacy_ready}
+                disabled={submitting || !form.contactPhone.trim() || form.needs.length === 0 || !form.consentToPersonalData || !manifest}
               >
                 {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                 {submitting ? 'Отправляем…' : 'Отправить заявку'}

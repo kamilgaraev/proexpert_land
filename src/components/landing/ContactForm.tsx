@@ -128,7 +128,7 @@ const ContactForm = ({
   const isMessageValid = formData.message.trim().length >= 10;
   const isSubjectValid = variant === "compact" || Boolean(formData.subject);
   const canSubmit =
-    legalManifest?.privacy_ready === true &&
+    Boolean(legalManifest) &&
     !isSubmitting &&
     formData.consentToPersonalData &&
     isNameValid &&
@@ -140,7 +140,7 @@ const ContactForm = ({
     event.preventDefault();
 
     const errors = validateForm();
-    if (!legalManifest?.privacy_ready) errors.push(legalError ?? LEGAL_UNAVAILABLE);
+    if (!legalManifest) errors.push(legalError ?? LEGAL_UNAVAILABLE);
     if (errors.length > 0) {
       NotificationService.show({
         type: "error",
@@ -452,7 +452,7 @@ const ContactForm = ({
               </>
             )}
           </button>
-          {!legalManifest?.privacy_ready && <p role="status" className="text-sm">{legalError ?? LEGAL_UNAVAILABLE}</p>}
+          {!legalManifest && <p role="status" className="text-sm">{legalError ?? LEGAL_UNAVAILABLE}</p>}
         </form>
       </motion.div>
 

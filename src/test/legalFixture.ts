@@ -4,8 +4,8 @@ import type { LegalManifest } from '@/services/legalService';
 
 export const legalFixture: LegalManifest = {
   version: bundle.version, content_sha256: LEGAL_CONTENT_SHA256,
-  privacy_ready: true, commercial_ready: true, analytics_ready: true,
-  provider: { name: 'Тестовый поставщик', address: 'Тестовый адрес', email: 'legal@example.test', tax_status: 'Тестовый режим' },
+  privacy_ready: false, commercial_ready: false, analytics_ready: false,
+  provider: { name: '', address: '', email: '', tax_status: '' },
   subprocessors: [],
   documents: Object.fromEntries(Object.entries(bundle.documents).map(([key, document]) => [key, { path: document.path, sha256: 'a'.repeat(64) }])),
 };

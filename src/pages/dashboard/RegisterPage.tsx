@@ -205,13 +205,13 @@ const RegisterPage = () => {
 
     if (!organizationName.trim()) errors.organizationName = 'Укажите название организации';
     if (!agreeTerms) errors.agreeTerms = 'Вы должны согласиться с условиями предоставления услуг';
-    if (!legalManifest?.commercial_ready) errors.agreeTerms = legalError ?? LEGAL_UNAVAILABLE;
+    if (!legalManifest) errors.agreeTerms = legalError ?? LEGAL_UNAVAILABLE;
 
     return errors;
   };
 
   const handleNext = () => {
-    if (!legalManifest?.commercial_ready) { setError(legalError ?? LEGAL_UNAVAILABLE); return; }
+    if (!legalManifest) { setError(legalError ?? LEGAL_UNAVAILABLE); return; }
     const errors = validateStep1();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
@@ -628,7 +628,7 @@ const RegisterPage = () => {
 
                         <div className="pt-4 border-t">
                             <OrganizationLegalAcceptance value={legalChoice} onChange={setLegalChoice} />
-                            {!legalManifest?.commercial_ready && <p role="status" className="mt-3 text-sm text-muted-foreground">{legalError ?? LEGAL_UNAVAILABLE}</p>}
+                            {!legalManifest && <p role="status" className="mt-3 text-sm text-muted-foreground">{legalError ?? LEGAL_UNAVAILABLE}</p>}
                             {hasError('agreeTerms') && <p id="agreeTerms-error" className="text-xs text-destructive mt-1">{getErrorMessage('agreeTerms')}</p>}
                         </div>
                      </motion.div>

@@ -64,7 +64,7 @@ const YandexMetrika = ({ counterId, enableWebvisor = false, enableClickmap = fal
   const { manifest } = useLegalManifest();
   const [consent, setConsent] = useState(hasAnalyticsConsent);
   const previousUrlRef = useRef<string | null>(null);
-  const mode = consent && manifest?.analytics_ready ? trackingMode(location.pathname) : null;
+  const mode = consent && manifest ? trackingMode(location.pathname) : null;
 
   useEffect(() => {
     const syncConsent = () => setConsent(hasAnalyticsConsent());

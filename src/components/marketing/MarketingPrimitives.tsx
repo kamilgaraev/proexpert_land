@@ -303,10 +303,10 @@ export const LegalDocumentView = ({
             <div className="mt-6 border-t border-steel-100 pt-6">
               <div className="most-legal-caption">Контакт по вопросам</div>
               <a
-                href={manifest?.privacy_ready ? `mailto:${manifest.provider.email}` : marketingCompany.emailHref}
+                href={manifest?.provider.email ? `mailto:${manifest.provider.email}` : marketingCompany.emailHref}
                 className="mt-3 block text-base font-semibold text-construction-700"
               >
-                {manifest?.privacy_ready ? manifest.provider.email : marketingCompany.email}
+                {manifest?.provider.email || marketingCompany.email}
               </a>
               <p className="mt-3 text-sm leading-7 text-steel-600">
                 {marketingCompany.legalStatusNote}

@@ -106,7 +106,7 @@ const UserInvitationAcceptPage = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!accountRulesAccepted || !manifest?.commercial_ready) { setError(legalError ?? LEGAL_UNAVAILABLE); return; }
+    if (!accountRulesAccepted || !manifest) { setError(legalError ?? LEGAL_UNAVAILABLE); return; }
 
     if (password.length < 8) {
       setError('Пароль должен содержать минимум 8 символов');
@@ -258,8 +258,8 @@ const UserInvitationAcceptPage = () => {
                 </div>
 
                 <label className="flex items-start gap-3 text-sm"><input type="checkbox" checked={accountRulesAccepted} onChange={(event) => setAccountRulesAccepted(event.target.checked)} /><span>Принимаю <Link to="/account-rules" target="_blank" className="underline">правила учётной записи</Link>. <Link to="/privacy" target="_blank" className="underline">Политика ПДн</Link> доступна для ознакомления. Договор организации и поручение от её имени этой отметкой не принимаются.</span></label>
-                {!manifest?.commercial_ready && <p role="status">{legalError ?? LEGAL_UNAVAILABLE}</p>}
-                <Button type="submit" className="w-full h-12 text-base" disabled={isSubmitting || !accountRulesAccepted || !manifest?.commercial_ready}>
+                {!manifest && <p role="status">{legalError ?? LEGAL_UNAVAILABLE}</p>}
+                <Button type="submit" className="w-full h-12 text-base" disabled={isSubmitting || !accountRulesAccepted || !manifest}>
                   {isSubmitting ? 'Принимаем приглашение...' : 'Принять приглашение'}
                 </Button>
               </form>
