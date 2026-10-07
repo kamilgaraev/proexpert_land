@@ -1,6 +1,7 @@
 import type { LegalDocumentMeta } from '@/types/marketing';
-import bundle from '@/data/legal/2026-10-07.json';
+import bundle from '@/data/legal/2026-10-07.2.json';
 import previousBundle from '@/data/legal/2026-10-06.json';
+import previousOctoberBundle from '@/data/legal/2026-10-07.json';
 
 export const LEGAL_VERSION = bundle.version;
 export const legalDocuments: Record<string, LegalDocumentMeta> = Object.fromEntries(
@@ -13,11 +14,11 @@ export const legalDocuments: Record<string, LegalDocumentMeta> = Object.fromEntr
 );
 
 export const archivedLegalDocuments: Record<string, LegalDocumentMeta> = Object.fromEntries(
-  Object.entries(previousBundle.documents).map(([key, document]) => [`2026-10-06:${key}`, {
+  [{ date: '2026-10-06', bundle: previousBundle }, { date: '2026-10-07', bundle: previousOctoberBundle }].flatMap(({ date, bundle: archivedBundle }) => Object.entries(archivedBundle.documents).map(([key, document]) => [`${date}:${key}`, {
     ...document,
-    path: `/legal/archive/2026-10-06${document.path}`,
-    version: previousBundle.version,
-    updatedAt: previousBundle.updatedAt,
+    path: `/legal/archive/${date}${document.path}`,
+    version: archivedBundle.version,
+    updatedAt: archivedBundle.updatedAt,
     seo: { title: `${document.title} | Архив МОСТ`, description: document.intro, keywords: 'МОСТ, архив юридических документов', noIndex: true },
-  }]),
+  }])),
 );
