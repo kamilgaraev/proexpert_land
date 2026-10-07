@@ -1,4 +1,5 @@
 import { readMarketingCookie, writeMarketingCookie } from './marketingCookies';
+import { LEGAL_DOCUMENT_VERSION } from '@/data/legal/contentHash';
 
 export interface CookieConsentState {
   essential: true;
@@ -10,7 +11,7 @@ export interface CookieConsentState {
   documentHash?: string;
 }
 
-export const COOKIE_CONSENT_VERSION = '2026-10-06.1';
+export const COOKIE_CONSENT_VERSION = LEGAL_DOCUMENT_VERSION;
 const COOKIE_CONSENT_STORAGE_KEY = 'prohelper.cookie-consent';
 const CONSENT_COOKIE = 'most_analytics_consent';
 export const COOKIE_CONSENT_EVENT = 'prohelper:cookie-consent-change';

@@ -44,6 +44,7 @@ import { useCanAccess, usePermissions } from '@/hooks/usePermissions';
 // Layouts - загружаем статически (нужны для структуры)
 import DashboardLayout from '@layouts/DashboardLayout';
 import DocumentPage from '@/pages/legal/DocumentPage';
+import { archivedLegalDocuments } from '@/data/marketing/legal';
 
 // Lazy loading для dashboard страниц (тяжелые компоненты)
 const DashboardPage = lazy(() => import('@pages/dashboard/DashboardPage'));
@@ -249,6 +250,7 @@ function App({
           <Route path="/marketing-consent" element={<DocumentPage documentKey="marketingConsent" />} />
           <Route path="/auto-renewal" element={<DocumentPage documentKey="renewal" />} />
           <Route path="/account-rules" element={<DocumentPage documentKey="accountRules" />} />
+          {Object.entries(archivedLegalDocuments).map(([key, document]) => <Route key={key} path={document.path} element={<DocumentPage documentKey={`archive:${key}`} />} />)}
           <Route path="/legal/archive/2026-03-25/privacy" element={<DocumentPage documentKey="archive:privacy" />} />
           <Route path="/legal/archive/2026-03-25/offer" element={<DocumentPage documentKey="archive:offer" />} />
           <Route path="/legal/archive/2026-03-25/cookies" element={<DocumentPage documentKey="archive:cookies" />} />
