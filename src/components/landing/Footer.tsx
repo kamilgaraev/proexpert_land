@@ -77,6 +77,10 @@ const Footer = () => (
         <span>© {new Date().getFullYear()} МОСТ</span>
         <Link to="/privacy">Конфиденциальность</Link>
         <Link to={marketingPaths.offer}>Оферта</Link>
+        <Link to="/data-processing">Поручение по ПДн</Link>
+        <Link to="/personal-data-consent">Согласие для обращения</Link>
+        <Link to="/cookies">Cookie</Link>
+        <button type="button" onClick={() => window.dispatchEvent(new Event('most:cookie-settings'))}>Настройки cookie</button>
       </div>
     </div>
   </footer>

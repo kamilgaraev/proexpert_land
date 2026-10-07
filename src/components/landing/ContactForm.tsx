@@ -13,7 +13,10 @@ import NotificationService from "@/components/shared/NotificationService";
 import SuccessModal from "@/components/shared/SuccessModal";
 import { marketingPaths } from "@/data/marketingRegistry";
 import useAnalytics from "@/hooks/useAnalytics";
-import { COOKIE_CONSENT_VERSION } from "@/utils/marketingConsent";
+import { hasAnalyticsConsent, getCookieConsent } from "@/utils/marketingConsent";
+import { useLegalManifest } from '@/hooks/useLegalManifest';
+import { LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
+import { LEGAL_VERSION } from '@/data/marketing/legal';
 import { getMarketingAttribution } from "@/utils/marketingAttribution";
 
 interface ContactFormData {
@@ -56,6 +59,7 @@ const ContactForm = ({
   className = "",
 }: ContactFormProps) => {
   const location = useLocation();
+  const { manifest: legalManifest, error: legalError } = useLegalManifest();
   const { trackButtonClick, trackContactForm } = useAnalytics();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const [formData, setFormData] = useState<ContactFormData>({
@@ -124,6 +128,7 @@ const ContactForm = ({
   const isMessageValid = formData.message.trim().length >= 10;
   const isSubjectValid = variant === "compact" || Boolean(formData.subject);
   const canSubmit =
+    Boolean(legalManifest) &&
     !isSubmitting &&
     formData.consentToPersonalData &&
     isNameValid &&
@@ -135,6 +140,7 @@ const ContactForm = ({
     event.preventDefault();
 
     const errors = validateForm();
+    if (!legalManifest) errors.push(legalError ?? LEGAL_UNAVAILABLE);
     if (errors.length > 0) {
       NotificationService.show({
         type: "error",
@@ -156,7 +162,11 @@ const ContactForm = ({
       subject: selectedSubject.label,
       message: formData.message.trim(),
       consent_to_personal_data: formData.consentToPersonalData,
-      consent_version: COOKIE_CONSENT_VERSION,
+      consent_version: LEGAL_VERSION,
+      ...legalAcceptancePayload(legalManifest!, ['contactConsent']),
+      analytics_consent: hasAnalyticsConsent(),
+      analytics_visitor_id: hasAnalyticsConsent() ? getCookieConsent()?.visitorId : undefined,
+      analytics_receipt_id: hasAnalyticsConsent() ? getCookieConsent()?.receiptId : undefined,
       page_source: `${location.pathname}${location.hash}`,
       ...getMarketingAttribution(),
     };
@@ -389,19 +399,19 @@ const ContactForm = ({
                   Согласие на обработку персональных данных
                 </div>
                 <p className="mt-2 text-sm leading-6 text-steel-600">
-                  Подтверждаю согласие в рамках{" "}
+                  Даю отдельное{" "}
+                  <Link
+                    to="/personal-data-consent"
+                    className="font-semibold text-construction-800 underline decoration-1 underline-offset-2"
+                  >
+                    согласие на обработку данных обращения
+                  </Link>{" "}
+                  для ответа на запрос. Подробнее — в{" "}
                   <Link
                     to={marketingPaths.privacy}
                     className="font-semibold text-construction-800 underline decoration-1 underline-offset-2"
                   >
-                    политики конфиденциальности
-                  </Link>{" "}
-                  и принимаю условия{" "}
-                  <Link
-                    to={marketingPaths.offer}
-                    className="font-semibold text-construction-800 underline decoration-1 underline-offset-2"
-                  >
-                    публичной оферты
+                    политике обработки персональных данных
                   </Link>
                   . Настройки аналитики описаны в{" "}
                   <Link
@@ -442,6 +452,7 @@ const ContactForm = ({
               </>
             )}
           </button>
+          {!legalManifest && <p role="status" className="text-sm">{legalError ?? LEGAL_UNAVAILABLE}</p>}
         </form>
       </motion.div>
 

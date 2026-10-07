@@ -41,6 +41,7 @@ export const clearMarketingAttribution = (): void => {
 
 export const captureMarketingAttribution = (search: string): void => {
   if (typeof window === 'undefined') return;
+  if (!hasAnalyticsConsent()) { clearMarketingAttribution(); return; }
   const values = sanitize(Object.fromEntries(new URLSearchParams(search)));
   current = Object.keys(values).length ? values : Object.keys(current).length ? current : storedAttribution();
   if (!hasAnalyticsConsent() || !Object.keys(current).length) return;
@@ -54,7 +55,7 @@ export const captureMarketingAttribution = (search: string): void => {
 };
 
 export const getMarketingAttribution = (): Attribution => {
-  if (typeof window === 'undefined') return {};
+  if (typeof window === 'undefined' || !hasAnalyticsConsent()) return {};
   captureMarketingAttribution(window.location.search);
   return { ...current };
 };
