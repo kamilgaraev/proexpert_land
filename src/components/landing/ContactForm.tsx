@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -6,6 +6,7 @@ import {
   ChatBubbleLeftRightIcon,
   EnvelopeIcon,
   PaperAirplaneIcon,
+  PhoneIcon,
   ShieldCheckIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
@@ -22,6 +23,7 @@ import { getMarketingAttribution } from "@/utils/marketingAttribution";
 interface ContactFormData {
   name: string;
   email: string;
+  phone: string;
   company: string;
   subject: string;
   message: string;
@@ -62,9 +64,12 @@ const ContactForm = ({
   const { manifest: legalManifest, error: legalError } = useLegalManifest();
   const { trackButtonClick, trackContactForm } = useAnalytics();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneInputId = useId();
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [formData, setFormData] = useState<ContactFormData>({
     name: "",
     email: "",
+    phone: "",
     company: "",
     subject: variant === "compact" ? "demo" : "",
     message: "",
@@ -104,8 +109,12 @@ const ContactForm = ({
       errors.push("Укажите имя не короче 2 символов.");
     }
 
-    if (!emailRegex.test(formData.email.trim())) {
+    if (!isEmailValid) {
       errors.push("Введите корректную рабочую почту.");
+    }
+
+    if (!isPhoneValid) {
+      errors.push("Укажите корректный номер телефона.");
     }
 
     if (formData.message.trim().length < 10) {
@@ -124,7 +133,15 @@ const ContactForm = ({
   };
 
   const isNameValid = formData.name.trim().length >= 2;
-  const isEmailValid = emailRegex.test(formData.email.trim());
+  const email = formData.email.trim();
+  const isEmailValid = email.length === 0 || emailRegex.test(email);
+  const phone = formData.phone.replace(/\s/g, " ").trim();
+  const phoneDigits = phone.replace(/\D/g, "");
+  const isPhoneValid = (
+    phone.length <= 20 && /^\+?[0-9()\s-]+$/.test(phone) &&
+    phoneDigits.length >= 7 && phoneDigits.length <= 15
+  );
+  const showPhoneError = phoneTouched && !isPhoneValid;
   const isMessageValid = formData.message.trim().length >= 10;
   const isSubjectValid = variant === "compact" || Boolean(formData.subject);
   const canSubmit =
@@ -133,11 +150,13 @@ const ContactForm = ({
     formData.consentToPersonalData &&
     isNameValid &&
     isEmailValid &&
+    isPhoneValid &&
     isMessageValid &&
     isSubjectValid;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setPhoneTouched(true);
 
     const errors = validateForm();
     if (!legalManifest) errors.push(legalError ?? LEGAL_UNAVAILABLE);
@@ -157,7 +176,8 @@ const ContactForm = ({
       subjectOptions[0];
     const payload = {
       name: formData.name.trim(),
-      email: formData.email.trim(),
+      email: normalizeOptional(formData.email),
+      phone,
       company: normalizeOptional(formData.company),
       subject: selectedSubject.label,
       message: formData.message.trim(),
@@ -213,20 +233,22 @@ const ContactForm = ({
         subject: selectedSubject.value,
         page_source: preparedPayload.page_source,
         has_company: Boolean(preparedPayload.company),
-        has_phone: false,
+        has_phone: Boolean(preparedPayload.phone),
       });
       setSuccessMessage(
-        result.message ?? "Заявка принята. Мы напишем на указанную почту.",
+        result.message ?? "Заявка принята. Мы свяжемся с вами по указанным контактам.",
       );
       setShowSuccessModal(true);
       setFormData({
         name: "",
         email: "",
+        phone: "",
         company: "",
         subject: variant === "compact" ? "demo" : "",
         message: "",
         consentToPersonalData: false,
       });
+      setPhoneTouched(false);
     } catch {
       NotificationService.show({
         type: "error",
@@ -260,13 +282,13 @@ const ContactForm = ({
           </h2>
           <p className="max-w-2xl text-sm leading-7 text-steel-600">
             {variant === "compact"
-              ? "Укажите почту, на которую вам удобно получить ответ."
-              : "Расскажите, что хотите посмотреть. Напишем на указанную почту и договоримся о демонстрации."}
+              ? "Укажите телефон для связи. Рабочую почту можно оставить, чтобы получить материалы по запросу."
+              : "Расскажите, что хотите посмотреть, и укажите телефон для связи. Рабочая почта — по желанию."}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5 ym-hide-content ym-disable-submit">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
               <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
                 <UserIcon
@@ -278,6 +300,7 @@ const ContactForm = ({
               <input
                 type="text"
                 name="name"
+                autoComplete="name"
                 value={formData.name}
                 onChange={handleInputChange}
                 minLength={2}
@@ -298,6 +321,7 @@ const ContactForm = ({
               <input
                 type="text"
                 name="company"
+                autoComplete="organization"
                 value={formData.company}
                 onChange={handleInputChange}
                 placeholder="Название компании"
@@ -305,24 +329,55 @@ const ContactForm = ({
               />
             </label>
 
-            <label className="block md:col-span-2 xl:col-span-1">
-              <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-steel-700">
+            <label className="block">
+              <span className="mb-2 inline-flex max-w-full flex-wrap items-center gap-2 text-sm font-semibold text-steel-700">
                 <EnvelopeIcon
                   className="most-icon h-5 w-5 shrink-0"
                   aria-hidden="true"
                 />
                 Рабочая почта
+                <span className="font-normal text-steel-500">(необязательно)</span>
               </span>
               <input
                 type="email"
                 name="email"
+                autoComplete="email"
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="you@company.ru"
                 className="w-full rounded-[1.1rem] border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
-                required
               />
             </label>
+
+            <div className="block">
+              <label htmlFor={phoneInputId} className="mb-2 inline-flex max-w-full flex-wrap items-center gap-2 text-sm font-semibold text-steel-700">
+                <PhoneIcon className="most-icon h-5 w-5 shrink-0" aria-hidden="true" />
+                Телефон
+                <span className="text-construction-700" aria-hidden="true">*</span>
+              </label>
+              <input
+                id={phoneInputId}
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                onBlur={() => setPhoneTouched(true)}
+                maxLength={20}
+                required
+                placeholder="+7 900 000-00-00"
+                aria-invalid={showPhoneError}
+                aria-describedby={`${phoneInputId}-hint${showPhoneError ? ` ${phoneInputId}-error` : ""}`}
+                className="w-full rounded-[1.1rem] border border-steel-300 px-4 py-3 text-steel-900 outline-none transition focus:border-construction-500 focus:ring-4 focus:ring-construction-100"
+              />
+              <p id={`${phoneInputId}-hint`} className="mt-2 text-xs leading-5 text-steel-600">
+                Обязательное поле. Свяжемся по этому номеру по вашему запросу.
+              </p>
+              {showPhoneError && <p id={`${phoneInputId}-error`} role="alert" className="mt-2 text-sm text-rose-600">
+                Укажите номер из 7–15 цифр. Допустимы +, пробелы, скобки и дефисы.
+              </p>}
+            </div>
           </div>
 
           {variant === "full" ? (

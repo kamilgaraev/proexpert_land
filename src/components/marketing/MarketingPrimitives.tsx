@@ -324,6 +324,7 @@ export const LegalDocumentView = ({
           <nav aria-label="Юридические документы" className="mb-6 flex flex-wrap gap-4 text-sm">
             {Object.entries(legalDocuments).map(([key, item]) => <Link key={key} to={item.path} className="underline">{item.shortTitle}</Link>)}
             <button type="button" onClick={() => window.print()} className="underline">Распечатать / сохранить PDF</button>
+            <Link to="/legal/archive/2026-10-07.2/offer" className="underline">Архив редакции 2026-10-07.2</Link>
             <Link to="/legal/archive/2026-10-07/offer" className="underline">Архив редакции 7 октября 2026</Link>
             <Link to="/legal/archive/2026-10-06/offer" className="underline">Архив редакции 6 октября 2026</Link>
             <Link to="/legal/archive/2026-03-25/offer" className="underline">Архив редакции 25 марта 2026</Link>
