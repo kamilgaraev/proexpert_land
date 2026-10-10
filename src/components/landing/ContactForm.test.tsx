@@ -2,6 +2,7 @@ import { legalFixture } from '@/test/legalFixture';
 vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null }) }));
 import {
   cleanup,
+  act,
   fireEvent,
   render,
   screen,
@@ -21,7 +22,7 @@ import {
   vi,
 } from "vitest";
 import ContactForm from "./ContactForm";
-import { COOKIE_CONSENT_VERSION } from "@/utils/marketingConsent";
+import { LEGAL_VERSION } from "@/data/marketing/legal";
 import { captureMarketingAttribution, clearMarketingAttribution } from "@/utils/marketingAttribution";
 
 const { notify, trackButtonClick, trackContactForm } = vi.hoisted(() => ({
@@ -55,6 +56,7 @@ beforeEach(() => {
   clearMarketingAttribution();
 });
 afterEach(() => {
+  vi.useRealTimers();
   cleanup();
   server.resetHandlers();
   vi.unstubAllEnvs();
@@ -62,8 +64,8 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
-const fillRequest = (variant: "full" | "compact" = "compact") => {
-  render(
+const fillRequest = (variant: "compact" | "full" = "compact") => {
+  const view = render(
     <MemoryRouter initialEntries={["/#contact"]}>
       <ContactForm variant={variant} />
     </MemoryRouter>,
@@ -80,14 +82,17 @@ const fillRequest = (variant: "full" | "compact" = "compact") => {
   fireEvent.change(screen.getByLabelText("Сообщение"), {
     target: { value: "Нужны заявки на материалы для трёх объектов." },
   });
+  return view;
 };
 
 describe("Marketing contact request", () => {
   it("requires consent and submits a demonstration request with its page source", async () => {
     let received: Record<string, unknown> | undefined;
+    let contentType: string | null = null;
     server.use(
       http.post("http://localhost/api/public/contact", async ({ request }) => {
-        received = (await request.json()) as Record<string, unknown>;
+        contentType = request.headers.get("Content-Type");
+        received = Object.fromEntries(new URLSearchParams(await request.text()));
         return HttpResponse.json({ success: true, message: "Заявка принята" });
       }),
     );
@@ -109,10 +114,11 @@ describe("Marketing contact request", () => {
       phone: "+7 900 123-45-67",
       subject: "Запрос демонстрации",
       message: "Нужны заявки на материалы для трёх объектов.",
-      consent_to_personal_data: true,
-      consent_version: COOKIE_CONSENT_VERSION,
+      consent_to_personal_data: "1",
+      consent_version: LEGAL_VERSION,
+      "legal_documents[contactConsent]": legalFixture.documents.contactConsent.sha256,
       page_source: "/#contact",
-      analytics_consent: false,
+      analytics_consent: "0",
     });
     expect(trackButtonClick).toHaveBeenCalledTimes(1);
     expect(trackContactForm).toHaveBeenCalledExactlyOnceWith("compact", {
@@ -122,6 +128,7 @@ describe("Marketing contact request", () => {
       has_phone: true,
     });
     expect(received).not.toHaveProperty("company");
+    expect(contentType).toMatch(/^application\/x-www-form-urlencoded(?:;|$)/);
     expect(received).not.toHaveProperty("utm_source");
     expect(received).not.toHaveProperty("utm_campaign");
     expect(screen.getByLabelText("Имя")).toHaveValue("");
@@ -131,7 +138,7 @@ describe("Marketing contact request", () => {
   it.each(["full", "compact"] as const)("submits with a required phone and no email in the %s form", async (variant) => {
     let received: Record<string, unknown> | undefined;
     server.use(http.post("http://localhost/api/public/contact", async ({ request }) => {
-      received = (await request.json()) as Record<string, unknown>;
+      received = Object.fromEntries(new URLSearchParams(await request.text()));
       return HttpResponse.json({ success: true, message: "Заявка принята" });
     }));
     fillRequest(variant);
@@ -147,7 +154,7 @@ describe("Marketing contact request", () => {
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(screen.getByRole("button", { name: variant === "full" ? "Запросить демонстрацию" : "Отправить заявку" }));
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Заявка принята"));
-    expect(received).toMatchObject({ phone: "+7 900 123-45-67", consent_to_personal_data: true });
+    expect(received).toMatchObject({ phone: "+7 900 123-45-67", consent_to_personal_data: "1" });
     expect(received).not.toHaveProperty("email");
     expect(trackContactForm).toHaveBeenCalledExactlyOnceWith(variant, expect.objectContaining({ has_phone: true }));
     expect(phone).toHaveValue("");
@@ -159,7 +166,7 @@ describe("Marketing contact request", () => {
   ] as const)("normalizes %s phone whitespace before validation and submission", async (_label, whitespace, variant) => {
     let received: Record<string, unknown> | undefined;
     server.use(http.post("http://localhost/api/public/contact", async ({ request }) => {
-      received = (await request.json()) as Record<string, unknown>;
+      received = Object.fromEntries(new URLSearchParams(await request.text()));
       return HttpResponse.json({ success: true, message: "Заявка принята" });
     }));
     fillRequest(variant);
@@ -235,4 +242,186 @@ describe("Marketing contact request", () => {
       screen.getByRole("button", { name: "Отправить заявку" }),
     ).toBeEnabled();
   });
+
+  it("preserves data after a network failure and sends again only on a manual retry", async () => {
+    let attempts = 0;
+    server.use(
+      http.post("http://localhost/api/public/contact", () => {
+        attempts += 1;
+        return attempts === 1
+          ? HttpResponse.error()
+          : HttpResponse.json({ success: true, message: "Заявка принята" });
+      }),
+    );
+    fillRequest("full");
+    fireEvent.change(screen.getByLabelText("Компания"), { target: { value: "  Стройка  " } });
+    fireEvent.click(screen.getByRole("button", { name: "Внедрение и запуск" }));
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Запросить демонстрацию" }));
+    await waitFor(() =>
+      expect(notify).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Ошибка соединения" }),
+      ),
+    );
+    expect(attempts).toBe(1);
+    expect(trackContactForm).not.toHaveBeenCalled();
+    expect(screen.getByLabelText(/Рабочая почта/)).toHaveValue("anna@example.test");
+    expect(screen.getByRole("checkbox")).toBeChecked();
+    expect(screen.getByLabelText("Имя")).toHaveValue("  Анна  ");
+    expect(screen.getByLabelText("Компания")).toHaveValue("  Стройка  ");
+    expect(screen.getByLabelText("Сообщение")).toHaveValue("Нужны заявки на материалы для трёх объектов.");
+    expect(screen.getByRole("button", { name: "Внедрение и запуск" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Запросить демонстрацию" }));
+    await waitFor(() => expect(screen.getByRole("status")).toBeInTheDocument());
+    expect(attempts).toBe(2);
+    expect(trackContactForm).toHaveBeenCalledTimes(1);
+  });
+
+  it("times out after 15 seconds and sends again only on a manual retry", async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockImplementationOnce((_input, options) =>
+        new Promise((_resolve, reject) => {
+          options?.signal?.addEventListener("abort", () =>
+            reject(new DOMException("Request aborted", "AbortError")),
+          );
+        }),
+      )
+      .mockResolvedValueOnce(
+        HttpResponse.json({ success: true, message: "Заявка принята" }),
+      );
+    fillRequest("full");
+    fireEvent.change(screen.getByLabelText("Компания"), { target: { value: "  Стройка  " } });
+    fireEvent.click(screen.getByRole("button", { name: "Внедрение и запуск" }));
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Запросить демонстрацию" }));
+    expect(screen.getByRole("button", { name: "Отправляем заявку" })).toBeDisabled();
+    await act(async () => { await vi.advanceTimersByTimeAsync(14_999); });
+    expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(false);
+    expect(screen.getByRole("button", { name: "Отправляем заявку" })).toBeDisabled();
+    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(true);
+    expect(notify).toHaveBeenCalledWith(expect.objectContaining({ title: "Ошибка соединения" }));
+    expect(screen.getByRole("button", { name: "Запросить демонстрацию" })).toBeEnabled();
+    expect(screen.getByLabelText(/Рабочая почта/)).toHaveValue("anna@example.test");
+    expect(trackContactForm).not.toHaveBeenCalled();
+    expect(screen.getByRole("checkbox")).toBeChecked();
+    expect(screen.getByLabelText("Имя")).toHaveValue("  Анна  ");
+    expect(screen.getByLabelText("Компания")).toHaveValue("  Стройка  ");
+    expect(screen.getByLabelText("Сообщение")).toHaveValue("Нужны заявки на материалы для трёх объектов.");
+    expect(screen.getByRole("button", { name: "Внедрение и запуск" })).toHaveAttribute("aria-pressed", "true");
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Запросить демонстрацию" }));
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(String(fetchMock.mock.calls[1][1]?.body)).toBe(String(fetchMock.mock.calls[0][1]?.body));
+    expect(screen.getByRole("status")).toHaveTextContent("Заявка принята");
+    expect(trackContactForm).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts on unmount, clears the timeout and silently handles the abort rejection", async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementationOnce((_input, options) =>
+      new Promise((_resolve, reject) => {
+        options?.signal?.addEventListener("abort", () =>
+          reject(new DOMException("Request aborted", "AbortError")),
+        );
+      }),
+    );
+    const view = fillRequest();
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Отправить заявку" }));
+    expect(vi.getTimerCount()).toBe(1);
+    await act(async () => { view.unmount(); });
+    expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(notify).not.toHaveBeenCalled();
+    expect(trackContactForm).not.toHaveBeenCalled();
+  });
+
+  it.each(["success", "server error", "body error"])(
+    "ignores a late %s body after unmount",
+    async (outcome) => {
+      vi.useFakeTimers();
+      let resolveBody!: (value: unknown) => void;
+      let rejectBody!: (reason: Error) => void;
+      const body = new Promise((resolve, reject) => {
+        resolveBody = resolve;
+        rejectBody = reject;
+      });
+      const response = HttpResponse.json({}, { status: outcome === "server error" ? 503 : 200 });
+      const readBody = vi.spyOn(response, "json").mockReturnValueOnce(body);
+      const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(response);
+      const view = fillRequest();
+      fireEvent.click(screen.getByRole("checkbox"));
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Отправить заявку" }));
+      });
+      expect(readBody).toHaveBeenCalledTimes(1);
+      view.unmount();
+      expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(true);
+      expect(vi.getTimerCount()).toBe(0);
+      await act(async () => {
+        if (outcome === "body error") rejectBody(new Error("body unavailable"));
+        else resolveBody({ success: outcome === "success", message: "Поздний ответ" });
+      });
+      expect(notify).not.toHaveBeenCalled();
+      expect(trackContactForm).not.toHaveBeenCalled();
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    },
+  );
+
+  it("keeps a new request and its manual retry independent of the unmounted request", async () => {
+    vi.useFakeTimers();
+    let resolveOld!: (response: Response) => void;
+    let rejectNew!: (reason: Error) => void;
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveOld = resolve; }))
+      .mockImplementationOnce(() => new Promise((_resolve, reject) => { rejectNew = reject; }))
+      .mockResolvedValueOnce(HttpResponse.json({ success: true, message: "Новая заявка принята" }));
+    const oldView = fillRequest();
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Отправить заявку" }));
+    oldView.unmount();
+    expect(vi.getTimerCount()).toBe(0);
+    await act(async () => { await vi.advanceTimersByTimeAsync(1_000); });
+    fillRequest();
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Отправить заявку" }));
+    const oldResponse = HttpResponse.json({ success: true });
+    const oldBody = vi.spyOn(oldResponse, "json");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(14_000);
+      resolveOld(oldResponse);
+    });
+    expect(oldBody).not.toHaveBeenCalled();
+    expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(true);
+    expect(fetchMock.mock.calls[1][1]?.signal?.aborted).toBe(false);
+    expect(vi.getTimerCount()).toBe(1);
+    expect(screen.getByRole("button", { name: "Отправляем заявку" })).toBeDisabled();
+    expect(notify).not.toHaveBeenCalled();
+    expect(trackContactForm).not.toHaveBeenCalled();
+    await act(async () => { rejectNew(new TypeError("network unavailable")); });
+    expect(notify).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Отправить заявку" })).toBeEnabled();
+    expect(screen.getByRole("checkbox")).toBeChecked();
+    expect(vi.getTimerCount()).toBe(0);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Отправить заявку" }));
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(String(fetchMock.mock.calls[2][1]?.body)).toBe(String(fetchMock.mock.calls[1][1]?.body));
+    expect(screen.getByRole("status")).toHaveTextContent("Новая заявка принята");
+    expect(trackContactForm).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
+    expect(fetchMock.mock.calls[2][1]?.signal?.aborted).toBe(false);
+    expect(notify).toHaveBeenCalledTimes(1);
+  });
+
 });
