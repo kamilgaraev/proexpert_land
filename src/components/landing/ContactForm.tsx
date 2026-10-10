@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -70,6 +70,20 @@ const ContactForm = ({
     message: "",
     consentToPersonalData: false,
   });
+  const activeRequest = useRef<{
+    controller: AbortController;
+    timeoutId: number;
+  } | null>(null);
+
+  useEffect(() => () => {
+    const request = activeRequest.current;
+    activeRequest.current = null;
+    if (request) {
+      window.clearTimeout(request.timeoutId);
+      request.controller.abort();
+    }
+  }, []);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -179,6 +193,8 @@ const ContactForm = ({
 
     const abortController = new AbortController();
     const timeoutId = window.setTimeout(() => abortController.abort(), 15_000);
+    const request = { controller: abortController, timeoutId };
+    activeRequest.current = request;
 
     try {
       trackButtonClick("public_contact_submit", `contact_form_${variant}`);
@@ -200,11 +216,15 @@ const ContactForm = ({
         signal: abortController.signal,
       });
 
+      if (activeRequest.current !== request) return;
+
       const result = (await response.json().catch(() => null)) as {
         success?: boolean;
         message?: string;
         errors?: Record<string, string[]>;
       } | null;
+
+      if (activeRequest.current !== request) return;
 
       if (!response.ok || !result?.success) {
         const validationMessage =
@@ -240,6 +260,8 @@ const ContactForm = ({
         consentToPersonalData: false,
       });
     } catch {
+      if (activeRequest.current !== request) return;
+
       NotificationService.show({
         type: "error",
         title: "Ошибка соединения",
@@ -248,7 +270,10 @@ const ContactForm = ({
       });
     } finally {
       window.clearTimeout(timeoutId);
-      setIsSubmitting(false);
+      if (activeRequest.current === request) {
+        activeRequest.current = null;
+        setIsSubmitting(false);
+      }
     }
   };
 
