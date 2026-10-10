@@ -135,7 +135,7 @@ const ContactForm = ({
   const isNameValid = formData.name.trim().length >= 2;
   const email = formData.email.trim();
   const isEmailValid = email.length === 0 || emailRegex.test(email);
-  const phone = formData.phone.trim();
+  const phone = formData.phone.replace(/\s/g, " ").trim();
   const phoneDigits = phone.replace(/\D/g, "");
   const isPhoneValid = (
     phone.length <= 20 && /^\+?[0-9()\s-]+$/.test(phone) &&

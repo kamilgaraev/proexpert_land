@@ -153,6 +153,30 @@ describe("Marketing contact request", () => {
     expect(phone).toHaveValue("");
   });
 
+  it.each([
+    ["NBSP", "\u00a0", "full"],
+    ["narrow NBSP", "\u202f", "compact"],
+  ] as const)("normalizes %s phone whitespace before validation and submission", async (_label, whitespace, variant) => {
+    let received: Record<string, unknown> | undefined;
+    server.use(http.post("http://localhost/api/public/contact", async ({ request }) => {
+      received = (await request.json()) as Record<string, unknown>;
+      return HttpResponse.json({ success: true, message: "Заявка принята" });
+    }));
+    fillRequest(variant);
+    const phone = screen.getByRole("textbox", { name: "Телефон" });
+    fireEvent.change(phone, { target: { value: `+7${whitespace}900${whitespace}123-45-67` } });
+    fireEvent.blur(phone);
+    expect(phone).not.toHaveAttribute("aria-invalid", "true");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    if (variant === "full") fireEvent.click(screen.getByRole("button", { name: "Запрос демонстрации" }));
+    fireEvent.click(screen.getByRole("checkbox"));
+    const submit = screen.getByRole("button", { name: variant === "full" ? "Запросить демонстрацию" : "Отправить заявку" });
+    expect(submit).toBeEnabled();
+    fireEvent.click(submit);
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Заявка принята"));
+    expect(received?.phone).toBe("+7 900 123-45-67");
+  });
+
   it.each(["", "abc", "123", "++7 900 123-45-67", "1234567890123456"])("rejects an empty or invalid phone %s", (value) => {
     fillRequest();
     fireEvent.click(screen.getByRole("checkbox"));
