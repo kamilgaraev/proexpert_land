@@ -62,6 +62,9 @@
 .most-package-option:hover {
   background: #eeeee7;
 }
+.most-package-option.is-locked {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
 .most-package-option.is-selected {
   background: #f0eeea;
 }
@@ -240,6 +243,12 @@
     align-items: baseline;
     gap: 10px;
     text-align: left;
+  }
+  .most-package-option.is-locked {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .most-package-option.is-locked .most-package-price {
+    grid-column: 1;
   }
   .most-package-summary {
     padding: 24px;
