@@ -17,6 +17,8 @@ export const createEnterpriseInquiry = async (input: EnterpriseInquiryInput): Pr
       preferred_contact: input.preferredContact,
       needs: input.needs,
       comment: input.comment || null,
+      consent_to_personal_data: input.consentToPersonalData,
+      legal_documents: input.legal_documents,
     }),
   });
 

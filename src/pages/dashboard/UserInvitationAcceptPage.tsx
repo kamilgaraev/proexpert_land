@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePageTitle } from '@/hooks/useSEO';
+import { useLegalManifest } from '@/hooks/useLegalManifest';
+import { LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
 
 type InvitationDetails = {
   email: string;
@@ -37,6 +39,8 @@ const getResponseMessage = (error: unknown): string => {
 };
 
 const UserInvitationAcceptPage = () => {
+  const { manifest, error: legalError } = useLegalManifest();
+  const [accountRulesAccepted, setAccountRulesAccepted] = useState(false);
   usePageTitle('Приглашение в команду — МОСТ');
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [canRetry, setCanRetry] = useState(false);
@@ -102,6 +106,7 @@ const UserInvitationAcceptPage = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!accountRulesAccepted || !manifest) { setError(legalError ?? LEGAL_UNAVAILABLE); return; }
 
     if (password.length < 8) {
       setError('Пароль должен содержать минимум 8 символов');
@@ -117,7 +122,7 @@ const UserInvitationAcceptPage = () => {
     setIsSubmitting(true);
 
     try {
-      await userManagementService.acceptInvitation(token, password, passwordConfirmation);
+      await userManagementService.acceptInvitation(token, password, passwordConfirmation, { account_rules_accepted: accountRulesAccepted, ...legalAcceptancePayload(manifest, ['accountRules', 'privacy']) });
       setIsAccepted(true);
     } catch (err) {
       setError(getResponseMessage(err));
@@ -252,7 +257,9 @@ const UserInvitationAcceptPage = () => {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full h-12 text-base" disabled={isSubmitting}>
+                <label className="flex items-start gap-3 text-sm"><input type="checkbox" checked={accountRulesAccepted} onChange={(event) => setAccountRulesAccepted(event.target.checked)} /><span>Принимаю <Link to="/account-rules" target="_blank" className="underline">правила учётной записи</Link>. <Link to="/privacy" target="_blank" className="underline">Политика ПДн</Link> доступна для ознакомления. Договор организации и поручение от её имени этой отметкой не принимаются.</span></label>
+                {!manifest && <p role="status">{legalError ?? LEGAL_UNAVAILABLE}</p>}
+                <Button type="submit" className="w-full h-12 text-base" disabled={isSubmitting || !accountRulesAccepted || !manifest}>
                   {isSubmitting ? 'Принимаем приглашение...' : 'Принять приглашение'}
                 </Button>
               </form>

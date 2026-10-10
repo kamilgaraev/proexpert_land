@@ -1,16 +1,29 @@
 import { readMarketingCookie, writeMarketingCookie } from './marketingCookies';
+import { LEGAL_DOCUMENT_VERSION } from '@/data/legal/contentHash';
 
 export interface CookieConsentState {
   essential: true;
   analytics: boolean;
   version: string;
   decidedAt: string;
+  receiptId?: string;
+  visitorId?: string;
+  documentHash?: string;
 }
 
-export const COOKIE_CONSENT_VERSION = '2026-03-25-public-site-v1';
+export const COOKIE_CONSENT_VERSION = LEGAL_DOCUMENT_VERSION;
 const COOKIE_CONSENT_STORAGE_KEY = 'prohelper.cookie-consent';
 const CONSENT_COOKIE = 'most_analytics_consent';
 export const COOKIE_CONSENT_EVENT = 'prohelper:cookie-consent-change';
+let analyticsAvailable = false;
+let analyticsDocumentHash = '';
+
+export const setAnalyticsAvailability = (available: boolean, documentHash = ''): void => {
+  if (analyticsAvailable === available && analyticsDocumentHash === documentHash) return;
+  analyticsAvailable = available;
+  analyticsDocumentHash = documentHash;
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(COOKIE_CONSENT_EVENT));
+};
 
 export const getCookieConsent = (): CookieConsentState | null => {
   if (typeof window === 'undefined') {
@@ -29,18 +42,20 @@ export const getCookieConsent = (): CookieConsentState | null => {
 
   try {
     const parsed = JSON.parse(rawValue) as CookieConsentState;
-    if (!parsed || parsed.version !== COOKIE_CONSENT_VERSION || typeof parsed.analytics !== 'boolean') {
+    const decidedAt = Date.parse(parsed?.decidedAt);
+    if (!parsed || parsed.version !== COOKIE_CONSENT_VERSION || typeof parsed.analytics !== 'boolean'
+      || parsed.essential !== true || !Number.isFinite(decidedAt) || decidedAt > Date.now()
+      || Date.now() - decidedAt >= 180 * 24 * 60 * 60 * 1000) {
       return null;
     }
 
-    writeMarketingCookie(CONSENT_COOKIE, rawValue, 60 * 60 * 24 * 180);
     return parsed;
   } catch {
     return null;
   }
 };
 
-export const saveCookieConsent = (analytics: boolean): CookieConsentState | null => {
+export const saveCookieConsent = (analytics: boolean, proof?: { receiptId: string; visitorId: string; documentHash?: string }): CookieConsentState | null => {
   if (typeof window === 'undefined') {
     return null;
   }
@@ -50,6 +65,7 @@ export const saveCookieConsent = (analytics: boolean): CookieConsentState | null
     analytics,
     version: COOKIE_CONSENT_VERSION,
     decidedAt: new Date().toISOString(),
+    ...proof,
   };
 
   writeMarketingCookie(CONSENT_COOKIE, JSON.stringify(consentState), 60 * 60 * 24 * 180);
@@ -64,7 +80,11 @@ export const saveCookieConsent = (analytics: boolean): CookieConsentState | null
   return consentState;
 };
 
-export const hasAnalyticsConsent = (): boolean => getCookieConsent()?.analytics === true;
+export const hasAnalyticsConsent = (): boolean => {
+  const consent = getCookieConsent();
+  return analyticsAvailable && consent?.analytics === true && typeof consent.receiptId === 'string' && typeof consent.visitorId === 'string'
+    && consent.documentHash === analyticsDocumentHash && analyticsDocumentHash.length === 64;
+};
 
 export const clearCookieConsent = (): void => {
   if (typeof window === 'undefined') {

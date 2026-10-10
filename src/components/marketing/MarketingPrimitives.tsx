@@ -19,6 +19,9 @@ import {
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
 import { useSEO } from "@/hooks/useSEO";
+import { useLegalManifest } from '@/hooks/useLegalManifest';
+import { legacyLegalDocuments } from '@/data/legal/legacy';
+import { archivedLegalDocuments } from '@/data/marketing/legal';
 import {
   legalDocuments,
   marketingCompany,
@@ -27,6 +30,7 @@ import {
   marketingSurfaceMeta,
 } from "@/data/marketingRegistry";
 import type { MarketingMaturity, MarketingSurface } from "@/types/marketing";
+import "@/styles/marketing-pages.css";
 import "@/styles/marketing-legal.css";
 
 const packageIcons: Record<string, ComponentType<{ className?: string }>> = {
@@ -268,7 +272,12 @@ export const LegalDocumentView = ({
 }: {
   documentKey: keyof typeof legalDocuments;
 }) => {
-  const document = legalDocuments[documentKey];
+  const archiveKey = documentKey.startsWith('archive:') ? documentKey.slice(8) : null;
+  const document = (archiveKey ? archivedLegalDocuments[archiveKey] ?? legacyLegalDocuments[archiveKey] : legalDocuments[documentKey]) ?? legalDocuments.offer;
+  const { manifest } = useLegalManifest();
+  const renderText = (text: string) => text.replace(/\{\{(\w+)\}\}/g, (_match, key: string) => !archiveKey ? manifest?.provider[key]?.trim() || '' : '__________');
+  const providerEntries = [['name', 'Наименование / ФИО'], ['status', 'Статус'], ['inn', 'ИНН'], ['registration_number', 'ОГРН / ОГРНИП'], ['address', 'Адрес'], ['email', 'Юридический контакт'], ['tax_status', 'Налоговый статус'], ['bank_details', 'Банковские реквизиты']]
+    .filter(([key]) => manifest?.provider[key]?.trim());
 
   useSEO({
     title: document.seo.title,
@@ -287,6 +296,7 @@ export const LegalDocumentView = ({
         aside={
           <div className="most-legal-meta">
             <div className="most-legal-caption">Версия документа</div>
+            {archiveKey && <p className="mt-3 text-sm font-semibold">Архив редакции. Для новых принятий не используется.</p>}
             <div className="mt-3 text-lg font-bold text-steel-950">
               {document.version}
             </div>
@@ -296,10 +306,10 @@ export const LegalDocumentView = ({
             <div className="mt-6 border-t border-steel-100 pt-6">
               <div className="most-legal-caption">Контакт по вопросам</div>
               <a
-                href={marketingCompany.emailHref}
+                href={manifest?.provider.email ? `mailto:${manifest.provider.email}` : marketingCompany.emailHref}
                 className="mt-3 block text-base font-semibold text-construction-700"
               >
-                {marketingCompany.email}
+                {manifest?.provider.email || marketingCompany.email}
               </a>
               <p className="mt-3 text-sm leading-7 text-steel-600">
                 {marketingCompany.legalStatusNote}
@@ -311,39 +321,54 @@ export const LegalDocumentView = ({
 
       <section className="py-16 lg:py-20">
         <div className="most-container most-legal-content">
-          <details className="most-legal-highlights">
-            <summary>Ключевые положения</summary>
-            <div className="mt-5 space-y-3">
-              {document.highlights.map((item) => (
-                <div key={item} className="most-legal-highlight">
-                  {item}
-                </div>
+          <nav aria-label="Юридические документы" className="mb-6 flex flex-wrap gap-4 text-sm">
+            {Object.entries(legalDocuments).map(([key, item]) => <Link key={key} to={item.path} className="underline">{item.shortTitle}</Link>)}
+            <button type="button" onClick={() => window.print()} className="underline">Распечатать / сохранить PDF</button>
+            <Link to="/legal/archive/2026-10-07/offer" className="underline">Архив редакции 7 октября 2026</Link>
+            <Link to="/legal/archive/2026-10-06/offer" className="underline">Архив редакции 6 октября 2026</Link>
+            <Link to="/legal/archive/2026-03-25/offer" className="underline">Архив редакции 25 марта 2026</Link>
+          </nav>
+          <div className="min-w-0 space-y-5">
+            <details className="most-legal-highlights">
+              <summary>Ключевые положения</summary>
+              <div className="mt-5 space-y-3">
+                {document.highlights.map((item) => (
+                  <div key={item} className="most-legal-highlight">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </details>
+
+            <div className="space-y-5">
+              {document.sections.map((section) => (
+                <article key={section.title} className="most-legal-article">
+                  <h2 className="text-2xl font-bold text-steel-950">
+                    {section.title}
+                  </h2>
+                  <div className="mt-4 space-y-4 text-sm leading-7 text-steel-700">
+                    {section.paragraphs.map((paragraph) => (
+                      <p key={paragraph}>{renderText(paragraph)}</p>
+                    ))}
+                  </div>
+                  {section.bullets?.length ? (
+                    <ul className="mt-5 grid gap-3">
+                      {section.bullets.map((bullet) => (
+                        <li key={bullet} className="most-legal-bullet">
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </article>
               ))}
             </div>
-          </details>
-
-          <div className="space-y-5">
-            {document.sections.map((section) => (
-              <article key={section.title} className="most-legal-article">
-                <h2 className="text-2xl font-bold text-steel-950">
-                  {section.title}
-                </h2>
-                <div className="mt-4 space-y-4 text-sm leading-7 text-steel-700">
-                  {section.paragraphs.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
-                  ))}
-                </div>
-                {section.bullets?.length ? (
-                  <ul className="mt-5 grid gap-3">
-                    {section.bullets.map((bullet) => (
-                      <li key={bullet} className="most-legal-bullet">
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </article>
-            ))}
+            {!archiveKey && providerEntries.length > 0 && <article className="most-legal-article"><h2>Реквизиты</h2>
+              <dl className="mt-4 space-y-2 text-sm">{providerEntries.map(([key, label]) => <div key={key}><dt className="font-semibold">{label}</dt><dd>{manifest?.provider[key]}</dd></div>)}</dl>
+            </article>}
+            {!archiveKey && Boolean(manifest?.subprocessors.length) && <article className="most-legal-article"><h2>Привлечённые обработчики</h2>
+              <ul className="mt-5 space-y-3 text-sm">{manifest?.subprocessors.map((processor) => <li key={`${processor.name}:${processor.purpose}`}>{processor.name}, {processor.address}; страна: {processor.country}; функция: {processor.purpose}; данные: {processor.data}; роль: {processor.role}.</li>)}</ul>
+            </article>}
           </div>
         </div>
       </section>

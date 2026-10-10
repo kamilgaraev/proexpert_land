@@ -1,12 +1,18 @@
 const INTERNAL_PREFIXES = [
   '/dashboard',
   '/landing/multi-organization',
+  '/invitations',
+  '/project-invitations',
+  '/supplier-requests',
+  '/blog/preview',
+  '/contractor-invitations',
 ];
 
 const INTERNAL_EXACT_PATHS = new Set([
   '/login',
   '/register',
   '/forgot-password',
+  '/reset-password',
   '/verify-email',
   '/email-sent',
 ]);

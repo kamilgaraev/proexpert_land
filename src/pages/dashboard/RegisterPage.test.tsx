@@ -1,3 +1,5 @@
+import { legalFixture } from '@/test/legalFixture';
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null }) }));
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -52,7 +54,7 @@ const submitValidRegistration = async () => {
 
   const organizationInput = await screen.findByPlaceholderText('ООО СтройКомплект');
   fireEvent.change(organizationInput, { target: { value: 'ООО Мост' } });
-  fireEvent.click(screen.getByRole('checkbox'));
+  screen.getAllByRole('checkbox').forEach((checkbox) => fireEvent.click(checkbox));
   fireEvent.click(screen.getByRole('button', { name: 'Создать аккаунт' }));
 };
 

@@ -1,3 +1,5 @@
+import { legalFixture } from '@/test/legalFixture';
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null }) }));
 import {
   cleanup,
   act,
@@ -20,7 +22,7 @@ import {
   vi,
 } from "vitest";
 import ContactForm from "./ContactForm";
-import { COOKIE_CONSENT_VERSION } from "@/utils/marketingConsent";
+import { LEGAL_VERSION } from "@/data/marketing/legal";
 import { captureMarketingAttribution, clearMarketingAttribution } from "@/utils/marketingAttribution";
 
 const { notify, trackButtonClick, trackContactForm } = vi.hoisted(() => ({
@@ -107,11 +109,11 @@ describe("Marketing contact request", () => {
       email: "anna@example.test",
       subject: "Запрос демонстрации",
       message: "Нужны заявки на материалы для трёх объектов.",
-      consent_to_personal_data: "true",
-      consent_version: COOKIE_CONSENT_VERSION,
+      consent_to_personal_data: "1",
+      consent_version: LEGAL_VERSION,
+      "legal_documents[contactConsent]": legalFixture.documents.contactConsent.sha256,
       page_source: "/#contact",
-      utm_source: "yandex",
-      utm_campaign: "materials",
+      analytics_consent: "0",
     });
     expect(trackButtonClick).toHaveBeenCalledTimes(1);
     expect(trackContactForm).toHaveBeenCalledExactlyOnceWith("compact", {
@@ -122,6 +124,8 @@ describe("Marketing contact request", () => {
     });
     expect(received).not.toHaveProperty("company");
     expect(contentType).toMatch(/^application\/x-www-form-urlencoded(?:;|$)/);
+    expect(received).not.toHaveProperty("utm_source");
+    expect(received).not.toHaveProperty("utm_campaign");
     expect(screen.getByLabelText("Имя")).toHaveValue("");
     expect(screen.getByRole("checkbox")).not.toBeChecked();
   });

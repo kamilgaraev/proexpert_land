@@ -1,0 +1,2 @@
+export const LEGAL_CONTENT_SHA256 = '964e89bcb229334fda735c9a76e146bd8cb6f7e093f5f02d23a249da9bedffdd';
+export const LEGAL_DOCUMENT_VERSION = '2026-10-07.2';

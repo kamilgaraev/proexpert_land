@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
+import { useLegalManifest } from '@/hooks/useLegalManifest';
+import { LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
 import { Building2, CheckCircle2, Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -41,9 +44,11 @@ const initialForm = {
   preferredContact: 'phone' as EnterprisePreferredContact,
   needs: [] as EnterpriseNeed[],
   comment: '',
+  consentToPersonalData: false,
 };
 
 export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquiryDialogProps) => {
+  const { manifest, error: legalError } = useLegalManifest();
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
@@ -70,11 +75,11 @@ export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquir
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!form.contactPhone.trim() || form.needs.length === 0) return;
+    if (!form.contactPhone.trim() || form.needs.length === 0 || !form.consentToPersonalData || !manifest) return;
     setSubmitting(true);
     setError(null);
     try {
-      await createEnterpriseInquiry({ ...form, contactPhone: form.contactPhone.trim(), comment: form.comment.trim() });
+      await createEnterpriseInquiry({ ...form, contactPhone: form.contactPhone.trim(), comment: form.comment.trim(), ...legalAcceptancePayload(manifest, ['contactConsent']) });
       setSubmitted(true);
     } catch (requestError) {
       setError(requestError instanceof CommercialApiError
@@ -207,13 +212,15 @@ export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquir
               </div>
 
               {error ? <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div> : null}
+              <label className="flex items-start gap-3 text-sm"><input type="checkbox" checked={form.consentToPersonalData} onChange={(event) => setForm((current) => ({ ...current, consentToPersonalData: event.target.checked }))} /><span>Даю <Link to="/personal-data-consent" target="_blank" className="underline">отдельное согласие на обработку данных обращения</Link> для ответа выбранным способом. Рекламная подписка не оформляется.</span></label>
+              {!manifest && <p role="status" className="text-sm">{legalError ?? LEGAL_UNAVAILABLE}</p>}
             </div>
 
             <DialogFooter className="border-t border-border px-6 py-5 sm:px-8">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Отмена</Button>
               <Button
                 type="submit"
-                disabled={submitting || !form.contactPhone.trim() || form.needs.length === 0}
+                disabled={submitting || !form.contactPhone.trim() || form.needs.length === 0 || !form.consentToPersonalData || !manifest}
               >
                 {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                 {submitting ? 'Отправляем…' : 'Отправить заявку'}

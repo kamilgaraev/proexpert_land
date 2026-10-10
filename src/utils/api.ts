@@ -935,7 +935,7 @@ export const supportService = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_URL}/support/request`, {
+    const response = await fetch(`${API_URL}/support`, {
       method: 'POST',
       headers,
       body: JSON.stringify(requestData)
@@ -1628,11 +1628,13 @@ export const userManagementService = {
     return response;
   },
 
-  acceptInvitation: async (token: string, password?: string, passwordConfirmation?: string): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
+  acceptInvitation: async (token: string, password?: string, passwordConfirmation?: string, legal?: { account_rules_accepted: boolean; legal_documents: Record<string, string | undefined> }): Promise<{ data: LegacyJsonPayload, status: number, statusText: string }> => {
     const payload: {
       password?: string;
       password_confirmation?: string;
-    } = {};
+      account_rules_accepted?: boolean;
+      legal_documents?: Record<string, string | undefined>;
+    } = { ...legal };
     if (password) {
       payload.password = password;
       payload.password_confirmation = passwordConfirmation;

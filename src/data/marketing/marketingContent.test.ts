@@ -312,6 +312,7 @@ const rewrittenClusterContracts = {
 
 const workspaceSourceExists = (source: string): boolean =>
   [
+    ...(process.env.MOST_WORKSPACE_ROOT ? [path.resolve(process.env.MOST_WORKSPACE_ROOT, source)] : []),
     path.resolve(process.cwd(), "..", source),
     path.resolve(process.cwd(), "..", "..", "..", source),
   ].some((candidate) => fs.existsSync(candidate));

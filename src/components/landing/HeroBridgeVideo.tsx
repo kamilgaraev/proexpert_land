@@ -4,11 +4,14 @@ import "./HeroBridgeVideo.css";
 
 export default function HeroBridgeVideo() {
   const sceneRef = useRef<HTMLDivElement>(null);
+  const posterRef = useRef<HTMLImageElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef(0);
   const [playing, setPlaying] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [videoSource, setVideoSource] = useState<string>();
+  const [posterSource, setPosterSource] = useState<string>();
+  const [hasVideoFrame, setHasVideoFrame] = useState(false);
   const [ended, setEnded] = useState(false);
   const finishedRef = useRef(false);
   const manuallyPaused = useRef(false);
@@ -19,12 +22,20 @@ export default function HeroBridgeVideo() {
   };
 
   useEffect(() => {
+    const poster = posterRef.current;
+    if (poster?.complete && poster.naturalWidth > 0) {
+      setPosterSource(poster.currentSrc || poster.src);
+    }
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const compact = window.matchMedia("(max-width: 767px)");
     const update = () => {
-      if (!finishedRef.current) setVideoSource(compact.matches ? "/images/marketing/most-bridge-calm-mobile.mp4" : "/images/marketing/most-bridge-calm.mp4");
+      if (!finishedRef.current) {
+        setVideoSource(compact.matches ? "/images/marketing/most-bridge-calm-mobile.mp4" : "/images/marketing/most-bridge-calm.mp4");
+        setHasVideoFrame(false);
+      }
       setEnabled(!motion.matches);
       if (motion.matches) {
+        setHasVideoFrame(false);
         videoRef.current?.pause();
         showCopy();
       }
@@ -41,7 +52,7 @@ export default function HeroBridgeVideo() {
   useEffect(() => {
     const video = videoRef.current;
     const scene = sceneRef.current;
-    if (!enabled || !video || !scene) return;
+    if (!enabled || !posterSource || !video || !scene) return;
     let visible = true;
     const syncPlayback = () => {
       if (visible && !document.hidden && !manuallyPaused.current && !finishedRef.current) {
@@ -63,7 +74,7 @@ export default function HeroBridgeVideo() {
       document.removeEventListener("visibilitychange", syncPlayback);
       video.pause();
     };
-  }, [enabled, videoSource]);
+  }, [enabled, videoSource, posterSource]);
 
   const syncCopy = () => {
     const video = videoRef.current;
@@ -75,28 +86,54 @@ export default function HeroBridgeVideo() {
   };
 
   return (
-    <div className="most-hero-film" ref={sceneRef} data-animated={enabled || undefined}>
-      <video
-        ref={videoRef}
-        src={enabled ? videoSource : undefined}
-        poster="/images/marketing/most-bridge-v2-1774.webp"
-        width={1774}
-        height={887}
-        muted
-        playsInline
-        preload="metadata"
-        aria-label="Мост соединяет строительную площадку и офис"
-        onTimeUpdate={syncCopy}
-        onPlaying={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onEnded={() => {
-          finishedRef.current = true;
-          setEnded(true);
-          setPlaying(false);
-          showCopy();
-        }}
-        onError={showCopy}
-      />
+    <div className="most-hero-film" ref={sceneRef} data-animated={enabled || undefined} data-poster-ready={!!posterSource || undefined} data-video-ready={hasVideoFrame || undefined}>
+      <div className="most-hero-film-media">
+        <img
+          ref={posterRef}
+          src="/images/marketing/most-bridge-v2-1774.webp"
+          srcSet="/images/marketing/most-bridge-v2-640.webp 640w, /images/marketing/most-bridge-v2-1024.webp 1024w, /images/marketing/most-bridge-v2-1774.webp 1774w"
+          sizes="100vw"
+          width={1774}
+          height={887}
+          alt="Мост соединяет строительную площадку и офис"
+          fetchPriority="high"
+          loading="eager"
+          onLoad={(event) => setPosterSource(event.currentTarget.currentSrc || event.currentTarget.src)}
+          onError={() => {
+            setPosterSource("/images/marketing/most-bridge-v2-1774.webp");
+            showCopy();
+          }}
+        />
+        <video
+          ref={videoRef}
+          src={enabled && posterSource ? videoSource : undefined}
+          poster={posterSource}
+          width={1774}
+          height={887}
+          muted
+          playsInline
+          preload="none"
+          aria-label="Мост соединяет строительную площадку и офис"
+          aria-hidden={!hasVideoFrame || undefined}
+          onTimeUpdate={syncCopy}
+          onPlaying={() => {
+            setHasVideoFrame(true);
+            setPlaying(true);
+          }}
+          onPause={() => setPlaying(false)}
+          onEnded={() => {
+            finishedRef.current = true;
+            setEnded(true);
+            setPlaying(false);
+            showCopy();
+          }}
+          onError={() => {
+            setHasVideoFrame(false);
+            setPlaying(false);
+            showCopy();
+          }}
+        />
+      </div>
       <div className="most-hero-film-story">
         <p className="most-hero-film-start">Задача на площадке.</p>
         <p className="most-hero-film-finish">Решение в офисе.</p>
