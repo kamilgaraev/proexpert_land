@@ -1,4 +1,5 @@
 import sitemapRoutes from './sitemapRoutes.json';
+import { archivedLegalDocuments } from './legal';
 
 export interface MarketingSitemapRoute {
   path: string;
@@ -73,7 +74,7 @@ assertMarketingSitemapRoutes(sitemapRoutes);
 
 export const marketingSitemapRoutes: MarketingSitemapRoute[] = sitemapRoutes;
 
-export const marketingNoIndexPaths = new Set(['/privacy', '/offer', '/cookies', '/data-processing', '/personal-data-consent', '/marketing-consent', '/auto-renewal', '/account-rules', '/legal/archive/2026-03-25/privacy', '/legal/archive/2026-03-25/offer', '/legal/archive/2026-03-25/cookies', '/legal/archive/2026-10-06/offer', '/legal/archive/2026-10-06/privacy', '/legal/archive/2026-10-06/cookies', '/legal/archive/2026-10-06/data-processing', '/legal/archive/2026-10-06/personal-data-consent', '/legal/archive/2026-10-06/marketing-consent', '/legal/archive/2026-10-06/account-rules', '/legal/archive/2026-10-06/auto-renewal', '/legal/archive/2026-10-07/offer', '/legal/archive/2026-10-07/privacy', '/legal/archive/2026-10-07/cookies', '/legal/archive/2026-10-07/data-processing', '/legal/archive/2026-10-07/personal-data-consent', '/legal/archive/2026-10-07/marketing-consent', '/legal/archive/2026-10-07/account-rules', '/legal/archive/2026-10-07/auto-renewal']);
+export const marketingNoIndexPaths = new Set(['/privacy', '/offer', '/cookies', '/data-processing', '/personal-data-consent', '/marketing-consent', '/auto-renewal', '/account-rules', '/legal/archive/2026-03-25/privacy', '/legal/archive/2026-03-25/offer', '/legal/archive/2026-03-25/cookies', ...Object.values(archivedLegalDocuments).map((document) => document.path)]);
 
 export const marketingNoIndexPrefixes = [
   '/dashboard',

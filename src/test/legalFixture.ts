@@ -1,4 +1,4 @@
-import bundle from '@/data/legal/2026-10-07.2.json';
+import bundle from '@/data/legal/2026-10-10.json';
 import { LEGAL_CONTENT_SHA256 } from '@/data/legal/contentHash';
 import type { LegalManifest } from '@/services/legalService';
 
