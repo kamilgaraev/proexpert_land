@@ -187,23 +187,41 @@ describe("Marketing contact request", () => {
     expect(trackContactForm).toHaveBeenCalledTimes(1);
   });
 
-  it("releases the submit button when the connection does not respond", async () => {
+  it("times out after 15 seconds and sends again only on a manual retry", async () => {
     vi.useFakeTimers();
-    vi.spyOn(globalThis, "fetch").mockImplementation((_input, options) =>
-      new Promise((_resolve, reject) => {
-        options?.signal?.addEventListener("abort", () =>
-          reject(new DOMException("Request aborted", "AbortError")),
-        );
-      }),
-    );
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockImplementationOnce((_input, options) =>
+        new Promise((_resolve, reject) => {
+          options?.signal?.addEventListener("abort", () =>
+            reject(new DOMException("Request aborted", "AbortError")),
+          );
+        }),
+      )
+      .mockResolvedValueOnce(
+        HttpResponse.json({ success: true, message: "Заявка принята" }),
+      );
     fillRequest();
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(screen.getByRole("button", { name: "Отправить заявку" }));
     expect(screen.getByRole("button", { name: "Отправляем заявку" })).toBeDisabled();
-    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(14_999); });
+    expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(false);
+    expect(screen.getByRole("button", { name: "Отправляем заявку" })).toBeDisabled();
+    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(true);
     expect(notify).toHaveBeenCalledWith(expect.objectContaining({ title: "Ошибка соединения" }));
     expect(screen.getByRole("button", { name: "Отправить заявку" })).toBeEnabled();
     expect(screen.getByLabelText("Рабочая почта")).toHaveValue("anna@example.test");
     expect(trackContactForm).not.toHaveBeenCalled();
+    expect(screen.getByRole("checkbox")).toBeChecked();
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Отправить заявку" }));
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(String(fetchMock.mock.calls[1][1]?.body)).toBe(String(fetchMock.mock.calls[0][1]?.body));
+    expect(screen.getByRole("status")).toHaveTextContent("Заявка принята");
+    expect(trackContactForm).toHaveBeenCalledTimes(1);
   });
 });
