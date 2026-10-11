@@ -12,6 +12,10 @@ import {
 import { debugPermissions, isPermissionsDebugEnabled } from '@/services/debugPermissions';
 import { authorizedFetch, getTokenFromStorages } from '@/utils/api';
 
+export interface PermissionsLoadOptions {
+  force?: boolean;
+}
+
 /**
  * Централизованный менеджер для управления правами пользователей
  * Основан на гайде QUICK_START_PERMISSIONS.md
@@ -47,18 +51,21 @@ export class PermissionsManager {
   /**
    * Загрузить права с сервера
    */
-  async load(interfaceType: AccessInterface = 'lk'): Promise<boolean> {
-    // Проверяем, не слишком ли часто загружаем
-    const now = Date.now();
-    if (this.isLoaded && this.lastLoadTime && (now - this.lastLoadTime) < this.MIN_RELOAD_INTERVAL) {
-      debugPermissions(`Permissions reload throttled. Wait ${Math.ceil((this.MIN_RELOAD_INTERVAL - (now - this.lastLoadTime)) / 1000)}s`);
-      return this.isLoaded;
-    }
-
-    // Если уже загружается, возвращаем текущий промис
+  async load(interfaceType: AccessInterface = 'lk', options: PermissionsLoadOptions = {}): Promise<boolean> {
     if (this.loadPromise) {
+      if (options.force) {
+        await this.loadPromise;
+        return this.load(interfaceType, options);
+      }
       debugPermissions('Permissions are already loading');
       return this.loadPromise;
+    }
+
+    // Проверяем, не слишком ли часто загружаем
+    const now = Date.now();
+    if (!options.force && this.isLoaded && this.lastLoadTime && (now - this.lastLoadTime) < this.MIN_RELOAD_INTERVAL) {
+      debugPermissions(`Permissions reload throttled. Wait ${Math.ceil((this.MIN_RELOAD_INTERVAL - (now - this.lastLoadTime)) / 1000)}s`);
+      return this.isLoaded;
     }
 
     // Создаем новый промис загрузки

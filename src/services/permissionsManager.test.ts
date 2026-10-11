@@ -86,4 +86,60 @@ describe('PermissionsManager', () => {
       }),
     );
   });
+
+  it('refreshes paid module access immediately while ordinary loads remain throttled', async () => {
+    api.authorizedFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => permissionsResponse() } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => permissionsResponse({ active_modules: ['basic-warehouse'] }),
+      } as Response);
+    const manager = new PermissionsManager();
+
+    await manager.load('lk');
+    await manager.load('lk');
+    expect(api.authorizedFetch).toHaveBeenCalledTimes(1);
+    expect(manager.hasModule('basic-warehouse')).toBe(false);
+
+    await expect(manager.load('lk', { force: true })).resolves.toBe(true);
+    expect(api.authorizedFetch).toHaveBeenCalledTimes(2);
+    expect(manager.hasModule('basic-warehouse')).toBe(true);
+  });
+
+  it('fetches fresh module access after an in-flight request started before payment', async () => {
+    let resolvePrevious!: (response: Response) => void;
+    api.authorizedFetch
+      .mockImplementationOnce(() => new Promise<Response>((resolve) => { resolvePrevious = resolve; }))
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => permissionsResponse({ active_modules: ['basic-warehouse'] }),
+      } as Response);
+    const manager = new PermissionsManager();
+    const previousLoad = manager.load('lk');
+    const paidLoad = manager.load('lk', { force: true });
+
+    expect(api.authorizedFetch).toHaveBeenCalledTimes(1);
+    resolvePrevious({ ok: true, json: async () => permissionsResponse() } as Response);
+
+    await expect(previousLoad).resolves.toBe(true);
+    await expect(paidLoad).resolves.toBe(true);
+    expect(api.authorizedFetch).toHaveBeenCalledTimes(2);
+    expect(manager.hasModule('basic-warehouse')).toBe(true);
+  });
+
+  it('preserves existing module access when the immediate refresh fails', async () => {
+    api.authorizedFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => permissionsResponse({ active_modules: ['project-management'] }),
+      } as Response)
+      .mockResolvedValueOnce({ ok: false, status: 503 } as Response);
+    const manager = new PermissionsManager();
+
+    await manager.load('lk');
+    await expect(manager.load('lk', { force: true })).resolves.toBe(false);
+    expect(api.authorizedFetch).toHaveBeenCalledTimes(2);
+    expect(manager.hasModule('project-management')).toBe(true);
+    expect(manager.hasModule('basic-warehouse')).toBe(false);
+  });
 });
