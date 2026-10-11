@@ -5,10 +5,19 @@ import { delay, http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import BillingPage from './BillingPage';
 import { saveAuthToken } from '@/utils/authTokenStorage';
+import { PermissionsProvider } from '@/contexts/PermissionsContext';
+import { permissionsManager } from '@/services/permissionsManager';
+import { usePermissions } from '@/hooks/usePermissions';
+import { legalFixture } from '@/test/legalFixture';
+import DashboardProtectedRoute from '@/components/DashboardProtectedRoute';
 
 const { access, trackPaidOrder } = vi.hoisted(() => ({ access: { manage: true, view: true }, trackPaidOrder: vi.fn() }));
 vi.mock('@/utils/conversionTracking', () => ({ trackPaidOrder }));
-vi.mock('@/hooks/usePermissions', () => ({
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({ isAuthenticated: true, isLoading: false, token: 'test-token' }),
+}));
+vi.mock('@/hooks/usePermissions', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@/hooks/usePermissions')>(),
   useCanAccess: ({ permission }: { permission?: string }) => permission === 'billing.manage' ? access.manage : access.view,
 }));
 
@@ -41,7 +50,18 @@ const packages = Array.from({ length: 7 }, (_, index) => ({
 }));
 
 let accountStatus = 'active';
+let activeModules: string[] = [];
+let permissionsRequests = 0;
+let permissionsUnavailable = false;
 const server = setupServer(
+  http.get('https://api.xn--1-xtbgmf.xn--p1ai/api/public/legal', () => HttpResponse.json({ success: true, data: legalFixture })),
+  http.get('https://api.xn--1-xtbgmf.xn--p1ai/api/lk/v1/permissions', () => {
+    permissionsRequests += 1;
+    if (permissionsUnavailable) return HttpResponse.json({ success: false }, { status: 503 });
+    return HttpResponse.json({ success: true, data: {
+      user_id: 1, organization_id: 1, permissions_flat: [], roles: [], interfaces: ['lk'], active_modules: activeModules,
+    } });
+  }),
   http.get(`${baseUrl}/packages`, () => HttpResponse.json({ success: true, data: packages })),
   http.get(`${baseUrl}/billing/commercial/renewal`, () => HttpResponse.json({ success: true, data: {
     status: accountStatus,
@@ -141,10 +161,29 @@ const server = setupServer(
   }, { status: 201 })),
 );
 
-const renderPage = () => render(<MemoryRouter><BillingPage /></MemoryRouter>);
+const ModuleAccess = () => {
+  const { hasModule } = usePermissions();
+  return hasModule('basic-warehouse') ? <a href="/dashboard/warehouse">Открыть склад</a> : null;
+};
+const renderPage = (showModuleAccess = false) => render(
+  <MemoryRouter>
+    <PermissionsProvider>
+      <DashboardProtectedRoute>
+        <BillingPage />
+        {showModuleAccess && <ModuleAccess />}
+      </DashboardProtectedRoute>
+    </PermissionsProvider>
+  </MemoryRouter>,
+);
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-beforeEach(() => saveAuthToken('test-token'));
+beforeEach(() => {
+  saveAuthToken('test-token');
+  permissionsManager.clear();
+  activeModules = [];
+  permissionsRequests = 0;
+  permissionsUnavailable = false;
+});
 afterEach(() => {
   server.resetHandlers();
   accountStatus = 'active';
@@ -454,6 +493,7 @@ describe('BillingPage commercial packages', () => {
     let checkoutBody: Record<string, unknown> | null = null;
     server.use(http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
       checkoutBody = await request.json() as Record<string, unknown>;
+      activeModules = ['basic-warehouse'];
       return HttpResponse.json({ success: true, data: {
         order_id: 'balance-order', status: 'paid', amount: '2000.00', amount_minor: 200000,
         currency: 'RUB', confirmation_url: null, payment_status: 'succeeded', payment_source: 'balance',
@@ -461,7 +501,9 @@ describe('BillingPage commercial packages', () => {
       } }, { status: 201 });
     }));
 
-    renderPage();
+    await permissionsManager.load('lk');
+    renderPage(true);
+    expect(screen.queryByRole('link', { name: 'Открыть склад' })).not.toBeInTheDocument();
     const packageHeading = await screen.findByRole('heading', { name: 'Пакет 2' });
     fireEvent.click(within(packageHeading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
     const balanceOption = await screen.findByRole('checkbox', { name: 'Оплатить с баланса' });
@@ -472,6 +514,99 @@ describe('BillingPage commercial packages', () => {
     expect(await screen.findByText(/Средства списаны с баланса организации/)).toBeInTheDocument();
     expect(checkoutBody).toMatchObject({ use_balance: true, auto_renew_consent: true });
     expect(sessionStorage.getItem('most:pending-commercial-order')).toBeNull();
+    expect(await screen.findByRole('link', { name: 'Открыть склад' })).toBeInTheDocument();
+    expect(permissionsRequests).toBe(2);
+  });
+
+  it('открывает модули сразу после подтверждения оплаты в платёжном сервисе', async () => {
+    await permissionsManager.load('lk');
+    sessionStorage.setItem('most:pending-commercial-order', 'paid-access-order');
+    server.use(http.get(`${baseUrl}/billing/commercial/orders/paid-access-order`, () => {
+      activeModules = ['basic-warehouse'];
+      return HttpResponse.json({ success: true, data: {
+        order_id: 'paid-access-order', status: 'paid', payment_status: 'succeeded',
+        payment_source: 'yookassa', amount_minor: 200000, amount: '2000.00', currency: 'RUB',
+        selected_package_slugs: [packageSlugs[0], packageSlugs[1]], confirmation_url: null,
+      } });
+    }));
+
+    renderPage(true);
+
+    expect(await screen.findByRole('link', { name: 'Открыть склад' })).toBeInTheDocument();
+    expect(permissionsRequests).toBe(2);
+    expect(sessionStorage.getItem('most:pending-commercial-order')).toBeNull();
+  });
+
+  it.each(['failed', 'canceled', 'refunded'])('не открывает модули после статуса %s', async (status) => {
+    await permissionsManager.load('lk');
+    sessionStorage.setItem('most:pending-commercial-order', 'unpaid-access-order');
+    server.use(http.get(`${baseUrl}/billing/commercial/orders/unpaid-access-order`, () => {
+      activeModules = ['basic-warehouse'];
+      return HttpResponse.json({ success: true, data: {
+        order_id: 'unpaid-access-order', status, amount_minor: 200000, amount: '2000.00', currency: 'RUB',
+        selected_package_slugs: [packageSlugs[0], packageSlugs[1]], confirmation_url: null,
+      } });
+    }));
+
+    renderPage(true);
+
+    await waitFor(() => expect(sessionStorage.getItem('most:pending-commercial-order')).toBeNull());
+    expect(screen.queryByRole('link', { name: 'Открыть склад' })).not.toBeInTheDocument();
+    expect(permissionsRequests).toBe(1);
+  });
+
+  it('сохраняет резервное обновление доступа через 15 минут', async () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+    try {
+      await permissionsManager.load('lk');
+      renderPage(true);
+      await screen.findByRole('heading', { name: 'Пакеты для вашей команды' });
+      activeModules = ['basic-warehouse'];
+
+      await act(() => vi.advanceTimersByTimeAsync(14 * 60 * 1000));
+      expect(permissionsRequests).toBe(1);
+      expect(screen.queryByRole('link', { name: 'Открыть склад' })).not.toBeInTheDocument();
+
+      await act(() => vi.advanceTimersByTimeAsync(60 * 1000));
+      expect(await screen.findByRole('link', { name: 'Открыть склад' })).toBeInTheDocument();
+      expect(permissionsRequests).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('сохраняет страницу оплаты и резервное обновление при ошибке загрузки новых прав', async () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+    try {
+      await permissionsManager.load('lk');
+      server.use(http.post(`${baseUrl}/billing/commercial/checkout`, () => {
+        activeModules = ['basic-warehouse'];
+        permissionsUnavailable = true;
+        return HttpResponse.json({ success: true, data: {
+          order_id: 'balance-access-retry', status: 'paid', amount: '2000.00', amount_minor: 200000,
+          currency: 'RUB', confirmation_url: null, payment_status: 'succeeded', payment_source: 'balance',
+        } }, { status: 201 });
+      }));
+
+      renderPage(true);
+      const packageHeading = await screen.findByRole('heading', { name: 'Пакет 2' });
+      fireEvent.click(within(packageHeading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+      fireEvent.click(await screen.findByRole('checkbox', { name: 'Оплатить с баланса' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Оплатить с баланса' }));
+
+      await waitFor(() => expect(permissionsRequests).toBe(2));
+      expect(await screen.findByText(/Средства списаны с баланса организации/)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Пакеты для вашей команды' })).toBeInTheDocument();
+      expect(screen.queryByText('Ошибка загрузки')).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Открыть склад' })).not.toBeInTheDocument();
+
+      permissionsUnavailable = false;
+      await act(() => vi.advanceTimersByTimeAsync(15 * 60 * 1000));
+      expect(await screen.findByRole('link', { name: 'Открыть склад' })).toBeInTheDocument();
+      expect(permissionsRequests).toBe(3);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('отправляет пакет и дополнительный объём в один checkout', async () => {
@@ -619,6 +754,8 @@ describe('BillingPage commercial packages', () => {
     fireEvent.click(await screen.findByRole('button', { name: /Обсудить подключение/ }));
     fireEvent.change(screen.getByLabelText('Телефон для связи'), { target: { value: '+7 999 123-45-67' } });
     fireEvent.click(screen.getByRole('checkbox', { name: 'Несколько организаций и филиалов' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /отдельное согласие на обработку данных обращения/ }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Отправить заявку' })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: 'Отправить заявку' }));
 
     expect(await screen.findByText('Заявка отправлена')).toBeInTheDocument();

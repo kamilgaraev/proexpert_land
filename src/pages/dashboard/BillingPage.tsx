@@ -6,7 +6,7 @@ import { EnterpriseInquiryDialog } from '@/components/billing/EnterpriseInquiryD
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useCanAccess } from '@/hooks/usePermissions';
+import { useCanAccess, usePermissions } from '@/hooks/usePermissions';
 import { useBalance } from '@/hooks/useBalance';
 import { consumeCommercialIntent } from '@/utils/commercialIntent';
 import { trackPaidOrder } from '@/utils/conversionTracking';
@@ -74,6 +74,7 @@ const quotaValue = (value: number | null, unit?: string) => {
 };
 
 const BillingPage = () => {
+  const { reload: reloadPermissions } = usePermissions();
   const canManage = useCanAccess({ permission: 'billing.manage' });
   const { balance, error: balanceError, isLoading: balanceLoading, refresh: refreshBalance } = useBalance();
   const [packages, setPackages] = useState<CommercialPackage[]>([]);
@@ -273,7 +274,7 @@ const BillingPage = () => {
         trackPaidOrder(order);
         setPaymentState('success');
         window.sessionStorage.removeItem(pendingOrderStorageKey);
-        await refreshCommercialState(true);
+        await Promise.all([refreshCommercialState(true), reloadPermissions({ force: true })]);
       } else if (order.status === 'refunded') {
         setPaymentState('refunded');
         window.sessionStorage.removeItem(pendingOrderStorageKey);
@@ -297,7 +298,7 @@ const BillingPage = () => {
         setActionError(errorText(requestError));
       }
     }
-  }, [refreshCommercialState]);
+  }, [refreshCommercialState, reloadPermissions]);
 
   useEffect(() => {
     const orderId = window.sessionStorage.getItem(pendingOrderStorageKey);
@@ -380,7 +381,7 @@ const BillingPage = () => {
         setPayFromBalance(false);
         setPaymentOrder(null);
         setPaymentState('success');
-        await Promise.all([refreshCommercialState(true), refreshBalance()]);
+        await Promise.all([refreshCommercialState(true), refreshBalance(), reloadPermissions({ force: true })]);
         return;
       }
       if (!checkout.confirmationUrl) throw new Error('Платёжная ссылка ещё не готова. Повторите действие.');

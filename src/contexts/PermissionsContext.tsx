@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { debugPermissions } from '@/services/debugPermissions';
 import { permissionsManager } from '@/services/permissionsManager';
+import type { PermissionsLoadOptions } from '@/services/permissionsManager';
 import { getTokenFromStorages } from '@/utils/api';
 import {
   PermissionsData,
@@ -26,8 +27,8 @@ interface PermissionsContextType {
   canAccess: (options: CanAccessOptions) => boolean;
   
   // Управление
-  load: (interfaceType?: AccessInterface) => Promise<boolean>;
-  reload: () => Promise<boolean>;
+  load: (interfaceType?: AccessInterface, options?: PermissionsLoadOptions) => Promise<boolean>;
+  reload: (options?: PermissionsLoadOptions) => Promise<boolean>;
   clear: () => void;
   
   // Проверка через API
@@ -73,35 +74,38 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({
     setIsLoaded(permissionsManager.isReady());
   }, []);
 
-  const load = useCallback(async (iType: AccessInterface = interfaceType): Promise<boolean> => {
-    setIsLoading(true);
-    setError(null);
+  const load = useCallback(async (iType: AccessInterface = interfaceType, options: PermissionsLoadOptions = {}): Promise<boolean> => {
+    const background = options.force === true && isLoaded;
+    if (!background) {
+      setIsLoading(true);
+      setError(null);
+    }
 
     try {
-      const success = await permissionsManager.load(iType);
+      const success = await permissionsManager.load(iType, options);
       
       if (success) {
         updatePermissions();
         setError(null);
-      } else {
+      } else if (!background) {
         setError('Не удалось загрузить права доступа');
       }
       
       return success;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
-      setError(errorMessage);
+      if (!background) setError(errorMessage);
       debugPermissions('Permissions load error:', err);
       return false;
     } finally {
-      setIsLoading(false);
+      if (!background) setIsLoading(false);
     }
-  }, [interfaceType, updatePermissions]);
+  }, [interfaceType, isLoaded, updatePermissions]);
 
-  const reload = useCallback(async (): Promise<boolean> => {
+  const reload = useCallback(async (options?: PermissionsLoadOptions): Promise<boolean> => {
     debugPermissions('Reloading permissions...');
-    return await load();
-  }, [load]);
+    return await load(interfaceType, options);
+  }, [interfaceType, load]);
 
   const clear = useCallback(() => {
     permissionsManager.clear();
