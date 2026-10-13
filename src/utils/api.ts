@@ -3,6 +3,7 @@
  */
 
 import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
+import { AuthSessionChangedError, isCsrfRefreshError, isTerminalAuthError, withAuthCookieLock } from './authRefreshControl';
 // @ts-ignore
 // import api_instance from './axiosConfig'; 
 import {
@@ -12,6 +13,8 @@ import {
   clearCsrfToken,
   getAuthorizationHeaderForToken,
   getAuthToken,
+  getAuthSessionVersion,
+  getAuthSessionId,
   getCsrfToken,
   invalidateAuthSession,
   saveAuthToken,
@@ -59,6 +62,7 @@ const api = axios.create({
 export const authApi = axios.create({
   baseURL: API_URL,
   withCredentials: true,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -199,48 +203,71 @@ const csrfHeaders = (): Record<string, string> => {
 
 let refreshPromise: Promise<RefreshedAuthSession> | null = null;
 
-const requestCsrfToken = async (): Promise<string> => {
+const requestCsrfToken = async (expectedSessionId: string | null = null): Promise<string> => {
+  const versionAtStart = getAuthSessionVersion();
   const response = await authApi.get('/auth/csrf');
   const csrfToken = extractCsrfTokenFromPayload(response.data);
+  const payload = response.data as { session_id?: string; data?: { session_id?: string } };
+  const sessionId = payload.session_id ?? payload.data?.session_id;
+  if (expectedSessionId && typeof sessionId === 'string' && sessionId !== expectedSessionId) throw new AuthSessionChangedError();
 
   if (!csrfToken) {
     throw new Error('Сервер не выдал защитный токен сессии.');
   }
 
+  if (getAuthSessionVersion() !== versionAtStart) throw new Error('Состояние авторизации изменилось во время обновления сессии.');
   saveCsrfToken(csrfToken);
 
   return csrfToken;
 };
 
-export const refreshAccessTokenOnce = async (): Promise<RefreshedAuthSession> => {
-  if (refreshPromise) {
-    return refreshPromise;
-  }
-
-  refreshPromise = (async () => {
-    if (!getCsrfToken()) {
-      await requestCsrfToken();
-    }
-
-    const response = await authApi.post('/auth/refresh', undefined, {
+const refreshAccessTokenInCookieLock = async (
+  expectedSessionId: string | null = getAuthSessionId(),
+  versionAtStart = getAuthSessionVersion(),
+): Promise<RefreshedAuthSession> => {
+  if (getAuthSessionVersion() !== versionAtStart) throw new Error('Состояние авторизации изменилось во время обновления сессии.');
+  const refresh = async () => {
+    await requestCsrfToken(expectedSessionId);
+    return authApi.post('/auth/refresh', undefined, {
       headers: csrfHeaders(),
     });
-    const token = extractTokenFromPayload(response.data);
-    const csrfToken = extractCsrfTokenFromPayload(response.data);
+  };
+  let response;
+  try {
+    response = await refresh();
+  } catch (error) {
+    if (!isCsrfRefreshError(error)) throw error;
+    response = await refresh();
+  }
+  const token = extractTokenFromPayload(response.data);
+  const csrfToken = extractCsrfTokenFromPayload(response.data);
 
-    if (!token || !csrfToken) {
-      throw new Error('Сервер не вернул обновлённую сессию.');
-    }
+  if (!token || !csrfToken) {
+    throw new Error('Сервер не вернул обновлённую сессию.');
+  }
 
-    saveAuthToken(token);
-    saveCsrfToken(csrfToken);
+  if (getAuthSessionVersion() !== versionAtStart) throw new Error('Состояние авторизации изменилось во время обновления сессии.');
+  saveAuthToken(token);
+  saveCsrfToken(csrfToken);
 
-    return { token, csrfToken };
-  })().finally(() => {
+  return { token, csrfToken };
+};
+
+export const refreshAccessTokenOnce = async (): Promise<RefreshedAuthSession> => {
+  if (refreshPromise) return refreshPromise;
+  const versionAtStart = getAuthSessionVersion();
+  const expectedSessionId = getAuthSessionId();
+  refreshPromise = withAuthCookieLock(() => refreshAccessTokenInCookieLock(expectedSessionId, versionAtStart)).finally(() => {
     refreshPromise = null;
   });
 
   return refreshPromise;
+};
+
+export const withRefreshedAuthSession = <T>(operation: (session: RefreshedAuthSession) => Promise<T>): Promise<T> => {
+  const versionAtStart = getAuthSessionVersion();
+  const sessionId = getAuthSessionId();
+  return withAuthCookieLock(async () => operation(await refreshAccessTokenInCookieLock(sessionId, versionAtStart)));
 };
 
 const invalidateAndRedirect = (): void => {
@@ -252,6 +279,8 @@ export const authorizedFetch = async (
   input: RequestInfo | URL,
   init: RequestInit = {},
 ): Promise<Response> => {
+  const originalHeader = new Headers(init.headers).get('Authorization');
+  const originalSessionId = getAuthSessionId(originalHeader?.startsWith('Bearer ') ? originalHeader.slice(7) : getAuthToken());
   const makeRequest = (): Promise<Response> => {
     const headers = new Headers(init.headers);
     const token = getAuthToken();
@@ -273,15 +302,19 @@ export const authorizedFetch = async (
     return response;
   }
 
+  if (originalSessionId && originalSessionId !== getAuthSessionId()) throw new AuthSessionChangedError();
+
+  const expectedToken = getAuthToken();
   try {
     await refreshAccessTokenOnce();
     response = await makeRequest();
   } catch (error) {
-    invalidateAndRedirect();
+    if (getAuthToken() === expectedToken && isTerminalAuthError(error)) invalidateAndRedirect();
     throw error;
   }
 
   if (response.status === 401) {
+    if (originalSessionId && originalSessionId !== getAuthSessionId()) throw new AuthSessionChangedError();
     invalidateAndRedirect();
   }
 
@@ -384,9 +417,16 @@ api.interceptors.response.use(
   async (error: ApiClientError) => {
     const originalRequest = error.config;
     const isAuthRequest = originalRequest?.url?.startsWith('/auth/') === true;
+    const authorization = originalRequest?.headers?.get?.('Authorization') ?? originalRequest?.headers?.Authorization;
+    const originalSessionId = typeof authorization === 'string' && authorization.startsWith('Bearer ')
+      ? getAuthSessionId(authorization.slice(7)) : null;
+    if (error.response?.status === 401 && originalSessionId && originalSessionId !== getAuthSessionId()) {
+      return Promise.reject(new AuthSessionChangedError());
+    }
 
     if (error.response?.status === 401 && originalRequest && !isAuthRequest && !originalRequest._retry) {
       originalRequest._retry = true;
+      const expectedToken = getAuthToken();
 
       try {
         const { token } = await refreshAccessTokenOnce();
@@ -397,7 +437,7 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-        invalidateAndRedirect();
+        if (getAuthToken() === expectedToken && isTerminalAuthError(refreshError)) invalidateAndRedirect();
         return Promise.reject(refreshError);
       }
     }
@@ -507,7 +547,7 @@ export const authService = {
 
   // Вход в систему
   login: async (credentials: LoginRequest): Promise<FetchApiResponse<AuthPayload>> => {
-    const response = await fetchLoginResponse(credentials);
+    const response = await withAuthCookieLock(() => fetchLoginResponse(credentials));
 
     const data = await response.json() as AuthPayload & ApiErrorPayload;
 
@@ -519,11 +559,25 @@ export const authService = {
   },
 
   logout: async (tokenSnapshot: string | null = getAuthToken()) => {
-    return authApi.post<ApiResponse<null>>('/auth/logout', undefined, {
+    const expectedSessionId = getAuthSessionId(tokenSnapshot);
+    return withAuthCookieLock(async () => {
+      let csrfToken = await requestCsrfToken(expectedSessionId);
+      let token = tokenSnapshot;
+      const revoke = () => authApi.post<ApiResponse<null>>('/auth/logout', undefined, {
       headers: {
-        ...getAuthorizationHeaderForToken(tokenSnapshot),
-        ...csrfHeaders(),
+        ...getAuthorizationHeaderForToken(token),
+        'X-CSRF-Token': csrfToken,
       },
+      });
+      try {
+        return await revoke();
+      } catch (error) {
+        if (!axios.isAxiosError(error) || error.response?.status !== 401) throw error;
+        const refreshed = await refreshAccessTokenInCookieLock(expectedSessionId);
+        token = refreshed.token;
+        csrfToken = refreshed.csrfToken;
+        return revoke();
+      }
     });
   },
 

@@ -107,6 +107,88 @@ describe('authService.login', () => {
 });
 
 describe('refreshAccessTokenOnce', () => {
+  it('сохраняет новый вход при позднем втором 401 старого запроса', async () => {
+    const token = (id: string) => `header.${btoa(JSON.stringify({ session_uuid: id }))}.signature`;
+    saveAuthToken(token('original-session'));
+    vi.spyOn(authApi, 'get').mockResolvedValue({ data: { csrf_token: 'csrf', session_id: 'original-session' } } as never);
+    vi.spyOn(authApi, 'post').mockResolvedValue({ data: { token: token('original-session'), csrf_token: 'next-csrf' } } as never);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response('{}', { status: 401 })).mockImplementationOnce(async () => {
+      saveAuthToken(token('new-session'));
+      return new Response('{}', { status: 401 });
+    }));
+    await expect(authorizedFetch('/private')).rejects.toMatchObject({ response: { data: { code: 'web_auth_session_changed' } } });
+    expect(getAuthToken()).toBe(token('new-session'));
+  });
+  it('не повторяет старый запрос с credentials нового входа', async () => {
+    const token = (id: string) => `header.${btoa(JSON.stringify({ session_uuid: id }))}.signature`;
+    saveAuthToken(token('old-session'));
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      saveAuthToken(token('new-session'));
+      return new Response('{}', { status: 401 });
+    }));
+    const csrf = vi.spyOn(authApi, 'get');
+    await expect(authorizedFetch('/private')).rejects.toMatchObject({ response: { data: { code: 'web_auth_session_changed' } } });
+    expect(csrf).not.toHaveBeenCalled();
+    expect(getAuthToken()).toBe(token('new-session'));
+  });
+  it('выходит с актуальным CSRF и не отзывает новую сессию общей cookie', async () => {
+    const original = `header.${btoa(JSON.stringify({ session_uuid: 'original-session' }))}.signature`;
+    saveAuthToken(original);
+    saveCsrfToken('stale-csrf');
+    const csrf = vi.spyOn(authApi, 'get').mockResolvedValue({ data: { csrf_token: 'current-csrf', session_id: 'original-session' } } as never);
+    const logout = vi.spyOn(authApi, 'post').mockResolvedValue({ data: {} } as never);
+    await authService.logout(original);
+    expect(logout).toHaveBeenCalledWith('/auth/logout', undefined, { headers: { Authorization: `Bearer ${original}`, 'X-CSRF-Token': 'current-csrf' } });
+    logout.mockClear();
+    csrf.mockResolvedValue({ data: { csrf_token: 'new-csrf', session_id: 'new-session' } } as never);
+    await expect(authService.logout(original)).rejects.toMatchObject({ response: { data: { code: 'web_auth_session_changed' } } });
+    expect(logout).not.toHaveBeenCalled();
+  });
+  it('не сбрасывает авторизацию при временном отказе обновления', async () => {
+    saveAuthToken('current-access');
+    saveCsrfToken('current-csrf');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 401 })));
+    vi.spyOn(authApi, 'get').mockResolvedValue({ data: { csrf_token: 'current-csrf' } } as never);
+    vi.spyOn(authApi, 'post').mockRejectedValue({ response: { status: 503, data: { code: 'web_refresh_unavailable' } } });
+    await expect(authorizedFetch('/private')).rejects.toMatchObject({ response: { status: 503 } });
+    expect(getAuthToken()).toBe('current-access');
+    expect(getCsrfToken()).toBe('current-csrf');
+  });
+  it('получает CSRF текущей общей cookie вместо устаревшего токена вкладки', async () => {
+    saveAuthToken('old-access');
+    saveCsrfToken('old-csrf');
+    const csrf = vi.spyOn(authApi, 'get').mockResolvedValue({ data: { csrf_token: 'current-csrf' } } as never);
+    const refresh = vi.spyOn(authApi, 'post').mockResolvedValue({ data: { token: 'new-access', csrf_token: 'next-csrf' } } as never);
+    await refreshAccessTokenOnce();
+    expect(csrf).toHaveBeenCalledOnce();
+    expect(refresh).toHaveBeenCalledWith('/auth/refresh', undefined, { headers: { 'X-CSRF-Token': 'current-csrf' } });
+  });
+
+  it('повторяет CSRF-гонку один раз, сохраняя отказ Origin', async () => {
+    const csrf = vi.spyOn(authApi, 'get').mockResolvedValue({ data: { csrf_token: 'current-csrf' } } as never);
+    const refresh = vi.spyOn(authApi, 'post').mockRejectedValueOnce({ response: { status: 403, data: { code: 'web_csrf_mismatch' } } })
+      .mockResolvedValueOnce({ data: { token: 'new-access', csrf_token: 'next-csrf' } } as never);
+    await refreshAccessTokenOnce();
+    expect(csrf).toHaveBeenCalledTimes(2);
+    refresh.mockReset().mockRejectedValue({ response: { status: 403, data: { code: 'web_origin_forbidden' } } });
+    await expect(refreshAccessTokenOnce()).rejects.toMatchObject({ response: { status: 403 } });
+    expect(refresh).toHaveBeenCalledOnce();
+  });
+
+  it('не восстанавливает сессию после logout во время refresh', async () => {
+    vi.spyOn(authApi, 'get').mockResolvedValue({ data: { csrf_token: 'csrf' } } as never);
+    let resolve!: (value: never) => void;
+    const response = new Promise<never>(done => { resolve = done; });
+    const refresh = vi.spyOn(authApi, 'post').mockReturnValue(response);
+    const pending = refreshAccessTokenOnce();
+    await vi.waitFor(() => expect(refresh).toHaveBeenCalledOnce());
+    clearAuthToken();
+    clearCsrfToken();
+    resolve({ data: { token: 'late-access', csrf_token: 'late-csrf' } } as never);
+    await expect(pending).rejects.toThrow('Состояние авторизации изменилось');
+    expect(getAuthToken()).toBeNull();
+    expect(getCsrfToken()).toBeNull();
+  });
   it('объединяет параллельные refresh-запросы и заменяет токены в памяти', async () => {
     const csrfRequest = vi.spyOn(authApi, 'get').mockResolvedValue({
       data: { data: { csrf_token: 'csrf-before-refresh' } },
@@ -132,6 +214,7 @@ describe('refreshAccessTokenOnce', () => {
   });
 
   it('повторяет bearer-запрос после единого refresh при ответе 401', async () => {
+    vi.spyOn(authApi, 'get').mockResolvedValue({ data: { csrf_token: 'csrf-before-refresh' } } as never);
     saveAuthToken('expired-access-token');
     saveCsrfToken('csrf-before-refresh');
     vi.spyOn(authApi, 'post').mockResolvedValue({
