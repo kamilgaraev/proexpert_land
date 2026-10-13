@@ -18,9 +18,39 @@ import {
 afterEach(() => {
   clearAuthToken();
   clearCsrfToken();
+  vi.unstubAllGlobals();
 });
 
 describe('authTokenStorage', () => {
+  it('принимает logout только для текущей сессии и не передаёт credentials', async () => {
+    let receive!: (event: MessageEvent) => void;
+    const postMessage = vi.fn();
+    vi.stubGlobal('BroadcastChannel', class {
+      postMessage = postMessage;
+      addEventListener(_type: string, listener: (event: MessageEvent) => void) { receive = listener; }
+    });
+    vi.resetModules();
+    const storage = await import('./authTokenStorage');
+    const token = `header.${btoa(JSON.stringify({ session_uuid: 'current-session' }))}.signature`;
+    storage.saveAuthToken(token);
+    storage.saveCsrfToken('private-csrf');
+    const listener = vi.fn();
+    const unsubscribe = storage.subscribeAuthSessionInvalidation(listener);
+    receive(new MessageEvent('message', { data: { type: 'logout', sessionId: 'previous-session' } }));
+    receive(new MessageEvent('message', { data: { type: 'logout' } }));
+    expect(storage.getAuthToken()).toBe(token);
+    expect(listener).not.toHaveBeenCalled();
+    storage.invalidateAuthSession(true);
+    expect(postMessage).toHaveBeenCalledWith({ type: 'logout', sessionId: 'current-session' });
+    storage.saveAuthToken(token);
+    storage.saveCsrfToken('private-csrf');
+    receive(new MessageEvent('message', { data: { type: 'logout', sessionId: 'current-session' } }));
+    expect(storage.getAuthToken()).toBeNull();
+    expect(storage.getCsrfToken()).toBeNull();
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    unsubscribe();
+  });
   it('держит access- и CSRF-токены только в памяти', () => {
     saveAuthToken('access-token');
     saveCsrfToken('csrf-token');

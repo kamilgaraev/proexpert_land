@@ -1,5 +1,5 @@
 import axios from 'axios';
-import api, { API_URL } from '@utils/api';
+import { authApi, API_URL, withRefreshedAuthSession } from '@utils/api';
 
 const publicApi = axios.create({
   baseURL: API_URL,
@@ -38,9 +38,11 @@ export const projectParticipantInvitationsApi = {
   },
 
   async accept(token: string): Promise<LandingResponse<AcceptedProjectParticipantInvitation>> {
-    const response = await api.post<LandingResponse<AcceptedProjectParticipantInvitation>>(
+    const response = await withRefreshedAuthSession(session => authApi.post<LandingResponse<AcceptedProjectParticipantInvitation>>(
       `/project-participant-invitations/${encodeURIComponent(token)}/accept`,
-    );
+      undefined,
+      { headers: { Authorization: `Bearer ${session.token}`, 'X-CSRF-Token': session.csrfToken } },
+    ));
     return response.data;
   },
 };

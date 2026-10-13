@@ -1,9 +1,11 @@
 import { createContext, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { authService, type LandingUser } from '@utils/api';
+import { isTerminalAuthError } from '@utils/authRefreshControl';
 import {
   clearAuthToken,
   clearCsrfToken,
   getAuthToken,
+  getAuthSessionId,
   invalidateAuthSession,
   saveAuthToken,
   saveCsrfToken,
@@ -165,8 +167,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (lifecycleEpochRef.current === epoch) {
           window.dispatchEvent(new CustomEvent('user-login'));
         }
-      } catch {
-        if (lifecycleEpochRef.current === epoch) {
+      } catch (error) {
+        if (lifecycleEpochRef.current === epoch && isTerminalAuthError(error)) {
           invalidateAuthSession(true);
         }
       } finally {
@@ -268,14 +270,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const operation = (async (): Promise<void> => {
       lifecycleEpochRef.current += 1;
+      const epoch = lifecycleEpochRef.current;
       const tokenSnapshot = getAuthToken();
+      const sessionId = getAuthSessionId(tokenSnapshot);
       disconnectEchoSafely();
 
       try {
         await authService.logout(tokenSnapshot);
       } catch {
       } finally {
-        invalidateAuthSession(true);
+        if (lifecycleEpochRef.current === epoch && getAuthSessionId() === sessionId) invalidateAuthSession(true);
       }
     })();
     const trackedOperation = operation.finally(() => {

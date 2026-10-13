@@ -2,6 +2,7 @@ export type AuthTokenPersistence = 'memory';
 
 type AuthSessionSignal = {
   type: 'logout';
+  sessionId: string | null;
 };
 
 type AuthSessionListener = () => void;
@@ -10,6 +11,7 @@ const AUTH_SESSION_CHANNEL = 'most-lk-auth';
 
 let memoryToken: string | null = null;
 let memoryCsrfToken: string | null = null;
+let sessionVersion = 0;
 let authChannel: BroadcastChannel | null = null;
 const sessionListeners = new Set<AuthSessionListener>();
 
@@ -28,7 +30,7 @@ const getAuthChannel = (): BroadcastChannel | null => {
 
   authChannel = new BroadcastChannel(AUTH_SESSION_CHANNEL);
   authChannel.addEventListener('message', (event: MessageEvent<AuthSessionSignal>) => {
-    if (event.data?.type === 'logout') {
+    if (event.data?.type === 'logout' && typeof event.data.sessionId === 'string' && event.data.sessionId === getAuthSessionId()) {
       clearAuthToken();
       clearCsrfToken();
       notifySessionInvalidated();
@@ -40,10 +42,24 @@ const getAuthChannel = (): BroadcastChannel | null => {
 
 export const getAuthToken = (): string | null => memoryToken;
 
+export const getAuthSessionVersion = (): number => sessionVersion;
+
+export const getAuthSessionId = (token: string | null = memoryToken): string | null => {
+  try {
+    const payload = token?.split('.')[1];
+    if (!payload) return null;
+    const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as { session_uuid?: unknown };
+    return typeof claims.session_uuid === 'string' ? claims.session_uuid : null;
+  } catch {
+    return null;
+  }
+};
+
 export const getAuthTokenPersistence = (): AuthTokenPersistence => 'memory';
 
 export const synchronizeAuthToken = (token: string | null): void => {
   memoryToken = token;
+  sessionVersion += 1;
 };
 
 export const saveAuthToken = (
@@ -51,6 +67,7 @@ export const saveAuthToken = (
   _persistence: AuthTokenPersistence = 'memory',
 ): void => {
   memoryToken = token || null;
+  sessionVersion += 1;
 };
 
 export const getCsrfToken = (): string | null => memoryCsrfToken;
@@ -65,6 +82,7 @@ export const clearCsrfToken = (): void => {
 
 export const clearAuthToken = (): void => {
   memoryToken = null;
+  sessionVersion += 1;
 };
 
 export const clearAuthTokenIfCurrent = (expectedToken: string | null): boolean => {
@@ -87,12 +105,13 @@ export const subscribeAuthSessionInvalidation = (
 };
 
 export const invalidateAuthSession = (broadcast = false): void => {
+  const sessionId = getAuthSessionId();
   clearAuthToken();
   clearCsrfToken();
   notifySessionInvalidated();
 
   if (broadcast) {
-    getAuthChannel()?.postMessage({ type: 'logout' } satisfies AuthSessionSignal);
+    getAuthChannel()?.postMessage({ type: 'logout', sessionId } satisfies AuthSessionSignal);
   }
 };
 
