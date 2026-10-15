@@ -545,7 +545,7 @@ const ContactForm = ({
               </>
             )}
           </button>
-          {!legalManifest && <p role="status" className="text-sm">{legalError ?? LEGAL_UNAVAILABLE}</p>}
+          {!legalManifest && <p role="status" className="text-sm">{legalError ?? "Подготавливаем форму…"}</p>}
         </form>
       </motion.div>
 

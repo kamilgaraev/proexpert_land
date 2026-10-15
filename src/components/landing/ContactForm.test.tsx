@@ -1,5 +1,5 @@
 import { legalFixture } from '@/test/legalFixture';
-vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null }) }));
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: vi.fn(() => ({ manifest: legalFixture, error: null })) }));
 import {
   cleanup,
   act,
@@ -23,6 +23,8 @@ import {
 } from "vitest";
 import ContactForm from "./ContactForm";
 import { LEGAL_VERSION } from "@/data/marketing/legal";
+import { useLegalManifest } from "@/hooks/useLegalManifest";
+import { LEGAL_UNAVAILABLE } from "@/services/legalService";
 import { captureMarketingAttribution, clearMarketingAttribution } from "@/utils/marketingAttribution";
 
 const { notify, trackButtonClick, trackContactForm } = vi.hoisted(() => ({
@@ -52,6 +54,7 @@ vi.mock("framer-motion", () => ({
 const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 beforeEach(() => {
+  vi.mocked(useLegalManifest).mockReturnValue({ manifest: legalFixture, error: null });
   vi.stubEnv("VITE_API_URL", "http://localhost/api/v1/landing");
   clearMarketingAttribution();
 });
@@ -86,6 +89,34 @@ const fillRequest = (variant: "compact" | "full" = "compact") => {
 };
 
 describe("Marketing contact request", () => {
+  it.each(["full", "compact"] as const)("shows loading instead of an error until the %s form can send", (variant) => {
+    vi.mocked(useLegalManifest).mockReturnValue({ manifest: null, error: null });
+    const view = fillRequest(variant);
+    if (variant === "full") fireEvent.click(screen.getByRole("button", { name: "Запрос демонстрации" }));
+    fireEvent.click(screen.getByRole("checkbox"));
+    const submit = screen.getByRole("button", { name: variant === "full" ? "Запросить демонстрацию" : "Отправить заявку" });
+    expect(submit).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Подготавливаем форму…");
+    expect(screen.queryByText(LEGAL_UNAVAILABLE)).not.toBeInTheDocument();
+
+    vi.mocked(useLegalManifest).mockReturnValue({ manifest: legalFixture, error: null });
+    view.rerender(<MemoryRouter initialEntries={["/#contact"]}><ContactForm variant={variant} /></MemoryRouter>);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(submit).toBeEnabled();
+    expect(screen.getByLabelText("Имя")).toHaveValue("  Анна  ");
+  });
+
+  it.each(["full", "compact"] as const)("keeps the %s form disabled when document verification fails", (variant) => {
+    const error = "Не удалось проверить редакцию документов. Обновите страницу или попробуйте позже.";
+    vi.mocked(useLegalManifest).mockReturnValue({ manifest: null, error });
+    fillRequest(variant);
+    if (variant === "full") fireEvent.click(screen.getByRole("button", { name: "Запрос демонстрации" }));
+    fireEvent.click(screen.getByRole("checkbox"));
+    expect(screen.getByRole("button", { name: variant === "full" ? "Запросить демонстрацию" : "Отправить заявку" })).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent(error);
+    expect(screen.queryByText("Подготавливаем форму…")).not.toBeInTheDocument();
+  });
+
   it("requires consent and submits a demonstration request with its page source", async () => {
     let received: Record<string, unknown> | undefined;
     let contentType: string | null = null;
