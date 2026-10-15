@@ -196,6 +196,103 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe('BillingPage commercial packages', () => {
+  it.each([['6_months', 5, 570000], ['12_months', 10, 1080000]])('передаёт срок %s и показывает серверную скидку перед оплатой', async (period, discount, total) => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(
+      http.post(baseUrl + '/billing/commercial/quote', async ({ request }) => {
+        const body = await request.json() as Record<string, unknown>;
+        const selectedPeriod = body.billing_period as string;
+        const amount = selectedPeriod === period ? total : 100000;
+        return HttpResponse.json({ success: true, data: {
+          quote_version: 4, currency: 'RUB', billing_period: selectedPeriod, renew_subscription: body.renew_subscription,
+          billing_period_days: selectedPeriod === '6_months' ? 184 : 365,
+          offer_type: 'packages', target_package_slugs: [packageSlugs[0]], current_package_slugs: [packageSlugs[0]], added_package_slugs: [], removed_package_slugs: [],
+          monthly_total_minor: 100000, monthly_total: '1000.00', period_total_minor: amount,
+          amount_due_now_minor: amount, amount_due_now: String(amount / 100), period_discount_percent: discount, period_savings_minor: 10000,
+          savings_amount_minor: 0, savings_percent: 0, period_start_at: '2026-07-31T09:00:00Z', period_end_at: '2027-07-31T09:00:00Z',
+        } });
+      }),
+      http.post(baseUrl + '/billing/commercial/checkout', async ({ request }) => {
+        checkoutBody = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: false }, { status: 503 });
+      }),
+    );
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Продлить подписку' }));
+    fireEvent.change(screen.getByLabelText('Период оплаты'), { target: { value: period } });
+    expect(await screen.findByText(new RegExp('Скидка за .*' + discount + '%'))).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Согласен на автоматическое списание' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Перейти к оплате' }));
+    await waitFor(() => expect(checkoutBody).toMatchObject({ billing_period: period, renew_subscription: true, quote_version: 4 }));
+    expect(screen.getByText(/Оплаченный остаток сохранится/)).toBeInTheDocument();
+    expect(screen.getByText(/Новый срок начнётся после окончания текущего оплаченного периода/)).toBeInTheDocument();
+    expect(screen.queryByText(/Срок нового подключения отсчитывается после подтверждения оплаты/)).not.toBeInTheDocument();
+  });
+
+  it('сохраняет полный комплект при продлении и блокирует изменение типа предложения', async () => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(
+      http.get(baseUrl + '/packages', () => HttpResponse.json({ success: true, data: packages.map((item) => ({ ...item, is_active: true, status: 'active', access_source: 'full_suite' })) })),
+      http.get(baseUrl + '/billing/commercial/renewal', () => HttpResponse.json({ success: true, data: {
+        status: 'active', offer_type: 'full_suite', billing_period: '30_days', auto_renew_enabled: true, saved_method_available: true,
+      } })),
+      http.post(baseUrl + '/billing/commercial/quote', async ({ request }) => {
+        const body = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: true, data: {
+          quote_version: 4, currency: 'RUB', billing_period: body.billing_period, renew_subscription: body.renew_subscription,
+          billing_period_days: 30, offer_type: body.full_suite ? 'full_suite' : 'packages', target_package_slugs: packageSlugs, current_package_slugs: packageSlugs,
+          added_package_slugs: [], removed_package_slugs: [], monthly_total_minor: 7990000, monthly_total: '79900.00',
+          period_total_minor: 7990000, amount_due_now_minor: 7990000, amount_due_now: '79900.00', savings_amount_minor: 0, savings_percent: 0,
+          period_start_at: '2026-07-31T09:00:00Z', period_end_at: '2026-08-30T09:00:00Z',
+        } });
+      }),
+      http.post(baseUrl + '/billing/commercial/checkout', async ({ request }) => {
+        checkoutBody = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: false }, { status: 503 });
+      }),
+    );
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Продлить подписку' }));
+    const fullSuiteToggle = screen.getByRole('button', { name: 'Оставить текущий состав' });
+    expect(fullSuiteToggle).toBeDisabled();
+    fireEvent.click(fullSuiteToggle);
+    fireEvent.click(await screen.findByRole('button', { name: 'Перейти к оплате' }));
+    await waitFor(() => expect(checkoutBody).toMatchObject({ full_suite: true, renew_subscription: true }));
+  });
+
+  it.each(['period', 'mode'])('сохраняет согласие при возврате к текущему сроку через %s', async (returnVia) => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(
+      http.post(baseUrl + '/billing/commercial/quote', async ({ request }) => {
+        const body = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: true, data: {
+          quote_version: 4, currency: 'RUB', billing_period: body.billing_period, renew_subscription: body.renew_subscription,
+          billing_period_days: 30, offer_type: 'packages', target_package_slugs: [packageSlugs[0]], current_package_slugs: [packageSlugs[0]],
+          added_package_slugs: [], removed_package_slugs: [], monthly_total_minor: 100000, monthly_total: '1000.00',
+          period_total_minor: 100000, amount_due_now_minor: 100000, amount_due_now: '1000.00',
+          savings_amount_minor: 0, savings_percent: 0, period_start_at: '2026-07-31T09:00:00Z', period_end_at: '2026-08-30T09:00:00Z',
+        } });
+      }),
+      http.post(baseUrl + '/billing/commercial/checkout', async ({ request }) => {
+        checkoutBody = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: false }, { status: 503 });
+      }),
+    );
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Продлить подписку' }));
+    fireEvent.change(screen.getByLabelText('Период оплаты'), { target: { value: '12_months' } });
+    expect(await screen.findByRole('checkbox', { name: 'Согласен на автоматическое списание' })).not.toBeChecked();
+    if (returnVia === 'period') {
+      fireEvent.change(screen.getByLabelText('Период оплаты'), { target: { value: '30_days' } });
+    } else {
+      fireEvent.click(screen.getByRole('button', { name: 'Изменить пакеты' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Продлить подписку' }));
+    }
+    await waitFor(() => expect(screen.queryByRole('checkbox', { name: 'Согласен на автоматическое списание' })).not.toBeInTheDocument());
+    fireEvent.click(await screen.findByRole('button', { name: 'Перейти к оплате' }));
+    await waitFor(() => expect(checkoutBody).toMatchObject({ billing_period: '30_days', renew_subscription: true, auto_renew_consent: true }));
+  });
+
   it('не показывает технический текст ошибки авторизации при загрузке пакетов', async () => {
     server.use(
       http.get(`${baseUrl}/packages`, () => HttpResponse.json({
@@ -443,12 +540,18 @@ describe('BillingPage commercial packages', () => {
     expect(screen.queryByRole('button', { name: 'Оплатить сейчас' })).not.toBeInTheDocument();
   });
 
-  it('блокирует изменение в grace и объясняет фиксированную расчётную дату', async () => {
+  it.each([['30_days', '30 дней'], ['6_months', '6 месяцев'], ['12_months', '12 месяцев']])('блокирует изменение в grace и объясняет оплачиваемый срок %s', async (period, label) => {
     accountStatus = 'grace';
+    server.use(http.get(baseUrl + '/billing/commercial/renewal', () => HttpResponse.json({ success: true, data: {
+      status: 'grace', billing_period: period, auto_renew_enabled: true, saved_method_available: true,
+      next_billing_at: '2026-07-31T09:00:00Z', grace_started_at: '2026-07-31T09:00:00Z', grace_ends_at: '2026-08-07T09:00:00Z',
+      retry_status: 'grace', attempt_count: 2, next_attempt_at: '2026-08-01T00:00:00Z', scheduled_change: null,
+    } })));
     renderPage();
     expect(await screen.findByRole('heading', { name: 'Льготный период' })).toBeInTheDocument();
     expect(screen.getByText(/7 августа 2026/)).toBeInTheDocument();
-    expect(screen.getByText(/льготные дни входят в этот период/)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp('пропущенный период подписки \\(' + label + '\\)'))).toBeInTheDocument();
+    expect(screen.queryByText(/останется около 24 дней/)).not.toBeInTheDocument();
     expect(within(screen.getByRole('heading', { name: 'Пакет 2' }).closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Оплатить сейчас' })).toBeInTheDocument();
   });
@@ -904,6 +1007,9 @@ describe('BillingPage commercial packages', () => {
   it('показывает полную стоимость годового периода и передаёт период из расчёта в банковский checkout', async () => {
     let checkoutBody: Record<string, unknown> | null = null;
     server.use(
+      http.get(`${baseUrl}/billing/commercial/renewal`, () => HttpResponse.json({ success: true, data: {
+        status: 'active', billing_period: '12_months', next_billing_at: '2027-07-01T09:00:00Z',
+      } })),
       http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: {
         provider: 'tochka', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: true,
       } })),
@@ -929,17 +1035,6 @@ describe('BillingPage commercial packages', () => {
     expect(screen.getByTestId('monthly-total')).toHaveTextContent('21 600 ₽');
     fireEvent.click(await screen.findByRole('button', { name: 'Получить счёт' }));
     await waitFor(() => expect(checkoutBody).toMatchObject({ billing_period: '12_months', renew_subscription: false }));
-  });
-
-  it('в grace длинного периода не обещает фиксированные 30 дней', async () => {
-    accountStatus = 'grace';
-    server.use(http.get(`${baseUrl}/billing/commercial/renewal`, () => HttpResponse.json({ success: true, data: {
-      status: 'grace', billing_period: '6_months', next_billing_at: '2026-07-31T09:00:00Z',
-      grace_started_at: '2026-07-31T09:00:00Z', grace_ends_at: '2026-08-07T09:00:00Z',
-    } })));
-    renderPage();
-    expect(await screen.findByText(/пропущенный период подписки \(6 месяцев\)/)).toBeInTheDocument();
-    expect(screen.queryByText(/на шестой день останется около 24 дней/)).not.toBeInTheDocument();
   });
 
   it('повторяет проверку возможностей после временного сбоя и разрешает выставить счёт', async () => {
