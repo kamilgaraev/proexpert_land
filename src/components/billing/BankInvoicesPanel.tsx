@@ -20,13 +20,15 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
   const [reason, setReason] = useState('');
   const [refundKey, setRefundKey] = useState('');
   const seen = useRef<Map<string, boolean>>(new Map());
+  const generation = useRef(0);
   const paidCallback = useRef(onPaid);
   paidCallback.current = onPaid;
 
   const load = useCallback(async (signal?: AbortSignal) => {
+    const requestGeneration = ++generation.current;
     try {
       const result = await bankBillingService.invoices(page, signal);
-      if (signal?.aborted) return;
+      if (signal?.aborted || requestGeneration !== generation.current) return;
       let newlyActivated = false;
       for (const invoice of result.items) {
         if (seen.current.has(invoice.id) && !seen.current.get(invoice.id) && invoice.activated_at) newlyActivated = true;
@@ -35,8 +37,8 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
       setData(result); setError(null);
       if (newlyActivated) paidCallback.current?.();
     } catch (failure) {
-      if (!signal?.aborted) setError(failure instanceof Error ? failure.message : 'Не удалось загрузить счета.');
-    } finally { if (!signal?.aborted) setLoading(false); }
+      if (!signal?.aborted && requestGeneration === generation.current) setError(failure instanceof Error ? failure.message : 'Не удалось загрузить счета.');
+    } finally { if (!signal?.aborted && requestGeneration === generation.current) setLoading(false); }
   }, [page]);
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
     setData(null);
     void load(controller.signal);
     const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load(controller.signal); }, 30_000);
-    return () => { controller.abort(); window.clearInterval(timer); };
+    return () => { generation.current += 1; controller.abort(); window.clearInterval(timer); };
   }, [load, revision]);
 
   const perform = async (key: string, action: () => Promise<void>) => {

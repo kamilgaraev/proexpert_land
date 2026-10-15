@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { BankInvoicesPanel } from './BankInvoicesPanel';
@@ -63,6 +63,24 @@ describe('Счета МОСТ', () => {
 
   it('не допускает произвольные адреса при скачивании документа', async () => {
     await expect(bankBillingService.download('https://example.test/key')).rejects.toThrow('Некорректный номер документа');
+  });
+
+  it('сохраняет новый оплаченный статус при запоздавшем ответе старой проверки', async () => {
+    const onPaid = vi.fn();
+    render(<BankInvoicesPanel canManage={false} onPaid={onPaid} />);
+    await screen.findByText('Оплачен частично');
+    let resolveOlder!: (value: { items: BankInvoice[]; meta: { current_page: number; last_page: number; total: number; per_page: number } }) => void;
+    const older = new Promise<{ items: BankInvoice[]; meta: { current_page: number; last_page: number; total: number; per_page: number } }>((resolve) => { resolveOlder = resolve; });
+    const meta = { current_page: 1, last_page: 1, total: 1, per_page: 20 };
+    vi.spyOn(bankBillingService, 'invoices').mockReturnValueOnce(older)
+      .mockResolvedValueOnce({ items: [{ ...invoice, status: 'paid', activated_at: '2026-10-15T13:00:00Z' }], meta });
+    fireEvent.click(screen.getByRole('button', { name: 'Проверить оплату' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Проверить оплату' }));
+    await screen.findByText('Оплачен');
+    await act(async () => { resolveOlder({ items: [invoice], meta }); await older; });
+    expect(screen.getByText('Оплачен')).toBeInTheDocument();
+    expect(screen.queryByText('Оплачен частично')).not.toBeInTheDocument();
+    expect(onPaid).toHaveBeenCalledOnce();
   });
 
   it('показывает понятную ошибку вместо HTML ответа прокси', async () => {
