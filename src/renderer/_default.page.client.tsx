@@ -4,6 +4,8 @@ import type { PageContextClient } from "vike/types";
 import { PageShell } from "./PageShell";
 import { preparePageShell } from "./pageShellLoader";
 import { BrowserRouter } from "react-router-dom";
+import { isHoldingHostname } from '@/utils/holdingDomain';
+import { loadHoldingRouter } from '@/holdingRouterLoader';
 
 type ClientPageContext = Pick<
   PageContextClient,
@@ -40,6 +42,7 @@ export async function render(pageContext: ClientPageContext) {
   const generation = ++renderGeneration;
   const requestHostname = pageContext.requestHostname ?? window.location.hostname;
   await preparePageShell(pageContext.urlPathname || window.location.pathname, requestHostname);
+  if (isHoldingHostname(requestHostname)) await loadHoldingRouter();
   await pendingCommit;
   if (generation !== renderGeneration) return;
 

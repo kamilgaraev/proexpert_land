@@ -432,7 +432,7 @@ describe('catch-all blog SSR', () => {
 
     await expect(onBeforeRender({ urlPathname: '/blog' })).resolves.toMatchObject({
       pageContext: {
-        routeStatusCode: 200,
+        routeStatusCode: 503,
         pageProps: {
           initialBlogIndexData: {
             articles: [],

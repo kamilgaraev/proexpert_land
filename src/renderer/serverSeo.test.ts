@@ -19,13 +19,15 @@ const getGraphTypes = (structuredDataTag: string) =>
 describe('buildServerSeoPayload', () => {
   it('keeps holding SEO and aliases on the requested hostname', () => {
     const host = 'company.xn--1-xtbgmf.xn--p1ai';
-    const payload = buildServerSeoPayload('/features', { title: 'Marketing title' }, host);
-    expect(payload.title).toBe('Сайт холдинга');
+    const payload = buildServerSeoPayload('/features', { title: 'Published title', statusCode: 200, noIndex: false }, host);
+    expect(payload.title).toBe('Published title');
     expect(payload.canonicalUrl).toBe(`https://${host}/features`);
     expect(payload.allMeta).toContain(`content="https://${host}/features"`);
     expect(payload.structuredDataTag).toBe('');
     expect(payload.statusCode).toBe(200);
     expect(buildServerSeoPayload('/functions', undefined, host).redirectTarget).toBeUndefined();
+    expect(buildServerSeoPayload('/never-published', undefined, host).statusCode).toBe(503);
+    expect(buildServerSeoPayload('/reports/contracts', undefined, host).allMeta).toContain('noindex');
   });
 
   it('preserves an explicit paginated canonical in SSR and structured data', () => {

@@ -15,12 +15,13 @@ import { ThemeProvider } from '@components/shared/ThemeProvider';
 import { HoldingPanelLayout } from '@layouts/HoldingPanelLayout';
 import { HoldingProjectsList, HoldingProjectDetails } from '@/components/holding';
 import { HoldingPanelRouteGuard } from '@/components/multi-org/HoldingPanelRouteGuard';
+import type { HoldingPublicPageState } from '@/utils/holdingPublicPage';
 
-const HoldingRouter = () => {
+const HoldingRouter = ({ initialHoldingPage }: { initialHoldingPage?: HoldingPublicPageState } = {}) => {
   return (
     <ThemeProvider>
       <Routes>
-        <Route path="/" element={<HoldingLandingRuntimePage />} />
+        <Route path="/" element={<HoldingLandingRuntimePage initialPage={initialHoldingPage} />} />
         <Route path="/login" element={<HoldingLoginPage />} />
         
         <Route element={(
@@ -53,7 +54,7 @@ const HoldingRouter = () => {
             </HoldingPanelRouteGuard>
           )}
         />
-        <Route path="*" element={<HoldingLandingRuntimePage />} />
+        <Route path="*" element={<HoldingLandingRuntimePage initialPage={initialHoldingPage} />} />
       </Routes>
     </ThemeProvider>
   );

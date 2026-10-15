@@ -10,8 +10,10 @@ import { Link, MemoryRouter, StaticRouter } from "react-router-dom";
 import type { PropsWithChildren } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PageShell } from "./PageShell";
-import { saveCookieConsent } from '@/utils/marketingConsent';
+import { clearCookieConsent, saveCookieConsent, setAnalyticsAvailability } from '@/utils/marketingConsent';
 import { clearMarketingAttribution, getMarketingAttribution } from '@/utils/marketingAttribution';
+
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: {} }) }));
 
 vi.mock('@/utils/publicSite', async (original) => ({
   ...await original<typeof import('@/utils/publicSite')>(),
@@ -49,6 +51,8 @@ const mount = (pathname = "/") =>
 
 beforeEach(() => {
   window.localStorage.clear();
+  clearCookieConsent();
+  setAnalyticsAvailability(false);
   clearMarketingAttribution();
   loader.ready = null;
   loader.load.mockReset();
@@ -60,11 +64,18 @@ describe("PageShell provider boundary", () => {
   it('подключает аналитику и сохраняет источник для публичной SSR-страницы без App', () => {
     (window as unknown as { happyDOM: { settings: { handleDisabledFileLoadingAsSuccess: boolean } } }).happyDOM.settings.handleDisabledFileLoadingAsSuccess = true;
     window.ym = vi.fn();
-    saveCookieConsent(true);
+    const documentHash = 'a'.repeat(64);
+    setAnalyticsAvailability(true, documentHash);
+    saveCookieConsent(true, { receiptId: 'receipt-fixture', visitorId: 'visitor-fixture', documentHash });
     mount('/?utm_source=yandex&utm_campaign=materials');
     expect(window.ym).toHaveBeenCalledWith(110599591, 'init', expect.objectContaining({defer:true}));
     expect(getMarketingAttribution()).toEqual({utm_source:'yandex',utm_campaign:'materials'});
     expect(loader.load).not.toHaveBeenCalled();
+  });
+  it.each(['/', '/about'])('keeps holding %s inside the prepared providers', (pathname) => {
+    loader.ready = PrivateShell;
+    render(<MemoryRouter initialEntries={[pathname]}><PageShell pageContext={{ requestHostname: 'company.xn--1-xtbgmf.xn--p1ai' }}>{content}</PageShell></MemoryRouter>);
+    expect(screen.getByTestId('private-context')).toHaveTextContent('Содержимое страницы');
   });
   it("renders public content without loading private code", () => {
     mount();

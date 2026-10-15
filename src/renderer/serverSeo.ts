@@ -1,5 +1,5 @@
 import { resolveMarketingRedirectTarget } from '@/data/marketingRegistry';
-import { isHoldingHostname } from '@/utils/holdingDomain';
+import { isHoldingHostname, isHoldingPrivatePath } from '@/utils/holdingDomain';
 import {
   buildStructuredDataGraph,
   GOOGLEBOT_INDEX_CONTENT,
@@ -66,11 +66,11 @@ export const buildServerSeoPayload = (
     keywords: '',
     canonicalUrl: `https://${requestHostname}${pathname.split(/[?#]/)[0]}`,
     ogImage: '',
-    noIndex: false,
+    noIndex: true,
     type: 'website' as const,
-    statusCode: 200,
+    statusCode: isHoldingPrivatePath(pathname) ? 200 : 503,
   } : getPageSEOData(pathname);
-  const resolvedDocumentProps = isHolding ? {} : documentProps || {};
+  const resolvedDocumentProps = documentProps || {};
 
   const title = resolvedDocumentProps.title ?? baseSeo.title;
   const description = resolvedDocumentProps.description ?? baseSeo.description;
@@ -79,7 +79,7 @@ export const buildServerSeoPayload = (
     ? resolvedDocumentProps.canonicalUrl.replace(/#.*$/, '')
     : baseSeo.canonicalUrl.replace(/[?#].*$/, '');
   const ogImage = normalizeOgImageUrl(resolvedDocumentProps.ogImage ?? baseSeo.ogImage) ?? baseSeo.ogImage;
-  const noIndex = resolvedDocumentProps.noIndex ?? baseSeo.noIndex;
+  const noIndex = (isHolding && isHoldingPrivatePath(pathname)) || (resolvedDocumentProps.noIndex ?? baseSeo.noIndex);
   const ogType = resolvedDocumentProps.type ?? baseSeo.type;
   const lang = resolvedDocumentProps.lang ?? baseSeo.lang;
   const statusCode = resolvedDocumentProps.statusCode ?? baseSeo.statusCode;

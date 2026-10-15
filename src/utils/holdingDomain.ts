@@ -6,3 +6,9 @@ export function isHoldingHostname(hostname: string): boolean {
   return hostname.endsWith(`.${HOLDING_MAIN_DOMAIN}`)
     && !reserved.has(hostname.split('.')[0]);
 }
+
+export function isHoldingPrivatePath(pathname: string): boolean {
+  return ['/login', '/dashboard', '/organizations', '/reports', '/projects', '/landing/editor', '/settings']
+    .some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
+    || /^\/holding\/[^/]+\/landing\/edit(?:\/|$)/.test(pathname);
+}

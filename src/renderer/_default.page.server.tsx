@@ -18,6 +18,8 @@ import { isMarketingPublicRequest } from "@/utils/publicSite";
 import { getCabinetRedirect } from "@/utils/cabinetRedirect";
 import { filterMarketingAssets } from "./marketingAssetFilter";
 import homeStyles from "../styles/marketing-base.css?inline";
+import { isHoldingHostname } from '@/utils/holdingDomain';
+import { loadHoldingRouter } from '@/holdingRouterLoader';
 
 type ServerPageContext = PageContextServer & {
   Page: ComponentType<Record<string, unknown>>;
@@ -53,6 +55,7 @@ export async function render(pageContext: ServerPageContext) {
   }
 
   await preparePageShell(pathname, hostname);
+  if (isHoldingHostname(hostname)) await loadHoldingRouter();
   const { Page } = pageContext;
   const pageProps = { ...pageContext.pageProps, requestHostname: hostname };
   const html = ReactDOMServer.renderToString(

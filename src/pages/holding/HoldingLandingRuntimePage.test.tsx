@@ -28,6 +28,8 @@ describe('holding runtime navigation', () => {
     home.site.title = 'Опубликованная главная';
     const about = createPublicSitePayloadFixture();
     about.site.title = 'Опубликованная компания';
+    about.runtime.path = '/about';
+    about.current_page!.slug = '/about';
     api.getSiteData.mockResolvedValueOnce(home).mockResolvedValueOnce(about);
 
     render(<MemoryRouter><NavigatePage /></MemoryRouter>);
@@ -35,5 +37,13 @@ describe('holding runtime navigation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'О компании' }));
     expect(await screen.findByText('Опубликованная компания')).toBeTruthy();
     await waitFor(() => expect(api.getSiteData).toHaveBeenLastCalledWith('/about', '?lang=ru'));
+  });
+
+  it('uses the SSR payload for hydration without fetching it again', async () => {
+    const payload = createPublicSitePayloadFixture();
+    payload.site.title = 'Сохранённый SSR сайт';
+    render(<MemoryRouter><HoldingLandingRuntimePage initialPage={{ pathname: '/', search: '', status: 200, payload }} /></MemoryRouter>);
+    expect(screen.getByText('Сохранённый SSR сайт')).toBeTruthy();
+    expect(api.getSiteData).not.toHaveBeenCalled();
   });
 });

@@ -6,15 +6,18 @@ import { BuilderApiError, publicHoldingSiteService } from '@/services/holdingSit
 import type { PublicSitePayload } from '@/types/holding-site-builder';
 import HoldingLandingPage from './HoldingLandingPage';
 import NotFoundPage from '@pages/NotFoundPage';
+import { hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
 
-const HoldingLandingRuntimePage = () => {
+const HoldingLandingRuntimePage = ({ initialPage }: { initialPage?: HoldingPublicPageState } = {}) => {
   const { pathname, search } = useLocation();
-  const [payload, setPayload] = useState<PublicSitePayload | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [errorStatus, setErrorStatus] = useState<number | null>(null);
+  const initial = initialPage?.pathname === pathname && initialPage.search === search ? initialPage : undefined;
+  const [payload, setPayload] = useState<PublicSitePayload | null>(initial?.payload ?? null);
+  const [loading, setLoading] = useState(!initial || (initial.status === 200 && !initial.payload));
+  const [error, setError] = useState<string | null>(initial?.message ?? null);
+  const [errorStatus, setErrorStatus] = useState<number | null>(initial?.status ?? null);
 
   useEffect(() => {
+    if (initial && (initial.payload || initial.status !== 200)) return;
     let active = true;
     const loadPayload = async () => {
       setLoading(true);
@@ -23,6 +26,7 @@ const HoldingLandingRuntimePage = () => {
 
       try {
         const data = await publicHoldingSiteService.getSiteData(pathname, search);
+        if (!hasHoldingPublicPage(data)) throw new BuilderApiError('Страница не найдена.', 404);
         if (active) setPayload(data);
       } catch (loadError) {
         if (!active) return;
@@ -36,7 +40,7 @@ const HoldingLandingRuntimePage = () => {
 
     void loadPayload();
     return () => { active = false; };
-  }, [pathname, search]);
+  }, [pathname, search, initial]);
 
   const isPreview = new URLSearchParams(search).get('preview') === 'true';
   const showPreviewBadge = isPreview && payload?.runtime.mode === 'draft';
@@ -65,11 +69,12 @@ const HoldingLandingRuntimePage = () => {
 
   if (!payload) {
     if (!isPreview && errorStatus === 404) {
-      return pathname === '/' ? <HoldingLandingPage /> : <NotFoundPage />;
+      return pathname === '/' ? <HoldingLandingPage /> : <><SEOHead title="Страница не найдена" noIndex /><NotFoundPage /></>;
     }
 
     return (
       <div className="grid min-h-screen place-items-center bg-slate-100 px-4">
+        <SEOHead title={isPreview ? 'Превью недоступно' : 'Публичный сайт недоступен'} noIndex />
         <div className="max-w-xl rounded-[28px] border border-rose-200 bg-white p-8 shadow-sm">
           <h1 className="text-2xl font-semibold text-slate-950">
             {isPreview ? 'Превью недоступно' : 'Публичный сайт недоступен'}
@@ -90,6 +95,7 @@ const HoldingLandingRuntimePage = () => {
           payload.site.description
         }
         keywords={payload.site.seo_meta.keywords}
+        noIndex={isPreview || Boolean(payload.site.seo_meta.noindex)}
       />
       {showPreviewBadge && (
         <div className="fixed right-4 top-4 z-50 inline-flex items-center gap-3 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900 shadow-sm">
