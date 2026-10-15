@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const { renderPage } = require('vike/server');
 const { respondWithSitemap } = require('./sitemap.cjs');
+const { respondWithHoldingDiscovery } = require('./holding-discovery.cjs');
 // Регистрация pageFiles и client манифеста, сгенерированных Vite
 require(path.resolve(__dirname, './entry.mjs'));
 
@@ -10,6 +11,20 @@ const distDir = path.resolve(__dirname, '../client');
 
 const server = http.createServer(async (req, res) => {
   const url = req.url.split('?')[0];
+
+  if (await respondWithHoldingDiscovery(req, res)) return;
+
+  if (url === '/robots.txt') {
+    const robotsFilePath = path.resolve(__dirname, 'robots.txt');
+    if (!fs.existsSync(robotsFilePath)) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end('Not found');
+      return;
+    }
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=300' });
+    fs.createReadStream(robotsFilePath).pipe(res);
+    return;
+  }
 
   if (url === '/sitemap.xml') {
     await respondWithSitemap(res, {
