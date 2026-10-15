@@ -4,6 +4,7 @@ import { CommercialPackageCard } from '@/components/billing/CommercialPackageCar
 import { CommercialPackageDetailsSheet } from '@/components/billing/CommercialPackageDetailsSheet';
 import { EnterpriseInquiryDialog } from '@/components/billing/EnterpriseInquiryDialog';
 import { Badge } from '@/components/ui/badge';
+import { legalProvider } from '@/data/marketing/legal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCanAccess, usePermissions } from '@/hooks/usePermissions';
@@ -472,6 +473,10 @@ const BillingPage = () => {
           </div>
         </div>
       </header>
+      <aside className="rounded-lg border border-border p-4 text-sm leading-6" aria-label="Поставщик доступа к МОСТ">
+        <p>Поставщик и получатель платежей — {legalProvider.short_name}, ИНН {legalProvider.inn}, ОГРНИП {legalProvider.registration_number}. При предоставлении доступа НДС не предъявляется в связи с применением АУСН.</p>
+        <p className="mt-2 flex flex-wrap gap-4"><a href="https://1мост.рф/contact#requisites" target="_blank" rel="noreferrer" className="underline">Реквизиты</a><a href="https://1мост.рф/offer" target="_blank" rel="noreferrer" className="underline">Лицензионный договор</a><a href="https://1мост.рф/auto-renewal" target="_blank" rel="noreferrer" className="underline">Условия автопродления</a></p>
+      </aside>
 
       {isGrace ? <section className="rounded-[24px] border-2 border-orange-300 bg-orange-50 p-6" aria-labelledby="grace-title">
         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">

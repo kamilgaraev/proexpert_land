@@ -310,6 +310,8 @@ const internalPublicRoutePrefixes = [
   "/dashboard",
   "/landing/multi-organization",
   "/invitations",
+  "/project-invitations",
+  "/reset-password",
   "/supplier-requests",
 ];
 

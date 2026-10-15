@@ -1,5 +1,4 @@
 import sitemapRoutes from './sitemapRoutes.json';
-import { archivedLegalDocuments } from './legal';
 
 export interface MarketingSitemapRoute {
   path: string;
@@ -74,7 +73,7 @@ assertMarketingSitemapRoutes(sitemapRoutes);
 
 export const marketingSitemapRoutes: MarketingSitemapRoute[] = sitemapRoutes;
 
-export const marketingNoIndexPaths = new Set(['/privacy', '/offer', '/cookies', '/data-processing', '/personal-data-consent', '/marketing-consent', '/auto-renewal', '/account-rules', '/legal/archive/2026-03-25/privacy', '/legal/archive/2026-03-25/offer', '/legal/archive/2026-03-25/cookies', ...Object.values(archivedLegalDocuments).map((document) => document.path)]);
+export const marketingNoIndexPaths = new Set(['/privacy', '/offer', '/cookies', '/data-processing', '/personal-data-consent', '/marketing-consent', '/auto-renewal', '/account-rules']);
 
 export const marketingNoIndexPrefixes = [
   '/dashboard',
