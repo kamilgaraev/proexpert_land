@@ -61,6 +61,39 @@ describe('Счета МОСТ', () => {
     await waitFor(() => expect(onPaid).toHaveBeenCalledOnce());
   });
 
+  it.each(['cancel', 'refund'])('сохраняет успех %s и убирает устаревшие действия при сбое обновления', async (action) => {
+    let mutations = 0;
+    const currentInvoice = action === 'cancel' ? { ...invoice, status: 'awaiting_payment', paid_minor: 0 } : invoice;
+    server.use(
+      http.get(`${base}/invoices`, () => mutations > 0
+        ? HttpResponse.text('Bad Gateway', { status: 502 })
+        : HttpResponse.json({ success: true, data: { items: [currentInvoice], meta: { current_page: 1, last_page: 1, total: 1, per_page: 20 } } })),
+      http.post(`${base}/invoices/${invoice.id}/${action === 'cancel' ? 'cancel' : 'refunds'}`, () => {
+        mutations++;
+        return HttpResponse.json({ success: true, data: { items: [] } });
+      }),
+    );
+    render(<BankInvoicesPanel canManage />);
+    if (action === 'cancel') {
+      fireEvent.click(await screen.findByRole('button', { name: 'Отменить неоплаченный счёт' }));
+    } else {
+      fireEvent.click(await screen.findByRole('button', { name: 'Запросить возврат' }));
+      fireEvent.change(screen.getByLabelText('Сумма, руб.'), { target: { value: '12,34' } });
+      fireEvent.change(screen.getByLabelText('Причина'), { target: { value: 'Просим вернуть ошибочный платёж' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Отправить запрос' }));
+    }
+    expect(await screen.findByText(action === 'cancel' ? /Счёт отменён/ : /Запрос возврата принят/)).toBeInTheDocument();
+    await screen.findByRole('alert');
+    expect(screen.queryByText('MOST-0000000001')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Запросить возврат' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Отменить неоплаченный счёт' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Отправить запрос' })).not.toBeInTheDocument();
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: { items: [], meta: { current_page: 1, last_page: 1, total: 0, per_page: 20 } } })));
+    fireEvent.click(screen.getByRole('button', { name: 'Проверить оплату' }));
+    await screen.findByText(/Счетов пока нет/);
+    expect(mutations).toBe(1);
+  });
+
   it('не допускает произвольные адреса при скачивании документа', async () => {
     await expect(bankBillingService.download('https://example.test/key')).rejects.toThrow('Некорректный номер документа');
   });

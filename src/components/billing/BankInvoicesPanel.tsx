@@ -13,6 +13,7 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [refundInvoice, setRefundInvoice] = useState<BankInvoice | null>(null);
   const [amount, setAmount] = useState('');
@@ -48,9 +49,16 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
     return () => { generation.current += 1; controller.abort(); window.clearInterval(timer); };
   }, [load, revision]);
 
-  const perform = async (key: string, action: () => Promise<void>) => {
-    setBusy(key); setError(null);
-    try { await action(); await load(); }
+  const perform = async (key: string, action: () => Promise<void>, successMessage?: string) => {
+    setBusy(key); setError(null); setNotice(null);
+    try {
+      await action();
+      if (successMessage) {
+        generation.current += 1;
+        setNotice(successMessage); setData(null); setLoading(true);
+        await load();
+      }
+    }
     catch (failure) { setError(failure instanceof Error ? failure.message : 'Не удалось выполнить действие.'); }
     finally { setBusy(null); }
   };
@@ -72,13 +80,14 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
     await perform('refund', async () => {
       await bankBillingService.refund(refundInvoice.id, minor, kind, reason, refundKey);
       setRefundInvoice(null);
-    });
+    }, 'Запрос возврата принят. Его состояние появится после обновления списка.');
   };
 
   return <section id="bank-invoices" aria-labelledby="bank-invoices-title" className="space-y-4 rounded-lg border border-slate-200 bg-white p-6">
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 id="bank-invoices-title" className="text-xl font-semibold">Счета и документы</h2><Button variant="outline" disabled={loading || busy !== null} onClick={() => void load()}>Проверить оплату</Button></div>
     <p className="text-sm text-slate-600">Оплачивайте с расчётного счёта организации или ИП. Сохраните номер счёта в назначении. Доступ подключится после подтверждения поступления банком.</p>
     <p className="text-xs text-slate-500">PDF акта — копия без подписи. Подписанный оригинал можно запросить через поддержку по ЭДО или на бумаге.</p>
+    {notice && <p role="status" className="rounded border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
     {error && <p role="alert" className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
     {loading && <p role="status">Загружаем счета…</p>}
     {!loading && data?.items.length === 0 && <p className="text-sm text-slate-500">Счетов пока нет. Выберите состав пакетов или кредиты ИИ.</p>}
@@ -88,7 +97,7 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
       <p className="text-sm">Зачтено: {money(invoice.paid_minor)} · К доплате: {money(invoice.remaining_minor)} · Переплата: {money(invoice.overpayment_minor)}{invoice.refunded_minor > 0 ? ` · Возвращено: ${money(invoice.refunded_minor)}` : ''}</p>
       {['awaiting_payment', 'partially_paid'].includes(invoice.status) && <details><summary className="cursor-pointer text-sm font-medium">Реквизиты и назначение платежа</summary><dl className="mt-3 space-y-2 break-words text-sm"><div><dt>Получатель</dt><dd>{invoice.seller.name}, ИНН {invoice.seller.inn}</dd></div><div><dt>Плательщик</dt><dd>{invoice.buyer.name}, ИНН {invoice.buyer.inn}</dd></div><div><dt>Банк</dt><dd>{invoice.bank.name} · БИК {invoice.bank.bik}</dd></div><div><dt>Расчётный счёт</dt><dd>{invoice.bank.account}</dd></div><div><dt>Корреспондентский счёт</dt><dd>{invoice.bank.correspondent_account}</dd></div><div><dt>Назначение</dt><dd>{invoice.purpose}</dd></div><div><dt>Оплатить до</dt><dd>{new Date(invoice.expires_at).toLocaleDateString('ru-RU')}</dd></div></dl></details>}
       <div className="flex flex-wrap gap-2">{invoice.documents.map((doc) => <Button key={doc.id} variant="outline" disabled={busy !== null} onClick={() => void perform(doc.id, () => download(doc.id))}>{documentLabels[doc.kind]}</Button>)}
-        {canManage && invoice.paid_minor === 0 && invoice.status === 'awaiting_payment' && <Button variant="outline" disabled={busy !== null} onClick={() => void perform(invoice.id, async () => { await bankBillingService.cancel(invoice.id); })}>Отменить неоплаченный счёт</Button>}
+        {canManage && invoice.paid_minor === 0 && invoice.status === 'awaiting_payment' && <Button variant="outline" disabled={busy !== null} onClick={() => void perform(invoice.id, async () => { await bankBillingService.cancel(invoice.id); }, 'Счёт отменён. Его состояние появится после обновления списка.')}>Отменить неоплаченный счёт</Button>}
         {canManage && (invoice.paid_minor > 0 || invoice.overpayment_minor > 0) && <Button variant="outline" disabled={busy !== null} onClick={() => { setRefundInvoice(invoice); setAmount(''); setReason(''); setKind(invoice.overpayment_minor > 0 ? 'overpayment' : 'payment'); setRefundKey(crypto.randomUUID()); }}>Запросить возврат</Button>}
       </div>
       {invoice.refunds.map((refund) => <p key={refund.id} className="text-sm text-slate-600">Возврат {money(refund.amount_minor)}: {refundStatuses[refund.status] ?? 'Проверяется'}</p>)}

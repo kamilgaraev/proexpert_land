@@ -650,6 +650,38 @@ describe('BillingPage commercial packages', () => {
     expect(screen.getByRole('heading', { name: 'Счета и документы' })).toBeInTheDocument();
   });
 
+  it('сохраняет созданный банковский счёт при ошибке обновления и повторяет только GET', async () => {
+    let checkoutRequests = 0;
+    let recovered = false;
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: { provider: 'tochka', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: true } })),
+      http.get(`${baseUrl}/packages`, () => checkoutRequests > 0 && !recovered
+        ? HttpResponse.text('Bad Gateway', { status: 502 })
+        : HttpResponse.json({ success: true, data: packages })),
+      http.post(`${baseUrl}/billing/commercial/checkout`, () => {
+        checkoutRequests++;
+        return HttpResponse.json({ success: true, data: { order_id: 'bank-created', status: 'pending_payment', payment_source: 'tochka', bank_invoice: { id: '11111111-1111-4111-8111-111111111111' } } });
+      }),
+    );
+    renderPage();
+    const heading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(heading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Получить счёт' }));
+    expect(await screen.findByText(/Счёт создан. Его можно скачать/)).toBeInTheDocument();
+    await screen.findByText(/Не удалось обновить данные тарифов. Счёт уже создан/);
+    const another = screen.getByRole('heading', { name: 'Пакет 3' });
+    fireEvent.click(within(another.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    const payment = await screen.findByRole('button', { name: 'Получить счёт' });
+    expect(payment).toBeDisabled();
+    fireEvent.click(payment);
+    expect(checkoutRequests).toBe(1);
+    recovered = true;
+    fireEvent.click(screen.getByRole('button', { name: 'Обновить данные после создания счёта' }));
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Обновить данные после создания счёта' })).not.toBeInTheDocument());
+    expect(screen.queryByText(/Не удалось обновить данные тарифов/)).not.toBeInTheDocument();
+    expect(checkoutRequests).toBe(1);
+  });
+
   it('открывает модули сразу после подтверждения оплаты в платёжном сервисе', async () => {
     await permissionsManager.load('lk');
     sessionStorage.setItem('most:pending-commercial-order', 'paid-access-order');
