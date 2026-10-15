@@ -163,4 +163,28 @@ describe('Счета МОСТ', () => {
     expect(screen.queryByText('MOST-0000000001')).not.toBeInTheDocument();
     expect(screen.queryByText('2 из 3')).not.toBeInTheDocument();
   });
+
+  it('блокирует смену страницы до завершения отмены и обновляет текущую страницу', async () => {
+    const requestedPages: number[] = [];
+    server.use(http.get(`${base}/invoices`, ({ request }) => {
+      const page = Number(new URL(request.url).searchParams.get('page') ?? 1);
+      requestedPages.push(page);
+      return HttpResponse.json({ success: true, data: { items: [{ ...invoice, status: 'awaiting_payment', paid_minor: 0 }], meta: { current_page: page, last_page: 3, total: 41, per_page: 20 } } });
+    }));
+    let finish!: (value: { canceled: boolean }) => void;
+    const cancellation = new Promise<{ canceled: boolean }>((resolve) => { finish = resolve; });
+    vi.spyOn(bankBillingService, 'cancel').mockReturnValueOnce(cancellation);
+    render(<BankInvoicesPanel canManage />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Далее' }));
+    await screen.findByText('2 из 3');
+    expect(screen.getByRole('button', { name: 'Назад' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Отменить неоплаченный счёт' }));
+    expect(screen.getByRole('button', { name: 'Назад' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Далее' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Далее' }));
+    await act(async () => { finish({ canceled: true }); await cancellation; });
+    await screen.findByText('2 из 3');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Далее' })).toBeEnabled());
+    expect(requestedPages).toEqual([1, 2, 2]);
+  });
 });
