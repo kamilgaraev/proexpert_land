@@ -225,6 +225,39 @@ describe('BillingPage commercial packages', () => {
     expect(screen.getByText(/Оплаченный остаток сохранится/)).toBeInTheDocument();
   });
 
+  it.each(['period', 'mode'])('сохраняет согласие при возврате к текущему сроку через %s', async (returnVia) => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(
+      http.post(baseUrl + '/billing/commercial/quote', async ({ request }) => {
+        const body = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: true, data: {
+          quote_version: 4, currency: 'RUB', billing_period: body.billing_period, renew_subscription: body.renew_subscription,
+          billing_period_days: 30, offer_type: 'packages', target_package_slugs: [packageSlugs[0]], current_package_slugs: [packageSlugs[0]],
+          added_package_slugs: [], removed_package_slugs: [], monthly_total_minor: 100000, monthly_total: '1000.00',
+          period_total_minor: 100000, amount_due_now_minor: 100000, amount_due_now: '1000.00',
+          savings_amount_minor: 0, savings_percent: 0, period_start_at: '2026-07-31T09:00:00Z', period_end_at: '2026-08-30T09:00:00Z',
+        } });
+      }),
+      http.post(baseUrl + '/billing/commercial/checkout', async ({ request }) => {
+        checkoutBody = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: false }, { status: 503 });
+      }),
+    );
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Продлить подписку' }));
+    fireEvent.change(screen.getByLabelText('Период оплаты'), { target: { value: '12_months' } });
+    expect(await screen.findByRole('checkbox', { name: 'Согласен на автоматическое списание' })).not.toBeChecked();
+    if (returnVia === 'period') {
+      fireEvent.change(screen.getByLabelText('Период оплаты'), { target: { value: '30_days' } });
+    } else {
+      fireEvent.click(screen.getByRole('button', { name: 'Изменить пакеты' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Продлить подписку' }));
+    }
+    await waitFor(() => expect(screen.queryByRole('checkbox', { name: 'Согласен на автоматическое списание' })).not.toBeInTheDocument());
+    fireEvent.click(await screen.findByRole('button', { name: 'Перейти к оплате' }));
+    await waitFor(() => expect(checkoutBody).toMatchObject({ billing_period: '30_days', renew_subscription: true, auto_renew_consent: true }));
+  });
+
   it('не показывает технический текст ошибки авторизации при загрузке пакетов', async () => {
     server.use(
       http.get(`${baseUrl}/packages`, () => HttpResponse.json({

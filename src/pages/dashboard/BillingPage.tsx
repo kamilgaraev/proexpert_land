@@ -636,6 +636,7 @@ const BillingPage = () => {
                 setSelected(currentPaidSlugs);
                 setFullSuite(renewal?.offerType === 'full_suite');
                 setBillingPeriod(renewal?.billingPeriod ?? '30_days');
+                setAutoRenewConsent(Boolean(renewal?.autoRenewEnabled && renewal.savedMethodAvailable));
                 setQuote(null);
                 setActionError(null);
               }}>{renew ? 'Продлить подписку' : 'Изменить пакеты'}</button>)}
@@ -643,8 +644,9 @@ const BillingPage = () => {
             <div className="space-y-2">
               <label htmlFor="billing-period" className="block text-sm font-semibold text-slate-950">Период оплаты</label>
               <select id="billing-period" value={billingPeriod} disabled={!canManage || isGrace || Boolean(actionBusy) || (currentPaidSlugs.length > 0 && !renewSubscription)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm" onChange={(event) => {
-                setBillingPeriod(event.target.value as CommercialBillingPeriod);
-                setAutoRenewConsent(false);
+                const nextPeriod = event.target.value as CommercialBillingPeriod;
+                setBillingPeriod(nextPeriod);
+                setAutoRenewConsent(Boolean(renewal?.autoRenewEnabled && renewal.savedMethodAvailable && nextPeriod === (renewal.billingPeriod ?? '30_days')));
                 setQuote(null);
                 setActionError(null);
               }}>
