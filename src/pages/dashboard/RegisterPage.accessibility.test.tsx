@@ -1,6 +1,9 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import { legalFixture } from '@/test/legalFixture';
+
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null }) }));
 
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ register: vi.fn() }),
@@ -145,6 +148,9 @@ describe("RegisterPage accessibility", () => {
       expect(field).toHaveAttribute("autocomplete", autocomplete);
     }
 
-    expect(screen.getByRole("checkbox")).toHaveAttribute("name", "agreeTerms");
+    expect(screen.getAllByRole('checkbox')).toHaveLength(3);
+    expect(screen.getByRole('checkbox', { name: /принимаю.*договор использования МОСТ/ })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: /выдаю.*поручение/ })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: /Подтверждаю полномочия/ })).not.toBeChecked();
   });
 });

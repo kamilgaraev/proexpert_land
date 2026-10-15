@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowUpRightIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 import ContactForm from "@/components/landing/ContactForm";
+import { LegalProviderDetails } from '@/components/legal/LegalProviderDetails';
 import {
   marketingCompany,
   marketingPaths,
@@ -54,6 +55,7 @@ const ContactPage = () => {
           </Link>
         </div>
       </section>
+      <div className="most-container pb-16"><LegalProviderDetails /></div>
     </div>
   );
 };
