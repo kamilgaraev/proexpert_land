@@ -23,6 +23,7 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
   const seen = useRef<Map<string, boolean>>(new Map());
   const generation = useRef(0);
   const paidCallback = useRef(onPaid);
+  const currentRevision = useRef(revision);
   paidCallback.current = onPaid;
 
   const load = useCallback(async (signal?: AbortSignal) => {
@@ -39,15 +40,21 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
       if (!signal?.aborted && requestGeneration === generation.current) setError(failure instanceof Error ? failure.message : 'Не удалось загрузить счета.');
     } finally { if (!signal?.aborted && requestGeneration === generation.current) setLoading(false); }
   }, [page]);
+  const latestLoad = useRef(load);
+  latestLoad.current = load;
 
   useEffect(() => {
-    const controller = new AbortController();
     setLoading(true);
     setData(null);
+    if (currentRevision.current !== revision) {
+      currentRevision.current = revision;
+      if (page !== 1) { setPage(1); return; }
+    }
+    const controller = new AbortController();
     void load(controller.signal);
     const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load(controller.signal); }, 30_000);
     return () => { generation.current += 1; controller.abort(); window.clearInterval(timer); };
-  }, [load, revision]);
+  }, [load, page, revision]);
 
   const perform = async (key: string, action: () => Promise<void>, successMessage?: string) => {
     setBusy(key); setError(null); setNotice(null);
@@ -56,7 +63,7 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
       if (successMessage) {
         generation.current += 1;
         setNotice(successMessage); setData(null); setLoading(true);
-        await load();
+        await latestLoad.current();
       }
     }
     catch (failure) { setError(failure instanceof Error ? failure.message : 'Не удалось выполнить действие.'); }

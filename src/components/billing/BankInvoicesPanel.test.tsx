@@ -164,7 +164,7 @@ describe('Счета МОСТ', () => {
     expect(screen.queryByText('2 из 3')).not.toBeInTheDocument();
   });
 
-  it('блокирует смену страницы до завершения отмены и обновляет текущую страницу', async () => {
+  it.each([false, true])('блокирует страницы при отмене и обновляет актуальную при смене revision %s', async (revise) => {
     const requestedPages: number[] = [];
     server.use(http.get(`${base}/invoices`, ({ request }) => {
       const page = Number(new URL(request.url).searchParams.get('page') ?? 1);
@@ -174,7 +174,7 @@ describe('Счета МОСТ', () => {
     let finish!: (value: { canceled: boolean }) => void;
     const cancellation = new Promise<{ canceled: boolean }>((resolve) => { finish = resolve; });
     vi.spyOn(bankBillingService, 'cancel').mockReturnValueOnce(cancellation);
-    render(<BankInvoicesPanel canManage />);
+    const { rerender } = render(<BankInvoicesPanel canManage />);
     fireEvent.click(await screen.findByRole('button', { name: 'Далее' }));
     await screen.findByText('2 из 3');
     expect(screen.getByRole('button', { name: 'Назад' })).toBeEnabled();
@@ -182,9 +182,34 @@ describe('Счета МОСТ', () => {
     expect(screen.getByRole('button', { name: 'Назад' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Далее' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'Далее' }));
+    if (revise) {
+      rerender(<BankInvoicesPanel canManage revision={1} />);
+      await screen.findByText('1 из 3');
+    }
     await act(async () => { finish({ canceled: true }); await cancellation; });
-    await screen.findByText('2 из 3');
+    await screen.findByText(revise ? '1 из 3' : '2 из 3');
     await waitFor(() => expect(screen.getByRole('button', { name: 'Далее' })).toBeEnabled());
-    expect(requestedPages).toEqual([1, 2, 2]);
+    expect(requestedPages).toEqual(revise ? [1, 2, 1, 1] : [1, 2, 2]);
+  });
+
+  it('после создания счёта возвращается на первую страницу и обновляет права его оплаты', async () => {
+    let revised = false;
+    const requestedPages: number[] = [];
+    server.use(http.get(`${base}/invoices`, ({ request }) => {
+      const page = Number(new URL(request.url).searchParams.get('page') ?? 1);
+      requestedPages.push(page);
+      const currentInvoice = revised && page === 1 ? { ...invoice, id: '33333333-3333-4333-8333-333333333333', number: 'MOST-0000000002', status: 'paid', activated_at: '2026-10-15T13:00:00Z' } : invoice;
+      return HttpResponse.json({ success: true, data: { items: [currentInvoice], meta: { current_page: page, last_page: 3, total: 41, per_page: 20 } } });
+    }));
+    const onPaid = vi.fn();
+    const { rerender } = render(<BankInvoicesPanel canManage onPaid={onPaid} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Далее' }));
+    await screen.findByText('2 из 3');
+    revised = true;
+    rerender(<BankInvoicesPanel canManage onPaid={onPaid} revision={1} />);
+    await screen.findByText('MOST-0000000002');
+    expect(screen.getByText('1 из 3')).toBeInTheDocument();
+    await waitFor(() => expect(onPaid).toHaveBeenCalledOnce());
+    expect(requestedPages).toEqual([1, 2, 1]);
   });
 });
