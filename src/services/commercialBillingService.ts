@@ -1,6 +1,7 @@
 import { API_URL } from '@/utils/api';
 import { getJsonAuthHeaders } from '@/utils/authTokenStorage';
 import type {
+  CommercialBillingPeriod,
   CommercialHistory,
   CommercialLimitsSummary,
   CommercialOrder,
@@ -82,6 +83,11 @@ const packageFromApi = (item: JsonRecord): CommercialPackage => ({
 });
 
 const quoteFromApi = (item: JsonRecord): CommercialQuote => ({
+  billingPeriod: item.billing_period ?? '30_days',
+  renewSubscription: Boolean(item.renew_subscription),
+  periodTotalMinor: item.period_total_minor ?? item.monthly_total_minor,
+  periodDiscountPercent: item.period_discount_percent ?? 0,
+  periodSavingsMinor: item.period_savings_minor ?? 0,
   quoteVersion: item.quote_version,
   currency: item.currency,
   billingPeriodDays: item.billing_period_days,
@@ -105,6 +111,8 @@ const quoteFromApi = (item: JsonRecord): CommercialQuote => ({
 });
 
 const renewalFromApi = (item: JsonRecord): CommercialRenewalState => ({
+  billingPeriod: item.billing_period ?? '30_days',
+  offerType: item.offer_type ?? 'packages',
   status: item.status,
   autoRenewEnabled: Boolean(item.auto_renew_enabled),
   savedMethodAvailable: Boolean(item.saved_method_available),
@@ -293,14 +301,16 @@ export const commercialBillingService = {
   quoteResourceAddons: async (input: { resources: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => resourceAddonQuoteFromApi(await request<JsonRecord>('/billing/commercial/resource-addons/quote', {
     method: 'POST', signal, body: JSON.stringify({ resources: input.resources }),
   })),
-  quote: async (input: { targetPackageSlugs: string[]; fullSuite: boolean; resources?: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => quoteFromApi(await request<JsonRecord>('/billing/commercial/quote', {
-    method: 'POST', signal, body: JSON.stringify({ target_package_slugs: input.targetPackageSlugs, full_suite: input.fullSuite, resources: input.resources ?? [] }),
+  quote: async (input: { targetPackageSlugs: string[]; fullSuite: boolean; billingPeriod?: CommercialBillingPeriod; renewSubscription?: boolean; resources?: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => quoteFromApi(await request<JsonRecord>('/billing/commercial/quote', {
+    method: 'POST', signal, body: JSON.stringify({ target_package_slugs: input.targetPackageSlugs, full_suite: input.fullSuite, billing_period: input.billingPeriod ?? '30_days', renew_subscription: input.renewSubscription ?? false, resources: input.resources ?? [] }),
   })),
-  checkout: async (input: { targetPackageSlugs: string[]; currentPackageSlugs: string[]; fullSuite: boolean; quoteVersion: number; resourceQuoteVersion?: number; clientIdempotencyKey: string; autoRenewConsent: boolean; useBalance: boolean; resources?: Array<{ slug: string; quantity: number }> }) => {
+  checkout: async (input: { targetPackageSlugs: string[]; currentPackageSlugs: string[]; fullSuite: boolean; billingPeriod?: CommercialBillingPeriod; renewSubscription?: boolean; quoteVersion: number; resourceQuoteVersion?: number; clientIdempotencyKey: string; autoRenewConsent: boolean; useBalance: boolean; resources?: Array<{ slug: string; quantity: number }> }) => {
     const item = await request<JsonRecord>('/billing/commercial/checkout', { method: 'POST', body: JSON.stringify({
       target_package_slugs: input.fullSuite ? [] : input.targetPackageSlugs,
       current_package_slugs: input.currentPackageSlugs,
       full_suite: input.fullSuite,
+      billing_period: input.billingPeriod ?? '30_days',
+      renew_subscription: input.renewSubscription ?? false,
       quote_version: input.quoteVersion,
       resource_quote_version: input.resourceQuoteVersion ?? 1,
       client_idempotency_key: input.clientIdempotencyKey,
@@ -309,7 +319,9 @@ export const commercialBillingService = {
       resources: input.resources ?? [],
     }) });
     return {
-      orderId: item.order_id as string,
+      billingPeriod: (item.billing_period ?? '30_days') as CommercialBillingPeriod,
+    renewSubscription: Boolean(item.renew_subscription),
+    orderId: item.order_id as string,
       status: item.status as string,
       amount: item.amount as string,
       amountMinor: item.amount_minor as number,

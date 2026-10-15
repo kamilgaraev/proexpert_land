@@ -194,6 +194,37 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe('BillingPage commercial packages', () => {
+  it.each([['6_months', 5, 570000], ['12_months', 10, 1080000]])('передаёт срок %s и показывает серверную скидку перед оплатой', async (period, discount, total) => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(
+      http.post(baseUrl + '/billing/commercial/quote', async ({ request }) => {
+        const body = await request.json() as Record<string, unknown>;
+        const selectedPeriod = body.billing_period as string;
+        const amount = selectedPeriod === period ? total : 100000;
+        return HttpResponse.json({ success: true, data: {
+          quote_version: 4, currency: 'RUB', billing_period: selectedPeriod, renew_subscription: body.renew_subscription,
+          billing_period_days: selectedPeriod === '6_months' ? 184 : 365,
+          offer_type: 'packages', target_package_slugs: [packageSlugs[0]], current_package_slugs: [packageSlugs[0]], added_package_slugs: [], removed_package_slugs: [],
+          monthly_total_minor: 100000, monthly_total: '1000.00', period_total_minor: amount,
+          amount_due_now_minor: amount, amount_due_now: String(amount / 100), period_discount_percent: discount, period_savings_minor: 10000,
+          savings_amount_minor: 0, savings_percent: 0, period_start_at: '2026-07-31T09:00:00Z', period_end_at: '2027-07-31T09:00:00Z',
+        } });
+      }),
+      http.post(baseUrl + '/billing/commercial/checkout', async ({ request }) => {
+        checkoutBody = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: false }, { status: 503 });
+      }),
+    );
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Продлить подписку' }));
+    fireEvent.change(screen.getByLabelText('Период оплаты'), { target: { value: period } });
+    expect(await screen.findByText(new RegExp('Скидка за .*' + discount + '%'))).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Согласен на автоматическое списание' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Перейти к оплате' }));
+    await waitFor(() => expect(checkoutBody).toMatchObject({ billing_period: period, renew_subscription: true, quote_version: 4 }));
+    expect(screen.getByText(/Оплаченный остаток сохранится/)).toBeInTheDocument();
+  });
+
   it('не показывает технический текст ошибки авторизации при загрузке пакетов', async () => {
     server.use(
       http.get(`${baseUrl}/packages`, () => HttpResponse.json({
