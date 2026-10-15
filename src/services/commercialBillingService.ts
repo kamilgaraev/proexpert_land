@@ -302,15 +302,15 @@ export const commercialBillingService = {
     method: 'POST', signal, body: JSON.stringify({ resources: input.resources }),
   })),
   quote: async (input: { targetPackageSlugs: string[]; fullSuite: boolean; billingPeriod?: CommercialBillingPeriod; renewSubscription?: boolean; resources?: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => quoteFromApi(await request<JsonRecord>('/billing/commercial/quote', {
-    method: 'POST', signal, body: JSON.stringify({ target_package_slugs: input.targetPackageSlugs, full_suite: input.fullSuite, billing_period: input.billingPeriod ?? '30_days', renew_subscription: input.renewSubscription ?? false, resources: input.resources ?? [] }),
+    method: 'POST', signal, body: JSON.stringify({ target_package_slugs: input.targetPackageSlugs, full_suite: input.fullSuite, ...(input.billingPeriod === undefined ? {} : { billing_period: input.billingPeriod }), ...(input.renewSubscription === undefined ? {} : { renew_subscription: input.renewSubscription }), resources: input.resources ?? [] }),
   })),
   checkout: async (input: { targetPackageSlugs: string[]; currentPackageSlugs: string[]; fullSuite: boolean; billingPeriod?: CommercialBillingPeriod; renewSubscription?: boolean; quoteVersion: number; resourceQuoteVersion?: number; clientIdempotencyKey: string; autoRenewConsent: boolean; useBalance: boolean; resources?: Array<{ slug: string; quantity: number }> }) => {
     const item = await request<JsonRecord>('/billing/commercial/checkout', { method: 'POST', body: JSON.stringify({
       target_package_slugs: input.fullSuite ? [] : input.targetPackageSlugs,
       current_package_slugs: input.currentPackageSlugs,
       full_suite: input.fullSuite,
-      billing_period: input.billingPeriod ?? '30_days',
-      renew_subscription: input.renewSubscription ?? false,
+      ...(input.billingPeriod === undefined ? {} : { billing_period: input.billingPeriod }),
+      ...(input.renewSubscription === undefined ? {} : { renew_subscription: input.renewSubscription }),
       quote_version: input.quoteVersion,
       resource_quote_version: input.resourceQuoteVersion ?? 1,
       client_idempotency_key: input.clientIdempotencyKey,
