@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent, KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { getHoldingLocalePrefix } from '@/utils/holdingPublicPage';
 import NotificationService from '@components/shared/NotificationService';
 import type {
   BuilderCanvasFocusTarget,
@@ -44,9 +45,13 @@ const normalizePublicPath = (value: unknown): string => {
     : withLeadingSlash;
 };
 
-const getPublicNavigationSearch = (search: string): string => {
+const getPublicNavigationSearch = (search: string, pathLocale?: string): string => {
   const params = new URLSearchParams(search);
-  if (params.get('preview') === 'true') return search;
+  if (pathLocale) {
+    params.set('locale', pathLocale);
+    params.delete('lang');
+  }
+  if (params.get('preview') === 'true') return pathLocale ? `?${params}` : search;
   const publicParams = new URLSearchParams();
   for (const key of ['locale', 'lang']) {
     const value = params.get(key);
@@ -231,7 +236,7 @@ const PublicSiteHeader = ({
   navigation: PublicNavigationItem[];
 }) => {
   const { pathname, search } = useLocation();
-  const navigationSearch = getPublicNavigationSearch(search);
+  const navigationSearch = getPublicNavigationSearch(search, getHoldingLocalePrefix(pathname, site));
   const currentPath = normalizePublicPath(pathname);
   const currentPageLabel = stringValue(currentPage?.navigation_label) || stringValue(currentPage?.title) || site.title;
 

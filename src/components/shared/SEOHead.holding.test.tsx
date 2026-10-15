@@ -5,8 +5,8 @@ import { SEOHead } from './SEOHead';
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); document.head.innerHTML = ''; document.documentElement.lang = 'ru'; });
 
 describe('holding client metadata', () => {
-  it.each(['locale=en', 'lang=en'])('keeps normalized locale in the canonical after hydration for %s', (query) => {
-    vi.stubGlobal('location', new URL(`https://company.1мост.рф/about?${query}&token=private&tracking=discard`));
+  it.each([['/about', 'locale=en'], ['/about/', 'locale=en'], ['/about/', 'lang=en']])('normalizes canonical path %s and locale %s after hydration', (pathname, query) => {
+    vi.stubGlobal('location', new URL(`https://company.1мост.рф${pathname}?${query}&token=private&tracking=discard`));
     render(<SEOHead title="About" lang="en" />);
     const canonical = 'https://company.xn--1-xtbgmf.xn--p1ai/about?locale=en';
     expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(canonical);

@@ -1,12 +1,12 @@
 import type { PublicSitePayload } from '@/types/holding-site-builder';
 import { isHoldingPrivatePath } from '@/utils/holdingDomain';
-import { getHoldingCanonicalSearch, getHoldingPageLanguage, hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
+import { getHoldingCanonicalUrl, getHoldingPageLanguage, getHoldingRequestLocale, hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 
 export async function loadHoldingPageContext(hostname: string, pathname: string, search: string) {
-  const canonicalUrl = `https://${hostname}${pathname}${getHoldingCanonicalSearch(search)}`;
+  const canonicalUrl = getHoldingCanonicalUrl(`https://${hostname}`, pathname, search);
   if (isHoldingPrivatePath(pathname)) {
     return { routeStatusCode: 200, documentProps: { title: 'Панель холдинга', canonicalUrl, noIndex: true, statusCode: 200 }, pageProps: {} };
   }
@@ -20,10 +20,8 @@ export async function loadHoldingPageContext(hostname: string, pathname: string,
     try {
       const base = (process.env.VITE_API_BASE ?? process.env.API_BASE_URL ?? 'https://api.1мост.рф').replace(/\/+$/, '');
       const query = new URLSearchParams({ site_domain: hostname, path: pathname });
-      for (const key of ['locale', 'lang']) {
-        const value = params.get(key);
-        if (value) query.set(key, value);
-      }
+      const locale = getHoldingRequestLocale(search);
+      if (locale !== null) query.set('locale', locale);
       const response = await fetch(`${base}/api/v1/landing/holding/public/site-data?${query}`, {
         headers: { Accept: 'application/json' }, signal: controller.signal,
       });
@@ -63,7 +61,7 @@ export async function loadHoldingPageContext(hostname: string, pathname: string,
       description: page?.seo_meta.description || payload?.site.seo_meta.description || payload?.site.description || '',
       keywords: page?.seo_meta.keywords || payload?.site.seo_meta.keywords || '',
       ogImage: page?.seo_meta.og_image || payload?.site.seo_meta.og_image || undefined,
-      canonicalUrl: `https://${hostname}${pathname}${getHoldingCanonicalSearch(search, payload ? getHoldingPageLanguage(payload) : undefined)}`,
+      canonicalUrl: getHoldingCanonicalUrl(`https://${hostname}`, pathname, search, payload),
       noIndex: preview || status !== 200 || Boolean(page?.seo_meta.noindex || payload?.site.seo_meta.noindex),
       statusCode: status,
     },

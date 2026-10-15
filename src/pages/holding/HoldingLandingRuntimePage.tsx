@@ -5,7 +5,7 @@ import { SEOHead } from '@components/shared/SEOHead';
 import { BuilderApiError, publicHoldingSiteService } from '@/services/holdingSiteBuilderService';
 import type { PublicSitePayload } from '@/types/holding-site-builder';
 import NotFoundPage from '@pages/NotFoundPage';
-import { getHoldingPageLanguage, hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
+import { getHoldingCanonicalUrl, getHoldingPageLanguage, hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
 
 type HoldingLandingRuntimePageProps = { initialPage?: HoldingPublicPageState };
 
@@ -98,6 +98,7 @@ const HoldingLandingRuntimeContent = ({ initialPage }: HoldingLandingRuntimePage
     <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)]">
       <SEOHead
         lang={getHoldingPageLanguage(payload)}
+        canonicalUrl={typeof window === 'undefined' ? undefined : getHoldingCanonicalUrl(window.location.origin, pathname, search, payload)}
         title={page?.seo_meta.title || payload.site.seo_meta.title || payload.site.title}
         description={
           page?.seo_meta.description ||

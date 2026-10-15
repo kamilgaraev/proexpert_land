@@ -83,6 +83,28 @@ describe('holding runtime navigation', () => {
     expect(api.getSiteData).not.toHaveBeenCalled();
   });
 
+  it('renders a successful legacy root from blocks without a page object', async () => {
+    const payload = createPublicSitePayloadFixture();
+    payload.site.title = 'Прежняя опубликованная главная';
+    delete payload.current_page;
+    delete payload.page;
+    api.getSiteData.mockResolvedValue(payload);
+    render(<MemoryRouter><HoldingLandingRuntimePage /></MemoryRouter>);
+    expect(await screen.findByText('Прежняя опубликованная главная')).toBeTruthy();
+  });
+
+  it('renders locale-prefixed content and keeps its canonical and language consistent', async () => {
+    const payload = createPublicSitePayloadFixture();
+    payload.site.title = 'English services';
+    payload.runtime.locale = 'en';
+    payload.current_page!.slug = '/services';
+    payload.current_page!.is_home = false;
+    api.getSiteData.mockResolvedValue(payload);
+    render(<MemoryRouter initialEntries={['/en/services?lang=ru']}><HoldingLandingRuntimePage /></MemoryRouter>);
+    expect(await screen.findByText('English services')).toBeTruthy();
+    expect(seo).toHaveBeenLastCalledWith(expect.objectContaining({ lang: 'en', canonicalUrl: `${window.location.origin}/services?locale=en` }));
+  });
+
   it('renders a requested additional page without optional runtime.path', async () => {
     const payload = createPublicSitePayloadFixture();
     payload.site.title = 'Дополнительная страница без runtime.path';

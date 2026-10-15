@@ -23,6 +23,16 @@ describe('SiteBuilderRenderer', () => {
     expect(screen.getByRole('link', { name: new RegExp(payload.site.domain) }).getAttribute('href')).toBe(`/?${query}`);
   });
 
+  it('сохраняет язык префикса при переходе по меню', () => {
+    const payload = createPublicSitePayloadFixture();
+    render(<MemoryRouter initialEntries={['/en/services?lang=ru&token=private']}><SiteBuilderRenderer
+      site={payload.site}
+      blocks={[]}
+      navigation={[{ id: 100, slug: '/', label: 'Главная', page_type: 'home', is_home: true }]}
+    /></MemoryRouter>);
+    expect(screen.getByRole('link', { name: 'Главная' })).toHaveAttribute('href', '/?locale=en');
+  });
+
   it('рендерит публичную навигацию и сохраняет preview query string в ссылках', () => {
     const payload = createPublicSitePayloadFixture();
     const currentPage = {

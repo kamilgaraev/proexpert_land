@@ -1,4 +1,5 @@
 import { API_URL, authorizedFetch } from '@/utils/api';
+import { getHoldingRequestLocale } from '@/utils/holdingPublicPage';
 import type {
   ApiEnvelope,
   BuilderWorkspaceData,
@@ -139,6 +140,9 @@ export const holdingSiteBuilderService = {
 export const publicHoldingSiteService = {
   getSiteData: (pathname = window.location.pathname, search = window.location.search) => {
     const params = new URLSearchParams(search);
+    const locale = getHoldingRequestLocale(search);
+    if (locale !== null) params.set('locale', locale);
+    params.delete('lang');
     params.set('site_domain', window.location.hostname);
     params.set('path', pathname || '/');
 

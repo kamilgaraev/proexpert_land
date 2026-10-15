@@ -29,12 +29,18 @@ describe('holding public SSR data', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it.each(['locale=en', 'lang=en', 'locale=en_US'])('keeps normalized locale in the canonical for %s', async (query) => {
+  it.each(['locale=en', 'lang=en', 'locale=en_US', 'locale=en&lang=ru'])('keeps the API locale in the canonical for %s', async (query) => {
     const payload = createPublicSitePayloadFixture();
     payload.runtime.locale = query.endsWith('en_US') ? 'en_US' : 'en';
-    server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));
+    server.use(http.get(endpoint, ({ request }) => {
+      const params = new URL(request.url).searchParams;
+      expect(params.get('locale')).toBe(payload.runtime.locale);
+      expect(params.has('lang')).toBe(false);
+      expect(params.has('token')).toBe(false);
+      return HttpResponse.json({ success: true, data: payload });
+    }));
     const { pageContext } = await renderIndex(context('/', `?${query}&token=private&tracking=discard`));
-    const locale = query.endsWith('en_US') ? 'en-US' : 'en';
+    const locale = query.endsWith('en_US') ? 'en_US' : 'en';
     expect(pageContext).toMatchObject({ documentProps: { canonicalUrl: `https://${host}/?locale=${locale}` } });
   });
 
@@ -105,6 +111,55 @@ describe('holding public SSR data', () => {
     payload.current_page!.is_home = false;
     server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));
     const { pageContext } = await onBeforeRender(context('/services'));
+    expect(pageContext.routeStatusCode).toBe(200);
+  });
+
+  it('accepts a locale-prefixed published page and canonicalizes it to the locale query', async () => {
+    const payload = createPublicSitePayloadFixture();
+    payload.runtime.locale = 'en';
+    payload.current_page!.slug = '/about';
+    payload.current_page!.is_home = false;
+    server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));
+    const { pageContext } = await onBeforeRender(context('/en/about'));
+    expect(pageContext).toMatchObject({ routeStatusCode: 200, documentProps: { lang: 'en', canonicalUrl: `https://${host}/about?locale=en` } });
+  });
+
+  it('keeps the API locale code usable when following a canonical URL', async () => {
+    server.use(http.get(endpoint, ({ request }) => {
+      const payload = createPublicSitePayloadFixture();
+      payload.site.enabled_locales = ['ru', 'en_US'];
+      payload.runtime.locale = new URL(request.url).searchParams.get('locale') === 'en_US' ? 'en_US' : 'ru';
+      return HttpResponse.json({ success: true, data: payload });
+    }));
+    const first = await onBeforeRender(context('/', '?lang=en_US'));
+    expect(first.pageContext.documentProps?.canonicalUrl).toBe(`https://${host}/?locale=en_US`);
+    const second = await onBeforeRender(context('/', new URL(first.pageContext.documentProps!.canonicalUrl!).search));
+    expect(second.pageContext.documentProps?.lang).toBe('en-US');
+  });
+
+  it('canonicalizes a fallback to the actual default locale', async () => {
+    const payload = createPublicSitePayloadFixture();
+    payload.runtime.locale = 'ru';
+    server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));
+    const { pageContext } = await onBeforeRender(context('/', '?locale=de'));
+    expect(pageContext.documentProps?.canonicalUrl).toBe(`https://${host}/`);
+  });
+
+  it.each([['/', 200], ['/services', 404]] as const)('supports block-only legacy root without enabling extra path %s', async (pathname, status) => {
+    const payload = createPublicSitePayloadFixture();
+    delete payload.current_page;
+    delete payload.page;
+    server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));
+    const { pageContext } = await onBeforeRender(context(pathname));
+    expect(pageContext.routeStatusCode).toBe(status);
+  });
+
+  it.each(['/services', '/services/'])('uses one canonical for the published URL %s', async (pathname) => {
+    const payload = createPublicSitePayloadFixture();
+    payload.current_page!.slug = '/services';
+    server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));
+    const { pageContext } = await onBeforeRender(context(pathname));
+    expect(pageContext.documentProps?.canonicalUrl).toBe(`https://${host}/services`);
     expect(pageContext.routeStatusCode).toBe(200);
   });
 
