@@ -1,5 +1,6 @@
 import { API_URL, authorizedFetch } from '@/utils/api';
-import { getHoldingRequestLocale } from '@/utils/holdingPublicPage';
+import { decodeHoldingPathname } from '@/utils/holdingDomain';
+import { getHoldingRequestLocale, normalizeHoldingPublicPath } from '@/utils/holdingPublicPage';
 import type {
   ApiEnvelope,
   BuilderWorkspaceData,
@@ -144,7 +145,7 @@ export const publicHoldingSiteService = {
     if (locale !== null) params.set('locale', locale);
     params.delete('lang');
     params.set('site_domain', window.location.hostname);
-    params.set('path', pathname || '/');
+    params.set('path', normalizeHoldingPublicPath(decodeHoldingPathname(pathname || '/')));
 
     return requestPublicApi<PublicSitePayload>(`/holding/public/site-data?${params.toString()}`);
   },

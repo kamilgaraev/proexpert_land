@@ -15,6 +15,20 @@ afterAll(() => server.close());
 const context = (pathname: string, search = '') => ({ requestHostname: host, urlPathname: pathname, urlOriginal: pathname + search });
 
 describe('holding public SSR data', () => {
+  it.each(['/о-компании', '/%D0%BE-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8'])('loads the encoded public address for slug %s', async (slug) => {
+    const pathname = '/%D0%BE-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8';
+    const payload = createPublicSitePayloadFixture();
+    payload.current_page!.slug = slug;
+    payload.current_page!.is_home = false;
+    server.use(http.get(endpoint, ({ request }) => {
+      expect(new URL(request.url).searchParams.get('path')).toBe('/о-компании');
+      return HttpResponse.json({ success: true, data: payload });
+    }));
+    const { pageContext } = await onBeforeRender(context(pathname));
+    expect(pageContext.routeStatusCode).toBe(200);
+    expect(pageContext.documentProps?.canonicalUrl).toBe(`https://${host}${pathname}`);
+  });
+
   it('loads the holding root through the actual index server hook', async () => {
     const payload = createPublicSitePayloadFixture();
     server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));

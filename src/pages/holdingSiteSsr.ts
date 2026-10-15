@@ -1,6 +1,6 @@
 import type { PublicSitePayload } from '@/types/holding-site-builder';
-import { isHoldingPrivatePath } from '@/utils/holdingDomain';
-import { getHoldingCanonicalUrl, getHoldingPageLanguage, getHoldingRequestLocale, hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
+import { decodeHoldingPathname, isHoldingPrivatePath } from '@/utils/holdingDomain';
+import { getHoldingCanonicalUrl, getHoldingPageLanguage, getHoldingRequestLocale, hasHoldingPublicPage, normalizeHoldingPublicPath, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -19,7 +19,7 @@ export async function loadHoldingPageContext(hostname: string, pathname: string,
     const timeout = setTimeout(() => controller.abort(), 5_000);
     try {
       const base = (process.env.VITE_API_BASE ?? process.env.API_BASE_URL ?? 'https://api.1мост.рф').replace(/\/+$/, '');
-      const query = new URLSearchParams({ site_domain: hostname, path: pathname });
+      const query = new URLSearchParams({ site_domain: hostname, path: normalizeHoldingPublicPath(decodeHoldingPathname(pathname)) });
       const locale = getHoldingRequestLocale(search);
       if (locale !== null) query.set('locale', locale);
       const response = await fetch(`${base}/api/v1/landing/holding/public/site-data?${query}`, {

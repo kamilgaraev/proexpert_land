@@ -117,6 +117,14 @@ describe('holdingSiteBuilderService', () => {
 });
 
 describe('publicHoldingSiteService', () => {
+  it('sends a once-decoded public pathname to the API', async () => {
+    server.use(http.get('https://api.example.test/api/v1/landing/holding/public/site-data', ({ request }) => {
+      expect(new URL(request.url).searchParams.get('path')).toBe('/о-компании');
+      return HttpResponse.json({ success: true, data: publicPayloadFixture });
+    }));
+    await expect(publicHoldingSiteService.getSiteData('/%D0%BE-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8', '')).resolves.toEqual(publicPayloadFixture);
+  });
+
   it.each([
     ['?lang=en_US&preview=true&token=private', 'en_US'],
     ['?locale=ru&lang=en_US&preview=true&token=private', 'ru'],

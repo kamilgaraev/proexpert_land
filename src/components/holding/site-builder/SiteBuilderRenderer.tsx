@@ -268,7 +268,7 @@ const PublicSiteHeader = ({
         {navigation.length > 0 && (
           <nav className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-1 lg:justify-center lg:pb-0">
             {navigation.map((item) => {
-              const itemPath = normalizePublicPath(item.slug);
+              const itemPath = getHoldingContentPath(stringValue(item.slug));
               const isBlogMatch =
                 currentPage?.page_type === 'blog_post' &&
                 (item.page_type === 'blog_index' || itemPath === '/blog');
