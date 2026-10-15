@@ -54,6 +54,8 @@ let activeModules: string[] = [];
 let permissionsRequests = 0;
 let permissionsUnavailable = false;
 const server = setupServer(
+  http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: { provider: 'yookassa', ready: true, buyer_ready: true, card_payments_enabled: true, auto_invoice_enabled: false } })),
+  http.get(`${baseUrl}/billing/bank/invoices`, () => HttpResponse.json({ success: true, data: { items: [], meta: { current_page: 1, last_page: 1, per_page: 20, total: 0 } } })),
   http.get('https://api.xn--1-xtbgmf.xn--p1ai/api/public/legal', () => HttpResponse.json({ success: true, data: legalFixture })),
   http.get('https://api.xn--1-xtbgmf.xn--p1ai/api/lk/v1/permissions', () => {
     permissionsRequests += 1;
@@ -548,7 +550,7 @@ describe('BillingPage commercial packages', () => {
     renderPage();
     expect(await screen.findByRole('heading', { name: 'Льготный период' })).toBeInTheDocument();
     expect(screen.getByText(/7 августа 2026/)).toBeInTheDocument();
-    expect(screen.getByText(new RegExp('поздняя оплата закрывает период «' + label + '»'))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp('пропущенный период подписки \\(' + label + '\\)'))).toBeInTheDocument();
     expect(screen.queryByText(/останется около 24 дней/)).not.toBeInTheDocument();
     expect(within(screen.getByRole('heading', { name: 'Пакет 2' }).closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Оплатить сейчас' })).toBeInTheDocument();
@@ -592,8 +594,11 @@ describe('BillingPage commercial packages', () => {
     expect(screen.queryByRole('checkbox', { name: /Согласен на автоматическое списание/ })).not.toBeInTheDocument();
   });
 
-  it('оплачивает полную сумму с баланса без перехода в платёжный сервис', async () => {
+  it.each([true, false])('оплачивает полную сумму с баланса при card_payments_enabled=%s', async (cardPaymentsEnabled) => {
     let checkoutBody: Record<string, unknown> | null = null;
+    server.use(http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: {
+      provider: 'yookassa', ready: true, buyer_ready: true, card_payments_enabled: cardPaymentsEnabled, auto_invoice_enabled: false,
+    } })));
     server.use(http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
       checkoutBody = await request.json() as Record<string, unknown>;
       activeModules = ['basic-warehouse'];
@@ -619,6 +624,62 @@ describe('BillingPage commercial packages', () => {
     expect(sessionStorage.getItem('most:pending-commercial-order')).toBeNull();
     expect(await screen.findByRole('link', { name: 'Открыть склад' })).toBeInTheDocument();
     expect(permissionsRequests).toBe(2);
+  });
+
+  it('выставляет банковский счёт без согласия на списания и перехода в ЮKassa', async () => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: { provider: 'tochka', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: true } })),
+      http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
+        checkoutBody = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: true, data: {
+          order_id: 'bank-order', status: 'pending_payment', amount: '2000.00', amount_minor: 200000,
+          currency: 'RUB', confirmation_url: null, payment_status: 'created', payment_source: 'tochka',
+          auto_renew_consent: false, test_mode: false, bank_invoice: { id: '11111111-1111-4111-8111-111111111111' },
+        } });
+      }),
+    );
+    renderPage();
+    const heading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(heading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    const button = await screen.findByRole('button', { name: 'Получить счёт' });
+    expect(screen.queryByRole('checkbox', { name: /Согласен на автоматическое списание/ })).not.toBeInTheDocument();
+    fireEvent.click(button);
+    await waitFor(() => expect(checkoutBody).toMatchObject({ auto_renew_consent: false, use_balance: false }));
+    expect(sessionStorage.getItem('most:pending-commercial-order')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Счета и документы' })).toBeInTheDocument();
+  });
+
+  it('сохраняет созданный банковский счёт при ошибке обновления и повторяет только GET', async () => {
+    let checkoutRequests = 0;
+    let recovered = false;
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: { provider: 'tochka', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: true } })),
+      http.get(`${baseUrl}/packages`, () => checkoutRequests > 0 && !recovered
+        ? HttpResponse.text('Bad Gateway', { status: 502 })
+        : HttpResponse.json({ success: true, data: packages })),
+      http.post(`${baseUrl}/billing/commercial/checkout`, () => {
+        checkoutRequests++;
+        return HttpResponse.json({ success: true, data: { order_id: 'bank-created', status: 'pending_payment', payment_source: 'tochka', bank_invoice: { id: '11111111-1111-4111-8111-111111111111' } } });
+      }),
+    );
+    renderPage();
+    const heading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(heading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Получить счёт' }));
+    expect(await screen.findByText(/Счёт создан. Его можно скачать/)).toBeInTheDocument();
+    await screen.findByText(/Не удалось обновить данные тарифов. Счёт уже создан/);
+    const another = screen.getByRole('heading', { name: 'Пакет 3' });
+    fireEvent.click(within(another.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    const payment = await screen.findByRole('button', { name: 'Получить счёт' });
+    expect(payment).toBeDisabled();
+    fireEvent.click(payment);
+    expect(checkoutRequests).toBe(1);
+    recovered = true;
+    fireEvent.click(screen.getByRole('button', { name: 'Обновить данные после создания счёта' }));
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Обновить данные после создания счёта' })).not.toBeInTheDocument());
+    expect(screen.queryByText(/Не удалось обновить данные тарифов/)).not.toBeInTheDocument();
+    expect(checkoutRequests).toBe(1);
   });
 
   it('открывает модули сразу после подтверждения оплаты в платёжном сервисе', async () => {
@@ -836,6 +897,27 @@ describe('BillingPage commercial packages', () => {
     });
   });
 
+  it('после успешного банковского счёта использует новый ключ следующего запроса продления', async () => {
+    const keys: string[] = [];
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: { provider: 'tochka', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: true } })),
+      http.post(`${baseUrl}/billing/commercial/renewal/manual-payment`, async ({ request }) => {
+        const body = await request.json() as { client_idempotency_key: string };
+        keys.push(body.client_idempotency_key);
+        return HttpResponse.json({ success: true, data: { order_id: 'bank-renewal', status: 'pending_payment',
+          amount: '1000.00', amount_minor: 100000, currency: 'RUB', payment_source: 'tochka',
+          bank_invoice: { id: '11111111-1111-4111-8111-111111111111' } } });
+      }),
+    );
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Получить счёт на продление' }));
+    await waitFor(() => expect(keys).toHaveLength(1));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Получить счёт на продление' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Получить счёт на продление' }));
+    await waitFor(() => expect(keys).toHaveLength(2));
+    expect(keys[1]).not.toBe(keys[0]);
+  });
+
   it('всегда показывает крупной компании способ обсудить подключение', async () => {
     renderPage();
     expect(await screen.findByRole('heading', { name: 'Корпоративный уровень' })).toBeInTheDocument();
@@ -920,6 +1002,129 @@ describe('BillingPage commercial packages', () => {
     expect(scheduledBody).toMatchObject({ target_package_slugs: [], full_suite: false, quote_version: 1 });
     const scheduledKey = (scheduledBody as unknown as Record<string, unknown>).client_idempotency_key;
     expect(String(scheduledKey)).toMatch(/^[0-9a-f-]{36}$/i);
+  });
+
+  it.each([{ ready: false, buyer_ready: true }, { ready: true, buyer_ready: false }])('планирует сокращение без банковского счёта при готовности %j', async (readiness) => {
+    let requested = false;
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: {
+        provider: 'tochka', ...readiness, card_payments_enabled: false, auto_invoice_enabled: true,
+      } })),
+      http.post(`${baseUrl}/billing/commercial/contour/schedule`, () => {
+        requested = true;
+        return HttpResponse.json({ success: true, data: { change_id: 'bank-reduction', status: 'scheduled', offer_type: 'packages', target_package_slugs: [], current_package_slugs: [packageSlugs[0]], apply_at: '2026-07-31T09:00:00Z' } });
+      }),
+    );
+    renderPage();
+    const packageHeading = await screen.findByRole('heading', { name: 'Пакет 1' });
+    fireEvent.click(within(packageHeading.closest('article') as HTMLElement).getByRole('button', { name: 'Отключить со следующего периода' }));
+    const schedule = await screen.findByRole('button', { name: 'Запланировать сокращение' });
+    expect(schedule).toBeEnabled();
+    fireEvent.click(schedule);
+    await waitFor(() => expect(requested).toBe(true));
+  });
+
+  it('сохраняет пакеты, историю и оплату с баланса при сбое банковского статуса', async () => {
+    server.use(http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.text('Bad Gateway', { status: 502 })));
+    renderPage();
+    const heading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    expect(screen.getByRole('heading', { name: 'История оплат' })).toBeInTheDocument();
+    fireEvent.click(within(heading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    const balance = await screen.findByRole('checkbox', { name: 'Оплатить с баланса' });
+    fireEvent.click(balance);
+    expect(screen.getByRole('button', { name: 'Оплатить с баланса' })).toBeEnabled();
+    expect(screen.getByText(/Статус банковской оплаты временно недоступен/)).toBeInTheDocument();
+  });
+
+  it('показывает полную стоимость годового периода и передаёт период из расчёта в банковский checkout', async () => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(
+      http.get(`${baseUrl}/billing/commercial/renewal`, () => HttpResponse.json({ success: true, data: {
+        status: 'active', billing_period: '12_months', next_billing_at: '2027-07-01T09:00:00Z',
+      } })),
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: {
+        provider: 'tochka', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: true,
+      } })),
+      http.post(`${baseUrl}/billing/commercial/quote`, async ({ request }) => {
+        const body = await request.json() as { target_package_slugs: string[] };
+        return HttpResponse.json({ success: true, data: {
+          quote_version: 4, currency: 'RUB', billing_period: '12_months', billing_period_days: 365,
+          period_total_minor: 2160000, monthly_total_minor: 200000, amount_due_now_minor: 100000,
+          target_package_slugs: body.target_package_slugs, current_package_slugs: [packageSlugs[0]],
+          added_package_slugs: body.target_package_slugs.filter((slug) => slug !== packageSlugs[0]), removed_package_slugs: [],
+          savings_amount_minor: 0, period_start_at: '2026-07-01T09:00:00Z', period_end_at: '2027-07-01T09:00:00Z',
+        } });
+      }),
+      http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
+        checkoutBody = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: true, data: { order_id: 'year-invoice', status: 'pending_payment', payment_source: 'tochka', bank_invoice: { id: 'year-invoice' } } });
+      }),
+    );
+    renderPage();
+    const heading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(heading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    await screen.findByText('Следующий период · 12 месяцев');
+    expect(screen.getByTestId('monthly-total')).toHaveTextContent('21 600 ₽');
+    fireEvent.click(await screen.findByRole('button', { name: 'Получить счёт' }));
+    await waitFor(() => expect(checkoutBody).toMatchObject({ billing_period: '12_months', renew_subscription: false }));
+  });
+
+  it('повторяет проверку возможностей после временного сбоя и разрешает выставить счёт', async () => {
+    let requests = 0;
+    server.use(http.get(`${baseUrl}/billing/bank/capabilities`, () => {
+      requests++;
+      return requests === 1 ? HttpResponse.text('Bad Gateway', { status: 502 }) : HttpResponse.json({ success: true, data: {
+        provider: 'tochka', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: true,
+      } });
+    }));
+    renderPage();
+    await screen.findByText(/Статус банковской оплаты временно недоступен/);
+    const retry = await screen.findByRole('button', { name: 'Повторить проверку' });
+    fireEvent.click(retry);
+    await waitFor(() => expect(requests).toBe(2));
+    await waitFor(() => expect(screen.queryByText(/Статус банковской оплаты временно недоступен/)).not.toBeInTheDocument());
+    const heading = screen.getByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(heading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    expect(await screen.findByRole('button', { name: 'Получить счёт' })).toBeEnabled();
+  });
+
+  it.each([{ ready: false, buyer_ready: true }, { ready: true, buyer_ready: false }])('блокирует новую оплату grace до готовности %j', async (readiness) => {
+    accountStatus = 'grace';
+    let requested = false;
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: {
+        provider: 'tochka', ...readiness, card_payments_enabled: false, auto_invoice_enabled: true,
+      } })),
+      http.post(`${baseUrl}/billing/commercial/renewal/manual-payment`, () => { requested = true; return HttpResponse.json({ success: true, data: {} }); }),
+    );
+    renderPage();
+    const payment = await screen.findByRole('button', { name: 'Оплатить сейчас' });
+    expect(payment).toBeDisabled();
+    fireEvent.click(payment);
+    expect(requested).toBe(false);
+  });
+
+  it.each(['active', 'grace'])('не отправляет оплату отключённой ЮKassa при статусе %s', async (status) => {
+    accountStatus = status;
+    let requested = false;
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: {
+        provider: 'yookassa', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: false,
+      } })),
+      http.post(`${baseUrl}/billing/commercial/checkout`, () => { requested = true; return HttpResponse.json({ success: true, data: {} }); }),
+      http.post(`${baseUrl}/billing/commercial/renewal/manual-payment`, () => { requested = true; return HttpResponse.json({ success: true, data: {} }); }),
+    );
+    renderPage();
+    await screen.findByText('Оплата через ЮKassa отключена. Обратитесь в поддержку МОСТ.');
+    if (status === 'active') {
+      const heading = screen.getByRole('heading', { name: 'Пакет 2' });
+      fireEvent.click(within(heading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    }
+    const payment = await screen.findByRole('button', { name: status === 'grace' ? 'Оплатить сейчас' : /Перейти к оплате/ });
+    expect(payment).toBeDisabled();
+    fireEvent.click(payment);
+    expect(requested).toBe(false);
+    expect(sessionStorage.getItem('most:pending-commercial-order')).toBeNull();
   });
 
   it('отключает будущие списания без обещания досрочного прекращения доступа', async () => {

@@ -26,7 +26,7 @@ describe('Public legal documents', () => {
   });
 
   it('matches the exact published bundle bytes used by the API', () => {
-    const bytes = readFileSync(path.resolve(process.cwd(), 'src/data/legal/2026-10-15.json'));
+    const bytes = readFileSync(path.resolve(process.cwd(), 'src/data/legal/2026-10-15.bank.json'));
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(LEGAL_CONTENT_SHA256);
     expect(LEGAL_VERSION).toBe(LEGAL_DOCUMENT_VERSION);
   });

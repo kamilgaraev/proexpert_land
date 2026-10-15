@@ -1,7 +1,7 @@
-export type CommercialBillingPeriod = '30_days' | '6_months' | '12_months';
 
 export type CommercialAccountStatus = 'free' | 'active' | 'grace' | 'suspended' | 'corporate';
 export type CommercialOrderStatus = 'pending_payment' | 'paid' | 'canceled' | 'refunded' | 'failed';
+export type CommercialBillingPeriod = '30_days' | '6_months' | '12_months';
 
 export interface CommercialPackageModule {
   slug: string;
@@ -32,9 +32,9 @@ export interface CommercialPackage {
 }
 
 export interface CommercialQuote {
-  billingPeriod?: CommercialBillingPeriod;
-  renewSubscription?: boolean;
-  periodTotalMinor?: number;
+  billingPeriod: CommercialBillingPeriod;
+  periodTotalMinor: number;
+  renewSubscription: boolean;
   periodDiscountPercent?: number;
   periodSavingsMinor?: number;
   quoteVersion: number;
@@ -60,11 +60,12 @@ export interface CommercialQuote {
 }
 
 export interface CommercialRenewalState {
-  billingPeriod?: CommercialBillingPeriod;
+  billingPeriod: CommercialBillingPeriod;
   offerType?: 'packages' | 'full_suite' | 'corporate';
   status: CommercialAccountStatus;
   autoRenewEnabled: boolean;
   savedMethodAvailable: boolean;
+  bankAutoInvoice?: boolean;
   nextBillingAt: string | null;
   graceStartedAt: string | null;
   graceEndsAt: string | null;
@@ -88,7 +89,7 @@ export interface CommercialOrder {
   kind: string | null;
   status: CommercialOrderStatus;
   paymentStatus: string | null;
-  paymentSource: 'yookassa' | 'balance' | null;
+  paymentSource: 'yookassa' | 'balance' | 'tochka' | null;
   amount: string;
   amountMinor: number;
   currency: string;
