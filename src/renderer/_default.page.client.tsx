@@ -4,12 +4,15 @@ import type { PageContextClient } from "vike/types";
 import { PageShell } from "./PageShell";
 import { preparePageShell } from "./pageShellLoader";
 import { BrowserRouter } from "react-router-dom";
+import { isHoldingHostname } from '@/utils/holdingDomain';
+import { loadHoldingRouter } from '@/holdingRouterLoader';
 
 type ClientPageContext = Pick<
   PageContextClient,
   "Page" | "urlPathname" | "urlOriginal" | "isHydration"
 > & {
   pageProps?: Record<string, unknown>;
+  requestHostname?: string;
 };
 
 export const clientRouting = true;
@@ -37,12 +40,14 @@ function ClientCommit({
 
 export async function render(pageContext: ClientPageContext) {
   const generation = ++renderGeneration;
-  await preparePageShell(pageContext.urlPathname || window.location.pathname);
+  const requestHostname = pageContext.requestHostname ?? window.location.hostname;
+  await preparePageShell(pageContext.urlPathname || window.location.pathname, requestHostname);
+  if (isHoldingHostname(requestHostname)) await loadHoldingRouter();
   await pendingCommit;
   if (generation !== renderGeneration) return;
 
   const Page = pageContext.Page as ComponentType<Record<string, unknown>>;
-  const pageProps = pageContext.pageProps;
+  const pageProps = { ...pageContext.pageProps, requestHostname };
   const container = document.getElementById("root");
   if (!container) throw new Error("Missing root element");
 

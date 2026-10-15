@@ -39,6 +39,10 @@ try {
     }
     console.log(`SSR verified: ${pathname}`);
   }
+  const robots = await fetch(`http://127.0.0.1:${port}/robots.txt`, { signal: AbortSignal.timeout(2000) });
+  if (robots.status !== 200 || !(await robots.text()).includes('Sitemap: https://1мост.рф/sitemap.xml')) {
+    throw new Error(`Marketing robots contract failed: HTTP ${robots.status}.\n${output}`);
+  }
 } finally {
   if (!exited) server.kill('SIGTERM');
 }

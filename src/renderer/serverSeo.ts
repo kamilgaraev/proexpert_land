@@ -1,4 +1,6 @@
 import { resolveMarketingRedirectTarget } from '@/data/marketingRegistry';
+import { isHoldingHostname, isHoldingPrivatePath } from '@/utils/holdingDomain';
+import { getOpenGraphLocale } from '@/utils/seoLocale';
 import {
   buildStructuredDataGraph,
   GOOGLEBOT_INDEX_CONTENT,
@@ -40,8 +42,10 @@ export const buildServerSeoPayload = (
       statusCode?: number;
     }
   >,
+  requestHostname = '',
 ): ServerSeoPayload => {
-  const redirectTarget = resolveMarketingRedirectTarget(pathname);
+  const isHolding = isHoldingHostname(requestHostname);
+  const redirectTarget = isHolding ? undefined : resolveMarketingRedirectTarget(pathname);
 
   if (redirectTarget) {
     return {
@@ -56,7 +60,17 @@ export const buildServerSeoPayload = (
     };
   }
 
-  const baseSeo = getPageSEOData(pathname);
+  const baseSeo = isHolding ? {
+    ...getPageSEOData('/'),
+    title: 'Сайт холдинга',
+    description: 'Опубликованный сайт организации.',
+    keywords: '',
+    canonicalUrl: `https://${requestHostname}${pathname.split(/[?#]/)[0]}`,
+    ogImage: '',
+    noIndex: true,
+    type: 'website' as const,
+    statusCode: isHoldingPrivatePath(pathname) ? 200 : 503,
+  } : getPageSEOData(pathname);
   const resolvedDocumentProps = documentProps || {};
 
   const title = resolvedDocumentProps.title ?? baseSeo.title;
@@ -66,7 +80,7 @@ export const buildServerSeoPayload = (
     ? resolvedDocumentProps.canonicalUrl.replace(/#.*$/, '')
     : baseSeo.canonicalUrl.replace(/[?#].*$/, '');
   const ogImage = normalizeOgImageUrl(resolvedDocumentProps.ogImage ?? baseSeo.ogImage) ?? baseSeo.ogImage;
-  const noIndex = resolvedDocumentProps.noIndex ?? baseSeo.noIndex;
+  const noIndex = (isHolding && isHoldingPrivatePath(pathname)) || (resolvedDocumentProps.noIndex ?? baseSeo.noIndex);
   const ogType = resolvedDocumentProps.type ?? baseSeo.type;
   const lang = resolvedDocumentProps.lang ?? baseSeo.lang;
   const statusCode = resolvedDocumentProps.statusCode ?? baseSeo.statusCode;
@@ -103,7 +117,7 @@ export const buildServerSeoPayload = (
     `<meta property="og:url" content="${escapedCanonicalUrl}" />`,
     `<meta property="og:type" content="${ogType}" />`,
     `<meta property="og:site_name" content="МОСТ" />`,
-    `<meta property="og:locale" content="ru_RU" />`,
+    `<meta property="og:locale" content="${escapeHtmlAttribute(getOpenGraphLocale(lang))}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${escapedTitle}" />`,
     `<meta name="twitter:description" content="${escapedDescription}" />`,
@@ -120,7 +134,7 @@ export const buildServerSeoPayload = (
     statusCode,
     structuredData: resolvedDocumentProps.structuredData,
   });
-  const structuredDataTag = structuredDataGraph['@graph'].length > 0
+  const structuredDataTag = !isHolding && structuredDataGraph['@graph'].length > 0
     ? `<script id="ld-json" type="application/ld+json">${JSON.stringify(structuredDataGraph).replace(/</g, '\\u003c')}</script>`
     : '';
 

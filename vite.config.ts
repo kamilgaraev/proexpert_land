@@ -1,15 +1,32 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+import { createRequire } from 'node:module';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import react from '@vitejs/plugin-react';
 import ssr from 'vike/plugin';
 import path from 'path';
 
+const require = createRequire(import.meta.url);
+const { respondWithHoldingDiscovery } = require('./server/holding-discovery.cjs') as {
+  respondWithHoldingDiscovery: (request: IncomingMessage, response: ServerResponse) => Promise<boolean>;
+};
+
+const holdingDiscovery = (): Plugin => {
+  const middleware = (request: IncomingMessage, response: ServerResponse, next: (error?: unknown) => void) => {
+    void respondWithHoldingDiscovery(request, response).then((handled) => { if (!handled) next(); }).catch(next);
+  };
+  return {
+    name: 'holding-discovery',
+    configureServer(server) { server.middlewares.use(middleware); },
+    configurePreviewServer(server) { server.middlewares.use(middleware); },
+  };
+};
 
 // Если собираем личный кабинет (BUILD_TARGET=lk) — SSR не нужен.
 const isLkBuild = process.env.BUILD_TARGET === 'lk';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: isLkBuild ? [react()] : [react(), ssr()],
+  plugins: isLkBuild ? [react()] : [holdingDiscovery(), react(), ssr()],
   define: {
     '$': 'undefined',
     'jQuery': 'undefined',
@@ -89,4 +106,4 @@ export default defineConfig({
       exclude: [/react-router/, /react-router-dom/]
     },
   }
-}); 
+});

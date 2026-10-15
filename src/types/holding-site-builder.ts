@@ -351,8 +351,10 @@ export interface PublicRuntimePayload {
   locale?: string;
 }
 
+export type PublicSite = Omit<EditorSite, 'preview_url'>;
+
 export interface PublicSitePayload {
-  site: EditorSite;
+  site: PublicSite;
   navigation?: PublicNavigationItem[];
   pages?: EditorPage[];
   page?: EditorPage | null;

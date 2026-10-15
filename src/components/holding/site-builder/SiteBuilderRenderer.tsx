@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import type { FormEvent, KeyboardEvent, MouseEvent, ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { getHoldingContentPath, getHoldingLocalePrefix } from '@/utils/holdingPublicPage';
 import NotificationService from '@components/shared/NotificationService';
 import type {
   BuilderCanvasFocusTarget,
   EditorPage,
   EditorSection,
-  EditorSite,
+  PublicSite,
   LeadSubmissionPayload,
   PublicNavigationItem,
   SiteBlogArticle,
 } from '@/types/holding-site-builder';
 
 interface SiteBuilderRendererProps {
-  site: EditorSite;
+  site: PublicSite;
   page?: EditorPage | null;
   blocks?: EditorSection[];
   navigation?: PublicNavigationItem[];
@@ -44,14 +45,20 @@ const normalizePublicPath = (value: unknown): string => {
     : withLeadingSlash;
 };
 
-const getPreviewSearch = (): string => {
-  if (typeof window === 'undefined') {
-    return '';
+const getPublicNavigationSearch = (search: string, pathLocale?: string): string => {
+  const params = new URLSearchParams(search);
+  if (pathLocale) {
+    params.set('locale', pathLocale);
+    params.delete('lang');
   }
-
-  const params = new URLSearchParams(window.location.search);
-
-  return params.get('preview') === 'true' ? window.location.search : '';
+  if (params.get('preview') === 'true') return pathLocale ? `?${params}` : search;
+  const publicParams = new URLSearchParams();
+  for (const key of ['locale', 'lang']) {
+    const value = params.get(key);
+    if (value) publicParams.set(key, value);
+  }
+  const query = publicParams.toString();
+  return query ? `?${query}` : '';
 };
 
 const buildPublicHref = (slug: unknown, search = ''): string => {
@@ -121,7 +128,7 @@ const SectionShell = ({
   children,
 }: {
   section: EditorSection;
-  site: EditorSite;
+  site: PublicSite;
   mode: 'public' | 'editor';
   selected?: boolean;
   onSelect?: (target: BuilderCanvasFocusTarget) => void;
@@ -224,15 +231,13 @@ const PublicSiteHeader = ({
   currentPage,
   navigation,
 }: {
-  site: EditorSite;
+  site: PublicSite;
   currentPage?: EditorPage | null;
   navigation: PublicNavigationItem[];
 }) => {
-  const previewSearch = getPreviewSearch();
-  const currentPath =
-    typeof window === 'undefined'
-      ? normalizePublicPath(currentPage?.slug ?? '/')
-      : normalizePublicPath(window.location.pathname);
+  const { pathname, search } = useLocation();
+  const navigationSearch = getPublicNavigationSearch(search, getHoldingLocalePrefix(pathname, site));
+  const currentPath = getHoldingContentPath(pathname, site);
   const currentPageLabel = stringValue(currentPage?.navigation_label) || stringValue(currentPage?.title) || site.title;
 
   return (
@@ -241,7 +246,7 @@ const PublicSiteHeader = ({
         className="mx-auto flex w-full flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8"
         style={{ maxWidth: site.theme_config.container_width ?? '1240px' }}
       >
-        <Link className="flex min-w-0 items-center gap-3" to={buildPublicHref('/', previewSearch)}>
+        <Link className="flex min-w-0 items-center gap-3" to={buildPublicHref('/', navigationSearch)}>
           <span
             className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-lg font-semibold text-white shadow-[0_18px_45px_-32px_rgba(15,23,42,0.45)]"
             style={site.logo_url ? { backgroundColor: '#ffffff' } : { backgroundColor: site.theme_config.primary_color }}
@@ -263,7 +268,7 @@ const PublicSiteHeader = ({
         {navigation.length > 0 && (
           <nav className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-1 lg:justify-center lg:pb-0">
             {navigation.map((item) => {
-              const itemPath = normalizePublicPath(item.slug);
+              const itemPath = getHoldingContentPath(stringValue(item.slug));
               const isBlogMatch =
                 currentPage?.page_type === 'blog_post' &&
                 (item.page_type === 'blog_index' || itemPath === '/blog');
@@ -279,7 +284,7 @@ const PublicSiteHeader = ({
                     isActive ? 'text-white shadow-[0_18px_45px_-32px_rgba(37,99,235,0.6)]' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
                   }`}
                   style={isActive ? { backgroundColor: site.theme_config.primary_color } : undefined}
-                  to={buildPublicHref(item.slug, previewSearch)}
+                  to={buildPublicHref(item.slug, navigationSearch)}
                 >
                   {stringValue(item.label) || (itemPath === '/' ? 'Главная' : itemPath.slice(1))}
                 </Link>
@@ -456,7 +461,7 @@ const BlogArticlePage = ({ article }: { article: SiteBlogArticle }) => (
 
 const renderSectionContent = (
   section: EditorSection,
-  site: EditorSite,
+  site: PublicSite,
   mode: 'public' | 'editor',
   selectedBlockId?: number | null,
   selectedFieldPath?: string | null,

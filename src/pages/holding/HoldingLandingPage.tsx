@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { multiOrganizationService } from '@utils/api';
 import type { HoldingPublicData } from '@utils/api';
+import { HOLDING_MAIN_DOMAIN } from '@utils/holdingDomain';
 import { SEOHead } from '@components/shared/SEOHead';
 import { useTheme } from '@components/shared/ThemeProvider';
 
@@ -29,7 +30,7 @@ const HoldingLandingPage = () => {
         setError(null);
         
         const hostname = window.location.hostname;
-        const mainDomain = '1мост.рф';
+        const mainDomain = HOLDING_MAIN_DOMAIN;
         let slug = '';
         
         if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
@@ -132,7 +133,7 @@ const HoldingLandingPage = () => {
   const parent_organization = holdingData?.parent_organization;
   const stats = holdingData?.stats;
 
-  if (!holding || !parent_organization || !stats) {
+  if (!holding || !parent_organization) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
@@ -150,7 +151,7 @@ const HoldingLandingPage = () => {
     <div className={`min-h-screen bg-gradient-to-br ${theme.background}`}>
       <SEOHead 
         title={`${holding.name} - Холдинг`}
-        description={`Официальная страница холдинга ${holding.name}. Управляем ${stats.total_child_organizations} организациями с ${stats.total_users} пользователями.`}
+        description={holding.description || `Официальная страница холдинга ${holding.name}.`}
         keywords="холдинг, управление организациями, мультиорганизация"
       />
 
@@ -188,9 +189,10 @@ const HoldingLandingPage = () => {
                 <span className={`${theme.text} block mt-2`}>{holding.name}</span>
               </h2>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                {holding.description || `Мы объединяем усилия ${stats.total_child_organizations} организаций для достижения общих целей и создания синергетического эффекта в строительной отрасли.`}
+                {holding.description || 'Объединяем усилия для достижения общих целей в строительной отрасли.'}
               </p>
               
+              {stats ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mt-16">
                 <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
                   <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-4">
@@ -224,6 +226,7 @@ const HoldingLandingPage = () => {
                   <p className="text-gray-600">Договоров</p>
                 </div>
               </div>
+              ) : null}
             </div>
           </div>
         </section>
@@ -238,7 +241,7 @@ const HoldingLandingPage = () => {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className={stats ? 'grid lg:grid-cols-2 gap-8' : 'grid gap-8'}>
                             <div className={`bg-gradient-to-br ${theme.accent} to-${color}-100 rounded-2xl p-8 border ${theme.border}`}>
               <div className="flex items-center mb-6">
                 <div className={`${theme.primary} p-3 rounded-lg mr-4`}>
@@ -282,6 +285,7 @@ const HoldingLandingPage = () => {
               </div>
             </div>
 
+            {stats ? (
             <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl p-8 border border-green-200">
               <div className="flex items-center mb-6">
                 <div className="bg-green-600 p-3 rounded-lg mr-4">
@@ -296,24 +300,25 @@ const HoldingLandingPage = () => {
               <div className="space-y-4">
                 <div className="bg-white rounded-xl p-4 flex justify-between items-center">
                   <span className="font-semibold text-gray-900">Организаций в холдинге</span>
-                  <span className="text-2xl font-bold text-blue-600">{stats?.total_child_organizations || 0}</span>
+                  <span className="text-2xl font-bold text-blue-600">{stats.total_child_organizations}</span>
                 </div>
                 <div className="bg-white rounded-xl p-4 flex justify-between items-center">
                   <span className="font-semibold text-gray-900">Активных проектов</span>
-                  <span className="text-2xl font-bold text-green-600">{stats?.total_projects || 0}</span>
+                  <span className="text-2xl font-bold text-green-600">{stats.total_projects}</span>
                 </div>
                 <div className="bg-white rounded-xl p-4 flex justify-between items-center">
                   <span className="font-semibold text-gray-900">Договоров в работе</span>
-                  <span className="text-2xl font-bold text-purple-600">{stats?.active_contracts_count || 0}</span>
+                  <span className="text-2xl font-bold text-purple-600">{stats.active_contracts_count}</span>
                 </div>
-                {(stats?.total_contracts_value || 0) > 0 && (
+                {stats.total_contracts_value > 0 && (
                   <div className="bg-white rounded-xl p-4 flex justify-between items-center">
                     <span className="font-semibold text-gray-900">Объем договоров</span>
-                    <span className="text-xl font-bold text-orange-600">{formatCurrency(stats?.total_contracts_value || 0)}</span>
+                    <span className="text-xl font-bold text-orange-600">{formatCurrency(stats.total_contracts_value)}</span>
                   </div>
                 )}
               </div>
             </div>
+            ) : null}
           </div>
         </div>
       </section>
@@ -370,4 +375,4 @@ const HoldingLandingPage = () => {
   );
 };
 
-export default HoldingLandingPage; 
+export default HoldingLandingPage;

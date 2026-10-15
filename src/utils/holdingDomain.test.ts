@@ -1,0 +1,42 @@
+import { describe, expect, it } from 'vitest';
+import { HOLDING_MAIN_DOMAIN, isHoldingHostname, isHoldingPrivatePath } from './holdingDomain';
+import { isMarketingPublicRequest } from './publicSite';
+
+describe('holding hostname routing', () => {
+  it.each(['/%64ashboard', '/%44ASHBOARD/', '/landing/%65ditor', '/holding/%37/landing/%65dit', '/projects/id%2Fpart'])('recognizes the encoded private route %s', (pathname) => {
+    expect(isHoldingPrivatePath(pathname)).toBe(true);
+  });
+
+  it.each(['/%2564ashboard', '/landing%2Feditor', '/%64ashboard/%ZZ', '/%64ashboard/unknown'])('preserves the router decoding boundary for %s', (pathname) => {
+    expect(isHoldingPrivatePath(pathname)).toBe(false);
+  });
+
+  it('recognizes the browser hostname of a Cyrillic holding domain', () => {
+    expect(isHoldingHostname(new URL('https://company.1мост.рф').hostname)).toBe(true);
+    expect(HOLDING_MAIN_DOMAIN).toBe('xn--1-xtbgmf.xn--p1ai');
+    expect(isMarketingPublicRequest('/', `company.${HOLDING_MAIN_DOMAIN}`)).toBe(false);
+    expect(isMarketingPublicRequest('/about', `company.${HOLDING_MAIN_DOMAIN}`)).toBe(false);
+    expect(isMarketingPublicRequest('/', HOLDING_MAIN_DOMAIN)).toBe(true);
+  });
+
+  it.each([
+    'https://1мост.рф',
+    'https://lk.1мост.рф',
+    'https://api.1мост.рф',
+    'https://www.1мост.рф',
+    'https://localhost',
+    'https://127.0.0.1',
+    'https://company.1мост.рф.example.com',
+    'https://evil1мост.рф',
+  ])('keeps %s outside the holding router', (url) => {
+    expect(isHoldingHostname(new URL(url).hostname)).toBe(false);
+  });
+
+  it('classifies raw hostnames without regard to DNS letter case', () => {
+    expect(isHoldingHostname(`COMPANY.${HOLDING_MAIN_DOMAIN.toUpperCase()}`)).toBe(true);
+    expect(isMarketingPublicRequest('/', `COMPANY.${HOLDING_MAIN_DOMAIN.toUpperCase()}`)).toBe(false);
+    for (const prefix of ['LK', 'API', 'WWW']) {
+      expect(isHoldingHostname(`${prefix}.${HOLDING_MAIN_DOMAIN.toUpperCase()}`)).toBe(false);
+    }
+  });
+});

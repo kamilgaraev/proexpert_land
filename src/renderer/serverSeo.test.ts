@@ -17,6 +17,19 @@ const getGraphTypes = (structuredDataTag: string) =>
   parseStructuredDataGraph(structuredDataTag)['@graph'].map((node) => node['@type']);
 
 describe('buildServerSeoPayload', () => {
+  it('keeps holding SEO and aliases on the requested hostname', () => {
+    const host = 'company.xn--1-xtbgmf.xn--p1ai';
+    const payload = buildServerSeoPayload('/features', { title: 'Published title', statusCode: 200, noIndex: false }, host);
+    expect(payload.title).toBe('Published title');
+    expect(payload.canonicalUrl).toBe(`https://${host}/features`);
+    expect(payload.allMeta).toContain(`content="https://${host}/features"`);
+    expect(payload.structuredDataTag).toBe('');
+    expect(payload.statusCode).toBe(200);
+    expect(buildServerSeoPayload('/functions', undefined, host).redirectTarget).toBeUndefined();
+    expect(buildServerSeoPayload('/never-published', undefined, host).statusCode).toBe(503);
+    expect(buildServerSeoPayload('/reports/contracts', undefined, host).allMeta).toContain('noindex');
+  });
+
   it('preserves an explicit paginated canonical in SSR and structured data', () => {
     const payload = buildServerSeoPayload('/blog', { canonicalUrl: 'https://1мост.рф/blog?page=2#feed' });
     expect(payload.canonicalUrl).toBe('https://1мост.рф/blog?page=2');
@@ -275,6 +288,11 @@ describe('buildServerSeoPayload', () => {
     expect(payload.statusCode).toBe(404);
     expect(payload.title).toContain('Страница не найдена');
     expect(payload.allMeta).toContain('noindex');
+  });
+
+  it.each([['en', 'en_US'], ['en-GB', 'en_GB'], ['ru', 'ru_RU'], ['zh-Hant', 'zh_TW']])('sets Open Graph locale for %s', (lang, expected) => {
+    const payload = buildServerSeoPayload('/about', { lang }, 'company.xn--1-xtbgmf.xn--p1ai');
+    expect(payload.allMeta).toContain(`<meta property="og:locale" content="${expected}" />`);
   });
 
   it('returns redirect payload for legacy alias routes', () => {

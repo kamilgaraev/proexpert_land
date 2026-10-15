@@ -1,12 +1,17 @@
 import { useEffect } from 'react';
 import { normalizeOgImageUrl } from '@/utils/seo';
+import { isHoldingHostname, isHoldingPrivatePath } from '@/utils/holdingDomain';
+import { getHoldingCanonicalSearch, normalizeHoldingPublicPath } from '@/utils/holdingPublicPage';
+import { getOpenGraphLocale } from '@/utils/seoLocale';
 
 interface SEOHeadProps {
+  lang?: string;
   title?: string;
   description?: string;
   keywords?: string;
   ogImage?: string;
   canonicalUrl?: string;
+  noIndex?: boolean;
   type?: 'website' | 'article' | 'product';
   author?: string;
   publishedTime?: string;
@@ -15,25 +20,30 @@ interface SEOHeadProps {
 }
 
 export const SEOHead: React.FC<SEOHeadProps> = ({
+  lang,
   title = 'МОСТ - Умная платформа для управления строительными проектами',
   description = 'Автоматизируйте строительные процессы с МОСТ: учет материалов, контроль бюджета, координация команд и отчетность в одной платформе.',
   keywords = 'строительство, управление проектами, учет материалов, строительная отчетность, SaaS для строителей, автоматизация строительства, финансовый контроль, МОСТ',
   ogImage = 'https://1мост.рф/og/default.png',
   canonicalUrl,
+  noIndex = false,
   type = 'website',
   author = 'МОСТ Team',
   publishedTime,
   modifiedTime,
   structuredData
 }) => {
+  const holding = typeof window !== 'undefined' && isHoldingHostname(window.location.hostname);
+  const preventIndexing = noIndex || (holding && isHoldingPrivatePath(window.location.pathname));
   const currentUrl =
     canonicalUrl ||
     (typeof window !== 'undefined'
-      ? `https://1мост.рф${window.location.pathname}`
+      ? `${holding ? window.location.origin : 'https://1мост.рф'}${holding ? normalizeHoldingPublicPath(window.location.pathname) : window.location.pathname}${holding ? getHoldingCanonicalSearch(window.location.search) : ''}`
       : 'https://1мост.рф');
   const normalizedOgImage = normalizeOgImageUrl(ogImage) ?? 'https://1мост.рф/og/default.png';
 
   useEffect(() => {
+    document.documentElement.lang = lang ?? 'ru';
     document.title = title;
     
     const setMetaTag = (name: string, content: string, property?: boolean) => {
@@ -64,7 +74,8 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag('description', description);
     setMetaTag('keywords', keywords);
     setMetaTag('author', author);
-    setMetaTag('robots', 'index, follow');
+    setMetaTag('robots', preventIndexing ? 'noindex, nofollow' : 'index, follow');
+    if (holding) setMetaTag('googlebot', preventIndexing ? 'noindex, nofollow' : 'index, follow');
     setMetaTag('geo.region', 'RU-MOW');
     setMetaTag('geo.placename', 'Москва');
     setMetaTag('geo.position', '55.751244;37.618423');
@@ -78,7 +89,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag('og:url', currentUrl, true);
     setMetaTag('og:type', type, true);
     setMetaTag('og:site_name', 'МОСТ', true);
-    setMetaTag('og:locale', 'ru_RU', true);
+    setMetaTag('og:locale', getOpenGraphLocale(lang), true);
     
     setMetaTag('twitter:card', 'summary_large_image', true);
     setMetaTag('twitter:title', title, true);
@@ -116,7 +127,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
         dynamicScript.remove();
       }
     };
-  }, [title, description, keywords, normalizedOgImage, currentUrl, type, author, publishedTime, modifiedTime, structuredData]);
+  }, [lang, title, description, keywords, normalizedOgImage, currentUrl, type, author, publishedTime, modifiedTime, structuredData, preventIndexing, holding]);
 
   return null;
 }; 

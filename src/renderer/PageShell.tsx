@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { isMarketingPublicPath } from "@/utils/publicSite";
+import { isPublicPageRequest } from "@/utils/publicSite";
 import SiteTracking from '@/components/analytics/SiteTracking';
 import {
   getPrivatePageShell,
@@ -13,12 +13,14 @@ interface PageShellProps {
   children: React.ReactNode;
   pageContext?: {
     urlPathname?: string;
+    requestHostname?: string;
   };
 }
 
-export function PageShell({ children }: PageShellProps) {
+export function PageShell({ children, pageContext }: PageShellProps) {
   const { pathname } = useLocation();
-  const isPublic = isMarketingPublicPath(pathname);
+  const hostname = pageContext?.requestHostname ?? (typeof window !== 'undefined' ? window.location.hostname : '');
+  const isPublic = isPublicPageRequest(pathname, hostname);
   const [PrivateShell, setPrivateShell] =
     useState<PrivateShellComponent | null>(getPrivatePageShell);
   const [failed, setFailed] = useState(false);

@@ -6,6 +6,10 @@ import { generateArticleSchema, normalizeArticleTitleBrand } from '@/utils/seo';
 import { fetchBlogCategoryForSsr, fetchBlogIndexForSsr, fetchBlogTagForSsr } from './blogIndexSsr';
 import { getBlogTagSeo, normalizeBlogTagQuery } from '@/utils/blogTagListing';
 import { getBlogCategorySeo } from '@/utils/blogCategorySeo';
+import { isHoldingHostname } from '@/utils/holdingDomain';
+import { loadHoldingPageContext } from './holdingSiteSsr';
+import type { AppProps } from '@/App';
+import type { buildServerSeoPayload } from '@/renderer/serverSeo';
 
 const BASE_URL = 'https://1мост.рф';
 const API_BASE_DOMAIN = process.env.VITE_API_BASE ?? process.env.API_BASE_URL ?? 'https://api.1мост.рф';
@@ -156,7 +160,18 @@ const buildMissingArticleDocumentProps = () => ({
   statusCode: 404,
 });
 
-export async function onBeforeRender(pageContext: { urlPathname?: string; urlOriginal?: string }) {
+export async function onBeforeRender(pageContext: { urlPathname?: string; urlOriginal?: string; requestHostname?: string }): Promise<{
+  pageContext: {
+    routeStatusCode: number;
+    documentProps?: Parameters<typeof buildServerSeoPayload>[1];
+    pageProps?: AppProps;
+  };
+}> {
+  if (isHoldingHostname(pageContext.requestHostname || '')) {
+    const pathname = pageContext.urlPathname || '/';
+    const search = new URL(pageContext.urlOriginal || pathname, BASE_URL).search;
+    return { pageContext: await loadHoldingPageContext(pageContext.requestHostname!, pathname, search) };
+  }
   const query = readBlogIndexQuery(new URL(pageContext.urlOriginal || pageContext.urlPathname || '/', BASE_URL).searchParams);
   const normalizedPath = normalizeMarketingPath(pageContext.urlPathname || '/');
   const routeStatusCode = isKnownMarketingPath(normalizedPath) ? 200 : 404;

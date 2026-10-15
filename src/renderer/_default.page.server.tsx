@@ -14,10 +14,12 @@ import { PageShell } from "./PageShell";
 import { preparePageShell } from "./pageShellLoader";
 import { buildServerSeoPayload } from "./serverSeo";
 import { resolveServerRouterLocation } from "./serverRouterLocation";
-import { isMarketingPublicPath } from "@/utils/publicSite";
+import { isMarketingPublicRequest } from "@/utils/publicSite";
 import { getCabinetRedirect } from "@/utils/cabinetRedirect";
 import { filterMarketingAssets } from "./marketingAssetFilter";
 import homeStyles from "../styles/marketing-base.css?inline";
+import { isHoldingHostname } from '@/utils/holdingDomain';
+import { loadHoldingRouter } from '@/holdingRouterLoader';
 
 type ServerPageContext = PageContextServer & {
   Page: ComponentType<Record<string, unknown>>;
@@ -28,7 +30,9 @@ type ServerPageContext = PageContextServer & {
 
 export async function render(pageContext: ServerPageContext) {
   const pathname = pageContext.urlPathname || "/";
-  const inlineHomeStyles = pathname === "/";
+  const hostname = pageContext.requestHostname || '';
+  const isMarketing = isMarketingPublicRequest(pathname, hostname);
+  const inlineHomeStyles = pathname === "/" && isMarketing;
   const routerLocation = resolveServerRouterLocation(pageContext);
   const cabinetTarget = getCabinetRedirect(
     pageContext.requestHostname || "",
@@ -43,14 +47,17 @@ export async function render(pageContext: ServerPageContext) {
   const seoPayload = buildServerSeoPayload(
     pathname,
     pageContext.documentProps,
+    hostname,
   );
 
   if (seoPayload.redirectTarget) {
     throw redirect(seoPayload.redirectTarget as `/${string}`, 301);
   }
 
-  await preparePageShell(pathname);
-  const { Page, pageProps } = pageContext;
+  await preparePageShell(pathname, hostname);
+  if (isHoldingHostname(hostname)) await loadHoldingRouter();
+  const { Page } = pageContext;
+  const pageProps = { ...pageContext.pageProps, requestHostname: hostname };
   const html = ReactDOMServer.renderToString(
     <StaticRouter location={routerLocation}>
       <PageShell pageContext={pageContext}>
@@ -78,14 +85,15 @@ export async function render(pageContext: ServerPageContext) {
 
   return {
     documentHtml,
-    injectFilter: isMarketingPublicPath(pathname)
+    injectFilter: isMarketing
       ? (assets: Parameters<typeof filterMarketingAssets>[0]) => filterMarketingAssets(assets, inlineHomeStyles)
       : undefined,
     pageContext: {
+      pageProps,
       abortStatusCode:
         seoPayload.statusCode === 200 ? undefined : seoPayload.statusCode,
     },
   };
 }
 
-export const passToClient = ["pageProps", "documentProps"];
+export const passToClient = ["pageProps", "documentProps", "requestHostname"];

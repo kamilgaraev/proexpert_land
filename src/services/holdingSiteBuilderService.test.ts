@@ -117,6 +117,31 @@ describe('holdingSiteBuilderService', () => {
 });
 
 describe('publicHoldingSiteService', () => {
+  it('sends a once-decoded public pathname to the API', async () => {
+    server.use(http.get('https://api.example.test/api/v1/landing/holding/public/site-data', ({ request }) => {
+      expect(new URL(request.url).searchParams.get('path')).toBe('/о-компании');
+      return HttpResponse.json({ success: true, data: publicPayloadFixture });
+    }));
+    await expect(publicHoldingSiteService.getSiteData('/%D0%BE-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8', '')).resolves.toEqual(publicPayloadFixture);
+  });
+
+  it.each([
+    ['?lang=en_US&preview=true&token=private', 'en_US'],
+    ['?locale=ru&lang=en_US&preview=true&token=private', 'ru'],
+  ])('sends the API locale for %s while preserving preview and the path', async (search, locale) => {
+    server.use(http.get('https://api.example.test/api/v1/landing/holding/public/site-data', ({ request }) => {
+      const params = new URL(request.url).searchParams;
+      expect(params.get('locale')).toBe(locale);
+      expect(params.has('lang')).toBe(false);
+      expect(params.get('path')).toBe('/en_US/about');
+      expect(params.get('site_domain')).toBe('localhost');
+      expect(params.get('preview')).toBe('true');
+      expect(params.get('token')).toBe('private');
+      return HttpResponse.json({ success: true, data: publicPayloadFixture });
+    }));
+    await expect(publicHoldingSiteService.getSiteData('/en_US/about', search)).resolves.toEqual(publicPayloadFixture);
+  });
+
   it('читает published runtime payload и отправляет лид на same-origin endpoints', async () => {
     const payload = await publicHoldingSiteService.getSiteData('/', '?preview=true');
     const lead = await publicHoldingSiteService.submitLead({

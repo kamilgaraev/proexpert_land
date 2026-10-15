@@ -2,6 +2,9 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppErrorBoundary } from '@components/common/AppErrorBoundary';
 import { AppLoadingFallback } from '@components/common/AppLoadingFallback';
+import { isHoldingHostname } from '@utils/holdingDomain';
+import { getHoldingRouter, loadHoldingRouter } from './holdingRouterLoader';
+import type { HoldingPublicPageState } from '@utils/holdingPublicPage';
 
 // Критические компоненты загружаем сразу (Landing + Auth)
 import LandingLayout from '@layouts/LandingLayout';
@@ -69,7 +72,7 @@ const NotificationsPage = lazy(() => import('@pages/dashboard/NotificationsPage'
 // Lazy loading для blog модуля (очень тяжелый)
 
 // Lazy loading для Multi-Organization / Holding
-const HoldingRouter = lazy(() => import('@/HoldingRouter'));
+const LazyHoldingRouter = lazy(() => loadHoldingRouter().then((defaultExport) => ({ default: defaultExport })));
 const HoldingPanelLayout = lazy(() => import('@layouts/HoldingPanelLayout').then(m => ({ default: m.HoldingPanelLayout })));
 const HoldingDashboard = lazy(() => import('@components/multi-org').then(m => ({ default: m.HoldingDashboard })));
 const HoldingProjectsList = lazy(() => import('@components/multi-org').then(m => ({ default: m.HoldingProjectsList })));
@@ -94,7 +97,9 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import type { BlogArticle, BlogCategoryInitialData, BlogIndexInitialData, BlogTagInitialData } from '@/types/blog';
 
-interface AppProps {
+export interface AppProps {
+  requestHostname?: string;
+  initialHoldingPage?: HoldingPublicPageState;
   initialBlogIndexData?: BlogIndexInitialData;
   initialBlogCategoryData?: BlogCategoryInitialData;
   initialBlogTagData?: BlogTagInitialData;
@@ -137,6 +142,8 @@ const BillingAccessRoute = () => {
 };
 
 function App({
+  requestHostname,
+  initialHoldingPage,
   initialBlogIndexData,
   initialBlogCategoryData,
   initialBlogTagData,
@@ -146,49 +153,16 @@ function App({
 }: AppProps = {}) {
   const location = useLocation();
 
-  const isHoldingSubdomain = () => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-
-    const hostname = window.location.hostname;
-    const mainDomain = '1мост.рф';
-
-    if (
-      hostname.includes('localhost') ||
-      hostname.includes('127.0.0.1')
-    ) {
-      return false;
-    }
-
-    const reserved = new Set(['lk', 'api', 'www']);
-    if (reserved.has(hostname.split('.')[0])) {
-      return false;
-    }
-
-    return hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`);
-  };
-
-  if (isHoldingSubdomain()) {
+  const hostname = requestHostname ?? (typeof window !== 'undefined' ? window.location.hostname : '');
+  if (isHoldingHostname(hostname)) {
+    const HoldingRouter = getHoldingRouter() ?? LazyHoldingRouter;
     return (
       <>
         <AppErrorBoundary resetKey={`${location.pathname}${location.search}`}>
           <Suspense fallback={<AppLoadingFallback />}>
-            <HoldingRouter />
+            <HoldingRouter initialHoldingPage={initialHoldingPage} />
           </Suspense>
         </AppErrorBoundary>
-        <ToastContainer 
-          position="bottom-right"
-          autoClose={3000} 
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-        />
       </>
     );
   }

@@ -1,5 +1,5 @@
 import type { ComponentType, PropsWithChildren } from "react";
-import { isMarketingPublicPath } from "@/utils/publicSite";
+import { isMarketingPublicRequest, isPublicPageRequest } from "@/utils/publicSite";
 
 export type PrivateShellComponent = ComponentType<PropsWithChildren>;
 
@@ -28,11 +28,12 @@ export function loadPrivatePageShell(): Promise<PrivateShellComponent> {
   return pendingShell;
 }
 
-export async function preparePageShell(pathname: string): Promise<void> {
-  if (pathname !== "/") {
+export async function preparePageShell(pathname: string, hostname = ''): Promise<void> {
+  const isPublic = isPublicPageRequest(pathname, hostname);
+  if (pathname !== "/" || !isMarketingPublicRequest(pathname, hostname)) {
     await import("../index.css");
   }
-  if (!isMarketingPublicPath(pathname)) {
+  if (!isPublic) {
     await loadPrivatePageShell();
   }
 }

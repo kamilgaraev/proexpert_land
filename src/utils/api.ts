@@ -1913,31 +1913,31 @@ export interface HoldingPublicData {
     id: number;
     name: string;
     slug: string;
-    description: string;
-    parent_organization_id: number;
-    status: string;
-    created_at: string;
+    description?: string | null;
+    parent_organization_id?: number;
+    status?: string;
+    created_at?: string;
   };
   parent_organization: {
     id: number;
     name: string;
-    legal_name: string;
-    tax_number: string;
-    registration_number: string;
-    address: string;
-    phone?: string;
-    email?: string;
-    city: string;
-    description?: string;
+    legal_name?: string | null;
+    tax_number?: string | null;
+    registration_number?: string | null;
+    address?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    city?: string | null;
+    description?: string | null;
   };
-  stats: {
+  stats?: {
     total_child_organizations: number;
     total_users: number;
     total_projects: number;
     total_contracts: number;
     total_contracts_value: number;
     active_contracts_count: number;
-  };
+  } | null;
 }
 
 export interface HoldingDashboardData {

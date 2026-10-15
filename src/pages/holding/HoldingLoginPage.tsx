@@ -12,12 +12,13 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@hooks/useAuth';
 import { multiOrganizationService } from '@utils/api';
+import { HOLDING_MAIN_DOMAIN } from '@utils/holdingDomain';
 import { SEOHead } from '@components/shared/SEOHead';
 
 interface HoldingInfo {
   name: string;
   slug: string;
-  description?: string;
+  description?: string | null;
 }
 
 const HoldingLoginPage = () => {
@@ -40,7 +41,7 @@ const HoldingLoginPage = () => {
     const loadHoldingInfo = async () => {
       try {
         const hostname = window.location.hostname;
-        const mainDomain = '1мост.рф';
+        const mainDomain = HOLDING_MAIN_DOMAIN;
         let slug = '';
         
         if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
@@ -326,4 +327,4 @@ const HoldingLoginPage = () => {
   );
 };
 
-export default HoldingLoginPage; 
+export default HoldingLoginPage;
