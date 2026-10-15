@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { LEGAL_VERSION } from '@/data/marketing/legal';
+import { LEGAL_VERSION, legalProvider } from '@/data/marketing/legal';
 
 export interface OrganizationLegalChoice {
   terms: boolean;
@@ -13,6 +13,7 @@ export const allLegalChoices = (choice: OrganizationLegalChoice) => choice.terms
 export const OrganizationLegalAcceptance = ({ value, onChange }: { value: OrganizationLegalChoice; onChange: (value: OrganizationLegalChoice) => void }) => (
   <fieldset className="space-y-3 text-sm">
     <legend className="mb-2 font-medium">Документы организации, редакция {LEGAL_VERSION}</legend>
+    <p className="text-xs text-muted-foreground">Поставщик — {legalProvider.short_name}, ИНН {legalProvider.inn}, ОГРНИП {legalProvider.registration_number}. <a href="https://1мост.рф/contact#requisites" target="_blank" rel="noreferrer" className="underline">Реквизиты</a></p>
     <label className="flex items-start gap-3"><input type="checkbox" checked={value.terms} onChange={(event) => onChange({ ...value, terms: event.target.checked })} /><span>От имени организации принимаю <Link to="/offer" target="_blank" className="underline">договор использования МОСТ</Link>.</span></label>
     <label className="flex items-start gap-3"><input type="checkbox" checked={value.processing} onChange={(event) => onChange({ ...value, processing: event.target.checked })} /><span>От имени оператора выдаю <Link to="/data-processing" target="_blank" className="underline">поручение на обработку ПДн</Link> и подтверждаю законность передаваемых данных.</span></label>
     <label className="flex items-start gap-3"><input type="checkbox" checked={value.authority} onChange={(event) => onChange({ ...value, authority: event.target.checked })} /><span>Подтверждаю полномочия заключить договор и выдать поручение от имени указанной организации.</span></label>
