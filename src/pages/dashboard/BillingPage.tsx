@@ -98,6 +98,8 @@ const BillingPage = () => {
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [autoRenewConsent, setAutoRenewConsent] = useState(false);
   const [bankCapabilities, setBankCapabilities] = useState<BankBillingCapabilities | null>(null);
+  const [bankCapabilitiesRevision, setBankCapabilitiesRevision] = useState(0);
+  const [bankCapabilitiesLoading, setBankCapabilitiesLoading] = useState(true);
   const [invoiceRevision, setInvoiceRevision] = useState(0);
   const bankPayment = bankCapabilities?.provider !== 'yookassa';
   const bankInvoiceReady = bankCapabilities?.ready === true && bankCapabilities.buyer_ready === true;
@@ -218,11 +220,13 @@ const BillingPage = () => {
 
   useEffect(() => {
     const controller = new AbortController();
+    setBankCapabilitiesLoading(true);
     void bankBillingService.capabilities(controller.signal).then((capabilities) => {
       if (!controller.signal.aborted) setBankCapabilities(capabilities);
-    }).catch(() => { if (!controller.signal.aborted) setBankCapabilities(null); });
+    }).catch(() => { if (!controller.signal.aborted) setBankCapabilities(null); })
+      .finally(() => { if (!controller.signal.aborted) setBankCapabilitiesLoading(false); });
     return () => controller.abort();
-  }, []);
+  }, [bankCapabilitiesRevision]);
 
   const refreshCommercialState = useCallback(async (refreshHistory = false) => {
     const [packageItems, renewalState, limitsData, historyData] = await Promise.all([
@@ -505,7 +509,7 @@ const BillingPage = () => {
         <p className="mt-2 flex flex-wrap gap-4"><a href="https://1мост.рф/contact#requisites" target="_blank" rel="noreferrer" className="underline">Реквизиты</a><a href="https://1мост.рф/offer" target="_blank" rel="noreferrer" className="underline">Лицензионный договор</a><a href="https://1мост.рф/auto-renewal" target="_blank" rel="noreferrer" className="underline">Условия автопродления</a></p>
       </aside>
 
-      {bankPayment && !bankInvoiceReady ? <p role="status" className="rounded border border-amber-200 bg-amber-50 p-4 text-sm">{!bankCapabilities ? 'Статус банковской оплаты временно недоступен. Уже подключённые пакеты, история и баланс доступны.' : !bankCapabilities.ready ? 'Приём оплаты по счёту пока настраивается. Обратитесь в поддержку МОСТ.' : 'Для выставления счёта заполните юридическое наименование, ИНН, ОГРН или ОГРНИП и адрес в настройках организации.'}</p> : null}
+      {bankPayment && !bankInvoiceReady ? <div role="status" className="rounded border border-amber-200 bg-amber-50 p-4 text-sm"><p>{!bankCapabilities ? 'Статус банковской оплаты временно недоступен. Уже подключённые пакеты, история и баланс доступны.' : !bankCapabilities.ready ? 'Приём оплаты по счёту пока настраивается. Обратитесь в поддержку МОСТ.' : 'Для выставления счёта заполните юридическое наименование, ИНН, ОГРН или ОГРНИП и адрес в настройках организации.'}</p><Button className="mt-3" variant="outline" disabled={bankCapabilitiesLoading} onClick={() => setBankCapabilitiesRevision((value) => value + 1)}>{bankCapabilitiesLoading ? 'Проверяем…' : 'Повторить проверку'}</Button></div> : null}
       {!bankPayment && !externalPaymentReady ? <p role="status" className="rounded border border-amber-200 bg-amber-50 p-4 text-sm">Оплата через ЮKassa отключена. Обратитесь в поддержку МОСТ.</p> : null}
       <BankInvoicesPanel canManage={canManage} revision={invoiceRevision} onPaid={async () => {
         try {

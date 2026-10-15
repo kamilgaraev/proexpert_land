@@ -901,6 +901,25 @@ describe('BillingPage commercial packages', () => {
     expect(screen.getByText(/Статус банковской оплаты временно недоступен/)).toBeInTheDocument();
   });
 
+  it('повторяет проверку возможностей после временного сбоя и разрешает выставить счёт', async () => {
+    let requests = 0;
+    server.use(http.get(`${baseUrl}/billing/bank/capabilities`, () => {
+      requests++;
+      return requests === 1 ? HttpResponse.text('Bad Gateway', { status: 502 }) : HttpResponse.json({ success: true, data: {
+        provider: 'tochka', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: true,
+      } });
+    }));
+    renderPage();
+    await screen.findByText(/Статус банковской оплаты временно недоступен/);
+    const retry = await screen.findByRole('button', { name: 'Повторить проверку' });
+    fireEvent.click(retry);
+    await waitFor(() => expect(requests).toBe(2));
+    await waitFor(() => expect(screen.queryByText(/Статус банковской оплаты временно недоступен/)).not.toBeInTheDocument());
+    const heading = screen.getByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(heading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    expect(await screen.findByRole('button', { name: 'Получить счёт' })).toBeEnabled();
+  });
+
   it.each([{ ready: false, buyer_ready: true }, { ready: true, buyer_ready: false }])('блокирует новую оплату grace до готовности %j', async (readiness) => {
     accountStatus = 'grace';
     let requested = false;
