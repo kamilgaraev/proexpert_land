@@ -5,8 +5,9 @@ import type { BankBillingCapabilities, BankInvoicePage } from '@/types/bankBilli
 const request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
   const response = await fetch(`${API_URL}/billing/bank${path}`, {
     ...options, redirect: 'error', headers: { ...getJsonAuthHeaders(), ...(options.body ? { 'Content-Type': 'application/json' } : {}) },
-  });
-  const payload = await response.json() as { success?: boolean; message?: string; data?: T };
+  }).catch(() => { throw new Error('Не удалось связаться с сервером. Повторите попытку позже.'); });
+  const payload = await response.json().catch(() => { throw new Error('Не удалось выполнить запрос. Повторите попытку позже.'); }) as { success?: boolean; message?: string; data?: T };
+  if (!payload || typeof payload !== 'object') throw new Error('Не удалось выполнить запрос. Повторите попытку позже.');
   if (!response.ok || payload.success === false || payload.data === undefined) throw new Error(payload.message || 'Не удалось загрузить счета.');
   return payload.data;
 };
@@ -24,7 +25,8 @@ export const bankBillingService = {
     method: 'POST', body: JSON.stringify({ amount_minor: amount, kind, reason, client_idempotency_key: key }),
   }),
   download: async (id: string): Promise<Blob> => {
-    const response = await fetch(`${API_URL}/billing/bank/documents/${uuid(id)}`, { headers: getJsonAuthHeaders(), redirect: 'error' });
+    const response = await fetch(`${API_URL}/billing/bank/documents/${uuid(id)}`, { headers: getJsonAuthHeaders(), redirect: 'error' })
+      .catch(() => { throw new Error('Не удалось скачать документ. Повторите попытку позже.'); });
     if (!response.ok || !response.headers.get('content-type')?.includes('application/pdf')) throw new Error('Не удалось скачать документ.');
     return response.blob();
   },

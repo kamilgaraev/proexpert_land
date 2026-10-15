@@ -414,10 +414,11 @@ const BillingPage = () => {
     if (!canManage || !renewal || (!bankPayment && renewal.status !== 'grace') || isCorporate) return;
     setActionBusy('manual-payment');
     setActionError(null);
-    const key = createCheckoutIntentKey(`manual:${renewal.graceStartedAt ?? ''}:${renewal.graceEndsAt ?? ''}`);
+    const fingerprint = `manual:${renewal.graceStartedAt ?? ''}:${renewal.graceEndsAt ?? ''}`;
+    const key = createCheckoutIntentKey(fingerprint);
     try {
       const payment = await commercialBillingService.createManualPayment(key);
-      if (payment.bankInvoice) { setInvoiceRevision((value) => value + 1); return; }
+      if (payment.bankInvoice) { forgetCheckoutIntentKey(fingerprint); setInvoiceRevision((value) => value + 1); return; }
       if (!payment.confirmationUrl) throw new Error('Платёжная ссылка ещё не готова. Повторите действие.');
       window.sessionStorage.setItem(pendingOrderStorageKey, payment.orderId);
       window.location.assign(payment.confirmationUrl);

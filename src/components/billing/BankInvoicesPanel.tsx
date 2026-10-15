@@ -42,6 +42,7 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
+    setData(null);
     void load(controller.signal);
     const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load(controller.signal); }, 30_000);
     return () => { controller.abort(); window.clearInterval(timer); };

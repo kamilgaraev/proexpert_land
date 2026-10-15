@@ -64,4 +64,27 @@ describe('Счета МОСТ', () => {
   it('не допускает произвольные адреса при скачивании документа', async () => {
     await expect(bankBillingService.download('https://example.test/key')).rejects.toThrow('Некорректный номер документа');
   });
+
+  it('показывает понятную ошибку вместо HTML ответа прокси', async () => {
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.text('<html>Bad Gateway</html>', { status: 502 })));
+    render(<BankInvoicesPanel canManage={false} />);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось выполнить запрос. Повторите попытку позже.');
+  });
+
+  it('показывает понятную ошибку при потере сети', async () => {
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.error()));
+    await expect(bankBillingService.invoices()).rejects.toThrow('Не удалось связаться с сервером');
+  });
+
+  it('не выдаёт старые счета за следующую страницу при ошибке', async () => {
+    server.use(http.get(`${base}/invoices`, ({ request }) => new URL(request.url).searchParams.get('page') === '2'
+      ? HttpResponse.text('Bad Gateway', { status: 502 })
+      : HttpResponse.json({ success: true, data: { items: [invoice], meta: { current_page: 1, last_page: 3, total: 41, per_page: 20 } } })));
+    render(<BankInvoicesPanel canManage={false} />);
+    await screen.findByText('MOST-0000000001');
+    fireEvent.click(screen.getByRole('button', { name: 'Далее' }));
+    await screen.findByRole('alert');
+    expect(screen.queryByText('MOST-0000000001')).not.toBeInTheDocument();
+    expect(screen.queryByText('2 из 3')).not.toBeInTheDocument();
+  });
 });

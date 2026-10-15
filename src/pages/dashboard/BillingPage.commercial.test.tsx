@@ -759,6 +759,27 @@ describe('BillingPage commercial packages', () => {
     });
   });
 
+  it('после успешного банковского счёта использует новый ключ следующего запроса продления', async () => {
+    const keys: string[] = [];
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: { provider: 'tochka', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: true } })),
+      http.post(`${baseUrl}/billing/commercial/renewal/manual-payment`, async ({ request }) => {
+        const body = await request.json() as { client_idempotency_key: string };
+        keys.push(body.client_idempotency_key);
+        return HttpResponse.json({ success: true, data: { order_id: 'bank-renewal', status: 'pending_payment',
+          amount: '1000.00', amount_minor: 100000, currency: 'RUB', payment_source: 'tochka',
+          bank_invoice: { id: '11111111-1111-4111-8111-111111111111' } } });
+      }),
+    );
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Получить счёт на продление' }));
+    await waitFor(() => expect(keys).toHaveLength(1));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Получить счёт на продление' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Получить счёт на продление' }));
+    await waitFor(() => expect(keys).toHaveLength(2));
+    expect(keys[1]).not.toBe(keys[0]);
+  });
+
   it('всегда показывает крупной компании способ обсудить подключение', async () => {
     renderPage();
     expect(await screen.findByRole('heading', { name: 'Корпоративный уровень' })).toBeInTheDocument();
