@@ -16,8 +16,10 @@ describe('holding client metadata', () => {
     vi.stubGlobal('location', new URL('https://company.1мост.рф/about?locale=en'));
     const { rerender } = render(<SEOHead title="About" lang="en" />);
     expect(document.documentElement.lang).toBe('en');
+    expect(document.querySelector('meta[property="og:locale"]')?.getAttribute('content')).toBe('en_US');
     rerender(<SEOHead title="О компании" lang="ru" />);
     expect(document.documentElement.lang).toBe('ru');
+    expect(document.querySelector('meta[property="og:locale"]')?.getAttribute('content')).toBe('ru_RU');
   });
   it('preserves the tenant canonical and og:url after hydration', () => {
     const url = new URL('https://company.1мост.рф/about');

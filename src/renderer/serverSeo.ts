@@ -1,5 +1,6 @@
 import { resolveMarketingRedirectTarget } from '@/data/marketingRegistry';
 import { isHoldingHostname, isHoldingPrivatePath } from '@/utils/holdingDomain';
+import { getOpenGraphLocale } from '@/utils/seoLocale';
 import {
   buildStructuredDataGraph,
   GOOGLEBOT_INDEX_CONTENT,
@@ -116,7 +117,7 @@ export const buildServerSeoPayload = (
     `<meta property="og:url" content="${escapedCanonicalUrl}" />`,
     `<meta property="og:type" content="${ogType}" />`,
     `<meta property="og:site_name" content="МОСТ" />`,
-    `<meta property="og:locale" content="ru_RU" />`,
+    `<meta property="og:locale" content="${escapeHtmlAttribute(getOpenGraphLocale(lang))}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${escapedTitle}" />`,
     `<meta name="twitter:description" content="${escapedDescription}" />`,

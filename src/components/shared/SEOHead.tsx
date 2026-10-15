@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { normalizeOgImageUrl } from '@/utils/seo';
 import { isHoldingHostname, isHoldingPrivatePath } from '@/utils/holdingDomain';
 import { getHoldingCanonicalSearch } from '@/utils/holdingPublicPage';
+import { getOpenGraphLocale } from '@/utils/seoLocale';
 
 interface SEOHeadProps {
   lang?: string;
@@ -88,7 +89,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag('og:url', currentUrl, true);
     setMetaTag('og:type', type, true);
     setMetaTag('og:site_name', 'МОСТ', true);
-    setMetaTag('og:locale', 'ru_RU', true);
+    setMetaTag('og:locale', getOpenGraphLocale(lang), true);
     
     setMetaTag('twitter:card', 'summary_large_image', true);
     setMetaTag('twitter:title', title, true);

@@ -26,10 +26,10 @@ export function getHoldingCanonicalSearch(search: string, resolvedLocale?: strin
   return `?${new URLSearchParams({ locale: normalizeHoldingLanguage(resolvedLocale) ?? requestedLocale })}`;
 }
 
-export function hasHoldingPublicPage(payload: PublicSitePayload): boolean {
+export function hasHoldingPublicPage(payload: PublicSitePayload, pathname: string): boolean {
   const page = payload.current_page ?? payload.page;
   const normalize = (value: string) => `/${value.trim().replace(/^\/+|\/+$/g, '')}`;
-  const path = normalize(payload.runtime.path || '/');
+  const path = normalize(pathname);
   const slug = normalize(page?.slug || '/');
 
   return Boolean(page && ((page.is_home && path === '/') || slug === path));

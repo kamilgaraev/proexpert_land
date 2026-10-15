@@ -290,6 +290,11 @@ describe('buildServerSeoPayload', () => {
     expect(payload.allMeta).toContain('noindex');
   });
 
+  it.each([['en', 'en_US'], ['en-GB', 'en_GB'], ['ru', 'ru_RU'], ['zh-Hant', 'zh_TW']])('sets Open Graph locale for %s', (lang, expected) => {
+    const payload = buildServerSeoPayload('/about', { lang }, 'company.xn--1-xtbgmf.xn--p1ai');
+    expect(payload.allMeta).toContain(`<meta property="og:locale" content="${expected}" />`);
+  });
+
   it('returns redirect payload for legacy alias routes', () => {
     const payload = buildServerSeoPayload('/docs');
 

@@ -41,7 +41,7 @@ export async function loadHoldingPageContext(hostname: string, pathname: string,
           const site = { ...data.site };
           delete site.preview_url;
           const payload = { ...data, site } as unknown as PublicSitePayload;
-          if (hasHoldingPublicPage(payload)) initialHoldingPage.payload = payload;
+          if (hasHoldingPublicPage(payload, pathname)) initialHoldingPage.payload = payload;
           else initialHoldingPage.status = 404;
         }
       }

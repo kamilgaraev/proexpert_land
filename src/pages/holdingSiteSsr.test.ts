@@ -89,13 +89,23 @@ describe('holding public SSR data', () => {
     expect(JSON.stringify(pageContext.pageProps)).not.toContain('PRIVATE-CAPABILITY');
   });
 
-  it('returns a real 404 when the API falls back to the home page for an unknown path', async () => {
+  it.each(['/never-published', '/'])('returns a real 404 for a home fallback regardless of runtime.path %s', async (runtimePath) => {
     const payload = createPublicSitePayloadFixture();
-    payload.runtime.path = '/never-published';
+    payload.runtime.path = runtimePath;
     server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));
     const { pageContext } = await onBeforeRender(context('/never-published'));
     expect(pageContext.routeStatusCode).toBe(404);
     expect(pageContext.documentProps?.noIndex).toBe(true);
+  });
+
+  it('accepts a published additional page without optional runtime.path', async () => {
+    const payload = createPublicSitePayloadFixture();
+    delete payload.runtime.path;
+    payload.current_page!.slug = '/services';
+    payload.current_page!.is_home = false;
+    server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));
+    const { pageContext } = await onBeforeRender(context('/services'));
+    expect(pageContext.routeStatusCode).toBe(200);
   });
 
   it.each(['/dashboard/unknown', '/landing/editor/unknown'])('resolves the unknown panel subpath %s through the public 404 boundary', async (pathname) => {

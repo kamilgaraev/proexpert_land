@@ -32,6 +32,7 @@ describe('holding SSR request', () => {
 
     expect(result.documentHtml).toContain('Опубликованный SSR холдинг');
     expect(result.documentHtml).toContain('<html lang="en"');
+    expect(result.documentHtml).toContain('<meta property="og:locale" content="en_US"');
     expect(result.documentHtml).toContain('/?locale=en');
     expect(result.documentHtml).not.toContain('Загрузка сайта холдинга');
     expect(result.documentHtml).toContain(`href="https://${host}${pathname}?locale=en"`);

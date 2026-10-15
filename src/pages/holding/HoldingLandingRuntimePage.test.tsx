@@ -83,6 +83,18 @@ describe('holding runtime navigation', () => {
     expect(api.getSiteData).not.toHaveBeenCalled();
   });
 
+  it('renders a requested additional page without optional runtime.path', async () => {
+    const payload = createPublicSitePayloadFixture();
+    payload.site.title = 'Дополнительная страница без runtime.path';
+    payload.current_page!.slug = '/services';
+    payload.current_page!.is_home = false;
+    delete payload.runtime.path;
+    api.getSiteData.mockResolvedValue(payload);
+    render(<MemoryRouter initialEntries={['/services']}><HoldingLandingRuntimePage /></MemoryRouter>);
+    expect(await screen.findByText('Дополнительная страница без runtime.path')).toBeTruthy();
+    expect(api.getSiteData).toHaveBeenCalledWith('/services', '');
+  });
+
   it('keeps an unpublished root at 404 without loading legacy public branding', () => {
     render(<MemoryRouter><HoldingLandingRuntimePage initialPage={{ pathname: '/', search: '', status: 404, message: 'Страница не найдена.' }} /></MemoryRouter>);
     expect(screen.getByRole('heading', { name: '404' })).toBeTruthy();

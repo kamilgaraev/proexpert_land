@@ -33,7 +33,7 @@ const HoldingLandingRuntimeContent = ({ initialPage }: HoldingLandingRuntimePage
 
       try {
         const data = await publicHoldingSiteService.getSiteData(pathname, search);
-        if (!hasHoldingPublicPage(data)) throw new BuilderApiError('Страница не найдена.', 404);
+        if (!hasHoldingPublicPage(data, pathname)) throw new BuilderApiError('Страница не найдена.', 404);
         if (active) setPayload(data);
       } catch (loadError) {
         if (!active) return;
