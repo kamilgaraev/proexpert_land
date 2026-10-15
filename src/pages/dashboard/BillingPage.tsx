@@ -101,6 +101,7 @@ const BillingPage = () => {
   const [invoiceRevision, setInvoiceRevision] = useState(0);
   const bankPayment = bankCapabilities?.provider !== 'yookassa';
   const bankInvoiceReady = bankCapabilities?.ready === true && bankCapabilities.buyer_ready === true;
+  const externalPaymentReady = bankPayment ? bankInvoiceReady : bankCapabilities?.card_payments_enabled === true;
   const [payFromBalance, setPayFromBalance] = useState(false);
   const [detailsPackage, setDetailsPackage] = useState<CommercialPackage | null>(null);
   const [enterpriseInquiryOpen, setEnterpriseInquiryOpen] = useState(false);
@@ -361,6 +362,7 @@ const BillingPage = () => {
 
   const submitContour = async () => {
     if (!quote || !canManage || isCorporate) return;
+    if (!useBalanceForCheckout && quote.amountDueNowMinor > 0 && !externalPaymentReady) return;
     setActionBusy('checkout');
     setActionError(null);
     const effectiveAutoRenewConsent = bankPayment ? false : useBalanceForCheckout
@@ -419,7 +421,7 @@ const BillingPage = () => {
 
   const payGrace = async () => {
     if (!canManage || !renewal || (!bankPayment && renewal.status !== 'grace') || isCorporate) return;
-    if (bankPayment && !bankInvoiceReady) return;
+    if (!externalPaymentReady) return;
     setActionBusy('manual-payment');
     setActionError(null);
     const fingerprint = `manual:${renewal.graceStartedAt ?? ''}:${renewal.graceEndsAt ?? ''}`;
@@ -427,7 +429,7 @@ const BillingPage = () => {
     try {
       const payment = await commercialBillingService.createManualPayment(key);
       if (payment.bankInvoice) { forgetCheckoutIntentKey(fingerprint); setInvoiceRevision((value) => value + 1); return; }
-      if (!payment.confirmationUrl) throw new Error('Платёжная ссылка ещё не готова. Повторите действие.');
+      if (!payment.confirmationUrl || bankCapabilities?.card_payments_enabled !== true) throw new Error('Платёжная ссылка ещё не готова. Повторите действие.');
       window.sessionStorage.setItem(pendingOrderStorageKey, payment.orderId);
       window.location.assign(payment.confirmationUrl);
     } catch (requestError) {
@@ -504,6 +506,7 @@ const BillingPage = () => {
       </aside>
 
       {bankPayment && !bankInvoiceReady ? <p role="status" className="rounded border border-amber-200 bg-amber-50 p-4 text-sm">{!bankCapabilities ? 'Статус банковской оплаты временно недоступен. Уже подключённые пакеты, история и баланс доступны.' : !bankCapabilities.ready ? 'Приём оплаты по счёту пока настраивается. Обратитесь в поддержку МОСТ.' : 'Для выставления счёта заполните юридическое наименование, ИНН, ОГРН или ОГРНИП и адрес в настройках организации.'}</p> : null}
+      {!bankPayment && !externalPaymentReady ? <p role="status" className="rounded border border-amber-200 bg-amber-50 p-4 text-sm">Оплата через ЮKassa отключена. Обратитесь в поддержку МОСТ.</p> : null}
       <BankInvoicesPanel canManage={canManage} revision={invoiceRevision} onPaid={async () => {
         try {
           await refreshCommercialState(true);
@@ -515,7 +518,7 @@ const BillingPage = () => {
       {isGrace ? <section className="rounded-[24px] border-2 border-orange-300 bg-orange-50 p-6" aria-labelledby="grace-title">
         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
           <div className="max-w-3xl"><Badge className="mb-3 bg-orange-600">Требуется действие</Badge><h2 id="grace-title" className="text-2xl font-semibold text-orange-950">Льготный период</h2><p className="mt-2 text-orange-900">{bankPayment ? 'Поступление оплаты пока не подтверждено.' : 'Автоматическая оплата не прошла.'} Доступ сохранён до <strong>{formatDateTime(renewal?.graceEndsAt ?? null)}</strong> — осталось {remaining(renewal?.graceEndsAt ?? null, now)}. Изменение состава временно заблокировано.</p><p className="mt-3 text-sm leading-6 text-orange-800">Расчётная дата не переносится: поздняя оплата закрывает пропущенный фиксированный 30-дневный период. При оплате на шестой день останется около 24 дней до следующей расчётной даты.</p></div>
-          {canManage ? <Button size="lg" disabled={actionBusy === 'manual-payment' || (bankPayment && !bankInvoiceReady)} onClick={() => void payGrace()}>Оплатить сейчас<ArrowRight className="ml-2 h-4 w-4" /></Button> : null}
+          {canManage ? <Button size="lg" disabled={actionBusy === 'manual-payment' || !externalPaymentReady} onClick={() => void payGrace()}>Оплатить сейчас<ArrowRight className="ml-2 h-4 w-4" /></Button> : null}
         </div>
       </section> : null}
 
@@ -681,7 +684,7 @@ const BillingPage = () => {
               {hasReduction ? <p className="rounded-xl bg-blue-50 p-3 text-xs leading-5 text-foreground">Уже оплаченный доступ сохранится до конца периода. Затем выбранные пакеты отключатся.</p> : null}
               {hasChanges && canManage && !isGrace && !hasReduction ? <label className={`flex items-start gap-3 rounded-xl border p-3 text-xs leading-5 ${canPayFromBalance ? 'cursor-pointer border-blue-200 bg-blue-50/60' : 'bg-slate-50 text-muted-foreground'}`}><input type="checkbox" className="mt-1 h-4 w-4" checked={payFromBalance} disabled={!canPayFromBalance || balanceLoading || Boolean(balanceError)} onChange={(event) => setPayFromBalance(event.target.checked)} aria-label="Оплатить с баланса" /><span><strong className="flex items-center gap-1 text-foreground"><WalletCards className="h-4 w-4" />Оплатить с баланса организации</strong><span className="mt-1 block">{balanceLoading ? 'Проверяем доступную сумму…' : balanceError ? 'Баланс временно недоступен.' : canPayFromBalance ? `Доступно ${formatMoney(balanceMinor, quote.currency)}. После оплаты останется ${formatMoney(balanceMinor - quote.amountDueNowMinor, quote.currency)}.` : `Доступно ${formatMoney(balanceMinor, quote.currency)}. Для полной оплаты не хватает ${formatMoney(Math.max(0, quote.amountDueNowMinor - balanceMinor), quote.currency)}.`}</span></span></label> : null}
               {hasChanges && canManage && !isGrace && !hasReduction && requiresAutoRenewConsent && !useBalanceForCheckout ? <label className="flex items-start gap-3 rounded-xl border p-3 text-xs leading-5"><input type="checkbox" className="mt-1 h-4 w-4" checked={autoRenewConsent} onChange={(event) => setAutoRenewConsent(event.target.checked)} aria-label="Согласен на автоматическое списание" /><span>Согласен на автоматическое списание <strong>{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong> каждые 30 дней. Отключить можно здесь же.</span></label> : null}
-              {hasChanges && canManage ? <Button className="w-full" size="lg" onClick={() => void submitContour()} disabled={isGrace || (bankPayment && !hasReduction && !useBalanceForCheckout && (!bankCapabilities?.ready || !bankCapabilities.buyer_ready)) || actionBusy === 'checkout' || (!hasReduction && !useBalanceForCheckout && requiresAutoRenewConsent && !autoRenewConsent)}>{isGrace ? <><LockKeyhole className="mr-2 h-4 w-4" />Изменение заблокировано</> : hasReduction ? 'Запланировать сокращение' : useBalanceForCheckout ? <><WalletCards className="mr-2 h-4 w-4" />Оплатить с баланса</> : <><CreditCard className="mr-2 h-4 w-4" />{bankPayment ? 'Получить счёт' : 'Перейти к оплате'}</>}</Button> : null}
+              {hasChanges && canManage ? <Button className="w-full" size="lg" onClick={() => void submitContour()} disabled={isGrace || (!hasReduction && !useBalanceForCheckout && !externalPaymentReady) || actionBusy === 'checkout' || (!hasReduction && !useBalanceForCheckout && requiresAutoRenewConsent && !autoRenewConsent)}>{isGrace ? <><LockKeyhole className="mr-2 h-4 w-4" />Изменение заблокировано</> : hasReduction ? 'Запланировать сокращение' : useBalanceForCheckout ? <><WalletCards className="mr-2 h-4 w-4" />Оплатить с баланса</> : <><CreditCard className="mr-2 h-4 w-4" />{bankPayment ? 'Получить счёт' : 'Перейти к оплате'}</>}</Button> : null}
             </> : <p className="text-sm text-muted-foreground">Выберите пакет, чтобы увидеть итог.</p>}
             {actionError ? <p className={`rounded-xl p-3 text-sm ${actionError.startsWith('Сокращение') ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'}`}>{actionError}</p> : null}
           </CardContent></Card>
@@ -751,7 +754,7 @@ const BillingPage = () => {
             {quoteLoading && hasResourceChanges ? <p className="mt-3 flex items-center gap-2 text-sm text-slate-600"><Loader2 className="h-4 w-4 animate-spin" />Обновляем стоимость</p> : quoteError && hasResourceChanges ? <p className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-800">{quoteError}</p> : resourceQuote ? <>
               <p className="mt-4 text-3xl font-semibold text-slate-950">{compactMoney(resourceQuote.amountMinor, resourceQuote.currency)}</p>
               {resourceQuote.requiresManager ? <p className="mt-3 rounded-xl bg-blue-50 p-3 text-sm leading-5 text-foreground">Для такого объёма менеджер подготовит индивидуальные условия.</p> : <p className="mt-3 text-sm leading-6 text-slate-600">Стоимость рассчитана по выбранному дополнительному объёму.</p>}
-              <Button className="mt-4 w-full" onClick={() => void submitContour()} disabled={!canManage || isGrace || (bankPayment && !useBalanceForCheckout && (!bankCapabilities?.ready || !bankCapabilities.buyer_ready)) || actionBusy === 'checkout' || resourceQuote.requiresManager || (!useBalanceForCheckout && requiresAutoRenewConsent && !autoRenewConsent)}>{resourceQuote.requiresManager ? 'Обсудить условия' : useBalanceForCheckout ? <><WalletCards className="mr-2 h-4 w-4" />Оплатить с баланса</> : <><CreditCard className="mr-2 h-4 w-4" />{bankPayment ? 'Получить счёт' : 'Перейти к оплате'}</>}</Button>
+              <Button className="mt-4 w-full" onClick={() => void submitContour()} disabled={!canManage || isGrace || (!useBalanceForCheckout && !externalPaymentReady) || actionBusy === 'checkout' || resourceQuote.requiresManager || (!useBalanceForCheckout && requiresAutoRenewConsent && !autoRenewConsent)}>{resourceQuote.requiresManager ? 'Обсудить условия' : useBalanceForCheckout ? <><WalletCards className="mr-2 h-4 w-4" />Оплатить с баланса</> : <><CreditCard className="mr-2 h-4 w-4" />{bankPayment ? 'Получить счёт' : 'Перейти к оплате'}</>}</Button>
             </> : <p className="mt-3 text-sm leading-6 text-slate-600">Измените дополнительный объём, чтобы увидеть ежемесячную стоимость.</p>}
           </aside>
         </div>

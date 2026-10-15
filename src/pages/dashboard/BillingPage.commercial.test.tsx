@@ -491,8 +491,11 @@ describe('BillingPage commercial packages', () => {
     expect(screen.queryByRole('checkbox', { name: /Согласен на автоматическое списание/ })).not.toBeInTheDocument();
   });
 
-  it('оплачивает полную сумму с баланса без перехода в платёжный сервис', async () => {
+  it.each([true, false])('оплачивает полную сумму с баланса при card_payments_enabled=%s', async (cardPaymentsEnabled) => {
     let checkoutBody: Record<string, unknown> | null = null;
+    server.use(http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: {
+      provider: 'yookassa', ready: true, buyer_ready: true, card_payments_enabled: cardPaymentsEnabled, auto_invoice_enabled: false,
+    } })));
     server.use(http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
       checkoutBody = await request.json() as Record<string, unknown>;
       activeModules = ['basic-warehouse'];
@@ -912,6 +915,29 @@ describe('BillingPage commercial packages', () => {
     expect(payment).toBeDisabled();
     fireEvent.click(payment);
     expect(requested).toBe(false);
+  });
+
+  it.each(['active', 'grace'])('не отправляет оплату отключённой ЮKassa при статусе %s', async (status) => {
+    accountStatus = status;
+    let requested = false;
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: {
+        provider: 'yookassa', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: false,
+      } })),
+      http.post(`${baseUrl}/billing/commercial/checkout`, () => { requested = true; return HttpResponse.json({ success: true, data: {} }); }),
+      http.post(`${baseUrl}/billing/commercial/renewal/manual-payment`, () => { requested = true; return HttpResponse.json({ success: true, data: {} }); }),
+    );
+    renderPage();
+    await screen.findByText('Оплата через ЮKassa отключена. Обратитесь в поддержку МОСТ.');
+    if (status === 'active') {
+      const heading = screen.getByRole('heading', { name: 'Пакет 2' });
+      fireEvent.click(within(heading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    }
+    const payment = await screen.findByRole('button', { name: status === 'grace' ? 'Оплатить сейчас' : /Перейти к оплате/ });
+    expect(payment).toBeDisabled();
+    fireEvent.click(payment);
+    expect(requested).toBe(false);
+    expect(sessionStorage.getItem('most:pending-commercial-order')).toBeNull();
   });
 
   it('отключает будущие списания без обещания досрочного прекращения доступа', async () => {
