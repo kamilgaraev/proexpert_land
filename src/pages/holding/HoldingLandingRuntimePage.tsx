@@ -7,7 +7,9 @@ import type { PublicSitePayload } from '@/types/holding-site-builder';
 import NotFoundPage from '@pages/NotFoundPage';
 import { hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
 
-const HoldingLandingRuntimePage = ({ initialPage }: { initialPage?: HoldingPublicPageState } = {}) => {
+type HoldingLandingRuntimePageProps = { initialPage?: HoldingPublicPageState };
+
+const HoldingLandingRuntimeContent = ({ initialPage }: HoldingLandingRuntimePageProps) => {
   const { pathname, search } = useLocation();
   const initial = initialPage?.pathname === pathname && initialPage.search === search ? initialPage : undefined;
   const [payload, setPayload] = useState<PublicSitePayload | null>(initial?.payload ?? null);
@@ -121,6 +123,11 @@ const HoldingLandingRuntimePage = ({ initialPage }: { initialPage?: HoldingPubli
       />
     </div>
   );
+};
+
+const HoldingLandingRuntimePage = (props: HoldingLandingRuntimePageProps = {}) => {
+  const { pathname, search } = useLocation();
+  return <HoldingLandingRuntimeContent key={JSON.stringify([pathname, search])} {...props} />;
 };
 
 export default HoldingLandingRuntimePage;

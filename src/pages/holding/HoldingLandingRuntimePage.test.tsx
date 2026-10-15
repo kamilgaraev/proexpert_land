@@ -7,18 +7,24 @@ import HoldingLandingRuntimePage from './HoldingLandingRuntimePage';
 
 const api = vi.hoisted(() => ({ getSiteData: vi.fn(), submitLead: vi.fn() }));
 const seo = vi.hoisted(() => vi.fn());
+const renderPage = vi.hoisted(() => vi.fn());
 vi.mock('@/services/holdingSiteBuilderService', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/services/holdingSiteBuilderService')>(),
   publicHoldingSiteService: api,
 }));
 vi.mock('@components/shared/SEOHead', () => ({ SEOHead: (props: unknown) => { seo(props); return null; } }));
 vi.mock('@/components/holding/site-builder/SiteBuilderRenderer', () => ({
-  default: ({ site }: { site: PublicSite }) => <div>{site.title}</div>,
+  default: ({ site }: { site: PublicSite }) => { renderPage(site.title); return <div>{site.title}</div>; },
 }));
 
 function NavigatePage() {
   const navigate = useNavigate();
   return <><button onClick={() => navigate('/about?lang=ru')}>О компании</button><HoldingLandingRuntimePage /></>;
+}
+
+function NavigatePublicPage({ target }: { target: string }) {
+  const navigate = useNavigate();
+  return <><button onClick={() => navigate(target)}>Другая страница</button><HoldingLandingRuntimePage /></>;
 }
 
 function HydratedNavigation() {
@@ -32,6 +38,27 @@ function HydratedNavigation() {
 afterEach(() => { cleanup(); vi.resetAllMocks(); });
 
 describe('holding runtime navigation', () => {
+  it.each(['/services', '/about?lang=en'])('does not render the previous page under the new URL %s', async (target) => {
+    const about = createPublicSitePayloadFixture();
+    about.site.title = 'Прежняя страница';
+    about.runtime.path = '/about';
+    about.current_page!.slug = '/about';
+    about.current_page!.seo_meta.title = 'Прежние SEO';
+    const next = createPublicSitePayloadFixture();
+    next.site.title = 'Новая страница';
+    next.runtime.path = target.split('?')[0];
+    next.current_page!.slug = next.runtime.path;
+    next.current_page!.seo_meta.title = 'Новые SEO';
+    api.getSiteData.mockResolvedValueOnce(about).mockResolvedValueOnce(next);
+    render(<MemoryRouter initialEntries={['/about']}><NavigatePublicPage target={target} /></MemoryRouter>);
+    expect(await screen.findByText('Прежняя страница')).toBeTruthy();
+    renderPage.mockClear();
+    seo.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: 'Другая страница' }));
+    expect(await screen.findByText('Новая страница')).toBeTruthy();
+    expect(renderPage).not.toHaveBeenCalledWith('Прежняя страница');
+    expect(seo).not.toHaveBeenCalledWith(expect.objectContaining({ title: about.current_page!.seo_meta.title }));
+  });
   it('loads the requested path again when navigating between published pages', async () => {
     const home = createPublicSitePayloadFixture();
     home.site.title = 'Опубликованная главная';
