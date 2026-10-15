@@ -4,7 +4,6 @@ import SiteBuilderRenderer from '@/components/holding/site-builder/SiteBuilderRe
 import { SEOHead } from '@components/shared/SEOHead';
 import { BuilderApiError, publicHoldingSiteService } from '@/services/holdingSiteBuilderService';
 import type { PublicSitePayload } from '@/types/holding-site-builder';
-import HoldingLandingPage from './HoldingLandingPage';
 import NotFoundPage from '@pages/NotFoundPage';
 import { hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
 
@@ -75,7 +74,7 @@ const HoldingLandingRuntimePage = ({ initialPage }: { initialPage?: HoldingPubli
 
   if (!payload) {
     if (!isPreview && errorStatus === 404) {
-      return pathname === '/' ? <HoldingLandingPage /> : <><SEOHead title="Страница не найдена" noIndex /><NotFoundPage /></>;
+      return <><SEOHead title="Страница не найдена" noIndex /><NotFoundPage /></>;
     }
 
     return (

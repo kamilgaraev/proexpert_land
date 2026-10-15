@@ -3,6 +3,7 @@ import { delay, http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { createPublicSitePayloadFixture } from '@/test/fixtures/holdingSiteBuilder';
 import { onBeforeRender } from './catch-all.page.server';
+import { onBeforeRender as renderIndex, doNotPrerender } from './index.page.server';
 
 const host = 'company.xn--1-xtbgmf.xn--p1ai';
 const endpoint = 'https://api.xn--1-xtbgmf.xn--p1ai/api/v1/landing/holding/public/site-data';
@@ -14,6 +15,29 @@ afterAll(() => server.close());
 const context = (pathname: string, search = '') => ({ requestHostname: host, urlPathname: pathname, urlOriginal: pathname + search });
 
 describe('holding public SSR data', () => {
+  it('loads the holding root through the actual index server hook', async () => {
+    const payload = createPublicSitePayloadFixture();
+    server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));
+    const { pageContext } = await renderIndex(context('/'));
+    expect(pageContext).toMatchObject({ routeStatusCode: 200, documentProps: { canonicalUrl: `https://${host}/` }, pageProps: { initialHoldingPage: { payload: { site: { title: payload.site.title }, blocks: payload.blocks } } } });
+    expect(doNotPrerender).toBe(true);
+  });
+
+  it('keeps marketing root rendering independent of the holding API', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    expect(await renderIndex({ requestHostname: 'xn--1-xtbgmf.xn--p1ai', urlOriginal: '/' })).toEqual({ pageContext: {} });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it.each(['services', '/services', '/services/'])('accepts the published slug %s', async (slug) => {
+    const payload = createPublicSitePayloadFixture();
+    payload.current_page!.slug = slug;
+    payload.runtime.path = '/services';
+    server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));
+    const { pageContext } = await onBeforeRender(context('/services'));
+    expect(pageContext.routeStatusCode).toBe(200);
+  });
+
   it('loads tenant blog data and metadata without using the marketing blog API', async () => {
     const payload = createPublicSitePayloadFixture();
     payload.runtime.path = '/blog';

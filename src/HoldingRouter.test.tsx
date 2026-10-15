@@ -1,11 +1,13 @@
-import { createRoutesFromChildren, matchRoutes } from 'react-router-dom';
-import { isValidElement } from 'react';
+import { createRoutesFromChildren, matchRoutes, Routes } from 'react-router-dom';
+import { Children, isValidElement, type ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 import HoldingRouter from './HoldingRouter';
 import HoldingLandingRuntimePage from '@pages/holding/HoldingLandingRuntimePage';
 import { HoldingPanelRouteGuard } from '@/components/multi-org/HoldingPanelRouteGuard';
 
-const routes = createRoutesFromChildren(HoldingRouter().props.children.props.children);
+const routeTree = Children.toArray(HoldingRouter().props.children).find((element) => isValidElement(element) && element.type === Routes);
+if (!isValidElement<{ children: ReactNode }>(routeTree)) throw new Error('Holding routes are missing');
+const routes = createRoutesFromChildren(routeTree.props.children);
 const elementType = (element: unknown) => isValidElement(element) ? element.type : null;
 
 describe('holding public and protected routes', () => {

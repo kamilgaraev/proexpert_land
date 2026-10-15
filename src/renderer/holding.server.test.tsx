@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import App from '@/App';
+import { Page as IndexPage } from '@/pages/index.page';
+import { Page as CatchAllPage } from '@/pages/catch-all.page';
 import { render, passToClient } from './_default.page.server';
 import { createPublicSitePayloadFixture } from '@/test/fixtures/holdingSiteBuilder';
 
@@ -12,7 +13,7 @@ vi.mock('@/components/analytics/SiteTracking', () => ({ default: () => null }));
 afterEach(() => vi.unstubAllGlobals());
 
 describe('holding SSR request', () => {
-  it.each(['/', '/about'])('selects the holding app, providers, assets and canonical for %s without window', async (pathname) => {
+  it.each([{ pathname: '/', Page: IndexPage }, { pathname: '/about', Page: CatchAllPage }])('renders the actual Vike entry for $pathname without window', async ({ pathname, Page }) => {
     vi.stubGlobal('window', undefined);
     const host = 'company.xn--1-xtbgmf.xn--p1ai';
     const payload = createPublicSitePayloadFixture();
@@ -20,7 +21,7 @@ describe('holding SSR request', () => {
     payload.runtime.path = pathname;
     payload.current_page!.slug = pathname;
     const result = await render({
-      Page: App,
+      Page,
       requestHostname: host,
       urlPathname: pathname,
       urlOriginal: `${pathname}?source=test`,

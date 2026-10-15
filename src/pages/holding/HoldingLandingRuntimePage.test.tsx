@@ -55,6 +55,12 @@ describe('holding runtime navigation', () => {
     expect(api.getSiteData).not.toHaveBeenCalled();
   });
 
+  it('keeps an unpublished root at 404 without loading legacy public branding', () => {
+    render(<MemoryRouter><HoldingLandingRuntimePage initialPage={{ pathname: '/', search: '', status: 404, message: 'Страница не найдена.' }} /></MemoryRouter>);
+    expect(screen.getByRole('heading', { name: '404' })).toBeTruthy();
+    expect(api.getSiteData).not.toHaveBeenCalled();
+  });
+
   it('restores the initial page after navigating away and back', async () => {
     const about = createPublicSitePayloadFixture();
     about.site.title = 'Компания после перехода';

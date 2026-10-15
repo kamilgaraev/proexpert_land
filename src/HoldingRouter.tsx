@@ -16,6 +16,8 @@ import { HoldingPanelLayout } from '@layouts/HoldingPanelLayout';
 import { HoldingProjectsList, HoldingProjectDetails } from '@/components/holding';
 import { HoldingPanelRouteGuard } from '@/components/multi-org/HoldingPanelRouteGuard';
 import type { HoldingPublicPageState } from '@/utils/holdingPublicPage';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const HoldingRouter = ({ initialHoldingPage }: { initialHoldingPage?: HoldingPublicPageState } = {}) => {
   return (
@@ -56,6 +58,7 @@ const HoldingRouter = ({ initialHoldingPage }: { initialHoldingPage?: HoldingPub
         />
         <Route path="*" element={<HoldingLandingRuntimePage initialPage={initialHoldingPage} />} />
       </Routes>
+      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="colored" />
     </ThemeProvider>
   );
 };
