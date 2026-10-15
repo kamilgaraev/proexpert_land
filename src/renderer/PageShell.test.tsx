@@ -72,10 +72,32 @@ describe("PageShell provider boundary", () => {
     expect(getMarketingAttribution()).toEqual({utm_source:'yandex',utm_campaign:'materials'});
     expect(loader.load).not.toHaveBeenCalled();
   });
-  it.each(['/', '/about'])('keeps holding %s inside the prepared providers', (pathname) => {
+  it.each(['/', '/about', '/dashboard/unknown'])('renders public holding %s without private providers', (pathname) => {
+    loader.ready = PrivateShell;
+    render(<MemoryRouter initialEntries={[pathname]}><PageShell pageContext={{ requestHostname: 'company.xn--1-xtbgmf.xn--p1ai' }}>{content}</PageShell></MemoryRouter>);
+    expect(screen.getByText('Содержимое страницы')).toBeInTheDocument();
+    expect(screen.queryByTestId('private-context')).not.toBeInTheDocument();
+    expect(loader.load).not.toHaveBeenCalled();
+  });
+  it.each(['/login', '/Dashboard', '/projects/42'])('keeps protected holding %s inside the private providers', (pathname) => {
     loader.ready = PrivateShell;
     render(<MemoryRouter initialEntries={[pathname]}><PageShell pageContext={{ requestHostname: 'company.xn--1-xtbgmf.xn--p1ai' }}>{content}</PageShell></MemoryRouter>);
     expect(screen.getByTestId('private-context')).toHaveTextContent('Содержимое страницы');
+  });
+  it('never replaces public content with the authenticated organization selector', () => {
+    loader.ready = () => <p>Выберите организацию</p>;
+    render(<MemoryRouter><PageShell pageContext={{ requestHostname: 'company.xn--1-xtbgmf.xn--p1ai' }}>{content}</PageShell></MemoryRouter>);
+    expect(screen.getByText('Содержимое страницы')).toBeInTheDocument();
+    expect(screen.queryByText('Выберите организацию')).not.toBeInTheDocument();
+  });
+  it('switches holding providers only when entering or leaving a private path', async () => {
+    loader.load.mockResolvedValue(PrivateShell);
+    render(<MemoryRouter><PageShell pageContext={{ requestHostname: 'company.xn--1-xtbgmf.xn--p1ai' }}>{content}</PageShell></MemoryRouter>);
+    expect(loader.load).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('link', { name: 'В кабинет' }));
+    expect(await screen.findByTestId('private-context')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('link', { name: 'На сайт' }));
+    expect(screen.queryByTestId('private-context')).not.toBeInTheDocument();
   });
   it("renders public content without loading private code", () => {
     mount();
