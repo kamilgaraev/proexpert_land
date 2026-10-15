@@ -538,12 +538,18 @@ describe('BillingPage commercial packages', () => {
     expect(screen.queryByRole('button', { name: 'Оплатить сейчас' })).not.toBeInTheDocument();
   });
 
-  it('блокирует изменение в grace и объясняет фиксированную дату и оплату на шестой день', async () => {
+  it.each([['30_days', '30 дней'], ['6_months', '6 месяцев'], ['12_months', '12 месяцев']])('блокирует изменение в grace и объясняет оплачиваемый срок %s', async (period, label) => {
     accountStatus = 'grace';
+    server.use(http.get(baseUrl + '/billing/commercial/renewal', () => HttpResponse.json({ success: true, data: {
+      status: 'grace', billing_period: period, auto_renew_enabled: true, saved_method_available: true,
+      next_billing_at: '2026-07-31T09:00:00Z', grace_started_at: '2026-07-31T09:00:00Z', grace_ends_at: '2026-08-07T09:00:00Z',
+      retry_status: 'grace', attempt_count: 2, next_attempt_at: '2026-08-01T00:00:00Z', scheduled_change: null,
+    } })));
     renderPage();
     expect(await screen.findByRole('heading', { name: 'Льготный период' })).toBeInTheDocument();
     expect(screen.getByText(/7 августа 2026/)).toBeInTheDocument();
-    expect(screen.getByText(/на шестой день останется около 24 дней/)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp('поздняя оплата закрывает период «' + label + '»'))).toBeInTheDocument();
+    expect(screen.queryByText(/останется около 24 дней/)).not.toBeInTheDocument();
     expect(within(screen.getByRole('heading', { name: 'Пакет 2' }).closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Оплатить сейчас' })).toBeInTheDocument();
   });
