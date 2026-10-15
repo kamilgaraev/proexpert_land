@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppErrorBoundary } from '@components/common/AppErrorBoundary';
 import { AppLoadingFallback } from '@components/common/AppLoadingFallback';
+import { isHoldingHostname } from '@utils/holdingDomain';
 
 // Критические компоненты загружаем сразу (Landing + Auth)
 import LandingLayout from '@layouts/LandingLayout';
@@ -146,30 +147,7 @@ function App({
 }: AppProps = {}) {
   const location = useLocation();
 
-  const isHoldingSubdomain = () => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-
-    const hostname = window.location.hostname;
-    const mainDomain = '1мост.рф';
-
-    if (
-      hostname.includes('localhost') ||
-      hostname.includes('127.0.0.1')
-    ) {
-      return false;
-    }
-
-    const reserved = new Set(['lk', 'api', 'www']);
-    if (reserved.has(hostname.split('.')[0])) {
-      return false;
-    }
-
-    return hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`);
-  };
-
-  if (isHoldingSubdomain()) {
+  if (typeof window !== 'undefined' && isHoldingHostname(window.location.hostname)) {
     return (
       <>
         <AppErrorBoundary resetKey={`${location.pathname}${location.search}`}>

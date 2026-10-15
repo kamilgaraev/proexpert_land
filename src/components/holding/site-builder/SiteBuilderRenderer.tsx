@@ -6,14 +6,14 @@ import type {
   BuilderCanvasFocusTarget,
   EditorPage,
   EditorSection,
-  EditorSite,
+  PublicSite,
   LeadSubmissionPayload,
   PublicNavigationItem,
   SiteBlogArticle,
 } from '@/types/holding-site-builder';
 
 interface SiteBuilderRendererProps {
-  site: EditorSite;
+  site: PublicSite;
   page?: EditorPage | null;
   blocks?: EditorSection[];
   navigation?: PublicNavigationItem[];
@@ -121,7 +121,7 @@ const SectionShell = ({
   children,
 }: {
   section: EditorSection;
-  site: EditorSite;
+  site: PublicSite;
   mode: 'public' | 'editor';
   selected?: boolean;
   onSelect?: (target: BuilderCanvasFocusTarget) => void;
@@ -224,7 +224,7 @@ const PublicSiteHeader = ({
   currentPage,
   navigation,
 }: {
-  site: EditorSite;
+  site: PublicSite;
   currentPage?: EditorPage | null;
   navigation: PublicNavigationItem[];
 }) => {
@@ -456,7 +456,7 @@ const BlogArticlePage = ({ article }: { article: SiteBlogArticle }) => (
 
 const renderSectionContent = (
   section: EditorSection,
-  site: EditorSite,
+  site: PublicSite,
   mode: 'public' | 'editor',
   selectedBlockId?: number | null,
   selectedFieldPath?: string | null,

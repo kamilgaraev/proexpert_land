@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { multiOrganizationService, getTokenFromStorages } from '@utils/api';
 import type { HoldingDashboardData } from '@utils/api';
+import { HOLDING_MAIN_DOMAIN } from '@utils/holdingDomain';
 import { SEOHead } from '@components/shared/SEOHead';
 import { StatCard, LoadingSpinner, PageHeader } from '@components/holding/shared';
 import HoldingSummaryPanel from '@components/holding/HoldingSummaryPanel';
@@ -34,7 +35,7 @@ const HoldingDashboardPage = () => {
         }
 
         const hostname = window.location.hostname;
-        const mainDomain = '1мост.рф';
+        const mainDomain = HOLDING_MAIN_DOMAIN;
         let slug = '';
         
         if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
@@ -84,75 +85,8 @@ const HoldingDashboardPage = () => {
         } else if (hostname !== mainDomain && hostname.endsWith(`.${mainDomain}`)) {
           slug = hostname.split('.')[0];
           
-          const publicData = await multiOrganizationService.getHoldingPublicInfo(slug);
-          
-          let childOrganizations: any[] = [];
-          try {
-            childOrganizations = await multiOrganizationService.getHoldingOrganizations(slug, token);
-          } catch (err) {
-            console.warn('Не удалось загрузить дочерние организации:', err);
-          }
-          
-          const dashboardData: HoldingDashboardData = {
-            holding: {
-              id: publicData?.holding?.id || 1,
-              name: publicData?.holding?.name || 'Холдинг',
-              slug: publicData?.holding?.slug || 'holding',
-              description: publicData?.holding?.description || 'Описание холдинга',
-              parent_organization_id: publicData?.holding?.parent_organization_id || 1,
-              status: publicData?.holding?.status || 'active',
-            },
-            hierarchy: {
-              parent: {
-                id: publicData?.parent_organization?.id || 1,
-                name: publicData?.parent_organization?.name || 'Головная организация',
-                slug: publicData?.holding?.slug || 'holding',
-                organization_type: 'parent' as const,
-                is_holding: true,
-                hierarchy_level: 0,
-                tax_number: publicData?.parent_organization?.tax_number || '',
-                registration_number: publicData?.parent_organization?.registration_number || '',
-                address: publicData?.parent_organization?.address || '',
-                created_at: publicData?.holding?.created_at || new Date().toISOString(),
-              },
-              children: (childOrganizations || []).map((org: any) => ({
-                id: org?.id || 0,
-                name: org?.name || 'Дочерняя организация',
-                organization_type: 'child' as const,
-                is_holding: false,
-                hierarchy_level: 1,
-                tax_number: org?.tax_number || '',
-                created_at: org?.created_at || new Date().toISOString(),
-              })),
-              total_stats: {
-                total_organizations: publicData?.stats?.total_child_organizations || 0,
-                total_users: publicData?.stats?.total_users || 0,
-                total_projects: publicData?.stats?.total_projects || 0,
-                total_contracts: publicData?.stats?.total_contracts || 0,
-              }
-            },
-            user: {
-              id: 1,
-              name: 'Пользователь',
-              email: 'user@example.com'
-            },
-            consolidated_stats: {
-              total_child_organizations: publicData?.stats?.total_child_organizations || 0,
-              total_users: publicData?.stats?.total_users || 0,
-              total_projects: publicData?.stats?.total_projects || 0,
-              total_contracts: publicData?.stats?.total_contracts || 0,
-              total_contracts_value: publicData?.stats?.total_contracts_value || 0,
-              active_contracts_count: publicData?.stats?.active_contracts_count || 0,
-              recent_activity: [],
-              performance_metrics: {
-                monthly_growth: 0,
-                efficiency_score: 0,
-                satisfaction_index: 0
-              }
-            }
-          };
-          
-          setDashboardData(dashboardData);
+          const data = await multiOrganizationService.getHoldingDashboardInfo(slug, token);
+          setDashboardData(data);
         } else {
           throw new Error('Неверный поддомен');
         }
