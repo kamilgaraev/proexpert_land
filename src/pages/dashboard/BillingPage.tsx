@@ -759,7 +759,7 @@ const BillingPage = () => {
               <p className="mt-4 text-3xl font-semibold text-slate-950">{compactMoney(resourceQuote.amountMinor, resourceQuote.currency)}</p>
               {resourceQuote.requiresManager ? <p className="mt-3 rounded-xl bg-blue-50 p-3 text-sm leading-5 text-foreground">Для такого объёма менеджер подготовит индивидуальные условия.</p> : <p className="mt-3 text-sm leading-6 text-slate-600">Стоимость рассчитана по выбранному дополнительному объёму.</p>}
               <Button className="mt-4 w-full" onClick={() => void submitContour()} disabled={!canManage || isGrace || actionBusy === 'checkout' || resourceQuote.requiresManager || (!useBalanceForCheckout && requiresAutoRenewConsent && !autoRenewConsent)}>{resourceQuote.requiresManager ? 'Обсудить условия' : useBalanceForCheckout ? <><WalletCards className="mr-2 h-4 w-4" />Оплатить с баланса</> : <><CreditCard className="mr-2 h-4 w-4" />Перейти к оплате</>}</Button>
-            </> : <p className="mt-3 text-sm leading-6 text-slate-600">Измените дополнительный объём, чтобы увидеть ежемесячную стоимость.</p>}
+            </> : <p className="mt-3 text-sm leading-6 text-slate-600">Измените дополнительный объём, чтобы увидеть стоимость за оплачиваемый срок.</p>}
           </aside>
         </div>
       </section> : null}
