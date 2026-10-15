@@ -532,7 +532,7 @@ const BillingPage = () => {
             size="lg"
             variant={fullSuite ? 'outline' : 'default'}
             className={fullSuite ? 'border-orange-300 bg-orange-50 text-orange-800 hover:bg-orange-100 hover:text-orange-900' : 'bg-primary text-primary-foreground hover:bg-primary/90'}
-            disabled={isGrace}
+            disabled={isGrace || renewSubscription}
             onClick={() => {
               if (fullSuite) {
                 setFullSuite(false);
@@ -656,14 +656,14 @@ const BillingPage = () => {
               </select>
               <p className="text-xs leading-5 text-slate-500">{renewSubscription ? 'Оплаченный остаток сохранится. Новый срок добавится к дате окончания подписки. Продлеваются текущие пакеты; дополнительные ресурсы оплачиваются отдельно.' : currentPaidSlugs.length > 0 ? 'Новые пакеты подключаются до конца оплаченного периода. Чтобы выбрать другой срок, нажмите «Продлить подписку».' : 'Оплата за весь срок сразу. Скидка действует на пакеты, включая полный комплект. Дополнительные ресурсы оплачиваются без скидки.'}</p>
             </div>
-            {quote?.recommendation === 'full_suite' && !fullSuite ? <button type="button" onClick={selectFullSuite} disabled={!canManage || isGrace} className="w-full rounded-lg border border-orange-300 bg-orange-50 p-4 text-left text-sm text-orange-950"><Sparkles className="mb-2 h-5 w-5 text-orange-600" /><strong>Полный комплект выгоднее</strong><span className="mt-1 block text-xs">Рекомендация не меняет выбор автоматически.</span></button> : null}
+            {quote?.recommendation === 'full_suite' && !fullSuite ? <button type="button" onClick={selectFullSuite} disabled={!canManage || isGrace || renewSubscription} className="w-full rounded-lg border border-orange-300 bg-orange-50 p-4 text-left text-sm text-orange-950"><Sparkles className="mb-2 h-5 w-5 text-orange-600" /><strong>Полный комплект выгоднее</strong><span className="mt-1 block text-xs">Рекомендация не меняет выбор автоматически.</span></button> : null}
             {quoteLoading ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Обновляем стоимость</div> : quoteError ? <p className="text-sm text-red-700">{quoteError}</p> : quote ? <>
               {!hasChanges ? <div className="rounded-lg bg-emerald-50 p-4"><strong className="text-emerald-900">Изменений нет</strong><p className="mt-1 text-xs leading-5 text-emerald-800">Текущий состав останется без изменений.</p></div> : null}
               <div className="space-y-3 border-y py-4">
                 <div className="flex justify-between text-sm"><span>Сейчас подключено</span><strong>{formatMoney(currentMonthlyMinor, quote.currency)}</strong></div>
                 {hasChanges ? <><div className="flex justify-between text-sm"><span>Следующий период</span><strong data-testid="monthly-total">{formatMoney((quote.periodTotalMinor ?? quote.monthlyTotalMinor), quote.currency)}</strong></div><div className="flex justify-between text-sm"><span>К оплате сейчас</span><strong className="text-lg">{formatMoney(quote.amountDueNowMinor, quote.currency)}</strong></div></> : <div className="flex justify-between text-sm"><span>Следующий период</span><strong data-testid="monthly-total">{formatMoney(quote.monthlyTotalMinor, quote.currency)}</strong></div>}
                 {(quote.periodSavingsMinor ?? 0) > 0 ? <div className="flex justify-between text-sm text-emerald-700"><span>Скидка за {billingPeriodLabels[billingPeriod]} · {quote.periodDiscountPercent}%</span><strong>{formatMoney(quote.periodSavingsMinor ?? 0, quote.currency)}</strong></div> : null}
-              {renewSubscription || currentPaidSlugs.length === 0 ? <p className="text-xs text-slate-600">Оплата за {billingPeriodLabels[billingPeriod]} сразу. Доступ до {formatDateTime(quote.periodEndAt)}. Срок нового подключения отсчитывается после подтверждения оплаты.</p> : null}
+              {renewSubscription || currentPaidSlugs.length === 0 ? <p className="text-xs text-slate-600">Оплата за {billingPeriodLabels[billingPeriod]} сразу. Доступ до {formatDateTime(quote.periodEndAt)}. {renewSubscription ? 'Новый срок начнётся после окончания текущего оплаченного периода.' : 'Срок нового подключения отсчитывается после подтверждения оплаты.'}</p> : null}
               {quote.savingsAmountMinor > 0 ? <div className="flex justify-between text-sm text-emerald-700"><span>Экономия</span><strong>{formatMoney(quote.savingsAmountMinor, quote.currency)} · {quote.savingsPercent}%</strong></div> : null}
               </div>
               {limitsSummary ? <div className="space-y-3 border-b pb-4" aria-label="Лимиты организации">

@@ -223,6 +223,39 @@ describe('BillingPage commercial packages', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Перейти к оплате' }));
     await waitFor(() => expect(checkoutBody).toMatchObject({ billing_period: period, renew_subscription: true, quote_version: 4 }));
     expect(screen.getByText(/Оплаченный остаток сохранится/)).toBeInTheDocument();
+    expect(screen.getByText(/Новый срок начнётся после окончания текущего оплаченного периода/)).toBeInTheDocument();
+    expect(screen.queryByText(/Срок нового подключения отсчитывается после подтверждения оплаты/)).not.toBeInTheDocument();
+  });
+
+  it('сохраняет полный комплект при продлении и блокирует изменение типа предложения', async () => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(
+      http.get(baseUrl + '/packages', () => HttpResponse.json({ success: true, data: packages.map((item) => ({ ...item, is_active: true, status: 'active', access_source: 'full_suite' })) })),
+      http.get(baseUrl + '/billing/commercial/renewal', () => HttpResponse.json({ success: true, data: {
+        status: 'active', offer_type: 'full_suite', billing_period: '30_days', auto_renew_enabled: true, saved_method_available: true,
+      } })),
+      http.post(baseUrl + '/billing/commercial/quote', async ({ request }) => {
+        const body = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: true, data: {
+          quote_version: 4, currency: 'RUB', billing_period: body.billing_period, renew_subscription: body.renew_subscription,
+          billing_period_days: 30, offer_type: body.full_suite ? 'full_suite' : 'packages', target_package_slugs: packageSlugs, current_package_slugs: packageSlugs,
+          added_package_slugs: [], removed_package_slugs: [], monthly_total_minor: 7990000, monthly_total: '79900.00',
+          period_total_minor: 7990000, amount_due_now_minor: 7990000, amount_due_now: '79900.00', savings_amount_minor: 0, savings_percent: 0,
+          period_start_at: '2026-07-31T09:00:00Z', period_end_at: '2026-08-30T09:00:00Z',
+        } });
+      }),
+      http.post(baseUrl + '/billing/commercial/checkout', async ({ request }) => {
+        checkoutBody = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: false }, { status: 503 });
+      }),
+    );
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Продлить подписку' }));
+    const fullSuiteToggle = screen.getByRole('button', { name: 'Оставить текущий состав' });
+    expect(fullSuiteToggle).toBeDisabled();
+    fireEvent.click(fullSuiteToggle);
+    fireEvent.click(await screen.findByRole('button', { name: 'Перейти к оплате' }));
+    await waitFor(() => expect(checkoutBody).toMatchObject({ full_suite: true, renew_subscription: true }));
   });
 
   it.each(['period', 'mode'])('сохраняет согласие при возврате к текущему сроку через %s', async (returnVia) => {
