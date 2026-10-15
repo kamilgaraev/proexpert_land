@@ -253,7 +253,7 @@ describe('buildStructuredDataGraph', () => {
     expect(organizations[0].name).toBe('МОСТ');
   });
 
-  it('публикует бесплатную основу, рабочий вход, шесть контуров и полный комплект', () => {
+  it('публикует реальные цены всех периодов и бессрочную бесплатную основу', () => {
     const graph = buildStructuredDataGraph({
       ...baseInput,
       pathname: '/pricing',
@@ -263,22 +263,42 @@ describe('buildStructuredDataGraph', () => {
     const product = graph['@graph'].find((node) => node['@type'] === 'Product');
     const offers = product?.offers as Array<Record<string, unknown>>;
 
-    expect(offers).toHaveLength(9);
+    expect(offers).toHaveLength(25);
+    expect(new Set(offers.map((offer) => offer['@id'])).size).toBe(25);
     expect(offers.map((offer) => [offer.name, offer.price])).toEqual(expect.arrayContaining([
       ['Начните бесплатно', '0'],
-      ['Рабочий вход', '39900'],
-      ['Полный комплект', '79900'],
+      ['Рабочий вход — 30 дней', '39900'],
+      ['Рабочий вход — 6 месяцев', '227430'],
+      ['Рабочий вход — 12 месяцев', '430920'],
+      ['Полный комплект — 30 дней', '79900'],
+      ['Полный комплект — 6 месяцев', '455430'],
+      ['Полный комплект — 12 месяцев', '862920'],
     ]));
     for (const offer of offers) {
       expect(offer.price).toEqual(expect.any(String));
       expect(offer.priceCurrency).toBe('RUB');
-      expect(offer.priceSpecification).toEqual({
-        '@type': 'UnitPriceSpecification',
-        price: offer.price,
-        priceCurrency: 'RUB',
-        billingDuration: 'P30D',
-      });
+      expect(offer.url).toMatch(/^https:\/\/1мост\.рф\/pricing#/);
     }
+    const free = offers.find((offer) => offer.price === '0');
+    expect(free?.priceSpecification).toBeUndefined();
+    for (const [duration, quantity, unitCode] of [
+      ['P30D', 30, 'DAY'], ['P6M', 6, 'MON'], ['P12M', 12, 'MON'],
+    ]) {
+      const paidOffers = offers.filter((offer) =>
+        (offer.priceSpecification as Record<string, unknown>)?.billingDuration === duration);
+      expect(paidOffers).toHaveLength(8);
+      for (const offer of paidOffers) {
+        expect(offer.priceSpecification).toEqual({
+          '@type': 'UnitPriceSpecification',
+          price: offer.price,
+          priceCurrency: 'RUB',
+          billingDuration: duration,
+          referenceQuantity: { '@type': 'QuantitativeValue', value: quantity, unitCode },
+        });
+      }
+    }
+    expect(offers.find((offer) => offer.name === 'Снабжение и склад — 6 месяцев')?.description)
+      .toContain('Дополнение к оплаченному рабочему входу');
   });
 
   it('normalizes the legacy article author brand to МОСТ', () => {

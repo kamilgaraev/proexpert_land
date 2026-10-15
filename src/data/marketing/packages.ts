@@ -166,6 +166,25 @@ export const commercialTerms = {
   entrySlug: 'working-entry' as const,
 };
 
+export const commercialBillingPeriods = [
+  { id: '30_days', label: '30 дней', months: 1, discountPercent: 0, duration: 'P30D', quantity: 30, unitCode: 'DAY' },
+  { id: '6_months', label: '6 месяцев', months: 6, discountPercent: 5, duration: 'P6M', quantity: 6, unitCode: 'MON' },
+  { id: '12_months', label: '12 месяцев', months: 12, discountPercent: 10, duration: 'P12M', quantity: 12, unitCode: 'MON' },
+] as const;
+
+export type CommercialPricingPeriod = (typeof commercialBillingPeriods)[number];
+
+export const getCommercialPeriodPrice = (monthlyPrice: number, period: CommercialPricingPeriod) => {
+  const regularPriceMinor = Math.round(monthlyPrice * 100) * period.months;
+  const priceMinor = Math.round(regularPriceMinor * (100 - period.discountPercent) / 100);
+
+  return {
+    price: priceMinor / 100,
+    regularPrice: regularPriceMinor / 100,
+    savings: (regularPriceMinor - priceMinor) / 100,
+  };
+};
+
 export const getCommercialSelection = (slugs: readonly string[], fullSuite = false) => {
   const known = new Set(commercialPackages.map((item) => item.slug));
   const selected = new Set(

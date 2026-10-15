@@ -5,8 +5,11 @@ import {
   marketingCapabilityMatrix,
   marketingCompany,
   marketingFaqs,
+  commercialBillingPeriods,
+  commercialTerms,
   freeFoundationOffer,
   fullSuiteOffer,
+  getCommercialPeriodPrice,
   marketingPackages,
   marketingPaths,
   marketingSeo,
@@ -300,51 +303,58 @@ const buildPackageOffers = () => {
       return [];
     }
 
-    const price = `${item.price}`;
-    const offer: Record<string, string> = {
-      '@type': 'Offer',
-      name: item.name,
-      availability: 'https://schema.org/InStock',
-      category: item.name,
-      description: item.description,
-      price,
-      priceCurrency: 'RUB',
-    };
+    const description = item.slug === commercialTerms.entrySlug
+      ? item.description
+      : `${item.description} Дополнение к оплаченному рабочему входу; его стоимость оплачивается отдельно.`;
 
-    return [{
-      ...offer,
-      priceSpecification: {
-        '@type': 'UnitPriceSpecification',
-        price,
-        priceCurrency: 'RUB',
-        billingDuration: 'P30D',
-      },
-    }];
+    return createPaidOffers(item.slug, item.name, description, item.price, 'constructor');
   });
 
-  const createOffer = (name: string, description: string, priceValue: number) => {
-    const price = `${priceValue}`;
-    return {
-      '@type': 'Offer',
-      name,
-      availability: 'https://schema.org/InStock',
-      category: 'Коммерческая модель МОСТ',
-      description,
-      price,
-      priceCurrency: 'RUB',
-      priceSpecification: {
-        '@type': 'UnitPriceSpecification',
+  function createPaidOffers(slug: string, name: string, description: string, monthlyPrice: number, anchor: string) {
+    return commercialBillingPeriods.map((period) => {
+      const price = `${getCommercialPeriodPrice(monthlyPrice, period).price}`;
+
+      return {
+        '@type': 'Offer',
+        '@id': `${BASE_URL}/pricing#offer-${slug}-${period.id}`,
+        url: `${BASE_URL}/pricing#${anchor}`,
+        name: `${name} — ${period.label}`,
+        availability: 'https://schema.org/InStock',
+        category: 'Коммерческая модель МОСТ',
+        description: `${description} Оплата сразу за ${period.label}.${
+          period.discountPercent > 0 ? ` Скидка за срок ${period.discountPercent}%.` : ''
+        }`,
         price,
         priceCurrency: 'RUB',
-        billingDuration: 'P30D',
-      },
-    };
-  };
+        priceSpecification: {
+          '@type': 'UnitPriceSpecification',
+          price,
+          priceCurrency: 'RUB',
+          billingDuration: period.duration,
+          referenceQuantity: {
+            '@type': 'QuantitativeValue',
+            value: period.quantity,
+            unitCode: period.unitCode,
+          },
+        },
+      };
+    });
+  }
 
   return [
-    createOffer(freeFoundationOffer.name, freeFoundationOffer.description, freeFoundationOffer.price),
+    {
+      '@type': 'Offer',
+      '@id': `${BASE_URL}/pricing#offer-free-foundation`,
+      url: `${BASE_URL}/pricing#foundation`,
+      name: freeFoundationOffer.name,
+      availability: 'https://schema.org/InStock',
+      category: 'Коммерческая модель МОСТ',
+      description: freeFoundationOffer.description,
+      price: `${freeFoundationOffer.price}`,
+      priceCurrency: 'RUB',
+    },
     ...packageOffers,
-    createOffer(fullSuiteOffer.name, 'Рабочий вход и шесть контуров МОСТ на 30 дней.', fullSuiteOffer.price),
+    ...createPaidOffers(fullSuiteOffer.slug, fullSuiteOffer.name, 'Рабочий вход и шесть контуров МОСТ.', fullSuiteOffer.price, 'full-suite'),
   ];
 };
 
@@ -397,6 +407,8 @@ export const generateFAQSchema = (faqs: Array<{ question: string; answer: string
 export const generatePricingSchema = () => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
+  '@id': `${BASE_URL}/pricing#commercial-offers`,
+  url: `${BASE_URL}/pricing`,
   name: `${marketingCompany.brand}: начните бесплатно, подключайте пакеты`,
   description: marketingSeo.pricing.description,
   brand: {
