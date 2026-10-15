@@ -1,6 +1,7 @@
 import { API_URL } from '@/utils/api';
 import { getJsonAuthHeaders } from '@/utils/authTokenStorage';
 import type {
+  CommercialBillingPeriod,
   CommercialHistory,
   CommercialLimitsSummary,
   CommercialOrder,
@@ -83,9 +84,12 @@ const packageFromApi = (item: JsonRecord): CommercialPackage => ({
 });
 
 const quoteFromApi = (item: JsonRecord): CommercialQuote => ({
+  billingPeriod: item.billing_period ?? '30_days',
+  periodTotalMinor: item.period_total_minor ?? item.monthly_total_minor,
+  renewSubscription: Boolean(item.renew_subscription),
   quoteVersion: item.quote_version,
   currency: item.currency,
-  billingPeriodDays: item.billing_period_days,
+  billingPeriodDays: item.billing_period_days ?? 30,
   offerType: item.offer_type,
   targetPackageSlugs: item.target_package_slugs ?? [],
   currentPackageSlugs: item.current_package_slugs ?? [],
@@ -106,6 +110,7 @@ const quoteFromApi = (item: JsonRecord): CommercialQuote => ({
 });
 
 const renewalFromApi = (item: JsonRecord): CommercialRenewalState => ({
+  billingPeriod: item.billing_period ?? '30_days',
   status: item.status,
   autoRenewEnabled: Boolean(item.auto_renew_enabled),
   savedMethodAvailable: Boolean(item.saved_method_available),
@@ -298,12 +303,14 @@ export const commercialBillingService = {
   quote: async (input: { targetPackageSlugs: string[]; fullSuite: boolean; resources?: Array<{ slug: string; quantity: number }> }, signal?: AbortSignal) => quoteFromApi(await request<JsonRecord>('/billing/commercial/quote', {
     method: 'POST', signal, body: JSON.stringify({ target_package_slugs: input.targetPackageSlugs, full_suite: input.fullSuite, resources: input.resources ?? [] }),
   })),
-  checkout: async (input: { targetPackageSlugs: string[]; currentPackageSlugs: string[]; fullSuite: boolean; quoteVersion: number; resourceQuoteVersion?: number; clientIdempotencyKey: string; autoRenewConsent: boolean; useBalance: boolean; resources?: Array<{ slug: string; quantity: number }> }) => {
+  checkout: async (input: { targetPackageSlugs: string[]; currentPackageSlugs: string[]; fullSuite: boolean; quoteVersion: number; billingPeriod?: CommercialBillingPeriod; renewSubscription?: boolean; resourceQuoteVersion?: number; clientIdempotencyKey: string; autoRenewConsent: boolean; useBalance: boolean; resources?: Array<{ slug: string; quantity: number }> }) => {
     const item = await request<JsonRecord>('/billing/commercial/checkout', { method: 'POST', body: JSON.stringify({
       target_package_slugs: input.fullSuite ? [] : input.targetPackageSlugs,
       current_package_slugs: input.currentPackageSlugs,
       full_suite: input.fullSuite,
       quote_version: input.quoteVersion,
+      billing_period: input.billingPeriod,
+      renew_subscription: input.renewSubscription,
       resource_quote_version: input.resourceQuoteVersion ?? 1,
       client_idempotency_key: input.clientIdempotencyKey,
       auto_renew_consent: input.autoRenewConsent,

@@ -23,6 +23,34 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe('commercialBillingService', () => {
+  it.each([
+    { period: undefined, total: 100000, expected: '30_days' },
+    { period: '6_months', total: 570000, expected: '6_months' },
+    { period: '12_months', total: 1080000, expected: '12_months' },
+  ])('сохраняет период $expected в quote и checkout со старым API fallback', async ({ period, total, expected }) => {
+    saveAuthToken('test-token');
+    let body: Record<string, unknown> | null = null;
+    server.use(
+      http.get(`${baseUrl}/billing/commercial/renewal`, () => HttpResponse.json({ success: true, data: { status: 'active', billing_period: period } })),
+      http.post(`${baseUrl}/billing/commercial/quote`, () => HttpResponse.json({ success: true, data: {
+        quote_version: 4, currency: 'RUB', billing_period: period, period_total_minor: period ? total : undefined,
+        monthly_total_minor: 100000, amount_due_now_minor: total, target_package_slugs: ['working-entry'],
+      } })),
+      http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
+        body = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: true, data: { order_id: 'period-invoice', status: 'pending_payment', payment_source: 'tochka' } });
+      }),
+    );
+    const renewal = await commercialBillingService.getRenewal();
+    const quote = await commercialBillingService.quote({ targetPackageSlugs: ['working-entry'], fullSuite: false });
+    expect(renewal.billingPeriod).toBe(expected);
+    expect(quote).toMatchObject({ billingPeriod: expected, periodTotalMinor: total, renewSubscription: false });
+    await commercialBillingService.checkout({ targetPackageSlugs: ['working-entry'], currentPackageSlugs: [], fullSuite: false,
+      quoteVersion: quote.quoteVersion, billingPeriod: quote.billingPeriod, renewSubscription: quote.renewSubscription,
+      clientIdempotencyKey: 'period-intent', autoRenewConsent: false, useBalance: false });
+    expect(body).toMatchObject({ billing_period: expected, renew_subscription: false });
+  });
+
   it('повторно проверяет оплату через полсекунды и продолжает проверку около минуты', () => {
     expect(COMMERCIAL_PAYMENT_POLL_DELAYS_MS.slice(0, 3)).toEqual([0, 500, 1000]);
     expect(COMMERCIAL_PAYMENT_POLL_DELAYS_MS.reduce((total, delay) => total + delay, 0)).toBeGreaterThanOrEqual(50000);

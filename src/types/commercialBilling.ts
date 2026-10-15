@@ -1,5 +1,6 @@
 export type CommercialAccountStatus = 'free' | 'active' | 'grace' | 'suspended' | 'corporate';
 export type CommercialOrderStatus = 'pending_payment' | 'paid' | 'canceled' | 'refunded' | 'failed';
+export type CommercialBillingPeriod = '30_days' | '6_months' | '12_months';
 
 export interface CommercialPackageModule {
   slug: string;
@@ -30,6 +31,9 @@ export interface CommercialPackage {
 }
 
 export interface CommercialQuote {
+  billingPeriod: CommercialBillingPeriod;
+  periodTotalMinor: number;
+  renewSubscription: boolean;
   quoteVersion: number;
   currency: string;
   billingPeriodDays: number;
@@ -53,6 +57,7 @@ export interface CommercialQuote {
 }
 
 export interface CommercialRenewalState {
+  billingPeriod: CommercialBillingPeriod;
   status: CommercialAccountStatus;
   autoRenewEnabled: boolean;
   savedMethodAvailable: boolean;

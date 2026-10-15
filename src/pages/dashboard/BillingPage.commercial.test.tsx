@@ -443,12 +443,12 @@ describe('BillingPage commercial packages', () => {
     expect(screen.queryByRole('button', { name: 'Оплатить сейчас' })).not.toBeInTheDocument();
   });
 
-  it('блокирует изменение в grace и объясняет фиксированную дату и оплату на шестой день', async () => {
+  it('блокирует изменение в grace и объясняет фиксированную расчётную дату', async () => {
     accountStatus = 'grace';
     renderPage();
     expect(await screen.findByRole('heading', { name: 'Льготный период' })).toBeInTheDocument();
     expect(screen.getByText(/7 августа 2026/)).toBeInTheDocument();
-    expect(screen.getByText(/на шестой день останется около 24 дней/)).toBeInTheDocument();
+    expect(screen.getByText(/льготные дни входят в этот период/)).toBeInTheDocument();
     expect(within(screen.getByRole('heading', { name: 'Пакет 2' }).closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Оплатить сейчас' })).toBeInTheDocument();
   });
@@ -899,6 +899,47 @@ describe('BillingPage commercial packages', () => {
     fireEvent.click(balance);
     expect(screen.getByRole('button', { name: 'Оплатить с баланса' })).toBeEnabled();
     expect(screen.getByText(/Статус банковской оплаты временно недоступен/)).toBeInTheDocument();
+  });
+
+  it('показывает полную стоимость годового периода и передаёт период из расчёта в банковский checkout', async () => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: {
+        provider: 'tochka', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: true,
+      } })),
+      http.post(`${baseUrl}/billing/commercial/quote`, async ({ request }) => {
+        const body = await request.json() as { target_package_slugs: string[] };
+        return HttpResponse.json({ success: true, data: {
+          quote_version: 4, currency: 'RUB', billing_period: '12_months', billing_period_days: 365,
+          period_total_minor: 2160000, monthly_total_minor: 200000, amount_due_now_minor: 100000,
+          target_package_slugs: body.target_package_slugs, current_package_slugs: [packageSlugs[0]],
+          added_package_slugs: body.target_package_slugs.filter((slug) => slug !== packageSlugs[0]), removed_package_slugs: [],
+          savings_amount_minor: 0, period_start_at: '2026-07-01T09:00:00Z', period_end_at: '2027-07-01T09:00:00Z',
+        } });
+      }),
+      http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
+        checkoutBody = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: true, data: { order_id: 'year-invoice', status: 'pending_payment', payment_source: 'tochka', bank_invoice: { id: 'year-invoice' } } });
+      }),
+    );
+    renderPage();
+    const heading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(heading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    await screen.findByText('Следующий период · 12 месяцев');
+    expect(screen.getByTestId('monthly-total')).toHaveTextContent('21 600 ₽');
+    fireEvent.click(await screen.findByRole('button', { name: 'Получить счёт' }));
+    await waitFor(() => expect(checkoutBody).toMatchObject({ billing_period: '12_months', renew_subscription: false }));
+  });
+
+  it('в grace длинного периода не обещает фиксированные 30 дней', async () => {
+    accountStatus = 'grace';
+    server.use(http.get(`${baseUrl}/billing/commercial/renewal`, () => HttpResponse.json({ success: true, data: {
+      status: 'grace', billing_period: '6_months', next_billing_at: '2026-07-31T09:00:00Z',
+      grace_started_at: '2026-07-31T09:00:00Z', grace_ends_at: '2026-08-07T09:00:00Z',
+    } })));
+    renderPage();
+    expect(await screen.findByText(/пропущенный период подписки \(6 месяцев\)/)).toBeInTheDocument();
+    expect(screen.queryByText(/на шестой день останется около 24 дней/)).not.toBeInTheDocument();
   });
 
   it('повторяет проверку возможностей после временного сбоя и разрешает выставить счёт', async () => {
