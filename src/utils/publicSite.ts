@@ -1,3 +1,5 @@
+import { isHoldingHostname } from './holdingDomain';
+
 const INTERNAL_PREFIXES = [
   '/dashboard',
   '/landing/multi-organization',
@@ -43,6 +45,9 @@ export const isPrimaryMarketingHost = (hostname: string): boolean => {
 
   return PRIMARY_MARKETING_HOSTS.has(hostname.toLowerCase());
 };
+
+export const isMarketingPublicRequest = (pathname: string, hostname: string): boolean =>
+  !isHoldingHostname(hostname) && isMarketingPublicPath(pathname);
 
 export const isCabinetHost = (hostname: string): boolean =>
   ['lk.1мост.рф', 'lk.xn--1-xtbgmf.xn--p1ai'].includes(hostname.toLowerCase());

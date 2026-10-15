@@ -11,7 +11,6 @@ import HoldingContractsPage from '@pages/holding/HoldingContractsPage';
 import HoldingContractDetailsPage from '@pages/holding/HoldingContractDetailsPage';
 import LandingEditorPage from '@pages/holding/LandingEditorPage';
 import HoldingLandingRuntimePage from '@pages/holding/HoldingLandingRuntimePage';
-import NotFoundPage from '@pages/NotFoundPage';
 import { ThemeProvider } from '@components/shared/ThemeProvider';
 import { HoldingPanelLayout } from '@layouts/HoldingPanelLayout';
 import { HoldingProjectsList, HoldingProjectDetails } from '@/components/holding';
@@ -54,7 +53,7 @@ const HoldingRouter = () => {
             </HoldingPanelRouteGuard>
           )}
         />
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path="*" element={<HoldingLandingRuntimePage />} />
       </Routes>
     </ThemeProvider>
   );

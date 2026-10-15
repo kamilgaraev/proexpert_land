@@ -49,6 +49,6 @@ describe('server cabinet redirect', () => {
   ])('keeps the existing renderer for %s%s', async (hostname, path) => {
     await expect(render(context(hostname, path))).rejects.toBe(renderingReached);
     expect(mocks.redirect).not.toHaveBeenCalled();
-    expect(mocks.preparePageShell).toHaveBeenCalledWith(path);
+    expect(mocks.preparePageShell).toHaveBeenCalledWith(path, hostname);
   });
 });

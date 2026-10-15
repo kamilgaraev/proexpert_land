@@ -1,37 +1,44 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import SiteBuilderRenderer from '@/components/holding/site-builder/SiteBuilderRenderer';
 import { SEOHead } from '@components/shared/SEOHead';
 import { BuilderApiError, publicHoldingSiteService } from '@/services/holdingSiteBuilderService';
 import type { PublicSitePayload } from '@/types/holding-site-builder';
 import HoldingLandingPage from './HoldingLandingPage';
+import NotFoundPage from '@pages/NotFoundPage';
 
 const HoldingLandingRuntimePage = () => {
+  const { pathname, search } = useLocation();
   const [payload, setPayload] = useState<PublicSitePayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
 
   useEffect(() => {
+    let active = true;
     const loadPayload = async () => {
       setLoading(true);
       setError(null);
       setErrorStatus(null);
 
       try {
-        const data = await publicHoldingSiteService.getSiteData(window.location.pathname, window.location.search);
-        setPayload(data);
+        const data = await publicHoldingSiteService.getSiteData(pathname, search);
+        if (active) setPayload(data);
       } catch (loadError) {
+        if (!active) return;
+        setPayload(null);
         setError(loadError instanceof Error ? loadError.message : 'Не удалось загрузить опубликованный сайт.');
         setErrorStatus(loadError instanceof BuilderApiError ? loadError.status : null);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     void loadPayload();
-  }, []);
+    return () => { active = false; };
+  }, [pathname, search]);
 
-  const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
+  const isPreview = new URLSearchParams(search).get('preview') === 'true';
   const showPreviewBadge = isPreview && payload?.runtime.mode === 'draft';
   const navigation =
     payload?.navigation && payload.navigation.length > 0
@@ -58,7 +65,7 @@ const HoldingLandingRuntimePage = () => {
 
   if (!payload) {
     if (!isPreview && errorStatus === 404) {
-      return <HoldingLandingPage />;
+      return pathname === '/' ? <HoldingLandingPage /> : <NotFoundPage />;
     }
 
     return (

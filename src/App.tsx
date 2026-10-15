@@ -96,6 +96,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import type { BlogArticle, BlogCategoryInitialData, BlogIndexInitialData, BlogTagInitialData } from '@/types/blog';
 
 interface AppProps {
+  requestHostname?: string;
   initialBlogIndexData?: BlogIndexInitialData;
   initialBlogCategoryData?: BlogCategoryInitialData;
   initialBlogTagData?: BlogTagInitialData;
@@ -138,6 +139,7 @@ const BillingAccessRoute = () => {
 };
 
 function App({
+  requestHostname,
   initialBlogIndexData,
   initialBlogCategoryData,
   initialBlogTagData,
@@ -147,7 +149,8 @@ function App({
 }: AppProps = {}) {
   const location = useLocation();
 
-  if (typeof window !== 'undefined' && isHoldingHostname(window.location.hostname)) {
+  const hostname = requestHostname ?? (typeof window !== 'undefined' ? window.location.hostname : '');
+  if (isHoldingHostname(hostname)) {
     return (
       <>
         <AppErrorBoundary resetKey={`${location.pathname}${location.search}`}>

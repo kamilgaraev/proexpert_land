@@ -1,4 +1,5 @@
 import { resolveMarketingRedirectTarget } from '@/data/marketingRegistry';
+import { isHoldingHostname } from '@/utils/holdingDomain';
 import {
   buildStructuredDataGraph,
   GOOGLEBOT_INDEX_CONTENT,
@@ -40,8 +41,10 @@ export const buildServerSeoPayload = (
       statusCode?: number;
     }
   >,
+  requestHostname = '',
 ): ServerSeoPayload => {
-  const redirectTarget = resolveMarketingRedirectTarget(pathname);
+  const isHolding = isHoldingHostname(requestHostname);
+  const redirectTarget = isHolding ? undefined : resolveMarketingRedirectTarget(pathname);
 
   if (redirectTarget) {
     return {
@@ -56,8 +59,18 @@ export const buildServerSeoPayload = (
     };
   }
 
-  const baseSeo = getPageSEOData(pathname);
-  const resolvedDocumentProps = documentProps || {};
+  const baseSeo = isHolding ? {
+    ...getPageSEOData('/'),
+    title: 'Сайт холдинга',
+    description: 'Опубликованный сайт организации.',
+    keywords: '',
+    canonicalUrl: `https://${requestHostname}${pathname.split(/[?#]/)[0]}`,
+    ogImage: '',
+    noIndex: false,
+    type: 'website' as const,
+    statusCode: 200,
+  } : getPageSEOData(pathname);
+  const resolvedDocumentProps = isHolding ? {} : documentProps || {};
 
   const title = resolvedDocumentProps.title ?? baseSeo.title;
   const description = resolvedDocumentProps.description ?? baseSeo.description;
@@ -120,7 +133,7 @@ export const buildServerSeoPayload = (
     statusCode,
     structuredData: resolvedDocumentProps.structuredData,
   });
-  const structuredDataTag = structuredDataGraph['@graph'].length > 0
+  const structuredDataTag = !isHolding && structuredDataGraph['@graph'].length > 0
     ? `<script id="ld-json" type="application/ld+json">${JSON.stringify(structuredDataGraph).replace(/</g, '\\u003c')}</script>`
     : '';
 
