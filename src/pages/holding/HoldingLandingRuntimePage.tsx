@@ -5,7 +5,7 @@ import { SEOHead } from '@components/shared/SEOHead';
 import { BuilderApiError, publicHoldingSiteService } from '@/services/holdingSiteBuilderService';
 import type { PublicSitePayload } from '@/types/holding-site-builder';
 import NotFoundPage from '@pages/NotFoundPage';
-import { hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
+import { getHoldingPageLanguage, hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
 
 type HoldingLandingRuntimePageProps = { initialPage?: HoldingPublicPageState };
 
@@ -68,6 +68,7 @@ const HoldingLandingRuntimeContent = ({ initialPage }: HoldingLandingRuntimePage
   if (loading) {
     return (
       <div className="grid min-h-screen place-items-center bg-slate-100">
+        <SEOHead title="Сайт холдинга" noIndex />
         <div className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm text-slate-600 shadow-sm">
           Загрузка сайта холдинга...
         </div>
@@ -96,6 +97,7 @@ const HoldingLandingRuntimeContent = ({ initialPage }: HoldingLandingRuntimePage
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)]">
       <SEOHead
+        lang={getHoldingPageLanguage(payload)}
         title={page?.seo_meta.title || payload.site.seo_meta.title || payload.site.title}
         description={
           page?.seo_meta.description ||

@@ -1,14 +1,26 @@
 // @vitest-environment happy-dom
 
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createPublicSitePayloadFixture } from '@/test/fixtures/holdingSiteBuilder';
 import SiteBuilderRenderer from './SiteBuilderRenderer';
 
 describe('SiteBuilderRenderer', () => {
+  afterEach(cleanup);
   beforeEach(() => {
     window.history.replaceState({}, '', '/services?preview=true&token=preview-token');
+  });
+
+  it.each(['locale=en', 'lang=en', 'locale=en&lang=en'])('сохраняет публичную локаль %s без закрытого токена', (query) => {
+    const payload = createPublicSitePayloadFixture();
+    render(<MemoryRouter initialEntries={[`/about?${query}&tracking=discard&token=private-token`]}><SiteBuilderRenderer
+      site={payload.site}
+      blocks={[]}
+      navigation={[{ id: 100, slug: '/', label: 'Главная', page_type: 'home', is_home: true }]}
+    /></MemoryRouter>);
+    expect(screen.getByRole('link', { name: 'Главная' })).toHaveAttribute('href', `/?${query}`);
+    expect(screen.getByRole('link', { name: new RegExp(payload.site.domain) }).getAttribute('href')).toBe(`/?${query}`);
   });
 
   it('рендерит публичную навигацию и сохраняет preview query string в ссылках', () => {

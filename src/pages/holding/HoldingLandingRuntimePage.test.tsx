@@ -111,10 +111,11 @@ describe('holding runtime navigation', () => {
     const payload = createPublicSitePayloadFixture();
     const page = payload.current_page!;
     page.seo_meta = { title: 'SEO страницы', noindex: true, keywords: 'страница', og_image: 'https://images.example/page.jpg' };
+    payload.runtime.locale = 'en';
     payload.site.seo_meta.noindex = false;
     if (key === 'page') { payload.page = page; payload.current_page = null; }
     render(<MemoryRouter><HoldingLandingRuntimePage initialPage={{ pathname: '/', search: '', status: 200, payload }} /></MemoryRouter>);
-    expect(seo).toHaveBeenLastCalledWith(expect.objectContaining({ noIndex: true, title: 'SEO страницы', keywords: 'страница', ogImage: 'https://images.example/page.jpg' }));
+    expect(seo).toHaveBeenLastCalledWith(expect.objectContaining({ lang: 'en', noIndex: true, title: 'SEO страницы', keywords: 'страница', ogImage: 'https://images.example/page.jpg' }));
     expect(api.getSiteData).not.toHaveBeenCalled();
   });
 

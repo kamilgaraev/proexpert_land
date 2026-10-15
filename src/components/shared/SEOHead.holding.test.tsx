@@ -2,9 +2,16 @@ import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SEOHead } from './SEOHead';
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); document.head.innerHTML = ''; });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); document.head.innerHTML = ''; document.documentElement.lang = 'ru'; });
 
 describe('holding client metadata', () => {
+  it('updates the document language when localized content changes', () => {
+    vi.stubGlobal('location', new URL('https://company.1мост.рф/about?locale=en'));
+    const { rerender } = render(<SEOHead title="About" lang="en" />);
+    expect(document.documentElement.lang).toBe('en');
+    rerender(<SEOHead title="О компании" lang="ru" />);
+    expect(document.documentElement.lang).toBe('ru');
+  });
   it('preserves the tenant canonical and og:url after hydration', () => {
     const url = new URL('https://company.1мост.рф/about');
     vi.stubGlobal('location', url);

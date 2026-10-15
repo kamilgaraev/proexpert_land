@@ -19,17 +19,20 @@ describe('holding SSR request', () => {
     const payload = createPublicSitePayloadFixture();
     payload.site.title = 'Опубликованный SSR холдинг';
     payload.runtime.path = pathname;
+    payload.runtime.locale = 'en';
     payload.current_page!.slug = pathname;
     const result = await render({
       Page,
       requestHostname: host,
       urlPathname: pathname,
-      urlOriginal: `${pathname}?source=test`,
-      documentProps: { title: 'Опубликованный SSR холдинг', statusCode: 200, noIndex: false },
-      pageProps: { initialHoldingPage: { pathname, search: '?source=test', status: 200, payload } },
+      urlOriginal: `${pathname}?locale=en`,
+      documentProps: { title: 'Опубликованный SSR холдинг', statusCode: 200, noIndex: false, lang: 'en' },
+      pageProps: { initialHoldingPage: { pathname, search: '?locale=en', status: 200, payload } },
     } as unknown as Parameters<typeof render>[0]);
 
     expect(result.documentHtml).toContain('Опубликованный SSR холдинг');
+    expect(result.documentHtml).toContain('<html lang="en"');
+    expect(result.documentHtml).toContain('/?locale=en');
     expect(result.documentHtml).not.toContain('Загрузка сайта холдинга');
     expect(result.documentHtml).toContain(`href="https://${host}${pathname}"`);
     expect(result.documentHtml).not.toContain('id="ld-json"');

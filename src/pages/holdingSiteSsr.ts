@@ -1,6 +1,6 @@
 import type { PublicSitePayload } from '@/types/holding-site-builder';
 import { isHoldingPrivatePath } from '@/utils/holdingDomain';
-import { hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
+import { getHoldingPageLanguage, hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -58,6 +58,7 @@ export async function loadHoldingPageContext(hostname: string, pathname: string,
   return {
     routeStatusCode: status,
     documentProps: {
+      lang: getHoldingPageLanguage(payload),
       title: page?.seo_meta.title || payload?.site.seo_meta.title || payload?.site.title || 'Сайт холдинга',
       description: page?.seo_meta.description || payload?.site.seo_meta.description || payload?.site.description || '',
       keywords: page?.seo_meta.keywords || payload?.site.seo_meta.keywords || '',
