@@ -39,6 +39,65 @@
   padding-right: 10px;
   color: #3f5739;
 }
+.most-billing-periods {
+  min-width: 0;
+  margin-top: 32px;
+  padding: 0;
+  border: 0;
+}
+.most-billing-periods legend {
+  margin-bottom: 16px;
+  font-size: var(--most-type-subheading);
+  font-weight: 500;
+}
+.most-billing-period-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.most-billing-period-options label {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 8px 12px;
+  padding: 18px;
+  border: 1px solid var(--most-line);
+  background: #fff;
+  cursor: pointer;
+}
+.most-billing-period-options label.is-selected {
+  border-color: #a64313;
+  background: #f7eee7;
+}
+.most-billing-period-options label:focus-within {
+  outline: 2px solid #a64313;
+  outline-offset: 3px;
+}
+.most-billing-period-options input {
+  grid-row: 1 / 3;
+  align-self: center;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: #a64313;
+}
+.most-billing-period-options label > span {
+  font-size: var(--most-type-small);
+  font-weight: 500;
+}
+.most-billing-period-options .most-billing-period-discount {
+  grid-column: 2;
+  color: #7a3512;
+  font-size: var(--most-type-caption);
+}
+.most-billing-periods > p {
+  margin-top: 16px;
+  color: var(--most-muted);
+  font-size: var(--most-type-small);
+  line-height: 1.6;
+}
+.most-package-total .most-period-savings {
+  color: #3f5739;
+}
 .most-package-constructor {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 330px;
@@ -261,6 +320,9 @@
   display: none;
 }
 @media (max-width: 767px) {
+  .most-billing-period-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .has-package-selection {
     padding-bottom: 84px;
   }

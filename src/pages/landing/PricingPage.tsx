@@ -6,12 +6,15 @@ import {
   PageHero,
 } from "@/components/marketing/MarketingPrimitives";
 import {
+  commercialBillingPeriods,
   commercialPackages,
   commercialTerms,
   freeFoundationOffer,
   fullSuiteOffer,
+  getCommercialPeriodPrice,
   getCommercialSelection,
   marketingSeo,
+  type CommercialPricingPeriod,
 } from "@/data/marketingRegistry";
 import useAnalytics from "@/hooks/useAnalytics";
 import { useSEO } from "@/hooks/useSEO";
@@ -21,6 +24,9 @@ import "@/styles/marketing-pricing.css";
 const formatPrice = (value: number) => `${value.toLocaleString("ru-RU")} ₽`;
 
 const PricingPage = () => {
+  const [billingPeriod, setBillingPeriod] = useState<CommercialPricingPeriod>(
+    commercialBillingPeriods[0],
+  );
   const [selectedPackageSlugs, setSelectedPackageSlugs] = useState<Set<string>>(
     new Set(),
   );
@@ -34,6 +40,12 @@ const PricingPage = () => {
   }, [trackPageView, trackPricingView]);
 
   const selection = getCommercialSelection(Array.from(selectedPackageSlugs));
+  const selectionPrice = getCommercialPeriodPrice(selection.total, billingPeriod);
+  const suitePrice = getCommercialPeriodPrice(fullSuiteOffer.price, billingPeriod);
+  const separateSuitePrice = getCommercialPeriodPrice(
+    fullSuiteOffer.separatePrice,
+    billingPeriod,
+  );
   const intent = serializeCommercialIntent(selection.selectedSlugs);
   const registrationHref = intent
     ? `/register?packages=${intent}`
@@ -71,7 +83,7 @@ const PricingPage = () => {
       <PageHero
         eyebrow="Тарифы"
         title="Начните бесплатно. Платите за нужные задачи."
-        description="Создайте организацию и пригласите команду. Для управления работами, снабжением и финансами выберите подходящие пакеты. Все цены — за одну организацию и 30 дней."
+        description="Создайте организацию и пригласите команду. Для управления работами, снабжением и финансами выберите подходящие пакеты. Все цены — за одну организацию. Оплачивайте 30 дней, 6 или 12 месяцев."
         actions={[
           { label: "Создать организацию", href: "/register", primary: true },
           { label: "Рассчитать стоимость", href: "#constructor" },
@@ -119,6 +131,38 @@ const PricingPage = () => {
               Контур пробуется один раз, когда рабочий вход уже оплачен.
             </p>
           </div>
+          <fieldset
+            className="most-billing-periods"
+            aria-describedby="billing-period-note"
+          >
+            <legend>Период оплаты</legend>
+            <div className="most-billing-period-options">
+              {commercialBillingPeriods.map((period) => (
+                <label
+                  key={period.id}
+                  className={billingPeriod.id === period.id ? "is-selected" : ""}
+                >
+                  <input
+                    type="radio"
+                    name="billing-period"
+                    value={period.id}
+                    checked={billingPeriod.id === period.id}
+                    onChange={() => setBillingPeriod(period)}
+                  />
+                  <span>{period.label}</span>
+                  <span className="most-billing-period-discount">
+                    {period.discountPercent > 0
+                      ? `Скидка ${period.discountPercent}%`
+                      : "Без скидки"}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p id="billing-period-note">
+              Цены ниже — за весь выбранный срок при оплате сразу.
+              Скидка действует на рабочий вход, контуры и полный комплект.
+            </p>
+          </fieldset>
           <div className="most-package-constructor">
             <fieldset className="most-package-options">
               <legend className="sr-only">Выбор рабочего входа и контуров</legend>
@@ -151,8 +195,8 @@ const PricingPage = () => {
                     </span>
                   </span>
                   <span className="most-package-price">
-                    <strong>{formatPrice(entryPackage.price)}</strong>
-                    <span>за 30 дней</span>
+                    <strong>{formatPrice(getCommercialPeriodPrice(entryPackage.price, billingPeriod).price)}</strong>
+                    <span>за {billingPeriod.label}</span>
                   </span>
                 </label>
               ) : null}
@@ -175,8 +219,8 @@ const PricingPage = () => {
                     </span>
                   </span>
                   <span className="most-package-price">
-                    <strong>{formatPrice(item.price)}</strong>
-                    <span>за 30 дней</span>
+                    <strong>{formatPrice(getCommercialPeriodPrice(item.price, billingPeriod).price)}</strong>
+                    <span>за {billingPeriod.label}</span>
                   </span>
                 </label>
               ))}
@@ -197,15 +241,24 @@ const PricingPage = () => {
                   Выбрано пакетов: {selection.selectedPackages.length} из{" "}
                   {commercialPackages.length}
                 </span>
-                <strong>{formatPrice(selection.total)}</strong>
-                <span>за организацию / 30 дней</span>
+                <strong>{formatPrice(selectionPrice.price)}</strong>
+                <span>за организацию / {billingPeriod.label}</span>
+                {selectionPrice.savings > 0 ? (
+                  <>
+                    <span>Без скидки — {formatPrice(selectionPrice.regularPrice)}</span>
+                    <span className="most-period-savings">
+                      Скидка {billingPeriod.discountPercent}% — экономия{" "}
+                      {formatPrice(selectionPrice.savings)}
+                    </span>
+                  </>
+                ) : null}
               </div>
               {selection.selectedPackages.length > 0 ? (
                 <ul className="most-package-selected">
                   {selection.selectedPackages.map((item) => (
                     <li key={item.slug}>
                       <span>{item.name}</span>
-                      <span>{formatPrice(item.price)}</span>
+                      <span>{formatPrice(getCommercialPeriodPrice(item.price, billingPeriod).price)}</span>
                     </li>
                   ))}
                 </ul>
@@ -220,7 +273,7 @@ const PricingPage = () => {
                   <strong>Сравните с полным комплектом</strong>
                   <p>
                     Рабочий вход и шесть контуров стоят{" "}
-                    {formatPrice(fullSuiteOffer.price)} за 30 дней. Ваш выбор
+                    {formatPrice(suitePrice.price)} за {billingPeriod.label}. Ваш выбор
                     сохранён.
                   </p>
                   <MarketingLink href="#full-suite" className="most-text-link">
@@ -240,7 +293,7 @@ const PricingPage = () => {
                   : "Создать организацию"}
               </MarketingLink>
               <p className="most-package-note">
-                Подключение и оплата — в личном кабинете после регистрации.
+                Подключение и выбор периода оплаты — в личном кабинете после регистрации.
               </p>
             </aside>
           </div>
@@ -250,7 +303,7 @@ const PricingPage = () => {
       {selection.selectedPackages.length > 0 ? (
         <div className="most-package-mobile-summary">
           <span>
-            <strong>{formatPrice(selection.total)}</strong> / 30 дней
+            <strong>{formatPrice(selectionPrice.price)}</strong> / {billingPeriod.label}
           </span>
           <MarketingLink href="#package-summary" className="most-text-link">
             К набору ({selection.selectedPackages.length}){" "}
@@ -267,14 +320,21 @@ const PricingPage = () => {
             <div>
               <h2>Рабочий вход и шесть контуров. Одна стоимость.</h2>
               <p>
-                По отдельности — {formatPrice(fullSuiteOffer.separatePrice)}.
-                Полный комплект экономит {formatPrice(fullSuiteOffer.savings)}{" "}
-                за каждый 30-дневный период.
+                По отдельности за {billingPeriod.label} —{" "}
+                {formatPrice(separateSuitePrice.price)} с учётом выбранного периода.
+                Полный комплект экономит ещё{" "}
+                {formatPrice(separateSuitePrice.price - suitePrice.price)}.
               </p>
             </div>
             <div className="most-full-suite-price">
-              <strong>{formatPrice(fullSuiteOffer.price)}</strong>
-              <span>за организацию / 30 дней</span>
+              <strong>{formatPrice(suitePrice.price)}</strong>
+              <span>за организацию / {billingPeriod.label}</span>
+              {suitePrice.savings > 0 ? (
+                <span>
+                  Скидка {billingPeriod.discountPercent}% за срок — экономия{" "}
+                  {formatPrice(suitePrice.savings)}
+                </span>
+              ) : null}
               <MarketingLink
                 href="/register?packages=full-suite"
                 className="most-button most-button-orange"
@@ -314,9 +374,13 @@ const PricingPage = () => {
                 </span>
               </summary>
               <p>
-                Полный расчётный период — 30 дней. Если добавить пакет в
+                Выберите 30 дней, 6 или 12 календарных месяцев. При оплате
+                за 6 месяцев скидка 5%, за 12 месяцев — 10%. Весь срок
+                оплачивается сразу. Если добавить пакет в
                 середине текущего периода, сумма рассчитывается за оставшееся
-                время. Итоговая стоимость и дата продления показаны в личном
+                время. После оплаты новый доступ активируется на выбранный срок.
+                При продлении подписки срок добавляется к концу оплаченного периода.
+                Итоговая стоимость и дата продления показаны в личном
                 кабинете перед оплатой.
               </p>
             </details>

@@ -10,16 +10,18 @@ export { marketingCapabilityMatrix } from './capabilities';
 export { marketingFaqs, marketingHeroFacts, marketingLaunchSteps } from './home';
 export { legalDocuments } from './legal';
 export {
+  commercialBillingPeriods,
   commercialPackages,
   commercialTerms,
   freeFoundationOffer,
   fullSuiteOffer,
+  getCommercialPeriodPrice,
   getCommercialSelection,
   marketingAdvancedOffers,
   marketingPackageCatalogSource,
   marketingPackages,
 } from './packages';
-export type { CommercialPackage, CommercialPackageSlug } from './packages';
+export type { CommercialPackage, CommercialPackageSlug, CommercialPricingPeriod } from './packages';
 export {
   marketingBlogEditorialSeries,
   marketingCommercialLandingLinks,

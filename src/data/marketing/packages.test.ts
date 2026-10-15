@@ -1,12 +1,40 @@
 import { describe, expect, it } from 'vitest';
 import {
+  commercialBillingPeriods,
   commercialPackages,
   fullSuiteOffer,
   getCommercialSelection,
+  getCommercialPeriodPrice,
   marketingPackageCatalogSource,
 } from './packages';
 
 describe('коммерческий каталог пакетов', () => {
+  it.each([
+    [0, 39_900, 39_900, 0],
+    [1, 227_430, 239_400, 11_970],
+    [2, 430_920, 478_800, 47_880],
+  ])('считает рабочий вход для периода %s по правилам серверной оплаты', (index, price, regularPrice, savings) => {
+    expect(getCommercialPeriodPrice(39_900, commercialBillingPeriods[index])).toEqual({
+      price, regularPrice, savings,
+    });
+  });
+
+  it.each([
+    [1, 455_430],
+    [2, 862_920],
+  ])('применяет скидку за срок к полному комплекту: период %s', (index, price) => {
+    expect(getCommercialPeriodPrice(fullSuiteOffer.price, commercialBillingPeriods[index]).price).toBe(price);
+  });
+
+  it('округляет до копеек и сохраняет бесплатную основу при любом сроке', () => {
+    expect(getCommercialPeriodPrice(0.05, commercialBillingPeriods[1])).toEqual({
+      price: 0.29, regularPrice: 0.3, savings: 0.01,
+    });
+    for (const period of commercialBillingPeriods) {
+      expect(getCommercialPeriodPrice(0, period)).toEqual({ price: 0, regularPrice: 0, savings: 0 });
+    }
+  });
+
   it('точно отражает серверный каталог из рабочего входа и шести контуров', () => {
     expect(marketingPackageCatalogSource).toBe(
       'Backend МОСТ: config/Packages/*.json, config/commercial_offers.php, config/module_packages.php',

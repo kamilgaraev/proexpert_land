@@ -87,6 +87,20 @@ describe('buildServerSeoPayload', () => {
     }
   });
 
+  it('отдаёт скидки и полные цены долгих периодов в JSON-LD до гидратации', () => {
+    const payload = buildServerSeoPayload('/pricing');
+    const product = parseStructuredDataGraph(payload.structuredDataTag)['@graph']
+      .find((node) => node['@type'] === 'Product');
+    const offers = product?.offers as Array<Record<string, unknown>>;
+
+    expect(payload.allMeta).toContain('6 месяцев со скидкой 5%');
+    expect(payload.allMeta).toContain('12 месяцев со скидкой 10%');
+    expect(offers.find((offer) => offer.name === 'Рабочий вход — 6 месяцев'))
+      .toMatchObject({ price: '227430', priceCurrency: 'RUB', priceSpecification: { billingDuration: 'P6M' } });
+    expect(offers.find((offer) => offer.name === 'Полный комплект — 12 месяцев'))
+      .toMatchObject({ price: '862920', priceCurrency: 'RUB', priceSpecification: { billingDuration: 'P12M' } });
+  });
+
   it('renders cluster schema for commercial landing pages', () => {
     const payload = buildServerSeoPayload('/construction-crm');
 
