@@ -70,6 +70,19 @@ describe('holding public SSR data', () => {
     expect(pageContext.documentProps?.noIndex).toBe(true);
   });
 
+  it.each(['/dashboard/unknown', '/landing/editor/unknown'])('resolves the unknown panel subpath %s through the public 404 boundary', async (pathname) => {
+    let calls = 0;
+    server.use(http.get(endpoint, ({ request }) => {
+      expect(new URL(request.url).searchParams.get('path')).toBe(pathname);
+      calls++;
+      return HttpResponse.json({ success: false }, { status: 404 });
+    }));
+    const { pageContext } = await onBeforeRender(context(pathname));
+    expect(calls).toBe(1);
+    expect(pageContext.routeStatusCode).toBe(404);
+    expect(pageContext.documentProps?.noIndex).toBe(true);
+  });
+
   it.each([404, 503])('preserves unavailable API status %s without indexing', async (status) => {
     server.use(http.get(endpoint, () => HttpResponse.json({ success: false }, { status })));
     const { pageContext } = await onBeforeRender(context('/about'));

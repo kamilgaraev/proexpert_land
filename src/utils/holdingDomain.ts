@@ -8,7 +8,10 @@ export function isHoldingHostname(hostname: string): boolean {
 }
 
 export function isHoldingPrivatePath(pathname: string): boolean {
-  return ['/login', '/dashboard', '/organizations', '/reports', '/projects', '/landing/editor', '/settings']
-    .some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
-    || /^\/holding\/[^/]+\/landing\/edit(?:\/|$)/.test(pathname);
+  const path = pathname.replace(/\/+$/, '') || '/';
+  return ['/login', '/dashboard', '/organizations', '/reports', '/projects', '/landing/editor', '/settings'].includes(path)
+    || /^\/reports\/[^/]+$/.test(path)
+    || /^\/projects\/[^/]+$/.test(path)
+    || /^\/projects\/contracts\/[^/]+$/.test(path)
+    || /^\/holding\/[^/]+\/landing\/edit$/.test(path);
 }
