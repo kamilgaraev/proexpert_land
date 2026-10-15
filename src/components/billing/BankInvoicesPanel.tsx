@@ -31,7 +31,7 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
       if (signal?.aborted || requestGeneration !== generation.current) return;
       let newlyActivated = false;
       for (const invoice of result.items) {
-        if (seen.current.has(invoice.id) && !seen.current.get(invoice.id) && invoice.activated_at) newlyActivated = true;
+        if (!seen.current.get(invoice.id) && invoice.activated_at) newlyActivated = true;
         seen.current.set(invoice.id, Boolean(invoice.activated_at));
       }
       setData(result); setError(null);

@@ -65,6 +65,18 @@ describe('Счета МОСТ', () => {
     await expect(bankBillingService.download('https://example.test/key')).rejects.toThrow('Некорректный номер документа');
   });
 
+  it('обновляет доступ для уже активированного счёта из первого ответа', async () => {
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: {
+      items: [{ ...invoice, status: 'paid', activated_at: '2026-10-15T13:00:00Z' }],
+      meta: { current_page: 1, last_page: 1, total: 1, per_page: 20 },
+    } })));
+    const onPaid = vi.fn();
+    render(<BankInvoicesPanel canManage={false} onPaid={onPaid} />);
+    await waitFor(() => expect(onPaid).toHaveBeenCalledOnce());
+    fireEvent.click(screen.getByRole('button', { name: 'Проверить оплату' }));
+    await waitFor(() => expect(onPaid).toHaveBeenCalledOnce());
+  });
+
   it('сохраняет новый оплаченный статус при запоздавшем ответе старой проверки', async () => {
     const onPaid = vi.fn();
     render(<BankInvoicesPanel canManage={false} onPaid={onPaid} />);

@@ -866,6 +866,26 @@ describe('BillingPage commercial packages', () => {
     expect(String(scheduledKey)).toMatch(/^[0-9a-f-]{36}$/i);
   });
 
+  it.each([{ ready: false, buyer_ready: true }, { ready: true, buyer_ready: false }])('планирует сокращение без банковского счёта при готовности %j', async (readiness) => {
+    let requested = false;
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: {
+        provider: 'tochka', ...readiness, card_payments_enabled: false, auto_invoice_enabled: true,
+      } })),
+      http.post(`${baseUrl}/billing/commercial/contour/schedule`, () => {
+        requested = true;
+        return HttpResponse.json({ success: true, data: { change_id: 'bank-reduction', status: 'scheduled', offer_type: 'packages', target_package_slugs: [], current_package_slugs: [packageSlugs[0]], apply_at: '2026-07-31T09:00:00Z' } });
+      }),
+    );
+    renderPage();
+    const packageHeading = await screen.findByRole('heading', { name: 'Пакет 1' });
+    fireEvent.click(within(packageHeading.closest('article') as HTMLElement).getByRole('button', { name: 'Отключить со следующего периода' }));
+    const schedule = await screen.findByRole('button', { name: 'Запланировать сокращение' });
+    expect(schedule).toBeEnabled();
+    fireEvent.click(schedule);
+    await waitFor(() => expect(requested).toBe(true));
+  });
+
   it('отключает будущие списания без обещания досрочного прекращения доступа', async () => {
     server.use(http.post(`${baseUrl}/billing/commercial/renewal/disable`, () => HttpResponse.json({ success: true, data: {
       status: 'active', auto_renew_enabled: false, saved_method_available: false,
