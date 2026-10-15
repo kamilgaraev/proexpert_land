@@ -16,7 +16,7 @@ const HoldingLandingRuntimePage = ({ initialPage }: { initialPage?: HoldingPubli
   const [errorStatus, setErrorStatus] = useState<number | null>(initial?.status ?? null);
 
   useEffect(() => {
-    if (initial && (initial.payload || initial.status !== 200)) {
+    if (initial && ((initial.status === 200 && initial.payload) || initial.status === 404)) {
       setPayload(initial.payload ?? null);
       setLoading(false);
       setError(initial.message ?? null);
@@ -48,6 +48,7 @@ const HoldingLandingRuntimePage = ({ initialPage }: { initialPage?: HoldingPubli
   }, [pathname, search, initial]);
 
   const isPreview = new URLSearchParams(search).get('preview') === 'true';
+  const page = payload?.current_page ?? payload?.page;
   const showPreviewBadge = isPreview && payload?.runtime.mode === 'draft';
   const navigation =
     payload?.navigation && payload.navigation.length > 0
@@ -93,14 +94,15 @@ const HoldingLandingRuntimePage = ({ initialPage }: { initialPage?: HoldingPubli
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)]">
       <SEOHead
-        title={payload.current_page?.seo_meta.title || payload.site.seo_meta.title || payload.site.title}
+        title={page?.seo_meta.title || payload.site.seo_meta.title || payload.site.title}
         description={
-          payload.current_page?.seo_meta.description ||
+          page?.seo_meta.description ||
           payload.site.seo_meta.description ||
           payload.site.description
         }
-        keywords={payload.site.seo_meta.keywords}
-        noIndex={isPreview || Boolean(payload.site.seo_meta.noindex)}
+        keywords={page?.seo_meta.keywords || payload.site.seo_meta.keywords}
+        ogImage={page?.seo_meta.og_image || payload.site.seo_meta.og_image || undefined}
+        noIndex={isPreview || Boolean(page?.seo_meta.noindex || payload.site.seo_meta.noindex)}
       />
       {showPreviewBadge && (
         <div className="fixed right-4 top-4 z-50 inline-flex items-center gap-3 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900 shadow-sm">

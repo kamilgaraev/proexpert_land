@@ -29,6 +29,17 @@ describe('holding public SSR data', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it.each(['current_page', 'page'] as const)('uses the SEO of %s in the server response', async (key) => {
+    const payload = createPublicSitePayloadFixture();
+    const page = payload.current_page!;
+    page.seo_meta = { title: 'SEO страницы', noindex: true, keywords: 'страница', og_image: 'https://images.example/page.jpg' };
+    payload.site.seo_meta.noindex = false;
+    if (key === 'page') { payload.page = page; payload.current_page = null; }
+    server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));
+    const { pageContext } = await renderIndex(context('/'));
+    expect(pageContext).toMatchObject({ documentProps: { noIndex: true, title: 'SEO страницы', keywords: 'страница', ogImage: 'https://images.example/page.jpg' } });
+  });
+
   it.each(['services', '/services', '/services/'])('accepts the published slug %s', async (slug) => {
     const payload = createPublicSitePayloadFixture();
     payload.current_page!.slug = slug;
