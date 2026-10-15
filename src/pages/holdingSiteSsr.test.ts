@@ -183,7 +183,7 @@ describe('holding public SSR data', () => {
     expect(pageContext.documentProps?.noIndex).toBe(true);
   });
 
-  it.each(['/login', '/dashboard', '/reports/contracts', '/landing/editor', '/holding/7/landing/edit', '/Dashboard', '/REPORTS/Contracts', '/Landing/Editor', '/HOLDING/7/Landing/Edit'])(
+  it.each(['/login', '/dashboard', '/reports/contracts', '/landing/editor', '/holding/7/landing/edit', '/Dashboard', '/REPORTS/Contracts', '/Landing/Editor', '/HOLDING/7/Landing/Edit', '/%64ashboard', '/landing/%65ditor'])(
     'does not fetch public data or index the protected path %s', async (pathname) => {
       const fetchSpy = vi.spyOn(globalThis, 'fetch');
       const { pageContext } = await onBeforeRender(context(pathname));

@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { HOLDING_MAIN_DOMAIN, isHoldingHostname } from './holdingDomain';
+import { HOLDING_MAIN_DOMAIN, isHoldingHostname, isHoldingPrivatePath } from './holdingDomain';
 import { isMarketingPublicRequest } from './publicSite';
 
 describe('holding hostname routing', () => {
+  it.each(['/%64ashboard', '/%44ASHBOARD/', '/landing/%65ditor', '/holding/%37/landing/%65dit', '/projects/id%2Fpart'])('recognizes the encoded private route %s', (pathname) => {
+    expect(isHoldingPrivatePath(pathname)).toBe(true);
+  });
+
+  it.each(['/%2564ashboard', '/landing%2Feditor', '/%64ashboard/%ZZ', '/%64ashboard/unknown'])('preserves the router decoding boundary for %s', (pathname) => {
+    expect(isHoldingPrivatePath(pathname)).toBe(false);
+  });
+
   it('recognizes the browser hostname of a Cyrillic holding domain', () => {
     expect(isHoldingHostname(new URL('https://company.1мост.рф').hostname)).toBe(true);
     expect(HOLDING_MAIN_DOMAIN).toBe('xn--1-xtbgmf.xn--p1ai');

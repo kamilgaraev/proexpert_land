@@ -9,7 +9,13 @@ export function isHoldingHostname(hostname: string): boolean {
 }
 
 export function isHoldingPrivatePath(pathname: string): boolean {
-  const path = pathname.toLowerCase().replace(/\/+$/, '') || '/';
+  let decoded = pathname;
+  try {
+    decoded = pathname.split('/').map((segment) => decodeURIComponent(segment).replace(/\//g, '%2F')).join('/');
+  } catch {
+    decoded = pathname;
+  }
+  const path = decoded.toLowerCase().replace(/\/+$/, '') || '/';
   return ['/login', '/dashboard', '/organizations', '/reports', '/projects', '/landing/editor', '/settings'].includes(path)
     || /^\/reports\/[^/]+$/.test(path)
     || /^\/projects\/[^/]+$/.test(path)

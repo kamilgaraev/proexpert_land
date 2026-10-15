@@ -33,6 +33,19 @@ describe('SiteBuilderRenderer', () => {
     expect(screen.getByRole('link', { name: 'Главная' })).toHaveAttribute('href', '/?locale=en');
   });
 
+  it.each([['/en/', 'Главная'], ['/en/about', 'О компании']])('выделяет текущий пункт для локализованного адреса %s', (pathname, label) => {
+    const payload = createPublicSitePayloadFixture();
+    render(<MemoryRouter initialEntries={[pathname]}><SiteBuilderRenderer
+      site={payload.site}
+      blocks={[]}
+      navigation={[
+        { id: 100, slug: '/', label: 'Главная', page_type: 'home', is_home: true },
+        { id: 101, slug: '/about', label: 'О компании', page_type: 'about', is_home: false },
+      ]}
+    /></MemoryRouter>);
+    expect(screen.getByRole('link', { name: label })).toHaveClass('text-white');
+  });
+
   it('рендерит публичную навигацию и сохраняет preview query string в ссылках', () => {
     const payload = createPublicSitePayloadFixture();
     const currentPage = {

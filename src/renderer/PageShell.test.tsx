@@ -79,7 +79,7 @@ describe("PageShell provider boundary", () => {
     expect(screen.queryByTestId('private-context')).not.toBeInTheDocument();
     expect(loader.load).not.toHaveBeenCalled();
   });
-  it.each(['/login', '/Dashboard', '/projects/42'])('keeps protected holding %s inside the private providers', (pathname) => {
+  it.each(['/login', '/Dashboard', '/projects/42', '/%64ashboard', '/landing/%65ditor'])('keeps protected holding %s inside the private providers', (pathname) => {
     loader.ready = PrivateShell;
     render(<MemoryRouter initialEntries={[pathname]}><PageShell pageContext={{ requestHostname: 'company.xn--1-xtbgmf.xn--p1ai' }}>{content}</PageShell></MemoryRouter>);
     expect(screen.getByTestId('private-context')).toHaveTextContent('Содержимое страницы');

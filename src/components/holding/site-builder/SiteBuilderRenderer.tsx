@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent, KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { getHoldingLocalePrefix } from '@/utils/holdingPublicPage';
+import { getHoldingContentPath, getHoldingLocalePrefix } from '@/utils/holdingPublicPage';
 import NotificationService from '@components/shared/NotificationService';
 import type {
   BuilderCanvasFocusTarget,
@@ -237,7 +237,7 @@ const PublicSiteHeader = ({
 }) => {
   const { pathname, search } = useLocation();
   const navigationSearch = getPublicNavigationSearch(search, getHoldingLocalePrefix(pathname, site));
-  const currentPath = normalizePublicPath(pathname);
+  const currentPath = getHoldingContentPath(pathname, site);
   const currentPageLabel = stringValue(currentPage?.navigation_label) || stringValue(currentPage?.title) || site.title;
 
   return (

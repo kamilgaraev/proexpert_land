@@ -41,15 +41,15 @@ export function getHoldingCanonicalSearch(search: string, resolvedLocale?: strin
 export const normalizeHoldingPublicPath = (value: string): string =>
   `/${value.trim().replace(/^\/+|\/+$/g, '')}`;
 
-const getHoldingContentPath = (payload: PublicSitePayload, pathname: string): string => {
+export const getHoldingContentPath = (pathname: string, site?: PublicSite): string => {
   const path = normalizeHoldingPublicPath(pathname);
-  return getHoldingLocalePrefix(path, payload.site)
+  return getHoldingLocalePrefix(path, site)
     ? normalizeHoldingPublicPath(path.split('/').slice(2).join('/'))
     : path;
 };
 
 export function getHoldingCanonicalUrl(origin: string, pathname: string, search: string, payload?: PublicSitePayload | null): string {
-  const path = payload ? getHoldingContentPath(payload, pathname) : normalizeHoldingPublicPath(pathname);
+  const path = getHoldingContentPath(pathname, payload?.site);
   const prefix = getHoldingLocalePrefix(pathname, payload?.site);
   const query = getHoldingCanonicalSearch(search, payload?.runtime.locale, prefix);
   const isDefaultLocale = payload && new URLSearchParams(query).get('locale') === getLocaleCode(payload.site.default_locale);
@@ -58,7 +58,7 @@ export function getHoldingCanonicalUrl(origin: string, pathname: string, search:
 
 export function hasHoldingPublicPage(payload: PublicSitePayload, pathname: string): boolean {
   const page = payload.current_page ?? payload.page;
-  const path = getHoldingContentPath(payload, pathname);
+  const path = getHoldingContentPath(pathname, payload.site);
   if (!page) return path === '/' && Array.isArray(payload.blocks);
   const slug = normalizeHoldingPublicPath(page.slug || '/');
 
