@@ -5,6 +5,13 @@ import { SEOHead } from './SEOHead';
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); document.head.innerHTML = ''; document.documentElement.lang = 'ru'; });
 
 describe('holding client metadata', () => {
+  it.each(['locale=en', 'lang=en'])('keeps normalized locale in the canonical after hydration for %s', (query) => {
+    vi.stubGlobal('location', new URL(`https://company.1мост.рф/about?${query}&token=private&tracking=discard`));
+    render(<SEOHead title="About" lang="en" />);
+    const canonical = 'https://company.xn--1-xtbgmf.xn--p1ai/about?locale=en';
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(canonical);
+    expect(document.querySelector('meta[property="og:url"]')?.getAttribute('content')).toBe(canonical);
+  });
   it('updates the document language when localized content changes', () => {
     vi.stubGlobal('location', new URL('https://company.1мост.рф/about?locale=en'));
     const { rerender } = render(<SEOHead title="About" lang="en" />);

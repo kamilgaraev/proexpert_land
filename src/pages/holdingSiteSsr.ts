@@ -1,12 +1,12 @@
 import type { PublicSitePayload } from '@/types/holding-site-builder';
 import { isHoldingPrivatePath } from '@/utils/holdingDomain';
-import { getHoldingPageLanguage, hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
+import { getHoldingCanonicalSearch, getHoldingPageLanguage, hasHoldingPublicPage, type HoldingPublicPageState } from '@/utils/holdingPublicPage';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 
 export async function loadHoldingPageContext(hostname: string, pathname: string, search: string) {
-  const canonicalUrl = `https://${hostname}${pathname}`;
+  const canonicalUrl = `https://${hostname}${pathname}${getHoldingCanonicalSearch(search)}`;
   if (isHoldingPrivatePath(pathname)) {
     return { routeStatusCode: 200, documentProps: { title: 'Панель холдинга', canonicalUrl, noIndex: true, statusCode: 200 }, pageProps: {} };
   }
@@ -63,7 +63,7 @@ export async function loadHoldingPageContext(hostname: string, pathname: string,
       description: page?.seo_meta.description || payload?.site.seo_meta.description || payload?.site.description || '',
       keywords: page?.seo_meta.keywords || payload?.site.seo_meta.keywords || '',
       ogImage: page?.seo_meta.og_image || payload?.site.seo_meta.og_image || undefined,
-      canonicalUrl,
+      canonicalUrl: `https://${hostname}${pathname}${getHoldingCanonicalSearch(search, payload ? getHoldingPageLanguage(payload) : undefined)}`,
       noIndex: preview || status !== 200 || Boolean(page?.seo_meta.noindex || payload?.site.seo_meta.noindex),
       statusCode: status,
     },

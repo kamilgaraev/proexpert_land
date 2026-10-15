@@ -29,6 +29,15 @@ describe('holding public SSR data', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it.each(['locale=en', 'lang=en', 'locale=en_US'])('keeps normalized locale in the canonical for %s', async (query) => {
+    const payload = createPublicSitePayloadFixture();
+    payload.runtime.locale = query.endsWith('en_US') ? 'en_US' : 'en';
+    server.use(http.get(endpoint, () => HttpResponse.json({ success: true, data: payload })));
+    const { pageContext } = await renderIndex(context('/', `?${query}&token=private&tracking=discard`));
+    const locale = query.endsWith('en_US') ? 'en-US' : 'en';
+    expect(pageContext).toMatchObject({ documentProps: { canonicalUrl: `https://${host}/?locale=${locale}` } });
+  });
+
   it.each([['en', 'en'], ['en-US', 'en-US'], ['en_US', 'en-US'], ['invalid"><tag', 'ru'], ['', 'ru']])('uses a validated runtime locale %s as html language %s', async (locale, expected) => {
     const payload = createPublicSitePayloadFixture();
     payload.runtime.locale = locale;

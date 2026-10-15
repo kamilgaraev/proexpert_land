@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { normalizeOgImageUrl } from '@/utils/seo';
 import { isHoldingHostname, isHoldingPrivatePath } from '@/utils/holdingDomain';
+import { getHoldingCanonicalSearch } from '@/utils/holdingPublicPage';
 
 interface SEOHeadProps {
   lang?: string;
@@ -18,7 +19,7 @@ interface SEOHeadProps {
 }
 
 export const SEOHead: React.FC<SEOHeadProps> = ({
-  lang = 'ru',
+  lang,
   title = 'МОСТ - Умная платформа для управления строительными проектами',
   description = 'Автоматизируйте строительные процессы с МОСТ: учет материалов, контроль бюджета, координация команд и отчетность в одной платформе.',
   keywords = 'строительство, управление проектами, учет материалов, строительная отчетность, SaaS для строителей, автоматизация строительства, финансовый контроль, МОСТ',
@@ -36,12 +37,12 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   const currentUrl =
     canonicalUrl ||
     (typeof window !== 'undefined'
-      ? `${holding ? window.location.origin : 'https://1мост.рф'}${window.location.pathname}`
+      ? `${holding ? window.location.origin : 'https://1мост.рф'}${window.location.pathname}${holding ? getHoldingCanonicalSearch(window.location.search, lang) : ''}`
       : 'https://1мост.рф');
   const normalizedOgImage = normalizeOgImageUrl(ogImage) ?? 'https://1мост.рф/og/default.png';
 
   useEffect(() => {
-    document.documentElement.lang = lang;
+    document.documentElement.lang = lang ?? 'ru';
     document.title = title;
     
     const setMetaTag = (name: string, content: string, property?: boolean) => {

@@ -8,12 +8,22 @@ export interface HoldingPublicPageState {
   message?: string;
 }
 
+const normalizeHoldingLanguage = (value: unknown): string | undefined => {
+  const locale = typeof value === 'string' ? value.replace(/_/g, '-') : '';
+  return /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i.test(locale) ? locale : undefined;
+};
+
 export function getHoldingPageLanguage(payload?: PublicSitePayload | null): string {
-  for (const value of [payload?.runtime.locale, payload?.site.default_locale]) {
-    const locale = typeof value === 'string' ? value.replace(/_/g, '-') : '';
-    if (/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i.test(locale)) return locale;
-  }
-  return 'ru';
+  return normalizeHoldingLanguage(payload?.runtime.locale)
+    ?? normalizeHoldingLanguage(payload?.site.default_locale)
+    ?? 'ru';
+}
+
+export function getHoldingCanonicalSearch(search: string, resolvedLocale?: string): string {
+  const params = new URLSearchParams(search);
+  const requestedLocale = normalizeHoldingLanguage(params.get('locale') ?? params.get('lang'));
+  if (!requestedLocale) return '';
+  return `?${new URLSearchParams({ locale: normalizeHoldingLanguage(resolvedLocale) ?? requestedLocale })}`;
 }
 
 export function hasHoldingPublicPage(payload: PublicSitePayload): boolean {

@@ -26,7 +26,7 @@ describe('holding SSR request', () => {
       requestHostname: host,
       urlPathname: pathname,
       urlOriginal: `${pathname}?locale=en`,
-      documentProps: { title: 'Опубликованный SSR холдинг', statusCode: 200, noIndex: false, lang: 'en' },
+      documentProps: { title: 'Опубликованный SSR холдинг', statusCode: 200, noIndex: false, lang: 'en', canonicalUrl: `https://${host}${pathname}?locale=en` },
       pageProps: { initialHoldingPage: { pathname, search: '?locale=en', status: 200, payload } },
     } as unknown as Parameters<typeof render>[0]);
 
@@ -34,7 +34,7 @@ describe('holding SSR request', () => {
     expect(result.documentHtml).toContain('<html lang="en"');
     expect(result.documentHtml).toContain('/?locale=en');
     expect(result.documentHtml).not.toContain('Загрузка сайта холдинга');
-    expect(result.documentHtml).toContain(`href="https://${host}${pathname}"`);
+    expect(result.documentHtml).toContain(`href="https://${host}${pathname}?locale=en"`);
     expect(result.documentHtml).not.toContain('id="ld-json"');
     expect(result.documentHtml).not.toContain('id="most-home-styles"');
     expect(result.injectFilter).toBeUndefined();
