@@ -1,2 +1,2 @@
-export const LEGAL_CONTENT_SHA256 = '967eee404a6497d10d2f465a8cd59409bcaa02ebc960b38c75d3eba489bd5d0e';
+export const LEGAL_CONTENT_SHA256 = '5e8c14e3f64abd6bf7efce49ad18330eaa5648c9a96552e26d81ab562ff3640f';
 export const LEGAL_DOCUMENT_VERSION = '2026-10-15.bank.1';
