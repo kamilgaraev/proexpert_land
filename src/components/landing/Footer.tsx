@@ -79,7 +79,7 @@ const Footer = () => (
         <span>© {new Date().getFullYear()} МОСТ</span>
         <Link to="/privacy">Конфиденциальность</Link>
         <Link to={marketingPaths.offer}>Оферта</Link>
-        <Link to="/contact#requisites">Реквизиты</Link>
+        <a href="/contact#requisites">Реквизиты</a>
         <Link to="/data-processing">Поручение по ПДн</Link>
         <Link to="/personal-data-consent">Согласие для обращения</Link>
         <Link to="/cookies">Cookie</Link>
