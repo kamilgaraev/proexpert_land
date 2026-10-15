@@ -56,6 +56,7 @@ export interface CommercialRenewalState {
   status: CommercialAccountStatus;
   autoRenewEnabled: boolean;
   savedMethodAvailable: boolean;
+  bankAutoInvoice?: boolean;
   nextBillingAt: string | null;
   graceStartedAt: string | null;
   graceEndsAt: string | null;
@@ -77,7 +78,7 @@ export interface CommercialOrder {
   kind: string | null;
   status: CommercialOrderStatus;
   paymentStatus: string | null;
-  paymentSource: 'yookassa' | 'balance' | null;
+  paymentSource: 'yookassa' | 'balance' | 'tochka' | null;
   amount: string;
   amountMinor: number;
   currency: string;

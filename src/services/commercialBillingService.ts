@@ -10,6 +10,7 @@ import type {
   CommercialRenewalState,
 } from '@/types/commercialBilling';
 import { CommercialApiError } from '@/types/commercialBilling';
+import type { BankInvoice } from '@/types/bankBilling';
 
 type JsonRecord = Record<string, any>;
 
@@ -108,6 +109,7 @@ const renewalFromApi = (item: JsonRecord): CommercialRenewalState => ({
   status: item.status,
   autoRenewEnabled: Boolean(item.auto_renew_enabled),
   savedMethodAvailable: Boolean(item.saved_method_available),
+  bankAutoInvoice: Boolean(item.bank_auto_invoice),
   nextBillingAt: item.next_billing_at ?? null,
   graceStartedAt: item.grace_started_at ?? null,
   graceEndsAt: item.grace_ends_at ?? null,
@@ -316,7 +318,8 @@ export const commercialBillingService = {
       currency: item.currency as string,
       confirmationUrl: item.confirmation_url as string | null,
       paymentStatus: item.payment_status as string | null,
-      paymentSource: item.payment_source as 'yookassa' | 'balance' | null,
+      paymentSource: item.payment_source as 'yookassa' | 'balance' | 'tochka' | null,
+      bankInvoice: (item.bank_invoice ?? null) as BankInvoice | null,
       autoRenewConsent: Boolean(item.auto_renew_consent),
       testMode: Boolean(item.test_mode),
     };
@@ -359,6 +362,7 @@ export const commercialBillingService = {
       periodStartAt: item.period_start_at as string | null,
       periodEndAt: item.period_end_at as string | null,
       graceDeadlineAt: item.grace_deadline_at as string | null,
+      bankInvoice: (item.bank_invoice ?? null) as BankInvoice | null,
       testMode: Boolean(item.test_mode),
     };
   },

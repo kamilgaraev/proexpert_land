@@ -54,6 +54,8 @@ let activeModules: string[] = [];
 let permissionsRequests = 0;
 let permissionsUnavailable = false;
 const server = setupServer(
+  http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: { provider: 'yookassa', ready: true, buyer_ready: true, card_payments_enabled: true, auto_invoice_enabled: false } })),
+  http.get(`${baseUrl}/billing/bank/invoices`, () => HttpResponse.json({ success: true, data: { items: [], meta: { current_page: 1, last_page: 1, per_page: 20, total: 0 } } })),
   http.get('https://api.xn--1-xtbgmf.xn--p1ai/api/public/legal', () => HttpResponse.json({ success: true, data: legalFixture })),
   http.get('https://api.xn--1-xtbgmf.xn--p1ai/api/lk/v1/permissions', () => {
     permissionsRequests += 1;
@@ -516,6 +518,30 @@ describe('BillingPage commercial packages', () => {
     expect(sessionStorage.getItem('most:pending-commercial-order')).toBeNull();
     expect(await screen.findByRole('link', { name: 'Открыть склад' })).toBeInTheDocument();
     expect(permissionsRequests).toBe(2);
+  });
+
+  it('выставляет банковский счёт без согласия на списания и перехода в ЮKassa', async () => {
+    let checkoutBody: Record<string, unknown> | null = null;
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: { provider: 'tochka', ready: true, buyer_ready: true, card_payments_enabled: false, auto_invoice_enabled: true } })),
+      http.post(`${baseUrl}/billing/commercial/checkout`, async ({ request }) => {
+        checkoutBody = await request.json() as Record<string, unknown>;
+        return HttpResponse.json({ success: true, data: {
+          order_id: 'bank-order', status: 'pending_payment', amount: '2000.00', amount_minor: 200000,
+          currency: 'RUB', confirmation_url: null, payment_status: 'created', payment_source: 'tochka',
+          auto_renew_consent: false, test_mode: false, bank_invoice: { id: '11111111-1111-4111-8111-111111111111' },
+        } });
+      }),
+    );
+    renderPage();
+    const heading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    fireEvent.click(within(heading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    const button = await screen.findByRole('button', { name: 'Получить счёт' });
+    expect(screen.queryByRole('checkbox', { name: /Согласен на автоматическое списание/ })).not.toBeInTheDocument();
+    fireEvent.click(button);
+    await waitFor(() => expect(checkoutBody).toMatchObject({ auto_renew_consent: false, use_balance: false }));
+    expect(sessionStorage.getItem('most:pending-commercial-order')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Счета и документы' })).toBeInTheDocument();
   });
 
   it('открывает модули сразу после подтверждения оплаты в платёжном сервисе', async () => {

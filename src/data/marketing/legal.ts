@@ -1,5 +1,5 @@
 import type { LegalDocumentMeta } from '@/types/marketing';
-import bundle from '@/data/legal/2026-10-15.json';
+import bundle from '@/data/legal/2026-10-15.bank.json';
 
 export const LEGAL_VERSION = bundle.version;
 export const legalProvider = bundle.provider;
