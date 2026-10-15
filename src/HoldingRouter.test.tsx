@@ -12,13 +12,13 @@ const routes = createRoutesFromChildren(routeTree.props.children);
 const elementType = (element: unknown) => isValidElement(element) ? element.type : null;
 
 describe('holding public and protected routes', () => {
-  it.each(['/', '/about', '/services/design', '/blog/published-article', '/dashboard/unknown', '/landing/editor/unknown'])('routes %s to the public runtime', (pathname) => {
+  it.each(['/', '/about', '/services/design', '/blog/published-article', '/dashboard/unknown', '/landing/editor/unknown', '/Dashboard/unknown'])('routes %s to the public runtime', (pathname) => {
     const matches = matchRoutes(routes, pathname);
     expect(elementType(matches?.at(-1)?.route.element)).toBe(HoldingLandingRuntimePage);
     expect(isHoldingPrivatePath(pathname)).toBe(false);
   });
 
-  it.each(['/dashboard', '/projects/42', '/reports/contracts', '/landing/editor', '/holding/7/landing/edit'])(
+  it.each(['/dashboard', '/projects/42', '/reports/contracts', '/landing/editor', '/holding/7/landing/edit', '/Dashboard', '/REPORTS/Contracts', '/Landing/Editor', '/HOLDING/7/Landing/Edit'])(
     'keeps %s inside the existing access guard', (pathname) => {
       const matches = matchRoutes(routes, pathname);
       expect(matches?.some((match) => elementType(match.route.element) === HoldingPanelRouteGuard)).toBe(true);

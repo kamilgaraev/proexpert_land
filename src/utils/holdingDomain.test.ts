@@ -23,4 +23,12 @@ describe('holding hostname routing', () => {
   ])('keeps %s outside the holding router', (url) => {
     expect(isHoldingHostname(new URL(url).hostname)).toBe(false);
   });
+
+  it('classifies raw hostnames without regard to DNS letter case', () => {
+    expect(isHoldingHostname(`COMPANY.${HOLDING_MAIN_DOMAIN.toUpperCase()}`)).toBe(true);
+    expect(isMarketingPublicRequest('/', `COMPANY.${HOLDING_MAIN_DOMAIN.toUpperCase()}`)).toBe(false);
+    for (const prefix of ['LK', 'API', 'WWW']) {
+      expect(isHoldingHostname(`${prefix}.${HOLDING_MAIN_DOMAIN.toUpperCase()}`)).toBe(false);
+    }
+  });
 });
