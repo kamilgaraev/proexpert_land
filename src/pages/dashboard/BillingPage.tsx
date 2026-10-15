@@ -100,6 +100,7 @@ const BillingPage = () => {
   const [bankCapabilities, setBankCapabilities] = useState<BankBillingCapabilities | null>(null);
   const [invoiceRevision, setInvoiceRevision] = useState(0);
   const bankPayment = bankCapabilities?.provider !== 'yookassa';
+  const bankInvoiceReady = bankCapabilities?.ready === true && bankCapabilities.buyer_ready === true;
   const [payFromBalance, setPayFromBalance] = useState(false);
   const [detailsPackage, setDetailsPackage] = useState<CommercialPackage | null>(null);
   const [enterpriseInquiryOpen, setEnterpriseInquiryOpen] = useState(false);
@@ -184,17 +185,15 @@ const BillingPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const [packageItems, renewalState, historyData, limitsData, capabilities] = await Promise.all([
+      const [packageItems, renewalState, historyData, limitsData] = await Promise.all([
         commercialBillingService.getPackages(),
         commercialBillingService.getRenewal(),
         commercialBillingService.getHistory(1),
         commercialBillingService.getLimits(),
-        bankBillingService.capabilities(),
       ]);
       if (packageItems.length !== 7) throw new Error('Каталог пакетов временно недоступен.');
       setPackages(packageItems);
       setRenewal(renewalState);
-      setBankCapabilities(capabilities);
       setLimitsSummary(limitsData);
       setResourceQuantities(Object.fromEntries(limitsData.resourceAddons.map((item) => [item.slug, item.currentQuantity])));
       setAutoRenewConsent(renewalState.autoRenewEnabled && renewalState.savedMethodAvailable);
@@ -214,6 +213,14 @@ const BillingPage = () => {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void bankBillingService.capabilities(controller.signal).then((capabilities) => {
+      if (!controller.signal.aborted) setBankCapabilities(capabilities);
+    }).catch(() => { if (!controller.signal.aborted) setBankCapabilities(null); });
+    return () => controller.abort();
   }, []);
 
   const refreshCommercialState = useCallback(async (refreshHistory = false) => {
@@ -412,6 +419,7 @@ const BillingPage = () => {
 
   const payGrace = async () => {
     if (!canManage || !renewal || (!bankPayment && renewal.status !== 'grace') || isCorporate) return;
+    if (bankPayment && !bankInvoiceReady) return;
     setActionBusy('manual-payment');
     setActionError(null);
     const fingerprint = `manual:${renewal.graceStartedAt ?? ''}:${renewal.graceEndsAt ?? ''}`;
@@ -495,14 +503,19 @@ const BillingPage = () => {
         <p className="mt-2 flex flex-wrap gap-4"><a href="https://1мост.рф/contact#requisites" target="_blank" rel="noreferrer" className="underline">Реквизиты</a><a href="https://1мост.рф/offer" target="_blank" rel="noreferrer" className="underline">Лицензионный договор</a><a href="https://1мост.рф/auto-renewal" target="_blank" rel="noreferrer" className="underline">Условия автопродления</a></p>
       </aside>
 
-      {bankPayment && bankCapabilities && (!bankCapabilities.ready || !bankCapabilities.buyer_ready) ? <p role="status" className="rounded border border-amber-200 bg-amber-50 p-4 text-sm">{!bankCapabilities.ready ? 'Приём оплаты по счёту пока настраивается. Обратитесь в поддержку МОСТ.' : 'Для выставления счёта заполните юридическое наименование, ИНН, ОГРН или ОГРНИП и адрес в настройках организации.'}</p> : null}
-      <BankInvoicesPanel canManage={canManage} revision={invoiceRevision} onPaid={() => { void refreshCommercialState(true); void reloadPermissions({ force: true }); }} />
+      {bankPayment && !bankInvoiceReady ? <p role="status" className="rounded border border-amber-200 bg-amber-50 p-4 text-sm">{!bankCapabilities ? 'Статус банковской оплаты временно недоступен. Уже подключённые пакеты, история и баланс доступны.' : !bankCapabilities.ready ? 'Приём оплаты по счёту пока настраивается. Обратитесь в поддержку МОСТ.' : 'Для выставления счёта заполните юридическое наименование, ИНН, ОГРН или ОГРНИП и адрес в настройках организации.'}</p> : null}
+      <BankInvoicesPanel canManage={canManage} revision={invoiceRevision} onPaid={async () => {
+        try {
+          await refreshCommercialState(true);
+          if (!await reloadPermissions({ force: true })) throw new Error('permissions_refresh_failed');
+        } catch { throw new Error('Оплата подтверждена. Не удалось обновить доступ. Повторите проверку оплаты.'); }
+      }} />
       {bankPayment && !isCorporate && ['active', 'grace', 'suspended'].includes(renewal?.status ?? '') ? <section className="flex flex-wrap items-center gap-3 rounded border p-4 text-sm"><p>Автоматическое выставление следующего счёта: {renewal?.bankAutoInvoice ? 'включено' : 'отключено'}. Деньги автоматически не списываются.</p>{canManage && <><Button variant="outline" disabled={actionBusy !== null || !bankCapabilities?.ready || !bankCapabilities.buyer_ready} onClick={() => void payGrace()}>Получить счёт на продление</Button>{renewal?.bankAutoInvoice && <Button variant="outline" disabled={actionBusy !== null} onClick={() => void disableRenewal()}>Отключить выставление счетов</Button>}</>}</section> : null}
 
       {isGrace ? <section className="rounded-[24px] border-2 border-orange-300 bg-orange-50 p-6" aria-labelledby="grace-title">
         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
           <div className="max-w-3xl"><Badge className="mb-3 bg-orange-600">Требуется действие</Badge><h2 id="grace-title" className="text-2xl font-semibold text-orange-950">Льготный период</h2><p className="mt-2 text-orange-900">{bankPayment ? 'Поступление оплаты пока не подтверждено.' : 'Автоматическая оплата не прошла.'} Доступ сохранён до <strong>{formatDateTime(renewal?.graceEndsAt ?? null)}</strong> — осталось {remaining(renewal?.graceEndsAt ?? null, now)}. Изменение состава временно заблокировано.</p><p className="mt-3 text-sm leading-6 text-orange-800">Расчётная дата не переносится: поздняя оплата закрывает пропущенный фиксированный 30-дневный период. При оплате на шестой день останется около 24 дней до следующей расчётной даты.</p></div>
-          {canManage ? <Button size="lg" disabled={actionBusy === 'manual-payment'} onClick={() => void payGrace()}>Оплатить сейчас<ArrowRight className="ml-2 h-4 w-4" /></Button> : null}
+          {canManage ? <Button size="lg" disabled={actionBusy === 'manual-payment' || (bankPayment && !bankInvoiceReady)} onClick={() => void payGrace()}>Оплатить сейчас<ArrowRight className="ml-2 h-4 w-4" /></Button> : null}
         </div>
       </section> : null}
 

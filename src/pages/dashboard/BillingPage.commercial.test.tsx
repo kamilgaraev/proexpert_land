@@ -886,6 +886,34 @@ describe('BillingPage commercial packages', () => {
     await waitFor(() => expect(requested).toBe(true));
   });
 
+  it('сохраняет пакеты, историю и оплату с баланса при сбое банковского статуса', async () => {
+    server.use(http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.text('Bad Gateway', { status: 502 })));
+    renderPage();
+    const heading = await screen.findByRole('heading', { name: 'Пакет 2' });
+    expect(screen.getByRole('heading', { name: 'История оплат' })).toBeInTheDocument();
+    fireEvent.click(within(heading.closest('article') as HTMLElement).getByRole('button', { name: 'Добавить' }));
+    const balance = await screen.findByRole('checkbox', { name: 'Оплатить с баланса' });
+    fireEvent.click(balance);
+    expect(screen.getByRole('button', { name: 'Оплатить с баланса' })).toBeEnabled();
+    expect(screen.getByText(/Статус банковской оплаты временно недоступен/)).toBeInTheDocument();
+  });
+
+  it.each([{ ready: false, buyer_ready: true }, { ready: true, buyer_ready: false }])('блокирует новую оплату grace до готовности %j', async (readiness) => {
+    accountStatus = 'grace';
+    let requested = false;
+    server.use(
+      http.get(`${baseUrl}/billing/bank/capabilities`, () => HttpResponse.json({ success: true, data: {
+        provider: 'tochka', ...readiness, card_payments_enabled: false, auto_invoice_enabled: true,
+      } })),
+      http.post(`${baseUrl}/billing/commercial/renewal/manual-payment`, () => { requested = true; return HttpResponse.json({ success: true, data: {} }); }),
+    );
+    renderPage();
+    const payment = await screen.findByRole('button', { name: 'Оплатить сейчас' });
+    expect(payment).toBeDisabled();
+    fireEvent.click(payment);
+    expect(requested).toBe(false);
+  });
+
   it('отключает будущие списания без обещания досрочного прекращения доступа', async () => {
     server.use(http.post(`${baseUrl}/billing/commercial/renewal/disable`, () => HttpResponse.json({ success: true, data: {
       status: 'active', auto_renew_enabled: false, saved_method_available: false,

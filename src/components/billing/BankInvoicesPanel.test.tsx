@@ -65,6 +65,19 @@ describe('Счета МОСТ', () => {
     await expect(bankBillingService.download('https://example.test/key')).rejects.toThrow('Некорректный номер документа');
   });
 
+  it('повторяет обновление доступа, если первая попытка после оплаты не удалась', async () => {
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: {
+      items: [{ ...invoice, status: 'paid', activated_at: '2026-10-15T13:00:00Z' }],
+      meta: { current_page: 1, last_page: 1, total: 1, per_page: 20 },
+    } })));
+    const onPaid = vi.fn().mockRejectedValueOnce(new Error('Повторите проверку доступа')).mockResolvedValueOnce(undefined);
+    render(<BankInvoicesPanel canManage={false} onPaid={onPaid} />);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Повторите проверку доступа');
+    fireEvent.click(screen.getByRole('button', { name: 'Проверить оплату' }));
+    await waitFor(() => expect(onPaid).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+  });
+
   it('обновляет доступ для уже активированного счёта из первого ответа', async () => {
     server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: {
       items: [{ ...invoice, status: 'paid', activated_at: '2026-10-15T13:00:00Z' }],

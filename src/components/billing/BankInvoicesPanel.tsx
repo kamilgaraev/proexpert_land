@@ -8,7 +8,7 @@ const statuses: Record<string, string> = { awaiting_payment: 'Ожидает о�
 const refundStatuses: Record<string, string> = { requested: 'На рассмотрении', awaiting_bank: 'Согласован, ожидается перевод', completed: 'Возвращён', rejected: 'Отклонён' };
 const documentLabels = { invoice: 'Скачать счёт PDF', closing: 'Скачать акт предоставления доступа', correction: 'Скачать уведомление о возврате' };
 
-export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canManage: boolean; revision?: number; onPaid?: () => void }) => {
+export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canManage: boolean; revision?: number; onPaid?: () => void | Promise<void> }) => {
   const [data, setData] = useState<BankInvoicePage | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -29,13 +29,11 @@ export const BankInvoicesPanel = ({ canManage, revision = 0, onPaid }: { canMana
     try {
       const result = await bankBillingService.invoices(page, signal);
       if (signal?.aborted || requestGeneration !== generation.current) return;
-      let newlyActivated = false;
-      for (const invoice of result.items) {
-        if (!seen.current.get(invoice.id) && invoice.activated_at) newlyActivated = true;
-        seen.current.set(invoice.id, Boolean(invoice.activated_at));
-      }
+      const newlyActivated = result.items.some((invoice) => !seen.current.get(invoice.id) && invoice.activated_at);
       setData(result); setError(null);
-      if (newlyActivated) paidCallback.current?.();
+      if (newlyActivated) await paidCallback.current?.();
+      if (signal?.aborted || requestGeneration !== generation.current) return;
+      for (const invoice of result.items) seen.current.set(invoice.id, Boolean(invoice.activated_at));
     } catch (failure) {
       if (!signal?.aborted && requestGeneration === generation.current) setError(failure instanceof Error ? failure.message : 'Не удалось загрузить счета.');
     } finally { if (!signal?.aborted && requestGeneration === generation.current) setLoading(false); }
