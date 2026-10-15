@@ -17,7 +17,13 @@ const HoldingLandingRuntimePage = ({ initialPage }: { initialPage?: HoldingPubli
   const [errorStatus, setErrorStatus] = useState<number | null>(initial?.status ?? null);
 
   useEffect(() => {
-    if (initial && (initial.payload || initial.status !== 200)) return;
+    if (initial && (initial.payload || initial.status !== 200)) {
+      setPayload(initial.payload ?? null);
+      setLoading(false);
+      setError(initial.message ?? null);
+      setErrorStatus(initial.status);
+      return;
+    }
     let active = true;
     const loadPayload = async () => {
       setLoading(true);

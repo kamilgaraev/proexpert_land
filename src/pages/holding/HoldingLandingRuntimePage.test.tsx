@@ -20,6 +20,14 @@ function NavigatePage() {
   return <><button onClick={() => navigate('/about?lang=ru')}>О компании</button><HoldingLandingRuntimePage /></>;
 }
 
+function HydratedNavigation() {
+  const navigate = useNavigate();
+  const payload = createPublicSitePayloadFixture();
+  payload.site.title = 'Главная из SSR';
+  const initialPage = { pathname: '/', search: '', status: 200, payload };
+  return <><button onClick={() => navigate('/about')}>Далее</button><button onClick={() => navigate('/')}>Назад</button><HoldingLandingRuntimePage initialPage={initialPage} /></>;
+}
+
 afterEach(() => { cleanup(); vi.resetAllMocks(); });
 
 describe('holding runtime navigation', () => {
@@ -45,5 +53,20 @@ describe('holding runtime navigation', () => {
     render(<MemoryRouter><HoldingLandingRuntimePage initialPage={{ pathname: '/', search: '', status: 200, payload }} /></MemoryRouter>);
     expect(screen.getByText('Сохранённый SSR сайт')).toBeTruthy();
     expect(api.getSiteData).not.toHaveBeenCalled();
+  });
+
+  it('restores the initial page after navigating away and back', async () => {
+    const about = createPublicSitePayloadFixture();
+    about.site.title = 'Компания после перехода';
+    about.runtime.path = '/about';
+    about.current_page!.slug = '/about';
+    api.getSiteData.mockResolvedValue(about);
+    render(<MemoryRouter><HydratedNavigation /></MemoryRouter>);
+    expect(screen.getByText('Главная из SSR')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Далее' }));
+    expect(await screen.findByText('Компания после перехода')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Назад' }));
+    expect(await screen.findByText('Главная из SSR')).toBeTruthy();
+    expect(api.getSiteData).toHaveBeenCalledTimes(1);
   });
 });
