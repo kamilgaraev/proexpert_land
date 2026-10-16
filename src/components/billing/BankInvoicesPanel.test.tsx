@@ -23,7 +23,7 @@ afterEach(() => { cleanup(); server.resetHandlers(); clearAuthToken(); vi.restor
 afterAll(() => server.close());
 
 describe('Счета МОСТ', () => {
-  it('принимает платёжку через multipart и обновляет временный доступ без отметки об оплате', async () => {
+  it.each(['application/pdf', '', 'application/octet-stream'])('принимает платёжку через multipart с MIME %s и обновляет временный доступ без отметки об оплате', async (mime) => {
     saveAuthToken('bank-test-token');
     let current: BankInvoice = { ...invoice, payment_proof_available: true, expires_at: new Date(Date.now() + 86_400_000).toISOString() };
     server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: {
@@ -45,7 +45,7 @@ describe('Счета МОСТ', () => {
     render(<BankInvoicesPanel canManage onPaid={onPaid} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Я оплатил' }));
     expect(screen.getByRole('button', { name: 'Отправить платёжку' })).toBeDisabled();
-    fireEvent.change(screen.getByLabelText(/Платёжное поручение/), { target: { files: [new File(['%PDF-1.4 payment'], 'payment.pdf', { type: 'application/pdf' })] } });
+    fireEvent.change(screen.getByLabelText(/Платёжное поручение/), { target: { files: [new File(['%PDF-1.4 payment'], 'payment.pdf', { type: mime })] } });
     fireEvent.click(screen.getByRole('checkbox'));
     fireEvent.click(screen.getByRole('button', { name: 'Отправить платёжку' }));
     expect(await screen.findByText('Ожидаем поступление денег')).toBeInTheDocument();

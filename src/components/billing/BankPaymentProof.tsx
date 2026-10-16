@@ -27,7 +27,7 @@ export const BankPaymentProof = ({ invoice, canManage, onSubmitted }: {
 
   const submit = async () => {
     if (!eligible || busy) return;
-    if (!file || !['application/pdf', 'image/jpeg', 'image/png'].includes(file.type) || file.size < 1 || file.size > 5 * 1024 * 1024) {
+    if (!file || file.size < 1 || file.size > 5 * 1024 * 1024) {
       setError('Выберите платёжку в PDF, JPEG или PNG размером до 5 МБ.'); return;
     }
     if (!confirmed) { setError('Подтвердите отправку платежа с расчётного счёта плательщика.'); return; }
@@ -62,12 +62,12 @@ export const BankPaymentProof = ({ invoice, canManage, onSubmitted }: {
         <DialogHeader><DialogTitle>Сообщить об оплате</DialogTitle><DialogDescription>Счёт {invoice.number}. Приложите платёжное поручение после отправки перевода.</DialogDescription></DialogHeader>
         <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
           <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
-            Временный доступ предоставляется один раз на три дня без учёта субботы и воскресенья, в пределах периода покупки.
+            Временный доступ предоставляется не чаще раза в 30 дней на организацию: на три дня без учёта субботы и воскресенья, в пределах периода покупки.
             Повторная загрузка срок не продлевает. Счёт станет оплаченным только после подтверждения поступления банком.
             Если деньги не поступят, временный доступ завершится, а платёж уйдёт на проверку.
           </div>
           <label className="block space-y-2 text-sm font-medium">Платёжное поручение
-            <input type="file" accept="application/pdf,image/jpeg,image/png" disabled={busy} className="block w-full rounded-md border p-2 text-sm" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setError(null); }} />
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" disabled={busy} className="block w-full rounded-md border p-2 text-sm" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setError(null); }} />
             <span className="block text-xs font-normal text-slate-500">PDF, JPEG или PNG, до 5 МБ. Файл доступен только вашей организации и уполномоченной поддержке.</span>
           </label>
           <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={confirmed} disabled={busy} onChange={(event) => setConfirmed(event.target.checked)} className="mt-1" /><span>Платёж отправлен с расчётного счёта {invoice.buyer.name}, ИНН {invoice.buyer.inn}, с номером {invoice.number} в назначении.</span></label>

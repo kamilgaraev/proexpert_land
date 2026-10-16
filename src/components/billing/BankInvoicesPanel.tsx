@@ -110,7 +110,7 @@ export const BankInvoicesPanel = ({ canManage, sbpEnabled = false, revision = 0,
 
   return <section id="bank-invoices" aria-labelledby="bank-invoices-title" className="space-y-4 rounded-lg border border-slate-200 bg-white p-6">
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 id="bank-invoices-title" className="text-xl font-semibold">Счета и документы</h2><Button variant="outline" disabled={loading || busy !== null} onClick={() => void load()}>Проверить оплату</Button></div>
-    <p className="text-sm text-slate-600">Оплачивайте с расчётного счёта организации или ИП. Сохраните номер счёта в назначении. Оплату подтвердит поступление денег в банк. Для временного доступа к покупке на время перевода нажмите «Я оплатил» и приложите платёжку.</p>
+    <p className="text-sm text-slate-600">Оплачивайте с расчётного счёта организации или ИП. Сохраните номер счёта в назначении. Оплату подтвердит поступление денег в банк. Для временного доступа к покупке на время перевода нажмите «Я оплатил» и приложите платёжку. Такой доступ предоставляется не чаще раза в 30 дней на организацию.</p>
     <p className="text-xs text-slate-500">Новые счета и акты формирует Точка. Подписание согласуется через поддержку в ЭДО или интернет-банке. PDF не подтверждает наличие электронной подписи; архивный акт может быть сохранён как копия без подписи.</p>
     {notice && <p role="status" className="rounded border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
     {error && <p role="alert" className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
