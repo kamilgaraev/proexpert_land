@@ -545,7 +545,7 @@ const BillingPage = () => {
 
       {bankPayment && !bankInvoiceReady ? <div role="status" className="rounded border border-amber-200 bg-amber-50 p-4 text-sm"><p>{!bankCapabilities ? 'Статус банковской оплаты временно недоступен. Уже подключённые пакеты, история и баланс доступны.' : !bankCapabilities.ready ? 'Приём оплаты по счёту пока настраивается. Обратитесь в поддержку МОСТ.' : 'Для выставления счёта заполните юридическое наименование, ИНН, ОГРН или ОГРНИП и адрес в настройках организации.'}</p><Button className="mt-3" variant="outline" disabled={bankCapabilitiesLoading} onClick={() => setBankCapabilitiesRevision((value) => value + 1)}>{bankCapabilitiesLoading ? 'Проверяем…' : 'Повторить проверку'}</Button></div> : null}
       {!bankPayment && !externalPaymentReady ? <p role="status" className="rounded border border-amber-200 bg-amber-50 p-4 text-sm">Оплата через ЮKassa отключена. Обратитесь в поддержку МОСТ.</p> : null}
-      <BankInvoicesPanel canManage={canManage} revision={invoiceRevision} onPaid={async () => {
+      <BankInvoicesPanel canManage={canManage} sbpEnabled={bankCapabilities?.sbp_b2b_enabled === true} revision={invoiceRevision} onPaid={async () => {
         try {
           await refreshCommercialState(true);
           if (!await reloadPermissions({ force: true })) throw new Error('permissions_refresh_failed');

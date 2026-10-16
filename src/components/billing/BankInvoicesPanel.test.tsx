@@ -23,6 +23,47 @@ afterEach(() => { cleanup(); server.resetHandlers(); clearAuthToken(); vi.restor
 afterAll(() => server.close());
 
 describe('Счета МОСТ', () => {
+  it('показывает QR и ссылку СБП B2B только после ответа банка', async () => {
+    saveAuthToken('bank-test-token');
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: { items: [{ ...invoice,
+      status: 'awaiting_payment', paid_minor: 0, remaining_minor: 10000, expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+    }], meta: { current_page: 1, last_page: 1, total: 1, per_page: 20 } } })),
+    http.post(`${base}/invoices/${invoice.id}/qr`, ({ request }) => {
+      expect(request.headers.get('authorization')).toBe('Bearer bank-test-token');
+      return HttpResponse.json({ success: true, data: { type: 'sbp_b2b', url: 'https://qr.nspk.ru/AS123',
+        image: 'data:image/png;base64,iVBORw0KGgo=', amount_minor: 10000, expires_at: new Date(Date.now() + 86_400_000).toISOString() } });
+    }));
+    render(<BankInvoicesPanel canManage sbpEnabled />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Оплатить по QR' }));
+    expect(await screen.findByRole('img', { name: 'QR для оплаты счёта через СБП B2B' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Открыть оплату в банке компании или ИП' })).toHaveAttribute('href', 'https://qr.nspk.ru/AS123');
+    expect(screen.queryByText('Оплачен')).not.toBeInTheDocument();
+  });
+
+  it('отклоняет посторонний адрес из ответа QR и сохраняет оплату по реквизитам', async () => {
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: { items: [{ ...invoice,
+      status: 'awaiting_payment', paid_minor: 0, expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+    }], meta: { current_page: 1, last_page: 1, total: 1, per_page: 20 } } })),
+    http.post(`${base}/invoices/${invoice.id}/qr`, () => HttpResponse.json({ success: true, data: {
+      type: 'sbp_b2b', url: 'https://example.test/payment', image: 'data:image/png;base64,iVBORw0KGgo=',
+      amount_minor: 10000, expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+    } })));
+    render(<BankInvoicesPanel canManage sbpEnabled />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Оплатить по QR' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Оплатите по реквизитам');
+    expect(screen.queryByRole('link', { name: /Открыть оплату/ })).not.toBeInTheDocument();
+  });
+
+  it('останавливает повторный выпуск документа с неопределённым результатом', async () => {
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: { items: [{ ...invoice,
+      documents: [{ ...invoice.documents[0], provider: 'tochka', status: 'creation_unknown', signature_status: 'not_confirmed_by_api' }],
+    }], meta: { current_page: 1, last_page: 1, total: 1, per_page: 20 } } })));
+    render(<BankInvoicesPanel canManage sbpEnabled />);
+    expect(await screen.findByRole('button', { name: 'Скачать счёт PDF' })).toBeDisabled();
+    expect(screen.getByText(/повторный выпуск остановлен/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Оплатить по QR' })).not.toBeInTheDocument();
+  });
+
   it('показывает частичную оплату и документы без управляющих действий для наблюдателя', async () => {
     render(<BankInvoicesPanel canManage={false} />);
     expect(await screen.findByText('MOST-0000000001')).toBeInTheDocument();
