@@ -19,6 +19,7 @@ export interface BankInvoice {
   overpayment_minor: number;
   currency: string;
   purpose: string;
+  bank_transfer_qr_available?: boolean;
   description: string;
   bank: { account: string; bik: string; name: string; correspondent_account: string };
   seller: { name: string; inn: string };
@@ -39,6 +40,14 @@ export interface BankInvoicePage {
 export interface BankQrPayment {
   type: 'sbp_b2b';
   url: string;
+  image: string;
+  amount_minor: number;
+  expires_at: string;
+}
+
+export interface BankTransferQrPayment {
+  type: 'bank_transfer';
+  invoice_id: string;
   image: string;
   amount_minor: number;
   expires_at: string;
