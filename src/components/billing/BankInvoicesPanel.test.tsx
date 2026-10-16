@@ -41,6 +41,14 @@ describe('Счета МОСТ', () => {
     expect(screen.getByText(/В PDF указана полная сумма/)).toBeInTheDocument();
   });
 
+  it('не предлагает QR для доплаты, если backend его не поддерживает', async () => {
+    render(<BankInvoicesPanel canManage />);
+    await screen.findByText('MOST-0000000001');
+    expect(screen.queryByRole('button', { name: 'Показать QR банковского перевода' })).not.toBeInTheDocument();
+    expect(screen.getByText('В PDF указана полная сумма счёта. Для доплаты используйте реквизиты.')).toBeInTheDocument();
+    expect(screen.queryByText(/Для доплаты используйте QR в кабинете/)).not.toBeInTheDocument();
+  });
+
   it.each(['paid', 'canceled', 'expired', 'refunded'])('не показывает платёжный QR для %s', async (status) => {
     server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: {
       items: [{ ...invoice, status, bank_transfer_qr_available: true, expires_at: new Date(Date.now() + 86_400_000).toISOString() }],

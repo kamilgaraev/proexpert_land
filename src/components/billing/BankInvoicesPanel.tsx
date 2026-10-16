@@ -9,6 +9,9 @@ const money = (value: number) => new Intl.NumberFormat('ru-RU', { style: 'curren
 const statuses: Record<string, string> = { awaiting_payment: 'Ожидает оплаты', partially_paid: 'Оплачен частично', paid: 'Оплачен', canceled: 'Отменён', expired: 'Срок оплаты истёк', refunded: 'Возвращён' };
 const refundStatuses: Record<string, string> = { requested: 'На рассмотрении', awaiting_bank: 'Согласован, ожидается перевод', completed: 'Возвращён', rejected: 'Отклонён' };
 const documentLabels = { invoice: 'Скачать счёт PDF', closing: 'Скачать акт предоставления доступа', correction: 'Скачать уведомление о возврате' };
+const transferQrAvailable = (invoice: BankInvoice) => invoice.bank_transfer_qr_available === true
+  && ['awaiting_payment', 'partially_paid'].includes(invoice.status)
+  && invoice.remaining_minor > 0 && Date.parse(invoice.expires_at) > Date.now();
 
 export const BankInvoicesPanel = ({ canManage, sbpEnabled = false, revision = 0, onPaid }: { canManage: boolean; sbpEnabled?: boolean; revision?: number; onPaid?: () => void | Promise<void> }) => {
   const [data, setData] = useState<BankInvoicePage | null>(null);
@@ -105,10 +108,10 @@ export const BankInvoicesPanel = ({ canManage, sbpEnabled = false, revision = 0,
       <p className="text-sm">{invoice.description}</p>
       <p className="text-sm">Зачтено: {money(invoice.paid_minor)} · К доплате: {money(invoice.remaining_minor)} · Переплата: {money(invoice.overpayment_minor)}{invoice.refunded_minor > 0 ? ` · Возвращено: ${money(invoice.refunded_minor)}` : ''}</p>
       {['awaiting_payment', 'partially_paid'].includes(invoice.status) && <details><summary className="cursor-pointer text-sm font-medium">Реквизиты и назначение платежа</summary><dl className="mt-3 space-y-2 break-words text-sm"><div><dt>Получатель</dt><dd>{invoice.seller.name}, ИНН {invoice.seller.inn}</dd></div><div><dt>Плательщик</dt><dd>{invoice.buyer.name}, ИНН {invoice.buyer.inn}</dd></div><div><dt>Банк</dt><dd>{invoice.bank.name} · БИК {invoice.bank.bik}</dd></div><div><dt>Расчётный счёт</dt><dd>{invoice.bank.account}</dd></div><div><dt>Корреспондентский счёт</dt><dd>{invoice.bank.correspondent_account}</dd></div><div><dt>Назначение</dt><dd>{invoice.purpose}</dd></div><div><dt>Оплатить до</dt><dd>{new Date(invoice.expires_at).toLocaleDateString('ru-RU')}</dd></div></dl></details>}
-      {invoice.bank_transfer_qr_available === true && ['awaiting_payment', 'partially_paid'].includes(invoice.status) && invoice.remaining_minor > 0 && Date.parse(invoice.expires_at) > Date.now() && <BankTransferQrPayment key={`${invoice.id}:${invoice.remaining_minor}:${invoice.expires_at}`} invoiceId={invoice.id} remainingMinor={invoice.remaining_minor} />}
+      {transferQrAvailable(invoice) && <BankTransferQrPayment key={`${invoice.id}:${invoice.remaining_minor}:${invoice.expires_at}`} invoiceId={invoice.id} remainingMinor={invoice.remaining_minor} />}
       {canManage && sbpEnabled && invoice.status === 'awaiting_payment' && invoice.paid_minor === 0 && invoice.amount_minor <= 100_000_000 && Date.parse(invoice.expires_at) > Date.now() + 60_000 && <BankQrPayment key={invoice.id} invoiceId={invoice.id} />}
       <div className="flex flex-wrap gap-2">{invoice.documents.map((doc) => <div key={doc.id} className="space-y-1"><Button variant="outline" disabled={busy !== null || ['blocked', 'creation_unknown', 'creating'].includes(doc.status)} onClick={() => void perform(doc.id, () => download(doc.id))}>{documentLabels[doc.kind]}</Button>
-        {doc.kind === 'invoice' && invoice.status === 'partially_paid' && <p className="text-xs text-slate-600">В PDF указана полная сумма счёта. Для доплаты используйте QR в кабинете или реквизиты.</p>}
+        {doc.kind === 'invoice' && invoice.status === 'partially_paid' && <p className="text-xs text-slate-600">{transferQrAvailable(invoice) ? 'В PDF указана полная сумма счёта. Для доплаты используйте QR в кабинете или реквизиты.' : 'В PDF указана полная сумма счёта. Для доплаты используйте реквизиты.'}</p>}
         {doc.provider === 'tochka' && <p className="text-xs text-slate-500">{doc.status === 'ready' ? 'Сформирован Точкой' : 'Выпуск через Точку'} · подпись отдельно</p>}
         {['blocked', 'creation_unknown', 'creating'].includes(doc.status) && <p className="text-xs text-amber-800">Документ проверяется. Обратитесь в поддержку; повторный выпуск остановлен.</p>}
       </div>)}
