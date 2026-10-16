@@ -549,7 +549,7 @@ const BillingPage = () => {
         try {
           await refreshCommercialState(true);
           if (!await reloadPermissions({ force: true })) throw new Error('permissions_refresh_failed');
-        } catch { throw new Error('Оплата подтверждена. Не удалось обновить доступ. Повторите проверку оплаты.'); }
+        } catch { throw new Error('Не удалось обновить данные доступа. Нажмите «Проверить оплату» ещё раз.'); }
       }} />
       {bankPayment && !isCorporate && ['active', 'grace', 'suspended'].includes(renewal?.status ?? '') ? <section className="flex flex-wrap items-center gap-3 rounded border p-4 text-sm"><p>Автоматическое выставление следующего счёта: {renewal?.bankAutoInvoice ? 'включено' : 'отключено'}. Деньги автоматически не списываются.</p>{canManage && <><Button variant="outline" disabled={actionBusy !== null || !bankCapabilities?.ready || !bankCapabilities.buyer_ready} onClick={() => void payGrace()}>Получить счёт на продление</Button>{renewal?.bankAutoInvoice && <Button variant="outline" disabled={actionBusy !== null} onClick={() => void disableRenewal()}>Отключить выставление счетов</Button>}</>}</section> : null}
 

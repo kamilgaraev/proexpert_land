@@ -196,6 +196,29 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe('BillingPage commercial packages', () => {
+  it('не называет временный доступ подтверждённой оплатой при ошибке обновления прав', async () => {
+    await permissionsManager.load('lk');
+    permissionsUnavailable = true;
+    const now = new Date().toISOString();
+    server.use(http.get(`${baseUrl}/billing/bank/invoices`, () => HttpResponse.json({ success: true, data: {
+      items: [{ id: '11111111-1111-4111-8111-111111111111', number: 'MOST-0000000001', order_id: 'proof-order',
+        status: 'awaiting_payment', amount_minor: 10000, paid_minor: 0, remaining_minor: 10000, overpayment_minor: 0, refunded_minor: 0,
+        currency: 'RUB', purpose: 'Оплата по счёту', description: 'Доступ к МОСТ',
+        bank: { account: '40802810000000000001', bik: '044525104', name: 'Точка', correspondent_account: '30101810000000000001' },
+        seller: { name: 'ИП Продавец', inn: '500100732259' }, buyer: { name: 'ООО Покупатель', inn: '7707083893' },
+        expires_at: new Date(Date.now() + 86_400_000).toISOString(), paid_at: null, activated_at: null, created_at: now,
+        documents: [], refunds: [], payment_proof_available: false,
+        payment_proof: { id: 'proof-1', status: 'pending', submitted_at: now,
+          temporary_expires_at: new Date(Date.now() + 86_400_000).toISOString(), temporary_access_active: true, resolved_at: null, mime: 'application/pdf' },
+      }], meta: { current_page: 1, last_page: 1, per_page: 20, total: 1 },
+    } })));
+    renderPage();
+    expect(await screen.findByText('Не удалось обновить данные доступа. Нажмите «Проверить оплату» ещё раз.')).toBeInTheDocument();
+    expect(screen.getByText('Ожидаем поступление денег')).toBeInTheDocument();
+    expect(screen.getByText('Ожидает оплаты')).toBeInTheDocument();
+    expect(screen.queryByText(/^Оплата подтверждена/)).not.toBeInTheDocument();
+  });
+
   it.each([['6_months', 5, 570000], ['12_months', 10, 1080000]])('передаёт срок %s и показывает серверную скидку перед оплатой', async (period, discount, total) => {
     let checkoutBody: Record<string, unknown> | null = null;
     server.use(
