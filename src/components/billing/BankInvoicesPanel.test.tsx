@@ -23,6 +23,42 @@ afterEach(() => { cleanup(); server.resetHandlers(); clearAuthToken(); vi.restor
 afterAll(() => server.close());
 
 describe('Счета МОСТ', () => {
+  it('показывает обычный QR на остаток без включения СБП и без POST в банк', async () => {
+    saveAuthToken('bank-test-token');
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: {
+      items: [{ ...invoice, bank_transfer_qr_available: true, expires_at: new Date(Date.now() + 86_400_000).toISOString() }],
+      meta: { current_page: 1, last_page: 1, total: 1, per_page: 20 },
+    } })), http.get(`${base}/invoices/${invoice.id}/transfer-qr`, ({ request }) => {
+      expect(request.headers.get('authorization')).toBe('Bearer bank-test-token');
+      return HttpResponse.json({ success: true, data: { type: 'bank_transfer', invoice_id: invoice.id,
+        image: 'data:image/png;base64,iVBORw0KGgo=', amount_minor: 6000,
+        expires_at: new Date(Date.now() + 86_400_000).toISOString() } });
+    }));
+    render(<BankInvoicesPanel canManage={false} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Показать QR банковского перевода' }));
+    expect(await screen.findByRole('img', { name: 'QR с реквизитами банковского перевода' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Оплатить по QR' })).not.toBeInTheDocument();
+    expect(screen.getByText(/В PDF указана полная сумма/)).toBeInTheDocument();
+  });
+
+  it('не предлагает QR для доплаты, если backend его не поддерживает', async () => {
+    render(<BankInvoicesPanel canManage />);
+    await screen.findByText('MOST-0000000001');
+    expect(screen.queryByRole('button', { name: 'Показать QR банковского перевода' })).not.toBeInTheDocument();
+    expect(screen.getByText('В PDF указана полная сумма счёта. Для доплаты используйте реквизиты.')).toBeInTheDocument();
+    expect(screen.queryByText(/Для доплаты используйте QR в кабинете/)).not.toBeInTheDocument();
+  });
+
+  it.each(['paid', 'canceled', 'expired', 'refunded'])('не показывает платёжный QR для %s', async (status) => {
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: {
+      items: [{ ...invoice, status, bank_transfer_qr_available: true, expires_at: new Date(Date.now() + 86_400_000).toISOString() }],
+      meta: { current_page: 1, last_page: 1, total: 1, per_page: 20 },
+    } })));
+    render(<BankInvoicesPanel canManage />);
+    await screen.findByText('MOST-0000000001');
+    expect(screen.queryByRole('button', { name: 'Показать QR банковского перевода' })).not.toBeInTheDocument();
+  });
+
   it('показывает QR и ссылку СБП B2B только после ответа банка', async () => {
     saveAuthToken('bank-test-token');
     server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: { items: [{ ...invoice,
