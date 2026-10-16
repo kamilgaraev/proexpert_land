@@ -3,6 +3,38 @@ import { Button } from "@/components/ui/button";
 import { bankBillingService } from "@/services/bankBillingService";
 import type { BankQrPayment as QrPayment } from "@/types/bankBilling";
 
+const validPayment = (value: unknown): QrPayment => {
+  try {
+    const payment = value as Partial<QrPayment> | null;
+    if (
+      !payment ||
+      typeof payment.url !== "string" ||
+      typeof payment.image !== "string" ||
+      typeof payment.expires_at !== "string"
+    )
+      throw new Error();
+    const url = new URL(payment.url);
+    if (
+      payment.type !== "sbp_b2b" ||
+      url.protocol !== "https:" ||
+      url.hostname !== "qr.nspk.ru" ||
+      url.username ||
+      url.password ||
+      url.port ||
+      !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(payment.image) ||
+      payment.image.length > 280_000 ||
+      !Number.isSafeInteger(payment.amount_minor) ||
+      (payment.amount_minor ?? 0) <= 0 ||
+      !Number.isFinite(Date.parse(payment.expires_at)) ||
+      Date.parse(payment.expires_at) <= Date.now()
+    )
+      throw new Error();
+    return payment as QrPayment;
+  } catch {
+    throw new Error("Не удалось получить QR. Оплатите по реквизитам счёта.");
+  }
+};
+
 export const BankQrPayment = ({ invoiceId }: { invoiceId: string }) => {
   const [payment, setPayment] = useState<QrPayment | null>(null);
   const [loading, setLoading] = useState(false);
@@ -35,23 +67,7 @@ export const BankQrPayment = ({ invoiceId }: { invoiceId: string }) => {
     try {
       const result = await bankBillingService.qr(invoiceId, controller.signal);
       if (controller.signal.aborted) return;
-      const url = new URL(result.url);
-      if (
-        result.type !== "sbp_b2b" ||
-        url.protocol !== "https:" ||
-        url.hostname !== "qr.nspk.ru" ||
-        url.username ||
-        url.password ||
-        url.port ||
-        !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(result.image) ||
-        result.image.length > 280_000 ||
-        !Number.isFinite(Date.parse(result.expires_at)) ||
-        Date.parse(result.expires_at) <= Date.now()
-      )
-        throw new Error(
-          "Не удалось получить QR. Оплатите по реквизитам счёта.",
-        );
-      setPayment(result);
+      setPayment(validPayment(result));
     } catch (failure) {
       if (!controller.signal.aborted)
         setError(
