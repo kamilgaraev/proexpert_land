@@ -11,6 +11,21 @@ export const BankQrPayment = ({ invoiceId }: { invoiceId: string }) => {
 
   useEffect(() => () => active.current?.abort(), []);
 
+  useEffect(() => {
+    if (!payment) return;
+    const remaining = Date.parse(payment.expires_at) - Date.now();
+    const expire = () => {
+      setPayment(null);
+      setError("Срок QR истёк. Обновите счёт или оплатите по реквизитам.");
+    };
+    if (remaining <= 0) {
+      expire();
+      return;
+    }
+    const timer = window.setTimeout(expire, Math.min(remaining, 2_147_483_647));
+    return () => window.clearTimeout(timer);
+  }, [payment]);
+
   const load = async () => {
     const controller = new AbortController();
     active.current?.abort();
