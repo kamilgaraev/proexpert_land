@@ -4,6 +4,7 @@ import type { BankInvoice, BankInvoicePage } from '@/types/bankBilling';
 import { Button } from '@/components/ui/button';
 import { BankQrPayment } from './BankQrPayment';
 import { BankTransferQrPayment } from './BankTransferQrPayment';
+import { BankPaymentProof } from './BankPaymentProof';
 
 const money = (value: number) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(value / 100);
 const statuses: Record<string, string> = { awaiting_payment: 'Ожидает оплаты', partially_paid: 'Оплачен частично', paid: 'Оплачен', canceled: 'Отменён', expired: 'Срок оплаты истёк', refunded: 'Возвращён' };
@@ -25,7 +26,8 @@ export const BankInvoicesPanel = ({ canManage, sbpEnabled = false, revision = 0,
   const [kind, setKind] = useState<'payment' | 'overpayment'>('payment');
   const [reason, setReason] = useState('');
   const [refundKey, setRefundKey] = useState('');
-  const seen = useRef<Map<string, boolean>>(new Map());
+  const seen = useRef<Map<string, string>>(new Map());
+  const accessRefreshRequired = useRef(false);
   const generation = useRef(0);
   const paidCallback = useRef(onPaid);
   const currentRevision = useRef(revision);
@@ -36,11 +38,22 @@ export const BankInvoicesPanel = ({ canManage, sbpEnabled = false, revision = 0,
     try {
       const result = await bankBillingService.invoices(page, signal);
       if (signal?.aborted || requestGeneration !== generation.current) return;
-      const newlyActivated = result.items.some((invoice) => !seen.current.get(invoice.id) && invoice.activated_at);
+      let accessChanged = false;
+      for (const invoice of result.items) {
+        const access = invoice.activated_at ? `paid:${invoice.activated_at}`
+          : invoice.payment_proof?.temporary_access_active && Date.parse(invoice.payment_proof.temporary_expires_at) > Date.now()
+            ? `temporary:${invoice.payment_proof.id}:${invoice.payment_proof.temporary_expires_at}` : 'none';
+        const previous = seen.current.get(invoice.id);
+        if ((previous !== undefined || access !== 'none') && previous !== access) accessChanged = true;
+        seen.current.set(invoice.id, access);
+      }
       setData(result); setError(null);
-      if (newlyActivated) await paidCallback.current?.();
+      if (accessChanged) accessRefreshRequired.current = true;
+      if (accessRefreshRequired.current) {
+        await paidCallback.current?.();
+        if (requestGeneration === generation.current) accessRefreshRequired.current = false;
+      }
       if (signal?.aborted || requestGeneration !== generation.current) return;
-      for (const invoice of result.items) seen.current.set(invoice.id, Boolean(invoice.activated_at));
     } catch (failure) {
       if (!signal?.aborted && requestGeneration === generation.current) setError(failure instanceof Error ? failure.message : 'Не удалось загрузить счета.');
     } finally { if (!signal?.aborted && requestGeneration === generation.current) setLoading(false); }
@@ -97,7 +110,7 @@ export const BankInvoicesPanel = ({ canManage, sbpEnabled = false, revision = 0,
 
   return <section id="bank-invoices" aria-labelledby="bank-invoices-title" className="space-y-4 rounded-lg border border-slate-200 bg-white p-6">
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 id="bank-invoices-title" className="text-xl font-semibold">Счета и документы</h2><Button variant="outline" disabled={loading || busy !== null} onClick={() => void load()}>Проверить оплату</Button></div>
-    <p className="text-sm text-slate-600">Оплачивайте с расчётного счёта организации или ИП. Сохраните номер счёта в назначении. Доступ подключится после подтверждения поступления банком.</p>
+    <p className="text-sm text-slate-600">Оплачивайте с расчётного счёта организации или ИП. Сохраните номер счёта в назначении. Оплату подтвердит поступление денег в банк. Для временного доступа к покупке на время перевода нажмите «Я оплатил» и приложите платёжку.</p>
     <p className="text-xs text-slate-500">Новые счета и акты формирует Точка. Подписание согласуется через поддержку в ЭДО или интернет-банке. PDF не подтверждает наличие электронной подписи; архивный акт может быть сохранён как копия без подписи.</p>
     {notice && <p role="status" className="rounded border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
     {error && <p role="alert" className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
@@ -106,6 +119,7 @@ export const BankInvoicesPanel = ({ canManage, sbpEnabled = false, revision = 0,
     {data?.items.map((invoice) => <article key={invoice.id} className="space-y-3 rounded-lg border p-4">
       <div className="flex flex-wrap justify-between gap-3"><div><h3 className="font-semibold">{invoice.number}</h3><p className="text-sm">{statuses[invoice.status] ?? 'Требуется проверка'}{invoice.paid_at && !invoice.activated_at && invoice.status === 'paid' ? ' · доступ ожидает начала периода или обработки' : ''}</p></div><strong>{money(invoice.amount_minor)}</strong></div>
       <p className="text-sm">{invoice.description}</p>
+      <BankPaymentProof invoice={invoice} canManage={canManage} onSubmitted={() => latestLoad.current()} />
       <p className="text-sm">Зачтено: {money(invoice.paid_minor)} · К доплате: {money(invoice.remaining_minor)} · Переплата: {money(invoice.overpayment_minor)}{invoice.refunded_minor > 0 ? ` · Возвращено: ${money(invoice.refunded_minor)}` : ''}</p>
       {['awaiting_payment', 'partially_paid'].includes(invoice.status) && <details><summary className="cursor-pointer text-sm font-medium">Реквизиты и назначение платежа</summary><dl className="mt-3 space-y-2 break-words text-sm"><div><dt>Получатель</dt><dd>{invoice.seller.name}, ИНН {invoice.seller.inn}</dd></div><div><dt>Плательщик</dt><dd>{invoice.buyer.name}, ИНН {invoice.buyer.inn}</dd></div><div><dt>Банк</dt><dd>{invoice.bank.name} · БИК {invoice.bank.bik}</dd></div><div><dt>Расчётный счёт</dt><dd>{invoice.bank.account}</dd></div><div><dt>Корреспондентский счёт</dt><dd>{invoice.bank.correspondent_account}</dd></div><div><dt>Назначение</dt><dd>{invoice.purpose}</dd></div><div><dt>Оплатить до</dt><dd>{new Date(invoice.expires_at).toLocaleDateString('ru-RU')}</dd></div></dl></details>}
       {transferQrAvailable(invoice) && <BankTransferQrPayment key={`${invoice.id}:${invoice.remaining_minor}:${invoice.expires_at}`} invoiceId={invoice.id} remainingMinor={invoice.remaining_minor} />}

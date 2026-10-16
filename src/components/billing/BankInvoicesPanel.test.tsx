@@ -23,6 +23,77 @@ afterEach(() => { cleanup(); server.resetHandlers(); clearAuthToken(); vi.restor
 afterAll(() => server.close());
 
 describe('Счета МОСТ', () => {
+  it('принимает платёжку через multipart и обновляет временный доступ без отметки об оплате', async () => {
+    saveAuthToken('bank-test-token');
+    let current: BankInvoice = { ...invoice, payment_proof_available: true, expires_at: new Date(Date.now() + 86_400_000).toISOString() };
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: {
+      items: [current], meta: { current_page: 1, last_page: 1, total: 1, per_page: 20 },
+    } })), http.post(`${base}/invoices/${invoice.id}/payment-proof`, async ({ request }) => {
+      expect(request.headers.get('authorization')).toBe('Bearer bank-test-token');
+      expect(request.headers.get('content-type')).toContain('multipart/form-data; boundary=');
+      const body = await request.formData();
+      expect(body.get('b2b_payment')).toBe('1');
+      expect((body.get('file') as File).name).toBe('payment.pdf');
+      current = { ...current, payment_proof_available: false, payment_proof: {
+        id: 'proof-1', status: 'pending', submitted_at: new Date().toISOString(),
+        temporary_expires_at: new Date(Date.now() + 3 * 86_400_000).toISOString(),
+        temporary_access_active: true, resolved_at: null, mime: 'application/pdf',
+      } };
+      return HttpResponse.json({ success: true, data: current });
+    }));
+    const onPaid = vi.fn();
+    render(<BankInvoicesPanel canManage onPaid={onPaid} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Я оплатил' }));
+    expect(screen.getByRole('button', { name: 'Отправить платёжку' })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText(/Платёжное поручение/), { target: { files: [new File(['%PDF-1.4 payment'], 'payment.pdf', { type: 'application/pdf' })] } });
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: 'Отправить платёжку' }));
+    expect(await screen.findByText('Ожидаем поступление денег')).toBeInTheDocument();
+    expect(screen.getByText(/Временный доступ до/)).toBeInTheDocument();
+    expect(screen.getByText('Оплачен частично')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Я оплатил' })).not.toBeInTheDocument();
+    await waitFor(() => expect(onPaid).toHaveBeenCalledTimes(1));
+  });
+
+  it('не предоставляет доступ при ошибке отправки платёжки', async () => {
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: {
+      items: [{ ...invoice, payment_proof_available: true, expires_at: new Date(Date.now() + 86_400_000).toISOString() }],
+      meta: { current_page: 1, last_page: 1, total: 1, per_page: 20 },
+    } })), http.post(`${base}/invoices/${invoice.id}/payment-proof`, () => HttpResponse.json({ success: false, message: 'Платёжка уже на проверке.' }, { status: 422 })));
+    const onPaid = vi.fn();
+    render(<BankInvoicesPanel canManage onPaid={onPaid} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Я оплатил' }));
+    fireEvent.change(screen.getByLabelText(/Платёжное поручение/), { target: { files: [new File(['%PDF-1.4'], 'payment.pdf', { type: 'application/pdf' })] } });
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: 'Отправить платёжку' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Платёжка уже на проверке.');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(onPaid).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Временный доступ до/)).not.toBeInTheDocument();
+  });
+
+  it('не предлагает отправку платёжки без права управления оплатой', async () => {
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: {
+      items: [{ ...invoice, payment_proof_available: true, expires_at: new Date(Date.now() + 86_400_000).toISOString() }],
+      meta: { current_page: 1, last_page: 1, total: 1, per_page: 20 },
+    } })));
+    render(<BankInvoicesPanel canManage={false} />);
+    await screen.findByText(invoice.number);
+    expect(screen.queryByRole('button', { name: 'Я оплатил' })).not.toBeInTheDocument();
+  });
+
+  it('показывает проверку вместо продления временного доступа', async () => {
+    server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: {
+      items: [{ ...invoice, payment_proof_available: false, payment_proof: { id: 'proof-1', status: 'review',
+        submitted_at: new Date().toISOString(), temporary_expires_at: new Date(Date.now() - 1_000).toISOString(),
+        temporary_access_active: false, resolved_at: null, mime: 'application/pdf' } }],
+      meta: { current_page: 1, last_page: 1, total: 1, per_page: 20 },
+    } })));
+    render(<BankInvoicesPanel canManage />);
+    expect(await screen.findByText('Поступление не подтверждено — требуется проверка')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Я оплатил' })).not.toBeInTheDocument();
+  });
+
   it('показывает обычный QR на остаток без включения СБП и без POST в банк', async () => {
     saveAuthToken('bank-test-token');
     server.use(http.get(`${base}/invoices`, () => HttpResponse.json({ success: true, data: {

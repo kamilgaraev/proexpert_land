@@ -8,6 +8,8 @@ export interface BankBillingCapabilities {
 }
 
 export interface BankInvoice {
+  payment_proof_available?: boolean;
+  payment_proof?: BankPaymentProof | null;
   id: string;
   number: string;
   order_id: string;
@@ -30,6 +32,16 @@ export interface BankInvoice {
   created_at: string;
   documents: Array<{ id: string; kind: 'invoice' | 'closing' | 'correction'; status: string; signature_status: string; issued_at: string; provider?: 'tochka' | 'legacy_local' | 'local_notice'; failure_code?: string | null }>;
   refunds: Array<{ id: string; status: string; amount_minor: number; kind: string; created_at: string }>;
+}
+
+export interface BankPaymentProof {
+  id: string;
+  status: 'pending' | 'review' | 'confirmed' | 'rejected' | 'canceled';
+  submitted_at: string;
+  temporary_expires_at: string;
+  temporary_access_active: boolean;
+  resolved_at: string | null;
+  mime: 'application/pdf' | 'image/jpeg' | 'image/png';
 }
 
 export interface BankInvoicePage {
