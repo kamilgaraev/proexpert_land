@@ -19,6 +19,7 @@ import {
   type BlogIndexQuery,
 } from "@/utils/blogIndexQuery";
 import { blogPublicApi } from "@/utils/blogPublicApi";
+import UmamiAnalytics from "@/components/analytics/UmamiAnalytics";
 
 interface BlogCategoryPageProps {
   initialData?: BlogCategoryInitialData;
@@ -146,6 +147,9 @@ const BlogCategoryContent = ({
         { label: "Контакты", href: "#blog-cta" },
       ]}
     >
+      {!loading && !error && !unavailable && !notFound && !pageNotFound && category?.slug === slug && category.is_active && (
+        <UmamiAnalytics publishedBlogPath={`/blog/category/${encodeURIComponent(category.slug)}`} />
+      )}
       <section id="blog-category-switcher" className="most-blog-filters">
         <div className="most-container">
           <nav className="most-blog-topic-filter" aria-label="Категории статей">

@@ -4,10 +4,11 @@ import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { analyticsProofFixture, legalFixture } from '@/test/legalFixture';
 import { UMAMI_SCRIPT_URL, UMAMI_WEBSITE_ID } from '@/config/analytics';
+import { useLegalManifest } from '@/hooks/useLegalManifest';
 import { COOKIE_CONSENT_EVENT, COOKIE_CONSENT_VERSION, setAnalyticsAvailability } from '@/utils/marketingConsent';
 
 const host = vi.hoisted(() => ({ marketing: true }));
-vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null }) }));
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: vi.fn(() => ({ manifest: legalFixture, error: null })) }));
 vi.mock('@/utils/publicSite', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/utils/publicSite')>(),
   isPrimaryMarketingHost: () => host.marketing,
@@ -21,8 +22,8 @@ function NavigateTo({ path }: { path: string }) {
   return null;
 }
 
-const renderAnalytics = (path = '/') => render(
-  <MemoryRouter initialEntries={[path]}><UmamiAnalytics /></MemoryRouter>,
+const renderAnalytics = (path = '/', publishedBlogPath?: string) => render(
+  <MemoryRouter initialEntries={[path]}><UmamiAnalytics publishedBlogPath={publishedBlogPath} /></MemoryRouter>,
 );
 
 const loadTracker = () => {
@@ -65,7 +66,8 @@ describe('UmamiAnalytics', () => {
     expect(document.getElementById('most-umami-analytics')).toBeNull();
   });
 
-  it.each(['/dashboard/projects/42', '/register?email=private@example.com', '/blog/preview/secret', '/unknown/secret'])(
+  it.each(['/dashboard/projects/42', '/register?email=private@example.com', '/blog/preview/secret',
+    '/blog/not-a-published-article', '/blog/private@example.com', '/blog/category/unknown-token', '/unknown/secret'])(
     'не загружает счётчик для %s', (path) => {
       renderAnalytics(path);
       expect(document.getElementById('most-umami-analytics')).toBeNull();
@@ -76,6 +78,7 @@ describe('UmamiAnalytics', () => {
     host.marketing = false;
     renderAnalytics('/features');
     expect(document.getElementById('most-umami-analytics')).toBeNull();
+    expect(useLegalManifest).not.toHaveBeenCalled();
   });
 
   it('загружает собственный счётчик без автоматических просмотров и HTTP referrer', () => {
@@ -156,5 +159,40 @@ describe('UmamiAnalytics', () => {
     fireEvent.load(oldScript);
     act(() => { vi.advanceTimersByTime(250); });
     expect(window.umami.track).not.toHaveBeenCalled();
+  });
+
+  it('отправляет ранний просмотр тарифов только после проверки согласия и загрузки скрипта', () => {
+    window.history.replaceState(null, '', '/pricing');
+    setAnalyticsAvailability(false);
+    trackUmamiEvent('pricing_view');
+    renderAnalytics('/pricing');
+    expect(document.getElementById('most-umami-analytics')).toBeNull();
+    act(() => { setAnalyticsAvailability(true, analyticsProofFixture.documentHash); });
+    const track = loadTracker();
+    expect(track).toHaveBeenCalledTimes(2);
+    expect(track).toHaveBeenLastCalledWith(expect.objectContaining({ url: '/pricing', name: 'pricing_view' }));
+  });
+
+  it('не переносит очередь событий на другое согласие', () => {
+    setAnalyticsAvailability(false);
+    trackUmamiEvent('contact_form');
+    const consent = JSON.parse(window.localStorage.getItem('prohelper.cookie-consent')!);
+    window.localStorage.setItem('prohelper.cookie-consent', JSON.stringify({ ...consent, receiptId: 'new-receipt' }));
+    setAnalyticsAvailability(true, analyticsProofFixture.documentHash);
+    renderAnalytics();
+    const track = loadTracker();
+    expect(track).toHaveBeenCalledTimes(1);
+    expect(track.mock.calls[0][0]).not.toHaveProperty('name');
+  });
+
+  it('учитывает подтверждённую опубликованную статью без query и hash', () => {
+    renderAnalytics('/blog/published-article?token=secret&utm_source=yandex#private', '/blog/published-article');
+    const track = loadTracker();
+    expect(track).toHaveBeenCalledWith(expect.objectContaining({ url: '/blog/published-article' }));
+  });
+
+  it('не переносит подтверждение статьи на другой slug', () => {
+    renderAnalytics('/blog/unknown-token', '/blog/published-article');
+    expect(document.getElementById('most-umami-analytics')).toBeNull();
   });
 });
