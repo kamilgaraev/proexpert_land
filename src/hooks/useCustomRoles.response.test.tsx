@@ -28,6 +28,35 @@ beforeEach(() => {
 });
 
 describe('Ответы API операций с ролями', () => {
+  it('по умолчанию загружает все каталоги один раз без повторов при перерисовке', async () => {
+    const { result, rerender } = renderHook(() => useCustomRoles());
+    await waitFor(() => expect(result.current.availablePermissions).not.toBeNull());
+    rerender();
+    expect(service.getCustomRoles).toHaveBeenCalledTimes(1);
+    expect(service.getAvailableRoles).toHaveBeenCalledTimes(1);
+    expect(service.getCustomRolePermissions).toHaveBeenCalledTimes(1);
+  });
+
+  it('без автозагрузки оставляет запросы вызывающему коду и получает свежие роли при повторе', async () => {
+    const { result, rerender } = renderHook(() => useCustomRoles({ autoLoad: false }));
+    rerender();
+    expect(service.getCustomRoles).not.toHaveBeenCalled();
+    expect(service.getAvailableRoles).not.toHaveBeenCalled();
+    expect(service.getCustomRolePermissions).not.toHaveBeenCalled();
+    expect(result.current.loading).toBe(false);
+    service.getCustomRoles.mockRejectedValueOnce(new Error('Unavailable'));
+    await act(async () => { await result.current.fetchCustomRoles(); });
+    expect(result.current.error).toBe('Unavailable');
+    service.getCustomRoles.mockResolvedValueOnce({ data: { data: [{ id: 41, name: 'Прораб' }] } });
+    await act(async () => { await result.current.fetchCustomRoles(); });
+    expect(result.current.customRoles).toEqual([{ id: 41, name: 'Прораб' }]);
+    expect(result.current.error).toBeNull();
+    expect(result.current.loading).toBe(false);
+    expect(service.getCustomRoles).toHaveBeenCalledTimes(2);
+    expect(service.getAvailableRoles).not.toHaveBeenCalled();
+    expect(service.getCustomRolePermissions).not.toHaveBeenCalled();
+  });
+
   it.each(operations)('$name: отказ не обновляет список, повтор успешно завершается', async ({ method, args }) => {
     const { result } = renderHook(() => useCustomRoles());
     await waitFor(() => expect(result.current.availablePermissions).not.toBeNull());

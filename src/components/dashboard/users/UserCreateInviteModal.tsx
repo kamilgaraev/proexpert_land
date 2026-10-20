@@ -19,7 +19,7 @@ type Mode = 'invitation' | 'direct';
 
 const UserCreateInviteModal: React.FC<Props> = ({ isOpen, onClose, onSave, canInvite = true }) => {
   const { roles, fetchRoles, sendInvitation, createUserWithCustomRoles, rolesError: systemRolesError } = useUserManagement();
-  const { customRoles, fetchCustomRoles, error: customRolesError } = useCustomRoles();
+  const { customRoles, fetchCustomRoles, error: customRolesError } = useCustomRoles({ autoLoad: false });
   const [rolesPending, setRolesPending] = useState(true);
   const [rolesFailed, setRolesFailed] = useState(false);
   const [rolesRevision, setRolesRevision] = useState(0);
