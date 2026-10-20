@@ -293,6 +293,8 @@ describe("BlogCategoryPage initial data", () => {
     expect(
       screen.getByRole("heading", { name: "Материалы временно недоступны" }),
     ).toBeVisible();
-    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toContain('noindex');
+    await waitFor(() => {
+      expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toContain('noindex');
+    });
   });
 });
