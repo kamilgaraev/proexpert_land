@@ -9,6 +9,7 @@ import { useSEO } from "@/hooks/useSEO";
 import type { BlogArticle } from "@/types/blog";
 import { generateArticleSchema, normalizeArticleTitleBrand } from "@/utils/seo";
 import { blogPublicApi } from "@/utils/blogPublicApi";
+import UmamiAnalytics from "@/components/analytics/UmamiAnalytics";
 
 interface BlogArticlePageProps {
   initialArticle?: BlogArticle;
@@ -274,6 +275,9 @@ const BlogArticlePage = ({
         { label: "Контакты", href: "#blog-cta" },
       ]}
     >
+      {!isPreview && article.status === "published" && article.is_published && (
+        <UmamiAnalytics publishedBlogPath={`/blog/${encodeURIComponent(article.slug)}`} />
+      )}
       <section id="article-content" className="most-blog-section">
         <div className="most-container most-blog-article-layout">
           <article className="most-blog-article">

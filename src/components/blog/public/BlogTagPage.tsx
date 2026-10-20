@@ -17,6 +17,7 @@ import {
   normalizeBlogTagQuery,
 } from "@/utils/blogTagListing";
 import { blogPublicApi } from "@/utils/blogPublicApi";
+import UmamiAnalytics from "@/components/analytics/UmamiAnalytics";
 
 interface BlogTagPageProps {
   initialData?: BlogTagInitialData;
@@ -94,6 +95,9 @@ const BlogTagContent = ({
         { label: "Контакты", href: "#blog-cta" },
       ]}
     >
+      {!loading && data.articlesLoaded && data.slug === slug && !data.unavailable && !data.notFound && !data.pageNotFound && (
+        <UmamiAnalytics publishedBlogPath={`/blog/tag/${encodeURIComponent(slug)}`} />
+      )}
       <section id="blog-tag-actions" className="most-blog-filters">
         <div className="most-container">
           <Link to="/blog" className="most-blog-read">

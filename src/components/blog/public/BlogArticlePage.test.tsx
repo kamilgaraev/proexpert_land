@@ -5,6 +5,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import BlogArticlePage from './BlogArticlePage';
 import { useSEO } from '@/hooks/useSEO';
 import type { BlogArticle } from '@/types/blog';
+import UmamiAnalytics from '@/components/analytics/UmamiAnalytics';
+
+vi.mock('@/components/analytics/UmamiAnalytics', () => ({ default: vi.fn(() => null) }));
 
 const blogApiMocks = vi.hoisted(() => ({
   getArticle: vi.fn(),
@@ -104,6 +107,7 @@ const expectMissingArticleSeo = async () => {
 
 describe('BlogArticlePage SEO for unavailable articles', () => {
   beforeEach(() => {
+    vi.mocked(UmamiAnalytics).mockClear();
     blogApiMocks.getArticle.mockReset();
     blogApiMocks.getPreviewArticle.mockReset();
     blogApiMocks.getRelatedArticles.mockReset();
@@ -112,6 +116,18 @@ describe('BlogArticlePage SEO for unavailable articles', () => {
       '<meta name="robots" content="index, follow">',
       '<meta name="googlebot" content="index, follow">',
     ].join('');
+  });
+
+  it('подключает собственную аналитику только для найденной опубликованной статьи', () => {
+    blogApiMocks.getRelatedArticles.mockResolvedValue([]);
+    renderRoutes(<BlogArticlePage initialArticle={createArticle('published-article')} />, '/blog/published-article');
+    expect(vi.mocked(UmamiAnalytics).mock.calls.some(([props]) => props.publishedBlogPath === '/blog/published-article')).toBe(true);
+  });
+
+  it('не подключает собственную аналитику для неопубликованной статьи', () => {
+    blogApiMocks.getRelatedArticles.mockResolvedValue([]);
+    renderRoutes(<BlogArticlePage initialArticle={{ ...createArticle('draft-article'), status: 'draft', is_published: false }} />, '/blog/draft-article');
+    expect(UmamiAnalytics).not.toHaveBeenCalled();
   });
 
   it('preserves the server 404 SEO state during hydration', async () => {

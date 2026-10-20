@@ -1,14 +1,16 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import YandexMetrika from './YandexMetrika';
+import UmamiAnalytics from './UmamiAnalytics';
 import { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
 import { captureMarketingAttribution, clearMarketingAttribution } from '@/utils/marketingAttribution';
 import { COOKIE_CONSENT_EVENT, hasAnalyticsConsent } from '@/utils/marketingConsent';
 import { isCabinetHost, isMarketingPublicPath, isPrimaryMarketingHost } from '@/utils/publicSite';
 import { initSEOTracking } from '@/utils/seoTracking';
+import { normalizeMarketingPath } from '@/data/marketing/siteIndex';
 
 export default function SiteTracking() {
-  const { search } = useLocation();
+  const { pathname, search } = useLocation();
 
   useEffect(() => {
     if (isPrimaryMarketingHost(window.location.hostname) && isMarketingPublicPath(window.location.pathname)) initSEOTracking();
@@ -25,5 +27,5 @@ export default function SiteTracking() {
     return () => window.removeEventListener(COOKIE_CONSENT_EVENT, syncAttribution);
   }, [search]);
 
-  return <YandexMetrika counterId={YANDEX_METRIKA_COUNTER_ID} />;
+  return <><YandexMetrika counterId={YANDEX_METRIKA_COUNTER_ID} />{!normalizeMarketingPath(pathname).startsWith('/blog/') && <UmamiAnalytics />}</>;
 }
