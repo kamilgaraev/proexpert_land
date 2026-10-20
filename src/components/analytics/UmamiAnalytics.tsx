@@ -22,11 +22,12 @@ declare global {
 
 const SCRIPT_ID = 'most-umami-analytics';
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+let previousPublicUrl: string | null = null;
 
 const publicTrackingPath = (pathname: string, publishedBlogPath?: string): boolean => {
-  if (typeof window === 'undefined' || !isPrimaryMarketingHost(window.location.hostname)
-    || !isMarketingPublicPath(pathname)) return false;
   const path = normalizeMarketingPath(pathname);
+  if (typeof window === 'undefined' || !isPrimaryMarketingHost(window.location.hostname)
+    || !isMarketingPublicPath(path)) return false;
   if (path.startsWith('/blog/')) return Boolean(publishedBlogPath && path === normalizeMarketingPath(publishedBlogPath));
   return isKnownMarketingPath(path);
 };
@@ -71,6 +72,7 @@ function UmamiTracker({ publishedBlogPath }: UmamiAnalyticsProps) {
   useEffect(() => {
     if (!enabled) {
       previousUrl.current = null;
+      previousPublicUrl = null;
       document.getElementById(SCRIPT_ID)?.remove();
       return;
     }
@@ -91,12 +93,14 @@ function UmamiTracker({ publishedBlogPath }: UmamiAnalyticsProps) {
     }
 
     const trackerScript = script;
-    const currentUrl = publishedBlogPath ? pathname : analyticsUrl(pathname, search);
+    const canonicalPath = normalizeMarketingPath(pathname);
+    const currentUrl = publishedBlogPath ? canonicalPath : analyticsUrl(canonicalPath, search);
     const sendPageview = () => {
       if (!publicTrackingPath(pathname, publishedBlogPath) || !window.umami || previousUrl.current === currentUrl) return;
-      void window.umami.track(payload(currentUrl, previousUrl.current?.split('?')[0] ?? safeReferrer()))
+      void window.umami.track(payload(currentUrl, previousPublicUrl?.split('?')[0] ?? safeReferrer()))
         .catch(() => undefined);
       previousUrl.current = currentUrl;
+      previousPublicUrl = currentUrl;
     };
     const handleError = () => trackerScript.remove();
     trackerScript.addEventListener('load', sendPageview);

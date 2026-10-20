@@ -42,6 +42,8 @@ describe('UmamiAnalytics', () => {
     window.localStorage.clear();
     delete window.umami;
     vi.clearAllMocks();
+    renderAnalytics('/dashboard');
+    cleanup();
   });
 
   afterEach(() => {
@@ -66,7 +68,8 @@ describe('UmamiAnalytics', () => {
   });
 
   it.each(['/dashboard/projects/42', '/register?email=private@example.com', '/blog/preview/secret',
-    '/blog/not-a-published-article', '/blog/private@example.com', '/blog/category/unknown-token', '/unknown/secret'])(
+    '/blog/not-a-published-article', '/blog/private@example.com', '/blog/category/unknown-token', '/unknown/secret',
+    '/login/', '/register/', '/forgot-password/', '/verify-email/', '/email-sent/'])(
     'не загружает счётчик для %s', (path) => {
       renderAnalytics(path);
       expect(document.getElementById('most-umami-analytics')).toBeNull();
@@ -161,5 +164,23 @@ describe('UmamiAnalytics', () => {
   it('не переносит подтверждение статьи на другой slug', () => {
     renderAnalytics('/blog/unknown-token', '/blog/published-article');
     expect(document.getElementById('most-umami-analytics')).toBeNull();
+  });
+
+  it.each([
+    ['/pricing/', undefined, '/pricing'],
+    ['/blog/published-article/', '/blog/published-article', '/blog/published-article'],
+  ])('учитывает канонический путь для %s', (path, publishedBlogPath, expected) => {
+    renderAnalytics(path, publishedBlogPath);
+    expect(loadTracker()).toHaveBeenCalledWith(expect.objectContaining({ url: expected }));
+  });
+
+  it('сохраняет публичный источник при замене трекера на странице блога', () => {
+    const view = renderAnalytics('/pricing');
+    const track = loadTracker();
+    view.unmount();
+    renderAnalytics('/blog/published-article', '/blog/published-article');
+    expect(track).toHaveBeenLastCalledWith(expect.objectContaining({
+      url: '/blog/published-article', referrer: '/pricing',
+    }));
   });
 });
