@@ -17,7 +17,7 @@ export interface AvailablePermissions {
   interface_access?: Record<string, string>;
 }
 
-export const useCustomRoles = () => {
+export const useCustomRoles = ({ autoLoad = true }: { autoLoad?: boolean } = {}) => {
   const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
   const [availableRoles, setAvailableRoles] = useState<AvailableRolesResponse | null>(null);
   const [availablePermissions, setAvailablePermissions] = useState<AvailablePermissions | null>(null);
@@ -266,10 +266,11 @@ export const useCustomRoles = () => {
 
   // Auto-load data on mount
   useEffect(() => {
+    if (!autoLoad) return;
     fetchCustomRoles();
     fetchAvailableRoles();
     fetchAvailablePermissions();
-  }, [fetchCustomRoles, fetchAvailableRoles, fetchAvailablePermissions]);
+  }, [autoLoad, fetchCustomRoles, fetchAvailableRoles, fetchAvailablePermissions]);
 
   return {
     // Data
