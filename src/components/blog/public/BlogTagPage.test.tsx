@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { MemoryRouter, Route, Routes, Link } from 'react-router-dom';
@@ -10,6 +10,9 @@ import { onBeforeRender } from '@/pages/catch-all.page.server';
 import { fetchBlogTagForSsr } from '@/pages/blogIndexSsr';
 import { blogPublicApi } from '@/utils/blogPublicApi';
 import BlogTagPage from './BlogTagPage';
+import UmamiAnalytics from '@/components/analytics/UmamiAnalytics';
+
+vi.mock('@/components/analytics/UmamiAnalytics', () => ({ default: vi.fn(() => null) }));
 
 const apiUrl = (path: string) => new URL(path, 'https://api.1мост.рф').href;
 const article: BlogArticle = {
@@ -43,7 +46,7 @@ const server = setupServer(
 );
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterAll(() => server.close());
-afterEach(() => { server.resetHandlers(); requests.length = 0; });
+afterEach(() => { server.resetHandlers(); requests.length = 0; vi.clearAllMocks(); });
 const tree = (data?: BlogTagInitialData, entry = '/blog/tag/budget') => (
   <MemoryRouter initialEntries={[entry]}>
     <Link to="/blog/tag/other">Другая тема</Link>
@@ -107,6 +110,11 @@ describe('Blog tag exact SSR and client pagination', () => {
     render(tree(data, entry));
     await act(async () => { await Promise.resolve(); });
     expect(requests).toHaveLength(1);
+    if (status === 200) {
+      expect(vi.mocked(UmamiAnalytics).mock.calls[0][0]).toEqual({ publishedBlogPath: '/blog/tag/empty' });
+    } else {
+      expect(UmamiAnalytics).not.toHaveBeenCalled();
+    }
   });
 
   it.each(['0', '-1', 'abc', '1.5', '2147483648', '2&page=3'])('rejects malformed page %s before API access', async (page) => {
@@ -132,6 +140,7 @@ describe('Blog tag exact SSR and client pagination', () => {
     await screen.findByRole('alert');
     expect(screen.queryByText('По этой теме пока нет материалов')).not.toBeInTheDocument();
     expect(screen.queryByText('Тема не найдена')).not.toBeInTheDocument();
+    expect(UmamiAnalytics).not.toHaveBeenCalled();
   });
 
   it.each(['wrong-tag', 'wrong-page', 'missing-meta', 'false-success'])('rejects an invalid API contract: %s', async (mode) => {

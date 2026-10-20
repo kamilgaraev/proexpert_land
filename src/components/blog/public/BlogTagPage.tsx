@@ -95,8 +95,7 @@ const BlogTagContent = ({
         { label: "Контакты", href: "#blog-cta" },
       ]}
     >
-      {!loading && !data.unavailable && !data.notFound && !data.pageNotFound && Boolean(tagName)
-        && data.articles.some((article) => article.tags.some((tag) => tag.slug === slug)) && (
+      {!loading && data.articlesLoaded && data.slug === slug && !data.unavailable && !data.notFound && !data.pageNotFound && (
         <UmamiAnalytics publishedBlogPath={`/blog/tag/${encodeURIComponent(slug)}`} />
       )}
       <section id="blog-tag-actions" className="most-blog-filters">
