@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import YandexMetrika from './YandexMetrika';
+import UmamiAnalytics from './UmamiAnalytics';
 import { YANDEX_METRIKA_COUNTER_ID } from '@/config/analytics';
 import { captureMarketingAttribution, clearMarketingAttribution } from '@/utils/marketingAttribution';
 import { COOKIE_CONSENT_EVENT, hasAnalyticsConsent } from '@/utils/marketingConsent';
@@ -25,5 +26,5 @@ export default function SiteTracking() {
     return () => window.removeEventListener(COOKIE_CONSENT_EVENT, syncAttribution);
   }, [search]);
 
-  return <YandexMetrika counterId={YANDEX_METRIKA_COUNTER_ID} />;
+  return <><YandexMetrika counterId={YANDEX_METRIKA_COUNTER_ID} /><UmamiAnalytics /></>;
 }

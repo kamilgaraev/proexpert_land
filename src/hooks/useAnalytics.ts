@@ -1,13 +1,16 @@
 import { useCallback } from 'react';
 import { trackYandexGoal, trackYandexEvent } from '../components/analytics/YandexMetrika';
+import { trackUmamiEvent } from '../components/analytics/UmamiAnalytics';
 
 export const useAnalytics = () => {
   const trackGoal = useCallback((goalName: string, params?: Record<string, any>) => {
     trackYandexGoal(goalName, params);
+    trackUmamiEvent(goalName);
   }, []);
 
   const trackEvent = useCallback((eventName: string, params?: Record<string, any>) => {
     trackYandexEvent(eventName, params);
+    trackUmamiEvent(eventName);
   }, []);
 
   const trackFormSubmit = useCallback((formName: string, formData?: Record<string, any>) => {
@@ -98,4 +101,4 @@ export const useAnalytics = () => {
   };
 };
 
-export default useAnalytics; 
+export default useAnalytics;
