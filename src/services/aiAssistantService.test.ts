@@ -7,6 +7,15 @@ const respond = (data: unknown, meta?: unknown) => vi.spyOn(globalThis, 'fetch')
 const input: AiAssistantChatInput = { conversation_id: '11', message: 'Вопрос', request_id: '4b3a24d1-1b27-41e3-a364-5da772bd739b', profile: 'detailed', allow_actions: true, context: { project_id: 8 } };
 afterEach(() => vi.restoreAllMocks());
 describe('aiAssistantService', () => {
+  it('loads a citation by message and original public source index through the authenticated envelope', async () => {
+    saveAuthToken('citation-token');
+    const data = { message_id: '22', source_index: 1, kind: 'source_chunk_preview', content: 'Фрагмент' };
+    const mock = respond(data);
+    const signal = new AbortController().signal;
+    await expect(aiAssistantService.getSourcePreview('11', '22', 1, signal)).resolves.toEqual(data);
+    expect(mock.mock.calls[0][0]).toBe('https://api.example/api/v1/ai-assistant/conversations/11/messages/22/sources/1');
+    expect(mock.mock.calls[0][1]).toMatchObject({ signal, headers: { Authorization: 'Bearer citation-token' } });
+  });
   it('preserves pagination and normalizes numeric IDs without organization scope', async () => {
     const mock = respond([{ id: 11, title: 'Чат', user_id: 7 }], { current_page: 2, last_page: 3, per_page: 20, total: 41 });
     const result = await aiAssistantService.getConversations(2);

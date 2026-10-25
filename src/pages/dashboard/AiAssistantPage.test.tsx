@@ -8,7 +8,7 @@ import type { AiAssistantProgress } from '@/types/aiAssistant';
 vi.mock('./AiAssistantCoveragePanel', () => ({ default: () => null }));
 vi.mock('@/hooks/usePermissions', () => ({ useCanAccess: () => false }));
 vi.mock('@/contexts/AuthContext', async () => ({ AuthContext: (await import('react')).createContext({ user: { id: 7, current_organization_id: 44 } }) }));
-vi.mock('@/services/aiAssistantService', () => ({ AssistantApiError: class extends Error {}, createAiAssistantRequestId: vi.fn(() => 'uuid-request'), aiAssistantService: { getConversations: vi.fn(), getMemory: vi.fn(), getBalance: vi.fn(), getUsage: vi.fn(), getHistory: vi.fn(), getParticipants: vi.fn(), getQuote: vi.fn(), chat: vi.fn(), cancelRequest: vi.fn(), getRequest: vi.fn(), previewAction: vi.fn(), executeAction: vi.fn() } }));
+vi.mock('@/services/aiAssistantService', () => ({ AssistantApiError: class extends Error {}, createAiAssistantRequestId: vi.fn(() => 'uuid-request'), aiAssistantService: { getConversations: vi.fn(), getMemory: vi.fn(), getBalance: vi.fn(), getUsage: vi.fn(), getHistory: vi.fn(), getParticipants: vi.fn(), getQuote: vi.fn(), chat: vi.fn(), cancelRequest: vi.fn(), getRequest: vi.fn(), previewAction: vi.fn(), executeAction: vi.fn(), getSourcePreview: vi.fn() } }));
 vi.mock('@/services/echo', () => ({ default: vi.fn() }));
 const deferred = <T,>() => { let resolve!: (value: T) => void; const promise = new Promise<T>((done) => { resolve = done; }); return { promise, resolve }; };
 beforeEach(() => {
@@ -23,6 +23,21 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 const selectFirst = async () => { await screen.findByRole('button', { name: 'Первый' }); fireEvent.click(screen.getByRole('button', { name: 'Первый' })); await screen.findByLabelText('Вопрос помощнику'); };
 describe('AiAssistantPage', () => {
+  it('opens only original source_refs citations and preserves their index beside legacy extra sources', async () => {
+    const locator = { entity_type: 'assistant_document', entity_id: 159, project_id: 52, document_id: 159, unit_id: 4, chunk_id: 219753 };
+    vi.mocked(aiAssistantService.getHistory).mockResolvedValue({ items: [{ id: '22', role: 'assistant', content: 'Ответ', metadata: {
+      source_refs_version: 'ordinary-publication-locator/1', source_refs: [{ entity_type: 'project', entity_id: 52, project_id: 52 }, locator],
+      rag_context: { sources: [locator] },
+    } }], meta: null });
+    vi.mocked(aiAssistantService.getSourcePreview).mockResolvedValue({ message_id: '22', source_index: 1, source: locator, kind: 'source_chunk_preview', title: 'Источник', content: 'Подтверждённый текст', content_range: { offset: 0, length: 19, total_length: 19, truncated: false } });
+    render(<AiAssistantPage />);
+    await selectFirst();
+    const buttons = await screen.findAllByRole('button', { name: 'Открыть источник' });
+    expect(buttons).toHaveLength(1);
+    fireEvent.click(buttons[0]);
+    expect(await screen.findByText('Подтверждённый текст')).toBeInTheDocument();
+    expect(aiAssistantService.getSourcePreview).toHaveBeenCalledWith('11', '22', 1, expect.any(AbortSignal));
+  });
   it('shows usage statistics and the shared wallet balance without a request quota', async () => {
     render(<AiAssistantPage />);
     expect(await screen.findByText('Запросов: 12')).toBeInTheDocument();

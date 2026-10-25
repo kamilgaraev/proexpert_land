@@ -1,7 +1,7 @@
 import { API_URL, authApi, userManagementService } from '@/utils/api';
 import { getJsonAuthHeaders } from '@/utils/authTokenStorage';
 import type { OrganizationTeamPage } from '@/types/organization-team';
-import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantChatSubmission, AiAssistantRequestAccepted, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantProgress, AiAssistantProgressCode, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage } from '@/types/aiAssistant';
+import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantChatSubmission, AiAssistantRequestAccepted, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantProgress, AiAssistantProgressCode, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage, AiAssistantSourcePreview } from '@/types/aiAssistant';
 
 type LandingResponse<T> = { success: boolean; message?: string; data: T; meta?: AiAssistantPaginationMeta };
 const assistantBaseUrl = API_URL.replace(/\/landing$/, '') + '/ai-assistant';
@@ -86,6 +86,7 @@ export const aiAssistantService = {
   getConversations: async (page = 1, signal?: AbortSignal) => { const response = await request<AiAssistantConversation[]>(`/conversations?page=${page}&per_page=20`, { signal }); return { items: response.data.map(normalizeConversation), meta: response.meta ?? null }; },
   createConversation: async (title?: string, signal?: AbortSignal) => normalizeConversation((await request<AiAssistantConversation>('/conversations', post({ title }, signal))).data),
   deleteConversation: async (id: string) => { await request<null>(`/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
+  getSourcePreview: async (conversationId: string, messageId: string, sourceIndex: number, signal?: AbortSignal) => (await request<AiAssistantSourcePreview>(`/conversations/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}/sources/${sourceIndex}`, { signal })).data,
   getHistory: async (id: string, page = 1, signal?: AbortSignal) => { const response = await request<AiAssistantMessage[]>(`/conversations/${encodeURIComponent(id)}/history?page=${page}&per_page=30`, { signal }); return { items: response.data.map(normalizeMessage), meta: response.meta ?? null }; },
   getParticipants: async (id: string, signal?: AbortSignal) => (await request<AiAssistantParticipant[]>(`/conversations/${encodeURIComponent(id)}/participants`, { signal })).data.map(normalizeParticipant),
   setParticipants: async (id: string, participants: AiAssistantParticipant[]) => (await request<AiAssistantParticipant[]>(`/conversations/${encodeURIComponent(id)}/participants`, { method: 'PUT', body: JSON.stringify({ participants: participants.map(({ user_id, role }) => ({ user_id, role })) }) })).data.map(normalizeParticipant),
