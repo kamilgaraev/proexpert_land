@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AiAssistantCoveragePanel from './AiAssistantCoveragePanel';
 import AiAssistantAttachmentImage from './AiAssistantAttachmentImage';
+import { assistantTypedFactsScope, assistantTypedFactsSnapshot, emptyAssistantTypedFacts, receiveAssistantTypedFacts } from './assistantTypedFacts';
 import { AuthContext } from '@/contexts/AuthContext';
 import { useCanAccess } from '@/hooks/usePermissions';
 import { aiAssistantService, AssistantApiError, createAiAssistantRequestId } from '@/services/aiAssistantService';
@@ -55,16 +56,21 @@ const detailedProcessingDeadline = (quote: AiAssistantQuote) => {
   return `Подробный анализ: ожидание до ${duration}.`;
 };
 class AiAssistantRequestTerminalError extends Error {}
-type ApprovedQuote = { input: AiAssistantChatInput; quote: AiAssistantQuote };
+type ApprovedQuote = { input: AiAssistantChatInput; quote: AiAssistantQuote; scope: string | null; typedFactsExpiresAt?: number };
 type DraftAttachment = { file: File; preview: string; metadata?: AiAssistantAttachment; progress: number; error?: string };
 const attachmentError = (file: File) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ? 'Поддерживаются JPEG, PNG и WebP.' : file.size > 5 * 1024 * 1024 ? 'Размер изображения не должен превышать 5 МБ.' : null;
 
 const AiAssistantPage = () => {
   const { user } = useContext(AuthContext);
+  const identity = JSON.stringify([user?.id, user?.current_organization_id]);
+  const identityRef = useRef(identity);
+  identityRef.current = identity;
   const canManageBilling = useCanAccess({ permission: 'billing.manage' });
   const [conversations, setConversations] = useState<AiAssistantConversation[]>([]);
   const [listMeta, setListMeta] = useState<AiAssistantPaginationMeta | null>(null);
   const [conversation, setConversation] = useState<AiAssistantConversation | null>(null);
+  const typedFacts = useRef(emptyAssistantTypedFacts(null));
+  const scope = assistantTypedFactsScope(user?.id, user?.current_organization_id, conversation?.id);
   const [messages, setMessages] = useState<AiAssistantMessage[]>([]);
   const [historyMeta, setHistoryMeta] = useState<AiAssistantPaginationMeta | null>(null);
   const [participants, setParticipants] = useState<AiAssistantParticipant[]>([]);
@@ -99,6 +105,7 @@ const AiAssistantPage = () => {
   const epoch = useRef(0);
   const mounted = useRef(false);
   const busyRef = useRef(false);
+  const busyOperation = useRef<symbol | null>(null);
   const historyController = useRef<AbortController | null>(null);
   const activeRequest = useRef<{ id: string; conversationId: string; controller: AbortController; cancelled: boolean; cancelRequested: boolean; approved: ApprovedQuote; deadline: number; timer?: ReturnType<typeof setTimeout> } | null>(null);
   const realtimePollWake = useRef<(() => void) | null>(null);
@@ -106,7 +113,7 @@ const AiAssistantPage = () => {
   const canEdit = !!conversation && (conversation.can_edit ?? (isOwner || participants.some((item) => item.user_id === String(user?.id) && item.role === 'editor')));
   const canPurchaseCredits = balance?.billing_mode !== 'shadow' && balance?.charging_enabled === true && balance?.pack_purchase_enabled !== false && (balance?.can_purchase ?? balance?.can_manage_billing ?? canManageBilling);
   const visibleCompletedProgress = completedSources(activeProgress);
-  const current = (version: number) => mounted.current && version === epoch.current;
+  const current = (version: number) => mounted.current && version === epoch.current && identityRef.current === identity;
   useEffect(() => {
     if (requestStartedAt === null) return;
     const updateElapsed = () => setElapsedSeconds(Math.floor((Date.now() - requestStartedAt) / 1000));
@@ -141,32 +148,39 @@ const AiAssistantPage = () => {
   const run = async (operation: () => Promise<void>) => {
     if (busyRef.current) return;
     busyRef.current = true; setBusy(true); setError('');
+    const operationId = Symbol(); busyOperation.current = operationId;
     const version = epoch.current;
     try { await operation(); } catch (reason) { if (current(version)) setError(failureText(reason)); }
-    finally { busyRef.current = false; if (mounted.current) setBusy(false); }
+    finally { if (busyOperation.current === operationId) { busyOperation.current = null; busyRef.current = false; if (mounted.current && identityRef.current === identity) setBusy(false); } }
   };
   const selectConversation = async (selected: AiAssistantConversation) => {
     if (activeRequest.current || busyRef.current) return;
     historyController.current?.abort();
     const controller = new AbortController(); historyController.current = controller;
     const version = ++epoch.current;
+    const selectedScope = assistantTypedFactsScope(user?.id, user?.current_organization_id, selected.id);
+    typedFacts.current = emptyAssistantTypedFacts(selectedScope);
     attachmentControllers.current.forEach((item) => item.abort()); attachmentControllers.current.clear(); uploadingAttachments.current = null; setIsUploadingAttachments(false); setAttachments((items) => { items.forEach((item) => URL.revokeObjectURL(item.preview)); return []; });
     setConversation(selected); setMessages([]); setParticipants([]); setHistoryMeta(null); setApproved(null); setPreview(null); setSharing(false); setQuestion(''); setError(''); setLoading(true); setStage(''); setRequestStartedAt(null); setActiveProgress([]); activeProgressRef.current = []; setCompletedProgress({});
     try {
       const [history, people] = await Promise.all([aiAssistantService.getHistory(selected.id, 1, controller.signal), aiAssistantService.getParticipants(selected.id, controller.signal)]);
-      if (current(version)) { setMessages(history.items); setHistoryMeta(history.meta); setParticipants(people); }
+      if (current(version)) { typedFacts.current = receiveAssistantTypedFacts(typedFacts.current, selectedScope, history.items, Date.now()); setMessages(history.items); setHistoryMeta(history.meta); setParticipants(people); }
     } catch (reason) { if (current(version) && !controller.signal.aborted) setError(failureText(reason)); }
     finally { if (current(version)) setLoading(false); }
   };
   useEffect(() => {
     mounted.current = true;
+    busyOperation.current = null;
+    typedFacts.current = emptyAssistantTypedFacts(null);
+    setConversation(null); setConversations([]); setListMeta(null); setMessages([]); setHistoryMeta(null); setParticipants([]); setMembers([]); setMemberMeta(null); setSharing(false); setApproved(null); setPreview(null); setQuestion(''); setMemory([]); setMemoryText(''); setEditingMemory(null); setBalance(null); setUsage(null); setError(''); setLoading(true); setBusy(false); busyRef.current = false; activeRequest.current = null; setStage(''); setRequestStartedAt(null); setActiveProgress([]); activeProgressRef.current = []; setCompletedProgress({});
+    setAttachments([]); setIsUploadingAttachments(false); uploadingAttachments.current = null;
     const controller = new AbortController();
     void Promise.all([aiAssistantService.getConversations(1, controller.signal), aiAssistantService.getMemory(controller.signal), aiAssistantService.getBalance(controller.signal), aiAssistantService.getUsage(controller.signal).catch(() => null)]).then(([list, personalMemory, wallet, statistics]) => {
       if (controller.signal.aborted) return;
       setConversations(list.items); setListMeta(list.meta); setMemory(personalMemory); setBalance(wallet); setUsage(statistics); setLoading(false);
     }).catch((reason) => { if (!controller.signal.aborted) { setError(failureText(reason)); setLoading(false); } });
     return () => { mounted.current = false; epoch.current++; controller.abort(); historyController.current?.abort(); attachmentControllers.current.forEach((item) => item.abort()); attachmentControllers.current.clear(); attachmentsRef.current.forEach((item) => URL.revokeObjectURL(item.preview)); const request = activeRequest.current; if (request) { request.cancelled = true; clearTimeout(request.timer); request.controller.abort(); void aiAssistantService.cancelRequest(request.id).catch(() => undefined); } };
-  }, []);
+  }, [user?.id, user?.current_organization_id]);
   const addImages = async (files: FileList | null) => {
     if (!files || !conversation || uploadingAttachments.current || attachments.length >= 2) return;
     const batchId = Symbol(); uploadingAttachments.current = batchId; setIsUploadingAttachments(true); setApproved(null);
@@ -192,10 +206,14 @@ const AiAssistantPage = () => {
     return run(async () => {
       const readyAttachments = attachments.filter((item) => item.metadata && !item.error);
       if (!conversation || !canEdit || (!question.trim() && readyAttachments.length === 0) || attachments.some((item) => !item.metadata || item.error)) return;
-      const input: AiAssistantChatInput = { conversation_id: conversation.id, message: question.trim() || 'Проанализируй прикреплённое изображение.', request_id: createAiAssistantRequestId(), profile, allow_actions: allowActions, context: {}, ...(readyAttachments.length ? { attachment_ids: readyAttachments.map((item) => item.metadata!.id) } : {}) };
+      const snapshot = assistantTypedFactsSnapshot(typedFacts.current, scope, Date.now());
+      const receipt = typedFacts.current.receipt;
+      const input: AiAssistantChatInput = { conversation_id: conversation.id, message: question.trim() || 'Проанализируй прикреплённое изображение.', request_id: createAiAssistantRequestId(), profile, allow_actions: allowActions, context: snapshot.context, ...(readyAttachments.length ? { attachment_ids: readyAttachments.map((item) => item.metadata!.id) } : {}) };
       const version = epoch.current;
       const quote = await aiAssistantService.getQuote(input);
-      const approvedQuote = { input, quote };
+      if (!current(version)) return;
+      if (typedFacts.current.receipt !== receipt || (snapshot.expiresAt !== undefined && snapshot.expiresAt <= Date.now())) { setApproved(null); throw new Error('Данные чата обновились. Рассчитайте стоимость снова.'); }
+      const approvedQuote = { input, quote, scope, typedFactsExpiresAt: snapshot.expiresAt };
       if (current(version) && quote.min_units_minor === 0 && quote.max_units_minor === 0) {
         setApproved(null);
         await sendApproved(approvedQuote);
@@ -222,7 +240,7 @@ const AiAssistantPage = () => {
       try {
         state = await aiAssistantService.getRequest(active.id, active.controller.signal);
       } catch (reason) {
-        if (active.cancelled || active.controller.signal.aborted) throw reason;
+        if (!current(version) || active.cancelled || active.controller.signal.aborted) throw reason;
         if (reason instanceof AssistantApiError && (reason.status === 404 || reason.status === 422)) {
           setApproved(null);
           throw new AiAssistantRequestTerminalError('Запрос не принят или оценка истекла. Рассчитайте стоимость снова.');
@@ -237,7 +255,9 @@ const AiAssistantPage = () => {
           setApproved(null);
           throw new AiAssistantRequestTerminalError('Оценка истекла. Рассчитайте стоимость снова.');
         }
+        if (active.approved.typedFactsExpiresAt !== undefined && active.approved.typedFactsExpiresAt <= Date.now()) { setApproved(null); throw new AiAssistantRequestTerminalError('Срок использования предыдущего ответа истёк. Рассчитайте стоимость снова.'); }
         const submitted = await aiAssistantService.chat({ ...active.approved.input, quote_id: active.approved.quote.quote_id }, active.controller.signal);
+        if (!current(version) || active.cancelled) throw new AiAssistantRequestTerminalError('Запрос остановлен.');
         if (submitted.request_id !== active.id) throw new AiAssistantRequestTerminalError('Результат запроса не совпадает с выбранным чатом.');
         if ('message' in submitted) return submitted;
         state = submitted;
@@ -256,15 +276,17 @@ const AiAssistantPage = () => {
     throw new Error('Запрос занимает больше обычного. Проверьте чат позже.');
   };
   async function sendApproved(approvedQuote: ApprovedQuote) {
-    if (!canEdit || approvedQuote.input.conversation_id !== conversation?.id) return;
+    if (!canEdit || approvedQuote.input.conversation_id !== conversation?.id || approvedQuote.scope !== scope || identityRef.current !== identity) return;
     const readyAttachments = attachments.filter((item) => item.metadata && approvedQuote.input.attachment_ids?.includes(item.metadata.id));
     if (Date.parse(approvedQuote.quote.expires_at) <= Date.now()) { setApproved(null); throw new Error('Оценка истекла. Рассчитайте стоимость снова.'); }
+    if (approvedQuote.typedFactsExpiresAt !== undefined && approvedQuote.typedFactsExpiresAt <= Date.now()) { setApproved(null); throw new Error('Срок использования предыдущего ответа истёк. Рассчитайте стоимость снова.'); }
     const version = epoch.current;
     const active = { id: approvedQuote.input.request_id, conversationId: approvedQuote.input.conversation_id, controller: new AbortController(), cancelled: false, cancelRequested: false, approved: approvedQuote, deadline: Date.now() + 9 * 60 * 1000, timer: undefined as ReturnType<typeof setTimeout> | undefined };
     activeRequest.current = active;
     setRequestStartedAt(Date.now()); setElapsedSeconds(0); setActiveProgress([]); activeProgressRef.current = []; setStage('sending');
     try {
       const result = await aiAssistantService.chat({ ...approvedQuote.input, quote_id: approvedQuote.quote.quote_id }, active.controller.signal);
+      if (!current(version) || active.cancelled) return;
       if (result.request_id !== active.id) throw new Error('Не удалось проверить состояние запроса.');
       if (!('message' in result)) {
         setStage(result.stage);
@@ -275,14 +297,16 @@ const AiAssistantPage = () => {
       const chatResult = 'message' in result ? result : await waitForRequest(active, version);
       if (chatResult.request_id !== active.id || String(chatResult.conversation_id) !== approvedQuote.input.conversation_id) throw new Error('Результат запроса не совпадает с выбранным чатом.');
       if (current(version) && !active.cancelled) {
+        typedFacts.current = receiveAssistantTypedFacts(typedFacts.current, approvedQuote.scope, [chatResult.message], Date.now());
         const finalProgress = mergeProgress(activeProgressRef.current, chatResult.progress ?? []);
         if (chatResult.message.id && finalProgress.length) setCompletedProgress((items) => ({ ...items, [chatResult.message.id]: finalProgress }));
         setMessages((items) => mergeMessages([...items, { id: `user-${active.id}`, role: 'user', content: approvedQuote.input.message, metadata: { attachments: readyAttachments.map((item) => item.metadata!) } }, chatResult.message]));
         setAttachments((items) => { readyAttachments.forEach((item) => URL.revokeObjectURL(item.preview)); return items.filter((item) => !readyAttachments.includes(item)); }); setQuestion(''); setApproved(null); setBalance((wallet) => wallet && chatResult.credit_usage.available_after_minor != null ? { ...wallet, available_minor: Number(chatResult.credit_usage.available_after_minor) } : wallet);
-        void aiAssistantService.getUsage().then(setUsage).catch(() => undefined);
+        void aiAssistantService.getUsage().then((statistics) => { if (current(version)) setUsage(statistics); }).catch(() => undefined);
         void refreshConversations(version);
       }
     } catch (reason) {
+      if (!current(version) || active.cancelled) return;
       if (reason instanceof AssistantApiError && (reason.status === 404 || reason.status === 422)) setApproved(null);
       if (!active.cancelled && !(reason instanceof AssistantApiError) && !(reason instanceof AiAssistantRequestTerminalError)) {
         try {
@@ -290,15 +314,17 @@ const AiAssistantPage = () => {
           const recovered = await waitForRequest(active, version);
           if (recovered.request_id !== active.id || String(recovered.conversation_id) !== approvedQuote.input.conversation_id) throw new Error('Результат запроса не совпадает с выбранным чатом.');
           if (current(version) && !active.cancelled) {
+            typedFacts.current = receiveAssistantTypedFacts(typedFacts.current, approvedQuote.scope, [recovered.message], Date.now());
             const finalProgress = mergeProgress(activeProgressRef.current, recovered.progress ?? []);
             if (recovered.message.id && finalProgress.length) setCompletedProgress((items) => ({ ...items, [recovered.message.id]: finalProgress }));
             setMessages((items) => mergeMessages([...items, { id: `user-${active.id}`, role: 'user', content: approvedQuote.input.message, metadata: { attachments: readyAttachments.map((item) => item.metadata!) } }, recovered.message]));
             setAttachments((items) => { readyAttachments.forEach((item) => URL.revokeObjectURL(item.preview)); return items.filter((item) => !readyAttachments.includes(item)); });
             setQuestion(''); setApproved(null); setBalance((wallet) => wallet && recovered.credit_usage.available_after_minor != null ? { ...wallet, available_minor: Number(recovered.credit_usage.available_after_minor) } : wallet);
-            void aiAssistantService.getUsage().then(setUsage).catch(() => undefined);
+            void aiAssistantService.getUsage().then((statistics) => { if (current(version)) setUsage(statistics); }).catch(() => undefined);
             void refreshConversations(version);
           }
         } catch (recoveryError) {
+          if (!current(version) || active.cancelled) return;
           if (recoveryError instanceof AssistantApiError && (recoveryError.status === 404 || recoveryError.status === 422)) setApproved(null);
           throw recoveryError;
         }
@@ -330,7 +356,7 @@ const AiAssistantPage = () => {
     if (!conversation || !historyMeta || historyMeta.current_page >= historyMeta.last_page) return;
     const version = epoch.current;
     const history = await aiAssistantService.getHistory(conversation.id, historyMeta.current_page + 1);
-    if (current(version)) { setMessages((items) => mergeMessages([...history.items, ...items])); setHistoryMeta(history.meta); }
+    if (current(version)) { typedFacts.current = receiveAssistantTypedFacts(typedFacts.current, scope, history.items, Date.now()); setApproved(null); setMessages((items) => mergeMessages([...history.items, ...items])); setHistoryMeta(history.meta); }
   });
   const openSharing = () => run(async () => {
     if (!isOwner) return;
@@ -363,7 +389,7 @@ const AiAssistantPage = () => {
     </aside>
     <section className="min-w-0 space-y-5"><header><Bot className="mb-3 h-8 w-8 text-primary" /><h1 className="text-3xl font-bold">Помощник МОСТ</h1><p className="mt-2 text-muted-foreground">Помощник анализирует данные организации и помогает перейти к нужным разделам. Изменения выполняются после вашего подтверждения.</p></header>{error && <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
       <Card><CardContent className="space-y-5 p-5">{loading ? <p><Loader2 className="inline h-4 w-4 animate-spin" /> Загружаем…</p> : !conversation ? <p>Выберите или создайте чат.</p> : <>
-        {isOwner && <div className="flex flex-wrap gap-2"><Button variant="outline" disabled={busy} onClick={() => void openSharing()}>Настроить доступ</Button><Button variant="outline" disabled={busy} onClick={() => void run(async () => { await aiAssistantService.deleteConversation(conversation.id); epoch.current++; setConversations((items) => items.filter((item) => item.id !== conversation.id)); setConversation(null); setMessages([]); setApproved(null); setPreview(null); })}>Удалить чат</Button></div>}
+        {isOwner && <div className="flex flex-wrap gap-2"><Button variant="outline" disabled={busy} onClick={() => void openSharing()}>Настроить доступ</Button><Button variant="outline" disabled={busy} onClick={() => void run(async () => { await aiAssistantService.deleteConversation(conversation.id); epoch.current++; typedFacts.current = emptyAssistantTypedFacts(null); setConversations((items) => items.filter((item) => item.id !== conversation.id)); setConversation(null); setMessages([]); setApproved(null); setPreview(null); })}>Удалить чат</Button></div>}
         {sharing && <div className="space-y-3 rounded border p-3"><p>Доступ к чату не расширяет права на данные. Без участников чат личный.</p>{members.filter((member) => String(member.id) !== String(user?.id)).map((member) => <label key={member.id} className="flex items-center justify-between gap-3"><span>{member.name}</span><select aria-label={`Доступ: ${member.name}`} value={participants.find((item) => item.user_id === String(member.id))?.role ?? ''} onChange={(event) => { const role = event.target.value; setParticipants((items) => [...items.filter((item) => item.user_id !== String(member.id)), ...(role === 'viewer' || role === 'editor' ? [{ user_id: String(member.id), name: member.name, role } satisfies AiAssistantParticipant] : [])]); }}><option value="">Нет доступа</option><option value="viewer">Читатель</option><option value="editor">Участник</option></select></label>)}{memberMeta && memberMeta.current_page < memberMeta.last_page && <Button variant="ghost" disabled={busy} onClick={() => void run(async () => { const next = await aiAssistantService.getActiveMembers(memberMeta.current_page + 1); setMembers((items) => [...items, ...next.items]); setMemberMeta(next.meta); })}>Ещё сотрудники</Button>}<Button disabled={busy} onClick={() => void run(async () => { setParticipants(await aiAssistantService.setParticipants(conversation.id, participants)); setSharing(false); })}>Подтвердить доступ</Button><Button variant="ghost" disabled={busy} onClick={() => void run(async () => { setParticipants(await aiAssistantService.getParticipants(conversation.id)); setSharing(false); })}>Отмена</Button></div>}
         {historyMeta && historyMeta.current_page < historyMeta.last_page && <Button variant="outline" disabled={busy} onClick={() => void loadOlder()}>Предыдущие сообщения</Button>}
         <div className="max-h-[52vh] space-y-4 overflow-y-auto pr-1">{messages.length === 0 && attachments.length === 0 && <p className="text-sm text-muted-foreground">Задайте вопрос помощнику или прикрепите изображение.</p>}{messages.map((item) => <article key={item.id} className={item.role === 'user' ? 'ml-4 rounded-lg bg-primary p-3 text-primary-foreground' : 'mr-4 rounded-lg bg-muted p-3'}><p className="whitespace-pre-wrap">{item.content}</p>{completedSources(completedProgress[item.id] ?? []).length > 0 && <ol aria-label="Проверенные разделы" className="mt-3 space-y-1 border-t pt-2 text-xs text-muted-foreground">{completedSources(completedProgress[item.id] ?? []).map((step) => <li key={step.code}>{progressLabels[step.code].completed}</li>)}</ol>}{item.metadata?.attachments?.map((attachment) => <AiAssistantAttachmentImage key={attachment.id} attachment={attachment} />)}{[...(item.metadata?.source_refs ?? []), ...(item.metadata?.rag_context?.sources ?? []), ...(item.metadata?.entity_references ?? [])].map((source, index) => { if (conversation && index < (item.metadata?.source_refs?.length ?? 0) && isDocumentCitation(source, item.metadata?.source_refs_version)) return <AiAssistantCitation key={`citation-${item.id}-${index}`} conversationId={conversation.id} messageId={item.id} sourceIndex={index} source={source} version={item.metadata?.source_refs_version} />; const sourceUrl = source.navigation?.url ?? source.url; const reportUrl = sourceUrl?.includes('/api/v1/ai-assistant/reports/') ? sourceUrl : undefined; const href = reportUrl ? undefined : assistantSourceUrl(sourceUrl, assistantSourceProjectId(source)); if (reportUrl) return <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => void downloadArtifact(reportUrl, source.title ?? 'Отчёт')}>Скачать отчёт: {source.title ?? 'Отчёт'}</Button></div>; return href ? <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2 text-xs"><a href={href} className="underline" target="_blank" rel="noreferrer">Открыть проект: {source.title ?? source.name ?? 'Источник'}</a></div> : null; })}{item.metadata?.artifacts?.map((artifact, index) => { const url = artifact.download_url ?? artifact.url; return url ? <Button key={`artifact-${index}`} className="mt-2" variant="outline" disabled={busy} onClick={() => void downloadArtifact(url, artifact.filename ?? artifact.file_name ?? 'Отчёт')}>Скачать: {artifact.title ?? artifact.filename ?? 'Отчёт'}</Button> : null; })}{(item.metadata?.proposed_actions ?? item.metadata?.suggested_actions ?? item.metadata?.actions ?? item.metadata?.next_actions?.filter((action) => action.tool_name && action.type === 'act' && action.requires_confirmation) ?? []).map((action, index) => <Button key={index} className="mt-2" variant="outline" disabled={busy || !canEdit || action.allowed === false} onClick={() => void prepareAction({ ...action, origin_request_id: action.origin_request_id ?? item.metadata?.request_id })}>Проверить действие: {action.label ?? 'Предложенное изменение'}</Button>)}</article>)}</div>
