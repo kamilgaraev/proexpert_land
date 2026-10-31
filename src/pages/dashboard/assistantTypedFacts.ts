@@ -2,6 +2,7 @@ import type { AiAssistantMessage, AiAssistantTypedFactsLocator } from '@/types/a
 
 const lifetime = 15 * 60 * 1000;
 type Receipt = { locator: AiAssistantTypedFactsLocator; createdAt: number; expiresAt: number };
+const receiptKey = (locator: AiAssistantTypedFactsLocator) => `${locator.receipt_id}:${locator.receipt_hash}`;
 export type AssistantTypedFactsState = { scope: string | null; receipt: Receipt | null };
 
 export const assistantTypedFactsScope = (actorId: string | number | undefined, organizationId: number | undefined, conversationId: string | undefined): string | null =>
@@ -21,15 +22,22 @@ const parseLocator = (value: unknown): AiAssistantTypedFactsLocator | null => {
 
 export const receiveAssistantTypedFacts = (state: AssistantTypedFactsState, expectedScope: string | null, messages: AiAssistantMessage[], now: number): AssistantTypedFactsState => {
   if (!expectedScope || state.scope !== expectedScope) return state;
-  let receipt = state.receipt;
+  const receipts = new Map<string, Receipt>();
+  if (state.receipt) receipts.set(receiptKey(state.receipt.locator), state.receipt);
   for (const message of messages) {
     if (message.role !== 'assistant' || !message.created_at) continue;
     const locator = parseLocator(message.metadata?.typed_facts);
     if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$/.test(message.created_at)) continue;
     const createdAt = Date.parse(message.created_at);
-    if (!locator || !Number.isFinite(createdAt) || new Date(createdAt).toISOString().slice(0, 19) !== message.created_at.slice(0, 19) || createdAt > now || createdAt + lifetime <= now) continue;
-    if (receipt?.locator.receipt_id === locator.receipt_id && receipt.locator.receipt_hash === locator.receipt_hash) continue;
-    if (!receipt || createdAt > receipt.createdAt) receipt = { locator, createdAt, expiresAt: createdAt + lifetime };
+    if (!locator || !Number.isFinite(createdAt) || new Date(createdAt).toISOString().slice(0, 19) !== message.created_at.slice(0, 19) || createdAt > now) continue;
+    const key = receiptKey(locator);
+    const previous = receipts.get(key);
+    if (!previous || createdAt < previous.createdAt) receipts.set(key, { locator, createdAt, expiresAt: createdAt + lifetime });
+  }
+  let receipt = state.receipt ? receipts.get(receiptKey(state.receipt.locator))! : null;
+  for (const candidate of receipts.values()) {
+    if (candidate.expiresAt <= now) continue;
+    if (!receipt || receipt.expiresAt <= now || candidate.createdAt > receipt.createdAt) receipt = candidate;
   }
   return receipt === state.receipt ? state : { ...state, receipt };
 };

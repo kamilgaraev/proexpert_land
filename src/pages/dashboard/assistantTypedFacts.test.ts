@@ -36,6 +36,24 @@ describe('ordinary assistant typed facts context', () => {
     expect(assistantTypedFactsSnapshot(repeated, scope, now + 14 * 60_000).context).toEqual({});
   });
 
+  it.each([false, true])('uses the earliest original timestamp before checking history expiry, reversed=%s', (reverse) => {
+    const original = message();
+    const repeated = message({ id: '21', created_at: '2026-10-25T10:02:00Z' });
+    const history = reverse ? [original, repeated] : [repeated, original];
+    const restored = receiveAssistantTypedFacts(emptyAssistantTypedFacts(scope), scope, history, now + 15 * 60_000);
+    expect(assistantTypedFactsSnapshot(restored, scope, now + 15 * 60_000).context).toEqual({});
+  });
+
+  it('shortens an already restored duplicate when an older history page contains its expired original', () => {
+    const later = now + 15 * 60_000;
+    const repeated = message({ id: '21', created_at: '2026-10-25T10:02:00Z' });
+    const restored = receiveAssistantTypedFacts(emptyAssistantTypedFacts(scope), scope, [repeated], later);
+    expect(assistantTypedFactsSnapshot(restored, scope, later).context).toEqual({ typed_facts: locator });
+    const withOriginal = receiveAssistantTypedFacts(restored, scope, [message()], later);
+    expect(withOriginal.receipt?.expiresAt).toBe(now + 14 * 60_000);
+    expect(assistantTypedFactsSnapshot(withOriginal, scope, later).context).toEqual({});
+  });
+
   it.each([assistantTypedFactsScope(8, 44, '11'), assistantTypedFactsScope(7, 45, '11'), assistantTypedFactsScope(7, 44, '12'), null])('does not carry context to changed scope %s or restore it from stale history', (nextScope) => {
     expect(assistantTypedFactsSnapshot(initial(), nextScope, now).context).toEqual({});
     const changed = emptyAssistantTypedFacts(nextScope);
