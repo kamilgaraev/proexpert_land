@@ -181,13 +181,12 @@ const respondWithSitemap = async (res, options = {}) => {
     });
     res.end(xml);
   } catch {
-    console.error('Sitemap generation failed: blog article list unavailable');
-    res.writeHead(503, {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'no-store',
-      'Retry-After': '300',
+    console.error('Sitemap generation degraded: blog article list unavailable, serving static routes');
+    res.writeHead(200, {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=300',
     });
-    res.end('Карта сайта временно недоступна.');
+    res.end(renderSitemapXml([]));
   }
 };
 
