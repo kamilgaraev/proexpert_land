@@ -81,8 +81,8 @@ export const marketingProductSeoLandingPages: Record<
     visibilityDescription:
       "Каждый участник видит ту часть закупки, за которую отвечает.",
     blogLinks: [
+      getMarketingBlogLink("procurementProcess"),
       getMarketingBlogLink("procurementChats"),
-      getMarketingBlogLink("managerMorning"),
     ],
     contactHighlights: [
       "Разберём путь одной потребности от объекта до приёмки.",
@@ -1063,8 +1063,8 @@ export const marketingProductSeoLandingPages: Record<
     visibilityDescription:
       "Генподрядчик видит отправленные приглашения, подрядчик видит входящие условия и выбирает действие по каждому из них.",
     blogLinks: [
+      getMarketingBlogLink("contractorOversight"),
       getMarketingBlogLink("contractorControl"),
-      getMarketingBlogLink("foremanOrder"),
     ],
     contactHighlights: [
       "Разберем, какие роли и пакеты работ нужно передавать субподрядчику по объекту.",
@@ -1227,8 +1227,8 @@ export const marketingProductSeoLandingPages: Record<
     visibilityDescription:
       "Заказчик видит найденные профили и отправленные приглашения, а подрядчик получает условия только тех проектов, куда его пригласили.",
     blogLinks: [
+      getMarketingBlogLink("contractorOversight"),
       getMarketingBlogLink("contractorControl"),
-      getMarketingBlogLink("managerMorning"),
     ],
     contactHighlights: [
       "Определим категории работ и сведения профиля, необходимые перед отправкой приглашения.",

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { marketingSitemapRoutes } from '@/data/marketingRegistry';
 import { buildArticleDocumentProps } from '@/pages/catch-all.page.server';
 import { normalizeArticleTitleBrand } from './seo';
@@ -470,6 +470,34 @@ describe('sitemap sync', () => {
 
     expect(sitemapXml).toContain('<loc>https://1мост.рф/blog/kak-kontrolirovat-podryadchikov</loc>');
     expect(sitemapXml).toContain('<lastmod>2026-05-27T08:00:00.000Z</lastmod>');
+  });
+
+  it('serves static marketing routes instead of an error when the blog article list is unavailable', async () => {
+    const { respondWithSitemap, STATIC_MARKETING_SITEMAP_ROUTES } = require(path.resolve(process.cwd(), 'server/sitemap.cjs')) as {
+      respondWithSitemap: (
+        res: { writeHead: (status: number, headers: Record<string, string>) => void; end: (body: string) => void },
+        options: { apiBase?: string; fetchImpl?: () => Promise<Response> },
+      ) => Promise<void>;
+      STATIC_MARKETING_SITEMAP_ROUTES: Array<{ path: string }>;
+    };
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const writeHead = vi.fn();
+    const end = vi.fn();
+
+    await respondWithSitemap(
+      { writeHead, end },
+      { apiBase: 'https://api.example.test', fetchImpl: () => Promise.resolve(new Response('Unavailable', { status: 503 })) },
+    );
+
+    expect(writeHead).toHaveBeenCalledWith(200, expect.objectContaining({
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=300',
+    }));
+    const xml = String(end.mock.calls[0][0]);
+    expect(xml.match(/<url>/g)).toHaveLength(STATIC_MARKETING_SITEMAP_ROUTES.length);
+    expect(xml).toContain('<loc>https://1мост.рф/construction-brigades</loc>');
+    expect(xml).not.toContain('/blog/');
+    consoleError.mockRestore();
   });
 
   it('uses published_at when updated_at is invalid', () => {

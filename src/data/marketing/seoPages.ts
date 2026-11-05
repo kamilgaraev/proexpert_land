@@ -189,6 +189,36 @@ export const marketingCommercialLandingLinks: MarketingContentLink[] = [
     description:
       "Пилотная ежедневная сводка и сигналы для управленческой проверки.",
   },
+  {
+    label: "Строительные заказы для подрядчиков",
+    href: marketingPaths.constructionOrders,
+    description: "Заказы и приглашения на работы по объектам.",
+  },
+  {
+    label: "Строительные тендеры",
+    href: marketingPaths.constructionTenders,
+    description: "Сбор предложений, сроки участия и выбор исполнителя.",
+  },
+  {
+    label: "Субподряд в строительстве",
+    href: marketingPaths.subcontracting,
+    description: "Приглашения субподрядчиков и условия работ по объекту.",
+  },
+  {
+    label: "Поиск подрядчика",
+    href: marketingPaths.findContractor,
+    description: "Подбор исполнителя по видам работ и объекту.",
+  },
+  {
+    label: "Строительные бригады",
+    href: marketingPaths.constructionBrigades,
+    description: "Поиск бригады по видам работ и приглашение на объект.",
+  },
+  {
+    label: "Заказы на ремонт",
+    href: marketingPaths.renovationOrders,
+    description: "Ремонтные и отделочные работы с понятными условиями.",
+  },
 ];
 
 export const marketingRoleLandingLinks: MarketingContentLink[] = [
@@ -800,7 +830,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
             "Передавайте записи о выполненных работах и фотографии инженерам ПТО.",
         },
       ],
-      blogLinks: getMarketingBlogLinks("foremanOrder", "managerMorning"),
+      blogLinks: getMarketingBlogLinks("foremanOrder", "foremanAi"),
       contactHighlights: [
         "Покажем, как назначить задание и добавить фотографии результата.",
         "Покажем журнал работ и обработку отклонения.",
@@ -1233,7 +1263,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
           description: "Подтверждайте операции на площадке.",
         },
       ],
-      blogLinks: getMarketingBlogLinks("procurementChats", "foremanOrder"),
+      blogLinks: getMarketingBlogLinks("materialAccountingM29", "procurementChats"),
       contactHighlights: [
         "Покажем оформление прихода и перемещения.",
         "Покажем историю списаний по материалу.",
@@ -1522,7 +1552,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
           description: "Проверьте документы перед закрытием работ.",
         },
       ],
-      blogLinks: getMarketingBlogLinks("contractorControl", "managerMorning"),
+      blogLinks: getMarketingBlogLinks("contractorOversight", "contractorControl"),
       contactHighlights: [
         "Покажем карточку договора и этапов.",
         "Покажем подтверждение объёма и замечания.",
@@ -2106,7 +2136,10 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
             "Смотреть, как предварительный разбор связан с объектом, документами и аналитикой.",
         },
       ],
-      blogLinks: [{ ...allBlogArticlesLink }],
+      blogLinks: [
+        getMarketingBlogLink("estimateFromPdf"),
+        { ...allBlogArticlesLink },
+      ],
       contactHighlights: [
         "Покажем исходные данные, результат предварительного разбора и порядок экспертной проверки.",
         "Разберем, как использовать оценку с помощью AI в общей системе МОСТ.",
@@ -2948,7 +2981,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
             "Управленческие сигналы по изменениям, бюджету и срокам объекта.",
         },
       ],
-      blogLinks: getMarketingBlogLinks("ptoWorkspace", "managerMorning"),
+      blogLinks: getMarketingBlogLinks("rfiRequests", "ptoWorkspace"),
       contactHighlights: [
         "Покажем RFI и изменение с влиянием на сроки.",
         "Разберем связь изменения со сметой и платежами.",

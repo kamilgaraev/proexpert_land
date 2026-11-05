@@ -24,6 +24,9 @@ const groups = [
       { label: "Прорабу", href: marketingPaths.foremanSoftware },
       { label: "Инженеру ПТО", href: marketingPaths.ptoSoftware },
       { label: "Снабжению", href: marketingPaths.constructionProcurement },
+      { label: "Подрядчикам", href: marketingPaths.contractors },
+      { label: "Девелоперам", href: marketingPaths.developers },
+      { label: "Группам компаний", href: marketingPaths.enterprise },
     ],
   },
   {
