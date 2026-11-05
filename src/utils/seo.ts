@@ -58,12 +58,19 @@ export const ROBOTS_NOINDEX_CONTENT = 'noindex, nofollow, noarchive';
 export const GOOGLEBOT_INDEX_CONTENT = 'index, follow, max-snippet:-1, max-image-preview:large';
 export const GOOGLEBOT_NOINDEX_CONTENT = 'noindex, nofollow';
 const MARKETING_OG_IMAGE_PATTERN = /^(https?:\/\/(?:www\.)?(?:prohelper\.pro|1мост\.рф|xn--1-xtbgmf\.xn--p1ai))?\/og\/([^?#]+)\.svg([?#].*)?$/i;
+const ARTICLE_TITLE_MAX_LENGTH = 60;
 const ARTICLE_TITLE_BRAND_SUFFIX = /\s*\|\s*(?:prohelper|мост)\s*$/i;
 
 export const normalizeArticleTitleBrand = (title: string) => {
   const baseTitle = title.trim().replace(ARTICLE_TITLE_BRAND_SUFFIX, '').trim();
 
-  return baseTitle ? `${baseTitle} | МОСТ` : 'МОСТ';
+  if (!baseTitle) {
+    return 'МОСТ';
+  }
+
+  const brandedTitle = `${baseTitle} | МОСТ`;
+
+  return brandedTitle.length > ARTICLE_TITLE_MAX_LENGTH ? baseTitle : brandedTitle;
 };
 
 export const normalizeOgImageUrl = (image?: string | null) => {
