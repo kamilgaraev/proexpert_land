@@ -48,8 +48,7 @@ describe('buildServerSeoPayload', () => {
     expect(payload.canonicalUrl).toBe('https://1мост.рф/');
     expect(payload.faviconTags).toContain('/site.webmanifest.json');
     expect(payload.faviconTags).toContain('/favicon-120x120.png');
-    expect(payload.allMeta).toContain('<meta name="geo.region" content="RU-MOW" />');
-    expect(payload.allMeta).toContain('<meta name="geo.placename" content="Москва" />');
+    expect(payload.allMeta).not.toMatch(/name="(?:geo\.region|geo\.placename|geo\.position|ICBM|revisit-after|document-state)"/);
     expect(getGraphTypes(payload.structuredDataTag)).toEqual([
       'Organization',
       'WebSite',

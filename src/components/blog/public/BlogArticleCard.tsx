@@ -18,7 +18,7 @@ const BlogArticleCard = ({ article }: BlogArticleCardProps) => (
       >
         <img
           src={article.featured_image}
-          alt=""
+          alt={article.title}
           loading="lazy"
           decoding="async"
           width={960}

@@ -408,7 +408,7 @@ describe('sitemap sync', () => {
   it('keeps public robots on the readable .рф domain without legacy static artifacts', () => {
     const robotsTxt = fs.readFileSync(path.resolve(process.cwd(), 'public', 'robots.txt'), 'utf8');
 
-    expect(robotsTxt).toContain('Host: 1мост.рф');
+    expect(robotsTxt).not.toContain('Host:');
     expect(robotsTxt).toContain('Sitemap: https://1мост.рф/sitemap.xml');
     expect(robotsTxt).not.toContain('prohelper.pro');
     expect(robotsTxt).not.toContain('xn--1-xtbgmf');
@@ -535,6 +535,11 @@ describe('blog article SSR metadata', () => {
     ['  Материал   |   ProHelper  ', 'Материал | МОСТ'],
     ['   ', 'МОСТ'],
     ['', 'МОСТ'],
+    [
+      'Система управления строительством: обязательные возможности | МОСТ',
+      'Система управления строительством: обязательные возможности',
+    ],
+    ['План-факт в строительстве: сроки, деньги и объёмы', 'План-факт в строительстве: сроки, деньги и объёмы | МОСТ'],
   ])('normalizes the article brand in %j', (title, expected) => {
     expect(normalizeArticleTitleBrand(title)).toBe(expected);
   });

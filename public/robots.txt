@@ -33,5 +33,4 @@ Disallow: /node_modules/
 Crawl-delay: 1
 Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&fbclid&gclid
 
-Host: 1мост.рф
 Sitemap: https://1мост.рф/sitemap.xml
