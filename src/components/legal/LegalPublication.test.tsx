@@ -9,7 +9,7 @@ import { LEGAL_CONTENT_SHA256, LEGAL_DOCUMENT_VERSION } from '@/data/legal/conte
 import { LEGAL_VERSION, legalDocuments, legalProvider } from '@/data/marketing/legal';
 
 vi.mock('@/hooks/useSEO', () => ({ useSEO: vi.fn() }));
-vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: null, error: 'API unavailable' }) }));
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: null, error: 'API unavailable', refresh: vi.fn() }) }));
 
 describe('Public legal documents', () => {
   it.each(Object.keys(legalDocuments))('publishes provider details for %s without waiting for the API', (documentKey) => {

@@ -1,5 +1,5 @@
 import { legalFixture } from '@/test/legalFixture';
-vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: vi.fn(() => ({ manifest: legalFixture, error: null })) }));
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: vi.fn(() => ({ manifest: legalFixture, error: null, refresh: vi.fn() })) }));
 import {
   cleanup,
   act,
@@ -24,7 +24,7 @@ import {
 import ContactForm from "./ContactForm";
 import { LEGAL_VERSION } from "@/data/marketing/legal";
 import { useLegalManifest } from "@/hooks/useLegalManifest";
-import { LEGAL_UNAVAILABLE } from "@/services/legalService";
+import { LEGAL_STALE_MESSAGE, LEGAL_UNAVAILABLE } from "@/services/legalService";
 import { captureMarketingAttribution, clearMarketingAttribution } from "@/utils/marketingAttribution";
 
 const { notify, trackButtonClick, trackContactForm } = vi.hoisted(() => ({
@@ -54,7 +54,7 @@ vi.mock("framer-motion", () => ({
 const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 beforeEach(() => {
-  vi.mocked(useLegalManifest).mockReturnValue({ manifest: legalFixture, error: null });
+  vi.mocked(useLegalManifest).mockReturnValue({ manifest: legalFixture, error: null, refresh: vi.fn() });
   vi.stubEnv("VITE_API_URL", "http://localhost/api/v1/landing");
   clearMarketingAttribution();
 });
@@ -90,7 +90,7 @@ const fillRequest = (variant: "compact" | "full" = "compact") => {
 
 describe("Marketing contact request", () => {
   it.each(["full", "compact"] as const)("shows loading instead of an error until the %s form can send", (variant) => {
-    vi.mocked(useLegalManifest).mockReturnValue({ manifest: null, error: null });
+    vi.mocked(useLegalManifest).mockReturnValue({ manifest: null, error: null, refresh: vi.fn() });
     const view = fillRequest(variant);
     if (variant === "full") fireEvent.click(screen.getByRole("button", { name: "Запрос демонстрации" }));
     fireEvent.click(screen.getByRole("checkbox"));
@@ -99,7 +99,7 @@ describe("Marketing contact request", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Подготавливаем форму…");
     expect(screen.queryByText(LEGAL_UNAVAILABLE)).not.toBeInTheDocument();
 
-    vi.mocked(useLegalManifest).mockReturnValue({ manifest: legalFixture, error: null });
+    vi.mocked(useLegalManifest).mockReturnValue({ manifest: legalFixture, error: null, refresh: vi.fn() });
     view.rerender(<MemoryRouter initialEntries={["/#contact"]}><ContactForm variant={variant} /></MemoryRouter>);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(submit).toBeEnabled();
@@ -108,13 +108,32 @@ describe("Marketing contact request", () => {
 
   it.each(["full", "compact"] as const)("keeps the %s form disabled when document verification fails", (variant) => {
     const error = "Не удалось проверить редакцию документов. Обновите страницу или попробуйте позже.";
-    vi.mocked(useLegalManifest).mockReturnValue({ manifest: null, error });
+    vi.mocked(useLegalManifest).mockReturnValue({ manifest: null, error, refresh: vi.fn() });
     fillRequest(variant);
     if (variant === "full") fireEvent.click(screen.getByRole("button", { name: "Запрос демонстрации" }));
     fireEvent.click(screen.getByRole("checkbox"));
     expect(screen.getByRole("button", { name: variant === "full" ? "Запросить демонстрацию" : "Отправить заявку" })).toBeDisabled();
     expect(screen.getByRole("status")).toHaveTextContent(error);
     expect(screen.queryByText("Подготавливаем форму…")).not.toBeInTheDocument();
+  });
+
+  it("keeps entered data and asks for consent again when documents were updated", async () => {
+    const refresh = vi.fn(() => Promise.resolve());
+    vi.mocked(useLegalManifest).mockReturnValue({ manifest: legalFixture, error: null, refresh });
+    server.use(http.post("http://localhost/api/public/contact", () => HttpResponse.json({
+      success: false,
+      message: "Проверьте данные",
+      errors: { "legal_documents.contactConsent": ["Редакция документов изменилась. Обновите страницу."] },
+    }, { status: 422 })));
+    fillRequest();
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Отправить заявку" }));
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    expect(notify).toHaveBeenCalledWith(expect.objectContaining({ message: LEGAL_STALE_MESSAGE }));
+    expect(screen.getByRole("checkbox")).not.toBeChecked();
+    expect(screen.getByLabelText("Имя")).toHaveValue("  Анна  ");
+    expect(screen.getByLabelText("Сообщение")).toHaveValue("Нужны заявки на материалы для трёх объектов.");
+    expect(trackContactForm).not.toHaveBeenCalled();
   });
 
   it("requires consent and submits a demonstration request with its page source", async () => {

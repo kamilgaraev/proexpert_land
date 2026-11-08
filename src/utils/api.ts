@@ -529,7 +529,7 @@ export const authService = {
       clearTimeout(timeoutId);
     }
 
-    const data = await response.json() as AuthPayload & ApiErrorPayload;
+    const data = await response.json().catch(() => ({})) as AuthPayload & ApiErrorPayload;
 
     if (!response.ok) {
       const error = new ApiTransportError(

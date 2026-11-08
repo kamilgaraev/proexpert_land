@@ -3,7 +3,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { legalFixture } from '@/test/legalFixture';
 
-vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null }) }));
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null, refresh: vi.fn() }) }));
 
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ register: vi.fn() }),

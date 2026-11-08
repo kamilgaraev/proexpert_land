@@ -7,7 +7,7 @@ import { useLegalManifest } from '@/hooks/useLegalManifest';
 import { COOKIE_CONSENT_EVENT } from '@/utils/marketingConsent';
 
 const host = vi.hoisted(() => ({ marketing: true }));
-vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: vi.fn(() => ({ manifest: null, error: 'unavailable' })) }));
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: vi.fn(() => ({ manifest: null, error: 'unavailable', refresh: vi.fn() })) }));
 vi.mock('@/utils/publicSite', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/utils/publicSite')>(),
   isPrimaryMarketingHost: () => host.marketing,

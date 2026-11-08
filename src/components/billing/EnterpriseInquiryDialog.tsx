@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useLegalManifest } from '@/hooks/useLegalManifest';
-import { LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
+import { isLegalStaleError, LEGAL_STALE_MESSAGE, LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
 import { Building2, CheckCircle2, Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -48,7 +48,7 @@ const initialForm = {
 };
 
 export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquiryDialogProps) => {
-  const { manifest, error: legalError } = useLegalManifest();
+  const { manifest, error: legalError, refresh: refreshLegalManifest } = useLegalManifest();
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
@@ -82,6 +82,12 @@ export const EnterpriseInquiryDialog = ({ open, onOpenChange }: EnterpriseInquir
       await createEnterpriseInquiry({ ...form, contactPhone: form.contactPhone.trim(), comment: form.comment.trim(), ...legalAcceptancePayload(manifest, ['contactConsent']) });
       setSubmitted(true);
     } catch (requestError) {
+      if (requestError instanceof CommercialApiError && requestError.status === 422 && isLegalStaleError(requestError.errors)) {
+        setForm((current) => ({ ...current, consentToPersonalData: false }));
+        void refreshLegalManifest();
+        setError(LEGAL_STALE_MESSAGE);
+        return;
+      }
       setError(requestError instanceof CommercialApiError
         ? requestError.message
         : 'Не удалось отправить заявку. Попробуйте ещё раз.');

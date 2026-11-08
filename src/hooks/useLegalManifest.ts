@@ -1,15 +1,34 @@
-import { useEffect, useState } from 'react';
-import { fetchLegalManifest, type LegalManifest } from '@/services/legalService';
+import { useEffect, useSyncExternalStore } from 'react';
+import {
+  getLegalManifestState,
+  loadLegalManifest,
+  refreshLegalManifest,
+  subscribeLegalManifest,
+  type LegalManifest,
+} from '@/services/legalService';
 
-export const useLegalManifest = () => {
-  const [manifest, setManifest] = useState<LegalManifest | null>(null);
-  const [error, setError] = useState<string | null>(null);
+export interface UseLegalManifestResult {
+  manifest: LegalManifest | null;
+  error: string | null;
+  refresh: () => Promise<void>;
+}
+
+export const useLegalManifest = (): UseLegalManifestResult => {
+  const { manifest, error } = useSyncExternalStore(subscribeLegalManifest, getLegalManifestState, getLegalManifestState);
+
   useEffect(() => {
-    const controller = new AbortController();
-    fetchLegalManifest(controller.signal).then(setManifest).catch((cause: unknown) => {
-      if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'Документы временно недоступны.');
-    });
-    return () => controller.abort();
+    void loadLegalManifest();
   }, []);
-  return { manifest, error };
+
+  useEffect(() => {
+    const retry = () => { void loadLegalManifest(); };
+    window.addEventListener('focus', retry);
+    window.addEventListener('online', retry);
+    return () => {
+      window.removeEventListener('focus', retry);
+      window.removeEventListener('online', retry);
+    };
+  }, []);
+
+  return { manifest, error, refresh: refreshLegalManifest };
 };
