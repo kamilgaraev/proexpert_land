@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePageTitle } from '@/hooks/useSEO';
 import { useLegalManifest } from '@/hooks/useLegalManifest';
-import { LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
+import { isLegalStaleError, LEGAL_STALE_MESSAGE, LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
 
 type InvitationDetails = {
   email: string;
@@ -30,6 +30,14 @@ const getErrorStatus = (error: unknown): number | undefined => {
   return typeof response.status === 'number' ? response.status : undefined;
 };
 
+const getErrorFields = (error: unknown): unknown => {
+  if (!error || typeof error !== 'object' || !('response' in error)) return undefined;
+  const response = error.response;
+  if (!response || typeof response !== 'object' || !('data' in response)) return undefined;
+  const data = response.data;
+  return data && typeof data === 'object' && 'errors' in data ? data.errors : undefined;
+};
+
 const getResponseMessage = (error: unknown): string => {
   const status = getErrorStatus(error);
   if (status === 404 || status === 410) return 'Приглашение недействительно или срок его действия истёк. Попросите коллегу отправить новое приглашение.';
@@ -39,7 +47,7 @@ const getResponseMessage = (error: unknown): string => {
 };
 
 const UserInvitationAcceptPage = () => {
-  const { manifest, error: legalError } = useLegalManifest();
+  const { manifest, error: legalError, refresh: refreshLegalManifest } = useLegalManifest();
   const [accountRulesAccepted, setAccountRulesAccepted] = useState(false);
   usePageTitle('Приглашение в команду — МОСТ');
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -125,6 +133,12 @@ const UserInvitationAcceptPage = () => {
       await userManagementService.acceptInvitation(token, password, passwordConfirmation, { account_rules_accepted: accountRulesAccepted, ...legalAcceptancePayload(manifest, ['accountRules', 'privacy']) });
       setIsAccepted(true);
     } catch (err) {
+      if (getErrorStatus(err) === 422 && isLegalStaleError(getErrorFields(err))) {
+        setAccountRulesAccepted(false);
+        void refreshLegalManifest();
+        setError(LEGAL_STALE_MESSAGE);
+        return;
+      }
       setError(getResponseMessage(err));
     } finally {
       setIsSubmitting(false);

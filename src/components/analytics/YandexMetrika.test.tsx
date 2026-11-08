@@ -1,5 +1,5 @@
 import { legalFixture, analyticsProofFixture } from '@/test/legalFixture';
-vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null }) }));
+vi.mock('@/hooks/useLegalManifest', () => ({ useLegalManifest: () => ({ manifest: legalFixture, error: null, refresh: vi.fn() }) }));
 import { act, render } from '@testing-library/react';
 import { useEffect } from 'react';
 import { MemoryRouter, useNavigate } from 'react-router-dom';

@@ -16,7 +16,7 @@ import { marketingPaths } from "@/data/marketingRegistry";
 import useAnalytics from "@/hooks/useAnalytics";
 import { hasAnalyticsConsent, getCookieConsent } from "@/utils/marketingConsent";
 import { useLegalManifest } from '@/hooks/useLegalManifest';
-import { LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
+import { isLegalStaleError, LEGAL_STALE_MESSAGE, LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
 import { LEGAL_VERSION } from '@/data/marketing/legal';
 import { getMarketingAttribution } from "@/utils/marketingAttribution";
 
@@ -61,7 +61,7 @@ const ContactForm = ({
   className = "",
 }: ContactFormProps) => {
   const location = useLocation();
-  const { manifest: legalManifest, error: legalError } = useLegalManifest();
+  const { manifest: legalManifest, error: legalError, refresh: refreshLegalManifest } = useLegalManifest();
   const { trackButtonClick, trackContactForm } = useAnalytics();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneInputId = useId();
@@ -245,6 +245,17 @@ const ContactForm = ({
       } | null;
 
       if (activeRequest.current !== request) return;
+
+      if (response.status === 422 && isLegalStaleError(result?.errors)) {
+        setFormData((prevState) => ({ ...prevState, consentToPersonalData: false }));
+        void refreshLegalManifest();
+        NotificationService.show({
+          type: "error",
+          title: "Документы обновились",
+          message: LEGAL_STALE_MESSAGE,
+        });
+        return;
+      }
 
       if (!response.ok || !result?.success) {
         const validationMessage =

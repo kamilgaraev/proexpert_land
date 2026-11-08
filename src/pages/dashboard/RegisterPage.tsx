@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useLegalManifest } from '@/hooks/useLegalManifest';
-import { LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
+import { isLegalStaleError, LEGAL_STALE_MESSAGE, LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
 import { OrganizationLegalAcceptance, emptyLegalChoice, allLegalChoices } from '@/components/legal/OrganizationLegalAcceptance';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -83,7 +83,7 @@ const RegisterPage = () => {
 
   const [legalChoice, setLegalChoice] = useState(emptyLegalChoice);
   const agreeTerms = allLegalChoices(legalChoice);
-  const { manifest: legalManifest, error: legalError } = useLegalManifest();
+  const { manifest: legalManifest, error: legalError, refresh: refreshLegalManifest } = useLegalManifest();
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -298,7 +298,11 @@ const RegisterPage = () => {
         registrationKeyRef.current = createRegistrationKey();
       }
 
-      if (err.message?.includes('Не удалось подключиться к серверу')) {
+      if (err?.status === 422 && isLegalStaleError(err?.errors)) {
+        setLegalChoice(emptyLegalChoice);
+        void refreshLegalManifest();
+        setError(LEGAL_STALE_MESSAGE);
+      } else if (err.message?.includes('Не удалось подключиться к серверу')) {
         // setShowNetworkError(true);
         setError('Не удалось подключиться к серверу. Проверьте подключение к интернету или попробуйте позже.');
       } else if (err.message?.includes('уже занят')) {
