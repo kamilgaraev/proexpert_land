@@ -125,6 +125,31 @@ describe('legal manifest loading', () => {
     expect(getLegalManifestState().manifest).toEqual(legalFixture);
   });
 
+  it('checks analytics again when consent was given in another tab', async () => {
+    let statusCalls = 0;
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (isManifestRequest(input)) return manifestResponse();
+      statusCalls += 1;
+      return new Response(JSON.stringify({ success: true, data: { active: true } }), { status: 200 });
+    });
+    await loadLegalManifest();
+    await loadLegalManifest();
+    expect(statusCalls).toBe(0);
+    expect(hasAnalyticsConsent()).toBe(false);
+    saveCookieConsent(true, {
+      receiptId: '11111111-1111-4111-8111-111111111111',
+      visitorId: '22222222-2222-4222-8222-222222222222',
+      documentHash: legalFixture.documents.cookies.sha256,
+    });
+    await vi.waitFor(async () => {
+      await loadLegalManifest();
+      expect(hasAnalyticsConsent()).toBe(true);
+    });
+    await loadLegalManifest();
+    expect(statusCalls).toBe(1);
+    expect(fetchMock.mock.calls.filter(([input]) => isManifestRequest(input))).toHaveLength(1);
+  });
+
   it('replaces the manifest after documents were updated', async () => {
     const updated = { ...legalFixture, documents: { ...legalFixture.documents, contactConsent: { path: '/legal/consent', sha256: 'c'.repeat(64) } } };
     const fetchMock = vi.spyOn(globalThis, 'fetch')

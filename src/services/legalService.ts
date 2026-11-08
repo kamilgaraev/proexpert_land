@@ -104,6 +104,12 @@ let inflight: Promise<void> | null = null;
 let generation = 0;
 let analyticsInflight: Promise<void> | null = null;
 let analyticsCheckFailed = false;
+let checkedConsentKey: string | null = null;
+
+const consentKey = (): string => {
+  const consent = getCookieConsent();
+  return consent ? `${consent.analytics}:${consent.receiptId ?? ''}:${consent.documentHash ?? ''}` : '';
+};
 const listeners = new Set<() => void>();
 
 const publish = (next: LegalManifestState) => {
@@ -114,6 +120,7 @@ const publish = (next: LegalManifestState) => {
 const checkAnalytics = (manifest: LegalManifest): Promise<void> => {
   if (analyticsInflight) return analyticsInflight;
   const current = generation;
+  checkedConsentKey = consentKey();
   analyticsInflight = syncAnalyticsAvailability(manifest)
     .then((checked) => { if (current === generation) analyticsCheckFailed = !checked; })
     .finally(() => { if (current === generation) analyticsInflight = null; });
@@ -132,7 +139,7 @@ export const subscribeLegalManifest = (listener: () => void): (() => void) => {
 export const loadLegalManifest = (options: { force?: boolean } = {}): Promise<void> => {
   if (inflight) return inflight;
   if (state.manifest && !options.force) {
-    if (analyticsCheckFailed) void checkAnalytics(state.manifest);
+    if (analyticsCheckFailed || checkedConsentKey !== consentKey()) void checkAnalytics(state.manifest);
     return Promise.resolve();
   }
   const current = ++generation;
@@ -174,6 +181,7 @@ export const resetLegalManifestForTests = (): void => {
   inflight = null;
   analyticsInflight = null;
   analyticsCheckFailed = false;
+  checkedConsentKey = null;
   state = { manifest: null, error: null };
   listeners.clear();
 };
