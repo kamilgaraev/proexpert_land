@@ -115,7 +115,7 @@ export const BankInvoicesPanel = ({ canManage, sbpEnabled = false, revision = 0,
     {notice && <p role="status" className="rounded border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
     {error && <p role="alert" className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
     {loading && <p role="status">Загружаем счета…</p>}
-    {!loading && data?.items.length === 0 && <p className="text-sm text-slate-500">Счетов пока нет. Выберите состав пакетов или кредиты ИИ.</p>}
+    {!loading && data?.items.length === 0 && <p className="text-sm text-slate-500">Счетов пока нет. Выберите состав пакетов или единицы МОСТ.</p>}
     {data?.items.map((invoice) => <article key={invoice.id} className="space-y-3 rounded-lg border p-4">
       <div className="flex flex-wrap justify-between gap-3"><div><h3 className="font-semibold">{invoice.number}</h3><p className="text-sm">{statuses[invoice.status] ?? 'Требуется проверка'}{invoice.paid_at && !invoice.activated_at && invoice.status === 'paid' ? ' · доступ ожидает начала периода или обработки' : ''}</p></div><strong>{money(invoice.amount_minor)}</strong></div>
       <p className="text-sm">{invoice.description}</p>
