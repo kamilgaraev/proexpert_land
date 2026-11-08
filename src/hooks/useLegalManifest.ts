@@ -21,7 +21,6 @@ export const useLegalManifest = (): UseLegalManifestResult => {
   }, []);
 
   useEffect(() => {
-    if (!error) return undefined;
     const retry = () => { void loadLegalManifest(); };
     window.addEventListener('focus', retry);
     window.addEventListener('online', retry);
@@ -29,7 +28,7 @@ export const useLegalManifest = (): UseLegalManifestResult => {
       window.removeEventListener('focus', retry);
       window.removeEventListener('online', retry);
     };
-  }, [error]);
+  }, []);
 
   return { manifest, error, refresh: refreshLegalManifest };
 };

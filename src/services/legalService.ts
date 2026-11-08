@@ -69,10 +69,11 @@ export const fetchLegalManifest = async (signal?: AbortSignal): Promise<LegalMan
   }
 };
 
-export const syncAnalyticsAvailability = async (manifest: LegalManifest, signal?: AbortSignal): Promise<void> => {
+export const syncAnalyticsAvailability = async (manifest: LegalManifest, signal?: AbortSignal): Promise<boolean> => {
   const choice = getCookieConsent();
   const documentHash = manifest.documents.cookies?.sha256;
   let active = false;
+  let checked = true;
   if (choice?.analytics && choice.receiptId && choice.visitorId && choice.documentHash === documentHash) {
     const request = withTimeout(ANALYTICS_STATUS_TIMEOUT_MS, signal);
     try {
@@ -80,15 +81,17 @@ export const syncAnalyticsAvailability = async (manifest: LegalManifest, signal?
         headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
         body: JSON.stringify({ visitor_id: choice.visitorId, receipt_id: choice.receiptId }) });
       const status = await readJson(statusResponse) as { success?: boolean; data?: { active?: boolean } } | null;
-      active = statusResponse.ok && status?.success === true && status.data?.active === true;
+      checked = statusResponse.ok && status?.success === true;
+      active = checked && status?.data?.active === true;
     } catch {
-      active = false;
+      checked = false;
     } finally {
       request.done();
     }
   }
-  if (signal?.aborted) return;
+  if (signal?.aborted) return false;
   if (getCookieConsent()?.receiptId === choice?.receiptId) setAnalyticsAvailability(active, documentHash);
+  return checked;
 };
 
 export interface LegalManifestState {
@@ -99,11 +102,22 @@ export interface LegalManifestState {
 let state: LegalManifestState = { manifest: null, error: null };
 let inflight: Promise<void> | null = null;
 let generation = 0;
+let analyticsInflight: Promise<void> | null = null;
+let analyticsCheckFailed = false;
 const listeners = new Set<() => void>();
 
 const publish = (next: LegalManifestState) => {
   state = next;
   listeners.forEach((listener) => listener());
+};
+
+const checkAnalytics = (manifest: LegalManifest): Promise<void> => {
+  if (analyticsInflight) return analyticsInflight;
+  const current = generation;
+  analyticsInflight = syncAnalyticsAvailability(manifest)
+    .then((checked) => { if (current === generation) analyticsCheckFailed = !checked; })
+    .finally(() => { if (current === generation) analyticsInflight = null; });
+  return analyticsInflight;
 };
 
 const wait = (ms: number) => new Promise<void>((resolve) => { setTimeout(resolve, ms); });
@@ -117,7 +131,10 @@ export const subscribeLegalManifest = (listener: () => void): (() => void) => {
 
 export const loadLegalManifest = (options: { force?: boolean } = {}): Promise<void> => {
   if (inflight) return inflight;
-  if (state.manifest && !options.force) return Promise.resolve();
+  if (state.manifest && !options.force) {
+    if (analyticsCheckFailed) void checkAnalytics(state.manifest);
+    return Promise.resolve();
+  }
   const current = ++generation;
   if (options.force) publish({ manifest: null, error: null });
   else if (state.error) publish({ manifest: null, error: null });
@@ -127,7 +144,8 @@ export const loadLegalManifest = (options: { force?: boolean } = {}): Promise<vo
         const manifest = await fetchLegalManifest();
         if (current !== generation) return;
         publish({ manifest, error: null });
-        void syncAnalyticsAvailability(manifest);
+        analyticsInflight = null;
+        void checkAnalytics(manifest);
         return;
       } catch (cause) {
         if (current !== generation) return;
@@ -154,6 +172,8 @@ export const refreshLegalManifest = (): Promise<void> => {
 export const resetLegalManifestForTests = (): void => {
   generation += 1;
   inflight = null;
+  analyticsInflight = null;
+  analyticsCheckFailed = false;
   state = { manifest: null, error: null };
   listeners.clear();
 };

@@ -8,7 +8,7 @@ import {
   refreshLegalManifest,
   resetLegalManifestForTests,
 } from '@/services/legalService';
-import { saveCookieConsent } from '@/utils/marketingConsent';
+import { hasAnalyticsConsent, saveCookieConsent } from '@/utils/marketingConsent';
 
 const manifestResponse = () => new Response(JSON.stringify({ success: true, data: legalFixture }), {
   status: 200,
@@ -95,6 +95,33 @@ describe('legal manifest loading', () => {
       isManifestRequest(input) ? manifestResponse() : new Promise<Response>(() => undefined)
     ));
     await loadLegalManifest();
+    expect(getLegalManifestState().manifest).toEqual(legalFixture);
+  });
+
+  it('checks analytics consent again after a temporary failure without reloading documents', async () => {
+    saveCookieConsent(true, {
+      receiptId: '11111111-1111-4111-8111-111111111111',
+      visitorId: '22222222-2222-4222-8222-222222222222',
+      documentHash: legalFixture.documents.cookies.sha256,
+    });
+    let statusCalls = 0;
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (isManifestRequest(input)) return manifestResponse();
+      statusCalls += 1;
+      return statusCalls === 1
+        ? new Response('<html>503</html>', { status: 503 })
+        : new Response(JSON.stringify({ success: true, data: { active: true } }), { status: 200 });
+    });
+    await loadLegalManifest();
+    await vi.waitFor(() => expect(statusCalls).toBe(1));
+    expect(hasAnalyticsConsent()).toBe(false);
+    await vi.waitFor(async () => {
+      await loadLegalManifest();
+      expect(hasAnalyticsConsent()).toBe(true);
+    });
+    await loadLegalManifest();
+    expect(statusCalls).toBe(2);
+    expect(fetchMock.mock.calls.filter(([input]) => isManifestRequest(input))).toHaveLength(1);
     expect(getLegalManifestState().manifest).toEqual(legalFixture);
   });
 
