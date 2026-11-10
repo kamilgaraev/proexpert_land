@@ -11,7 +11,7 @@ import { useCanAccess, usePermissions } from '@/hooks/usePermissions';
 import { useBalance } from '@/hooks/useBalance';
 import { consumeCommercialIntent } from '@/utils/commercialIntent';
 import { trackPaidOrder } from '@/utils/conversionTracking';
-import { trackFunnelEvent } from '@/utils/funnelTracking';
+import { preloadFunnelTracking, trackFunnelEvent, trackFunnelEventBeforeLeave } from '@/utils/funnelTracking';
 import {
   commercialBillingService,
   createCheckoutIntentKey,
@@ -362,6 +362,10 @@ const BillingPage = () => {
     if (!renewal?.autoRenewEnabled || !renewal.savedMethodAvailable) setAutoRenewConsent(false);
   };
 
+  useEffect(() => {
+    preloadFunnelTracking();
+  }, []);
+
   const startTrial = async (packageSlug: string) => {
     if (isCorporate) return;
     setActionBusy(`trial:${packageSlug}`);
@@ -452,7 +456,7 @@ const BillingPage = () => {
       }
       if (!checkout.confirmationUrl || bankCapabilities?.card_payments_enabled !== true) throw new Error('Платёжная ссылка ещё не готова. Повторите действие.');
       window.sessionStorage.setItem(pendingOrderStorageKey, checkout.orderId);
-      trackFunnelEvent('payment_started', { kind: 'checkout', billing_period: quote.billingPeriod });
+      await trackFunnelEventBeforeLeave('payment_started', { kind: 'checkout', billing_period: quote.billingPeriod });
       window.location.assign(checkout.confirmationUrl);
     } catch (requestError) {
       setActionError(errorText(requestError));
@@ -473,7 +477,7 @@ const BillingPage = () => {
       if (payment.bankInvoice) { trackFunnelEvent('invoice_created', { kind: 'renewal' }); forgetCheckoutIntentKey(fingerprint); setInvoiceRevision((value) => value + 1); return; }
       if (!payment.confirmationUrl || bankCapabilities?.card_payments_enabled !== true) throw new Error('Платёжная ссылка ещё не готова. Повторите действие.');
       window.sessionStorage.setItem(pendingOrderStorageKey, payment.orderId);
-      trackFunnelEvent('payment_started', { kind: 'renewal' });
+      await trackFunnelEventBeforeLeave('payment_started', { kind: 'renewal' });
       window.location.assign(payment.confirmationUrl);
     } catch (requestError) {
       setActionError(errorText(requestError));

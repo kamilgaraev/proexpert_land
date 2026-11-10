@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLegalManifest } from '@/hooks/useLegalManifest';
 import { isLegalStaleError, LEGAL_STALE_MESSAGE, LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
 import { OrganizationLegalAcceptance, emptyLegalChoice, allLegalChoices } from '@/components/legal/OrganizationLegalAcceptance';
@@ -33,7 +33,7 @@ import { getSafeProjectInvitationReturnPath, storeProjectInvitationReturnPath } 
 import '@/styles/auth.css';
 import { usePageTitle } from '@/hooks/useSEO';
 import { trackConversionOnce } from '@/utils/conversionTracking';
-import { trackFunnelEvent } from '@/utils/funnelTracking';
+import { preloadFunnelTracking, trackFunnelEvent } from '@/utils/funnelTracking';
 
 const getPackageCountLabel = (count: number): string => {
   const lastTwoDigits = count % 100;
@@ -227,6 +227,10 @@ const RegisterPage = () => {
     setCurrentStep(2);
     trackFunnelEvent('registration_step_2');
   };
+
+  useEffect(() => {
+    preloadFunnelTracking();
+  }, []);
 
   const handleFormFocus = () => {
     if (registrationStartedRef.current) return;
