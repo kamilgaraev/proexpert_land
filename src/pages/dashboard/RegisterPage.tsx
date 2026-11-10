@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLegalManifest } from '@/hooks/useLegalManifest';
 import { isLegalStaleError, LEGAL_STALE_MESSAGE, LEGAL_UNAVAILABLE, legalAcceptancePayload } from '@/services/legalService';
 import { OrganizationLegalAcceptance, emptyLegalChoice, allLegalChoices } from '@/components/legal/OrganizationLegalAcceptance';
@@ -33,6 +33,7 @@ import { getSafeProjectInvitationReturnPath, storeProjectInvitationReturnPath } 
 import '@/styles/auth.css';
 import { usePageTitle } from '@/hooks/useSEO';
 import { trackConversionOnce } from '@/utils/conversionTracking';
+import { preloadFunnelTracking, trackFunnelEvent } from '@/utils/funnelTracking';
 
 const getPackageCountLabel = (count: number): string => {
   const lastTwoDigits = count % 100;
@@ -93,6 +94,7 @@ const RegisterPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const registrationKeyRef = useRef(createRegistrationKey());
   const submittingRef = useRef(false);
+  const registrationStartedRef = useRef(false);
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -223,6 +225,17 @@ const RegisterPage = () => {
     setValidationErrors({});
     setError('');
     setCurrentStep(2);
+    trackFunnelEvent('registration_step_2');
+  };
+
+  useEffect(() => {
+    preloadFunnelTracking();
+  }, []);
+
+  const handleFormFocus = () => {
+    if (registrationStartedRef.current) return;
+    registrationStartedRef.current = true;
+    trackFunnelEvent('registration_started');
   };
 
   const handleBack = () => {
@@ -413,7 +426,7 @@ const RegisterPage = () => {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="most-auth-registration-form">
+        <form onSubmit={handleSubmit} onFocusCapture={handleFormFocus} className="most-auth-registration-form">
              {commercialIntent.length > 0 ? (
               <div className="mb-6 rounded-2xl border border-construction-200 bg-construction-50 px-5 py-4">
                 <div className="text-sm font-semibold text-steel-950">

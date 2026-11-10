@@ -1,9 +1,26 @@
 import { trackYandexGoal } from '@/components/analytics/YandexMetrika';
+import { trackFunnelEventOnce, type FunnelEvent } from '@/utils/funnelTracking';
 
 const sent = new Set<string>();
 
+const FUNNEL_EVENTS: Record<string, FunnelEvent> = {
+  registration: 'registration_completed',
+  email_verified: 'email_verified',
+  purchase: 'purchase',
+};
+
+const toFunnelData = (params?: Record<string, unknown>) => {
+  const data: Record<string, string | number | boolean> = {};
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') data[key] = value;
+  }
+  return data;
+};
+
 export const trackConversionOnce = (goal: string, key: string, params?: Record<string, unknown>): boolean => {
   if (typeof window === 'undefined' || !key) return false;
+  const funnelEvent = FUNNEL_EVENTS[goal];
+  if (funnelEvent) trackFunnelEventOnce(funnelEvent, key, toFunnelData(params));
   const storageKey = `most.conversion.${goal}.${key}`;
   try {
     if (sent.has(storageKey) || window.localStorage.getItem(storageKey)) return false;
