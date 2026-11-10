@@ -4,7 +4,7 @@ import { UMAMI_SCRIPT_URL, UMAMI_WEBSITE_ID } from '@/config/analytics';
 import { isKnownMarketingPath, normalizeMarketingPath } from '@/data/marketing/siteIndex';
 import { isMarketingPublicPath, isPrimaryMarketingHost } from '@/utils/publicSite';
 
-interface UmamiPayload {
+export interface UmamiPayload {
   website: string;
   hostname: string;
   language: string;
@@ -12,6 +12,8 @@ interface UmamiPayload {
   title: string;
   url: string;
   referrer: string;
+  name?: string;
+  data?: Record<string, string | number | boolean>;
 }
 
 declare global {

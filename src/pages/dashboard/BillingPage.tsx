@@ -11,6 +11,7 @@ import { useCanAccess, usePermissions } from '@/hooks/usePermissions';
 import { useBalance } from '@/hooks/useBalance';
 import { consumeCommercialIntent } from '@/utils/commercialIntent';
 import { trackPaidOrder } from '@/utils/conversionTracking';
+import { trackFunnelEvent } from '@/utils/funnelTracking';
 import {
   commercialBillingService,
   createCheckoutIntentKey,
@@ -367,6 +368,7 @@ const BillingPage = () => {
     setActionError(null);
     try {
       await commercialBillingService.startTrial(packageSlug);
+      trackFunnelEvent('trial_started', { package: packageSlug });
       const updated = await commercialBillingService.getPackages();
       setPackages(updated);
     } catch (requestError) {
@@ -437,6 +439,7 @@ const BillingPage = () => {
         return;
       }
       if (checkout.paymentSource === 'tochka' && checkout.bankInvoice) {
+        trackFunnelEvent('invoice_created', { kind: 'checkout', billing_period: quote.billingPeriod });
         quoteSequence.current += 1;
         setQuote(null);
         setQuoteLoading(false);
@@ -449,6 +452,7 @@ const BillingPage = () => {
       }
       if (!checkout.confirmationUrl || bankCapabilities?.card_payments_enabled !== true) throw new Error('Платёжная ссылка ещё не готова. Повторите действие.');
       window.sessionStorage.setItem(pendingOrderStorageKey, checkout.orderId);
+      trackFunnelEvent('payment_started', { kind: 'checkout', billing_period: quote.billingPeriod });
       window.location.assign(checkout.confirmationUrl);
     } catch (requestError) {
       setActionError(errorText(requestError));
@@ -466,9 +470,10 @@ const BillingPage = () => {
     const key = createCheckoutIntentKey(fingerprint);
     try {
       const payment = await commercialBillingService.createManualPayment(key);
-      if (payment.bankInvoice) { forgetCheckoutIntentKey(fingerprint); setInvoiceRevision((value) => value + 1); return; }
+      if (payment.bankInvoice) { trackFunnelEvent('invoice_created', { kind: 'renewal' }); forgetCheckoutIntentKey(fingerprint); setInvoiceRevision((value) => value + 1); return; }
       if (!payment.confirmationUrl || bankCapabilities?.card_payments_enabled !== true) throw new Error('Платёжная ссылка ещё не готова. Повторите действие.');
       window.sessionStorage.setItem(pendingOrderStorageKey, payment.orderId);
+      trackFunnelEvent('payment_started', { kind: 'renewal' });
       window.location.assign(payment.confirmationUrl);
     } catch (requestError) {
       setActionError(errorText(requestError));
