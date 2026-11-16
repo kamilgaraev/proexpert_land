@@ -79,6 +79,39 @@ export const marketingBlogArticles = {
     purpose:
       "Как вести учёт материалов на объекте и отчёт М-29 о расходе.",
   },
+  procurementSoftware: {
+    title: "Программа для снабжения в строительстве: как выбрать и внедрить",
+    href: "/blog/programma-dlya-snabzheniya-v-stroitelstve",
+    purpose:
+      "Критерии с весами, демонстрация на своих данных и пилот на одном объекте.",
+  },
+  competitiveList: {
+    title:
+      "Конкурентный лист: как сравнить предложения поставщиков и выбрать лучшее",
+    href: "/blog/konkurentnyy-list-v-stroitelstve",
+    purpose:
+      "Как сравнить предложения поставщиков по полной стоимости поставки.",
+  },
+  deliveryAcceptance: {
+    title:
+      "Приёмка материалов от поставщика: недостача, пересорт, акт о расхождении и претензия",
+    href: "/blog/priemka-materialov-ot-postavshchika",
+    purpose: "Как принять поставку по количеству и оформить расхождения.",
+  },
+  customerMaterials: {
+    title:
+      "Давальческие материалы в строительстве: передача, учёт и отчёт об использовании",
+    href: "/blog/davalcheskie-materialy-v-stroitelstve",
+    purpose:
+      "Как передать материалы заказчика, отчитаться о расходе и вернуть остатки.",
+  },
+  specialJournals: {
+    title:
+      "Специальные журналы работ в строительстве: перечень, кто ведёт и как заполнять",
+    href: "/blog/spetsialnye-zhurnaly-rabot",
+    purpose:
+      "Какие специальные журналы вести и как связать их с общим журналом.",
+  },
 } as const satisfies Readonly<Record<string, MarketingBlogArticleReference>>;
 
 export type MarketingBlogArticleKey = keyof typeof marketingBlogArticles;
