@@ -675,7 +675,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
           description: "Связь журнала с другими процессами строительства.",
         },
       ],
-      blogLinks: getMarketingBlogLinks("foremanOrder", "managerMorning"),
+      blogLinks: getMarketingBlogLinks("foremanOrder", "specialJournals"),
       contactHighlights: [
         "Покажем запись дня с объёмами, людьми, техникой и материалами.",
         "Пройдём отправку на проверку, утверждение и возврат с замечаниями.",
@@ -1263,7 +1263,11 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
           description: "Подтверждайте операции на площадке.",
         },
       ],
-      blogLinks: getMarketingBlogLinks("materialAccountingM29", "procurementChats"),
+      blogLinks: getMarketingBlogLinks(
+        "materialAccountingM29",
+        "deliveryAcceptance",
+        "customerMaterials",
+      ),
       contactHighlights: [
         "Покажем оформление прихода и перемещения.",
         "Покажем историю списаний по материалу.",

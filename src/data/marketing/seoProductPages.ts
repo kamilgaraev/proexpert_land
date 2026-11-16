@@ -81,8 +81,9 @@ export const marketingProductSeoLandingPages: Record<
     visibilityDescription:
       "Каждый участник видит ту часть закупки, за которую отвечает.",
     blogLinks: [
+      getMarketingBlogLink("procurementSoftware"),
+      getMarketingBlogLink("competitiveList"),
       getMarketingBlogLink("procurementProcess"),
-      getMarketingBlogLink("procurementChats"),
     ],
     contactHighlights: [
       "Разберём путь одной потребности от объекта до приёмки.",
