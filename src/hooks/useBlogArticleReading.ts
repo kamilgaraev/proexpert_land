@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { blogPublicApi } from '@/utils/blogPublicApi';
-import { BLOG_READING_VISITOR_KEY as VISITOR_KEY, COOKIE_CONSENT_EVENT, hasAnalyticsConsent } from '@/utils/marketingConsent';
+import { BLOG_READING_VISITOR_KEY as VISITOR_KEY, COOKIE_CONSENT_EVENT, getCookieConsent, hasAnalyticsConsent } from '@/utils/marketingConsent';
 
 function startReadingSession(slug: string): (sendFinal: boolean) => void {
   let visitorId: string;
@@ -90,6 +90,7 @@ export function useBlogArticleReading(slug: string | null) {
       }
       stop?.(false);
       stop = undefined;
+      if (getCookieConsent()?.analytics === true) return;
       try {
         localStorage.removeItem(VISITOR_KEY);
       } catch {
