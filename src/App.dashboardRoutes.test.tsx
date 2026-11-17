@@ -21,6 +21,7 @@ vi.mock('@/hooks/usePermissions', () => ({
 }));
 
 vi.mock('@pages/dashboard/DashboardPage', () => ({ default: () => <div>Сводка организации</div> }));
+vi.mock('@pages/dashboard/ProjectInvitationsPage', () => ({ default: () => <div>Входящие приглашения в проекты</div> }));
 vi.mock('@pages/dashboard/contractor-marketplace/ContractorMarketplacePage', () => ({
   default: () => <div>Каталог подрядчиков</div>,
 }));
@@ -115,6 +116,12 @@ vi.mock('@pages/dashboard/help/ChangelogDetailPage', () => ({
 }));
 
 describe('dashboard route guards', () => {
+  it('открывает входящие приглашения через проверку владельца организации', async () => {
+    render(<MemoryRouter initialEntries={['/dashboard/project-invitations']}><App /></MemoryRouter>);
+    expect(await screen.findByText('Входящие приглашения в проекты')).toBeInTheDocument();
+    expect(screen.getByTestId('protected-route')).toHaveAttribute('data-role', 'organization_owner');
+  });
+
   it.each(['organization_owner', 'organization_admin'])('redirects %s without the marketplace package', async (role) => {
     access.role = role;
     access.hasPermission = true;

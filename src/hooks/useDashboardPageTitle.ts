@@ -18,6 +18,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/organization/settings': 'Направления работы',
   '/dashboard/organization/onboarding': 'Настройка компании',
   '/dashboard/projects': 'Проекты',
+  '/dashboard/project-invitations': 'Приглашения в проекты',
   '/dashboard/contractor-invitations': 'Приглашения подрядчиков',
   '/dashboard/contractor-referral-program': 'Условия партнёрской программы',
   '/dashboard/contractor-marketplace': 'Каталог подрядчиков',
