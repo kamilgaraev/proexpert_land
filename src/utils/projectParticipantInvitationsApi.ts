@@ -29,7 +29,37 @@ export type AcceptedProjectParticipantInvitation = {
   organization: { id: number | string; name: string };
 };
 
+export type IncomingProjectInvitation = {
+  id: number;
+  status: 'pending' | 'accepted' | 'expired' | 'cancelled' | 'declined';
+  can_accept: boolean;
+  project: { id: number; name: string };
+  inviting_organization: { id: number; name: string } | null;
+  role: { slug: string; name: string };
+  message: string | null;
+  created_at: string | null;
+  expires_at: string | null;
+  accepted_at: string | null;
+  invitation_path: string | null;
+};
+
+export type IncomingProjectInvitationsResponse = LandingResponse<IncomingProjectInvitation[]> & {
+  meta: { current_page: number; last_page: number; per_page: number; total: number };
+};
+
 export const projectParticipantInvitationsApi = {
+  async listIncoming(page = 1, signal?: AbortSignal): Promise<IncomingProjectInvitationsResponse> {
+    const response = await withRefreshedAuthSession(session => authApi.get<IncomingProjectInvitationsResponse>(
+      '/project-participant-invitations',
+      {
+        headers: { Authorization: `Bearer ${session.token}`, 'X-CSRF-Token': session.csrfToken },
+        params: { page, per_page: 20 },
+        signal,
+      },
+    ));
+    return response.data;
+  },
+
   async getByToken(token: string): Promise<LandingResponse<ProjectParticipantInvitation>> {
     const response = await publicApi.get<LandingResponse<ProjectParticipantInvitation>>(
       `/project-participant-invitations/${encodeURIComponent(token)}`,

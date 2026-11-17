@@ -10,6 +10,7 @@ import {
   History,
   Handshake,
   LayoutDashboard,
+  MailOpen,
   Puzzle,
   Users,
 } from 'lucide-react';
@@ -58,6 +59,8 @@ const DashboardLayout = () => {
     useCanAccess({ permission: 'users.manage_admin' }) ||
     useCanAccess({ role: 'organization_owner' }) ||
     useCanAccess({ role: 'organization_admin' });
+
+  const canManageProjectInvitations = useCanAccess({ role: 'organization_owner' });
 
   const canViewBilling =
     useCanAccess({ permission: 'billing.manage' }) ||
@@ -116,6 +119,14 @@ const DashboardLayout = () => {
         icon: Briefcase,
         description: 'Проекты вашей организации',
         visible: true,
+      },
+      {
+        name: 'Приглашения в проекты',
+        href: '/dashboard/project-invitations',
+        icon: MailOpen,
+        description: 'Входящие приглашения вашей организации',
+        aliases: ['входящие', 'приглашения', 'участие в проектах'],
+        visible: canManageProjectInvitations,
       },
       {
         name: 'Данные компании',
@@ -189,6 +200,7 @@ const DashboardLayout = () => {
     canInviteUsers,
     canManageMultiOrg,
     canManageUsers,
+    canManageProjectInvitations,
     canViewBilling,
     canViewContractorMarketplace,
     canViewOrganization,
