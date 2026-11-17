@@ -4,7 +4,7 @@ vi.mock('./marketingCookies', () => ({
   readMarketingCookie: () => cookies.value,
   writeMarketingCookie: (_name: string, value: string) => { cookies.value = value; },
 }));
-import { clearCookieConsent, COOKIE_CONSENT_VERSION, getCookieConsent, hasAnalyticsConsent, saveCookieConsent, setAnalyticsAvailability } from './marketingConsent';
+import { BLOG_READING_VISITOR_KEY, clearCookieConsent, COOKIE_CONSENT_VERSION, getCookieConsent, hasAnalyticsConsent, saveCookieConsent, setAnalyticsAvailability } from './marketingConsent';
 import { analyticsProofFixture } from '@/test/legalFixture';
 
 describe('shared analytics consent', () => {
@@ -58,4 +58,16 @@ describe('shared analytics consent', () => {
       decidedAt: new Date(Date.now() - 181 * 24 * 60 * 60 * 1000).toISOString(), ...analyticsProofFixture });
     expect(getCookieConsent()).toBeNull();
   });
+  it('при отзыве согласия очищает идентификатор чтения и сохраняет доказательство выбора', () => {
+    saveCookieConsent(true, analyticsProofFixture);
+    window.localStorage.setItem(BLOG_READING_VISITOR_KEY, 'previous-reader');
+    saveCookieConsent(false, analyticsProofFixture);
+    expect(window.localStorage.getItem(BLOG_READING_VISITOR_KEY)).toBeNull();
+    expect(getCookieConsent()?.visitorId).toBe(analyticsProofFixture.visitorId);
+    expect(getCookieConsent()?.receiptId).toBe(analyticsProofFixture.receiptId);
+    window.localStorage.setItem(BLOG_READING_VISITOR_KEY, 'another-reader');
+    clearCookieConsent();
+    expect(window.localStorage.getItem(BLOG_READING_VISITOR_KEY)).toBeNull();
+  });
+
 });

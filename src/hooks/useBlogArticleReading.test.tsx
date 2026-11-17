@@ -1,12 +1,17 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { blogPublicApi } from '@/utils/blogPublicApi';
+import { COOKIE_CONSENT_EVENT } from '@/utils/marketingConsent';
 import { useBlogArticleReading } from './useBlogArticleReading';
+
+const consent = vi.hoisted(() => ({ allowed: true }));
+vi.mock('@/utils/marketingConsent', () => ({ hasAnalyticsConsent: () => consent.allowed, COOKIE_CONSENT_EVENT: 'prohelper:cookie-consent-change', BLOG_READING_VISITOR_KEY: 'most.blog.visitor.v1' }));
 
 vi.mock('@/utils/blogPublicApi', () => ({ blogPublicApi: { recordReading: vi.fn() } }));
 
 describe('useBlogArticleReading', () => {
   beforeEach(() => {
+    consent.allowed = true;
     vi.useFakeTimers();
     localStorage.clear();
     vi.spyOn(document, 'hasFocus').mockReturnValue(true);
@@ -61,4 +66,34 @@ describe('useBlogArticleReading', () => {
     expect(blogPublicApi.recordReading).not.toHaveBeenCalled();
     unmount();
   });
+  it('waits for analytics consent and stops without a final report when consent is revoked', () => {
+    consent.allowed = false;
+    const { unmount } = renderHook(() => useBlogArticleReading('article'));
+    act(() => vi.advanceTimersByTime(30_000));
+    expect(blogPublicApi.recordReading).not.toHaveBeenCalled();
+    expect(localStorage.getItem('most.blog.visitor.v1')).toBeNull();
+    consent.allowed = true;
+    act(() => window.dispatchEvent(new Event(COOKIE_CONSENT_EVENT)));
+    expect(blogPublicApi.recordReading).toHaveBeenCalledTimes(1);
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(blogPublicApi.recordReading).toHaveBeenCalledTimes(2);
+    consent.allowed = false;
+    act(() => window.dispatchEvent(new Event(COOKIE_CONSENT_EVENT)));
+    expect(localStorage.getItem('most.blog.visitor.v1')).toBeNull();
+    act(() => vi.advanceTimersByTime(30_000));
+    unmount();
+    expect(blogPublicApi.recordReading).toHaveBeenCalledTimes(2);
+  });
+
+  it('honors cross-tab consent withdrawal and checks consent immediately before sending', () => {
+    const { unmount } = renderHook(() => useBlogArticleReading('article'));
+    consent.allowed = false;
+    act(() => window.dispatchEvent(new Event('pagehide')));
+    expect(blogPublicApi.recordReading).toHaveBeenCalledTimes(1);
+    act(() => window.dispatchEvent(new Event('storage')));
+    expect(localStorage.getItem('most.blog.visitor.v1')).toBeNull();
+    unmount();
+    expect(blogPublicApi.recordReading).toHaveBeenCalledTimes(1);
+  });
+
 });

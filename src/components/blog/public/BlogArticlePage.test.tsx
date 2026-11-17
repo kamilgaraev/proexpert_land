@@ -7,6 +7,8 @@ import { useSEO } from '@/hooks/useSEO';
 import type { BlogArticle } from '@/types/blog';
 import UmamiAnalytics from '@/components/analytics/UmamiAnalytics';
 
+vi.mock('@/utils/marketingConsent', () => ({ hasAnalyticsConsent: () => true, COOKIE_CONSENT_EVENT: 'prohelper:cookie-consent-change', BLOG_READING_VISITOR_KEY: 'most.blog.visitor.v1' }));
+
 vi.mock('@/components/analytics/UmamiAnalytics', () => ({ default: vi.fn(() => null) }));
 
 const blogApiMocks = vi.hoisted(() => ({
