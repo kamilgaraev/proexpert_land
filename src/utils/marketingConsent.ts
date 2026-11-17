@@ -14,6 +14,7 @@ export interface CookieConsentState {
 export const COOKIE_CONSENT_VERSION = LEGAL_DOCUMENT_VERSION;
 const COOKIE_CONSENT_STORAGE_KEY = 'prohelper.cookie-consent';
 const CONSENT_COOKIE = 'most_analytics_consent';
+export const BLOG_READING_VISITOR_KEY = 'most.blog.visitor.v1';
 export const COOKIE_CONSENT_EVENT = 'prohelper:cookie-consent-change';
 let analyticsAvailable = false;
 let analyticsDocumentHash = '';
@@ -70,6 +71,7 @@ export const saveCookieConsent = (analytics: boolean, proof?: { receiptId: strin
 
   writeMarketingCookie(CONSENT_COOKIE, JSON.stringify(consentState), 60 * 60 * 24 * 180);
   try {
+    if (!analytics) window.localStorage.removeItem(BLOG_READING_VISITOR_KEY);
     window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify(consentState));
   } catch {
     return consentState;
@@ -93,6 +95,7 @@ export const clearCookieConsent = (): void => {
 
   writeMarketingCookie(CONSENT_COOKIE, 'null', 60 * 60 * 24 * 180);
   try {
+    window.localStorage.removeItem(BLOG_READING_VISITOR_KEY);
     window.localStorage.removeItem(COOKIE_CONSENT_STORAGE_KEY);
   } catch {
     return;

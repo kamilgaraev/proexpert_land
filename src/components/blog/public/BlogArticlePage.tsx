@@ -5,6 +5,7 @@ import BlogArticleCard from "./BlogArticleCard";
 import BlogPublicLayout from "./BlogPublicLayout";
 import BlogSidebar from "./BlogSidebar";
 import { formatBlogDate, getBlogReadingTime } from "./blogPresentation";
+import { useBlogArticleReading } from "@/hooks/useBlogArticleReading";
 import { useSEO } from "@/hooks/useSEO";
 import type { BlogArticle } from "@/types/blog";
 import { generateArticleSchema, normalizeArticleTitleBrand } from "@/utils/seo";
@@ -76,6 +77,11 @@ const BlogArticlePage = ({
   const publishedTime =
     seoArticle?.published_at || seoArticle?.created_at || undefined;
   const modifiedTime = seoArticle?.updated_at || undefined;
+
+  useBlogArticleReading(
+    !isPreview && !loading && articleMatchesRoute && article?.is_published && article.status === 'published'
+      ? article.slug : null,
+  );
 
   useSEO(
     seoArticle

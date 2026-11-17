@@ -74,7 +74,22 @@ const normalizeWrappedArticleCollection = (
   data: { data: result.data.data.map(normalizeMarketingBlogArticle) },
 });
 
+export interface BlogReadingPayload {
+  visitor_id: string;
+  session_id: string;
+  active_seconds: number;
+}
+
 export const blogPublicApi = {
+  recordReading: (slug: string, payload: BlogReadingPayload): void => {
+    void fetch(`${BLOG_PUBLIC_API_URL}/articles/${encodeURIComponent(slug)}/views`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      credentials: 'omit',
+      keepalive: true,
+    }).catch(() => undefined);
+  },
   getArticles: async (filters?: BlogArticleFilters): Promise<ApiResult<WrappedCollectionPayload<BlogArticle>>> => {
     const params = new URLSearchParams();
     params.append('status', 'published');
