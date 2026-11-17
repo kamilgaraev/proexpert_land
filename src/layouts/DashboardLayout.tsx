@@ -18,6 +18,7 @@ import { useAuth } from '@hooks/useAuth';
 import { useDashboardPageTitle } from '@/hooks/useDashboardPageTitle';
 import { useBalance } from '@hooks/useBalance';
 import { useActiveModules, useCanAccess } from '@/hooks/usePermissions';
+import { useContractorMarketplaceAccess } from '@/hooks/useContractorMarketplaceAccess';
 import { useProfileOnboarding } from '@/hooks/useProfileOnboarding';
 import { useOrganizationProfile } from '@/hooks/useOrganizationProfile';
 
@@ -75,19 +76,7 @@ const DashboardLayout = () => {
     useCanAccess({ role: 'organization_owner' }) ||
     useCanAccess({ role: 'organization_admin' });
 
-  const canViewContractorMarketplaceProfile = useCanAccess({ permission: 'contractor_marketplace.profile.view' });
-  const canSearchContractorMarketplace = useCanAccess({ permission: 'contractor_marketplace.search.view' });
-  const canViewContractorMarketplaceOffers = useCanAccess({ permission: 'contractor_marketplace.offers.view' });
-  const canCreateContractorMarketplaceOffers = useCanAccess({ permission: 'contractor_marketplace.offers.create' });
-  const canAccessContractorMarketplaceAsOwner = useCanAccess({ role: 'organization_owner' });
-  const canAccessContractorMarketplaceAsAdmin = useCanAccess({ role: 'organization_admin' });
-  const canViewContractorMarketplace =
-    canViewContractorMarketplaceProfile ||
-    canSearchContractorMarketplace ||
-    canViewContractorMarketplaceOffers ||
-    canCreateContractorMarketplaceOffers ||
-    canAccessContractorMarketplaceAsOwner ||
-    canAccessContractorMarketplaceAsAdmin;
+  const { canUseMarketplace: canViewContractorMarketplace } = useContractorMarketplaceAccess();
 
   const canManageMultiOrg =
     useCanAccess({ permission: 'multi-organization.manage' }) ||

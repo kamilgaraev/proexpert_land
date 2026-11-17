@@ -17,7 +17,7 @@ import OfferInbox from '@/components/dashboard/contractor-marketplace/OfferInbox
 import OutgoingOffersPanel from '@/components/dashboard/contractor-marketplace/OutgoingOffersPanel';
 import ProfileEditor from '@/components/dashboard/contractor-marketplace/ProfileEditor';
 import { normalizeOrganizationProfileResponse } from '@/hooks/useOrganizationProfile';
-import { useCanAccess } from '@/hooks/usePermissions';
+import { useContractorMarketplaceAccess } from '@/hooks/useContractorMarketplaceAccess';
 import { usePageTitle } from '@/hooks/useSEO';
 import { organizationProfileService, organizationService, type Organization } from '@/utils/api';
 import contractorMarketplaceApi from '@/utils/contractorMarketplaceApi';
@@ -71,34 +71,16 @@ const ContractorMarketplacePage = () => {
 
   usePageTitle('Каталог подрядчиков');
 
-  const isOrganizationOwner = useCanAccess({ role: 'organization_owner' });
-  const isOrganizationAdmin = useCanAccess({ role: 'organization_admin' });
-  const hasSearchPermission = useCanAccess({ permission: 'contractor_marketplace.search.view' });
-  const hasProfileViewPermission = useCanAccess({ permission: 'contractor_marketplace.profile.view' });
-  const hasOffersViewPermission = useCanAccess({ permission: 'contractor_marketplace.offers.view' });
-  const hasOfferCreatePermission = useCanAccess({ permission: 'contractor_marketplace.offers.create' });
-  const hasOfferCancelPermission = useCanAccess({ permission: 'contractor_marketplace.offers.cancel' });
-  const hasOfferReviewPermission = useCanAccess({ permission: 'contractor_marketplace.offers.review' });
-  const hasOwnerAccess = isOrganizationOwner || isOrganizationAdmin;
-  const canSearchContractors =
-    hasOwnerAccess ||
-    hasSearchPermission;
-  const canViewProfile =
-    hasOwnerAccess ||
-    hasProfileViewPermission;
-  const canViewOffers =
-    hasOwnerAccess ||
-    hasOffersViewPermission;
-  const canCreateOffer =
-    hasOwnerAccess ||
-    hasOfferCreatePermission;
-  const canCancelOffer =
-    hasOwnerAccess ||
-    hasOfferCancelPermission;
-  const canReviewOffer =
-    hasOwnerAccess ||
-    hasOfferReviewPermission;
-  const canUseMarketplace = canSearchContractors || canViewProfile || canViewOffers;
+  const {
+    canUseMarketplace,
+    canViewCategories,
+    canSearchContractors,
+    canViewProfile,
+    canViewOffers,
+    canCreateOffer,
+    canCancelOffer,
+    canReviewOffer,
+  } = useContractorMarketplaceAccess();
 
   const loadInitialData = useCallback(async () => {
     setIsLoading(true);
@@ -111,7 +93,7 @@ const ContractorMarketplacePage = () => {
         loadedOrganization,
         loadedOrganizationProfile,
       ] = await Promise.all([
-        canUseMarketplace ? contractorMarketplaceApi.getCategories() : Promise.resolve([]),
+        canUseMarketplace && canViewCategories ? contractorMarketplaceApi.getCategories() : Promise.resolve([]),
         canViewProfile ? contractorMarketplaceApi.getProfile() : Promise.resolve(null),
         canViewProfile ? loadOrganization() : Promise.resolve(null),
         canViewProfile ? loadOrganizationProfile() : Promise.resolve(null),
@@ -126,7 +108,7 @@ const ContractorMarketplacePage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [canUseMarketplace, canViewProfile]);
+  }, [canUseMarketplace, canViewCategories, canViewProfile]);
 
   useEffect(() => {
     void loadInitialData();

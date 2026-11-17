@@ -43,6 +43,7 @@ import { CabinetDomainGuard } from '@components/CabinetDomainGuard';
 import { HoldingPanelRouteGuard } from '@/components/multi-org/HoldingPanelRouteGuard';
 import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 import { useCanAccess, usePermissions } from '@/hooks/usePermissions';
+import { useContractorMarketplaceAccess } from '@/hooks/useContractorMarketplaceAccess';
 
 // Layouts - загружаем статически (нужны для структуры)
 import DashboardLayout from '@layouts/DashboardLayout';
@@ -109,23 +110,13 @@ export interface AppProps {
 
 const ContractorMarketplaceAccessRoute = () => {
   const { isLoaded, isLoading, error } = usePermissions();
-  const isOwner = useCanAccess({ role: 'organization_owner' });
-  const isOrganizationAdmin = useCanAccess({ role: 'organization_admin' });
-  const canSearchContractors = useCanAccess({ permission: 'contractor_marketplace.search.view' });
-  const canViewProfile = useCanAccess({ permission: 'contractor_marketplace.profile.view' });
-  const canViewOffers = useCanAccess({ permission: 'contractor_marketplace.offers.view' });
-  const hasAccess =
-    isOwner ||
-    isOrganizationAdmin ||
-    canSearchContractors ||
-    canViewProfile ||
-    canViewOffers;
+  const { canUseMarketplace } = useContractorMarketplaceAccess();
 
   if (isLoading || (!isLoaded && !error)) {
     return <AppLoadingFallback />;
   }
 
-  return hasAccess ? <ContractorMarketplacePage /> : <Navigate to="/dashboard" replace />;
+  return canUseMarketplace ? <ContractorMarketplacePage /> : <Navigate to="/dashboard" replace />;
 };
 
 const BillingAccessRoute = () => {
