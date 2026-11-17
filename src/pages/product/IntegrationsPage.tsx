@@ -150,6 +150,11 @@ const integrationCategories: IntegrationCategory[] = [
 
 const relatedScenarios = [
   {
+    label: "Импорт строительных смет",
+    href: marketingPaths.estimates,
+    description: "Загружайте файлы ГРАНД-Сметы и сверяйте разделы, позиции и суммы перед импортом в проект.",
+  },
+  {
     label: "Управление ресурсами строительства",
     href: marketingPaths.constructionErp,
     description:

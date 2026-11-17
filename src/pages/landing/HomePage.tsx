@@ -165,12 +165,20 @@ const HomePage = () => {
                 МОСТ у этой работы есть заявка, ответственные и данные по
                 объекту.
               </p>
-              <Link to={marketingPaths.features} className="most-text-link">
-                Все возможности МОСТ{" "}
-                <span aria-hidden="true">
-                  <ArrowUpRightIcon className="most-icon" />
-                </span>
-              </Link>
+              <div className="flex flex-wrap gap-x-6 gap-y-2">
+                <Link to={marketingPaths.features} className="most-text-link">
+                  Все возможности МОСТ{" "}
+                  <span aria-hidden="true">
+                    <ArrowUpRightIcon className="most-icon" />
+                  </span>
+                </Link>
+                <Link to={marketingPaths.estimates} className="most-text-link">
+                  Строительные сметы{" "}
+                  <span aria-hidden="true">
+                    <ArrowUpRightIcon className="most-icon" />
+                  </span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

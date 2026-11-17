@@ -9,6 +9,7 @@ export const marketingPaths = {
   home: "/",
   solutions: "/solutions",
   features: "/features",
+  estimates: "/estimates",
   pricing: "/pricing",
   integrations: "/integrations",
   contractors: "/contractors",
@@ -257,6 +258,11 @@ export const marketingSeo: Record<string, MarketingSeoMeta> = {
     keywords:
       "ai смета по чертежу, смета по чертежу, ai для строительства, оценка объемов стройка",
   },
+  estimates: {
+    title: "Сметы в строительстве, расценки ФСНБ и импорт ГРАНД-Сметы | МОСТ",
+    description: "Составляйте сметы по расценкам ФСНБ, загружайте файлы ГРАНД-Сметы и выгружайте ресурсную ведомость в Excel.",
+    keywords: "составление смет, сметная программа, ФСНБ, импорт ГРАНД-Сметы, ресурсная ведомость",
+  },
   "construction-procurement": {
     title: "Программа для снабжения в строительстве | МОСТ",
     description:
@@ -372,6 +378,7 @@ export const marketingNavigation: MarketingRouteLink[] = [
   { label: "Главная", href: marketingPaths.home, exact: true },
   { label: "Решения", href: marketingPaths.solutions },
   { label: "Возможности", href: marketingPaths.features },
+  { label: "Сметы", href: marketingPaths.estimates },
   { label: "Пакеты", href: marketingPaths.pricing },
   { label: "Безопасность", href: marketingPaths.security },
   { label: "Контакты", href: marketingPaths.contact },

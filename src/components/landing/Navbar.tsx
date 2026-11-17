@@ -5,6 +5,7 @@ import { marketingPaths } from "@/data/marketingRegistry";
 
 const navigationItems = [
   { label: "Продукт", href: marketingPaths.features },
+  { label: "Сметы", href: marketingPaths.estimates },
   { label: "Решения", href: marketingPaths.solutions },
   { label: "Стоимость", href: marketingPaths.pricing },
   { label: "Блог", href: marketingPaths.blog },
