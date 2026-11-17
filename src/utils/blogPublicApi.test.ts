@@ -250,4 +250,16 @@ describe('blogPublicApi', () => {
       tagsResponse.data.data[0]?.name,
     ].join('\n')).not.toMatch(/ProHelper|prohelper\.pro/i);
   });
+  it('sends anonymous cumulative reading reports through the public endpoint', async () => {
+    const payload = { visitor_id: 'c5df8bb9-99dc-43dd-8c24-e160a871c986', session_id: '82bc189e-6b62-4656-b4d3-b594255198a0', active_seconds: 15 };
+    const received = new Promise<unknown>((resolve) => {
+      server.use(http.post(apiUrl('/api/v1/blog/articles/reading-article/views'), async ({ request }) => {
+        resolve(await request.json());
+        return HttpResponse.json({ success: true, data: { counted: true, unique: true } });
+      }));
+    });
+    blogPublicApi.recordReading('reading-article', payload);
+    expect(await received).toEqual(payload);
+  });
+
 });
