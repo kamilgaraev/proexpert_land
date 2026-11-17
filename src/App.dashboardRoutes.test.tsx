@@ -1,8 +1,36 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { CanAccessOptions } from '@/types/permissions';
 
 import App from './App';
+
+const access = vi.hoisted(() => ({
+  role: 'organization_owner',
+  hasModule: false,
+  hasPermission: false,
+}));
+
+vi.mock('@/hooks/usePermissions', () => ({
+  usePermissions: () => ({ isLoaded: true, isLoading: false, error: null }),
+  useCanAccess: ({ role, permission, module }: CanAccessOptions) => (
+    (!role || role === access.role)
+    && (!permission || access.hasPermission)
+    && (!module || access.hasModule)
+  ),
+}));
+
+vi.mock('@pages/dashboard/DashboardPage', () => ({ default: () => <div>Сводка организации</div> }));
+vi.mock('@pages/dashboard/contractor-marketplace/ContractorMarketplacePage', () => ({
+  default: () => <div>Каталог подрядчиков</div>,
+}));
+
+beforeEach(() => {
+  access.role = 'organization_owner';
+  access.hasModule = false;
+  access.hasPermission = false;
+});
+afterEach(cleanup);
 
 vi.mock('@components/analytics/YandexMetrika', () => ({
   default: () => null,
@@ -87,6 +115,32 @@ vi.mock('@pages/dashboard/help/ChangelogDetailPage', () => ({
 }));
 
 describe('dashboard route guards', () => {
+  it.each(['organization_owner', 'organization_admin'])('redirects %s without the marketplace package', async (role) => {
+    access.role = role;
+    access.hasPermission = true;
+    render(
+      <MemoryRouter initialEntries={['/dashboard/contractor-marketplace']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText('Сводка организации')).toBeInTheDocument();
+    expect(screen.queryByText('Каталог подрядчиков')).not.toBeInTheDocument();
+  });
+
+  it('opens the marketplace with its package module and permission', async () => {
+    access.role = 'viewer';
+    access.hasModule = true;
+    access.hasPermission = true;
+    render(
+      <MemoryRouter initialEntries={['/dashboard/contractor-marketplace']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText('Каталог подрядчиков')).toBeInTheDocument();
+  });
+
   it('registers knowledge hub dashboard routes', async () => {
     render(
       <MemoryRouter initialEntries={['/dashboard/help/knowledge']}>
