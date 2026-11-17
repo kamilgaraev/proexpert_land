@@ -2,6 +2,7 @@
   { "path": "/", "pageKey": "home", "priority": 1, "changefreq": "weekly" },
   { "path": "/solutions", "pageKey": "solutions", "priority": 0.95, "changefreq": "weekly" },
   { "path": "/features", "pageKey": "features", "priority": 0.92, "changefreq": "weekly" },
+  { "path": "/estimates", "pageKey": "estimates", "priority": 0.93, "changefreq": "weekly" },
   { "path": "/pricing", "pageKey": "pricing", "priority": 0.86, "changefreq": "monthly" },
   { "path": "/integrations", "pageKey": "integrations", "priority": 0.8, "changefreq": "monthly" },
   { "path": "/contractors", "pageKey": "contractors", "priority": 0.84, "changefreq": "monthly" },

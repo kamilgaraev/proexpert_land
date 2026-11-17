@@ -58,7 +58,7 @@ const definitions: PackageDefinition[] = [
     description: 'Объекты, заявки, графики, сметы и сдача объекта в одном платном минимуме.',
     bestFor: 'Командам, которым нужен единый платный минимум для объектов, сроков, смет и сдачи.',
     moduleSlugs: ['site-requests', 'file-management', 'ai-assistant', 'data-export', 'schedule-management', 'budget-estimates', 'rate-management', 'ai-estimates', 'quality-control', 'report-templates', 'executive-documentation', 'design-management', 'handover-acceptance'],
-    highlights: ['Заявки с объекта', 'Графики', 'Сметы и нормы', 'ПТО и сдача', 'Помощник'],
+    highlights: ['Заявки с объекта', 'Графики', 'Сметы по ФСНБ и ресурсные ведомости', 'ПТО и сдача', 'Помощник'],
     outcomes: ['Единый порядок работы по объектам', 'Управляемые сроки', 'Единая сметно-нормативная база', 'Комплектная исполнительная документация'],
   },
   {

@@ -15,6 +15,18 @@ import "@/styles/marketing-product-story.css";
 
 const dailyWork = [
   {
+    id: "estimates",
+    title: "Строительные сметы",
+    description: "Составляйте сметы по расценкам ФСНБ и справочнику организации. Импортируйте расчёты и проверяйте суммы по разделам.",
+    points: [
+      "Поиск расценок и состав ресурсов по позиции.",
+      "Импорт смет, редакции и согласование.",
+      "Выгрузка сметы и ресурсной ведомости.",
+    ],
+    href: marketingPaths.estimates,
+    link: "Сметный модуль",
+  },
+  {
     id: "general-work-journal",
     title: "Электронный общий журнал работ",
     description:

@@ -1829,6 +1829,11 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
             "Сопоставьте статьи и основания с вашим управленческим учётом.",
         },
         {
+          label: "Строительные сметы",
+          href: marketingPaths.estimates,
+          description: "Подготовьте исходный расчёт по разделам и ресурсную ведомость.",
+        },
+        {
           label: "Платежи в строительстве",
           href: marketingPaths.constructionPayments,
           description: "Ведите согласованный счёт до факта оплаты.",

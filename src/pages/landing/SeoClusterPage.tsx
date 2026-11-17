@@ -25,6 +25,7 @@ const materialScenarios = new Set([
   "material-accounting",
   "construction-procurement",
   "site-requests",
+  "estimates",
   "ai-estimates",
   "construction-budget-control",
   "construction-payments",
@@ -165,6 +166,11 @@ const editorialScenes: Partial<
     src: "/images/marketing/most-estimate-review-branded-v1.webp",
     smallSrc: "/images/marketing/most-estimate-review-branded-v1-720.webp",
     alt: "Сметчик сверяет исходный чертёж и рабочие записи за столом",
+  },
+  estimates: {
+    src: "/images/marketing/most-estimate-review-branded-v1.webp",
+    smallSrc: "/images/marketing/most-estimate-review-branded-v1-720.webp",
+    alt: "Сметчик сверяет чертёж и рабочие записи перед расчётом",
   },
   "pto-software": {
     src: "/images/marketing/most-pto-inspection-v2.webp",
@@ -469,7 +475,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
               ))}
             </div>
           </div>
-          <div>
+          {page.blogLinks.length > 0 && <div>
             <h2>По теме</h2>
             <div className="most-scenario-links">
               {page.blogLinks.map((link) => (
@@ -482,7 +488,7 @@ const SeoClusterPage = ({ pageKey }: SeoClusterPageProps) => {
                 </MarketingLink>
               ))}
             </div>
-          </div>
+          </div>}
         </div>
       </section>
     </div>

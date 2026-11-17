@@ -169,6 +169,7 @@ function App({
           <Route path="/" element={<HomePage />} />
           <Route path="/solutions" element={<SolutionsPage />} />
           <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/estimates" element={<SeoClusterPage pageKey="estimates" />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/integrations" element={<IntegrationsPage />} />
           <Route path="/contractors" element={<ContractorsPage />} />
