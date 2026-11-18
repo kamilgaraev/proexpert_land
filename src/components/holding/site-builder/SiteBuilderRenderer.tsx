@@ -345,9 +345,9 @@ const renderCards = (items: Array<Record<string, unknown>>, colorClass: string) 
 
 const leadFields = [
   { name: 'name', label: 'Имя', type: 'text', autoComplete: 'name', maxLength: 255 },
+  { name: 'phone', label: 'Телефон', type: 'tel', autoComplete: 'tel', maxLength: 64 },
   { name: 'company', label: 'Организация', type: 'text', autoComplete: 'organization', maxLength: 255 },
   { name: 'email', label: 'Электронная почта', type: 'email', autoComplete: 'email', maxLength: 255 },
-  { name: 'phone', label: 'Телефон', type: 'tel', autoComplete: 'tel', maxLength: 64 },
 ] as const;
 
 const emptyLeadForm = {
@@ -510,7 +510,6 @@ const LeadFormSection = ({
       setForm(emptyLeadForm);
       setSelectedFiles([]);
       setAttachmentError('');
-      if (fileInput.current) fileInput.current.value = '';
       attempt.current = null;
     } catch (error) {
       const errors = error instanceof BuilderApiError && error.errors && typeof error.errors === 'object'
@@ -528,10 +527,10 @@ const LeadFormSection = ({
       <div>
         <SectionHeading section={section} selectedFieldPath={selectedFieldPath} onEditorInteract={onEditorInteract} invert />
       </div>
-      <form className="min-w-0 grid gap-4" onSubmit={submit}>
-        <fieldset className="min-w-0 grid gap-4" disabled={sending || unavailable}>
+      <form className="holding-lead-form min-w-0 grid gap-4" onSubmit={submit}>
+        <fieldset className={`min-w-0 grid gap-4 ${showServiceFields ? 'holding-lead-fields' : ''}`} disabled={sending || unavailable}>
           {showServiceFields && (
-            <label className="grid gap-1 text-sm">
+            <label className="holding-lead-field--wide grid gap-1 text-sm">
               <span>Вид работ <span aria-hidden="true">*</span></span>
               <select className={leadInput} disabled={mode === 'editor'} required value={form.work_type_id} onChange={event => change('work_type_id', event.target.value)}>
                 <option value="">Выберите услугу</option>
@@ -540,7 +539,7 @@ const LeadFormSection = ({
             </label>
           )}
           {leadFields.map(field => (
-            <label key={field.name} className="grid gap-1 text-sm">
+            <label key={field.name} className="min-w-0 grid gap-1 text-sm">
               <span>{field.label}{showServiceFields && (field.name === 'name' || field.name === 'phone') && <span aria-hidden="true"> *</span>}</span>
               <input className={leadInput} type={field.type} autoComplete={field.autoComplete} maxLength={field.maxLength} readOnly={mode === 'editor'}
                 required={enhanced && (field.name === 'name' || field.name === 'phone')} value={form[field.name]}
@@ -548,7 +547,7 @@ const LeadFormSection = ({
             </label>
           ))}
           {showServiceFields && (
-            <div className="grid gap-4 sm:grid-cols-[1.2fr_1fr]">
+            <div className="holding-lead-field--wide grid gap-4 sm:grid-cols-[1.2fr_1fr]">
               <label className="min-w-0 grid gap-1 text-sm"><span>Адрес объекта <span aria-hidden="true">*</span></span>
                 <input className={leadInput} autoComplete="off" readOnly={mode === 'editor'} required maxLength={500} value={form.object_address} onChange={event => change('object_address', event.target.value)} />
               </label>
@@ -557,13 +556,13 @@ const LeadFormSection = ({
               </label>
             </div>
           )}
-          <label className="grid gap-1 text-sm">
+          <label className="holding-lead-field--wide grid gap-1 text-sm">
             {showServiceFields ? <span>Описание работ <span aria-hidden="true">*</span></span> : 'Сообщение'}
             <textarea className={leadInput + ' min-h-28'} readOnly={mode === 'editor'} required={enhanced} maxLength={enhanced ? 4000 : 5000}
               value={form.message} onChange={event => change('message', event.target.value)} />
           </label>
           {showServiceFields && (
-            <fieldset className="min-w-0 grid gap-2 rounded-md border border-white/20 px-3 pb-3 pt-2">
+            <fieldset className="holding-lead-field--wide min-w-0 grid gap-2 rounded-md border border-white/20 px-3 pb-3 pt-2">
               <legend className="px-1 text-sm">Материалы к заявке</legend>
               {mode === 'public' && <input hidden ref={fileInput} type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={event => pickFiles(event.currentTarget)} />}
               <SectionButton
