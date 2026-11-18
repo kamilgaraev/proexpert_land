@@ -137,6 +137,20 @@ describe('useHoldingSiteBuilder', () => {
     await waitFor(() => expect(result.current.workspace?.site.title).toBe('Alpha Holding Updated'));
   });
 
+  it('сохраняет оба поля секции при последовательном редактировании', async () => {
+    const { result } = renderHook(() => useHoldingSiteBuilder());
+    await waitFor(() => expect(result.current.selectedSection).not.toBeNull());
+    const { id: pageId } = result.current.selectedPage!;
+    const { id: sectionId } = result.current.selectedSection!;
+
+    act(() => {
+      result.current.updateSectionField(pageId, sectionId, 'content.title', 'Первый экран');
+      result.current.updateSectionField(pageId, sectionId, 'content.description', 'Описание объекта');
+    });
+
+    expect(result.current.selectedSection?.content).toMatchObject({ title: 'Первый экран', description: 'Описание объекта' });
+  });
+
   it('не отправляет sort_order в обычный autosave секции', async () => {
     const workspace = createWorkspaceFixture();
     workspace.pages[0]!.sections[0]!.sort_order = 0;

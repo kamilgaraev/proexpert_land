@@ -429,7 +429,11 @@ export const useHoldingSiteBuilder = () => {
     queuePageSave(pageId);
   }, [queuePageSave]);
 
-  const updateSectionDraft = useCallback((pageId: number | string, sectionId: number, patch: Partial<EditorSection>) => {
+  const updateSectionDraft = useCallback((
+    pageId: number | string,
+    sectionId: number,
+    update: Partial<EditorSection> | ((section: EditorSection) => Partial<EditorSection>),
+  ) => {
     startTransition(() => {
       setWorkspace((current) => {
         if (!current) {
@@ -440,23 +444,23 @@ export const useHoldingSiteBuilder = () => {
           page.id === pageId
             ? {
                 ...page,
-                sections: page.sections.map((section) =>
-                  section.id === sectionId
-                    ? {
-                        ...section,
-                        ...patch,
-                        content: patch.content ? { ...section.content, ...patch.content } : section.content,
-                        settings: patch.settings ? { ...section.settings, ...patch.settings } : section.settings,
-                        bindings: patch.bindings ? { ...section.bindings, ...patch.bindings } : section.bindings,
-                        locale_content: patch.locale_content
-                          ? { ...(section.locale_content ?? {}), ...patch.locale_content }
-                          : section.locale_content,
-                        style_config: patch.style_config
-                          ? { ...(section.style_config ?? {}), ...patch.style_config }
-                          : section.style_config,
-                      }
-                    : section,
-                ),
+                sections: page.sections.map((section) => {
+                  if (section.id !== sectionId) return section;
+                  const patch = typeof update === 'function' ? update(section) : update;
+                  return {
+                    ...section,
+                    ...patch,
+                    content: patch.content ? { ...section.content, ...patch.content } : section.content,
+                    settings: patch.settings ? { ...section.settings, ...patch.settings } : section.settings,
+                    bindings: patch.bindings ? { ...section.bindings, ...patch.bindings } : section.bindings,
+                    locale_content: patch.locale_content
+                      ? { ...(section.locale_content ?? {}), ...patch.locale_content }
+                      : section.locale_content,
+                    style_config: patch.style_config
+                      ? { ...(section.style_config ?? {}), ...patch.style_config }
+                      : section.style_config,
+                  };
+                }),
               }
             : page,
         );
@@ -476,16 +480,9 @@ export const useHoldingSiteBuilder = () => {
   const updateSectionField = useCallback(
     (pageId: number | string, sectionId: number, fieldPath: string, value: unknown) => {
       const normalizedPath = fieldPath.startsWith('content.') ? fieldPath.replace(/^content\./, '') : fieldPath;
-      const page = workspaceRef.current?.pages.find((item) => item.id === pageId);
-      const section = page?.sections.find((item) => item.id === sectionId);
-
-      if (!section) {
-        return;
-      }
-
-      updateSectionDraft(pageId, sectionId, {
+      updateSectionDraft(pageId, sectionId, section => ({
         content: setDeepValue(section.content, normalizedPath, value),
-      });
+      }));
     },
     [updateSectionDraft],
   );
