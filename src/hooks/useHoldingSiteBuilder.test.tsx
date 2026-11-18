@@ -151,6 +151,33 @@ describe('useHoldingSiteBuilder', () => {
     expect(result.current.selectedSection?.content).toMatchObject({ title: 'Первый экран', description: 'Описание объекта' });
   });
 
+  it('сохраняет новые цвета и правки секции при запоздавшем ответе автосохранения сайта', async () => {
+    const originalWorkspace = createWorkspaceFixture();
+    let resolveFirstSave: (workspace: typeof originalWorkspace) => void = () => {};
+    updateSiteMock.mockImplementationOnce(() => new Promise(resolve => {
+      resolveFirstSave = resolve;
+    }));
+    const { result } = renderHook(() => useHoldingSiteBuilder());
+    await waitFor(() => expect(result.current.workspace).not.toBeNull());
+
+    act(() => result.current.updateSiteDraft(site => ({
+      theme_config: { ...site.theme_config, palette: { primary: '#183a30' } },
+    })));
+    await waitFor(() => expect(updateSiteMock).toHaveBeenCalledTimes(1), { timeout: 1500 });
+
+    act(() => {
+      result.current.updateSiteDraft(site => ({
+        theme_config: { ...site.theme_config, palette: { ...site.theme_config.palette, accent: '#ffcc77' } },
+      }));
+      result.current.updateSectionField(100, 10, 'content.title', 'Новый первый экран');
+    });
+    await act(async () => resolveFirstSave(originalWorkspace));
+    await waitFor(() => expect(updateSiteMock).toHaveBeenLastCalledWith(expect.objectContaining({
+      theme_config: expect.objectContaining({ palette: { primary: '#183a30', accent: '#ffcc77' } }),
+    })), { timeout: 1500 });
+    expect(result.current.selectedSection?.content.title).toBe('Новый первый экран');
+  });
+
   it('не отправляет sort_order в обычный autosave секции', async () => {
     const workspace = createWorkspaceFixture();
     workspace.pages[0]!.sections[0]!.sort_order = 0;

@@ -1,5 +1,6 @@
 export type BuilderBlockType =
   | 'hero'
+  | 'button'
   | 'stats'
   | 'about'
   | 'services'
@@ -34,6 +35,16 @@ export interface BlockBindingConfig {
 
 export type BlockBindings = Record<string, BlockBindingConfig>;
 
+export type ButtonShape = 'square' | 'rounded' | 'pill';
+
+export interface SitePalette {
+  page: string;
+  surface: string;
+  text: string;
+  primary: string;
+  accent: string;
+}
+
 export interface ThemeConfig {
   primary_color: string;
   secondary_color: string;
@@ -45,6 +56,8 @@ export interface ThemeConfig {
   border_radius: string;
   shadow_style: string;
   surface_style?: string;
+  palette?: Partial<SitePalette> | null;
+  button_shape?: ButtonShape | null;
   container_width?: string;
   section_spacing?: string;
 }

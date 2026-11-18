@@ -1,62 +1,55 @@
 .holding-corporate {
-  --holding-paper: #f4f1e9;
-  --holding-ink: #182724;
-  --holding-accent: #efc46a;
-  --holding-line: #d9d9cd;
-  background: var(--holding-paper);
-  color: var(--holding-ink);
   font-family: 'Manrope', 'Segoe UI', sans-serif;
   container-type: inline-size;
 }
 
 .holding-corporate .holding-header {
-  background: #fcfaf4;
-  border-color: var(--holding-line);
   backdrop-filter: none;
 }
 
 .holding-corporate .holding-brand-mark {
   border-radius: 4px;
   box-shadow: none;
-  background: var(--holding-ink);
-  color: var(--holding-accent);
 }
 
 .holding-corporate .holding-brand-domain {
   display: none;
 }
 
-.holding-corporate .holding-nav a {
+.holding-corporate .holding-nav :is(a, span) {
   border-radius: 4px;
   box-shadow: none;
 }
 
-.holding-corporate .holding-header-action,
-.holding-corporate .holding-hero-action {
-  border-radius: 4px;
-  background: var(--holding-accent);
-  color: var(--holding-ink);
-  font-weight: 800;
-}
+@container (max-width: 1023px) {
+  .holding-corporate .holding-header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    row-gap: .65rem;
+  }
 
-.holding-corporate .holding-header-action:hover,
-.holding-corporate .holding-hero-action:hover {
-  background: #f7d88c;
+  .holding-corporate .holding-nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: start;
+  }
 }
 
 .holding-corporate .holding-section {
-  border-bottom: 1px solid var(--holding-line);
-  background: var(--holding-paper);
+  border-bottom: 1px solid color-mix(in srgb, var(--holding-text) 14%, var(--holding-page));
 }
 
 .holding-corporate .holding-content {
   padding-block: clamp(3rem, 7vw, 6.5rem);
 }
 
+.holding-corporate .holding-section-button .holding-content {
+  padding-block: clamp(1.5rem, 3vw, 3rem);
+}
+
 .holding-corporate .holding-section-hero {
   border-bottom: 0;
-  background: var(--holding-ink);
-  color: #fffaf0;
 }
 
 .holding-corporate .holding-section-hero .holding-content {
@@ -64,7 +57,7 @@
 }
 
 .holding-corporate .holding-hero {
-  min-height: clamp(32rem, 47vw, 47rem);
+  min-height: clamp(30rem, 41vw, 42rem);
   gap: 0;
 }
 
@@ -83,8 +76,8 @@
 }
 
 .holding-corporate .holding-hero h1 {
-  max-width: 11ch;
-  font-size: clamp(2.7rem, 5vw, 5.5rem);
+  max-width: 14ch;
+  font-size: clamp(2.5rem, 4.6vw, 5rem);
   line-height: .99;
   letter-spacing: -.055em;
   text-wrap: balance;
@@ -93,7 +86,7 @@
 .holding-corporate .holding-hero-copy p {
   max-width: 35ch;
   font-size: clamp(1rem, 1.3vw, 1.22rem);
-  color: #dce3d8;
+  opacity: .88;
 }
 
 .holding-corporate .holding-hero-media {
@@ -106,7 +99,7 @@
   height: 100%;
   border: 0;
   border-radius: 0;
-  background: #38504b;
+  background: color-mix(in srgb, var(--holding-primary) 70%, var(--holding-surface));
   padding: 0;
   box-shadow: none;
 }
@@ -131,13 +124,16 @@
   text-wrap: balance;
 }
 
+.holding-corporate .holding-cards {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+
 .holding-corporate .holding-cards > article,
 .holding-corporate .holding-blog-card,
 .holding-corporate .holding-faq-item,
 .holding-corporate .holding-contact-item {
-  border: 1px solid var(--holding-line);
+  border: 1px solid color-mix(in srgb, var(--holding-text) 14%, var(--holding-surface));
   border-radius: 5px;
-  background: #fcfaf4;
   box-shadow: none;
 }
 
@@ -152,32 +148,19 @@
   object-fit: cover;
 }
 
-.holding-corporate .holding-section-lead_form {
-  background: #e5e7db;
+.holding-corporate.holding-palette .holding-section-lead_form {
+  background: color-mix(in srgb, var(--holding-primary) 7%, var(--holding-page));
 }
 
 .holding-corporate .holding-lead-panel {
   border-radius: 6px;
-  background: var(--holding-ink);
   padding: clamp(1.25rem, 3.5vw, 4rem);
 }
 
 .holding-corporate .holding-lead-panel input,
 .holding-corporate .holding-lead-panel select,
-.holding-corporate .holding-lead-panel textarea,
-.holding-corporate .holding-lead-panel button[type='submit'] {
+.holding-corporate .holding-lead-panel textarea {
   border-radius: 4px;
-}
-
-.holding-corporate .holding-lead-panel button[type='submit'] {
-  background: var(--holding-accent);
-  color: var(--holding-ink);
-  font-weight: 800;
-}
-
-.holding-corporate .holding-footer {
-  background: var(--holding-ink);
-  color: #fffaf0;
 }
 
 .holding-corporate [id] {

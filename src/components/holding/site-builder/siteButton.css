@@ -1,0 +1,109 @@
+.holding-site-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  inline-size: var(--site-button-width, var(--site-button-default-width, fit-content));
+  max-inline-size: 100%;
+  min-block-size: 44px;
+  padding: .625rem 1.125rem;
+  border: 1px solid var(--site-button-border, var(--site-button-theme-border, transparent));
+  border-radius: var(--site-button-radius, 999px);
+  background: var(--site-button-background, var(--site-button-theme-background, #0f172a));
+  color: var(--site-button-foreground, var(--site-button-theme-foreground, #fff));
+  font-size: .875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: filter .15s;
+}
+
+.holding-site-button--secondary {
+  --site-button-theme-background: transparent;
+  --site-button-theme-border: #94a3b8;
+  --site-button-theme-foreground: currentColor;
+}
+
+.holding-site-button[data-shape='square'] {
+  border-radius: 0;
+}
+
+.holding-site-button[data-shape='rounded'] {
+  border-radius: 10px;
+}
+
+.holding-site-button[data-shape='pill'] {
+  border-radius: 999px;
+}
+
+.holding-site-button:hover:not(:disabled):not([aria-disabled='true']) {
+  filter: brightness(1.10);
+}
+
+.holding-site-button:focus-visible,
+.holding-site-button[data-selected='true'] {
+  outline: 2px solid var(--site-button-focus, currentColor);
+  outline-offset: 3px;
+}
+
+.holding-site-button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.holding-site-button--submit {
+  --site-button-default-width: 100%;
+  justify-self: start;
+}
+
+.holding-section-hero .holding-site-button--primary,
+.holding-lead-panel .holding-site-button--primary {
+  --site-button-theme-background: #fff;
+  --site-button-theme-foreground: #0f172a;
+}
+
+.holding-section-hero .holding-site-button,
+.holding-lead-panel .holding-site-button {
+  --site-button-focus: #fff;
+}
+
+.holding-lead-panel .holding-site-button--secondary {
+  --site-button-theme-border: #82948c;
+  --site-button-theme-foreground: #fff;
+}
+
+.holding-section-button .holding-content {
+  padding-block: clamp(1.5rem, 3vw, 3rem);
+}
+
+.holding-lead-panel input[type='date'],
+.holding-lead-panel select {
+  color-scheme: dark;
+}
+
+.holding-lead-panel textarea {
+  resize: vertical;
+}
+
+.holding-lead-form {
+  container-type: inline-size;
+}
+
+@container (min-width: 25rem) {
+  .holding-lead-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .holding-lead-field--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holding-site-button {
+    transition: none;
+  }
+}

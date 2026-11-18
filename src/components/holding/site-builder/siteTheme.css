@@ -1,0 +1,87 @@
+.holding-site .holding-brand-mark:not([data-image='true']),
+.holding-site .holding-nav [aria-current='page'] {
+  background: var(--holding-primary);
+  color: var(--holding-on-primary);
+  box-shadow: none;
+}
+
+.holding-palette {
+  background: var(--holding-page);
+  color: var(--holding-text);
+}
+
+.holding-palette .holding-header,
+.holding-palette :is(.holding-cards > article, .holding-blog-card, .holding-faq-item, .holding-contact-item, .holding-theme-surface) {
+  background: var(--holding-surface);
+  color: var(--holding-text);
+  border-color: color-mix(in srgb, var(--holding-text) 14%, var(--holding-surface));
+}
+
+.holding-palette .holding-header :is(.holding-brand-name, .holding-page-label, .holding-nav a:not([aria-current='page'])) {
+  color: var(--holding-text);
+}
+
+.holding-palette .holding-nav :is(a, span):not([aria-current='page']):hover {
+  background: color-mix(in srgb, var(--holding-primary) 10%, var(--holding-surface));
+}
+
+.holding-palette .holding-section:not(.holding-section-hero) {
+  background: var(--holding-page);
+  color: var(--holding-text);
+}
+
+.holding-palette :is(.holding-section-hero, .holding-lead-panel, .holding-footer) {
+  background: var(--holding-primary);
+  color: var(--holding-on-primary);
+}
+
+.holding-palette :is(.holding-section, .holding-blog) :is(h1, h2, h3, .holding-description, .holding-card-text) {
+  color: inherit;
+}
+
+.holding-palette .holding-subtitle {
+  background: transparent;
+  color: inherit;
+}
+
+.holding-palette .holding-article-body {
+  --tw-prose-body: var(--holding-text);
+  --tw-prose-headings: var(--holding-text);
+  --tw-prose-links: var(--holding-text);
+  --tw-prose-bold: var(--holding-text);
+}
+
+.holding-palette .holding-site-button.holding-site-button--primary {
+  --site-button-theme-background: var(--holding-accent);
+  --site-button-theme-foreground: var(--holding-on-accent);
+}
+
+.holding-palette .holding-lead-panel .holding-site-button--secondary {
+  --site-button-theme-border: color-mix(in srgb, var(--holding-on-primary) 45%, var(--holding-primary));
+  --site-button-theme-foreground: var(--holding-on-primary);
+}
+
+.holding-palette :is(.holding-section-hero, .holding-lead-panel) .holding-site-button {
+  --site-button-focus: var(--holding-on-primary);
+}
+
+.holding-palette .holding-lead-panel :is(input:not([type='file']), textarea, select) {
+  background: color-mix(in srgb, var(--holding-on-primary) 10%, var(--holding-primary));
+  border-color: color-mix(in srgb, var(--holding-on-primary) 30%, var(--holding-primary));
+  color: var(--holding-on-primary);
+  color-scheme: var(--holding-primary-scheme);
+}
+
+.holding-palette .holding-lead-panel :is(input:not([type='file']), textarea, select):focus-visible {
+  outline: 2px solid var(--holding-on-primary);
+  outline-offset: 2px;
+}
+
+.holding-palette .holding-lead-panel :is(.holding-attachment-hint, [role='status'], [role='alert']) {
+  color: var(--holding-on-primary);
+}
+
+.holding-palette .holding-lead-panel [role='alert'] {
+  border-inline-start: 2px solid var(--holding-accent);
+  padding-inline-start: .75rem;
+}

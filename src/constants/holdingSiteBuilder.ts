@@ -15,6 +15,7 @@ export interface BlockLibraryItem {
 
 export const BLOCK_LIBRARY: BlockLibraryItem[] = [
   { type: 'hero', label: 'Главный баннер', description: 'Первый экран с оффером и CTA', accent: 'bg-blue-600' },
+  { type: 'button', label: 'Кнопка', description: 'Ссылка с настраиваемым оформлением', accent: 'bg-emerald-700' },
   { type: 'stats', label: 'Показатели', description: 'Цифры доверия и proof-блок', accent: 'bg-slate-700' },
   { type: 'about', label: 'О холдинге', description: 'Позиционирование и описание компании', accent: 'bg-emerald-600' },
   { type: 'services', label: 'Услуги', description: 'Основные направления и сервисы', accent: 'bg-amber-500' },
@@ -152,6 +153,8 @@ export const getDefaultContent = (type: BuilderBlockType): Record<string, unknow
         button_url: '#lead-form',
         background_image: '',
       };
+    case 'button':
+      return { button_text: 'Оставить заявку', button_url: '#lead-form' };
     case 'stats':
       return { title: 'Показатели', description: '', items: [] };
     case 'about':
@@ -252,6 +255,8 @@ export const getDefaultSchema = (type: BuilderBlockType): EditorBlock['schema'] 
         button_url: { type: 'url' },
         background_image: { type: 'image' },
       };
+    case 'button':
+      return { button_text: { type: 'string', required: true }, button_url: { type: 'string', required: true } };
     case 'stats':
       return {
         title: { type: 'string' },

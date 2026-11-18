@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createPublicSitePayloadFixture } from '@/test/fixtures/holdingSiteBuilder';
 import SiteBuilderRenderer from './SiteBuilderRenderer';
 
@@ -116,6 +116,44 @@ describe('SiteBuilderRenderer', () => {
     expect(screen.getByRole('heading', { name: 'Заявка на работы' }).closest('section')).toHaveAttribute('id', 'lead-form');
   });
 
+  it('применяет общую палитру и форму кнопок в предпросмотре, сохраняя настройку отдельной кнопки', () => {
+    const payload = createPublicSitePayloadFixture();
+    const page = payload.current_page!;
+    const section = page.sections[0]!;
+    const { container } = render(<MemoryRouter initialEntries={['/dashboard/multi-organization/site']}><SiteBuilderRenderer
+      mode="editor"
+      page={{
+        ...page,
+        slug: '/services',
+        is_home: false,
+        sections: [{
+          ...section,
+          type: 'button',
+          content: { button_text: 'Узнать больше', button_url: '/about' },
+          style_config: { buttons: { link: { shape: 'square', background: '#ffcc77', width: 65 } } },
+        }],
+      }}
+      navigation={[{ id: page.id, slug: '/services', label: 'Услуги', page_type: 'services', is_home: false }]}
+      site={{
+        ...payload.site,
+        theme_config: {
+          ...payload.site.theme_config,
+          surface_style: 'corporate',
+          palette: { primary: '#294a40', accent: '#f4c56e' },
+          button_shape: 'pill',
+        },
+      }}
+    /></MemoryRouter>);
+
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.style.getPropertyValue('--holding-primary')).toBe('#294a40');
+    expect(root.style.getPropertyValue('--holding-accent')).toBe('#f4c56e');
+    expect(root.style.getPropertyValue('--holding-on-primary')).toBe('#ffffff');
+    expect(root.style.getPropertyValue('--site-button-radius')).toBe('999px');
+    expect(screen.getByRole('link', { name: 'Услуги' })).toHaveAttribute('aria-current', 'page');
+    expect(root.querySelector('.holding-section-button .holding-site-button')).toHaveAttribute('data-shape', 'square');
+  });
+
   it('открывает статью из её раздела и сохраняет локаль', () => {
     const payload = createPublicSitePayloadFixture();
     const page = { ...payload.current_page!, slug: '/articles', page_type: 'blog_index' as const, title: 'Статьи' };
@@ -141,5 +179,85 @@ describe('SiteBuilderRenderer', () => {
 
     expect(screen.getByRole('heading', { name: 'План работ' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'План работ' })).not.toBeInTheDocument();
+  });
+
+  it('применяет цвет, форму и ширину отдельной кнопки на опубликованной странице', () => {
+    const payload = createPublicSitePayloadFixture();
+    const section = {
+      ...payload.current_page!.sections[0],
+      type: 'button' as const,
+      content: { button_text: 'Узнать стоимость', button_url: '/contacts#lead-form' },
+      style_config: { buttons: { link: { background: '#efc46a', shape: 'square', width: 72 } } },
+    };
+    render(<MemoryRouter><SiteBuilderRenderer blocks={[section]} site={payload.site} /></MemoryRouter>);
+
+    const button = screen.getByRole<HTMLAnchorElement>('link', { name: 'Узнать стоимость' });
+    expect(button).toHaveAttribute('href', '/contacts#lead-form');
+    expect(button).toHaveAttribute('data-shape', 'square');
+    expect(button.style.getPropertyValue('--site-button-background')).toBe('#efc46a');
+    expect(button.style.getPropertyValue('--site-button-width')).toBe('72%');
+  });
+
+  it('в конструкторе выбирает настройку кнопки прикрепления вместо файлового диалога', () => {
+    const payload = createPublicSitePayloadFixture();
+    const section = { ...payload.current_page!.sections[0], type: 'lead_form' as const };
+    const onEditorInteract = vi.fn();
+    const { container } = render(<MemoryRouter><SiteBuilderRenderer
+      blocks={[section]}
+      mode="editor"
+      onEditorInteract={onEditorInteract}
+      site={payload.site}
+    /></MemoryRouter>);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Прикрепить файлы' }));
+    expect(container.querySelector('input[type="file"]')).toBeNull();
+    expect(onEditorInteract).toHaveBeenCalledOnce();
+    expect(onEditorInteract).toHaveBeenCalledWith(expect.objectContaining({
+      blockId: section.id, fieldPath: 'style_config.buttons.upload', intent: 'button',
+    }));
+  });
+
+  it('прикрепляет файлы типовой кнопкой и отправляет оставшиеся после удаления', async () => {
+    const payload = createPublicSitePayloadFixture();
+    const section = {
+      ...payload.current_page!.sections[0],
+      type: 'lead_form' as const,
+      content: { title: 'Заявка', submit_label: 'Отправить заявку' },
+    };
+    const onSubmitLead = vi.fn().mockResolvedValue({ id: 1 });
+    const { container } = render(<MemoryRouter><SiteBuilderRenderer
+      blocks={[section]}
+      onSubmitLead={onSubmitLead}
+      serviceRequest={{ enabled: true, services: [{ id: 22, name: 'Отделочные работы' }] }}
+      site={payload.site}
+    /></MemoryRouter>);
+
+    const chooser = container.querySelector<HTMLInputElement>('input[type="file"]')!;
+    expect(chooser).toHaveAttribute('hidden');
+    const openChooser = vi.spyOn(chooser, 'click');
+    fireEvent.click(screen.getByRole('button', { name: 'Прикрепить файлы' }));
+    expect(openChooser).toHaveBeenCalledOnce();
+    expect(onSubmitLead).not.toHaveBeenCalled();
+
+    const specification = new File(['%PDF'], 'описание.pdf', { type: 'application/pdf' });
+    const image = new File(['img'], 'фото.png', { type: 'image/png' });
+    fireEvent.change(chooser, { target: { files: [specification] } });
+    fireEvent.change(chooser, { target: { files: [image] } });
+    fireEvent.change(chooser, { target: { files: [new File(['notes'], 'заметки.txt')] } });
+    expect(screen.getByRole('alert')).toHaveTextContent('PDF, JPG или PNG');
+    expect(screen.getByRole('list', { name: 'Прикреплённые файлы' })).toHaveTextContent(specification.name);
+    expect(screen.getByRole('list', { name: 'Прикреплённые файлы' })).toHaveTextContent(image.name);
+    fireEvent.click(screen.getByRole('button', { name: `Убрать ${specification.name}` }));
+    expect(screen.queryByText(specification.name)).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Вид работ' }), { target: { value: '22' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Имя' }), { target: { value: 'Учебный заказчик' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Телефон' }), { target: { value: '+7 000 000-00-00' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Адрес объекта' }), { target: { value: 'Учебная площадка, 1' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Описание работ' }), { target: { value: 'Учебная заявка' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Отправить заявку' }).closest('form')!);
+
+    await waitFor(() => expect(onSubmitLead).toHaveBeenCalledWith(expect.objectContaining({ work_type_id: 22, attachments: [image] })));
+    expect(await screen.findByRole('status')).toHaveTextContent('Заявка отправлена');
   });
 });

@@ -10,6 +10,7 @@ import {
   holdingSiteBuilderService,
 } from '@/services/holdingSiteBuilderService';
 import type {
+  BuilderBlockType,
   BuilderWorkspaceData,
   EditorAsset,
   EditorCollaborator,
@@ -115,6 +116,9 @@ export const useHoldingSiteBuilder = () => {
 
   const workspaceRef = useRef<BuilderWorkspaceData | null>(null);
   const siteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const siteSaveRef = useRef(Promise.resolve(true));
+  const siteDraftVersionRef = useRef(0);
+  const siteSavedVersionRef = useRef(0);
   const pageTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const sectionTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
@@ -188,28 +192,37 @@ export const useHoldingSiteBuilder = () => {
     void loadWorkspace();
   }, [loadWorkspace]);
 
-  const saveSiteNow = useCallback(async () => {
-    if (!workspaceRef.current) {
-      return;
-    }
+  const saveSiteNow = useCallback(() => {
+    const save = siteSaveRef.current.then(async () => {
+      const currentSite = workspaceRef.current?.site;
+      const version = siteDraftVersionRef.current;
+      if (!currentSite || version === siteSavedVersionRef.current) {
+        return true;
+      }
 
-    setSavingSite(true);
-    setError(null);
+      setSavingSite(true);
+      setError(null);
 
-    try {
-      const nextWorkspace = await holdingSiteBuilderService.updateSite(
-        sanitizeSitePayload(workspaceRef.current.site),
-      );
-      replaceWorkspace(nextWorkspace);
-      setDirtySite(false);
-    } catch (saveError) {
-      const message = getErrorMessage(saveError, 'Не удалось сохранить настройки сайта.');
-      setError(message);
-      NotificationService.show({ type: 'error', title: 'Автосохранение', message });
-    } finally {
-      setSavingSite(false);
-    }
-  }, [replaceWorkspace]);
+      try {
+        const { site, publication } = await holdingSiteBuilderService.updateSite(sanitizeSitePayload(currentSite));
+        siteSavedVersionRef.current = version;
+        if (version === siteDraftVersionRef.current) {
+          startTransition(() => setWorkspace(current => current ? { ...current, site, publication } : current));
+          setDirtySite(false);
+        }
+        return true;
+      } catch (saveError) {
+        const message = getErrorMessage(saveError, 'Не удалось сохранить настройки сайта.');
+        setError(message);
+        NotificationService.show({ type: 'error', title: 'Автосохранение', message });
+        return false;
+      } finally {
+        setSavingSite(false);
+      }
+    });
+    siteSaveRef.current = save;
+    return save;
+  }, []);
 
   const savePageNow = useCallback(async (pageId: number | string) => {
     const currentWorkspace = workspaceRef.current;
@@ -310,6 +323,7 @@ export const useHoldingSiteBuilder = () => {
     }
 
     siteTimerRef.current = setTimeout(() => {
+      siteTimerRef.current = null;
       void saveSiteNow();
     }, SITE_SAVE_DELAY);
   }, [saveSiteNow]);
@@ -339,7 +353,9 @@ export const useHoldingSiteBuilder = () => {
     if (siteTimerRef.current) {
       clearTimeout(siteTimerRef.current);
       siteTimerRef.current = null;
-      await saveSiteNow();
+    }
+    if (!await saveSiteNow()) {
+      throw new Error('Перед публикацией не удалось сохранить настройки сайта.');
     }
 
     const pageIds = Object.keys(pageTimersRef.current);
@@ -390,7 +406,8 @@ export const useHoldingSiteBuilder = () => {
     [selectedPage, selectedSectionId],
   );
 
-  const updateSiteDraft = useCallback((patch: Partial<EditorSite>) => {
+  const updateSiteDraft = useCallback((update: Partial<EditorSite> | ((site: EditorSite) => Partial<EditorSite>)) => {
+    siteDraftVersionRef.current += 1;
     startTransition(() => {
       setWorkspace((current) => {
         if (!current) {
@@ -401,7 +418,7 @@ export const useHoldingSiteBuilder = () => {
           ...current,
           site: {
             ...current.site,
-            ...patch,
+            ...(typeof update === 'function' ? update(current.site) : update),
           },
         };
       });
@@ -552,13 +569,13 @@ export const useHoldingSiteBuilder = () => {
     }
   }, []);
 
-  const addSection = useCallback(async (pageId: number | string, type: EditorSection['type']) => {
+  const addSection = useCallback(async (pageId: number | string, type: BuilderBlockType) => {
     if (typeof pageId !== 'number') {
       return null;
     }
 
     try {
-      const section = await holdingSiteBuilderService.createSection(pageId, createBlockPayloadFromTemplate(type as never));
+      const section = await holdingSiteBuilderService.createSection(pageId, createBlockPayloadFromTemplate(type));
 
       startTransition(() => {
         setWorkspace((current) => {

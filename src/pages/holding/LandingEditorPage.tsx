@@ -18,6 +18,10 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import SiteBuilderRenderer from '@/components/holding/site-builder/SiteBuilderRenderer';
+import SiteButtonStyleEditor from '@/components/holding/site-builder/SiteButtonStyleEditor';
+import SiteThemeEditor from '@/components/holding/site-builder/SiteThemeEditor';
+import { readButtonAppearance, writeButtonAppearance } from '@/components/holding/site-builder/siteButtonAppearance';
+import type { SiteButtonAction } from '@/components/holding/site-builder/siteButtonAppearance';
 import SiteBlogEditor from '@/components/holding/site-builder/SiteBlogEditor';
 import SiteCrmSettingsPanel from '@/components/holding/site-builder/SiteCrmSettingsPanel';
 import {
@@ -44,6 +48,14 @@ const panelClassName = 'rounded-[30px] border border-slate-200 bg-white p-5 shad
 const imageDropzoneClassName =
   'rounded-[24px] border border-dashed border-slate-300 bg-slate-50 p-4 transition hover:border-slate-400 hover:bg-white';
 const imageAccept = 'image/*,.jpg,.jpeg,.png,.gif,.webp,.svg,.ico';
+const sectionButtons: Partial<Record<EditorSection['type'], ReadonlyArray<{ action: SiteButtonAction; label: string }>>> = {
+  hero: [{ action: 'link', label: 'Кнопка баннера' }],
+  button: [{ action: 'link', label: 'Оформление кнопки' }],
+  lead_form: [
+    { action: 'upload', label: 'Кнопка прикрепления файлов' },
+    { action: 'submit', label: 'Кнопка отправки заявки' },
+  ],
+};
 
 const INSPECTOR_TABS: Array<{
   id: InspectorTab;
@@ -362,10 +374,10 @@ const SectionCard = ({
       </div>
     </button>
     <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-      <button className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300" onClick={onMoveUp} type="button">
+      <button aria-label={`Поднять секцию ${section.title}`} className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300" onClick={onMoveUp} type="button">
         <ChevronUpIcon className="h-4 w-4" />
       </button>
-      <button className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300" onClick={onMoveDown} type="button">
+      <button aria-label={`Опустить секцию ${section.title}`} className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300" onClick={onMoveDown} type="button">
         <ChevronDownIcon className="h-4 w-4" />
       </button>
       <button className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300" onClick={onDuplicate} type="button">
@@ -397,7 +409,7 @@ const LandingEditorPage = () => {
   const [newPageTitle, setNewPageTitle] = useState('');
   const [newPageSlug, setNewPageSlug] = useState('');
   const [newPageType, setNewPageType] = useState<SitePageType>('custom');
-  const fieldRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
+  const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const canView = can('multi-organization.website.view');
   const canEdit = can('multi-organization.website.edit');
@@ -755,6 +767,13 @@ const LandingEditorPage = () => {
             <SiteBuilderRenderer
               blog={{ articles: builder.blogArticles }}
               mode="editor"
+              navigation={builder.pages.filter(page => page.is_active && page.visibility === 'public').map(page => ({
+                id: page.id,
+                slug: page.slug,
+                label: page.navigation_label || page.title,
+                page_type: page.page_type,
+                is_home: page.is_home,
+              }))}
               onEditorInteract={handleCanvasInteract}
               page={selectedPage}
               selectedBlockId={builder.selectedSectionId}
@@ -874,6 +893,22 @@ const LandingEditorPage = () => {
                   </Field>
                 );
               })}
+              {sectionButtons[selectedSection.type]?.map(({ action, label }) => (
+                <SiteButtonStyleEditor
+                  key={action}
+                  appearance={readButtonAppearance(selectedSection.style_config, action)}
+                  disabled={!canEdit}
+                  label={label}
+                  onChange={patch => builder.updateSectionDraft(selectedPage!.id, selectedSection.id, section => ({
+                    style_config: writeButtonAppearance(section.style_config, action, patch
+                      ? { ...readButtonAppearance(section.style_config, action), ...patch }
+                      : {}),
+                  }))}
+                  selectRef={element => {
+                    fieldRefs.current[`style_config.buttons.${action}`] = element;
+                  }}
+                />
+              ))}
             </section>
           )}
 
@@ -915,14 +950,24 @@ const LandingEditorPage = () => {
                   className={inputClassName}
                   disabled={!canEdit}
                   value={builder.site.theme_config.surface_style === 'corporate' ? 'corporate' : 'clean'}
-                  onChange={(event) => builder.updateSiteDraft({
-                    theme_config: { ...builder.site!.theme_config, surface_style: event.target.value },
-                  })}
+                  onChange={event => {
+                    const surfaceStyle = event.currentTarget.value;
+                    builder.updateSiteDraft(site => ({
+                      theme_config: { ...site.theme_config, surface_style: surfaceStyle },
+                    }));
+                  }}
                 >
                   <option value="clean">Стандартное</option>
                   <option value="corporate">Строительная компания</option>
                 </select>
               </Field>
+              <SiteThemeEditor
+                disabled={!canEdit}
+                theme={builder.site.theme_config}
+                onChange={update => builder.updateSiteDraft(site => ({
+                  theme_config: { ...site.theme_config, ...update(site.theme_config) },
+                }))}
+              />
               <Field label="Название сайта">
                 <input className={inputClassName} value={builder.site.title} onChange={(event) => builder.updateSiteDraft({ title: event.target.value })} />
               </Field>
