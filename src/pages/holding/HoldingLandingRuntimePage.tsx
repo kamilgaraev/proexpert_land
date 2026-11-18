@@ -120,7 +120,8 @@ const HoldingLandingRuntimeContent = ({ initialPage }: HoldingLandingRuntimePage
         blocks={payload.blocks}
         mode="public"
         navigation={navigation}
-        onSubmitLead={publicHoldingSiteService.submitLead}
+        onSubmitLead={isPreview ? undefined : publicHoldingSiteService.submitLead}
+        serviceRequest={payload.service_request}
         page={payload.current_page ?? payload.page ?? null}
         site={payload.site}
       />

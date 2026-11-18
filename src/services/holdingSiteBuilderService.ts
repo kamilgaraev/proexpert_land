@@ -13,6 +13,8 @@ import type {
   LeadSummary,
   PublicSitePayload,
   SiteBlogArticle,
+  SiteCrmSettings,
+  SiteWorkType,
   SiteRevision,
 } from '@/types/holding-site-builder';
 
@@ -73,6 +75,10 @@ const requestPublicApi = async <T>(path: string, init?: RequestInit): Promise<T>
 
 export const holdingSiteBuilderService = {
   getWorkspace: () => requestAuth<BuilderWorkspaceData>('/holding/site'),
+  getCrmSettings: () => requestAuth<SiteCrmSettings>('/holding/site/service-requests'),
+  getCrmWorkTypes: (id: number) => requestAuth<SiteWorkType[]>(`/holding/site/service-requests/work-types/${id}`),
+  saveCrmSettings: (payload: Pick<SiteCrmSettings, 'organization_id' | 'work_type_ids'>) =>
+    requestJsonAuth<SiteCrmSettings>('/holding/site/service-requests', 'PUT', payload),
   updateSite: (payload: Record<string, unknown>) => requestJsonAuth<BuilderWorkspaceData>('/holding/site', 'PUT', payload),
   publishSite: () => requestJsonAuth<BuilderWorkspaceData>('/holding/site/publish', 'POST'),
   getPages: () => requestAuth<EditorPage[]>('/holding/site/pages'),
@@ -138,6 +144,24 @@ export const holdingSiteBuilderService = {
   getLeadSummary: () => requestAuth<LeadSummary>('/holding/site/leads/summary'),
 };
 
+function submitLead(payload: LeadSubmissionPayload & { submission_key?: undefined; attachments?: undefined }): Promise<LeadEntry>;
+function submitLead(payload: LeadSubmissionPayload): Promise<Pick<LeadEntry, 'id'>>;
+function submitLead(payload: LeadSubmissionPayload) {
+  const { attachments, ...fields } = payload;
+  const data = { ...fields, site_domain: window.location.hostname, source_url: payload.source_url ?? window.location.href };
+  if (attachments?.length) {
+    const body = new FormData();
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === 'string' || typeof value === 'number') body.set(key, String(value));
+    }
+    for (const file of attachments) body.append('attachments[]', file);
+    return requestPublicApi<Pick<LeadEntry, 'id'>>('/holding/public/site-leads', { method: 'POST', body });
+  }
+  return requestPublicApi<Pick<LeadEntry, 'id'>>('/holding/public/site-leads', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  });
+}
+
 export const publicHoldingSiteService = {
   getSiteData: (pathname = window.location.pathname, search = window.location.search) => {
     const params = new URLSearchParams(search);
@@ -149,18 +173,7 @@ export const publicHoldingSiteService = {
 
     return requestPublicApi<PublicSitePayload>(`/holding/public/site-data?${params.toString()}`);
   },
-  submitLead: (payload: LeadSubmissionPayload) =>
-    requestPublicApi<LeadEntry>('/holding/public/site-leads', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...payload,
-        site_domain: window.location.hostname,
-        source_url: payload.source_url ?? window.location.href,
-      }),
-    }),
+  submitLead,
 };
 
 export { BuilderApiError };

@@ -156,4 +156,22 @@ describe('publicHoldingSiteService', () => {
     expect(lead.name).toBe('Павел');
     expect(lead.block_key).toBe('lead_form_1');
   });
+
+  it('передаёт заявку с вложением как multipart', async () => {
+    server.use(http.post('https://api.example.test/api/v1/landing/holding/public/site-leads', async ({ request }) => {
+      const fields = await request.formData();
+      expect(fields.get('site_domain')).toBe('localhost');
+      expect(fields.get('work_type_id')).toBe('17');
+      expect(fields.get('object_address')).toBe('Тестовый объект');
+      expect(fields.get('submission_key')).toBe('7bdae8df-26c1-4f83-bb6f-e3b021b1fe6f');
+      expect((fields.get('attachments[]') as File).name).toBe('brief.pdf');
+      return HttpResponse.json({ success: true, data: { id: 42 } }, { status: 201 });
+    }));
+    await expect(publicHoldingSiteService.submitLead({
+      name: 'Заказчик', phone: '+79991234567', message: 'Ремонт фасада',
+      submission_key: '7bdae8df-26c1-4f83-bb6f-e3b021b1fe6f',
+      work_type_id: 17, object_address: 'Тестовый объект',
+      attachments: [new File(['%PDF'], 'brief.pdf', { type: 'application/pdf' })],
+    })).resolves.toEqual({ id: 42 });
+  });
 });

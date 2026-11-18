@@ -353,7 +353,24 @@ export interface PublicRuntimePayload {
 
 export type PublicSite = Omit<EditorSite, 'preview_url'>;
 
+export interface SiteWorkType {
+  id: number;
+  name: string;
+}
+
+export interface SiteCrmSettings {
+  organization_id: number | null;
+  work_type_ids: number[];
+  organizations: SiteWorkType[];
+}
+
+export interface PublicServiceRequestSettings {
+  enabled: boolean;
+  services: SiteWorkType[];
+}
+
 export interface PublicSitePayload {
+  service_request?: PublicServiceRequestSettings;
   site: PublicSite;
   navigation?: PublicNavigationItem[];
   pages?: EditorPage[];
@@ -369,6 +386,11 @@ export interface PublicSitePayload {
 }
 
 export interface LeadSubmissionPayload {
+  submission_key?: string;
+  work_type_id?: number;
+  object_address?: string;
+  expected_start_date?: string;
+  attachments?: File[];
   name?: string;
   company?: string;
   email?: string;
