@@ -92,6 +92,11 @@ export const marketingBlogArticles = {
     purpose:
       "Как сравнить предложения поставщиков по полной стоимости поставки.",
   },
+  incomingMaterialControl: {
+    title: "Входной контроль материалов на стройке: чек-лист, журнал и образец акта",
+    href: "/blog/vhodnoy-kontrol-materialov-v-stroitelstve",
+    purpose: "Чек-лист проверки партии, образец записи в журнале и рабочие файлы.",
+  },
   deliveryAcceptance: {
     title:
       "Приёмка материалов от поставщика: недостача, пересорт, акт о расхождении и претензия",

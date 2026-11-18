@@ -31,6 +31,7 @@ export const marketingPaths = {
   pirProjectDocumentation: "/pir-project-documentation",
   constructionSafety: "/construction-safety",
   constructionQualityControl: "/construction-quality-control",
+  incomingControlJournal: "/incoming-control-journal",
   handoverAcceptance: "/handover-acceptance",
   machineryAndLabor: "/machinery-and-labor",
   changeControl: "/change-control",
@@ -222,6 +223,13 @@ export const marketingSeo: Record<string, MarketingSeoMeta> = {
       "Контроль качества строительства в МОСТ: инспекции, дефекты, замечания, фотофиксация, ответственные, сроки и повторная проверка.",
     keywords:
       "система контроля качества строительства, учёт дефектов, инспекции качества, замечания на стройке",
+  },
+  "incoming-control-journal": {
+    title: "Журнал входного контроля материалов | МОСТ",
+    description:
+      "Ведите входной контроль материалов по объекту и партии. Прикладывайте документы, фиксируйте решение и выгружайте журнал в PDF или Excel.",
+    keywords:
+      "журнал входного контроля материалов, электронный входной контроль, журнал проверки партий",
   },
   "handover-acceptance": {
     title: "Панч-лист и приёмка работ в строительстве | МОСТ",
