@@ -35,6 +35,8 @@ export const ARRAY_ITEM_TEMPLATES: Record<string, Record<string, unknown>> = {
   'projects.projects': {
     title: 'Проект',
     description: 'Описание проекта',
+    image: '',
+    alt: '',
     location: '',
     budget: '',
     completed_at: '',
@@ -54,6 +56,7 @@ export const FIELD_LABELS: Record<string, string> = {
   background_image: 'Фон',
   items: 'Элементы',
   image: 'Изображение',
+  alt: 'Описание изображения',
   services: 'Услуги',
   projects: 'Проекты',
   members: 'Команда',

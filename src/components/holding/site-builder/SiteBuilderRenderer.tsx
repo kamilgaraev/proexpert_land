@@ -341,12 +341,14 @@ const renderCards = (items: Array<Record<string, unknown>>, colorClass: string) 
   <div className="holding-cards grid gap-5 md:grid-cols-2 xl:grid-cols-3">
     {items.map((item, index) => (
       <article key={`${item.title ?? item.label ?? index}`} className={`rounded-[30px] border border-slate-200 ${colorClass} p-6 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.45)]`}>
-        {stringValue(item.image) && <img alt="" loading="lazy" src={stringValue(item.image)} />}
-        {Boolean(item.label) && <div className="holding-card-text text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">{String(item.label)}</div>}
-        {Boolean(item.title) && <h3 className="mt-3 text-2xl font-semibold text-slate-950">{String(item.title)}</h3>}
-        {Boolean(item.value) && <div className="holding-card-text mt-4 text-4xl font-semibold text-slate-950">{String(item.value)}</div>}
-        {Boolean(item.description) && <p className="holding-card-text mt-3 text-sm leading-7 text-slate-600">{String(item.description)}</p>}
-        {Boolean(item.location) && <p className="holding-card-text mt-4 text-xs font-medium uppercase tracking-[0.24em] text-slate-500">{String(item.location)}</p>}
+        {stringValue(item.image) && <img alt={stringValue(item.alt)} loading="lazy" src={stringValue(item.image)} />}
+        <div className="holding-card-copy">
+          {Boolean(item.label) && <div className="holding-card-text text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">{String(item.label)}</div>}
+          {Boolean(item.title) && <h3 className="mt-3 text-2xl font-semibold text-slate-950">{String(item.title)}</h3>}
+          {Boolean(item.value) && <div className="holding-card-text mt-4 text-4xl font-semibold text-slate-950">{String(item.value)}</div>}
+          {Boolean(item.description) && <p className="holding-card-text mt-3 text-sm leading-7 text-slate-600">{String(item.description)}</p>}
+          {Boolean(item.location) && <p className="holding-card-text mt-4 text-xs font-medium uppercase tracking-[0.24em] text-slate-500">{String(item.location)}</p>}
+        </div>
       </article>
     ))}
   </div>
@@ -828,17 +830,30 @@ const renderSectionContent = (
           <div className="grid gap-4 md:grid-cols-2">
             {[
               ['Телефон', 'content.phone', stringValue(section.content.phone)],
-              ['Email', 'content.email', stringValue(section.content.email)],
-              ['Адрес', 'content.address', stringValue(section.content.address)],
-              ['Часы', 'content.working_hours', stringValue(section.content.working_hours)],
-            ].filter(([, , value]) => !corporate || mode === 'editor' || value).map(([label, path, value]) => (
-              <EditableHotspot key={label} active={selectedFieldPath === path} onInteract={() => select(path, 'text')} target={{ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath: path, intent: 'text' }}>
-                <div className="holding-contact-item rounded-[28px] border border-slate-200 bg-white px-6 py-6 shadow-[0_20px_50px_-42px_rgba(15,23,42,0.45)]">
-                  <div className="holding-card-text text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">{label}</div>
-                  <div className="holding-card-text mt-4 text-lg font-semibold text-slate-950">{value || '—'}</div>
-                </div>
-              </EditableHotspot>
-            ))}
+              ['Электронная почта', 'content.email', stringValue(section.content.email)],
+              ['Местоположение', 'content.address', stringValue(section.content.address)],
+              ['Часы работы', 'content.working_hours', stringValue(section.content.working_hours)],
+            ].filter(([, , value]) => !corporate || mode === 'editor' || value.trim()).map(([label, path, value]) => {
+              const phone = value.replace(/[\s().-]/g, '');
+              const email = value.trim();
+              const href = path === 'content.phone' && /^\+?\d{5,20}$/.test(phone) ? `tel:${phone}`
+                : path === 'content.email' && /^[\w.+-]+@[\w.-]+\.[a-z]{2,}$/i.test(email) ? `mailto:${email}` : undefined;
+              return (
+                <EditableHotspot
+                  key={path}
+                  active={selectedFieldPath === path}
+                  onInteract={onEditorInteract ? () => select(path, 'text') : undefined}
+                  target={{ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath: path, intent: 'text' }}
+                >
+                  <div className="holding-contact-item h-full rounded-[28px] border border-slate-200 bg-white px-6 py-6 shadow-[0_20px_50px_-42px_rgba(15,23,42,0.45)]">
+                    <div className="holding-card-text text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">{label}</div>
+                    <div className="holding-card-text mt-4 whitespace-pre-line break-words text-lg font-semibold text-slate-950">
+                      {mode === 'public' && href ? <a className="underline underline-offset-4" href={href}>{value}</a> : value || '—'}
+                    </div>
+                  </div>
+                </EditableHotspot>
+              );
+            })}
           </div>
         </div>
       )}

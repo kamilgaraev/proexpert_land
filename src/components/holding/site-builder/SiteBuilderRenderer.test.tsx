@@ -166,6 +166,28 @@ describe('SiteBuilderRenderer', () => {
     expect(onChange.mock.calls[0]![0](theme)).toEqual({ palette: { primary: '#17312a' } });
   });
 
+  it('показывает фотографии объектов и ссылки на заполненные контакты', () => {
+    const payload = createPublicSitePayloadFixture();
+    const block = payload.current_page!.sections[0]!;
+    render(<MemoryRouter><SiteBuilderRenderer
+      site={{ ...payload.site, theme_config: { ...payload.site.theme_config, surface_style: 'corporate' } }}
+      blocks={[
+        { ...block, id: 120, type: 'projects', content: {
+          projects: [{ title: 'Офис', image: '/office.jpg', alt: 'Готовая переговорная' }],
+        } },
+        { ...block, id: 125, type: 'contacts', content: {
+          phone: '+7 (000) 000-00-01', email: 'office@example.org', address: 'Екатеринбург', working_hours: ' ',
+        } },
+      ]}
+    /></MemoryRouter>);
+
+    expect(screen.getByRole('img', { name: 'Готовая переговорная' })).toHaveAttribute('src', '/office.jpg');
+    expect(screen.getByRole('link', { name: '+7 (000) 000-00-01' })).toHaveAttribute('href', 'tel:+70000000001');
+    expect(screen.getByRole('link', { name: 'office@example.org' })).toHaveAttribute('href', 'mailto:office@example.org');
+    expect(screen.getByText('Екатеринбург')).toBeInTheDocument();
+    expect(screen.queryByText('Часы работы')).not.toBeInTheDocument();
+  });
+
   it('открывает статью из её раздела и сохраняет локаль', () => {
     const payload = createPublicSitePayloadFixture();
     const page = { ...payload.current_page!, slug: '/articles', page_type: 'blog_index' as const, title: 'Статьи' };

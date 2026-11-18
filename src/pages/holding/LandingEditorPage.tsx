@@ -258,7 +258,7 @@ const ArrayEditor = ({
             </button>
           </div>
           <div className="grid gap-3">
-            {Object.entries(item).map(([key, itemValue]) => (
+            {Object.entries(fieldName === 'projects' ? { ...item, image: item.image ?? '', alt: item.alt ?? '' } : item).map(([key, itemValue]) => (
               <Field key={key} label={FIELD_LABELS[key] ?? key}>
                 {onUploadAsset && isImageCollectionField(fieldName, key) ? (
                   <ImageUploadField
