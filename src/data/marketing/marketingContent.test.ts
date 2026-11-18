@@ -227,6 +227,7 @@ const commercialClusterPageKeys = [
   "pir-project-documentation",
   "construction-safety",
   "construction-quality-control",
+  "incoming-control-journal",
   "handover-acceptance",
   "machinery-and-labor",
   "change-control",
@@ -1287,7 +1288,7 @@ describe("marketing content consistency", () => {
     const titles = new Set<string>();
     const descriptions = new Set<string>();
 
-    expect(marketingSitemapRoutes).toHaveLength(43);
+    expect(marketingSitemapRoutes).toHaveLength(44);
 
     for (const { pageKey, path: route } of marketingSitemapRoutes) {
       const meta = marketingSeo[pageKey];

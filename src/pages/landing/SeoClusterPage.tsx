@@ -23,6 +23,7 @@ type SeoClusterPageProps = {
 
 const materialScenarios = new Set([
   "material-accounting",
+  "incoming-control-journal",
   "construction-procurement",
   "site-requests",
   "estimates",

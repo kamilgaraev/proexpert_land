@@ -24,6 +24,7 @@
   { "path": "/pir-project-documentation", "pageKey": "pir-project-documentation", "priority": 0.88, "changefreq": "weekly" },
   { "path": "/construction-safety", "pageKey": "construction-safety", "priority": 0.87, "changefreq": "weekly" },
   { "path": "/construction-quality-control", "pageKey": "construction-quality-control", "priority": 0.88, "changefreq": "weekly" },
+  { "path": "/incoming-control-journal", "pageKey": "incoming-control-journal", "priority": 0.88, "changefreq": "weekly" },
   { "path": "/handover-acceptance", "pageKey": "handover-acceptance", "priority": 0.86, "changefreq": "weekly" },
   { "path": "/machinery-and-labor", "pageKey": "machinery-and-labor", "priority": 0.86, "changefreq": "weekly" },
   { "path": "/change-control", "pageKey": "change-control", "priority": 0.86, "changefreq": "weekly" },

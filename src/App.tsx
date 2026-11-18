@@ -187,6 +187,7 @@ function App({
           <Route path="/pir-project-documentation" element={<SeoClusterPage pageKey="pir-project-documentation" />} />
           <Route path="/construction-safety" element={<SeoClusterPage pageKey="construction-safety" />} />
           <Route path="/construction-quality-control" element={<SeoClusterPage pageKey="construction-quality-control" />} />
+          <Route path="/incoming-control-journal" element={<SeoClusterPage pageKey="incoming-control-journal" />} />
           <Route path="/handover-acceptance" element={<SeoClusterPage pageKey="handover-acceptance" />} />
           <Route path="/machinery-and-labor" element={<SeoClusterPage pageKey="machinery-and-labor" />} />
           <Route path="/change-control" element={<SeoClusterPage pageKey="change-control" />} />

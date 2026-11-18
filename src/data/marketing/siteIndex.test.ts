@@ -58,6 +58,7 @@ describe('marketing site index', () => {
       ['/pir-project-documentation', 'pir-project-documentation'],
       ['/construction-safety', 'construction-safety'],
       ['/construction-quality-control', 'construction-quality-control'],
+      ['/incoming-control-journal', 'incoming-control-journal'],
       ['/handover-acceptance', 'handover-acceptance'],
       ['/machinery-and-labor', 'machinery-and-labor'],
       ['/change-control', 'change-control'],
