@@ -180,6 +180,7 @@ const BillingPage = () => {
     if (sources.includes('full_suite')) return 'Полный комплект';
     if (sources.includes('trial')) return 'Пробный доступ';
     if (sources.includes('paid_package')) return 'Оплаченные пакеты';
+    if (sources.includes('manual_grant')) return 'Временный доступ без оплаты';
     return 'МОСТ без оплаты';
   }, [packages]);
   const selectedResourceAddons = useMemo(() => renewSubscription ? [] : limitsSummary?.resourceAddons
@@ -649,17 +650,26 @@ const BillingPage = () => {
             </div>
             {connectedPackages.length > 0 ? <div className="grid gap-4 md:grid-cols-2">
               {connectedPackages.map((item) => {
+                const manualGrant = item.accessSource === 'manual_grant';
                 const scheduledForRemoval = scheduledRemoved.includes(item.slug);
-                const pendingRemoval = scheduledForRemoval || (!fullSuite && !selected.includes(item.slug));
+                const pendingRemoval = !manualGrant && (scheduledForRemoval || (!fullSuite && !selected.includes(item.slug)));
                 const canDisconnect = !isCorporate && item.accessSource === 'paid_package' && !scheduledForRemoval;
+                const grantPurchaseLabel = selected.includes(item.slug) ? 'Убрать из заказа' : 'Добавить в заказ';
+                const effectiveDateLabel = manualGrant
+                  ? `Доступ до ${formatDateTime(item.currentPeriodEndAt)}`
+                  : pendingRemoval
+                    ? `Доступ сохранится до ${formatDateTime(scheduledForRemoval ? renewal?.scheduledChange?.applyAt ?? null : item.currentPeriodEndAt)}`
+                    : item.status === 'trialing' ? `Пробный доступ: ${remaining(item.trialEndsAt, now) ?? 'завершён'}` : null;
                 return <CommercialPackageCard
                   key={item.slug}
                   packageItem={item}
                   featured={item.slug === 'working-entry'}
                   variant="connected"
                   pendingAction={pendingRemoval ? 'remove' : null}
-                  primaryActionLabel={canDisconnect ? (pendingRemoval ? 'Оставить подключённым' : 'Отключить со следующего периода') : null}
-                  effectiveDateLabel={pendingRemoval ? `Доступ сохранится до ${formatDateTime(scheduledForRemoval ? renewal?.scheduledChange?.applyAt ?? null : item.currentPeriodEndAt)}` : item.status === 'trialing' ? `Пробный доступ: ${remaining(item.trialEndsAt, now) ?? 'завершён'}` : null}
+                  primaryActionLabel={manualGrant && !isCorporate && !fullSuite
+                    ? grantPurchaseLabel
+                    : canDisconnect ? (pendingRemoval ? 'Оставить подключённым' : 'Отключить со следующего периода') : null}
+                  effectiveDateLabel={effectiveDateLabel}
                   disabled={!canManage || isGrace || isCorporate || renewSubscription}
                   onPrimaryAction={() => togglePackage(item.slug)}
                   onDetails={() => setDetailsPackage(item)}

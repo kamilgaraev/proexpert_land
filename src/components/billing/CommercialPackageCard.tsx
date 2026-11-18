@@ -39,6 +39,7 @@ export const CommercialPackageCard = ({
   onDetails,
 }: CommercialPackageCardProps) => {
   const connected = variant === 'connected';
+  const manualGrant = connected && packageItem.accessSource === 'manual_grant';
   const actionLabel = primaryActionLabel === undefined
     ? (connected ? 'Отключить со следующего периода' : 'Добавить')
     : primaryActionLabel;
@@ -46,7 +47,9 @@ export const CommercialPackageCard = ({
     ? 'Будет отключён'
     : pendingAction === 'add'
       ? 'Будет подключён'
-      : packageItem.accessSource === 'trial'
+      : manualGrant
+        ? 'Временный доступ'
+        : packageItem.accessSource === 'trial'
         ? 'Пробный доступ'
         : connected
           ? 'Подключён'
@@ -62,7 +65,7 @@ export const CommercialPackageCard = ({
     )}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          {featured ? <p className="mb-3 text-xs font-semibold uppercase tracking-[0.06em] text-emerald-700">Платный минимум</p> : null}
+          {featured && !manualGrant ? <p className="mb-3 text-xs font-semibold uppercase tracking-[0.06em] text-emerald-700">Платный минимум</p> : null}
           {statusLabel && (
             <div className={cn(
               'mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold',
@@ -77,8 +80,8 @@ export const CommercialPackageCard = ({
           <h3 className="text-xl font-semibold tracking-tight text-slate-950">{packageItem.name}</h3>
         </div>
         <div className="shrink-0 text-right">
-          <div className="text-lg font-semibold text-slate-950">{formatMoney(packageItem.priceMinor, packageItem.currency)}</div>
-          <div className="text-xs text-slate-500">за 30 дней</div>
+          <div className="text-lg font-semibold text-slate-950">{manualGrant ? 'Без оплаты' : formatMoney(packageItem.priceMinor, packageItem.currency)}</div>
+          {!manualGrant && <div className="text-xs text-slate-500">за 30 дней</div>}
         </div>
       </div>
 
@@ -99,7 +102,7 @@ export const CommercialPackageCard = ({
             variant={connected ? 'ghost' : 'default'}
             className={cn(
               'h-auto min-h-10 w-full gap-2 whitespace-normal px-3 text-center leading-snug',
-              connected && pendingAction !== 'remove' && 'text-slate-600 hover:text-red-700',
+              connected && !manualGrant && pendingAction !== 'remove' && 'text-slate-600 hover:text-red-700',
               !connected && 'bg-orange-500 text-white hover:bg-orange-600',
             )}
             disabled={disabled}
