@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getHoldingContentPath, getHoldingLocalePrefix } from '@/utils/holdingPublicPage';
 import NotificationService from '@components/shared/NotificationService';
+import { BuilderApiError } from '@/services/holdingSiteBuilderService';
 import type {
   BuilderCanvasFocusTarget,
   EditorPage,
   EditorSection,
   PublicSite,
+  PublicServiceRequestSettings,
   LeadSubmissionPayload,
   PublicNavigationItem,
   SiteBlogArticle,
@@ -23,6 +25,7 @@ interface SiteBuilderRendererProps {
   selectedFieldPath?: string | null;
   onEditorInteract?: (target: BuilderCanvasFocusTarget) => void;
   onSubmitLead?: (payload: LeadSubmissionPayload) => Promise<unknown>;
+  serviceRequest?: PublicServiceRequestSettings;
   blog?: {
     articles?: SiteBlogArticle[];
     current_article?: SiteBlogArticle | null;
@@ -320,68 +323,112 @@ const renderCards = (items: Array<Record<string, unknown>>, colorClass: string) 
   </div>
 );
 
+const leadFields = [
+  { name: 'name', label: 'Имя', type: 'text', autoComplete: 'name', maxLength: 255 },
+  { name: 'company', label: 'Организация', type: 'text', autoComplete: 'organization', maxLength: 255 },
+  { name: 'email', label: 'Электронная почта', type: 'email', autoComplete: 'email', maxLength: 255 },
+  { name: 'phone', label: 'Телефон', type: 'tel', autoComplete: 'tel', maxLength: 64 },
+] as const;
+
+const emptyLeadForm = {
+  name: '', company: '', email: '', phone: '', message: '', website: '',
+  work_type_id: '', object_address: '', expected_start_date: '',
+};
+const leadInput = 'w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-white';
+
 const LeadFormSection = ({
   section,
   mode,
   selectedFieldPath,
   onEditorInteract,
   onSubmitLead,
+  serviceRequest,
+  locale,
 }: {
   section: EditorSection;
   mode: 'public' | 'editor';
   selectedFieldPath?: string | null;
   onEditorInteract?: (target: BuilderCanvasFocusTarget) => void;
   onSubmitLead?: (payload: LeadSubmissionPayload) => Promise<unknown>;
+  serviceRequest?: PublicServiceRequestSettings;
+  locale?: string;
 }) => {
-  const [form, setForm] = useState({
-    name: '',
-    company: '',
-    email: '',
-    phone: '',
-    message: '',
-    website: '',
-  });
+  const [form, setForm] = useState(emptyLeadForm);
   const [sending, setSending] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [submissionMessage, setSubmissionMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const attempt = useRef<string | null>(null);
+  const inFlight = useRef(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const enhanced = serviceRequest?.enabled === true;
+  const services = serviceRequest?.services ?? [];
+  const unavailable = enhanced && services.length === 0;
+
+  const change = (field: keyof typeof emptyLeadForm, value: string) => {
+    attempt.current = null;
+    setSubmissionMessage('');
+    setErrorMessage('');
+    setForm(current => ({ ...current, [field]: value }));
+  };
+
+  const pickFiles = (files: FileList | null) => {
+    const next = Array.from(files ?? []);
+    attempt.current = null;
+    setSubmissionMessage('');
+    if (next.length > 5 || next.some(file => file.size < 1 || file.size > 10 * 1024 * 1024)) {
+      setErrorMessage('Можно приложить до пяти файлов, не более 10 МБ каждый.');
+      setSelectedFiles([]);
+      if (fileInput.current) fileInput.current.value = '';
+      return;
+    }
+    setErrorMessage('');
+    setSelectedFiles(next);
+  };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     if (!onSubmitLead || mode === 'editor') {
-      NotificationService.show({
-        type: 'info',
-        title: 'Превью',
-        message: 'Отправка лидов отключена в режиме редактора.',
-      });
+      NotificationService.show({ type: 'info', title: 'Превью', message: 'Отправка заявок в предпросмотре отключена.' });
       return;
     }
-
+    if (unavailable || inFlight.current) return;
+    inFlight.current = true;
     setSending(true);
+    setSubmissionMessage('');
+    setErrorMessage('');
     try {
+      const { work_type_id, object_address, expected_start_date, ...contact } = form;
+      if (enhanced) attempt.current ??= window.crypto.randomUUID();
       await onSubmitLead({
-        ...form,
+        ...contact,
         block_key: section.key,
         section_key: section.key,
         holding_site_page_id: section.page_id ?? undefined,
-        locale_code: 'ru',
+        locale_code: locale || 'ru',
         source_page: 'holding-site',
         source_url: window.location.href,
-        form_payload: form,
+        ...(enhanced ? {
+          submission_key: attempt.current ?? undefined,
+          work_type_id: Number(work_type_id),
+          object_address,
+          expected_start_date: expected_start_date || undefined,
+          attachments: selectedFiles,
+        } : { form_payload: contact }),
       });
-
-      NotificationService.show({
-        type: 'success',
-        title: 'Заявка',
-        message: stringValue(section.content.success_message) || 'Заявка отправлена.',
-      });
-      setForm({ name: '', company: '', email: '', phone: '', message: '', website: '' });
+      setSubmissionMessage(stringValue(section.content.success_message) || 'Заявка отправлена.');
+      setForm(emptyLeadForm);
+      setSelectedFiles([]);
+      if (fileInput.current) fileInput.current.value = '';
+      attempt.current = null;
     } catch (error) {
-      NotificationService.show({
-        type: 'error',
-        title: 'Заявка',
-        message: error instanceof Error ? error.message : 'Не удалось отправить заявку.',
-      });
+      const errors = error instanceof BuilderApiError && error.errors && typeof error.errors === 'object'
+        ? Object.values(error.errors).flat().filter((value): value is string => typeof value === 'string')
+        : [];
+      setErrorMessage(errors[0] || (error instanceof Error ? error.message : 'Не удалось отправить заявку.'));
     } finally {
       setSending(false);
+      inFlight.current = false;
     }
   };
 
@@ -391,32 +438,57 @@ const LeadFormSection = ({
         <SectionHeading section={section} selectedFieldPath={selectedFieldPath} onEditorInteract={onEditorInteract} invert />
       </div>
       <form className="grid gap-4" onSubmit={submit}>
-        {['name', 'company', 'email', 'phone'].map((field) => (
-          <input
-            key={field}
-            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none"
-            placeholder={field}
-            readOnly={mode === 'editor'}
-            value={form[field as keyof typeof form]}
-            onChange={(event) => setForm((current) => ({ ...current, [field]: event.target.value }))}
-          />
-        ))}
-        <textarea
-          className="min-h-28 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none"
-          placeholder="message"
-          readOnly={mode === 'editor'}
-          value={form.message}
-          onChange={(event) => setForm((current) => ({ ...current, message: event.target.value }))}
-        />
-        <input className="hidden" tabIndex={-1} value={form.website} onChange={(event) => setForm((current) => ({ ...current, website: event.target.value }))} />
+        <fieldset className="grid gap-4" disabled={sending || unavailable}>
+          {enhanced && (
+            <label className="grid gap-1 text-sm">
+              Вид работ
+              <select className={leadInput} required value={form.work_type_id} onChange={event => change('work_type_id', event.target.value)}>
+                <option className="text-slate-900" value="">Выберите услугу</option>
+                {services.map(service => <option className="text-slate-900" key={service.id} value={service.id}>{service.name}</option>)}
+              </select>
+            </label>
+          )}
+          {leadFields.map(field => (
+            <label key={field.name} className="grid gap-1 text-sm">
+              {field.label}
+              <input className={leadInput} type={field.type} autoComplete={field.autoComplete} maxLength={field.maxLength} readOnly={mode === 'editor'}
+                required={enhanced && (field.name === 'name' || field.name === 'phone')} value={form[field.name]}
+                onChange={event => change(field.name, event.target.value)} />
+            </label>
+          ))}
+          {enhanced && (
+            <div className="grid gap-4 sm:grid-cols-[1.2fr_1fr]">
+              <label className="grid gap-1 text-sm">Адрес объекта
+                <input className={leadInput} autoComplete="off" required maxLength={500} value={form.object_address} onChange={event => change('object_address', event.target.value)} />
+              </label>
+              <label className="grid gap-1 text-sm">Желаемая дата начала
+                <input className={leadInput} type="date" value={form.expected_start_date} onChange={event => change('expected_start_date', event.target.value)} />
+              </label>
+            </div>
+          )}
+          <label className="grid gap-1 text-sm">
+            {enhanced ? 'Описание работ' : 'Сообщение'}
+            <textarea className={leadInput + ' min-h-28'} readOnly={mode === 'editor'} required={enhanced} maxLength={enhanced ? 4000 : 5000}
+              value={form.message} onChange={event => change('message', event.target.value)} />
+          </label>
+          {enhanced && <label className="grid gap-1 text-sm">
+            Материалы к заявке
+            <input ref={fileInput} type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={event => pickFiles(event.target.files)} />
+            <span className="text-xs text-slate-300">PDF, JPG или PNG, до пяти файлов по 10 МБ.</span>
+          </label>}
+          <input className="hidden" tabIndex={-1} autoComplete="off" value={form.website} onChange={event => change('website', event.target.value)} />
+        </fieldset>
+        {unavailable && <p className="text-sm text-amber-200" role="status">Приём заявок на услуги временно недоступен.</p>}
+        {errorMessage && <p className="text-sm text-rose-200" role="alert">{errorMessage}</p>}
+        {submissionMessage && <p className="text-sm text-emerald-200" role="status">{submissionMessage}</p>}
         <EditableHotspot
           active={selectedFieldPath === 'content.submit_label'}
           className="inline-flex w-fit"
           onInteract={onEditorInteract}
           target={{ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath: 'content.submit_label', intent: 'button' }}
         >
-          <button className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 disabled:opacity-60" disabled={sending} type="submit">
-            {stringValue(section.content.submit_label) || 'Отправить заявку'}
+          <button className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 disabled:opacity-60" disabled={sending || unavailable} type="submit">
+            {sending ? 'Отправка…' : stringValue(section.content.submit_label) || 'Отправить заявку'}
           </button>
         </EditableHotspot>
       </form>
@@ -467,6 +539,7 @@ const renderSectionContent = (
   selectedFieldPath?: string | null,
   onEditorInteract?: (target: BuilderCanvasFocusTarget) => void,
   onSubmitLead?: (payload: LeadSubmissionPayload) => Promise<unknown>,
+  serviceRequest?: PublicServiceRequestSettings,
 ) => {
   const selected = selectedBlockId === section.id;
   const image = stringValue(section.content.background_image || section.content.image);
@@ -618,6 +691,8 @@ const renderSectionContent = (
           mode={mode}
           onEditorInteract={onEditorInteract}
           onSubmitLead={onSubmitLead}
+          serviceRequest={serviceRequest}
+          locale={site.current_locale}
           section={section}
           selectedFieldPath={selectedFieldPath}
         />
@@ -642,6 +717,7 @@ const SiteBuilderRenderer = ({
   selectedFieldPath,
   onEditorInteract,
   onSubmitLead,
+  serviceRequest,
   blog,
 }: SiteBuilderRendererProps) => {
   const sections = page?.sections ?? blocks ?? [];
@@ -697,6 +773,7 @@ const SiteBuilderRenderer = ({
               selectedFieldPath,
               onEditorInteract,
               onSubmitLead,
+              serviceRequest,
             ),
           )}
         </div>

@@ -18,6 +18,7 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import SiteBuilderRenderer from '@/components/holding/site-builder/SiteBuilderRenderer';
+import SiteCrmSettingsPanel from '@/components/holding/site-builder/SiteCrmSettingsPanel';
 import {
   ARRAY_ITEM_TEMPLATES,
   BLOCK_LIBRARY,
@@ -852,6 +853,7 @@ const LandingEditorPage = () => {
 
           {inspectorTab === 'site' && (
             <section className={`${panelClassName} space-y-5`}>
+              <SiteCrmSettingsPanel />
               <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Настройки сайта</div>
               <Field label="Название сайта">
                 <input className={inputClassName} value={builder.site.title} onChange={(event) => builder.updateSiteDraft({ title: event.target.value })} />
