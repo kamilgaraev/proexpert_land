@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createPublicSitePayloadFixture } from '@/test/fixtures/holdingSiteBuilder';
 import SiteBuilderRenderer from './SiteBuilderRenderer';
+import SiteThemeEditor from './SiteThemeEditor';
 
 describe('SiteBuilderRenderer', () => {
   afterEach(cleanup);
@@ -152,6 +153,17 @@ describe('SiteBuilderRenderer', () => {
     expect(root.style.getPropertyValue('--site-button-radius')).toBe('999px');
     expect(screen.getByRole('link', { name: 'Услуги' })).toHaveAttribute('aria-current', 'page');
     expect(root.querySelector('.holding-section-button .holding-site-button')).toHaveAttribute('data-shape', 'square');
+  });
+
+  it('передаёт цвет в предпросмотр при изменении значения в палитре', () => {
+    const { theme_config: theme } = createPublicSitePayloadFixture().site;
+    const onChange = vi.fn();
+    render(<SiteThemeEditor disabled={false} onChange={onChange} theme={theme} />);
+
+    fireEvent.input(screen.getByLabelText('Основной цвет'), { target: { value: '#17312a' } });
+
+    expect(onChange).toHaveBeenCalledOnce();
+    expect(onChange.mock.calls[0]![0](theme)).toEqual({ palette: { primary: '#17312a' } });
   });
 
   it('открывает статью из её раздела и сохраняет локаль', () => {
