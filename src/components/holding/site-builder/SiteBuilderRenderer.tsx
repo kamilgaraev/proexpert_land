@@ -510,7 +510,7 @@ const LeadFormSection = ({
   );
 };
 
-const BlogIndexPage = ({ articles = [], site, page }: { articles?: SiteBlogArticle[]; site: PublicSite; page: EditorPage }) => {
+const BlogIndexPage = ({ articles = [], site, page, mode }: { articles?: SiteBlogArticle[]; site: PublicSite; page: EditorPage; mode: 'public' | 'editor' }) => {
   const { pathname, search } = useLocation();
   const navigationSearch = getPublicNavigationSearch(search, getHoldingLocalePrefix(pathname, site));
   return (
@@ -527,9 +527,11 @@ const BlogIndexPage = ({ articles = [], site, page }: { articles?: SiteBlogArtic
             {article.category?.name ?? 'Практика'}
           </div>
           <h2 className="mt-4 text-3xl font-semibold text-slate-950">
-            <Link className="hover:underline" to={buildPublicHref(`${normalizePublicPath(page.slug)}/${encodeURIComponent(article.slug)}`, navigationSearch)}>
-              {article.title}
-            </Link>
+            {mode === 'editor' ? article.title : (
+              <Link className="hover:underline" to={buildPublicHref(`${normalizePublicPath(page.slug)}/${encodeURIComponent(article.slug)}`, navigationSearch)}>
+                {article.title}
+              </Link>
+            )}
           </h2>
           {article.excerpt && <p className="mt-4 text-base leading-8 text-slate-600">{article.excerpt}</p>}
           <div className="mt-6 text-sm text-slate-500">
@@ -796,7 +798,7 @@ const SiteBuilderRenderer = ({
       {currentPage?.page_type === 'blog_post' && blog?.current_article ? (
         <BlogArticlePage article={blog.current_article} />
       ) : currentPage?.page_type === 'blog_index' ? (
-        <BlogIndexPage articles={blog?.articles} page={currentPage} site={site} />
+        <BlogIndexPage articles={blog?.articles} mode={mode} page={currentPage} site={site} />
       ) : (
         <div className={mode === 'editor' ? 'pb-16' : ''}>
           {sections.map((section) =>

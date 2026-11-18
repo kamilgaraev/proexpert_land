@@ -128,4 +128,18 @@ describe('SiteBuilderRenderer', () => {
     expect(screen.getByRole('heading', { name: 'Статьи', level: 1 })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Как подготовить объект к отделке' })).toHaveAttribute('href', '/articles/prepare-fitout?locale=en');
   });
+
+  it('показывает названия статей без переходов в редакторе', () => {
+    const payload = createPublicSitePayloadFixture();
+    const page = { ...payload.current_page!, slug: '/blog', page_type: 'blog_index' as const, title: 'Статьи' };
+    render(<MemoryRouter><SiteBuilderRenderer
+      blog={{ articles: [{ id: 123, title: 'План работ', slug: 'work-plan', status: 'published' }] }}
+      mode="editor"
+      page={page}
+      site={payload.site}
+    /></MemoryRouter>);
+
+    expect(screen.getByRole('heading', { name: 'План работ' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'План работ' })).not.toBeInTheDocument();
+  });
 });

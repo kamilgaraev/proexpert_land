@@ -38,25 +38,29 @@ function ArticleForm({ article, onCancel, onSave }: {
   onCancel: () => void;
   onSave: (payload: Record<string, unknown>) => Promise<SiteBlogArticle | null>;
 }) {
+  const originalContent = article?.content ?? '';
+  const [originalText] = useState(() => readText(originalContent));
   const [draft, setDraft] = useState(() => article ? {
     title: article.title,
     excerpt: article.excerpt ?? '',
-    content: readText(article.content ?? ''),
+    content: originalText,
     featured_image: article.featured_image ?? '',
   } : emptyArticle);
   const [saving, setSaving] = useState(false);
+  const [replaceFormatting, setReplaceFormatting] = useState(false);
+  const changesFormatting = draft.content !== originalText && /<[^>]+>/.test(originalContent.replace(/<\/?p>|<br\s*\/?\s*>/gi, ''));
   const write = (field: keyof typeof emptyArticle, value: string) => setDraft(current => ({ ...current, [field]: value }));
 
   const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (saving || !draft.title.trim() || !draft.content.trim()) return;
+    if (saving || !draft.title.trim() || !draft.content.trim() || (changesFormatting && !replaceFormatting)) return;
     setSaving(true);
     try {
       const payload = {
         title: draft.title.trim(),
         excerpt: draft.excerpt.trim(),
         featured_image: draft.featured_image.trim(),
-        content: article && draft.content === readText(article.content ?? '') ? article.content : formatText(draft.content),
+        content: draft.content === originalText ? originalContent : formatText(draft.content),
         ...(!article && { status: 'draft' }),
       };
       if (await onSave(payload)) onCancel();
@@ -83,8 +87,14 @@ function ArticleForm({ article, onCancel, onSave }: {
         Адрес изображения обложки
         <input className={fieldClass} type="url" maxLength={2048} value={draft.featured_image} onChange={event => write('featured_image', event.target.value)} />
       </label>
+      {changesFormatting && (
+        <label className="flex items-start gap-2 text-sm text-slate-700">
+          <input checked={replaceFormatting} onChange={event => setReplaceFormatting(event.target.checked)} type="checkbox" />
+          Сохранить изменённый текст без прежних ссылок и оформления
+        </label>
+      )}
       <div className="flex flex-wrap gap-2">
-        <button className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50" disabled={saving} type="submit">
+        <button className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50" disabled={saving || (changesFormatting && !replaceFormatting)} type="submit">
           {saving ? 'Сохраняем…' : 'Сохранить статью'}
         </button>
         <button className={buttonClass} disabled={saving} onClick={onCancel} type="button">Отмена</button>
