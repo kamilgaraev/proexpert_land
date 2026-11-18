@@ -29,7 +29,7 @@ export default function SiteThemeEditor({ theme, disabled, onChange }: {
             className="h-9 w-12 shrink-0 rounded-lg border border-slate-200 bg-white"
             type="color"
             value={effective[key]}
-            onChange={event => {
+            onInput={event => {
               const value = event.currentTarget.value;
               onChange(current => ({ palette: { ...current.palette, [key]: value } }));
             }}

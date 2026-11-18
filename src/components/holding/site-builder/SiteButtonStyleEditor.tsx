@@ -68,7 +68,7 @@ export default function SiteButtonStyleEditor({
                 className="h-9 w-full rounded-lg border border-slate-200 bg-white"
                 type="color"
                 value={appearance[key] ?? fallback}
-                onChange={event => onChange({ [key]: event.target.value })}
+                onInput={event => onChange({ [key]: event.currentTarget.value })}
               />
             </label>
             {appearance[key] && (
