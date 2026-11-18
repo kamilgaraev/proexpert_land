@@ -196,6 +196,26 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe('BillingPage commercial packages', () => {
+  it('показывает выданный контур без оплаты и добавляет его в заказ только по действию пользователя', async () => {
+    server.use(http.get(`${baseUrl}/packages`, () => HttpResponse.json({
+      success: true,
+      data: packages.map((item) => item.slug === packageSlugs[0] ? { ...item, access_source: 'manual_grant' } : item),
+    })));
+
+    renderPage();
+
+    const card = (await screen.findByRole('heading', { name: 'Пакет 1' })).closest('article');
+    expect(card).not.toBeNull();
+    if (!card) throw new Error('Не найдена карточка подключённого контура');
+
+    expect(within(card).getByText('Временный доступ')).toBeInTheDocument();
+    expect(within(card).getByText('Без оплаты')).toBeInTheDocument();
+    expect(within(card).getByText(/^Доступ до /)).toBeInTheDocument();
+    expect(within(card).queryByText('Будет отключён')).not.toBeInTheDocument();
+    fireEvent.click(within(card).getByRole('button', { name: 'Добавить в заказ' }));
+    expect(within(card).getByRole('button', { name: 'Убрать из заказа' })).toBeInTheDocument();
+  });
+
   it('не называет временный доступ подтверждённой оплатой при ошибке обновления прав', async () => {
     await permissionsManager.load('lk');
     permissionsUnavailable = true;
