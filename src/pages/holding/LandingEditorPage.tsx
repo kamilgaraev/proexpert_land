@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 import SiteBuilderRenderer from '@/components/holding/site-builder/SiteBuilderRenderer';
 import SiteButtonStyleEditor from '@/components/holding/site-builder/SiteButtonStyleEditor';
+import SiteThemeEditor from '@/components/holding/site-builder/SiteThemeEditor';
 import { readButtonAppearance, writeButtonAppearance } from '@/components/holding/site-builder/siteButtonAppearance';
 import type { SiteButtonAction } from '@/components/holding/site-builder/siteButtonAppearance';
 import SiteBlogEditor from '@/components/holding/site-builder/SiteBlogEditor';
@@ -373,10 +374,10 @@ const SectionCard = ({
       </div>
     </button>
     <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-      <button className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300" onClick={onMoveUp} type="button">
+      <button aria-label={`Поднять секцию ${section.title}`} className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300" onClick={onMoveUp} type="button">
         <ChevronUpIcon className="h-4 w-4" />
       </button>
-      <button className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300" onClick={onMoveDown} type="button">
+      <button aria-label={`Опустить секцию ${section.title}`} className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300" onClick={onMoveDown} type="button">
         <ChevronDownIcon className="h-4 w-4" />
       </button>
       <button className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300" onClick={onDuplicate} type="button">
@@ -766,6 +767,13 @@ const LandingEditorPage = () => {
             <SiteBuilderRenderer
               blog={{ articles: builder.blogArticles }}
               mode="editor"
+              navigation={builder.pages.filter(page => page.is_active && page.visibility === 'public').map(page => ({
+                id: page.id,
+                slug: page.slug,
+                label: page.navigation_label || page.title,
+                page_type: page.page_type,
+                is_home: page.is_home,
+              }))}
               onEditorInteract={handleCanvasInteract}
               page={selectedPage}
               selectedBlockId={builder.selectedSectionId}
@@ -942,14 +950,24 @@ const LandingEditorPage = () => {
                   className={inputClassName}
                   disabled={!canEdit}
                   value={builder.site.theme_config.surface_style === 'corporate' ? 'corporate' : 'clean'}
-                  onChange={(event) => builder.updateSiteDraft({
-                    theme_config: { ...builder.site!.theme_config, surface_style: event.target.value },
-                  })}
+                  onChange={event => {
+                    const surfaceStyle = event.currentTarget.value;
+                    builder.updateSiteDraft(site => ({
+                      theme_config: { ...site.theme_config, surface_style: surfaceStyle },
+                    }));
+                  }}
                 >
                   <option value="clean">Стандартное</option>
                   <option value="corporate">Строительная компания</option>
                 </select>
               </Field>
+              <SiteThemeEditor
+                disabled={!canEdit}
+                theme={builder.site.theme_config}
+                onChange={update => builder.updateSiteDraft(site => ({
+                  theme_config: { ...site.theme_config, ...update(site.theme_config) },
+                }))}
+              />
               <Field label="Название сайта">
                 <input className={inputClassName} value={builder.site.title} onChange={(event) => builder.updateSiteDraft({ title: event.target.value })} />
               </Field>

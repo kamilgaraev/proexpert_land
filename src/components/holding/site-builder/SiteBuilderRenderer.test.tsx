@@ -116,6 +116,44 @@ describe('SiteBuilderRenderer', () => {
     expect(screen.getByRole('heading', { name: 'Заявка на работы' }).closest('section')).toHaveAttribute('id', 'lead-form');
   });
 
+  it('применяет общую палитру и форму кнопок в предпросмотре, сохраняя настройку отдельной кнопки', () => {
+    const payload = createPublicSitePayloadFixture();
+    const page = payload.current_page!;
+    const section = page.sections[0]!;
+    const { container } = render(<MemoryRouter initialEntries={['/dashboard/multi-organization/site']}><SiteBuilderRenderer
+      mode="editor"
+      page={{
+        ...page,
+        slug: '/services',
+        is_home: false,
+        sections: [{
+          ...section,
+          type: 'button',
+          content: { button_text: 'Узнать больше', button_url: '/about' },
+          style_config: { buttons: { link: { shape: 'square', background: '#ffcc77', width: 65 } } },
+        }],
+      }}
+      navigation={[{ id: page.id, slug: '/services', label: 'Услуги', page_type: 'services', is_home: false }]}
+      site={{
+        ...payload.site,
+        theme_config: {
+          ...payload.site.theme_config,
+          surface_style: 'corporate',
+          palette: { primary: '#294a40', accent: '#f4c56e' },
+          button_shape: 'pill',
+        },
+      }}
+    /></MemoryRouter>);
+
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.style.getPropertyValue('--holding-primary')).toBe('#294a40');
+    expect(root.style.getPropertyValue('--holding-accent')).toBe('#f4c56e');
+    expect(root.style.getPropertyValue('--holding-on-primary')).toBe('#ffffff');
+    expect(root.style.getPropertyValue('--site-button-radius')).toBe('999px');
+    expect(screen.getByRole('link', { name: 'Услуги' })).toHaveAttribute('aria-current', 'page');
+    expect(root.querySelector('.holding-section-button .holding-site-button')).toHaveAttribute('data-shape', 'square');
+  });
+
   it('открывает статью из её раздела и сохраняет локаль', () => {
     const payload = createPublicSitePayloadFixture();
     const page = { ...payload.current_page!, slug: '/articles', page_type: 'blog_index' as const, title: 'Статьи' };

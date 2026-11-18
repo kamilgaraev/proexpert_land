@@ -8,7 +8,9 @@ import { BuilderApiError } from '@/services/holdingSiteBuilderService';
 import SiteButton from './SiteButton';
 import { getButtonHref, readButtonAppearance } from './siteButtonAppearance';
 import type { SiteButtonAction } from './siteButtonAppearance';
+import { getSiteThemeStyle, hasSitePalette } from './siteTheme';
 import './corporateSite.css';
+import './siteTheme.css';
 import type {
   BuilderCanvasFocusTarget,
   EditorPage,
@@ -157,7 +159,7 @@ const SectionShell = ({
       }`}
       style={{
         background:
-          section.type === 'hero' && !corporate
+          section.type === 'hero' && !hasSitePalette(site.theme_config)
             ? `radial-gradient(circle at top left, ${site.theme_config.primary_color}24, transparent 40%), ${
                 isPrimary ? '#050816' : site.theme_config.background_color
               }`
@@ -233,7 +235,7 @@ const SectionHeading = ({
         onInteract={onEditorInteract}
         target={{ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath: 'content.description', intent: 'text' }}
       >
-        <p className={`text-lg leading-8 ${invert ? 'text-slate-300' : 'text-slate-600'}`}>
+        <p className={`holding-description text-lg leading-8 ${invert ? 'text-slate-300' : 'text-slate-600'}`}>
           {stringValue(section.content.description)}
         </p>
       </EditableHotspot>
@@ -246,27 +248,34 @@ const PublicSiteHeader = ({
   site,
   currentPage,
   navigation,
+  editor,
 }: {
   site: PublicSite;
   currentPage?: EditorPage | null;
   navigation: PublicNavigationItem[];
+  editor: boolean;
 }) => {
   const { pathname, search } = useLocation();
   const navigationSearch = getPublicNavigationSearch(search, getHoldingLocalePrefix(pathname, site));
-  const currentPath = getHoldingContentPath(pathname, site);
+  const currentPath = editor ? getHoldingContentPath(currentPage?.slug ?? '/') : getHoldingContentPath(pathname, site);
   const corporate = isCorporateSite(site);
   const currentPageLabel = stringValue(currentPage?.navigation_label) || stringValue(currentPage?.title) || site.title;
+  const previewLink = editor ? {
+    onClick: (event: MouseEvent<HTMLAnchorElement>) => event.preventDefault(),
+    tabIndex: -1,
+  } : {};
 
   return (
     <header className="holding-header sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div
-        className="mx-auto flex w-full flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8"
+        className="holding-header-inner mx-auto flex w-full flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8"
         style={{ maxWidth: site.theme_config.container_width ?? '1240px' }}
       >
-        <Link className="flex min-w-0 items-center gap-3" to={buildPublicHref('/', navigationSearch)}>
+        <Link className="flex min-w-0 items-center gap-3" to={buildPublicHref('/', navigationSearch)} {...previewLink}>
           <span
             className="holding-brand-mark flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-lg font-semibold text-white shadow-[0_18px_45px_-32px_rgba(15,23,42,0.45)]"
-            style={site.logo_url ? { backgroundColor: '#ffffff' } : corporate ? undefined : { backgroundColor: site.theme_config.primary_color }}
+            data-image={Boolean(site.logo_url)}
+            style={site.logo_url ? { backgroundColor: '#ffffff' } : undefined}
           >
             {site.logo_url ? (
               <img alt={site.title} className="h-full w-full object-cover" src={site.logo_url} />
@@ -278,7 +287,7 @@ const PublicSiteHeader = ({
             <span className="holding-brand-domain block truncate text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
               {site.domain}
             </span>
-            <span className="block truncate text-lg font-semibold text-slate-950">{site.title}</span>
+            <span className="holding-brand-name block truncate text-lg font-semibold text-slate-950">{site.title}</span>
           </span>
         </Link>
 
@@ -298,11 +307,11 @@ const PublicSiteHeader = ({
                 <Link
                   key={`${item.id}-${item.slug}`}
                   className={`inline-flex flex-shrink-0 items-center rounded-full px-4 py-2 text-sm font-medium transition ${
-                    isActive ? 'text-white shadow-[0_18px_45px_-32px_rgba(37,99,235,0.6)]' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+                    isActive ? 'text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
                   }`}
                   aria-current={isActive ? 'page' : undefined}
-                  style={isActive && !corporate ? { backgroundColor: site.theme_config.primary_color } : undefined}
                   to={buildPublicHref(item.slug, navigationSearch)}
+                  {...previewLink}
                 >
                   {stringValue(item.label) || (itemPath === '/' ? 'Главная' : itemPath.slice(1))}
                 </Link>
@@ -312,13 +321,13 @@ const PublicSiteHeader = ({
         )}
 
         {corporate ? (
-          <Link className="holding-header-action holding-site-button holding-site-button--primary shrink-0" to={`${buildPublicHref('/', navigationSearch)}#lead-form`}>
+          <Link className="holding-header-action holding-site-button holding-site-button--primary shrink-0" to={`${buildPublicHref('/', navigationSearch)}#lead-form`} {...previewLink}>
             Оставить заявку
           </Link>
         ) : <div className="hidden items-center lg:flex">
           <span
-            className="inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium text-slate-700"
-            style={{ borderColor: `${site.theme_config.primary_color}33` }}
+            className="holding-page-label inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium text-slate-700"
+            style={{ borderColor: 'color-mix(in srgb, var(--holding-primary) 20%, transparent)' }}
           >
             {currentPageLabel}
           </span>
@@ -333,11 +342,11 @@ const renderCards = (items: Array<Record<string, unknown>>, colorClass: string) 
     {items.map((item, index) => (
       <article key={`${item.title ?? item.label ?? index}`} className={`rounded-[30px] border border-slate-200 ${colorClass} p-6 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.45)]`}>
         {stringValue(item.image) && <img alt="" loading="lazy" src={stringValue(item.image)} />}
-        {Boolean(item.label) && <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">{String(item.label)}</div>}
+        {Boolean(item.label) && <div className="holding-card-text text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">{String(item.label)}</div>}
         {Boolean(item.title) && <h3 className="mt-3 text-2xl font-semibold text-slate-950">{String(item.title)}</h3>}
-        {Boolean(item.value) && <div className="mt-4 text-4xl font-semibold text-slate-950">{String(item.value)}</div>}
-        {Boolean(item.description) && <p className="mt-3 text-sm leading-7 text-slate-600">{String(item.description)}</p>}
-        {Boolean(item.location) && <p className="mt-4 text-xs font-medium uppercase tracking-[0.24em] text-slate-500">{String(item.location)}</p>}
+        {Boolean(item.value) && <div className="holding-card-text mt-4 text-4xl font-semibold text-slate-950">{String(item.value)}</div>}
+        {Boolean(item.description) && <p className="holding-card-text mt-3 text-sm leading-7 text-slate-600">{String(item.description)}</p>}
+        {Boolean(item.location) && <p className="holding-card-text mt-4 text-xs font-medium uppercase tracking-[0.24em] text-slate-500">{String(item.location)}</p>}
       </article>
     ))}
   </div>
@@ -576,7 +585,7 @@ const LeadFormSection = ({
                 <PaperClipIcon aria-hidden="true" className="h-4 w-4 shrink-0" />
                 Прикрепить файлы
               </SectionButton>
-              <p className="text-xs text-slate-300" id={attachmentHintId}>PDF, JPG или PNG, до пяти файлов по 10 МБ.</p>
+              <p className="holding-attachment-hint text-xs text-slate-300" id={attachmentHintId}>PDF, JPG или PNG, до пяти файлов по 10 МБ.</p>
               {selectedFiles.length > 0 && (
                 <ul aria-label="Прикреплённые файлы" className="grid gap-1">
                   {selectedFiles.map(file => (
@@ -620,16 +629,16 @@ const BlogIndexPage = ({ articles = [], site, page, mode }: { articles?: SiteBlo
   const { pathname, search } = useLocation();
   const navigationSearch = getPublicNavigationSearch(search, getHoldingLocalePrefix(pathname, site));
   return (
-  <section className="mx-auto w-full max-w-[1240px] px-6 py-24 sm:px-8 lg:px-10">
+  <section className="holding-blog mx-auto w-full max-w-[1240px] px-6 py-24 sm:px-8 lg:px-10">
     <div className="mb-12 max-w-2xl">
       <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">{page.title}</h1>
-      {page.description && <p className="mt-5 text-lg leading-8 text-slate-600">{page.description}</p>}
+      {page.description && <p className="holding-description mt-5 text-lg leading-8 text-slate-600">{page.description}</p>}
     </div>
     <div className="grid gap-6 lg:grid-cols-2">
       {articles.map((article) => (
         <article key={article.id} className="holding-blog-card rounded-[32px] border border-slate-200 bg-white p-8 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.45)]">
           {article.featured_image && <img alt="" className="mb-6" loading="lazy" src={article.featured_image} />}
-          <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+          <div className="holding-card-text text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
             {article.category?.name ?? 'Практика'}
           </div>
           <h2 className="mt-4 text-3xl font-semibold text-slate-950">
@@ -639,8 +648,8 @@ const BlogIndexPage = ({ articles = [], site, page, mode }: { articles?: SiteBlo
               </Link>
             )}
           </h2>
-          {article.excerpt && <p className="mt-4 text-base leading-8 text-slate-600">{article.excerpt}</p>}
-          <div className="mt-6 text-sm text-slate-500">
+          {article.excerpt && <p className="holding-description mt-4 text-base leading-8 text-slate-600">{article.excerpt}</p>}
+          <div className="holding-card-text mt-6 text-sm text-slate-500">
             {article.published_at ? new Date(article.published_at).toLocaleDateString('ru-RU') : 'Черновик'}
           </div>
         </article>
@@ -651,18 +660,18 @@ const BlogIndexPage = ({ articles = [], site, page, mode }: { articles?: SiteBlo
 };
 
 const BlogArticlePage = ({ article }: { article: SiteBlogArticle }) => (
-  <article className="mx-auto w-full max-w-[980px] px-6 py-24 sm:px-8">
+  <article className="holding-blog mx-auto w-full max-w-[980px] px-6 py-24 sm:px-8">
     <div className="holding-blog-card rounded-[36px] bg-white p-8 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.45)] sm:p-12">
-      <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+      <div className="holding-card-text text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
         {article.category?.name ?? 'Блог'}
       </div>
       <h1 className="mt-5 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">{article.title}</h1>
-      {article.excerpt && <p className="mt-6 text-lg leading-8 text-slate-600">{article.excerpt}</p>}
+      {article.excerpt && <p className="holding-description mt-6 text-lg leading-8 text-slate-600">{article.excerpt}</p>}
       {article.featured_image && <img alt="" className="mt-8" src={article.featured_image} />}
-      <div className="mt-8 text-sm text-slate-500">
+      <div className="holding-card-text mt-8 text-sm text-slate-500">
         {article.published_at ? new Date(article.published_at).toLocaleDateString('ru-RU') : 'Черновик'}
       </div>
-      {article.content && <div className="prose prose-slate mt-10 max-w-none" dangerouslySetInnerHTML={{ __html: article.content }} />}
+      {article.content && <div className="holding-article-body prose prose-slate mt-10 max-w-none" dangerouslySetInnerHTML={{ __html: article.content }} />}
     </div>
   </article>
 );
@@ -734,7 +743,7 @@ const renderSectionContent = (
       {section.type === 'about' && (
         <div className="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
           <EditableHotspot active={selectedFieldPath === 'content.image'} onInteract={onEditorInteract} target={{ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath: 'content.image', intent: 'image' }}>
-            <div className="holding-about-media overflow-hidden rounded-[36px] bg-[linear-gradient(135deg,#dbeafe,#eff6ff)] p-6 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.45)]">
+            <div className="holding-about-media holding-theme-surface overflow-hidden rounded-[36px] bg-[linear-gradient(135deg,#dbeafe,#eff6ff)] p-6 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.45)]">
               {image ? <img alt="" loading="lazy" className="h-[360px] w-full rounded-[28px] object-cover" src={image} /> : <div className="flex h-[360px] items-center justify-center rounded-[28px] bg-slate-200 text-7xl text-slate-500">P</div>}
             </div>
           </EditableHotspot>
@@ -770,10 +779,10 @@ const renderSectionContent = (
           <SectionHeading section={section} selectedFieldPath={selectedFieldPath} onEditorInteract={onEditorInteract} />
           <div className="mt-10 grid gap-5 lg:grid-cols-3">
             {testimonials.map((item, index) => (
-              <article key={`${item.author ?? index}`} className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.45)]">
-                <p className="text-base leading-8 text-slate-700">“{String(item.quote ?? '')}”</p>
-                <div className="mt-6 text-sm font-semibold text-slate-950">{String(item.author ?? '')}</div>
-                <div className="text-sm text-slate-500">{String(item.role ?? '')}</div>
+              <article key={`${item.author ?? index}`} className="holding-theme-surface rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.45)]">
+                <p className="holding-card-text text-base leading-8 text-slate-700">“{String(item.quote ?? '')}”</p>
+                <div className="holding-card-text mt-6 text-sm font-semibold text-slate-950">{String(item.author ?? '')}</div>
+                <div className="holding-card-text text-sm text-slate-500">{String(item.role ?? '')}</div>
               </article>
             ))}
           </div>
@@ -786,7 +795,7 @@ const renderSectionContent = (
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {gallery.map((item, index) => (
               <EditableHotspot key={`${item.url ?? index}`} onInteract={onEditorInteract} target={{ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath: 'content.images', intent: 'collection' }}>
-                <div className="overflow-hidden rounded-[30px] bg-slate-100 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.45)]">
+                <div className="holding-theme-surface overflow-hidden rounded-[30px] bg-slate-100 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.45)]">
                   {item.url ? <img alt={String(item.alt ?? '')} className="h-64 w-full object-cover" src={String(item.url)} /> : <div className="flex h-64 items-center justify-center text-6xl text-slate-400">P</div>}
                 </div>
               </EditableHotspot>
@@ -802,8 +811,8 @@ const renderSectionContent = (
             {faq.map((item, index) => (
               <EditableHotspot key={`${item.question ?? index}`} onInteract={onEditorInteract} target={{ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath: 'content.items', intent: 'collection' }}>
                 <div className="holding-faq-item rounded-[28px] border border-slate-200 bg-white px-6 py-5 shadow-[0_20px_50px_-42px_rgba(15,23,42,0.45)]">
-                  <div className="text-lg font-semibold text-slate-950">{String(item.question ?? '')}</div>
-                  <div className="mt-3 text-sm leading-7 text-slate-600">{String(item.answer ?? '')}</div>
+                  <div className="holding-card-text text-lg font-semibold text-slate-950">{String(item.question ?? '')}</div>
+                  <div className="holding-card-text mt-3 text-sm leading-7 text-slate-600">{String(item.answer ?? '')}</div>
                 </div>
               </EditableHotspot>
             ))}
@@ -825,8 +834,8 @@ const renderSectionContent = (
             ].filter(([, , value]) => !corporate || mode === 'editor' || value).map(([label, path, value]) => (
               <EditableHotspot key={label} active={selectedFieldPath === path} onInteract={() => select(path, 'text')} target={{ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath: path, intent: 'text' }}>
                 <div className="holding-contact-item rounded-[28px] border border-slate-200 bg-white px-6 py-6 shadow-[0_20px_50px_-42px_rgba(15,23,42,0.45)]">
-                  <div className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">{label}</div>
-                  <div className="mt-4 text-lg font-semibold text-slate-950">{value || '—'}</div>
+                  <div className="holding-card-text text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">{label}</div>
+                  <div className="holding-card-text mt-4 text-lg font-semibold text-slate-950">{value || '—'}</div>
                 </div>
               </EditableHotspot>
             ))}
@@ -848,7 +857,7 @@ const renderSectionContent = (
 
       {section.type === 'custom_html' && (
         <EditableHotspot active={selectedFieldPath === 'content.html'} onInteract={onEditorInteract} target={{ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath: 'content.html', intent: 'text' }}>
-          <div className="rounded-[30px] border border-slate-200 bg-white p-8 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.45)]" dangerouslySetInnerHTML={{ __html: stringValue(section.content.html) || '<p>Custom HTML</p>' }} />
+          <div className="holding-theme-surface rounded-[30px] border border-slate-200 bg-white p-8 shadow-[0_28px_60px_-48px_rgba(15,23,42,0.45)]" dangerouslySetInnerHTML={{ __html: stringValue(section.content.html) || '<p>Custom HTML</p>' }} />
         </EditableHotspot>
       )}
     </SectionShell>
@@ -871,6 +880,8 @@ const SiteBuilderRenderer = ({
   const sections = (page?.sections ?? blocks ?? []).filter(section => section.is_active !== false);
   const primaryLeadSection = sections.find(section => section.type === 'lead_form');
   const currentPage = page;
+  const { pathname, search } = useLocation();
+  const navigationSearch = getPublicNavigationSearch(search, getHoldingLocalePrefix(pathname, site));
   const background = mode === 'public' ? 'bg-[linear-gradient(180deg,#f7f9fc_0%,#eef2ff_100%)]' : 'bg-slate-100';
   const corporate = isCorporateSite(site);
   const navigationItems =
@@ -888,25 +899,17 @@ const SiteBuilderRenderer = ({
           ]
         : [];
 
+  const palette = hasSitePalette(site.theme_config);
   return (
-    <div className={corporate ? 'holding-corporate' : background} style={corporate ? undefined : { color: site.theme_config.text_color, fontFamily: site.theme_config.font_family }}>
-      {mode === 'editor' ? (
-        <div className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/85 backdrop-blur">
-          <div className="mx-auto flex w-full items-center justify-between px-4 py-3 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500" style={{ maxWidth: '1320px' }}>
-            <div className="flex items-center gap-3">
-              <span className="inline-flex gap-2">
-                <span className="h-3 w-3 rounded-full bg-rose-400" />
-                <span className="h-3 w-3 rounded-full bg-amber-400" />
-                <span className="h-3 w-3 rounded-full bg-emerald-400" />
-              </span>
-              Holding Site Canvas
-            </div>
-            <div>{currentPage?.navigation_label || currentPage?.title || site.title}</div>
-          </div>
-        </div>
-      ) : (
-        <PublicSiteHeader currentPage={currentPage} navigation={navigationItems} site={site} />
-      )}
+    <div
+      className={`holding-site ${corporate ? 'holding-corporate' : background} ${palette ? 'holding-palette' : ''}`}
+      style={{
+        ...getSiteThemeStyle(site.theme_config),
+        color: palette ? undefined : site.theme_config.text_color,
+        fontFamily: corporate ? undefined : site.theme_config.font_family,
+      }}
+    >
+      <PublicSiteHeader currentPage={currentPage} editor={mode === 'editor'} navigation={navigationItems} site={site} />
 
       <main>
       {currentPage?.page_type === 'blog_post' && blog?.current_article ? (
@@ -933,9 +936,18 @@ const SiteBuilderRenderer = ({
       </main>
       {corporate && mode === 'public' && (
         <footer className="holding-footer">
-          <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-4 px-6 py-9 sm:px-8 lg:px-10">
-            <span className="font-semibold">{site.title}</span>
-            <span className="text-sm opacity-80">{site.description}</span>
+          <div className="mx-auto grid gap-6 px-6 py-9 sm:px-8 md:grid-cols-[1fr_1fr] lg:px-10" style={{ maxWidth: site.theme_config.container_width ?? '1240px' }}>
+            <div className="max-w-sm">
+              <div className="text-lg font-semibold">{site.title}</div>
+              {site.description && <p className="mt-2 text-sm leading-6 opacity-90">{site.description}</p>}
+            </div>
+            {navigation.length > 1 && (
+              <nav aria-label="Разделы в подвале" className="grid grid-cols-2 content-start gap-x-5 gap-y-3 text-sm">
+                {navigation.filter(item => !item.is_home).map(item => (
+                  <Link className="w-fit underline-offset-4 hover:underline" key={item.id} to={buildPublicHref(item.slug, navigationSearch)}>{item.label}</Link>
+                ))}
+              </nav>
+            )}
           </div>
         </footer>
       )}

@@ -1,4 +1,5 @@
-import type { ButtonShape, SiteButtonAppearance } from './siteButtonAppearance';
+import type { ButtonShape } from '@/types/holding-site-builder';
+import type { SiteButtonAppearance } from './siteButtonAppearance';
 import { buttonShapes } from './siteButtonAppearance';
 
 const shapeLabels: Record<ButtonShape, string> = {

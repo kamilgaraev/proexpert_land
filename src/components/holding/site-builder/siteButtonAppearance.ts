@@ -1,7 +1,8 @@
-export const buttonShapes = ['square', 'rounded', 'pill'] as const;
+import type { ButtonShape } from '@/types/holding-site-builder';
+
+export const buttonShapes: readonly ButtonShape[] = ['square', 'rounded', 'pill'];
 
 export type SiteButtonAction = 'link' | 'upload' | 'submit';
-export type ButtonShape = (typeof buttonShapes)[number];
 
 export interface SiteButtonAppearance {
   background?: string;
