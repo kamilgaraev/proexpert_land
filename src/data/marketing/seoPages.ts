@@ -2297,7 +2297,11 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
             "Изменения и решения заказчика, связанные с проектной базой.",
         },
       ],
-      blogLinks: getMarketingBlogLinks("ptoWorkspace", "managerMorning"),
+      blogLinks: getMarketingBlogLinks(
+        "designReviewRegister",
+        "ptoWorkspace",
+        "managerMorning",
+      ),
       contactHighlights: [
         "Покажем версии проектной и рабочей документации и историю замечаний.",
         "Разберём замечание на IFC-модели от назначения до проверки исправления.",
@@ -2739,7 +2743,11 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
           description: "Собирайте документы и результаты проверок в комплект по объекту.",
         },
       ],
-      blogLinks: getMarketingBlogLinks("incomingMaterialControl", "deliveryAcceptance"),
+      blogLinks: getMarketingBlogLinks(
+        "incomingControlJournalExample",
+        "incomingMaterialControl",
+        "deliveryAcceptance",
+      ),
       contactHighlights: [
         "Покажем одну поставку с паспортом и распределением количества по результатам проверки.",
         "Пройдём от журнала до выгрузки и экземпляра записи для исполнительной документации.",

@@ -16,6 +16,11 @@ export const marketingBlogArticles = {
     purpose:
       "Как собирать исполнительную документацию по мере выполнения работ.",
   },
+  designReviewRegister: {
+    title: "Реестр замечаний к проектной документации: образец в Excel",
+    href: "/blog/reestr-zamechanii-k-proektnoi-dokumentatsii",
+    purpose: "Как привязать замечание к чертежу или информационной модели и проверить исправление.",
+  },
   managerMorning: {
     title:
       "План-факт в строительстве: как контролировать сроки, объемы и бюджет",
@@ -96,6 +101,11 @@ export const marketingBlogArticles = {
     title: "Входной контроль материалов на стройке: чек-лист, журнал и образец акта",
     href: "/blog/vhodnoy-kontrol-materialov-v-stroitelstve",
     purpose: "Чек-лист проверки партии, образец записи в журнале и рабочие файлы.",
+  },
+  incomingControlJournalExample: {
+    title: "Журнал входного контроля материалов: пример заполнения",
+    href: "/blog/zhurnal-vhodnogo-kontrolya-materialov",
+    purpose: "Первичная и повторная проверка одной партии с заполненным шаблоном Excel.",
   },
   deliveryAcceptance: {
     title:
