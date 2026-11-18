@@ -18,6 +18,7 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import SiteBuilderRenderer from '@/components/holding/site-builder/SiteBuilderRenderer';
+import SiteBlogEditor from '@/components/holding/site-builder/SiteBlogEditor';
 import SiteCrmSettingsPanel from '@/components/holding/site-builder/SiteCrmSettingsPanel';
 import {
   ARRAY_ITEM_TEMPLATES,
@@ -31,6 +32,7 @@ import type {
   EditorPage,
   EditorSection,
   PageTemplatePreset,
+  SitePageType,
 } from '@/types/holding-site-builder';
 
 type InspectorTab = 'content' | 'page' | 'site' | 'blog' | 'revisions';
@@ -335,6 +337,7 @@ const SectionCard = ({
   onMoveUp,
   onMoveDown,
   onDuplicate,
+  onToggleVisibility,
   onDelete,
 }: {
   section: EditorSection;
@@ -343,6 +346,7 @@ const SectionCard = ({
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDuplicate: () => void;
+  onToggleVisibility?: () => void;
   onDelete: () => void;
 }) => (
   <div className={`rounded-[24px] border px-4 py-4 transition ${active ? 'border-blue-300 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
@@ -357,7 +361,7 @@ const SectionCard = ({
         </div>
       </div>
     </button>
-    <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
+    <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
       <button className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300" onClick={onMoveUp} type="button">
         <ChevronUpIcon className="h-4 w-4" />
       </button>
@@ -367,6 +371,16 @@ const SectionCard = ({
       <button className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300" onClick={onDuplicate} type="button">
         Дублировать
       </button>
+      {onToggleVisibility && (
+        <button
+          aria-label={`${section.is_active ? 'Скрыть' : 'Показать'} секцию ${section.title}`}
+          className="rounded-full border border-slate-200 px-3 py-1.5 hover:border-slate-300"
+          onClick={onToggleVisibility}
+          type="button"
+        >
+          {section.is_active ? 'Скрыть' : 'Показать'}
+        </button>
+      )}
       <button className="rounded-full border border-rose-200 px-3 py-1.5 text-rose-600 hover:bg-rose-50" onClick={onDelete} type="button">
         <TrashIcon className="h-4 w-4" />
       </button>
@@ -382,6 +396,7 @@ const LandingEditorPage = () => {
   const [selectedFieldPath, setSelectedFieldPath] = useState<string | null>(null);
   const [newPageTitle, setNewPageTitle] = useState('');
   const [newPageSlug, setNewPageSlug] = useState('');
+  const [newPageType, setNewPageType] = useState<SitePageType>('custom');
   const fieldRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
 
   const canView = can('multi-organization.website.view');
@@ -426,7 +441,7 @@ const LandingEditorPage = () => {
     const title = newPageTitle.trim() || 'Новая страница';
     const slug = newPageSlug.trim() || `/${title.toLowerCase().replace(/\s+/g, '-')}`;
     const page = await builder.createPage({
-      page_type: 'custom',
+      page_type: newPageType,
       slug,
       title,
       navigation_label: title,
@@ -437,6 +452,7 @@ const LandingEditorPage = () => {
     if (page) {
       setNewPageTitle('');
       setNewPageSlug('');
+      setNewPageType('custom');
       setInspectorTab('page');
     }
   };
@@ -496,11 +512,22 @@ const LandingEditorPage = () => {
     );
   }
 
+  if (!builder.loading && (!builder.workspace || !builder.site) && builder.error) {
+    return (
+      <div className={panelClassName} role="alert">
+        <h1 className="text-xl font-semibold">Не удалось открыть редактор сайта</h1>
+        <p className="mt-2 text-sm text-slate-600">{builder.error}</p>
+        <button className="mt-4 rounded-xl border px-4 py-2" onClick={() => void builder.reload()} type="button">
+          Повторить
+        </button>
+      </div>
+    );
+  }
   if (builder.loading || !builder.workspace || !builder.site) {
     return (
       <div className="grid min-h-[70vh] place-items-center">
         <div className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm text-slate-600 shadow-sm">
-          Загружаем workspace конструктора...
+          Загружаем редактор сайта…
         </div>
       </div>
     );
@@ -622,6 +649,16 @@ const LandingEditorPage = () => {
                 <Field label="Slug">
                   <input className={inputClassName} placeholder="/services" value={newPageSlug} onChange={(event) => setNewPageSlug(event.target.value)} />
                 </Field>
+                <Field label="Тип страницы">
+                  <select className={inputClassName} value={newPageType} onChange={(event) => setNewPageType(event.target.value as SitePageType)}>
+                    <option value="custom">Свободная страница</option>
+                    <option value="about">О компании</option>
+                    <option value="services">Услуги</option>
+                    <option value="projects">Проекты</option>
+                    <option value="blog_index">Статьи</option>
+                    <option value="contacts">Контакты</option>
+                  </select>
+                </Field>
                 <button className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white" onClick={() => void addPage()} type="button">
                   <PlusIcon className="h-4 w-4" />
                   Добавить страницу
@@ -671,6 +708,7 @@ const LandingEditorPage = () => {
                   onDuplicate={() => void builder.duplicateSection(section.id)}
                   onMoveDown={() => void moveSection(section.id, 1)}
                   onMoveUp={() => void moveSection(section.id, -1)}
+                  onToggleVisibility={canEdit ? () => builder.updateSectionDraft(selectedPage.id, section.id, { is_active: !section.is_active }) : undefined}
                   onSelect={() => {
                     builder.setSelectedSectionId(section.id);
                     setInspectorTab('content');
@@ -766,6 +804,23 @@ const LandingEditorPage = () => {
                       <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
                         {FIELD_LABELS[fieldName] ?? fieldName}
                       </div>
+                      {selectedSection.bindings[fieldName]?.source && (
+                        <Field label="Источник элементов">
+                          <select
+                            className={inputClassName}
+                            value={selectedSection.bindings[fieldName].mode}
+                            onChange={(event) => builder.updateSectionDraft(selectedPage!.id, selectedSection.id, {
+                              bindings: {
+                                [fieldName]: { ...selectedSection.bindings[fieldName], mode: event.target.value as 'auto' | 'manual' | 'hybrid' },
+                              },
+                            })}
+                          >
+                            <option value="manual">Заполнить вручную</option>
+                            <option value="auto">Из кабинета</option>
+                            <option value="hybrid">Ручное заполнение с подстановкой из кабинета</option>
+                          </select>
+                        </Field>
+                      )}
                       <ArrayEditor
                         fieldName={fieldName}
                         onChange={(value) => builder.updateSectionField(selectedPage!.id, selectedSection.id, fieldPath, value)}
@@ -855,6 +910,19 @@ const LandingEditorPage = () => {
             <section className={`${panelClassName} space-y-5`}>
               <SiteCrmSettingsPanel />
               <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Настройки сайта</div>
+              <Field label="Оформление сайта">
+                <select
+                  className={inputClassName}
+                  disabled={!canEdit}
+                  value={builder.site.theme_config.surface_style === 'corporate' ? 'corporate' : 'clean'}
+                  onChange={(event) => builder.updateSiteDraft({
+                    theme_config: { ...builder.site!.theme_config, surface_style: event.target.value },
+                  })}
+                >
+                  <option value="clean">Стандартное</option>
+                  <option value="corporate">Строительная компания</option>
+                </select>
+              </Field>
               <Field label="Название сайта">
                 <input className={inputClassName} value={builder.site.title} onChange={(event) => builder.updateSiteDraft({ title: event.target.value })} />
               </Field>
@@ -907,49 +975,15 @@ const LandingEditorPage = () => {
           )}
 
           {inspectorTab === 'blog' && (
-            <section className={`${panelClassName} space-y-5`}>
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Блог холдинга</div>
-                  <p className="mt-2 text-sm text-slate-500">Публикации для страницы `/blog` и SEO-контента.</p>
-                </div>
-                <button
-                  className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white"
-                  onClick={() => void builder.createBlogArticle({ title: 'Новая статья', content: '', excerpt: '', status: 'draft' })}
-                  type="button"
-                >
-                  <PlusIcon className="h-4 w-4" />
-                  Статья
-                </button>
-              </div>
-              <div className="space-y-3">
-                {builder.blogArticles.map((article) => (
-                  <div key={article.id} className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
-                    <div className="text-sm font-semibold text-slate-950">{article.title}</div>
-                    <div className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">{article.status}</div>
-                    <div className="mt-3 flex items-center gap-2">
-                      <button
-                        className="rounded-full border border-slate-200 px-3 py-1.5 text-sm hover:border-slate-300"
-                        onClick={() =>
-                          void builder.updateBlogArticle(article.id, {
-                            status: article.status === 'published' ? 'draft' : 'published',
-                          })
-                        }
-                        type="button"
-                      >
-                        {article.status === 'published' ? 'В черновик' : 'Опубликовать'}
-                      </button>
-                      <button
-                        className="rounded-full border border-rose-200 px-3 py-1.5 text-sm text-rose-600 hover:bg-rose-50"
-                        onClick={() => void builder.deleteBlogArticle(article.id)}
-                        type="button"
-                      >
-                        Удалить
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <section className={panelClassName}>
+              <SiteBlogEditor
+                articles={builder.blogArticles}
+                canEdit={canEdit}
+                canPublish={canPublish}
+                createArticle={builder.createBlogArticle}
+                updateArticle={builder.updateBlogArticle}
+                deleteArticle={builder.deleteBlogArticle}
+              />
             </section>
           )}
 

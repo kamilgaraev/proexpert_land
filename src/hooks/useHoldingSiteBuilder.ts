@@ -166,18 +166,17 @@ export const useHoldingSiteBuilder = () => {
     setError(null);
 
     try {
-      const [workspaceData, leadSummaryData, leadEntries] = await Promise.all([
-        holdingSiteBuilderService.getWorkspace(),
-        holdingSiteBuilderService.getLeadSummary(),
-        holdingSiteBuilderService.getLeads(),
-      ]);
-
+      const workspaceData = await holdingSiteBuilderService.getWorkspace();
       replaceWorkspace(workspaceData);
-      setLeadSummary(leadSummaryData);
-      setLeads(leadEntries);
       setDirtySite(false);
       setDirtyPages({});
       setDirtySections({});
+      const [leadSummaryData, leadEntries] = await Promise.all([
+        holdingSiteBuilderService.getLeadSummary(),
+        holdingSiteBuilderService.getLeads(),
+      ]);
+      setLeadSummary(leadSummaryData);
+      setLeads(leadEntries);
     } catch (loadError) {
       setError(getErrorMessage(loadError, 'Не удалось загрузить конструктор сайта.'));
     } finally {

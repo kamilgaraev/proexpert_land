@@ -10,7 +10,7 @@ import { getHoldingCanonicalUrl, getHoldingPageLanguage, hasHoldingPublicPage, t
 type HoldingLandingRuntimePageProps = { initialPage?: HoldingPublicPageState };
 
 const HoldingLandingRuntimeContent = ({ initialPage }: HoldingLandingRuntimePageProps) => {
-  const { pathname, search } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const initial = initialPage?.pathname === pathname && initialPage.search === search ? initialPage : undefined;
   const [payload, setPayload] = useState<PublicSitePayload | null>(initial?.payload ?? null);
   const [loading, setLoading] = useState(!initial || (initial.status === 200 && !initial.payload));
@@ -48,6 +48,12 @@ const HoldingLandingRuntimeContent = ({ initialPage }: HoldingLandingRuntimePage
     void loadPayload();
     return () => { active = false; };
   }, [pathname, search, initial]);
+
+  useEffect(() => {
+    if (!loading && hash === '#lead-form') {
+      document.getElementById('lead-form')?.scrollIntoView();
+    }
+  }, [hash, loading, pathname]);
 
   const isPreview = new URLSearchParams(search).get('preview') === 'true';
   const page = payload?.current_page ?? payload?.page;
