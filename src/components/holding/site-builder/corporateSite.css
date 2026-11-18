@@ -148,6 +148,15 @@
   object-fit: cover;
 }
 
+.holding-corporate .holding-section-projects .holding-cards > article:has(> img) {
+  overflow: hidden;
+  padding: 0;
+}
+
+.holding-corporate .holding-section-projects .holding-cards > article:has(> img) .holding-card-copy {
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
 .holding-corporate.holding-palette .holding-section-lead_form {
   background: color-mix(in srgb, var(--holding-primary) 7%, var(--holding-page));
 }
