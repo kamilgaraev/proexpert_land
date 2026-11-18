@@ -95,4 +95,51 @@ describe('SiteBuilderRenderer', () => {
       '/services?preview=true&token=preview-token',
     );
   });
+
+  it('в корпоративной теме прокручивает к видимой форме с главной', () => {
+    const payload = createPublicSitePayloadFixture();
+    const section = payload.current_page!.sections[0];
+    const page = {
+      ...payload.current_page!,
+      sections: [
+        { ...section, id: 121, type: 'hero' as const, is_active: false, content: { title: 'Скрытый блок' } },
+        { ...section, id: 122, type: 'lead_form' as const, content: { title: 'Заявка на работы' } },
+      ],
+    };
+    render(<MemoryRouter><SiteBuilderRenderer
+      page={page}
+      site={{ ...payload.site, theme_config: { ...payload.site.theme_config, surface_style: 'corporate' } }}
+    /></MemoryRouter>);
+
+    expect(screen.queryByText('Скрытый блок')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Оставить заявку' })).toHaveAttribute('href', '/#lead-form');
+    expect(screen.getByRole('heading', { name: 'Заявка на работы' }).closest('section')).toHaveAttribute('id', 'lead-form');
+  });
+
+  it('открывает статью из её раздела и сохраняет локаль', () => {
+    const payload = createPublicSitePayloadFixture();
+    const page = { ...payload.current_page!, slug: '/articles', page_type: 'blog_index' as const, title: 'Статьи' };
+    render(<MemoryRouter initialEntries={['/articles?locale=en&token=private']}><SiteBuilderRenderer
+      blog={{ articles: [{ id: 123, title: 'Как подготовить объект к отделке', slug: 'prepare-fitout', status: 'published' }] }}
+      page={page}
+      site={payload.site}
+    /></MemoryRouter>);
+
+    expect(screen.getByRole('heading', { name: 'Статьи', level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Как подготовить объект к отделке' })).toHaveAttribute('href', '/articles/prepare-fitout?locale=en');
+  });
+
+  it('показывает названия статей без переходов в редакторе', () => {
+    const payload = createPublicSitePayloadFixture();
+    const page = { ...payload.current_page!, slug: '/blog', page_type: 'blog_index' as const, title: 'Статьи' };
+    render(<MemoryRouter><SiteBuilderRenderer
+      blog={{ articles: [{ id: 123, title: 'План работ', slug: 'work-plan', status: 'published' }] }}
+      mode="editor"
+      page={page}
+      site={payload.site}
+    /></MemoryRouter>);
+
+    expect(screen.getByRole('heading', { name: 'План работ' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'План работ' })).not.toBeInTheDocument();
+  });
 });
