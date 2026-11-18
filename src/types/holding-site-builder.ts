@@ -1,5 +1,6 @@
 export type BuilderBlockType =
   | 'hero'
+  | 'button'
   | 'stats'
   | 'about'
   | 'services'

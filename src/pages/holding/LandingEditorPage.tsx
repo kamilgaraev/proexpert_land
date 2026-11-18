@@ -18,6 +18,9 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import SiteBuilderRenderer from '@/components/holding/site-builder/SiteBuilderRenderer';
+import SiteButtonStyleEditor from '@/components/holding/site-builder/SiteButtonStyleEditor';
+import { readButtonAppearance, writeButtonAppearance } from '@/components/holding/site-builder/siteButtonAppearance';
+import type { SiteButtonAction } from '@/components/holding/site-builder/siteButtonAppearance';
 import SiteBlogEditor from '@/components/holding/site-builder/SiteBlogEditor';
 import SiteCrmSettingsPanel from '@/components/holding/site-builder/SiteCrmSettingsPanel';
 import {
@@ -44,6 +47,14 @@ const panelClassName = 'rounded-[30px] border border-slate-200 bg-white p-5 shad
 const imageDropzoneClassName =
   'rounded-[24px] border border-dashed border-slate-300 bg-slate-50 p-4 transition hover:border-slate-400 hover:bg-white';
 const imageAccept = 'image/*,.jpg,.jpeg,.png,.gif,.webp,.svg,.ico';
+const sectionButtons: Partial<Record<EditorSection['type'], ReadonlyArray<{ action: SiteButtonAction; label: string }>>> = {
+  hero: [{ action: 'link', label: 'Кнопка баннера' }],
+  button: [{ action: 'link', label: 'Оформление кнопки' }],
+  lead_form: [
+    { action: 'upload', label: 'Кнопка прикрепления файлов' },
+    { action: 'submit', label: 'Кнопка отправки заявки' },
+  ],
+};
 
 const INSPECTOR_TABS: Array<{
   id: InspectorTab;
@@ -397,7 +408,7 @@ const LandingEditorPage = () => {
   const [newPageTitle, setNewPageTitle] = useState('');
   const [newPageSlug, setNewPageSlug] = useState('');
   const [newPageType, setNewPageType] = useState<SitePageType>('custom');
-  const fieldRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
+  const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const canView = can('multi-organization.website.view');
   const canEdit = can('multi-organization.website.edit');
@@ -874,6 +885,22 @@ const LandingEditorPage = () => {
                   </Field>
                 );
               })}
+              {sectionButtons[selectedSection.type]?.map(({ action, label }) => (
+                <SiteButtonStyleEditor
+                  key={action}
+                  appearance={readButtonAppearance(selectedSection.style_config, action)}
+                  disabled={!canEdit}
+                  label={label}
+                  onChange={patch => builder.updateSectionDraft(selectedPage!.id, selectedSection.id, section => ({
+                    style_config: writeButtonAppearance(section.style_config, action, patch
+                      ? { ...readButtonAppearance(section.style_config, action), ...patch }
+                      : {}),
+                  }))}
+                  selectRef={element => {
+                    fieldRefs.current[`style_config.buttons.${action}`] = element;
+                  }}
+                />
+              ))}
             </section>
           )}
 

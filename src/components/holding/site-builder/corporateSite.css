@@ -31,17 +31,27 @@
   box-shadow: none;
 }
 
-.holding-corporate .holding-header-action,
-.holding-corporate .holding-hero-action {
-  border-radius: 4px;
-  background: var(--holding-accent);
-  color: var(--holding-ink);
-  font-weight: 800;
+.holding-corporate .holding-nav a[aria-current='page'] {
+  background: var(--holding-ink);
 }
 
-.holding-corporate .holding-header-action:hover,
-.holding-corporate .holding-hero-action:hover {
-  background: #f7d88c;
+.holding-corporate .holding-site-button {
+  --site-button-radius: 4px;
+}
+
+.holding-corporate .holding-site-button.holding-site-button--primary {
+  --site-button-theme-background: var(--holding-accent);
+  --site-button-theme-foreground: var(--holding-ink);
+}
+
+.holding-corporate .holding-header-action {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .holding-corporate .holding-header-action {
+    display: inline-flex;
+  }
 }
 
 .holding-corporate .holding-section {
@@ -51,6 +61,10 @@
 
 .holding-corporate .holding-content {
   padding-block: clamp(3rem, 7vw, 6.5rem);
+}
+
+.holding-corporate .holding-section-button .holding-content {
+  padding-block: clamp(1.5rem, 3vw, 3rem);
 }
 
 .holding-corporate .holding-section-hero {
@@ -164,15 +178,8 @@
 
 .holding-corporate .holding-lead-panel input,
 .holding-corporate .holding-lead-panel select,
-.holding-corporate .holding-lead-panel textarea,
-.holding-corporate .holding-lead-panel button[type='submit'] {
+.holding-corporate .holding-lead-panel textarea {
   border-radius: 4px;
-}
-
-.holding-corporate .holding-lead-panel button[type='submit'] {
-  background: var(--holding-accent);
-  color: var(--holding-ink);
-  font-weight: 800;
 }
 
 .holding-corporate .holding-footer {

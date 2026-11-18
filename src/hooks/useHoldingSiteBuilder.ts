@@ -10,6 +10,7 @@ import {
   holdingSiteBuilderService,
 } from '@/services/holdingSiteBuilderService';
 import type {
+  BuilderBlockType,
   BuilderWorkspaceData,
   EditorAsset,
   EditorCollaborator,
@@ -552,13 +553,13 @@ export const useHoldingSiteBuilder = () => {
     }
   }, []);
 
-  const addSection = useCallback(async (pageId: number | string, type: EditorSection['type']) => {
+  const addSection = useCallback(async (pageId: number | string, type: BuilderBlockType) => {
     if (typeof pageId !== 'number') {
       return null;
     }
 
     try {
-      const section = await holdingSiteBuilderService.createSection(pageId, createBlockPayloadFromTemplate(type as never));
+      const section = await holdingSiteBuilderService.createSection(pageId, createBlockPayloadFromTemplate(type));
 
       startTransition(() => {
         setWorkspace((current) => {

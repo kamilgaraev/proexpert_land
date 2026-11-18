@@ -1,9 +1,13 @@
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { PaperClipIcon } from '@heroicons/react/24/outline';
 import { getHoldingContentPath, getHoldingLocalePrefix } from '@/utils/holdingPublicPage';
 import NotificationService from '@components/shared/NotificationService';
 import { BuilderApiError } from '@/services/holdingSiteBuilderService';
+import SiteButton from './SiteButton';
+import { getButtonHref, readButtonAppearance } from './siteButtonAppearance';
+import type { SiteButtonAction } from './siteButtonAppearance';
 import './corporateSite.css';
 import type {
   BuilderCanvasFocusTarget,
@@ -250,6 +254,7 @@ const PublicSiteHeader = ({
   const { pathname, search } = useLocation();
   const navigationSearch = getPublicNavigationSearch(search, getHoldingLocalePrefix(pathname, site));
   const currentPath = getHoldingContentPath(pathname, site);
+  const corporate = isCorporateSite(site);
   const currentPageLabel = stringValue(currentPage?.navigation_label) || stringValue(currentPage?.title) || site.title;
 
   return (
@@ -261,7 +266,7 @@ const PublicSiteHeader = ({
         <Link className="flex min-w-0 items-center gap-3" to={buildPublicHref('/', navigationSearch)}>
           <span
             className="holding-brand-mark flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-lg font-semibold text-white shadow-[0_18px_45px_-32px_rgba(15,23,42,0.45)]"
-            style={site.logo_url ? { backgroundColor: '#ffffff' } : { backgroundColor: site.theme_config.primary_color }}
+            style={site.logo_url ? { backgroundColor: '#ffffff' } : corporate ? undefined : { backgroundColor: site.theme_config.primary_color }}
           >
             {site.logo_url ? (
               <img alt={site.title} className="h-full w-full object-cover" src={site.logo_url} />
@@ -295,7 +300,8 @@ const PublicSiteHeader = ({
                   className={`inline-flex flex-shrink-0 items-center rounded-full px-4 py-2 text-sm font-medium transition ${
                     isActive ? 'text-white shadow-[0_18px_45px_-32px_rgba(37,99,235,0.6)]' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
                   }`}
-                  style={isActive ? { backgroundColor: site.theme_config.primary_color } : undefined}
+                  aria-current={isActive ? 'page' : undefined}
+                  style={isActive && !corporate ? { backgroundColor: site.theme_config.primary_color } : undefined}
                   to={buildPublicHref(item.slug, navigationSearch)}
                 >
                   {stringValue(item.label) || (itemPath === '/' ? 'Главная' : itemPath.slice(1))}
@@ -305,8 +311,8 @@ const PublicSiteHeader = ({
           </nav>
         )}
 
-        {isCorporateSite(site) ? (
-          <Link className="holding-header-action hidden shrink-0 px-4 py-3 text-sm lg:inline-flex" to={`${buildPublicHref('/', navigationSearch)}#lead-form`}>
+        {corporate ? (
+          <Link className="holding-header-action holding-site-button holding-site-button--primary shrink-0" to={`${buildPublicHref('/', navigationSearch)}#lead-form`}>
             Оставить заявку
           </Link>
         ) : <div className="hidden items-center lg:flex">
@@ -349,6 +355,60 @@ const emptyLeadForm = {
   work_type_id: '', object_address: '', expected_start_date: '',
 };
 const leadInput = 'w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-white';
+const acceptedAttachmentTypes = /\.(pdf|jpe?g|png)$/i;
+const attachmentIdentity = (file: File) => JSON.stringify([file.name, file.size, file.lastModified]);
+
+const SectionButton = ({
+  action, section, selectedFieldPath, onEditorInteract, href, onClick, disabled, descriptionId, children,
+}: {
+  action: SiteButtonAction;
+  section: EditorSection;
+  selectedFieldPath?: string | null;
+  onEditorInteract?: (target: BuilderCanvasFocusTarget) => void;
+  href?: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  descriptionId?: string;
+  children: ReactNode;
+}) => {
+  const fieldPath = `style_config.buttons.${action}`;
+  const appearance = readButtonAppearance(section.style_config, action);
+  const className = action === 'submit' ? 'holding-site-button--submit' : '';
+  const variant = action === 'upload' ? 'secondary' : 'primary';
+
+  if (onEditorInteract) {
+    return (
+      <SiteButton
+        appearance={appearance}
+        className={className}
+        data-selected={selectedFieldPath === fieldPath || undefined}
+        onClick={event => {
+          event.stopPropagation();
+          onEditorInteract({ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath, intent: 'button' });
+        }}
+        variant={variant}
+      >
+        {children}
+      </SiteButton>
+    );
+  }
+
+  if (action === 'link') return href ? <SiteButton appearance={appearance} href={href}>{children}</SiteButton> : null;
+
+  return (
+    <SiteButton
+      appearance={appearance}
+      aria-describedby={descriptionId}
+      className={className}
+      disabled={disabled}
+      onClick={onClick}
+      type={action === 'submit' ? 'submit' : 'button'}
+      variant={variant}
+    >
+      {children}
+    </SiteButton>
+  );
+};
 
 const LeadFormSection = ({
   section,
@@ -370,12 +430,15 @@ const LeadFormSection = ({
   const [form, setForm] = useState(emptyLeadForm);
   const [sending, setSending] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [attachmentError, setAttachmentError] = useState('');
   const [submissionMessage, setSubmissionMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const attempt = useRef<string | null>(null);
   const inFlight = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const attachmentHintId = useId();
   const enhanced = serviceRequest?.enabled === true;
+  const showServiceFields = enhanced || mode === 'editor';
   const services = serviceRequest?.services ?? [];
   const unavailable = enhanced && services.length === 0;
 
@@ -386,18 +449,31 @@ const LeadFormSection = ({
     setForm(current => ({ ...current, [field]: value }));
   };
 
-  const pickFiles = (files: FileList | null) => {
-    const next = Array.from(files ?? []);
+  const updateAttachments = (files: File[]) => {
     attempt.current = null;
     setSubmissionMessage('');
-    if (next.length > 5 || next.some(file => file.size < 1 || file.size > 10 * 1024 * 1024)) {
-      setErrorMessage('Можно приложить до пяти файлов, не более 10 МБ каждый.');
-      setSelectedFiles([]);
-      if (fileInput.current) fileInput.current.value = '';
+    setErrorMessage('');
+    setAttachmentError('');
+    setSelectedFiles(files);
+  };
+
+  const pickFiles = (input: HTMLInputElement) => {
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    if (!files.length) return;
+
+    const uniqueFiles = new Map(selectedFiles.map(file => [attachmentIdentity(file), file]));
+    for (const file of files) uniqueFiles.set(attachmentIdentity(file), file);
+    const next = [...uniqueFiles.values()];
+    if (next.length > 5 || files.some(file => file.size < 1 || file.size > 10 * 1024 * 1024)) {
+      setAttachmentError('Можно приложить до пяти непустых файлов, не более 10 МБ каждый.');
       return;
     }
-    setErrorMessage('');
-    setSelectedFiles(next);
+    if (files.some(file => !acceptedAttachmentTypes.test(file.name))) {
+      setAttachmentError('Выберите файлы в формате PDF, JPG или PNG.');
+      return;
+    }
+    updateAttachments(next);
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -433,6 +509,7 @@ const LeadFormSection = ({
       setSubmissionMessage(stringValue(section.content.success_message) || 'Заявка отправлена.');
       setForm(emptyLeadForm);
       setSelectedFiles([]);
+      setAttachmentError('');
       if (fileInput.current) fileInput.current.value = '';
       attempt.current = null;
     } catch (error) {
@@ -451,60 +528,90 @@ const LeadFormSection = ({
       <div>
         <SectionHeading section={section} selectedFieldPath={selectedFieldPath} onEditorInteract={onEditorInteract} invert />
       </div>
-      <form className="grid gap-4" onSubmit={submit}>
-        <fieldset className="grid gap-4" disabled={sending || unavailable}>
-          {enhanced && (
+      <form className="min-w-0 grid gap-4" onSubmit={submit}>
+        <fieldset className="min-w-0 grid gap-4" disabled={sending || unavailable}>
+          {showServiceFields && (
             <label className="grid gap-1 text-sm">
-              Вид работ
-              <select className={leadInput} required value={form.work_type_id} onChange={event => change('work_type_id', event.target.value)}>
-                <option className="text-slate-900" value="">Выберите услугу</option>
-                {services.map(service => <option className="text-slate-900" key={service.id} value={service.id}>{service.name}</option>)}
+              <span>Вид работ <span aria-hidden="true">*</span></span>
+              <select className={leadInput} disabled={mode === 'editor'} required value={form.work_type_id} onChange={event => change('work_type_id', event.target.value)}>
+                <option value="">Выберите услугу</option>
+                {services.map(service => <option key={service.id} value={service.id}>{service.name}</option>)}
               </select>
             </label>
           )}
           {leadFields.map(field => (
             <label key={field.name} className="grid gap-1 text-sm">
-              {field.label}
+              <span>{field.label}{showServiceFields && (field.name === 'name' || field.name === 'phone') && <span aria-hidden="true"> *</span>}</span>
               <input className={leadInput} type={field.type} autoComplete={field.autoComplete} maxLength={field.maxLength} readOnly={mode === 'editor'}
                 required={enhanced && (field.name === 'name' || field.name === 'phone')} value={form[field.name]}
                 onChange={event => change(field.name, event.target.value)} />
             </label>
           ))}
-          {enhanced && (
+          {showServiceFields && (
             <div className="grid gap-4 sm:grid-cols-[1.2fr_1fr]">
-              <label className="grid gap-1 text-sm">Адрес объекта
-                <input className={leadInput} autoComplete="off" required maxLength={500} value={form.object_address} onChange={event => change('object_address', event.target.value)} />
+              <label className="min-w-0 grid gap-1 text-sm"><span>Адрес объекта <span aria-hidden="true">*</span></span>
+                <input className={leadInput} autoComplete="off" readOnly={mode === 'editor'} required maxLength={500} value={form.object_address} onChange={event => change('object_address', event.target.value)} />
               </label>
-              <label className="grid gap-1 text-sm">Желаемая дата начала
-                <input className={leadInput} type="date" value={form.expected_start_date} onChange={event => change('expected_start_date', event.target.value)} />
+              <label className="min-w-0 grid gap-1 text-sm">Желаемая дата начала
+                <input className={leadInput} type="date" readOnly={mode === 'editor'} value={form.expected_start_date} onChange={event => change('expected_start_date', event.target.value)} />
               </label>
             </div>
           )}
           <label className="grid gap-1 text-sm">
-            {enhanced ? 'Описание работ' : 'Сообщение'}
+            {showServiceFields ? <span>Описание работ <span aria-hidden="true">*</span></span> : 'Сообщение'}
             <textarea className={leadInput + ' min-h-28'} readOnly={mode === 'editor'} required={enhanced} maxLength={enhanced ? 4000 : 5000}
               value={form.message} onChange={event => change('message', event.target.value)} />
           </label>
-          {enhanced && <label className="grid gap-1 text-sm">
-            Материалы к заявке
-            <input ref={fileInput} type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={event => pickFiles(event.target.files)} />
-            <span className="text-xs text-slate-300">PDF, JPG или PNG, до пяти файлов по 10 МБ.</span>
-          </label>}
+          {showServiceFields && (
+            <fieldset className="min-w-0 grid gap-2 rounded-md border border-white/20 px-3 pb-3 pt-2">
+              <legend className="px-1 text-sm">Материалы к заявке</legend>
+              {mode === 'public' && <input hidden ref={fileInput} type="file" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={event => pickFiles(event.currentTarget)} />}
+              <SectionButton
+                action="upload"
+                descriptionId={attachmentHintId}
+                onClick={() => fileInput.current?.click()}
+                onEditorInteract={onEditorInteract}
+                section={section}
+                selectedFieldPath={selectedFieldPath}
+              >
+                <PaperClipIcon aria-hidden="true" className="h-4 w-4 shrink-0" />
+                Прикрепить файлы
+              </SectionButton>
+              <p className="text-xs text-slate-300" id={attachmentHintId}>PDF, JPG или PNG, до пяти файлов по 10 МБ.</p>
+              {selectedFiles.length > 0 && (
+                <ul aria-label="Прикреплённые файлы" className="grid gap-1">
+                  {selectedFiles.map(file => (
+                    <li className="flex items-center justify-between gap-3 border-t border-white/15" key={attachmentIdentity(file)}>
+                      <span className="min-w-0 break-all text-sm">{file.name}</span>
+                      <button
+                        aria-label={`Убрать ${file.name}`}
+                        className="min-h-11 shrink-0 px-2 text-xs underline focus-visible:ring-2 focus-visible:ring-white"
+                        onClick={() => updateAttachments(selectedFiles.filter(item => item !== file))}
+                        type="button"
+                      >
+                        Убрать
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {attachmentError && <p className="text-sm text-rose-200" role="alert">{attachmentError}</p>}
+            </fieldset>
+          )}
           <input className="hidden" tabIndex={-1} autoComplete="off" value={form.website} onChange={event => change('website', event.target.value)} />
         </fieldset>
         {unavailable && <p className="text-sm text-amber-200" role="status">Приём заявок на услуги временно недоступен.</p>}
         {errorMessage && <p className="text-sm text-rose-200" role="alert">{errorMessage}</p>}
         {submissionMessage && <p className="text-sm text-emerald-200" role="status">{submissionMessage}</p>}
-        <EditableHotspot
-          active={selectedFieldPath === 'content.submit_label'}
-          className="inline-flex w-fit"
-          onInteract={onEditorInteract}
-          target={{ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath: 'content.submit_label', intent: 'button' }}
+        <SectionButton
+          action="submit"
+          disabled={sending || unavailable}
+          onEditorInteract={onEditorInteract}
+          section={section}
+          selectedFieldPath={selectedFieldPath}
         >
-          <button className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 disabled:opacity-60" disabled={sending || unavailable} type="submit">
-            {sending ? 'Отправка…' : stringValue(section.content.submit_label) || 'Отправить заявку'}
-          </button>
-        </EditableHotspot>
+          {sending ? 'Отправка…' : stringValue(section.content.submit_label) || 'Отправить заявку'}
+        </SectionButton>
       </form>
     </div>
   );
@@ -582,6 +689,10 @@ const renderSectionContent = (
   const gallery = arrayValue<Record<string, unknown>>(section.content.images);
   const faq = arrayValue<Record<string, unknown>>(section.content.items);
   const corporate = isCorporateSite(site);
+  const buttonHref = getButtonHref(section.content.button_url || (section.type === 'hero' ? '#' : undefined));
+  const buttonLabel = stringValue(section.content.button_text).trim();
+
+  if (section.type === 'button' && mode === 'public' && (!buttonHref || !buttonLabel)) return null;
 
   const select = (fieldPath: string, intent: BuilderCanvasFocusTarget['intent']) =>
     onEditorInteract?.({ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath, intent });
@@ -593,11 +704,9 @@ const renderSectionContent = (
           <div className="holding-hero-copy">
             <SectionHeading section={section} selectedFieldPath={selectedFieldPath} onEditorInteract={onEditorInteract} invert />
             <div className="mt-8">
-              <EditableHotspot active={selectedFieldPath === 'content.button_text'} onInteract={onEditorInteract} target={{ blockId: section.id, pageId: section.page_id ?? undefined, fieldPath: 'content.button_text', intent: 'button' }}>
-                <a className="holding-hero-action inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5" href={stringValue(section.content.button_url) || '#'}>
-                  {stringValue(section.content.button_text) || 'Перейти'}
-                </a>
-              </EditableHotspot>
+              <SectionButton action="link" href={buttonHref} onEditorInteract={onEditorInteract} section={section} selectedFieldPath={selectedFieldPath}>
+                {buttonLabel || 'Перейти'}
+              </SectionButton>
             </div>
           </div>
           <div className="holding-hero-media">
@@ -608,6 +717,12 @@ const renderSectionContent = (
           </EditableHotspot>
           </div>
         </div>
+      )}
+
+      {section.type === 'button' && (
+        <SectionButton action="link" href={buttonHref} onEditorInteract={onEditorInteract} section={section} selectedFieldPath={selectedFieldPath}>
+          {buttonLabel || 'Кнопка'}
+        </SectionButton>
       )}
 
       {section.type === 'stats' && (
