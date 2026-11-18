@@ -361,9 +361,14 @@ function App({
             </ProtectedComponent>
           } />
           <Route path="multi-organization/site" element={
-            <HoldingPanelRouteGuard deniedPath="/dashboard/multi-organization">
+            <ProtectedComponent
+              module="multi-organization"
+              permission="multi-organization.website.view"
+              requireAll
+              fallback={<Navigate to="/dashboard/multi-organization" replace />}
+            >
               <LandingEditorPage />
-            </HoldingPanelRouteGuard>
+            </ProtectedComponent>
           } />
         </Route>
 
