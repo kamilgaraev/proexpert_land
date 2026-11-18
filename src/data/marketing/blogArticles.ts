@@ -112,6 +112,11 @@ export const marketingBlogArticles = {
     purpose:
       "Какие специальные журналы вести и как связать их с общим журналом.",
   },
+  estimateResources: {
+    title: "Ресурсная ведомость по смете: пример заполнения в Excel",
+    href: "/blog/resursnaya-vedomost-po-smete",
+    purpose: "Как привести объём к единице нормы и сверить ресурсы с выгрузкой из сметы.",
+  },
 } as const satisfies Readonly<Record<string, MarketingBlogArticleReference>>;
 
 export type MarketingBlogArticleKey = keyof typeof marketingBlogArticles;

@@ -17,7 +17,7 @@ describe("marketing blog article registry", () => {
     }
   });
 
-  it("matches published headings verified by the production crawl on 2026-09-03", () => {
+  it("matches the snapshot of verified public blog headings", () => {
     const registryTitles = Object.fromEntries(
       Object.values(marketingBlogArticles).map(({ href, title }) => [
         href.replace("/blog/", ""),

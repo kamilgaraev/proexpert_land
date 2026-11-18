@@ -9,6 +9,7 @@ import { marketingBlogArticles } from "./blogArticles";
 import { marketingCapabilityMatrix } from "./capabilities";
 import { marketingFaqs } from "./home";
 import {
+  commercialBillingPeriods,
   commercialPackages,
   commercialTerms,
   freeFoundationOffer,
@@ -859,7 +860,13 @@ describe("marketing content consistency", () => {
       expect(routeText, `${route}: manual-work result promise`).not.toMatch(
         manualWorkPromisePattern,
       );
-      expect(routeText, `${route}: percentage`).not.toMatch(percentagePattern);
+      const textWithoutBillingDiscounts = route === "/pricing"
+        ? commercialBillingPeriods.reduce((text, { discountPercent }) => {
+          const discount = new RegExp(`(?<![\\d.,])${discountPercent}\\s*%`, "gu");
+          return discountPercent > 0 ? text.replace(discount, "") : text;
+        }, routeText)
+        : routeText;
+      expect(textWithoutBillingDiscounts, `${route}: percentage`).not.toMatch(percentagePattern);
       expect(routeText, `${route}: old brand or hybrid`).not.toMatch(
         oldBrandOrHybridPattern,
       );
@@ -1191,17 +1198,22 @@ describe("marketing content consistency", () => {
     }
   });
 
-  it("does not promise unsupported BIM or IFC in PIR public surfaces", () => {
-    const surfaces = [
+  it("describes verified IFC review in PIR without broader BIM claims", () => {
+    const page = marketingSeoLandingPages["pir-project-documentation"];
+    const copy = collectSectionStrings([
       marketingSeo["pir-project-documentation"],
-      marketingSeoLandingPages["pir-project-documentation"],
+      page,
+    ]).join(" ");
+
+    expect(copy).toMatch(/\bIFC\b/u);
+    expect(copy).toMatch(/замечан/iu);
+    expect(copy).toMatch(/исходн.{0,12}вид/iu);
+    expect(copy).not.toMatch(/автоматическ.{0,32}коллизи|редактирован.{0,16}геометри|\b(?:Revit|RVT|BCF)\b/iu);
+    expect(collectSectionStrings([
       marketingCommercialLandingLinks,
       marketingModuleLandingLinks,
       marketingSolutionSegments,
-    ];
-    expect(collectSectionStrings(surfaces).join(" ")).not.toMatch(
-      /\b(?:BIM|IFC)\b/iu,
-    );
+    ]).join(" ")).not.toMatch(/\b(?:BIM|IFC)\b/iu);
     for (const file of [
       "public/og/pir-project-documentation.svg",
       "scripts/generate-og-images.mjs",
@@ -1275,7 +1287,7 @@ describe("marketing content consistency", () => {
     const titles = new Set<string>();
     const descriptions = new Set<string>();
 
-    expect(marketingSitemapRoutes).toHaveLength(42);
+    expect(marketingSitemapRoutes).toHaveLength(43);
 
     for (const { pageKey, path: route } of marketingSitemapRoutes) {
       const meta = marketingSeo[pageKey];
