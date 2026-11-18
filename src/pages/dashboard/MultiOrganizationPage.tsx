@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { ProtectedComponent } from '@/components/permissions/ProtectedComponent';
 import { Button } from '@/components/ui/button';
 import { usePageTitle } from '@/hooks/useSEO';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -209,6 +210,16 @@ const MultiOrganizationPage = () => {
           </div>
           
           <div className="flex flex-wrap gap-3">
+            {isHolding() && (
+              <ProtectedComponent permission="multi-organization.website.view">
+                <Link
+                  to="/dashboard/multi-organization/site"
+                  className="flex items-center px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-medium"
+                >
+                  Редактор сайта
+                </Link>
+              </ProtectedComponent>
+            )}
             {hierarchy?.parent?.slug && (
               <a
                 href={`https://${hierarchy.parent.slug}.1мост.рф/`}

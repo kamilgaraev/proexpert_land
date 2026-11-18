@@ -65,6 +65,7 @@ const BillingPage = lazy(() => import('@pages/dashboard/BillingPage'));
 const FAQPage = lazy(() => import('@pages/dashboard/FAQPage'));
 const CustomRolesPage = lazy(() => import('@pages/dashboard/CustomRolesPage'));
 const MultiOrganizationPage = lazy(() => import('@pages/dashboard/MultiOrganizationPage'));
+const LandingEditorPage = lazy(() => import('@pages/holding/LandingEditorPage'));
 const NotificationsPage = lazy(() => import('@pages/dashboard/NotificationsPage').then(m => ({ default: m.Page })));
 
 // Lazy loading для admin панели
@@ -358,6 +359,11 @@ function App({
             >
               <MultiOrganizationPage />
             </ProtectedComponent>
+          } />
+          <Route path="multi-organization/site" element={
+            <HoldingPanelRouteGuard deniedPath="/dashboard/multi-organization">
+              <LandingEditorPage />
+            </HoldingPanelRouteGuard>
           } />
         </Route>
 

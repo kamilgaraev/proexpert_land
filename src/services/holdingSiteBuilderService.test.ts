@@ -120,6 +120,7 @@ describe('publicHoldingSiteService', () => {
   it('sends a once-decoded public pathname to the API', async () => {
     server.use(http.get('https://api.example.test/api/v1/landing/holding/public/site-data', ({ request }) => {
       expect(new URL(request.url).searchParams.get('path')).toBe('/о-компании');
+      expect(request.credentials).toBe('omit');
       return HttpResponse.json({ success: true, data: publicPayloadFixture });
     }));
     await expect(publicHoldingSiteService.getSiteData('/%D0%BE-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8', '')).resolves.toEqual(publicPayloadFixture);
@@ -159,6 +160,7 @@ describe('publicHoldingSiteService', () => {
 
   it('передаёт заявку с вложением как multipart', async () => {
     server.use(http.post('https://api.example.test/api/v1/landing/holding/public/site-leads', async ({ request }) => {
+      expect(request.credentials).toBe('omit');
       const fields = await request.formData();
       expect(fields.get('site_domain')).toBe('localhost');
       expect(fields.get('work_type_id')).toBe('17');
