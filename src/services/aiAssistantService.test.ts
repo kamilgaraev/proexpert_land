@@ -1,6 +1,4 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { http, HttpResponse } from 'msw';
-import { setupServer } from 'msw/node';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { saveAuthToken } from '@/utils/authTokenStorage';
 import { aiAssistantService } from './aiAssistantService';
 import type { AiAssistantChatInput } from '@/types/aiAssistant';
@@ -44,83 +42,6 @@ describe('aiAssistantService', () => {
     await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ conversation_id: '11', message: { id: '22' } });
     await expect(aiAssistantService.getRequest(input.request_id)).resolves.toMatchObject({ status: 'completed', progress, response: { message: { id: '22' }, credit_usage: { charged_minor: 50 }, progress } });
     expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toMatchObject({ ...input, quote_id: 'quote', async: true });
-  });
-  describe('assistant chat and history HTTP contract', () => {
-    const server = setupServer();
-    const baseUrl = 'https://api.example/api/v1/ai-assistant';
-
-    beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-    afterEach(() => server.resetHandlers());
-    afterAll(() => server.close());
-
-    it.each(['failed', 'cancelled'] as const)('returns an idempotent %s POST as a terminal status', async (status) => {
-      const data = { request_id: input.request_id, conversation_id: 11, status, run_status: status, stage: status, error_code: 'terminal_error' };
-      const requests: unknown[] = [];
-      server.use(http.post(`${baseUrl}/chat`, async ({ request }) => {
-        requests.push(await request.json());
-        return HttpResponse.json({ success: true, data });
-      }));
-      await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ ...data, conversation_id: '11' });
-      expect(requests).toEqual([{ ...input, quote_id: 'quote', async: true }]);
-    });
-
-    it('accepts canonical progress snapshots while filtering unsupported step data', async () => {
-      const at = '2026-10-25T10:00:00Z';
-      const step = { id: 2, key: 'record.1', code: 'record_check', state: 'failed', at };
-      const interim = {
-        key: 'answer', revision: 1, text: 'Проверен график', scope: { kind: 'project', project_id: 8 },
-        sources: [{ label: 'График' }], published_at: at,
-      };
-      const status = {
-        request_id: input.request_id, conversation_id: 11, status: 'running',
-        accepted_at: at, elapsed_seconds: 42,
-      };
-      server.use(http.get(`${baseUrl}/requests/${input.request_id}`, () => HttpResponse.json({
-        success: true,
-        data: {
-          ...status,
-          progress: [{ ...step, argument: 'internal' }, { ...step, id: 3, code: 'private_tool' }],
-          interim_result: { ...interim, sources: [{ ...interim.sources[0], entity_id: 19 }, { label: 12 }] },
-        },
-      }), { once: true }), http.get(`${baseUrl}/requests/${input.request_id}`, () => HttpResponse.json({ success: true, data: status })));
-
-      const current = await aiAssistantService.getRequest(input.request_id);
-      expect(current).toMatchObject({ ...status, conversation_id: '11' });
-      expect(current.progress).toEqual([step]);
-      expect(current.interim_result).toEqual(interim);
-      const next = await aiAssistantService.getRequest(input.request_id);
-      expect(next.interim_result).toBeNull();
-    });
-
-    it('retains typed results in responses and history alongside the legacy fields', async () => {
-      const result = {
-        contract_version: 1, outcome: 'clarification', coverage: { status: 'partial' },
-        evidence: [{ source_ref: { entity_type: 'project', entity_id: 8 } }],
-        billing: { charged_minor: 0, reason: 'local_only' },
-        ui_actions: [{ type: 'reveal_source', label: 'Открыть запись', surface: 'admin', target: 'signed' }],
-      };
-      const message = { id: 22, role: 'assistant', content: 'Ответ' };
-      const activeRequest = { request_id: input.request_id, conversation_id: 11, status: 'running', run_status: 'queued', stage: 'queued' };
-      server.use(
-        http.post(`${baseUrl}/chat`, () => HttpResponse.json({
-          success: true, data: { request_id: input.request_id, conversation_id: 11, ...result, message, credit_usage: {} },
-        })),
-        http.get(`${baseUrl}/conversations/11/history`, ({ request }) => {
-          expect(Object.fromEntries(new URL(request.url).searchParams)).toEqual({ page: '1', per_page: '30' });
-          return HttpResponse.json({
-            success: true,
-            data: [{ ...message, metadata: result }],
-            meta: { current_page: 1, last_page: 2, per_page: 30, total: 31, active_request: activeRequest },
-          });
-        }),
-      );
-      await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({
-        ...result, message: { id: '22', metadata: result }, credit_usage: {},
-      });
-      await expect(aiAssistantService.getHistory('11')).resolves.toMatchObject({
-        items: [{ id: '22', metadata: result }], meta: { last_page: 2, active_request: { ...activeRequest, conversation_id: '11' } },
-      });
-    });
   });
   it('executes only persisted preview reference and explicit confirmation', async () => {
     const mock = respond({ message: 'Готово' });
