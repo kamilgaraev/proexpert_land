@@ -142,7 +142,7 @@ function reportTaskStatus(status?: string | null) {
 
 class AiAssistantRequestTerminalError extends Error {}
 type ApprovedQuote = { input: AiAssistantChatInput; quote: AiAssistantQuote; scope: string | null; typedFactsExpiresAt?: number };
-type ObservedAssistantRequest = PendingAssistantRequest & { attachmentIds?: readonly string[] };
+type ObservedAssistantRequest = PendingAssistantRequest & { attachmentIds?: readonly string[]; submittedQuestionRevision?: number };
 type ActiveRequest = PendingAssistantRequest & {
   controller: AbortController;
   cancelRequested: boolean;
@@ -174,7 +174,8 @@ const AiAssistantPage = () => {
   const [editingMemory, setEditingMemory] = useState<string | null>(null);
   const [balance, setBalance] = useState<AiAssistantCreditsBalance | null>(null);
   const [usage, setUsage] = useState<AiAssistantUsage | null>(null);
-  const [question, setQuestion] = useState('');
+  const [{ text: question, revision: questionRevision }, setQuestionDraft] = useState({ text: '', revision: 0 });
+  const setQuestion = (text: string) => setQuestionDraft((draft) => ({ text, revision: draft.revision + 1 }));
   const [attachments, setAttachments] = useState<DraftAttachment[]>([]);
   const attachmentsRef = useRef(attachments);
   attachmentsRef.current = attachments;
@@ -442,9 +443,10 @@ const AiAssistantPage = () => {
       conversationId: quote.input.conversation_id,
       startedAt: Date.now(),
       attachmentIds: quote.input.attachment_ids,
+      submittedQuestionRevision: questionRevision,
     }, quote);
   }
-  async function observeRequest({ attachmentIds, ...pending }: ObservedAssistantRequest, approvedQuote?: ApprovedQuote) {
+  async function observeRequest({ attachmentIds, submittedQuestionRevision, ...pending }: ObservedAssistantRequest, approvedQuote?: ApprovedQuote) {
     const version = epoch.current;
     const active: ActiveRequest = {
       ...pending,
@@ -524,7 +526,9 @@ const AiAssistantPage = () => {
           return false;
         }));
       }
-      setQuestion('');
+      if (submittedQuestionRevision !== undefined) {
+        setQuestionDraft((draft) => draft.revision === submittedQuestionRevision ? { text: '', revision: draft.revision + 1 } : draft);
+      }
       setApproved(null);
       if (approvedQuote) {
         const available = result.credit_usage.available_after_minor;
@@ -542,7 +546,7 @@ const AiAssistantPage = () => {
         updatePendingAssistantRequest(identity, pending, false);
         if (reason instanceof AssistantApiError && [404, 422].includes(reason.status)) setApproved(null);
       } else {
-        setPausedRequest({ ...pending, attachmentIds });
+        setPausedRequest({ ...pending, attachmentIds, submittedQuestionRevision });
       }
       throw reason;
     } finally {

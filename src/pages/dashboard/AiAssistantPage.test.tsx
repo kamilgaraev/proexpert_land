@@ -34,7 +34,7 @@ describe('AiAssistantPage', () => {
     await screen.findByRole('button', { name: 'Подтвердить и отправить' });
   };
 
-  it('removes only sent attachments after manually checking a timed-out request', async () => {
+  it('keeps the new draft and removes only sent attachments after manually checking a timed-out request', async () => {
     const clock = vi.spyOn(Date, 'now').mockReturnValue(factsNow);
     let previewNumber = 0;
     vi.stubGlobal('URL', class extends URL {
@@ -67,14 +67,43 @@ describe('AiAssistantPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Подтвердить и отправить' }));
     const check = await screen.findByRole('button', { name: 'Проверить состояние запроса' }, { timeout: 3500 });
     expect(sessionStorage.getItem('most.assistant.pending.v1:[7,44]')).toBe(JSON.stringify([{ id: 'uuid-request', conversationId: '11', startedAt: factsNow }]));
+    const nextQuestion = 'Проверь новое изображение';
+    fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: nextQuestion } });
     await addImage('new.png');
     fireEvent.click(check);
     await screen.findByText('Ответ с изображением');
     await waitFor(() => expect(screen.getByLabelText('Вопрос помощнику')).toBeEnabled());
-    await quoteQuestion('Проверь новое изображение');
+    expect(screen.getByLabelText('Вопрос помощнику')).toHaveValue(nextQuestion);
+    fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
+    await screen.findByRole('button', { name: 'Подтвердить и отправить' });
 
-    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[1][0].attachment_ids).toEqual(['new-image']);
+    expect(aiAssistantService.getQuote).toHaveBeenLastCalledWith(expect.objectContaining({ message: nextQuestion, attachment_ids: ['new-image'] }));
     expect(aiAssistantService.chat).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a new draft when recovering a request loaded from session storage', async () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(factsNow);
+    sessionStorage.setItem('most.assistant.pending.v1:[7,44]', JSON.stringify([{ id: 'previous-request', conversationId: '11', startedAt: factsNow }]));
+    vi.mocked(aiAssistantService.getRequest)
+      .mockImplementationOnce(async () => {
+        clock.mockReturnValue(factsNow + 10 * 60_000);
+        return { request_id: 'previous-request', conversation_id: '11', status: 'running' };
+      })
+      .mockResolvedValueOnce({
+        request_id: 'previous-request', conversation_id: '11', status: 'completed',
+        response: { request_id: 'previous-request', conversation_id: '11', message: { id: 'recovered', role: 'assistant', content: 'Ответ прежнего сеанса' }, credit_usage: {} },
+      });
+
+    render(<AiAssistantPage />);
+    const check = await screen.findByRole('button', { name: 'Проверить состояние запроса' }, { timeout: 3500 });
+    const input = screen.getByLabelText('Вопрос помощнику');
+    fireEvent.change(input, { target: { value: 'Новый вопрос в этом сеансе' } });
+    fireEvent.click(check);
+    await screen.findByText('Ответ прежнего сеанса');
+
+    expect(input).toHaveValue('Новый вопрос в этом сеансе');
+    expect(aiAssistantService.chat).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem('most.assistant.pending.v1:[7,44]')).toBeNull();
   });
 
   it('quotes with completed response locator and carries the original receipt into a third turn without renewal', async () => {
@@ -537,6 +566,7 @@ describe('AiAssistantPage', () => {
     expect(await screen.findByText('Привет')).toBeInTheDocument();
     const input = screen.getByLabelText('Вопрос помощнику');
     await waitFor(() => expect(input).toBeEnabled());
+    expect(input).toHaveValue('');
     expect(screen.queryByRole('button', { name: 'Отменить запрос' })).not.toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
     expect(screen.queryByText('Ответ готов')).not.toBeInTheDocument();
