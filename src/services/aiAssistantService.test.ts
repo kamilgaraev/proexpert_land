@@ -1,10 +1,12 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
+import { setupServer } from 'msw/node';
 import { saveAuthToken } from '@/utils/authTokenStorage';
 import { aiAssistantService } from './aiAssistantService';
 import type { AiAssistantChatInput } from '@/types/aiAssistant';
 vi.mock('@/utils/api', () => ({ API_URL: 'https://api.example/api/v1/landing', userManagementService: { getOrganizationTeam: vi.fn() } }));
 const respond = (data: unknown, meta?: unknown) => vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify({ success: true, data, meta }), { status: 200 }));
-const input: AiAssistantChatInput = { conversation_id: '11', message: 'Вопрос', request_id: '4b3a24d1-1b27-41e3-a364-5da772bd739b', profile: 'detailed', allow_actions: true, context: { project_id: 8 } };
+const input: AiAssistantChatInput = { conversation_id: '11', message: 'Вопрос', request_id: '4b3a24d1-1b27-41e3-a364-5da772bd739b', profile: 'detailed', allow_actions: true, context: { entity_refs: [{ type: 'project', id: 8 }] } };
 afterEach(() => vi.restoreAllMocks());
 describe('aiAssistantService', () => {
   it('loads a citation by message and original public source index through the authenticated envelope', async () => {
@@ -23,13 +25,6 @@ describe('aiAssistantService', () => {
     expect(result.meta?.last_page).toBe(3);
     expect(mock.mock.calls[0][0]).toBe('https://api.example/api/v1/ai-assistant/conversations?page=2&per_page=20');
   });
-  it('sends identical canonical request fields in quote and approved chat', async () => {
-    const mock = respond({ request_id: input.request_id, quote_id: 'quote', conversation_id: 11, message: { id: 22, role: 'assistant', content: 'Ответ' }, credit_usage: {} });
-    await aiAssistantService.getQuote(input);
-    await aiAssistantService.chat({ ...input, quote_id: 'quote' });
-    expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toEqual(input);
-    expect(JSON.parse(String(mock.mock.calls[1][1]?.body))).toEqual({ ...input, quote_id: 'quote', async: true });
-  });
   it('accepts async request and completed status payloads while preserving the full synchronous result', async () => {
     const progress = [{ id: 31, code: 'estimates', state: 'completed' }, { id: 32, code: 'warehouse', state: 'started' }];
     const responses = [
@@ -41,7 +36,122 @@ describe('aiAssistantService', () => {
     await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ status: 'running', stage: 'queued', progress });
     await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ conversation_id: '11', message: { id: '22' } });
     await expect(aiAssistantService.getRequest(input.request_id)).resolves.toMatchObject({ status: 'completed', progress, response: { message: { id: '22' }, credit_usage: { charged_minor: 50 }, progress } });
-    expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toMatchObject({ ...input, quote_id: 'quote', async: true });
+    expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toMatchObject({ ...input, quote_id: 'quote', async: true, contract_version: 1 });
+  });
+  describe('assistant chat and history HTTP contract', () => {
+    const server = setupServer();
+    const baseUrl = 'https://api.example/api/v1/ai-assistant';
+
+    beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+    afterEach(() => server.resetHandlers());
+    afterAll(() => server.close());
+
+    it('opts into v1 for quote, chat, status and cancel while reading legacy responses', async () => {
+      const state = { request_id: input.request_id, conversation_id: 11, status: 'running', stage: 'queued' };
+      server.use(
+        http.post(`${baseUrl}/credits/quote`, async ({ request }) => {
+          expect(await request.json()).toEqual({ ...input, contract_version: 1 });
+          expect(request.headers.has('x-most-assistant-contract')).toBe(false);
+          return HttpResponse.json({ success: true, data: { quote_id: 'quote' } });
+        }),
+        http.post(`${baseUrl}/chat`, async ({ request }) => {
+          expect(await request.json()).toEqual({ ...input, quote_id: 'quote', async: true, contract_version: 1 });
+          expect(request.headers.has('x-most-assistant-contract')).toBe(false);
+          return HttpResponse.json({ success: true, data: state }, { status: 202 });
+        }),
+        http.get(`${baseUrl}/requests/${input.request_id}`, ({ request }) => {
+          expect(Object.fromEntries(new URL(request.url).searchParams)).toEqual({ contract_version: '1' });
+          expect(request.headers.has('x-most-assistant-contract')).toBe(false);
+          return HttpResponse.json({ success: true, data: state });
+        }),
+        http.post(`${baseUrl}/requests/${input.request_id}/cancel`, async ({ request }) => {
+          expect(await request.json()).toEqual({ contract_version: 1 });
+          expect(request.headers.has('x-most-assistant-contract')).toBe(false);
+          return HttpResponse.json({ success: true, data: { ...state, status: 'cancelled', stage: 'cancelled' } });
+        }),
+      );
+
+      const quote = await aiAssistantService.getQuote(input);
+      expect(quote.quote_id).toBe('quote');
+      await expect(aiAssistantService.chat({ ...input, quote_id: quote.quote_id })).resolves.toMatchObject({
+        ...state, conversation_id: '11', interim_result: null,
+      });
+      await expect(aiAssistantService.getRequest(input.request_id)).resolves.toMatchObject({
+        ...state, conversation_id: '11', interim_result: null,
+      });
+      await expect(aiAssistantService.cancelRequest(input.request_id)).resolves.toMatchObject({ status: 'cancelled' });
+    });
+
+    it.each(['failed', 'cancelled'] as const)('returns an idempotent %s POST as a terminal status', async (status) => {
+      const data = { request_id: input.request_id, conversation_id: 11, status, run_status: status, stage: status, error_code: 'terminal_error' };
+      const requests: unknown[] = [];
+      server.use(http.post(`${baseUrl}/chat`, async ({ request }) => {
+        requests.push(await request.json());
+        return HttpResponse.json({ success: true, data });
+      }));
+      await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ ...data, conversation_id: '11' });
+      expect(requests).toEqual([{ ...input, quote_id: 'quote', async: true, contract_version: 1 }]);
+    });
+
+    it('accepts canonical progress snapshots while filtering unsupported step data', async () => {
+      const at = '2026-10-25T10:00:00Z';
+      const step = { id: 2, key: 'record.1', code: 'record_check', state: 'failed', at };
+      const search = { id: 3, key: 'position-search', code: 'estimate_position_search', state: 'completed', at };
+      const read = { id: 4, key: 'position-read', code: 'estimate_position_read', state: 'started', at };
+      const interim = {
+        key: 'answer', revision: 1, text: 'Проверен график', scope: { kind: 'project', project_id: 8 },
+        sources: [{ label: 'График' }], published_at: at,
+      };
+      const status = {
+        request_id: input.request_id, conversation_id: 11, status: 'running',
+        accepted_at: at, elapsed_seconds: 42,
+      };
+      server.use(http.get(`${baseUrl}/requests/${input.request_id}`, () => HttpResponse.json({
+        success: true,
+        data: {
+          ...status,
+          progress: [{ ...step, argument: 'internal' }, search, read, { ...step, id: 5, code: 'private_tool' }],
+          interim_result: { ...interim, sources: [{ ...interim.sources[0], entity_id: 19 }, { label: 12 }] },
+        },
+      }), { once: true }), http.get(`${baseUrl}/requests/${input.request_id}`, () => HttpResponse.json({ success: true, data: status })));
+
+      const current = await aiAssistantService.getRequest(input.request_id);
+      expect(current).toMatchObject({ ...status, conversation_id: '11' });
+      expect(current.progress).toEqual([step, search, read]);
+      expect(current.interim_result).toEqual(interim);
+      const next = await aiAssistantService.getRequest(input.request_id);
+      expect(next.interim_result).toBeNull();
+    });
+
+    it('retains typed results in responses and history alongside the legacy fields', async () => {
+      const result = {
+        contract_version: 1, outcome: 'clarification', coverage: { status: 'partial' },
+        evidence: [{ source_ref: { entity_type: 'project', entity_id: 8 } }],
+        billing: { charged_minor: 0, reason: 'local_only' },
+        ui_actions: [{ type: 'reveal_source', label: 'Открыть запись', surface: 'admin', target: 'signed' }],
+      };
+      const message = { id: 22, role: 'assistant', content: 'Ответ' };
+      const activeRequest = { request_id: input.request_id, conversation_id: 11, status: 'running', run_status: 'queued', stage: 'queued' };
+      server.use(
+        http.post(`${baseUrl}/chat`, () => HttpResponse.json({
+          success: true, data: { request_id: input.request_id, conversation_id: 11, ...result, message, credit_usage: {} },
+        })),
+        http.get(`${baseUrl}/conversations/11/history`, ({ request }) => {
+          expect(Object.fromEntries(new URL(request.url).searchParams)).toEqual({ page: '1', per_page: '30' });
+          return HttpResponse.json({
+            success: true,
+            data: [{ ...message, metadata: result }],
+            meta: { current_page: 1, last_page: 2, per_page: 30, total: 31, active_request: activeRequest },
+          });
+        }),
+      );
+      await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({
+        ...result, message: { id: '22', metadata: result }, credit_usage: {},
+      });
+      await expect(aiAssistantService.getHistory('11')).resolves.toMatchObject({
+        items: [{ id: '22', metadata: result }], meta: { last_page: 2, active_request: { ...activeRequest, conversation_id: '11' } },
+      });
+    });
   });
   it('executes only persisted preview reference and explicit confirmation', async () => {
     const mock = respond({ message: 'Готово' });
