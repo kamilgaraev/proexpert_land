@@ -52,9 +52,9 @@ const stepLabels: Record<AiAssistantProgress['code'], string> = {
   materials: 'Материалы', reports: 'Отчёты', financial_data: 'Финансовые данные',
   record_check: 'Проверка записей', composing: 'Подготовка ответа',
 };
-const currentActivity = (progress: AiAssistantProgress[], stage: string) => {
+const currentActivity = (steps: AiAssistantProgress[], stage: string) => {
   if (['generating', 'verifying', 'cancel_requested', 'recovering'].includes(stage)) return stages[stage];
-  const active = latestSteps(progress).reverse().find((step) => step.state === 'started');
+  const active = steps.filter((step) => step.state === 'started').at(-1);
   return active ? progressLabels[active.code].started : Object.prototype.hasOwnProperty.call(stages, stage) ? stages[stage] : 'Выполняет запрос';
 };
 const completedSources = (progress: AiAssistantProgress[]) => latestSteps(progress).filter((step) => step.state === 'completed');
@@ -144,9 +144,8 @@ type ActiveRequest = PendingAssistantRequest & {
   cancelRequested: boolean;
   approved?: ApprovedQuote;
   deadline: number;
-  timer?: ReturnType<typeof setTimeout>;
 };
-type DraftAttachment = { file: File; preview: string; metadata?: AiAssistantAttachment; progress: number; error?: string };
+type DraftAttachment = { preview: string; metadata?: AiAssistantAttachment; progress: number; error?: string };
 const attachmentError = (file: File) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ? 'Поддерживаются JPEG, PNG и WebP.' : file.size > 5 * 1024 * 1024 ? 'Размер изображения не должен превышать 5 МБ.' : null;
 
 const AiAssistantPage = () => {
@@ -305,14 +304,14 @@ const AiAssistantPage = () => {
     const version = epoch.current; const targetConversationId: string = conversation.id;
     try {
       for (const file of Array.from(files).slice(0, 2 - attachments.length)) {
-        if (!current(version) || conversation?.id !== targetConversationId) break;
-        const errorText = attachmentError(file); const preview = URL.createObjectURL(file); const entry: DraftAttachment = { file, preview, progress: 0, ...(errorText ? { error: errorText } : {}) };
+        if (!current(version)) break;
+        const errorText = attachmentError(file); const preview = URL.createObjectURL(file); const entry: DraftAttachment = { preview, progress: 0, ...(errorText ? { error: errorText } : {}) };
         setAttachments((items) => [...items, entry]);
         if (errorText) continue;
         const controller = new AbortController(); attachmentControllers.current.set(preview, controller);
         try {
-          const metadata = await aiAssistantService.uploadAttachment(file, targetConversationId, controller.signal, (progress) => { if (current(version) && conversation?.id === targetConversationId) setAttachments((items) => items.map((item) => item.preview === preview ? { ...item, progress } : item)); });
-          if (!current(version) || controller.signal.aborted || conversation?.id !== targetConversationId) { URL.revokeObjectURL(preview); continue; }
+          const metadata = await aiAssistantService.uploadAttachment(file, targetConversationId, controller.signal, (progress) => { if (current(version)) setAttachments((items) => items.map((item) => item.preview === preview ? { ...item, progress } : item)); });
+          if (!current(version) || controller.signal.aborted) { URL.revokeObjectURL(preview); continue; }
           setAttachments((items) => items.map((item) => item.preview === preview ? { ...item, metadata, progress: 100 } : item)); setApproved(null);
         } catch (reason) { if (!controller.signal.aborted && current(version)) setAttachments((items) => items.map((item) => item.preview === preview ? { ...item, error: failureText(reason) } : item)); }
         finally { attachmentControllers.current.delete(preview); }
@@ -363,7 +362,7 @@ const AiAssistantPage = () => {
       setRequestStartedAt(Math.min(now, startedAt));
       setElapsedSeconds(Math.max(0, Math.floor((now - startedAt) / 1000)));
     }
-    return { status, progress };
+    return status;
   }
   async function waitForRequest(active: ActiveRequest, version: number): Promise<AiAssistantChatResult> {
     const signal = active.controller.signal;
@@ -371,12 +370,10 @@ const AiAssistantPage = () => {
       const finish = () => {
         clearTimeout(timer);
         signal.removeEventListener('abort', finish);
-        if (active.timer === timer) active.timer = undefined;
         if (realtimePollWake.current === finish) realtimePollWake.current = null;
         resolve();
       };
       const timer = setTimeout(finish, 1500);
-      active.timer = timer;
       realtimePollWake.current = finish;
       signal.addEventListener('abort', finish, { once: true });
       if (signal.aborted) finish();
@@ -425,8 +422,8 @@ const AiAssistantPage = () => {
         if ('message' in submitted) return submitted;
         state = submitted;
       }
-      const { status, progress } = applyStatusSnapshot(active, state);
-      if (status === 'completed' && state.response) return { ...state.response, progress: mergeProgress(progress, state.response.progress ?? []) };
+      const status = applyStatusSnapshot(active, state);
+      if (status === 'completed' && state.response) return state.response;
       if (status === 'completed') throw new AiAssistantRequestTerminalError('Сервер не вернул результат запроса.');
       throwIfRequestTerminated(status, state.error_code);
       await pause();
@@ -537,7 +534,6 @@ const AiAssistantPage = () => {
       }
       throw reason;
     } finally {
-      clearTimeout(active.timer);
       if (activeRequest.current === active) activeRequest.current = null;
       if (current(version)) {
         setStage('');
@@ -633,7 +629,7 @@ const AiAssistantPage = () => {
         {preview && <div className="space-y-2 rounded border border-amber-500 p-3"><p className="font-medium">{preview.title}</p><p>{preview.description}</p><details open><summary>Изменения</summary><pre className="overflow-auto whitespace-pre-wrap text-xs">{JSON.stringify({ before: preview.before, after: preview.after }, null, 2)}</pre></details>{preview.warnings?.map((warning) => <p key={warning}>{warning}</p>)}<Button disabled={busy || !canEdit || preview.executable === false} onClick={() => void run(async () => { if (Date.parse(preview.expires_at) <= Date.now()) throw new Error('Подготовка истекла. Проверьте действие снова.'); await aiAssistantService.executeAction(conversation.id, preview); setPreview(null); const history = await aiAssistantService.getHistory(conversation.id); setMessages(history.items); setHistoryMeta(history.meta); })}>Подтверждаю изменение</Button><Button variant="ghost" disabled={busy} onClick={() => setPreview(null)}>Отмена</Button></div>}
         {busy && observingRequest && <div className="space-y-2 rounded-md bg-muted p-3 text-sm">
           <div role="status" aria-live="polite">
-            <p className="font-medium">{currentActivity(activeProgress, stage)}</p>
+            <p className="font-medium">{currentActivity(visibleSteps, stage)}</p>
             {stage !== 'sending' && <p className="text-muted-foreground">Прошло {elapsedLabel(elapsedSeconds)}</p>}
           </div>
           {visibleSteps.length > 0 && <details>
