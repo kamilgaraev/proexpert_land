@@ -10,7 +10,7 @@ import type { AiAssistantMessage, AiAssistantTypedFactsLocator } from '@/types/a
 vi.mock('./AiAssistantCoveragePanel', () => ({ default: () => null }));
 vi.mock('@/hooks/usePermissions', () => ({ useCanAccess: () => false }));
 vi.mock('@/contexts/AuthContext', async () => ({ AuthContext: (await import('react')).createContext({ user: { id: 7, current_organization_id: 44 } }) }));
-vi.mock('@/services/aiAssistantService', () => ({ AssistantApiError: class extends Error {}, createAiAssistantRequestId: vi.fn(() => 'uuid-request'), aiAssistantService: { getConversations: vi.fn(), getConversation: vi.fn(), getMemory: vi.fn(), getBalance: vi.fn(), getUsage: vi.fn(), getHistory: vi.fn(), getParticipants: vi.fn(), getQuote: vi.fn(), chat: vi.fn(), cancelRequest: vi.fn(), getRequest: vi.fn(), previewAction: vi.fn(), executeAction: vi.fn(), getSourcePreview: vi.fn() } }));
+vi.mock('@/services/aiAssistantService', () => ({ AssistantApiError: class extends Error {}, createAiAssistantRequestId: vi.fn(() => 'uuid-request'), aiAssistantService: { getConversations: vi.fn(), getConversation: vi.fn(), getMemory: vi.fn(), getBalance: vi.fn(), getUsage: vi.fn(), getHistory: vi.fn(), getParticipants: vi.fn(), getQuote: vi.fn(), chat: vi.fn(), cancelRequest: vi.fn(), getRequest: vi.fn(), previewAction: vi.fn(), executeAction: vi.fn(), getSourcePreview: vi.fn(), uploadAttachment: vi.fn() } }));
 vi.mock('@/services/echo', () => ({ default: vi.fn() }));
 const deferred = <T,>() => { let resolve!: (value: T) => void; const promise = new Promise<T>((done) => { resolve = done; }); return { promise, resolve }; };
 beforeEach(() => {
@@ -22,7 +22,7 @@ beforeEach(() => {
   vi.mocked(aiAssistantService.getHistory).mockResolvedValue({ items: [], meta: null });
   vi.mocked(aiAssistantService.getQuote).mockResolvedValue({ quote_id: 'quote', min_units_minor: 50, max_units_minor: 200, expires_at: '2099-01-01T00:00:00Z', profile: 'normal', price_version: '1' });
 });
-afterEach(() => { cleanup(); sessionStorage.clear(); vi.clearAllMocks(); });
+afterEach(() => { cleanup(); sessionStorage.clear(); vi.unstubAllGlobals(); vi.clearAllMocks(); });
 const selectFirst = async () => { await screen.findByRole('button', { name: 'Первый' }); fireEvent.click(screen.getByRole('button', { name: 'Первый' })); await screen.findByLabelText('Вопрос помощнику'); };
 describe('AiAssistantPage', () => {
   const factsLocator: AiAssistantTypedFactsLocator = { version: 'ordinary-typed-facts-context/1', receipt_id: 'a1111111-1111-1111-1111-111111111111', receipt_hash: 'a'.repeat(64) };
@@ -33,6 +33,49 @@ describe('AiAssistantPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
     await screen.findByRole('button', { name: 'Подтвердить и отправить' });
   };
+
+  it('removes only sent attachments after manually checking a timed-out request', async () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(factsNow);
+    let previewNumber = 0;
+    vi.stubGlobal('URL', class extends URL {
+      static createObjectURL = () => `blob:attachment-${++previewNumber}`;
+      static revokeObjectURL = vi.fn();
+    });
+    vi.mocked(aiAssistantService.uploadAttachment)
+      .mockResolvedValueOnce({ id: 'sent-image', name: 'sent.png', mime: 'image/png', size: 3, width: 1, height: 1 })
+      .mockResolvedValueOnce({ id: 'new-image', name: 'new.png', mime: 'image/png', size: 3, width: 1, height: 1 });
+    vi.mocked(aiAssistantService.chat).mockResolvedValueOnce({ request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'reading' });
+    vi.mocked(aiAssistantService.getRequest)
+      .mockImplementationOnce(async () => {
+        clock.mockReturnValue(factsNow + 10 * 60_000);
+        return { request_id: 'uuid-request', conversation_id: '11', status: 'running' };
+      })
+      .mockResolvedValueOnce({
+        request_id: 'uuid-request', conversation_id: '11', status: 'completed',
+        response: { request_id: 'uuid-request', conversation_id: '11', message: { id: 'recovered', role: 'assistant', content: 'Ответ с изображением' }, credit_usage: {} },
+      });
+
+    render(<AiAssistantPage />);
+    await selectFirst();
+    const addImage = async (name: string) => {
+      fireEvent.change(screen.getByLabelText('Прикрепить изображение'), { target: { files: [new File(['png'], name, { type: 'image/png' })] } });
+      await screen.findByRole('img', { name });
+    };
+    await addImage('sent.png');
+    await quoteQuestion('Проверь отправленное изображение');
+    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[0][0].attachment_ids).toEqual(['sent-image']);
+    fireEvent.click(screen.getByRole('button', { name: 'Подтвердить и отправить' }));
+    const check = await screen.findByRole('button', { name: 'Проверить состояние запроса' }, { timeout: 3500 });
+    expect(sessionStorage.getItem('most.assistant.pending.v1:[7,44]')).toBe(JSON.stringify([{ id: 'uuid-request', conversationId: '11', startedAt: factsNow }]));
+    await addImage('new.png');
+    fireEvent.click(check);
+    await screen.findByText('Ответ с изображением');
+    await waitFor(() => expect(screen.getByLabelText('Вопрос помощнику')).toBeEnabled());
+    await quoteQuestion('Проверь новое изображение');
+
+    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[1][0].attachment_ids).toEqual(['new-image']);
+    expect(aiAssistantService.chat).toHaveBeenCalledTimes(1);
+  });
 
   it('quotes with completed response locator and carries the original receipt into a third turn without renewal', async () => {
     const clock = vi.spyOn(Date, 'now').mockReturnValue(factsNow);

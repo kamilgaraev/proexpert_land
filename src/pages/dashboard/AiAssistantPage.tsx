@@ -142,6 +142,7 @@ function reportTaskStatus(status?: string | null) {
 
 class AiAssistantRequestTerminalError extends Error {}
 type ApprovedQuote = { input: AiAssistantChatInput; quote: AiAssistantQuote; scope: string | null; typedFactsExpiresAt?: number };
+type ObservedAssistantRequest = PendingAssistantRequest & { attachmentIds?: readonly string[] };
 type ActiveRequest = PendingAssistantRequest & {
   controller: AbortController;
   cancelRequested: boolean;
@@ -200,7 +201,7 @@ const AiAssistantPage = () => {
   const busyOperation = useRef<symbol | null>(null);
   const historyController = useRef<AbortController | null>(null);
   const activeRequest = useRef<ActiveRequest | null>(null);
-  const [pausedRequest, setPausedRequest] = useState<PendingAssistantRequest | null>(null);
+  const [pausedRequest, setPausedRequest] = useState<ObservedAssistantRequest | null>(null);
   const realtimePollWake = useRef<(() => void) | null>(null);
   const isOwner = conversation?.can_manage_participants ?? (conversation?.user_id === String(user?.id));
   const canEdit = !!conversation && (conversation.can_edit ?? (isOwner || participants.some((item) => item.user_id === String(user?.id) && item.role === 'editor')));
@@ -436,9 +437,14 @@ const AiAssistantPage = () => {
     if (!canEdit || pausedRequest || quote.input.conversation_id !== conversation?.id || quote.scope !== scope || identityRef.current !== identity) return;
     if (Date.parse(quote.quote.expires_at) <= Date.now()) { setApproved(null); throw new Error('Оценка истекла. Рассчитайте стоимость снова.'); }
     if (quote.typedFactsExpiresAt !== undefined && quote.typedFactsExpiresAt <= Date.now()) { setApproved(null); throw new Error('Срок использования предыдущего ответа истёк. Рассчитайте стоимость снова.'); }
-    await observeRequest({ id: quote.input.request_id, conversationId: quote.input.conversation_id, startedAt: Date.now() }, quote);
+    await observeRequest({
+      id: quote.input.request_id,
+      conversationId: quote.input.conversation_id,
+      startedAt: Date.now(),
+      attachmentIds: quote.input.attachment_ids,
+    }, quote);
   }
-  async function observeRequest(pending: PendingAssistantRequest, approvedQuote?: ApprovedQuote) {
+  async function observeRequest({ attachmentIds, ...pending }: ObservedAssistantRequest, approvedQuote?: ApprovedQuote) {
     const version = epoch.current;
     const active: ActiveRequest = {
       ...pending,
@@ -491,18 +497,15 @@ const AiAssistantPage = () => {
         const messageId = result.message.id;
         setCompletedProgress((items) => ({ ...items, [messageId]: finalProgress }));
       }
+      const isSentAttachment = (item: DraftAttachment) => item.metadata && attachmentIds?.includes(item.metadata.id);
       if (approvedQuote) {
-        const readyAttachments = attachments.filter((item) => item.metadata && approvedQuote.input.attachment_ids?.includes(item.metadata.id));
+        const readyAttachments = attachments.filter(isSentAttachment);
         const questionMessage: AiAssistantMessage = {
           id: `user-${active.id}`, role: 'user', content: approvedQuote.input.message,
           metadata: { attachments: readyAttachments.flatMap((item) => item.metadata ? [item.metadata] : []) },
         };
         const message = result.message;
         setMessages((items) => mergeMessages([...items, questionMessage, message]));
-        setAttachments((items) => {
-          readyAttachments.forEach((item) => URL.revokeObjectURL(item.preview));
-          return items.filter((item) => !readyAttachments.includes(item));
-        });
       } else {
         const message = result.message;
         setMessages((items) => mergeMessages([...items, message]));
@@ -513,6 +516,13 @@ const AiAssistantPage = () => {
             setHistoryMeta(history.meta);
           }
         }).catch(() => undefined);
+      }
+      if (attachmentIds?.length) {
+        setAttachments((items) => items.filter((item) => {
+          if (!isSentAttachment(item)) return true;
+          URL.revokeObjectURL(item.preview);
+          return false;
+        }));
       }
       setQuestion('');
       setApproved(null);
@@ -532,7 +542,7 @@ const AiAssistantPage = () => {
         updatePendingAssistantRequest(identity, pending, false);
         if (reason instanceof AssistantApiError && [404, 422].includes(reason.status)) setApproved(null);
       } else {
-        setPausedRequest(pending);
+        setPausedRequest({ ...pending, attachmentIds });
       }
       throw reason;
     } finally {
