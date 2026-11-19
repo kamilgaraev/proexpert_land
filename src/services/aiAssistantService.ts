@@ -27,9 +27,21 @@ const normalizeProgress = (value: unknown): AiAssistantProgress[] => {
   }
   return [...unique.values()].sort((left, right) => left.id - right.id).slice(-24);
 };
-const normalizeChatResult = (result: AiAssistantChatResult): AiAssistantChatResult => ({ ...result, progress: normalizeProgress(result.progress) });
+const normalizeChatResult = (result: AiAssistantChatResult): AiAssistantChatResult => {
+  const { contract_version, outcome, coverage, evidence, billing, ui_actions, auto_open, export_task } = result;
+  const message = normalizeMessage(result.message);
+  return {
+    ...result,
+    conversation_id: String(result.conversation_id),
+    message: contract_version === 1
+      ? { ...message, metadata: { contract_version, outcome, coverage, evidence, billing, ui_actions, auto_open, export_task, ...message.metadata } }
+      : message,
+    progress: normalizeProgress(result.progress),
+  };
+};
 const normalizeRequestStatus = (status: AiAssistantRequestStatus): AiAssistantRequestStatus => ({
   ...status,
+  conversation_id: status.conversation_id == null ? null : String(status.conversation_id),
   progress: normalizeProgress(status.progress),
   ...(status.response ? { response: normalizeChatResult(status.response) } : {}),
 });
@@ -84,10 +96,20 @@ export const aiAssistantService = {
     return response.blob();
   },
   getConversations: async (page = 1, signal?: AbortSignal) => { const response = await request<AiAssistantConversation[]>(`/conversations?page=${page}&per_page=20`, { signal }); return { items: response.data.map(normalizeConversation), meta: response.meta ?? null }; },
+  getConversation: async (id: string, signal?: AbortSignal) => normalizeConversation(
+    (await request<{ conversation: AiAssistantConversation }>(`/conversations/${encodeURIComponent(id)}?per_page=1`, { signal })).data.conversation,
+  ),
   createConversation: async (title?: string, signal?: AbortSignal) => normalizeConversation((await request<AiAssistantConversation>('/conversations', post({ title }, signal))).data),
   deleteConversation: async (id: string) => { await request<null>(`/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
   getSourcePreview: async (conversationId: string, messageId: string, sourceIndex: number, signal?: AbortSignal) => (await request<AiAssistantSourcePreview>(`/conversations/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}/sources/${sourceIndex}`, { signal })).data,
-  getHistory: async (id: string, page = 1, signal?: AbortSignal) => { const response = await request<AiAssistantMessage[]>(`/conversations/${encodeURIComponent(id)}/history?page=${page}&per_page=30`, { signal }); return { items: response.data.map(normalizeMessage), meta: response.meta ?? null }; },
+  getHistory: async (id: string, page = 1, signal?: AbortSignal) => {
+    const response = await request<AiAssistantMessage[]>(`/conversations/${encodeURIComponent(id)}/history?page=${page}&per_page=30`, { signal });
+    const active = response.meta?.active_request;
+    const meta = active && response.meta
+      ? { ...response.meta, active_request: { ...active, conversation_id: active.conversation_id == null ? null : String(active.conversation_id) } }
+      : response.meta ?? null;
+    return { items: response.data.map(normalizeMessage), meta };
+  },
   getParticipants: async (id: string, signal?: AbortSignal) => (await request<AiAssistantParticipant[]>(`/conversations/${encodeURIComponent(id)}/participants`, { signal })).data.map(normalizeParticipant),
   setParticipants: async (id: string, participants: AiAssistantParticipant[]) => (await request<AiAssistantParticipant[]>(`/conversations/${encodeURIComponent(id)}/participants`, { method: 'PUT', body: JSON.stringify({ participants: participants.map(({ user_id, role }) => ({ user_id, role })) }) })).data.map(normalizeParticipant),
   getActiveMembers: async (page: number, signal?: AbortSignal) => { const response = await userManagementService.getOrganizationTeam({ search: '', page, per_page: 50 }, signal ?? new AbortController().signal) as OrganizationTeamPage; if (!Array.isArray(response.data)) throw new Error('Не удалось загрузить сотрудников.'); return { items: response.data.filter((item) => item.is_active), meta: response.meta }; },
@@ -104,12 +126,12 @@ export const aiAssistantService = {
     if (!response.ok || payload.success === false) throw new AssistantApiError(payload.message || 'Не удалось выполнить запрос к помощнику.', response.status);
     if (response.status === 202) {
       const accepted = data as Partial<Extract<AiAssistantChatSubmission, { status: string }>>;
-      if (!accepted || typeof accepted.request_id !== 'string' || accepted.status !== 'running') throw new AssistantApiError('Не удалось подтвердить запуск запроса.', response.status);
-      return { ...accepted, progress: normalizeProgress(accepted.progress) } as AiAssistantRequestAccepted;
+      if (!accepted || typeof accepted.request_id !== 'string' || !(accepted.status === 'running' || accepted.status === 'queued' || accepted.status === 'cancel_requested')) throw new AssistantApiError('Не удалось подтвердить запуск запроса.', response.status);
+      return { ...accepted, conversation_id: accepted.conversation_id == null ? null : String(accepted.conversation_id), progress: normalizeProgress(accepted.progress) } as AiAssistantRequestAccepted;
     }
     const result = data as AiAssistantChatResult;
     if (!result || result.request_id === undefined || result.conversation_id === undefined || !result.message || !result.credit_usage) throw new AssistantApiError(payload.message || 'Не удалось выполнить запрос к помощнику.', response.status);
-    return { ...normalizeChatResult(result), conversation_id: String(result.conversation_id), message: normalizeMessage(result.message) };
+    return normalizeChatResult(result);
   },
   getRequest: async (id: string, signal?: AbortSignal) => {
     const path = `/requests/${encodeURIComponent(id)}`;

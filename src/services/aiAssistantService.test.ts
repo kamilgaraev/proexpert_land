@@ -43,6 +43,25 @@ describe('aiAssistantService', () => {
     await expect(aiAssistantService.getRequest(input.request_id)).resolves.toMatchObject({ status: 'completed', progress, response: { message: { id: '22' }, credit_usage: { charged_minor: 50 }, progress } });
     expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toMatchObject({ ...input, quote_id: 'quote', async: true });
   });
+  it('retains typed results in responses and history alongside the legacy fields', async () => {
+    const result = {
+      contract_version: 1, outcome: 'clarification', coverage: { status: 'partial' },
+      evidence: [{ source_ref: { entity_type: 'project', entity_id: 8 } }],
+      billing: { charged_minor: 0, reason: 'local_only' },
+      ui_actions: [{ type: 'reveal_source', label: 'Открыть запись', surface: 'admin', target: 'signed' }],
+    };
+    const message = { id: 22, role: 'assistant', content: 'Ответ' };
+    respond({ request_id: input.request_id, conversation_id: 11, ...result, message, credit_usage: {} });
+    await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({
+      ...result, message: { id: '22', metadata: result }, credit_usage: {},
+    });
+
+    const activeRequest = { request_id: input.request_id, conversation_id: 11, status: 'running', run_status: 'queued', stage: 'queued' };
+    respond([{ ...message, metadata: result }], { current_page: 1, last_page: 2, per_page: 30, total: 31, active_request: activeRequest });
+    await expect(aiAssistantService.getHistory('11')).resolves.toMatchObject({
+      items: [{ id: '22', metadata: result }], meta: { last_page: 2, active_request: { ...activeRequest, conversation_id: '11' } },
+    });
+  });
   it('executes only persisted preview reference and explicit confirmation', async () => {
     const mock = respond({ message: 'Готово' });
     await aiAssistantService.executeAction('11', { title: 'Изменение', action: { id: 'action' }, preview_token: 'secret', expires_at: '2099-01-01' });

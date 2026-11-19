@@ -10,7 +10,7 @@ import type { AiAssistantMessage, AiAssistantTypedFactsLocator } from '@/types/a
 vi.mock('./AiAssistantCoveragePanel', () => ({ default: () => null }));
 vi.mock('@/hooks/usePermissions', () => ({ useCanAccess: () => false }));
 vi.mock('@/contexts/AuthContext', async () => ({ AuthContext: (await import('react')).createContext({ user: { id: 7, current_organization_id: 44 } }) }));
-vi.mock('@/services/aiAssistantService', () => ({ AssistantApiError: class extends Error {}, createAiAssistantRequestId: vi.fn(() => 'uuid-request'), aiAssistantService: { getConversations: vi.fn(), getMemory: vi.fn(), getBalance: vi.fn(), getUsage: vi.fn(), getHistory: vi.fn(), getParticipants: vi.fn(), getQuote: vi.fn(), chat: vi.fn(), cancelRequest: vi.fn(), getRequest: vi.fn(), previewAction: vi.fn(), executeAction: vi.fn(), getSourcePreview: vi.fn() } }));
+vi.mock('@/services/aiAssistantService', () => ({ AssistantApiError: class extends Error {}, createAiAssistantRequestId: vi.fn(() => 'uuid-request'), aiAssistantService: { getConversations: vi.fn(), getConversation: vi.fn(), getMemory: vi.fn(), getBalance: vi.fn(), getUsage: vi.fn(), getHistory: vi.fn(), getParticipants: vi.fn(), getQuote: vi.fn(), chat: vi.fn(), cancelRequest: vi.fn(), getRequest: vi.fn(), previewAction: vi.fn(), executeAction: vi.fn(), getSourcePreview: vi.fn() } }));
 vi.mock('@/services/echo', () => ({ default: vi.fn() }));
 const deferred = <T,>() => { let resolve!: (value: T) => void; const promise = new Promise<T>((done) => { resolve = done; }); return { promise, resolve }; };
 beforeEach(() => {
@@ -22,9 +22,10 @@ beforeEach(() => {
   vi.mocked(aiAssistantService.getHistory).mockResolvedValue({ items: [], meta: null });
   vi.mocked(aiAssistantService.getQuote).mockResolvedValue({ quote_id: 'quote', min_units_minor: 50, max_units_minor: 200, expires_at: '2099-01-01T00:00:00Z', profile: 'normal', price_version: '1' });
 });
-afterEach(() => { cleanup(); vi.clearAllMocks(); });
+afterEach(() => { cleanup(); sessionStorage.clear(); vi.clearAllMocks(); });
 const selectFirst = async () => { await screen.findByRole('button', { name: 'Первый' }); fireEvent.click(screen.getByRole('button', { name: 'Первый' })); await screen.findByLabelText('Вопрос помощнику'); };
 describe('AiAssistantPage', () => {
+  const screenContext = { source_module: 'ai-assistant', source_route: '/dashboard/assistant', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone };
   const factsLocator: AiAssistantTypedFactsLocator = { version: 'ordinary-typed-facts-context/1', receipt_id: 'a1111111-1111-1111-1111-111111111111', receipt_hash: 'a'.repeat(64) };
   const factsNow = Date.parse('2026-10-25T10:00:00Z');
   const factsMessage = (): AiAssistantMessage => ({ id: 'facts', role: 'assistant', content: 'Первый ответ с данными', created_at: '2026-10-25T09:59:00Z', metadata: { typed_facts: factsLocator } });
@@ -41,20 +42,20 @@ describe('AiAssistantPage', () => {
       .mockResolvedValueOnce({ request_id: 'uuid-request', conversation_id: '11', message: { id: 'inherited', role: 'assistant', content: 'Ответ на уточнение', created_at: '2026-10-25T10:01:00Z' }, credit_usage: {} });
     render(<AiAssistantPage />); await selectFirst();
     await quoteQuestion('Первый вопрос');
-    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[0][0].context).toEqual({});
+    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[0][0].context).toEqual(screenContext);
     fireEvent.click(screen.getByRole('button', { name: 'Подтвердить и отправить' }));
     await screen.findByText('Первый ответ с данными');
     await waitFor(() => expect(screen.getByLabelText('Вопрос помощнику')).toBeEnabled());
     await quoteQuestion('Уточни ответ');
     const quoted = vi.mocked(aiAssistantService.getQuote).mock.calls[1][0];
-    expect(quoted.context).toEqual({ typed_facts: factsLocator });
+    expect(quoted.context).toEqual({ ...screenContext, typed_facts: factsLocator });
     clock.mockReturnValue(factsNow + 60_000);
     fireEvent.click(screen.getByRole('button', { name: 'Подтвердить и отправить' }));
     await screen.findByText('Ответ на уточнение');
     expect(vi.mocked(aiAssistantService.chat).mock.calls[1][0]).toEqual({ ...quoted, quote_id: 'quote' });
     await waitFor(() => expect(screen.getByLabelText('Вопрос помощнику')).toBeEnabled());
     await quoteQuestion('Ещё уточни');
-    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[2][0].context).toEqual({ typed_facts: factsLocator });
+    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[2][0].context).toEqual({ ...screenContext, typed_facts: factsLocator });
   });
 
   it('does not use a late history locator from another conversation', async () => {
@@ -68,7 +69,7 @@ describe('AiAssistantPage', () => {
     await screen.findByLabelText('Вопрос помощнику');
     await act(async () => first.resolve({ items: [factsMessage()], meta: null }));
     await quoteQuestion('Новый вопрос');
-    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[0][0]).toMatchObject({ conversation_id: '12', context: {} });
+    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[0][0]).toMatchObject({ conversation_id: '12', context: screenContext });
   });
 
   it.each([{ id: 8, current_organization_id: 44 }, { id: 7, current_organization_id: 45 }])('clears locator and ignores pending quote on identity change %j', async (nextUser) => {
@@ -81,7 +82,7 @@ describe('AiAssistantPage', () => {
     await selectFirst();
     fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Вопрос в прежней организации' } });
     fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
-    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[0][0].context).toEqual({ typed_facts: factsLocator });
+    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[0][0].context).toEqual({ ...screenContext, typed_facts: factsLocator });
     vi.mocked(aiAssistantService.getConversations).mockResolvedValue({ items: [{ id: '11', user_id: '7', title: 'Первый', can_edit: true }], meta: null });
     rendered.rerender(view(nextUser));
     await screen.findByRole('button', { name: 'Первый' });
@@ -90,7 +91,7 @@ describe('AiAssistantPage', () => {
     await act(async () => pending.resolve({ quote_id: 'old', min_units_minor: 50, max_units_minor: 200, expires_at: '2099-01-01T00:00:00Z', profile: 'normal', price_version: '1' }));
     expect(screen.queryByRole('button', { name: 'Подтвердить и отправить' })).not.toBeInTheDocument();
     await quoteQuestion('Новый вопрос');
-    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[1][0].context).toEqual({});
+    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[1][0].context).toEqual(screenContext);
     expect(aiAssistantService.chat).not.toHaveBeenCalled();
   });
 
@@ -105,7 +106,7 @@ describe('AiAssistantPage', () => {
     expect(aiAssistantService.chat).not.toHaveBeenCalled();
     expect(aiAssistantService.getQuote).toHaveBeenCalledTimes(1);
     await quoteQuestion('Новый вопрос после срока');
-    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[1][0].context).toEqual({});
+    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[1][0].context).toEqual(screenContext);
   });
 
   it('does not retry a permission failure or remove its approved context', async () => {
@@ -121,7 +122,7 @@ describe('AiAssistantPage', () => {
     expect(aiAssistantService.getRequest).not.toHaveBeenCalled();
     expect(aiAssistantService.getQuote).toHaveBeenCalledTimes(1);
     expect(vi.mocked(aiAssistantService.chat).mock.calls[0][0]).toEqual({ ...input, quote_id: 'quote' });
-    expect(input.context).toEqual({ typed_facts: factsLocator });
+    expect(input.context).toEqual({ ...screenContext, typed_facts: factsLocator });
   });
 
   it('ignores a late completed response after switching organizations and keeps the new quote', async () => {
@@ -135,6 +136,7 @@ describe('AiAssistantPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Подтвердить и отправить' }));
     await screen.findByRole('button', { name: 'Отменить запрос' });
     rendered.rerender(view(45));
+    expect(aiAssistantService.cancelRequest).not.toHaveBeenCalled();
     await screen.findByRole('button', { name: 'Первый' });
     fireEvent.click(screen.getByRole('button', { name: 'Первый' }));
     await screen.findByLabelText('Вопрос помощнику');
@@ -142,7 +144,7 @@ describe('AiAssistantPage', () => {
     await act(async () => late.resolve({ request_id: 'uuid-request', conversation_id: '11', message: factsMessage(), credit_usage: {} }));
     expect(screen.queryByText('Первый ответ с данными')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Подтвердить и отправить' })).toBeEnabled();
-    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[1][0].context).toEqual({});
+    expect(vi.mocked(aiAssistantService.getQuote).mock.calls[1][0].context).toEqual(screenContext);
   });
 
   it('opens only original source_refs citations and preserves their index beside legacy extra sources', async () => {
@@ -207,6 +209,78 @@ describe('AiAssistantPage', () => {
     chat.resolve({ request_id: 'uuid-request', conversation_id: '11', message: { id: 'late', role: 'assistant', content: 'Поздний ответ' }, credit_usage: { charged_minor: 50, reserved_minor: 0, available_after_minor: 499950 } });
     await waitFor(() => expect(screen.queryByText('Поздний ответ')).not.toBeInTheDocument());
   });
+  it('detaches polling on close and resumes the same request on reopen without reposting', async () => {
+    const pending = deferred<Awaited<ReturnType<typeof aiAssistantService.getRequest>>>();
+    const answer = { id: 'reopened-answer', role: 'assistant', content: 'Ответ после возвращения' };
+    vi.mocked(aiAssistantService.chat).mockResolvedValueOnce({ request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'queued' });
+    vi.mocked(aiAssistantService.getRequest).mockReturnValueOnce(pending.promise).mockResolvedValueOnce({
+      request_id: 'uuid-request', conversation_id: '11', status: 'completed', run_status: 'completed',
+      response: { request_id: 'uuid-request', conversation_id: '11', message: answer, credit_usage: {} },
+    });
+    const firstView = render(<AiAssistantPage />);
+    await selectFirst();
+    await quoteQuestion('Сколько материалов?');
+    fireEvent.click(screen.getByRole('button', { name: 'Подтвердить и отправить' }));
+    await waitFor(() => expect(aiAssistantService.getRequest).toHaveBeenCalledTimes(1));
+    const signal = vi.mocked(aiAssistantService.getRequest).mock.calls[0][1];
+    firstView.unmount();
+    expect(signal?.aborted).toBe(true);
+    expect(aiAssistantService.cancelRequest).not.toHaveBeenCalled();
+
+    vi.mocked(aiAssistantService.getHistory).mockResolvedValue({ items: [{ id: 'original-question', role: 'user', content: 'Сколько материалов?' }, answer], meta: null });
+    render(<AiAssistantPage />);
+    expect(await screen.findByText(answer.content)).toBeInTheDocument();
+    await waitFor(() => expect(aiAssistantService.getRequest).toHaveBeenCalledTimes(2));
+    expect(screen.getAllByText(answer.content)).toHaveLength(1);
+    expect(aiAssistantService.getRequest).toHaveBeenLastCalledWith('uuid-request', expect.any(AbortSignal));
+    expect(aiAssistantService.chat).toHaveBeenCalledTimes(1);
+  });
+
+  it('resumes the server active request from history without a local reference', async () => {
+    vi.mocked(aiAssistantService.getHistory).mockResolvedValueOnce({
+      items: [],
+      meta: { current_page: 1, last_page: 1, per_page: 30, total: 0, active_request: { request_id: 'server-id', conversation_id: '11', status: 'running', stage: 'queued' } },
+    });
+    vi.mocked(aiAssistantService.getRequest).mockResolvedValueOnce({
+      request_id: 'server-id', conversation_id: '11', status: 'completed',
+      response: { request_id: 'server-id', conversation_id: '11', message: { id: 'updated', role: 'assistant', content: 'Ответ из другого сеанса' }, credit_usage: {} },
+    });
+    render(<AiAssistantPage />);
+    await selectFirst();
+    expect(await screen.findByText('Ответ из другого сеанса')).toBeInTheDocument();
+    expect(aiAssistantService.getRequest).toHaveBeenCalledWith('server-id', expect.any(AbortSignal));
+    expect(aiAssistantService.chat).not.toHaveBeenCalled();
+  });
+
+  it('renders the typed result and leaves unsupported actions inactive', async () => {
+    vi.mocked(aiAssistantService.getHistory).mockResolvedValue({
+      items: [{
+        id: 'typed', role: 'assistant', content: 'Уточните название проекта.',
+        metadata: {
+          contract_version: 1, outcome: 'clarification', coverage: { status: 'partial' },
+          billing: { charged_minor: 0, reason: 'no_model_usage' },
+          export_task: { status: 'building_export', title: 'Отчёт по работам', task_id: 'export-id', url: '/ai-assistant/report-tasks/export-id' },
+          evidence: [{ source_ref: { title: 'График работ' } }],
+          ui_actions: [{ type: 'reveal_source', label: 'Открыть запись', surface: 'admin', target: 'https://example.com/', auto_open: true }],
+        },
+      }],
+      meta: null,
+    });
+    render(<AiAssistantPage />);
+    await selectFirst();
+    expect(screen.getByText('Уточните название проекта.')).toBeInTheDocument();
+    expect(screen.getByText('Нужно уточнение')).toBeInTheDocument();
+    expect(screen.getByText('Проверена часть доступных данных.')).toBeInTheDocument();
+    expect(screen.getByText('Списано единиц МОСТ: 0')).toBeInTheDocument();
+    expect(screen.getByText('Запрос обработан без вызова модели.')).toBeInTheDocument();
+    expect(screen.getByText('Отчёт по работам')).toBeInTheDocument();
+    expect(screen.getByText('Отчёт готовится.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Скачать: Отчёт по работам' })).not.toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Источники' })).toHaveTextContent('График работ');
+    expect(screen.getByText('Открытие записи из ответа недоступно в личном кабинете.')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Открыть запись' })).not.toBeInTheDocument();
+  });
+
   it('polls accepted request to completion once and renders its complete response', async () => {
     vi.mocked(aiAssistantService.chat).mockResolvedValue({ request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'queued' });
     vi.mocked(aiAssistantService.getRequest).mockResolvedValue({ request_id: 'uuid-request', conversation_id: '11', status: 'completed', stage: 'completed', response: { request_id: 'uuid-request', conversation_id: '11', message: { id: 'answer-async', role: 'assistant', content: 'Асинхронный ответ' }, credit_usage: { charged_minor: 50, available_after_minor: 499950 } } });

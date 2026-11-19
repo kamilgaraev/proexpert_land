@@ -6,11 +6,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import AiAssistantCoveragePanel from './AiAssistantCoveragePanel';
 import AiAssistantAttachmentImage from './AiAssistantAttachmentImage';
 import { assistantTypedFactsScope, assistantTypedFactsSnapshot, emptyAssistantTypedFacts, receiveAssistantTypedFacts } from './assistantTypedFacts';
+import { readPendingAssistantRequests, updatePendingAssistantRequest, type PendingAssistantRequest } from './assistantPendingRequests';
 import { AuthContext } from '@/contexts/AuthContext';
 import { useCanAccess } from '@/hooks/usePermissions';
 import { aiAssistantService, AssistantApiError, createAiAssistantRequestId } from '@/services/aiAssistantService';
 import getEcho from '@/services/echo';
-import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantAttachment, AiAssistantChatInput, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantProfile, AiAssistantProgress, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantSource, AiAssistantUsage } from '@/types/aiAssistant';
+import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantArtifact, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantOutcome, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantProfile, AiAssistantProgress, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantSource, AiAssistantUsage } from '@/types/aiAssistant';
 import type { OrganizationTeamMember } from '@/types/organization-team';
 
 export const assistantUnits = (minor: number) => (minor / 100).toLocaleString('ru-RU', { maximumFractionDigits: 2 });
@@ -55,8 +56,74 @@ const detailedProcessingDeadline = (quote: AiAssistantQuote) => {
   const duration = minutes === 0 ? `${seconds} сек` : remainingSeconds === 0 ? `${minutes} мин` : `${minutes} мин ${remainingSeconds} сек`;
   return `Подробный анализ: ожидание до ${duration}.`;
 };
+const outcomeLabels = new Map<AiAssistantOutcome, string>([
+  ['no_match', 'Совпадения не найдены'],
+  ['ambiguous', 'Найдено несколько совпадений'],
+  ['denied', 'Доступ ограничен'],
+  ['unavailable', 'Данные недоступны'],
+  ['conflict', 'Данные противоречат друг другу'],
+  ['clarification', 'Нужно уточнение'],
+  ['write_proposal', 'Предложено изменение'],
+]);
+
+const billingReasonLabels = new Map([
+  ['charging_disabled', 'Списания выключены.'],
+  ['no_billable_result', 'За этот ответ плата не взимается.'],
+  ['no_model_usage', 'Запрос обработан без вызова модели.'],
+]);
+const unsupportedRevealTypes = new Set(['warehouse_balance', 'design_ifc_model_element', 'schedule_task', 'estimate_item']);
+
+function AssistantResultDetails({ metadata }: { metadata: AiAssistantMessage['metadata'] }) {
+  if (metadata?.contract_version !== 1) return null;
+  const outcome = metadata.outcome ? outcomeLabels.get(metadata.outcome) : undefined;
+  const coverage = metadata.coverage?.status;
+  const charges = metadata.billing?.charged_minor;
+  const billingReason = billingReasonLabels.get(metadata.billing?.reason ?? '');
+  const evidence = Array.isArray(metadata.evidence) ? metadata.evidence.flatMap((item) => item?.source_ref ? [item.source_ref] : []) : [];
+  const hasLegacySources = !!(metadata.source_refs?.length || metadata.rag_context?.sources?.length || metadata.entity_references?.length);
+  const evidenceTitles = [...new Set(evidence
+    .filter((source) => !hasLegacySources || unsupportedRevealTypes.has(source.entity_type ?? ''))
+    .map((source) => source.display_label ?? source.title ?? source.name)
+    .filter((title): title is string => typeof title === 'string' && !!title.trim()))];
+  const unsupportedReveal = (Array.isArray(metadata.ui_actions) && metadata.ui_actions.some((action) => action?.type === 'reveal_source'))
+    || evidence.some((source) => unsupportedRevealTypes.has(source.entity_type ?? ''));
+  return <div className="space-y-1 text-xs text-muted-foreground">
+    {outcome && <p className="font-medium">{outcome}</p>}
+    {coverage === 'partial' && <p>Проверена часть доступных данных.</p>}
+    {evidenceTitles.length > 0 && <ul aria-label="Источники" className="list-disc pl-4">{evidenceTitles.map((title) => <li key={title}>{title}</li>)}</ul>}
+    {typeof charges === 'number' && Number.isFinite(charges) && charges >= 0 && <p>Списано единиц МОСТ: {assistantUnits(charges)}</p>}
+    {billingReason && <p>{billingReason}</p>}
+    {unsupportedReveal && <p>Открытие записи из ответа недоступно в личном кабинете.</p>}
+  </div>;
+}
+
+function assistantArtifacts(metadata: AiAssistantMessage['metadata']): AiAssistantArtifact[] {
+  const artifacts = metadata?.artifacts ?? [];
+  const task = metadata?.contract_version === 1 ? metadata.export_task : undefined;
+  if (!task) return artifacts;
+  return [...artifacts.filter((artifact) => !task.task_id || artifact.task_id !== task.task_id), { ...task, artifact_type: 'core_report_task' }];
+}
+
+function reportTaskStatus(status?: string | null) {
+  switch (status) {
+    case 'queued': return 'Отчёт ожидает подготовки.';
+    case 'building_run':
+    case 'building_export': return 'Отчёт готовится.';
+    case 'failed': return 'Не удалось подготовить отчёт.';
+    case 'ready': return 'Отчёт готов. Скачивание в личном кабинете недоступно.';
+    default: return 'Статус подготовки отчёта недоступен.';
+  }
+}
+
 class AiAssistantRequestTerminalError extends Error {}
 type ApprovedQuote = { input: AiAssistantChatInput; quote: AiAssistantQuote; scope: string | null; typedFactsExpiresAt?: number };
+type ActiveRequest = PendingAssistantRequest & {
+  controller: AbortController;
+  cancelRequested: boolean;
+  approved?: ApprovedQuote;
+  deadline: number;
+  timer?: ReturnType<typeof setTimeout>;
+};
 type DraftAttachment = { file: File; preview: string; metadata?: AiAssistantAttachment; progress: number; error?: string };
 const attachmentError = (file: File) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ? 'Поддерживаются JPEG, PNG и WebP.' : file.size > 5 * 1024 * 1024 ? 'Размер изображения не должен превышать 5 МБ.' : null;
 
@@ -107,7 +174,8 @@ const AiAssistantPage = () => {
   const busyRef = useRef(false);
   const busyOperation = useRef<symbol | null>(null);
   const historyController = useRef<AbortController | null>(null);
-  const activeRequest = useRef<{ id: string; conversationId: string; controller: AbortController; cancelled: boolean; cancelRequested: boolean; approved: ApprovedQuote; deadline: number; timer?: ReturnType<typeof setTimeout> } | null>(null);
+  const activeRequest = useRef<ActiveRequest | null>(null);
+  const [pausedRequest, setPausedRequest] = useState<PendingAssistantRequest | null>(null);
   const realtimePollWake = useRef<(() => void) | null>(null);
   const isOwner = conversation?.can_manage_participants ?? (conversation?.user_id === String(user?.id));
   const canEdit = !!conversation && (conversation.can_edit ?? (isOwner || participants.some((item) => item.user_id === String(user?.id) && item.role === 'editor')));
@@ -133,7 +201,7 @@ const AiAssistantPage = () => {
       if (!echo) return;
       const channel = echo.private(channelName);
       const handler = (payload: unknown) => {
-        if (activeRequest.current !== active || active.cancelled || String(conversation?.id) !== active.conversationId) return;
+        if (activeRequest.current !== active || active.controller.signal.aborted || String(conversation?.id) !== active.conversationId) return;
         if (!payload || typeof payload !== 'object' || !('request_id' in payload) || payload.request_id !== active.id) return;
         realtimePollWake.current?.();
       };
@@ -161,10 +229,22 @@ const AiAssistantPage = () => {
     const selectedScope = assistantTypedFactsScope(user?.id, user?.current_organization_id, selected.id);
     typedFacts.current = emptyAssistantTypedFacts(selectedScope);
     attachmentControllers.current.forEach((item) => item.abort()); attachmentControllers.current.clear(); uploadingAttachments.current = null; setIsUploadingAttachments(false); setAttachments((items) => { items.forEach((item) => URL.revokeObjectURL(item.preview)); return []; });
+    setPausedRequest(null);
     setConversation(selected); setMessages([]); setParticipants([]); setHistoryMeta(null); setApproved(null); setPreview(null); setSharing(false); setQuestion(''); setError(''); setLoading(true); setStage(''); setRequestStartedAt(null); setActiveProgress([]); activeProgressRef.current = []; setCompletedProgress({});
     try {
       const [history, people] = await Promise.all([aiAssistantService.getHistory(selected.id, 1, controller.signal), aiAssistantService.getParticipants(selected.id, controller.signal)]);
-      if (current(version)) { typedFacts.current = receiveAssistantTypedFacts(typedFacts.current, selectedScope, history.items, Date.now()); setMessages(history.items); setHistoryMeta(history.meta); setParticipants(people); }
+      if (!current(version)) return;
+      typedFacts.current = receiveAssistantTypedFacts(typedFacts.current, selectedScope, history.items, Date.now());
+      setMessages(history.items);
+      setHistoryMeta(history.meta);
+      setParticipants(people);
+      const local = readPendingAssistantRequests(identity).find((item) => item.conversationId === selected.id);
+      const remote = history.meta?.active_request;
+      if (remote && typeof remote.request_id === 'string' && String(remote.conversation_id) === selected.id && remote.request_id !== local?.id) {
+        void run(() => observeRequest({ id: remote.request_id, conversationId: selected.id, startedAt: Date.now() }));
+      } else if (local) {
+        void run(() => observeRequest(local));
+      }
     } catch (reason) { if (current(version) && !controller.signal.aborted) setError(failureText(reason)); }
     finally { if (current(version)) setLoading(false); }
   };
@@ -173,13 +253,27 @@ const AiAssistantPage = () => {
     busyOperation.current = null;
     typedFacts.current = emptyAssistantTypedFacts(null);
     setConversation(null); setConversations([]); setListMeta(null); setMessages([]); setHistoryMeta(null); setParticipants([]); setMembers([]); setMemberMeta(null); setSharing(false); setApproved(null); setPreview(null); setQuestion(''); setMemory([]); setMemoryText(''); setEditingMemory(null); setBalance(null); setUsage(null); setError(''); setLoading(true); setBusy(false); busyRef.current = false; activeRequest.current = null; setStage(''); setRequestStartedAt(null); setActiveProgress([]); activeProgressRef.current = []; setCompletedProgress({});
-    setAttachments([]); setIsUploadingAttachments(false); uploadingAttachments.current = null;
+    setAttachments([]); setIsUploadingAttachments(false); uploadingAttachments.current = null; setPausedRequest(null);
     const controller = new AbortController();
-    void Promise.all([aiAssistantService.getConversations(1, controller.signal), aiAssistantService.getMemory(controller.signal), aiAssistantService.getBalance(controller.signal), aiAssistantService.getUsage(controller.signal).catch(() => null)]).then(([list, personalMemory, wallet, statistics]) => {
+    void Promise.all([aiAssistantService.getConversations(1, controller.signal), aiAssistantService.getMemory(controller.signal), aiAssistantService.getBalance(controller.signal), aiAssistantService.getUsage(controller.signal).catch(() => null)]).then(async ([list, personalMemory, wallet, statistics]) => {
       if (controller.signal.aborted) return;
-      setConversations(list.items); setListMeta(list.meta); setMemory(personalMemory); setBalance(wallet); setUsage(statistics); setLoading(false);
+      setConversations(list.items); setListMeta(list.meta); setMemory(personalMemory); setBalance(wallet); setUsage(statistics);
+      const pending = readPendingAssistantRequests(identity).at(-1);
+      if (pending) {
+        const version = epoch.current;
+        try {
+          const selected = list.items.find((item) => item.id === pending.conversationId)
+            ?? await aiAssistantService.getConversation(pending.conversationId, controller.signal);
+          if (!controller.signal.aborted && current(version)) await selectConversation(selected);
+        } catch (reason) {
+          if (controller.signal.aborted || !current(version)) return;
+          if (reason instanceof AssistantApiError && [403, 404].includes(reason.status)) updatePendingAssistantRequest(identity, pending, false);
+          setError(failureText(reason));
+        }
+      }
+      if (!controller.signal.aborted) setLoading(false);
     }).catch((reason) => { if (!controller.signal.aborted) { setError(failureText(reason)); setLoading(false); } });
-    return () => { mounted.current = false; epoch.current++; controller.abort(); historyController.current?.abort(); attachmentControllers.current.forEach((item) => item.abort()); attachmentControllers.current.clear(); attachmentsRef.current.forEach((item) => URL.revokeObjectURL(item.preview)); const request = activeRequest.current; if (request) { request.cancelled = true; clearTimeout(request.timer); request.controller.abort(); void aiAssistantService.cancelRequest(request.id).catch(() => undefined); } };
+    return () => { mounted.current = false; epoch.current++; controller.abort(); historyController.current?.abort(); attachmentControllers.current.forEach((item) => item.abort()); attachmentControllers.current.clear(); attachmentsRef.current.forEach((item) => URL.revokeObjectURL(item.preview)); const request = activeRequest.current; if (request) request.controller.abort(); };
   }, [user?.id, user?.current_organization_id]);
   const addImages = async (files: FileList | null) => {
     if (!files || !conversation || uploadingAttachments.current || attachments.length >= 2) return;
@@ -205,10 +299,11 @@ const AiAssistantPage = () => {
   async function requestQuote() {
     return run(async () => {
       const readyAttachments = attachments.filter((item) => item.metadata && !item.error);
-      if (!conversation || !canEdit || (!question.trim() && readyAttachments.length === 0) || attachments.some((item) => !item.metadata || item.error)) return;
+      if (!conversation || !canEdit || pausedRequest || (!question.trim() && readyAttachments.length === 0) || attachments.some((item) => !item.metadata || item.error)) return;
       const snapshot = assistantTypedFactsSnapshot(typedFacts.current, scope, Date.now());
       const receipt = typedFacts.current.receipt;
-      const input: AiAssistantChatInput = { conversation_id: conversation.id, message: question.trim() || 'Проанализируй прикреплённое изображение.', request_id: createAiAssistantRequestId(), profile, allow_actions: allowActions, context: snapshot.context, ...(readyAttachments.length ? { attachment_ids: readyAttachments.map((item) => item.metadata!.id) } : {}) };
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const input: AiAssistantChatInput = { conversation_id: conversation.id, message: question.trim() || 'Проанализируй прикреплённое изображение.', request_id: createAiAssistantRequestId(), profile, allow_actions: allowActions, context: { source_module: 'ai-assistant', source_route: '/dashboard/assistant', timezone, ...snapshot.context }, ...(readyAttachments.length ? { attachment_ids: readyAttachments.map((item) => item.metadata!.id) } : {}) };
       const version = epoch.current;
       const quote = await aiAssistantService.getQuote(input);
       if (!current(version)) return;
@@ -220,117 +315,186 @@ const AiAssistantPage = () => {
       } else if (current(version)) setApproved(approvedQuote);
     });
   }
-  const waitForRequest = async (active: NonNullable<typeof activeRequest.current>, version: number) => {
+  async function waitForRequest(active: ActiveRequest, version: number): Promise<AiAssistantChatResult> {
+    const signal = active.controller.signal;
     const pause = () => new Promise<void>((resolve) => {
       const finish = () => {
-      clearTimeout(timer);
-      active.controller.signal.removeEventListener('abort', finish);
-      if (active.timer === timer) active.timer = undefined;
-      if (realtimePollWake.current === finish) realtimePollWake.current = null;
-      resolve();
+        clearTimeout(timer);
+        signal.removeEventListener('abort', finish);
+        if (active.timer === timer) active.timer = undefined;
+        if (realtimePollWake.current === finish) realtimePollWake.current = null;
+        resolve();
       };
       const timer = setTimeout(finish, 1500);
       active.timer = timer;
       realtimePollWake.current = finish;
-      active.controller.signal.addEventListener('abort', finish, { once: true });
-      if (active.controller.signal.aborted) finish();
+      signal.addEventListener('abort', finish, { once: true });
+      if (signal.aborted) finish();
     });
-    while (Date.now() < active.deadline && activeRequest.current === active && !active.cancelled) {
+    const submissionCheckUntil = Date.now() + 5_000;
+    while (Date.now() < active.deadline && current(version) && !signal.aborted) {
       let state: AiAssistantRequestStatus;
       try {
-        state = await aiAssistantService.getRequest(active.id, active.controller.signal);
+        state = await aiAssistantService.getRequest(active.id, signal);
       } catch (reason) {
-        if (!current(version) || active.cancelled || active.controller.signal.aborted) throw reason;
-        if (reason instanceof AssistantApiError && (reason.status === 404 || reason.status === 422)) {
+        if (!current(version) || signal.aborted) throw reason;
+        if (reason instanceof AssistantApiError && [401, 403, 404, 422].includes(reason.status)) {
+          if ([401, 403].includes(reason.status)) throw new AiAssistantRequestTerminalError(failureText(reason));
           setApproved(null);
           throw new AiAssistantRequestTerminalError('Запрос не принят или оценка истекла. Рассчитайте стоимость снова.');
         }
         await pause();
         continue;
       }
-      if (!current(version) || active.cancelled) throw new Error('Запрос остановлен.');
-      if (state.request_id !== active.id) throw new Error('Не удалось проверить состояние запроса.');
+      if (!current(version) || signal.aborted) throw new Error();
+      if (state.request_id !== active.id || (state.conversation_id != null && String(state.conversation_id) !== active.conversationId)) {
+        throw new AiAssistantRequestTerminalError('Результат запроса не совпадает с выбранным чатом.');
+      }
       if (state.status === 'not_submitted' && !active.cancelRequested) {
-        if (Date.parse(active.approved.quote.expires_at) <= Date.now()) {
+        const quote = active.approved;
+        if (!quote && Date.now() < submissionCheckUntil) {
+          await pause();
+          continue;
+        }
+        if (!quote) {
+          throw new AiAssistantRequestTerminalError('Запрос не принят. Отправьте его снова.');
+        }
+        if (Date.parse(quote.quote.expires_at) <= Date.now()) {
           setApproved(null);
           throw new AiAssistantRequestTerminalError('Оценка истекла. Рассчитайте стоимость снова.');
         }
-        if (active.approved.typedFactsExpiresAt !== undefined && active.approved.typedFactsExpiresAt <= Date.now()) { setApproved(null); throw new AiAssistantRequestTerminalError('Срок использования предыдущего ответа истёк. Рассчитайте стоимость снова.'); }
-        const submitted = await aiAssistantService.chat({ ...active.approved.input, quote_id: active.approved.quote.quote_id }, active.controller.signal);
-        if (!current(version) || active.cancelled) throw new AiAssistantRequestTerminalError('Запрос остановлен.');
-        if (submitted.request_id !== active.id) throw new AiAssistantRequestTerminalError('Результат запроса не совпадает с выбранным чатом.');
+        if (quote.typedFactsExpiresAt !== undefined && quote.typedFactsExpiresAt <= Date.now()) {
+          setApproved(null);
+          throw new AiAssistantRequestTerminalError('Срок использования предыдущего ответа истёк. Рассчитайте стоимость снова.');
+        }
+        const submitted = await aiAssistantService.chat({ ...quote.input, quote_id: quote.quote.quote_id }, signal);
+        if (!current(version) || signal.aborted) throw new Error();
+        if (submitted.request_id !== active.id || (submitted.conversation_id != null && String(submitted.conversation_id) !== active.conversationId)) {
+          throw new AiAssistantRequestTerminalError('Результат запроса не совпадает с выбранным чатом.');
+        }
         if ('message' in submitted) return submitted;
         state = submitted;
       }
       const progress = mergeProgress(activeProgressRef.current, state.progress ?? []);
       activeProgressRef.current = progress;
       setActiveProgress(progress);
-      setStage(state.status === 'cancel_requested' ? state.status : state.stage ?? state.status);
-      if (state.status === 'completed' && state.response) return { ...state.response, progress: mergeProgress(progress, state.response.progress ?? []) };
-      if (state.status === 'completed') throw new AiAssistantRequestTerminalError('Сервер не вернул результат запроса.');
-      if (state.status === 'failed') throw new AiAssistantRequestTerminalError(state.error_code === 'insufficient_credits' ? 'Недостаточно единиц МОСТ для выполнения запроса.' : 'Не удалось завершить запрос. Попробуйте ещё раз.');
-      if (state.status === 'cancelled') { setApproved(null); throw new AiAssistantRequestTerminalError('Запрос отменён.'); }
+      const status = state.status === 'cancel_requested' ? state.status : state.run_status ?? state.status;
+      setStage(status === 'cancel_requested' ? status : state.stage ?? status);
+      if (status === 'completed' && state.response) return { ...state.response, progress: mergeProgress(progress, state.response.progress ?? []) };
+      if (status === 'completed') throw new AiAssistantRequestTerminalError('Сервер не вернул результат запроса.');
+      if (status === 'failed') throw new AiAssistantRequestTerminalError(state.error_code === 'insufficient_credits' ? 'Недостаточно единиц МОСТ для выполнения запроса.' : 'Не удалось завершить запрос. Попробуйте ещё раз.');
+      if (status === 'cancelled') { setApproved(null); throw new AiAssistantRequestTerminalError('Запрос отменён.'); }
       await pause();
     }
-    if (active.cancelled || active.controller.signal.aborted) throw new Error('Запрос отменён.');
-    throw new Error('Запрос занимает больше обычного. Проверьте чат позже.');
-  };
-  async function sendApproved(approvedQuote: ApprovedQuote) {
-    if (!canEdit || approvedQuote.input.conversation_id !== conversation?.id || approvedQuote.scope !== scope || identityRef.current !== identity) return;
-    const readyAttachments = attachments.filter((item) => item.metadata && approvedQuote.input.attachment_ids?.includes(item.metadata.id));
-    if (Date.parse(approvedQuote.quote.expires_at) <= Date.now()) { setApproved(null); throw new Error('Оценка истекла. Рассчитайте стоимость снова.'); }
-    if (approvedQuote.typedFactsExpiresAt !== undefined && approvedQuote.typedFactsExpiresAt <= Date.now()) { setApproved(null); throw new Error('Срок использования предыдущего ответа истёк. Рассчитайте стоимость снова.'); }
+    throw new Error('Запрос занимает больше обычного. Проверьте его состояние позже.');
+  }
+  async function sendApproved(quote: ApprovedQuote) {
+    if (!canEdit || pausedRequest || quote.input.conversation_id !== conversation?.id || quote.scope !== scope || identityRef.current !== identity) return;
+    if (Date.parse(quote.quote.expires_at) <= Date.now()) { setApproved(null); throw new Error('Оценка истекла. Рассчитайте стоимость снова.'); }
+    if (quote.typedFactsExpiresAt !== undefined && quote.typedFactsExpiresAt <= Date.now()) { setApproved(null); throw new Error('Срок использования предыдущего ответа истёк. Рассчитайте стоимость снова.'); }
+    await observeRequest({ id: quote.input.request_id, conversationId: quote.input.conversation_id, startedAt: Date.now() }, quote);
+  }
+  async function observeRequest(pending: PendingAssistantRequest, approvedQuote?: ApprovedQuote) {
     const version = epoch.current;
-    const active = { id: approvedQuote.input.request_id, conversationId: approvedQuote.input.conversation_id, controller: new AbortController(), cancelled: false, cancelRequested: false, approved: approvedQuote, deadline: Date.now() + 9 * 60 * 1000, timer: undefined as ReturnType<typeof setTimeout> | undefined };
+    const active: ActiveRequest = {
+      ...pending,
+      approved: approvedQuote,
+      controller: new AbortController(),
+      cancelRequested: false,
+      deadline: Date.now() + 9 * 60 * 1000,
+    };
+    const signal = active.controller.signal;
+    const activeScope = assistantTypedFactsScope(user?.id, user?.current_organization_id, active.conversationId);
     activeRequest.current = active;
-    setRequestStartedAt(Date.now()); setElapsedSeconds(0); setActiveProgress([]); activeProgressRef.current = []; setStage('sending');
+    setPausedRequest(null);
+    updatePendingAssistantRequest(identity, pending, true);
+    setRequestStartedAt(active.startedAt);
+    setElapsedSeconds(Math.max(0, Math.floor((Date.now() - active.startedAt) / 1000)));
+    setActiveProgress([]);
+    activeProgressRef.current = [];
+    setStage(approvedQuote ? 'sending' : 'recovering');
     try {
-      const result = await aiAssistantService.chat({ ...approvedQuote.input, quote_id: approvedQuote.quote.quote_id }, active.controller.signal);
-      if (!current(version) || active.cancelled) return;
-      if (result.request_id !== active.id) throw new Error('Не удалось проверить состояние запроса.');
-      if (!('message' in result)) {
-        setStage(result.stage);
-        const progress = mergeProgress(activeProgressRef.current, result.progress ?? []);
-        activeProgressRef.current = progress;
-        setActiveProgress(progress);
-      }
-      const chatResult = 'message' in result ? result : await waitForRequest(active, version);
-      if (chatResult.request_id !== active.id || String(chatResult.conversation_id) !== approvedQuote.input.conversation_id) throw new Error('Результат запроса не совпадает с выбранным чатом.');
-      if (current(version) && !active.cancelled) {
-        typedFacts.current = receiveAssistantTypedFacts(typedFacts.current, approvedQuote.scope, [chatResult.message], Date.now());
-        const finalProgress = mergeProgress(activeProgressRef.current, chatResult.progress ?? []);
-        if (chatResult.message.id && finalProgress.length) setCompletedProgress((items) => ({ ...items, [chatResult.message.id]: finalProgress }));
-        setMessages((items) => mergeMessages([...items, { id: `user-${active.id}`, role: 'user', content: approvedQuote.input.message, metadata: { attachments: readyAttachments.map((item) => item.metadata!) } }, chatResult.message]));
-        setAttachments((items) => { readyAttachments.forEach((item) => URL.revokeObjectURL(item.preview)); return items.filter((item) => !readyAttachments.includes(item)); }); setQuestion(''); setApproved(null); setBalance((wallet) => wallet && chatResult.credit_usage.available_after_minor != null ? { ...wallet, available_minor: Number(chatResult.credit_usage.available_after_minor) } : wallet);
-        void aiAssistantService.getUsage().then((statistics) => { if (current(version)) setUsage(statistics); }).catch(() => undefined);
-        void refreshConversations(version);
-      }
-    } catch (reason) {
-      if (!current(version) || active.cancelled) return;
-      if (reason instanceof AssistantApiError && (reason.status === 404 || reason.status === 422)) setApproved(null);
-      if (!active.cancelled && !(reason instanceof AssistantApiError) && !(reason instanceof AiAssistantRequestTerminalError)) {
+      let result: AiAssistantChatResult | undefined;
+      if (approvedQuote) {
         try {
-          setStage('recovering');
-          const recovered = await waitForRequest(active, version);
-          if (recovered.request_id !== active.id || String(recovered.conversation_id) !== approvedQuote.input.conversation_id) throw new Error('Результат запроса не совпадает с выбранным чатом.');
-          if (current(version) && !active.cancelled) {
-            typedFacts.current = receiveAssistantTypedFacts(typedFacts.current, approvedQuote.scope, [recovered.message], Date.now());
-            const finalProgress = mergeProgress(activeProgressRef.current, recovered.progress ?? []);
-            if (recovered.message.id && finalProgress.length) setCompletedProgress((items) => ({ ...items, [recovered.message.id]: finalProgress }));
-            setMessages((items) => mergeMessages([...items, { id: `user-${active.id}`, role: 'user', content: approvedQuote.input.message, metadata: { attachments: readyAttachments.map((item) => item.metadata!) } }, recovered.message]));
-            setAttachments((items) => { readyAttachments.forEach((item) => URL.revokeObjectURL(item.preview)); return items.filter((item) => !readyAttachments.includes(item)); });
-            setQuestion(''); setApproved(null); setBalance((wallet) => wallet && recovered.credit_usage.available_after_minor != null ? { ...wallet, available_minor: Number(recovered.credit_usage.available_after_minor) } : wallet);
-            void aiAssistantService.getUsage().then((statistics) => { if (current(version)) setUsage(statistics); }).catch(() => undefined);
-            void refreshConversations(version);
+          const submitted = await aiAssistantService.chat({ ...approvedQuote.input, quote_id: approvedQuote.quote.quote_id }, signal);
+          if (!current(version) || signal.aborted) return;
+          if (submitted.request_id !== active.id || (submitted.conversation_id != null && String(submitted.conversation_id) !== active.conversationId)) {
+            throw new AiAssistantRequestTerminalError('Результат запроса не совпадает с выбранным чатом.');
           }
-        } catch (recoveryError) {
-          if (!current(version) || active.cancelled) return;
-          if (recoveryError instanceof AssistantApiError && (recoveryError.status === 404 || recoveryError.status === 422)) setApproved(null);
-          throw recoveryError;
+          if ('message' in submitted) {
+            result = submitted;
+          } else {
+            setStage(submitted.stage ?? submitted.run_status ?? submitted.status);
+            activeProgressRef.current = mergeProgress(activeProgressRef.current, submitted.progress ?? []);
+            setActiveProgress(activeProgressRef.current);
+          }
+        } catch (reason) {
+          if (!current(version) || signal.aborted) return;
+          if (reason instanceof AiAssistantRequestTerminalError || (reason instanceof AssistantApiError && reason.status >= 400 && reason.status < 500)) throw reason;
+          setStage('recovering');
         }
-      } else if (!active.cancelled) throw reason;
+      }
+      result ??= await waitForRequest(active, version);
+      if (!current(version) || signal.aborted) return;
+      if (result.request_id !== active.id || String(result.conversation_id) !== active.conversationId) {
+        throw new AiAssistantRequestTerminalError('Результат запроса не совпадает с выбранным чатом.');
+      }
+      updatePendingAssistantRequest(identity, pending, false);
+      typedFacts.current = receiveAssistantTypedFacts(typedFacts.current, activeScope, [result.message], Date.now());
+      const finalProgress = mergeProgress(activeProgressRef.current, result.progress ?? []);
+      if (result.message.id && finalProgress.length) {
+        const messageId = result.message.id;
+        setCompletedProgress((items) => ({ ...items, [messageId]: finalProgress }));
+      }
+      if (approvedQuote) {
+        const readyAttachments = attachments.filter((item) => item.metadata && approvedQuote.input.attachment_ids?.includes(item.metadata.id));
+        const questionMessage: AiAssistantMessage = {
+          id: `user-${active.id}`, role: 'user', content: approvedQuote.input.message,
+          metadata: { attachments: readyAttachments.flatMap((item) => item.metadata ? [item.metadata] : []) },
+        };
+        const message = result.message;
+        setMessages((items) => mergeMessages([...items, questionMessage, message]));
+        setAttachments((items) => {
+          readyAttachments.forEach((item) => URL.revokeObjectURL(item.preview));
+          return items.filter((item) => !readyAttachments.includes(item));
+        });
+      } else {
+        const message = result.message;
+        setMessages((items) => mergeMessages([...items, message]));
+        void aiAssistantService.getHistory(active.conversationId, 1, signal).then((history) => {
+          if (current(version) && !signal.aborted) {
+            typedFacts.current = receiveAssistantTypedFacts(typedFacts.current, activeScope, history.items, Date.now());
+            setMessages((items) => mergeMessages([...history.items, ...items]));
+            setHistoryMeta(history.meta);
+          }
+        }).catch(() => undefined);
+      }
+      setQuestion('');
+      setApproved(null);
+      const available = result.credit_usage.available_after_minor;
+      setBalance((wallet) => wallet && available != null ? { ...wallet, available_minor: Number(available) } : wallet);
+      void aiAssistantService.getUsage().then((statistics) => { if (current(version)) setUsage(statistics); }).catch(() => undefined);
+      void refreshConversations(version);
+    } catch (reason) {
+      if (!current(version) || signal.aborted) return;
+      if (reason instanceof AiAssistantRequestTerminalError || (reason instanceof AssistantApiError && reason.status >= 400 && reason.status < 500)) {
+        updatePendingAssistantRequest(identity, pending, false);
+        if (reason instanceof AssistantApiError && [404, 422].includes(reason.status)) setApproved(null);
+      } else {
+        setPausedRequest(pending);
+      }
+      throw reason;
+    } finally {
+      clearTimeout(active.timer);
+      if (activeRequest.current === active) activeRequest.current = null;
+      if (current(version)) {
+        setStage('');
+        setRequestStartedAt(null);
+        setActiveProgress([]);
+        activeProgressRef.current = [];
+      }
     }
-    finally { clearTimeout(active.timer); if (activeRequest.current === active) activeRequest.current = null; if (current(version)) { setStage(''); setRequestStartedAt(null); setActiveProgress([]); activeProgressRef.current = []; } }
   }
   const send = () => approved ? run(() => sendApproved(approved)) : undefined;
   const refreshConversations = async (version: number) => {
@@ -342,15 +506,30 @@ const AiAssistantPage = () => {
     } catch (reason) { if (current(version)) setError(failureText(reason)); }
   };
   const cancel = async () => {
-    const active = activeRequest.current; if (!active || active.cancelled || active.cancelRequested) return;
+    const active = activeRequest.current;
+    if (!active || active.controller.signal.aborted || active.cancelRequested) return;
     active.cancelRequested = true;
+    setStage('cancel_requested');
     try {
       const state = await aiAssistantService.cancelRequest(active.id);
-      if (activeRequest.current !== active) return;
-      if (state?.status === 'cancelled') { active.cancelled = true; active.controller.abort(); setApproved(null); }
-      else { setStage('cancel_requested'); realtimePollWake.current?.(); }
+      if (activeRequest.current !== active || active.controller.signal.aborted || identityRef.current !== identity) return;
+      if (state?.status === 'cancelled' || state?.run_status === 'cancelled') {
+        if (state.request_id !== active.id || (state.conversation_id != null && String(state.conversation_id) !== active.conversationId)) {
+          throw new Error('Не удалось подтвердить отмену запроса.');
+        }
+        updatePendingAssistantRequest(identity, active, false);
+        active.controller.abort();
+        setApproved(null);
+        setError('Запрос отменён.');
+      } else {
+        realtimePollWake.current?.();
+      }
+    } catch (reason) {
+      if (activeRequest.current !== active || active.controller.signal.aborted || identityRef.current !== identity) return;
+      active.cancelRequested = false;
+      setStage('recovering');
+      setError(failureText(reason));
     }
-    catch (reason) { active.cancelRequested = false; setError(failureText(reason)); }
   };
   const loadOlder = () => run(async () => {
     if (!conversation || !historyMeta || historyMeta.current_page >= historyMeta.last_page) return;
@@ -392,9 +571,16 @@ const AiAssistantPage = () => {
         {isOwner && <div className="flex flex-wrap gap-2"><Button variant="outline" disabled={busy} onClick={() => void openSharing()}>Настроить доступ</Button><Button variant="outline" disabled={busy} onClick={() => void run(async () => { await aiAssistantService.deleteConversation(conversation.id); epoch.current++; typedFacts.current = emptyAssistantTypedFacts(null); setConversations((items) => items.filter((item) => item.id !== conversation.id)); setConversation(null); setMessages([]); setApproved(null); setPreview(null); })}>Удалить чат</Button></div>}
         {sharing && <div className="space-y-3 rounded border p-3"><p>Доступ к чату не расширяет права на данные. Без участников чат личный.</p>{members.filter((member) => String(member.id) !== String(user?.id)).map((member) => <label key={member.id} className="flex items-center justify-between gap-3"><span>{member.name}</span><select aria-label={`Доступ: ${member.name}`} value={participants.find((item) => item.user_id === String(member.id))?.role ?? ''} onChange={(event) => { const role = event.target.value; setParticipants((items) => [...items.filter((item) => item.user_id !== String(member.id)), ...(role === 'viewer' || role === 'editor' ? [{ user_id: String(member.id), name: member.name, role } satisfies AiAssistantParticipant] : [])]); }}><option value="">Нет доступа</option><option value="viewer">Читатель</option><option value="editor">Участник</option></select></label>)}{memberMeta && memberMeta.current_page < memberMeta.last_page && <Button variant="ghost" disabled={busy} onClick={() => void run(async () => { const next = await aiAssistantService.getActiveMembers(memberMeta.current_page + 1); setMembers((items) => [...items, ...next.items]); setMemberMeta(next.meta); })}>Ещё сотрудники</Button>}<Button disabled={busy} onClick={() => void run(async () => { setParticipants(await aiAssistantService.setParticipants(conversation.id, participants)); setSharing(false); })}>Подтвердить доступ</Button><Button variant="ghost" disabled={busy} onClick={() => void run(async () => { setParticipants(await aiAssistantService.getParticipants(conversation.id)); setSharing(false); })}>Отмена</Button></div>}
         {historyMeta && historyMeta.current_page < historyMeta.last_page && <Button variant="outline" disabled={busy} onClick={() => void loadOlder()}>Предыдущие сообщения</Button>}
-        <div className="max-h-[52vh] space-y-4 overflow-y-auto pr-1">{messages.length === 0 && attachments.length === 0 && <p className="text-sm text-muted-foreground">Задайте вопрос помощнику или прикрепите изображение.</p>}{messages.map((item) => <article key={item.id} className={item.role === 'user' ? 'ml-4 rounded-lg bg-primary p-3 text-primary-foreground' : 'mr-4 rounded-lg bg-muted p-3'}><p className="whitespace-pre-wrap">{item.content}</p>{completedSources(completedProgress[item.id] ?? []).length > 0 && <ol aria-label="Проверенные разделы" className="mt-3 space-y-1 border-t pt-2 text-xs text-muted-foreground">{completedSources(completedProgress[item.id] ?? []).map((step) => <li key={step.code}>{progressLabels[step.code].completed}</li>)}</ol>}{item.metadata?.attachments?.map((attachment) => <AiAssistantAttachmentImage key={attachment.id} attachment={attachment} />)}{[...(item.metadata?.source_refs ?? []), ...(item.metadata?.rag_context?.sources ?? []), ...(item.metadata?.entity_references ?? [])].map((source, index) => { if (conversation && index < (item.metadata?.source_refs?.length ?? 0) && isDocumentCitation(source, item.metadata?.source_refs_version)) return <AiAssistantCitation key={`citation-${item.id}-${index}`} conversationId={conversation.id} messageId={item.id} sourceIndex={index} source={source} version={item.metadata?.source_refs_version} />; const sourceUrl = source.navigation?.url ?? source.url; const reportUrl = sourceUrl?.includes('/api/v1/ai-assistant/reports/') ? sourceUrl : undefined; const href = reportUrl ? undefined : assistantSourceUrl(sourceUrl, assistantSourceProjectId(source)); if (reportUrl) return <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => void downloadArtifact(reportUrl, source.title ?? 'Отчёт')}>Скачать отчёт: {source.title ?? 'Отчёт'}</Button></div>; return href ? <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2 text-xs"><a href={href} className="underline" target="_blank" rel="noreferrer">Открыть проект: {source.title ?? source.name ?? 'Источник'}</a></div> : null; })}{item.metadata?.artifacts?.map((artifact, index) => { const url = artifact.download_url ?? artifact.url; return url ? <Button key={`artifact-${index}`} className="mt-2" variant="outline" disabled={busy} onClick={() => void downloadArtifact(url, artifact.filename ?? artifact.file_name ?? 'Отчёт')}>Скачать: {artifact.title ?? artifact.filename ?? 'Отчёт'}</Button> : null; })}{(item.metadata?.proposed_actions ?? item.metadata?.suggested_actions ?? item.metadata?.actions ?? item.metadata?.next_actions?.filter((action) => action.tool_name && action.type === 'act' && action.requires_confirmation) ?? []).map((action, index) => <Button key={index} className="mt-2" variant="outline" disabled={busy || !canEdit || action.allowed === false} onClick={() => void prepareAction({ ...action, origin_request_id: action.origin_request_id ?? item.metadata?.request_id })}>Проверить действие: {action.label ?? 'Предложенное изменение'}</Button>)}</article>)}</div>
+        <div className="max-h-[52vh] space-y-4 overflow-y-auto pr-1">{messages.length === 0 && attachments.length === 0 && <p className="text-sm text-muted-foreground">Задайте вопрос помощнику или прикрепите изображение.</p>}{messages.map((item) => <article key={item.id} className={item.role === 'user' ? 'ml-4 rounded-lg bg-primary p-3 text-primary-foreground' : 'mr-4 rounded-lg bg-muted p-3'}><p className="whitespace-pre-wrap">{item.content}</p>{item.role === 'assistant' && <AssistantResultDetails metadata={item.metadata} />}{completedSources(completedProgress[item.id] ?? []).length > 0 && <ol aria-label="Проверенные разделы" className="mt-3 space-y-1 border-t pt-2 text-xs text-muted-foreground">{completedSources(completedProgress[item.id] ?? []).map((step) => <li key={step.code}>{progressLabels[step.code].completed}</li>)}</ol>}{item.metadata?.attachments?.map((attachment) => <AiAssistantAttachmentImage key={attachment.id} attachment={attachment} />)}{[...(item.metadata?.source_refs ?? []), ...(item.metadata?.rag_context?.sources ?? []), ...(item.metadata?.entity_references ?? [])].map((source, index) => { if (conversation && index < (item.metadata?.source_refs?.length ?? 0) && isDocumentCitation(source, item.metadata?.source_refs_version)) return <AiAssistantCitation key={`citation-${item.id}-${index}`} conversationId={conversation.id} messageId={item.id} sourceIndex={index} source={source} version={item.metadata?.source_refs_version} />; const sourceUrl = source.navigation?.url ?? source.url; const reportUrl = sourceUrl?.includes('/api/v1/ai-assistant/reports/') ? sourceUrl : undefined; const href = reportUrl ? undefined : assistantSourceUrl(sourceUrl, assistantSourceProjectId(source)); if (reportUrl) return <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => void downloadArtifact(reportUrl, source.title ?? 'Отчёт')}>Скачать отчёт: {source.title ?? 'Отчёт'}</Button></div>; return href ? <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2 text-xs"><a href={href} className="underline" target="_blank" rel="noreferrer">Открыть проект: {source.title ?? source.name ?? 'Источник'}</a></div> : null; })}{assistantArtifacts(item.metadata).map((artifact, index) => {
+          if (artifact.artifact_type === 'core_report_task') return <div key={artifact.task_id ?? index} className="mt-2 text-xs"><p className="font-medium">{artifact.title ?? 'Отчёт'}</p><p>{reportTaskStatus(artifact.status)}</p></div>;
+          const url = artifact.download_url ?? artifact.url;
+          return url ? <Button key={`artifact-${index}`} className="mt-2" variant="outline" disabled={busy} onClick={() => void downloadArtifact(url, artifact.filename ?? artifact.file_name ?? 'Отчёт')}>Скачать: {artifact.title ?? artifact.filename ?? 'Отчёт'}</Button> : null;
+        })}{(item.metadata?.proposed_actions ?? item.metadata?.suggested_actions ?? item.metadata?.actions ?? item.metadata?.next_actions?.filter((action) => action.tool_name && action.type === 'act' && action.requires_confirmation) ?? []).map((action, index) => <Button key={index} className="mt-2" variant="outline" disabled={busy || !canEdit || action.allowed === false} onClick={() => void prepareAction({ ...action, origin_request_id: action.origin_request_id ?? item.metadata?.request_id })}>Проверить действие: {action.label ?? 'Предложенное изменение'}</Button>)}</article>)}</div>
+        {pausedRequest && <Button type="button" variant="outline" disabled={busy} onClick={() => void run(() => observeRequest(pausedRequest))}>Проверить состояние запроса</Button>}
         {preview && <div className="space-y-2 rounded border border-amber-500 p-3"><p className="font-medium">{preview.title}</p><p>{preview.description}</p><details open><summary>Изменения</summary><pre className="overflow-auto whitespace-pre-wrap text-xs">{JSON.stringify({ before: preview.before, after: preview.after }, null, 2)}</pre></details>{preview.warnings?.map((warning) => <p key={warning}>{warning}</p>)}<Button disabled={busy || !canEdit || preview.executable === false} onClick={() => void run(async () => { if (Date.parse(preview.expires_at) <= Date.now()) throw new Error('Подготовка истекла. Проверьте действие снова.'); await aiAssistantService.executeAction(conversation.id, preview); setPreview(null); const history = await aiAssistantService.getHistory(conversation.id); setMessages(history.items); setHistoryMeta(history.meta); })}>Подтверждаю изменение</Button><Button variant="ghost" disabled={busy} onClick={() => setPreview(null)}>Отмена</Button></div>}
-        {canEdit && <form onSubmit={submit} className="space-y-3"><label htmlFor="assistant-question" className="sr-only">Вопрос помощнику</label><textarea id="assistant-question" value={question} onChange={(event) => { setQuestion(event.target.value); setApproved(null); }} disabled={busy} maxLength={4000} rows={4} className="w-full rounded-md border bg-background p-3" placeholder="Опишите задачу или задайте вопрос" />{attachments.map((item) => <AiAssistantAttachmentImage key={item.preview} preview={item.preview} progress={item.progress} error={item.error} attachment={item.metadata} onRemove={() => removeAttachment(item.preview)} />)}<label className="inline-flex cursor-pointer items-center gap-2 text-sm"><Paperclip className="h-4 w-4" />Прикрепить изображение<input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy || isUploadingAttachments || attachments.length >= 2} onChange={(event) => { void addImages(event.target.files); event.currentTarget.value = ''; }} /></label><span className="text-xs text-muted-foreground">До 2 изображений JPEG, PNG или WebP; каждое до 5 МБ, сторона до 2048 пикселей.</span><div className="flex flex-wrap items-center gap-3"><label>Подробность <select aria-label="Подробность ответа" value={profile} disabled={busy} onChange={(event) => { setProfile(event.target.value as AiAssistantProfile); setApproved(null); }}><option value="short">Кратко</option><option value="normal">Обычно</option><option value="detailed">Подробно</option></select></label><label className="text-sm"><input type="checkbox" checked={allowActions} disabled={busy} onChange={(event) => { setAllowActions(event.target.checked); setApproved(null); }} /> Предлагать изменения с подтверждением</label></div>{approved && <div className="rounded bg-amber-50 p-3 text-sm text-amber-950">Оценка расхода: от {assistantUnits(approved.quote.min_units_minor)} до {assistantUnits(approved.quote.max_units_minor)} ед. МОСТ. {balance?.billing_mode === 'shadow' ? 'Тестовый режим: списания выключены, фактическое списание — 0. ' : ''}Подтвердите максимальную оценку. Оценка до {new Date(approved.quote.expires_at).toLocaleTimeString('ru-RU')}.{detailedProcessingDeadline(approved.quote) && <> <span>{detailedProcessingDeadline(approved.quote)}</span></>}</div>}{busy && requestStartedAt !== null && <div role="status" aria-live="polite" className="space-y-1 rounded-md bg-muted p-3 text-sm"><p className="font-medium">{currentActivity(activeProgress, stage)}</p><p className="text-muted-foreground">Прошло {elapsedLabel(elapsedSeconds)}</p>{visibleCompletedProgress.length > 0 && <ol aria-label="Проверенные разделы" className="space-y-1">{visibleCompletedProgress.map((item) => <li key={item.code}>{progressLabels[item.code].completed}</li>)}</ol>}</div>}<div className="flex flex-wrap items-center gap-2"><Button type="submit" disabled={busy || (!question.trim() && attachments.length === 0) || attachments.some((item) => !item.metadata || item.error)}><Send className="mr-2 h-4 w-4" />{approved ? 'Подтвердить и отправить' : 'Рассчитать стоимость'}</Button>{activeRequest.current && <Button type="button" variant="outline" onClick={() => void cancel()}><Square className="mr-2 h-4 w-4" />Отменить запрос</Button>}</div></form>}
+        {busy && requestStartedAt !== null && <div role="status" aria-live="polite" className="space-y-1 rounded-md bg-muted p-3 text-sm"><p className="font-medium">{currentActivity(activeProgress, stage)}</p><p className="text-muted-foreground">Прошло {elapsedLabel(elapsedSeconds)}</p>{visibleCompletedProgress.length > 0 && <ol aria-label="Проверенные разделы" className="space-y-1">{visibleCompletedProgress.map((item) => <li key={item.code}>{progressLabels[item.code].completed}</li>)}</ol>}</div>}
+        {activeRequest.current && <Button type="button" variant="outline" disabled={stage === 'cancel_requested'} onClick={() => void cancel()}><Square className="mr-2 h-4 w-4" />Отменить запрос</Button>}
+        {canEdit && <form onSubmit={submit} className="space-y-3"><label htmlFor="assistant-question" className="sr-only">Вопрос помощнику</label><textarea id="assistant-question" value={question} onChange={(event) => { setQuestion(event.target.value); setApproved(null); }} disabled={busy} maxLength={4000} rows={4} className="w-full rounded-md border bg-background p-3" placeholder="Опишите задачу или задайте вопрос" />{attachments.map((item) => <AiAssistantAttachmentImage key={item.preview} preview={item.preview} progress={item.progress} error={item.error} attachment={item.metadata} onRemove={() => removeAttachment(item.preview)} />)}<label className="inline-flex cursor-pointer items-center gap-2 text-sm"><Paperclip className="h-4 w-4" />Прикрепить изображение<input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy || isUploadingAttachments || attachments.length >= 2} onChange={(event) => { void addImages(event.target.files); event.currentTarget.value = ''; }} /></label><span className="text-xs text-muted-foreground">До 2 изображений JPEG, PNG или WebP; каждое до 5 МБ, сторона до 2048 пикселей.</span><div className="flex flex-wrap items-center gap-3"><label>Подробность <select aria-label="Подробность ответа" value={profile} disabled={busy} onChange={(event) => { setProfile(event.target.value as AiAssistantProfile); setApproved(null); }}><option value="short">Кратко</option><option value="normal">Обычно</option><option value="detailed">Подробно</option></select></label><label className="text-sm"><input type="checkbox" checked={allowActions} disabled={busy} onChange={(event) => { setAllowActions(event.target.checked); setApproved(null); }} /> Предлагать изменения с подтверждением</label></div>{approved && <div className="rounded bg-amber-50 p-3 text-sm text-amber-950">Оценка расхода: от {assistantUnits(approved.quote.min_units_minor)} до {assistantUnits(approved.quote.max_units_minor)} ед. МОСТ. {balance?.billing_mode === 'shadow' ? 'Тестовый режим: списания выключены, фактическое списание — 0. ' : ''}Подтвердите максимальную оценку. Оценка до {new Date(approved.quote.expires_at).toLocaleTimeString('ru-RU')}.{detailedProcessingDeadline(approved.quote) && <> <span>{detailedProcessingDeadline(approved.quote)}</span></>}</div>}<div className="flex flex-wrap items-center gap-2"><Button type="submit" disabled={busy || !!pausedRequest || (!question.trim() && attachments.length === 0) || attachments.some((item) => !item.metadata || item.error)}><Send className="mr-2 h-4 w-4" />{approved ? 'Подтвердить и отправить' : 'Рассчитать стоимость'}</Button></div></form>}
       </>}</CardContent></Card>
     </section>
   </div>;
