@@ -131,7 +131,7 @@ export const aiAssistantService = {
   deleteConversation: async (id: string) => { await request<null>(`/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
   getSourcePreview: async (conversationId: string, messageId: string, sourceIndex: number, signal?: AbortSignal) => (await request<AiAssistantSourcePreview>(`/conversations/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}/sources/${sourceIndex}`, { signal })).data,
   getHistory: async (id: string, page = 1, signal?: AbortSignal) => {
-    const response = await request<AiAssistantMessage[]>(`/conversations/${encodeURIComponent(id)}/history?page=${page}&per_page=30`, { signal });
+    const response = await request<AiAssistantMessage[]>(`/conversations/${encodeURIComponent(id)}/history?page=${page}&per_page=30&contract_version=1`, { signal });
     const active = response.meta?.active_request;
     const meta = active && response.meta
       ? { ...response.meta, active_request: { ...active, conversation_id: active.conversation_id == null ? null : String(active.conversation_id) } }

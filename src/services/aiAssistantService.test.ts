@@ -137,7 +137,7 @@ describe('aiAssistantService', () => {
           success: true, data: { request_id: input.request_id, conversation_id: 11, ...result, message, credit_usage: {} },
         })),
         http.get(`${baseUrl}/conversations/11/history`, ({ request }) => {
-          expect(Object.fromEntries(new URL(request.url).searchParams)).toEqual({ page: '1', per_page: '30' });
+          expect(Object.fromEntries(new URL(request.url).searchParams)).toEqual({ page: '1', per_page: '30', contract_version: '1' });
           return HttpResponse.json({
             success: true,
             data: [{ ...message, metadata: result }],
