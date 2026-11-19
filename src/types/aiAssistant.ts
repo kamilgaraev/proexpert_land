@@ -34,9 +34,10 @@ export type AiAssistantProgressState = 'started' | 'completed';
 export interface AiAssistantProgress { id: number; code: AiAssistantProgressCode; state: AiAssistantProgressState }
 export interface AiAssistantChatResult extends AiAssistantPublishedResult { request_id: string; conversation_id: string; message: AiAssistantMessage; credit_usage: AiAssistantCreditUsage; progress?: AiAssistantProgress[] }
 export type AiAssistantRunStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
-export interface AiAssistantRequestAccepted { request_id: string; conversation_id: string | null; status: 'running' | 'queued' | 'cancel_requested'; run_status?: AiAssistantRunStatus; stage: string; progress?: AiAssistantProgress[] }
-export type AiAssistantChatSubmission = AiAssistantChatResult | AiAssistantRequestAccepted;
 export interface AiAssistantRequestStatus { request_id: string; conversation_id: string | null; status: string; run_status?: AiAssistantRunStatus; stage?: string; progress?: AiAssistantProgress[]; response?: AiAssistantChatResult; error_code?: string; calls_used?: number; max_calls?: number }
+export interface AiAssistantRequestAccepted extends AiAssistantRequestStatus { status: 'running' | 'queued' | 'cancel_requested'; stage: string }
+export interface AiAssistantRequestTerminated extends AiAssistantRequestStatus { status: 'failed' | 'cancelled' }
+export type AiAssistantChatSubmission = AiAssistantChatResult | AiAssistantRequestAccepted | AiAssistantRequestTerminated;
 
 
 export interface AiAssistantArtifact { artifact_type?: string | null; task_id?: string | null; status?: string | null; title?: string | null; filename?: string | null; file_name?: string | null; download_url?: string | null; url?: string | null }

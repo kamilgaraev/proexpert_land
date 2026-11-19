@@ -315,6 +315,14 @@ const AiAssistantPage = () => {
       } else if (current(version)) setApproved(approvedQuote);
     });
   }
+  function throwIfRequestTerminated(status: string, errorCode?: string) {
+    if (status !== 'failed' && status !== 'cancelled') return;
+    setApproved(null);
+    if (status === 'cancelled') throw new AiAssistantRequestTerminalError('Запрос отменён.');
+    throw new AiAssistantRequestTerminalError(errorCode === 'insufficient_credits'
+      ? 'Недостаточно единиц МОСТ для выполнения запроса.'
+      : 'Не удалось завершить запрос. Попробуйте ещё раз.');
+  }
   async function waitForRequest(active: ActiveRequest, version: number): Promise<AiAssistantChatResult> {
     const signal = active.controller.signal;
     const pause = () => new Promise<void>((resolve) => {
@@ -382,8 +390,7 @@ const AiAssistantPage = () => {
       setStage(status === 'cancel_requested' ? status : state.stage ?? status);
       if (status === 'completed' && state.response) return { ...state.response, progress: mergeProgress(progress, state.response.progress ?? []) };
       if (status === 'completed') throw new AiAssistantRequestTerminalError('Сервер не вернул результат запроса.');
-      if (status === 'failed') throw new AiAssistantRequestTerminalError(state.error_code === 'insufficient_credits' ? 'Недостаточно единиц МОСТ для выполнения запроса.' : 'Не удалось завершить запрос. Попробуйте ещё раз.');
-      if (status === 'cancelled') { setApproved(null); throw new AiAssistantRequestTerminalError('Запрос отменён.'); }
+      throwIfRequestTerminated(status, state.error_code);
       await pause();
     }
     throw new Error('Запрос занимает больше обычного. Проверьте его состояние позже.');
@@ -425,6 +432,7 @@ const AiAssistantPage = () => {
           if ('message' in submitted) {
             result = submitted;
           } else {
+            throwIfRequestTerminated(submitted.status, submitted.error_code);
             setStage(submitted.stage ?? submitted.run_status ?? submitted.status);
             activeProgressRef.current = mergeProgress(activeProgressRef.current, submitted.progress ?? []);
             setActiveProgress(activeProgressRef.current);

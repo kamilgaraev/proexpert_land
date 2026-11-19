@@ -43,6 +43,13 @@ describe('aiAssistantService', () => {
     await expect(aiAssistantService.getRequest(input.request_id)).resolves.toMatchObject({ status: 'completed', progress, response: { message: { id: '22' }, credit_usage: { charged_minor: 50 }, progress } });
     expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toMatchObject({ ...input, quote_id: 'quote', async: true });
   });
+  it.each(['failed', 'cancelled'] as const)('returns an idempotent %s POST as a terminal status', async (status) => {
+    const data = { request_id: input.request_id, conversation_id: 11, status, run_status: status, stage: status, error_code: 'terminal_error' };
+    const mock = respond(data);
+    await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ ...data, conversation_id: '11' });
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+
   it('retains typed results in responses and history alongside the legacy fields', async () => {
     const result = {
       contract_version: 1, outcome: 'clarification', coverage: { status: 'partial' },

@@ -1,7 +1,7 @@
 import { API_URL, authApi, userManagementService } from '@/utils/api';
 import { getJsonAuthHeaders } from '@/utils/authTokenStorage';
 import type { OrganizationTeamPage } from '@/types/organization-team';
-import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantChatSubmission, AiAssistantRequestAccepted, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantProgress, AiAssistantProgressCode, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage, AiAssistantSourcePreview } from '@/types/aiAssistant';
+import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantChatSubmission, AiAssistantRequestAccepted, AiAssistantRequestTerminated, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantProgress, AiAssistantProgressCode, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage, AiAssistantSourcePreview } from '@/types/aiAssistant';
 
 type LandingResponse<T> = { success: boolean; message?: string; data: T; meta?: AiAssistantPaginationMeta };
 const assistantBaseUrl = API_URL.replace(/\/landing$/, '') + '/ai-assistant';
@@ -39,7 +39,7 @@ const normalizeChatResult = (result: AiAssistantChatResult): AiAssistantChatResu
     progress: normalizeProgress(result.progress),
   };
 };
-const normalizeRequestStatus = (status: AiAssistantRequestStatus): AiAssistantRequestStatus => ({
+const normalizeRequestStatus = <T extends AiAssistantRequestStatus>(status: T): T => ({
   ...status,
   conversation_id: status.conversation_id == null ? null : String(status.conversation_id),
   progress: normalizeProgress(status.progress),
@@ -125,9 +125,13 @@ export const aiAssistantService = {
     const data = payload.data ?? payload;
     if (!response.ok || payload.success === false) throw new AssistantApiError(payload.message || 'Не удалось выполнить запрос к помощнику.', response.status);
     if (response.status === 202) {
-      const accepted = data as Partial<Extract<AiAssistantChatSubmission, { status: string }>>;
+      const accepted = data as Partial<AiAssistantRequestAccepted>;
       if (!accepted || typeof accepted.request_id !== 'string' || !(accepted.status === 'running' || accepted.status === 'queued' || accepted.status === 'cancel_requested')) throw new AssistantApiError('Не удалось подтвердить запуск запроса.', response.status);
-      return { ...accepted, conversation_id: accepted.conversation_id == null ? null : String(accepted.conversation_id), progress: normalizeProgress(accepted.progress) } as AiAssistantRequestAccepted;
+      return normalizeRequestStatus(accepted as AiAssistantRequestAccepted);
+    }
+    const terminal = data as Partial<AiAssistantRequestTerminated>;
+    if (response.status === 200 && typeof terminal?.request_id === 'string' && (terminal.status === 'failed' || terminal.status === 'cancelled')) {
+      return normalizeRequestStatus({ ...terminal, request_id: terminal.request_id, conversation_id: terminal.conversation_id ?? null, status: terminal.status });
     }
     const result = data as AiAssistantChatResult;
     if (!result || result.request_id === undefined || result.conversation_id === undefined || !result.message || !result.credit_usage) throw new AssistantApiError(payload.message || 'Не удалось выполнить запрос к помощнику.', response.status);

@@ -425,6 +425,31 @@ describe('AiAssistantPage', () => {
     expect(aiAssistantService.getRequest).toHaveBeenCalledWith('uuid-request', expect.any(AbortSignal));
   });
 
+  it.each([
+    { recover: false, status: 'cancelled', errorCode: 'request_cancelled', text: 'Запрос отменён.' },
+    { recover: true, status: 'failed', errorCode: 'insufficient_credits', text: 'Недостаточно единиц МОСТ для выполнения запроса.' },
+  ] as const)('stops observing when POST returns the existing $status request', async ({ recover, status, errorCode, text }) => {
+    if (recover) {
+      vi.mocked(aiAssistantService.chat).mockRejectedValueOnce(new Error('Соединение прервано'));
+      vi.mocked(aiAssistantService.getRequest).mockResolvedValueOnce({ request_id: 'uuid-request', conversation_id: null, status: 'not_submitted' });
+    }
+    vi.mocked(aiAssistantService.chat).mockResolvedValueOnce({
+      request_id: 'uuid-request', conversation_id: '11', status, run_status: status, stage: status, error_code: errorCode,
+    });
+    vi.mocked(aiAssistantService.getRequest).mockResolvedValue({
+      request_id: 'uuid-request', conversation_id: '11', status: 'failed', error_code: 'unexpected_poll',
+    });
+    render(<AiAssistantPage />);
+    await selectFirst();
+    await quoteQuestion('Вопрос для повторной отправки');
+    fireEvent.click(screen.getByRole('button', { name: 'Подтвердить и отправить' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(text);
+    expect(aiAssistantService.chat).toHaveBeenCalledTimes(recover ? 2 : 1);
+    expect(aiAssistantService.getRequest).toHaveBeenCalledTimes(recover ? 1 : 0);
+    expect(screen.getByLabelText('Вопрос помощнику')).toHaveValue('Вопрос для повторной отправки');
+    expect(screen.getByRole('button', { name: 'Рассчитать стоимость' })).toBeEnabled();
+  });
+
   it('resends an unaccepted request with the same quote and refreshes chat titles and order', async () => {
     vi.mocked(aiAssistantService.chat).mockRejectedValueOnce(new TypeError('Network error'))
       .mockResolvedValueOnce({ request_id: 'uuid-request', conversation_id: '11', message: { id: 'retry-answer', role: 'assistant', content: 'Повтор принят' }, credit_usage: {} });
