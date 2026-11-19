@@ -252,6 +252,43 @@ describe('AiAssistantPage', () => {
     expect(aiAssistantService.chat).not.toHaveBeenCalled();
   });
 
+  it.each(['same chat', 'another chat', 'another organization'] as const)('refreshes the wallet after recovery and guards late responses in %s', async (destination) => {
+    const originalWallet = { included_minor: 500000, purchased_minor: 0, available_minor: 500000, reserved_minor: 0, total_minor: 500000, packs: [], charging_enabled: false };
+    const freshBalance = deferred<Awaited<ReturnType<typeof aiAssistantService.getBalance>>>();
+    let balanceCalls = 0;
+    vi.mocked(aiAssistantService.getBalance).mockImplementation(() => {
+      balanceCalls++;
+      if (balanceCalls === 2) return freshBalance.promise;
+      return Promise.resolve(balanceCalls === 1 ? originalWallet : { ...originalWallet, available_minor: 800000 });
+    });
+    vi.mocked(aiAssistantService.getHistory).mockResolvedValueOnce({
+      items: [],
+      meta: { current_page: 1, last_page: 1, per_page: 30, total: 0, active_request: { request_id: 'server-id', conversation_id: '11', status: 'running', stage: 'queued' } },
+    });
+    vi.mocked(aiAssistantService.getRequest).mockResolvedValueOnce({
+      request_id: 'server-id', conversation_id: '11', status: 'completed',
+      response: { request_id: 'server-id', conversation_id: '11', message: { id: 'updated', role: 'assistant', content: 'Восстановленный ответ с расходом' }, credit_usage: { available_after_minor: 50000 } },
+    });
+    const view = (organizationId: number) => <AuthContext.Provider value={{ user: { id: 7, current_organization_id: organizationId } } as unknown as AuthContextType}><AiAssistantPage /></AuthContext.Provider>;
+    const rendered = render(view(44));
+    await selectFirst();
+    expect(await screen.findByText('Восстановленный ответ с расходом')).toBeInTheDocument();
+    expect(screen.getByText(/Доступно:/)).toHaveTextContent(/5\s000/);
+    expect(aiAssistantService.getBalance).toHaveBeenCalledTimes(2);
+
+    if (destination === 'another chat') {
+      fireEvent.click(screen.getByRole('button', { name: 'Второй' }));
+      await screen.findByLabelText('Вопрос помощнику');
+    } else if (destination === 'another organization') {
+      rendered.rerender(view(45));
+      await waitFor(() => expect(screen.getByText(/Доступно:/)).toHaveTextContent(/8\s000/));
+    }
+    await act(async () => freshBalance.resolve({ ...originalWallet, available_minor: 720000 }));
+
+    const expected = destination === 'same chat' ? /7\s200/ : destination === 'another chat' ? /5\s000/ : /8\s000/;
+    expect(screen.getByText(/Доступно:/)).toHaveTextContent(expected);
+  });
+
   it('renders the typed result and leaves unsupported actions inactive', async () => {
     vi.mocked(aiAssistantService.getHistory).mockResolvedValue({
       items: [{

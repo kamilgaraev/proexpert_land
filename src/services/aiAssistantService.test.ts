@@ -1,4 +1,6 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
+import { setupServer } from 'msw/node';
 import { saveAuthToken } from '@/utils/authTokenStorage';
 import { aiAssistantService } from './aiAssistantService';
 import type { AiAssistantChatInput } from '@/types/aiAssistant';
@@ -43,30 +45,53 @@ describe('aiAssistantService', () => {
     await expect(aiAssistantService.getRequest(input.request_id)).resolves.toMatchObject({ status: 'completed', progress, response: { message: { id: '22' }, credit_usage: { charged_minor: 50 }, progress } });
     expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toMatchObject({ ...input, quote_id: 'quote', async: true });
   });
-  it.each(['failed', 'cancelled'] as const)('returns an idempotent %s POST as a terminal status', async (status) => {
-    const data = { request_id: input.request_id, conversation_id: 11, status, run_status: status, stage: status, error_code: 'terminal_error' };
-    const mock = respond(data);
-    await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ ...data, conversation_id: '11' });
-    expect(mock).toHaveBeenCalledTimes(1);
-  });
+  describe('assistant chat and history HTTP contract', () => {
+    const server = setupServer();
+    const baseUrl = 'https://api.example/api/v1/ai-assistant';
 
-  it('retains typed results in responses and history alongside the legacy fields', async () => {
-    const result = {
-      contract_version: 1, outcome: 'clarification', coverage: { status: 'partial' },
-      evidence: [{ source_ref: { entity_type: 'project', entity_id: 8 } }],
-      billing: { charged_minor: 0, reason: 'local_only' },
-      ui_actions: [{ type: 'reveal_source', label: 'Открыть запись', surface: 'admin', target: 'signed' }],
-    };
-    const message = { id: 22, role: 'assistant', content: 'Ответ' };
-    respond({ request_id: input.request_id, conversation_id: 11, ...result, message, credit_usage: {} });
-    await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({
-      ...result, message: { id: '22', metadata: result }, credit_usage: {},
+    beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+    afterEach(() => server.resetHandlers());
+    afterAll(() => server.close());
+
+    it.each(['failed', 'cancelled'] as const)('returns an idempotent %s POST as a terminal status', async (status) => {
+      const data = { request_id: input.request_id, conversation_id: 11, status, run_status: status, stage: status, error_code: 'terminal_error' };
+      const requests: unknown[] = [];
+      server.use(http.post(`${baseUrl}/chat`, async ({ request }) => {
+        requests.push(await request.json());
+        return HttpResponse.json({ success: true, data });
+      }));
+      await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({ ...data, conversation_id: '11' });
+      expect(requests).toEqual([{ ...input, quote_id: 'quote', async: true }]);
     });
 
-    const activeRequest = { request_id: input.request_id, conversation_id: 11, status: 'running', run_status: 'queued', stage: 'queued' };
-    respond([{ ...message, metadata: result }], { current_page: 1, last_page: 2, per_page: 30, total: 31, active_request: activeRequest });
-    await expect(aiAssistantService.getHistory('11')).resolves.toMatchObject({
-      items: [{ id: '22', metadata: result }], meta: { last_page: 2, active_request: { ...activeRequest, conversation_id: '11' } },
+    it('retains typed results in responses and history alongside the legacy fields', async () => {
+      const result = {
+        contract_version: 1, outcome: 'clarification', coverage: { status: 'partial' },
+        evidence: [{ source_ref: { entity_type: 'project', entity_id: 8 } }],
+        billing: { charged_minor: 0, reason: 'local_only' },
+        ui_actions: [{ type: 'reveal_source', label: 'Открыть запись', surface: 'admin', target: 'signed' }],
+      };
+      const message = { id: 22, role: 'assistant', content: 'Ответ' };
+      const activeRequest = { request_id: input.request_id, conversation_id: 11, status: 'running', run_status: 'queued', stage: 'queued' };
+      server.use(
+        http.post(`${baseUrl}/chat`, () => HttpResponse.json({
+          success: true, data: { request_id: input.request_id, conversation_id: 11, ...result, message, credit_usage: {} },
+        })),
+        http.get(`${baseUrl}/conversations/11/history`, ({ request }) => {
+          expect(Object.fromEntries(new URL(request.url).searchParams)).toEqual({ page: '1', per_page: '30' });
+          return HttpResponse.json({
+            success: true,
+            data: [{ ...message, metadata: result }],
+            meta: { current_page: 1, last_page: 2, per_page: 30, total: 31, active_request: activeRequest },
+          });
+        }),
+      );
+      await expect(aiAssistantService.chat({ ...input, quote_id: 'quote' })).resolves.toMatchObject({
+        ...result, message: { id: '22', metadata: result }, credit_usage: {},
+      });
+      await expect(aiAssistantService.getHistory('11')).resolves.toMatchObject({
+        items: [{ id: '22', metadata: result }], meta: { last_page: 2, active_request: { ...activeRequest, conversation_id: '11' } },
+      });
     });
   });
   it('executes only persisted preview reference and explicit confirmation', async () => {

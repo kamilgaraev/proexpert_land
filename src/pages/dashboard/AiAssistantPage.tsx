@@ -480,8 +480,14 @@ const AiAssistantPage = () => {
       }
       setQuestion('');
       setApproved(null);
-      const available = result.credit_usage.available_after_minor;
-      setBalance((wallet) => wallet && available != null ? { ...wallet, available_minor: Number(available) } : wallet);
+      if (approvedQuote) {
+        const available = result.credit_usage.available_after_minor;
+        setBalance((wallet) => wallet && available != null ? { ...wallet, available_minor: Number(available) } : wallet);
+      } else {
+        void aiAssistantService.getBalance(signal).then((wallet) => {
+          if (current(version) && !signal.aborted) setBalance(wallet);
+        }).catch(() => undefined);
+      }
       void aiAssistantService.getUsage().then((statistics) => { if (current(version)) setUsage(statistics); }).catch(() => undefined);
       void refreshConversations(version);
     } catch (reason) {
