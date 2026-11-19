@@ -9,6 +9,23 @@ const respond = (data: unknown, meta?: unknown) => vi.spyOn(globalThis, 'fetch')
 const input: AiAssistantChatInput = { conversation_id: '11', message: 'Вопрос', request_id: '4b3a24d1-1b27-41e3-a364-5da772bd739b', profile: 'detailed', allow_actions: true, context: { entity_refs: [{ type: 'project', id: 8 }] } };
 afterEach(() => vi.restoreAllMocks());
 describe('aiAssistantService', () => {
+  it('loads an article from the authenticated assistant endpoint with an encoded slug', async () => {
+    saveAuthToken('article-token');
+    const data = { slug: 'ЛК_guide!', title: 'Инструкция', children: [], related: [] };
+    const mock = respond(data);
+    const signal = new AbortController().signal;
+    await expect(aiAssistantService.getKnowledgeArticle(data.slug, signal)).resolves.toEqual(data);
+    expect(mock.mock.calls[0][0]).toBe('https://api.example/api/v1/ai-assistant/knowledge/articles/%D0%9B%D0%9A_guide%21');
+    expect(mock.mock.calls[0][1]).toMatchObject({ signal, redirect: 'error', headers: { Authorization: 'Bearer article-token' } });
+  });
+
+  it('rejects an invalid article slug before sending an authenticated request', async () => {
+    const mock = respond(null);
+    await expect(aiAssistantService.getKnowledgeArticle('../article')).rejects.toMatchObject({ status: 404 });
+    await expect(aiAssistantService.getKnowledgeArticle('x%2Fy')).rejects.toMatchObject({ status: 404 });
+    expect(mock).not.toHaveBeenCalled();
+  });
+
   it('loads a citation by message and original public source index through the authenticated envelope', async () => {
     saveAuthToken('citation-token');
     const data = { message_id: '22', source_index: 1, kind: 'source_chunk_preview', content: 'Фрагмент' };
@@ -45,6 +62,16 @@ describe('aiAssistantService', () => {
     beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
     afterEach(() => server.resetHandlers());
     afterAll(() => server.close());
+
+    it('uses the authenticated knowledge detail endpoint without falling back on a 404', async () => {
+      saveAuthToken('article-token');
+      server.use(http.get(`${baseUrl}/knowledge/articles/invite-admin`, ({ request }) => {
+        expect(request.headers.get('authorization')).toBe('Bearer article-token');
+        return HttpResponse.json({ success: false, message: 'Not found' }, { status: 404 });
+      }));
+
+      await expect(aiAssistantService.getKnowledgeArticle('invite-admin')).rejects.toMatchObject({ status: 404 });
+    });
 
     it('opts into v1 for quote, chat, status and cancel while reading legacy responses', async () => {
       const state = { request_id: input.request_id, conversation_id: 11, status: 'running', stage: 'queued' };

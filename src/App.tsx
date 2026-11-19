@@ -56,6 +56,7 @@ const SettingsPage = lazy(() => import('@pages/dashboard/SettingsPage'));
 const OrganizationPage = lazy(() => import('@pages/dashboard/OrganizationPage'));
 const HelpPage = lazy(() => import('@pages/dashboard/HelpPage'));
 const KnowledgeBasePage = lazy(() => import('@pages/dashboard/help/KnowledgeBasePage'));
+const KnowledgeArticlePage = lazy(() => import('@pages/dashboard/help/KnowledgeArticlePage'));
 const AiAssistantPage = lazy(() => import('@pages/dashboard/AiAssistantPage'));
 const ChangelogPage = lazy(() => import('@pages/dashboard/help/ChangelogPage'));
 const ChangelogDetailPage = lazy(() => import('@pages/dashboard/help/ChangelogDetailPage'));
@@ -270,7 +271,7 @@ function App({
           <Route path="settings" element={<SettingsPage />} />
           <Route path="help" element={<HelpPage />} />
           <Route path="help/knowledge" element={<KnowledgeBasePage />} />
-          <Route path="help/knowledge/:slug" element={<Navigate to="/dashboard/help/knowledge" replace />} />
+          <Route path="help/knowledge/:slug" element={<KnowledgeArticlePage />} />
           <Route path="assistant" element={<AiAssistantPage />} />
           <Route path="help/changelog" element={<ChangelogPage />} />
           <Route path="help/changelog/:slug" element={<ChangelogDetailPage />} />

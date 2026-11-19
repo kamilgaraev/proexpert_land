@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 
-import { clearAuthToken, saveAuthToken } from './authTokenStorage';
+import { clearAuthToken } from './authTokenStorage';
 
 const apiUrl = (path: string) => new URL(path, 'https://api.1мост.рф').href;
 import { knowledgeHubApi } from './knowledgeHubApi';
@@ -132,19 +132,6 @@ const server = setupServer(
       },
     });
   }),
-  http.get(apiUrl('/api/v1/landing/knowledge-hub/articles/invite-admin'), ({ request }) =>
-    HttpResponse.json({
-      success: true,
-      data: {
-        ...articleFixture,
-        content: '<h2>Приглашение</h2><p>Откройте раздел команды.</p>',
-        table_of_contents: [{ level: 2, title: 'Приглашение', anchor: 'priglashenie' }],
-        children: [],
-        related: [],
-        auth_header: request.headers.get('authorization'),
-      },
-    }),
-  ),
 );
 
 beforeAll(() => {
@@ -217,12 +204,4 @@ describe('knowledgeHubApi', () => {
     expect(response.id).toBe(10);
   });
 
-  it('adds the current bearer token to detail requests', async () => {
-    saveAuthToken('lk-token', 'memory');
-
-    const article = await knowledgeHubApi.getArticle('invite-admin');
-
-    expect(article.slug).toBe('invite-admin');
-    expect((article as typeof article & { auth_header?: string }).auth_header).toBe('Bearer lk-token');
-  });
 });
