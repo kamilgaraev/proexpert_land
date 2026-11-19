@@ -57,7 +57,7 @@ const detailedProcessingDeadline = (quote: AiAssistantQuote) => {
 };
 class AiAssistantRequestTerminalError extends Error {}
 type ApprovedQuote = { input: AiAssistantChatInput; quote: AiAssistantQuote; scope: string | null; typedFactsExpiresAt?: number };
-type DraftAttachment = { file: File; preview: string; metadata?: AiAssistantAttachment; progress: number; error?: string };
+type DraftAttachment = { preview: string; metadata?: AiAssistantAttachment; progress: number; error?: string };
 const attachmentError = (file: File) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ? 'Поддерживаются JPEG, PNG и WebP.' : file.size > 5 * 1024 * 1024 ? 'Размер изображения не должен превышать 5 МБ.' : null;
 
 const AiAssistantPage = () => {
@@ -107,7 +107,7 @@ const AiAssistantPage = () => {
   const busyRef = useRef(false);
   const busyOperation = useRef<symbol | null>(null);
   const historyController = useRef<AbortController | null>(null);
-  const activeRequest = useRef<{ id: string; conversationId: string; controller: AbortController; cancelled: boolean; cancelRequested: boolean; approved: ApprovedQuote; deadline: number; timer?: ReturnType<typeof setTimeout> } | null>(null);
+  const activeRequest = useRef<{ id: string; conversationId: string; controller: AbortController; cancelled: boolean; cancelRequested: boolean; approved: ApprovedQuote; deadline: number } | null>(null);
   const realtimePollWake = useRef<(() => void) | null>(null);
   const isOwner = conversation?.can_manage_participants ?? (conversation?.user_id === String(user?.id));
   const canEdit = !!conversation && (conversation.can_edit ?? (isOwner || participants.some((item) => item.user_id === String(user?.id) && item.role === 'editor')));
@@ -179,7 +179,7 @@ const AiAssistantPage = () => {
       if (controller.signal.aborted) return;
       setConversations(list.items); setListMeta(list.meta); setMemory(personalMemory); setBalance(wallet); setUsage(statistics); setLoading(false);
     }).catch((reason) => { if (!controller.signal.aborted) { setError(failureText(reason)); setLoading(false); } });
-    return () => { mounted.current = false; epoch.current++; controller.abort(); historyController.current?.abort(); attachmentControllers.current.forEach((item) => item.abort()); attachmentControllers.current.clear(); attachmentsRef.current.forEach((item) => URL.revokeObjectURL(item.preview)); const request = activeRequest.current; if (request) { request.cancelled = true; clearTimeout(request.timer); request.controller.abort(); void aiAssistantService.cancelRequest(request.id).catch(() => undefined); } };
+    return () => { mounted.current = false; epoch.current++; controller.abort(); historyController.current?.abort(); attachmentControllers.current.forEach((item) => item.abort()); attachmentControllers.current.clear(); attachmentsRef.current.forEach((item) => URL.revokeObjectURL(item.preview)); const request = activeRequest.current; if (request) { request.cancelled = true; request.controller.abort(); void aiAssistantService.cancelRequest(request.id).catch(() => undefined); } };
   }, [user?.id, user?.current_organization_id]);
   const addImages = async (files: FileList | null) => {
     if (!files || !conversation || uploadingAttachments.current || attachments.length >= 2) return;
@@ -187,14 +187,14 @@ const AiAssistantPage = () => {
     const version = epoch.current; const targetConversationId: string = conversation.id;
     try {
       for (const file of Array.from(files).slice(0, 2 - attachments.length)) {
-        if (!current(version) || conversation?.id !== targetConversationId) break;
-        const errorText = attachmentError(file); const preview = URL.createObjectURL(file); const entry: DraftAttachment = { file, preview, progress: 0, ...(errorText ? { error: errorText } : {}) };
+        if (!current(version)) break;
+        const errorText = attachmentError(file); const preview = URL.createObjectURL(file); const entry: DraftAttachment = { preview, progress: 0, ...(errorText ? { error: errorText } : {}) };
         setAttachments((items) => [...items, entry]);
         if (errorText) continue;
         const controller = new AbortController(); attachmentControllers.current.set(preview, controller);
         try {
-          const metadata = await aiAssistantService.uploadAttachment(file, targetConversationId, controller.signal, (progress) => { if (current(version) && conversation?.id === targetConversationId) setAttachments((items) => items.map((item) => item.preview === preview ? { ...item, progress } : item)); });
-          if (!current(version) || controller.signal.aborted || conversation?.id !== targetConversationId) { URL.revokeObjectURL(preview); continue; }
+          const metadata = await aiAssistantService.uploadAttachment(file, targetConversationId, controller.signal, (progress) => { if (current(version)) setAttachments((items) => items.map((item) => item.preview === preview ? { ...item, progress } : item)); });
+          if (!current(version) || controller.signal.aborted) { URL.revokeObjectURL(preview); continue; }
           setAttachments((items) => items.map((item) => item.preview === preview ? { ...item, metadata, progress: 100 } : item)); setApproved(null);
         } catch (reason) { if (!controller.signal.aborted && current(version)) setAttachments((items) => items.map((item) => item.preview === preview ? { ...item, error: failureText(reason) } : item)); }
         finally { attachmentControllers.current.delete(preview); }
@@ -225,12 +225,10 @@ const AiAssistantPage = () => {
       const finish = () => {
       clearTimeout(timer);
       active.controller.signal.removeEventListener('abort', finish);
-      if (active.timer === timer) active.timer = undefined;
       if (realtimePollWake.current === finish) realtimePollWake.current = null;
       resolve();
       };
       const timer = setTimeout(finish, 1500);
-      active.timer = timer;
       realtimePollWake.current = finish;
       active.controller.signal.addEventListener('abort', finish, { once: true });
       if (active.controller.signal.aborted) finish();
@@ -281,7 +279,7 @@ const AiAssistantPage = () => {
     if (Date.parse(approvedQuote.quote.expires_at) <= Date.now()) { setApproved(null); throw new Error('Оценка истекла. Рассчитайте стоимость снова.'); }
     if (approvedQuote.typedFactsExpiresAt !== undefined && approvedQuote.typedFactsExpiresAt <= Date.now()) { setApproved(null); throw new Error('Срок использования предыдущего ответа истёк. Рассчитайте стоимость снова.'); }
     const version = epoch.current;
-    const active = { id: approvedQuote.input.request_id, conversationId: approvedQuote.input.conversation_id, controller: new AbortController(), cancelled: false, cancelRequested: false, approved: approvedQuote, deadline: Date.now() + 9 * 60 * 1000, timer: undefined as ReturnType<typeof setTimeout> | undefined };
+    const active = { id: approvedQuote.input.request_id, conversationId: approvedQuote.input.conversation_id, controller: new AbortController(), cancelled: false, cancelRequested: false, approved: approvedQuote, deadline: Date.now() + 9 * 60 * 1000 };
     activeRequest.current = active;
     setRequestStartedAt(Date.now()); setElapsedSeconds(0); setActiveProgress([]); activeProgressRef.current = []; setStage('sending');
     try {
@@ -330,7 +328,7 @@ const AiAssistantPage = () => {
         }
       } else if (!active.cancelled) throw reason;
     }
-    finally { clearTimeout(active.timer); if (activeRequest.current === active) activeRequest.current = null; if (current(version)) { setStage(''); setRequestStartedAt(null); setActiveProgress([]); activeProgressRef.current = []; } }
+    finally { if (activeRequest.current === active) activeRequest.current = null; if (current(version)) { setStage(''); setRequestStartedAt(null); setActiveProgress([]); activeProgressRef.current = []; } }
   }
   const send = () => approved ? run(() => sendApproved(approved)) : undefined;
   const refreshConversations = async (version: number) => {
