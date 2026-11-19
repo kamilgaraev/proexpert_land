@@ -1,7 +1,7 @@
 import { API_URL, authApi, userManagementService } from '@/utils/api';
 import { getJsonAuthHeaders } from '@/utils/authTokenStorage';
 import type { OrganizationTeamPage } from '@/types/organization-team';
-import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantChatSubmission, AiAssistantRequestAccepted, AiAssistantRequestTerminated, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantProgress, AiAssistantProgressCode, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage, AiAssistantSourcePreview } from '@/types/aiAssistant';
+import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantChatSubmission, AiAssistantRequestAccepted, AiAssistantRequestTerminated, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantProgress, AiAssistantProgressCode, AiAssistantInterimResult, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage, AiAssistantSourcePreview } from '@/types/aiAssistant';
 
 type LandingResponse<T> = { success: boolean; message?: string; data: T; meta?: AiAssistantPaginationMeta };
 const assistantBaseUrl = API_URL.replace(/\/landing$/, '') + '/ai-assistant';
@@ -15,17 +15,40 @@ const request = async <T>(path: string, options: RequestInit = {}): Promise<Land
 const normalizeConversation = (item: AiAssistantConversation): AiAssistantConversation => ({ ...item, id: String(item.id), user_id: String(item.user_id) });
 const normalizeMessage = (item: AiAssistantMessage): AiAssistantMessage => ({ ...item, id: String(item.id) });
 const normalizeParticipant = (item: AiAssistantParticipant): AiAssistantParticipant => ({ ...item, user_id: String(item.user_id) });
-const progressCodes = new Set<AiAssistantProgressCode>(['rag_search', 'estimates', 'warehouse', 'projects', 'contracts', 'procurement', 'schedule', 'work_volumes', 'materials', 'reports', 'financial_data']);
+const progressCodes = new Set<AiAssistantProgressCode>(['rag_search', 'estimates', 'warehouse', 'projects', 'contracts', 'procurement', 'schedule', 'work_volumes', 'materials', 'reports', 'financial_data', 'record_check', 'composing']);
+const validTimestamp = (value: unknown): value is string =>
+  typeof value === 'string' && Number.isFinite(Date.parse(value));
+
 const normalizeProgress = (value: unknown): AiAssistantProgress[] => {
   if (!Array.isArray(value)) return [];
   const unique = new Map<number, AiAssistantProgress>();
   for (const item of value.slice(-24)) {
     if (!item || typeof item !== 'object') continue;
     const step = item as Partial<AiAssistantProgress>;
-    if (!Number.isInteger(step.id) || (step.id ?? 0) <= 0 || !progressCodes.has(step.code as AiAssistantProgressCode) || (step.state !== 'started' && step.state !== 'completed')) continue;
-    unique.set(step.id!, { id: step.id!, code: step.code!, state: step.state });
+    if (!Number.isInteger(step.id) || (step.id ?? 0) <= 0 || !progressCodes.has(step.code as AiAssistantProgressCode) || (step.state !== 'started' && step.state !== 'completed' && step.state !== 'failed')) continue;
+    unique.set(step.id!, {
+      id: step.id!, code: step.code!, state: step.state,
+      ...(typeof step.key === 'string' && step.key.trim() && { key: step.key }),
+      ...(validTimestamp(step.at) && { at: step.at }),
+    });
   }
   return [...unique.values()].sort((left, right) => left.id - right.id).slice(-24);
+};
+const normalizeInterimResult = (value: AiAssistantInterimResult | null | undefined): AiAssistantInterimResult | null => {
+  if (value?.key !== 'answer' || !Number.isSafeInteger(value.revision) || value.revision <= 0
+      || typeof value.text !== 'string' || !value.text.trim() || !validTimestamp(value.published_at)
+      || (value.scope?.kind !== 'project' && value.scope?.kind !== 'organization')) return null;
+  const { kind, project_id } = value.scope;
+  return {
+    key: value.key,
+    revision: value.revision,
+    text: value.text,
+    scope: { kind, ...(kind === 'project' && typeof project_id === 'number' && Number.isSafeInteger(project_id) && project_id > 0 && { project_id }) },
+    sources: Array.isArray(value.sources)
+      ? value.sources.flatMap((source) => typeof source?.label === 'string' && source.label.trim() ? [{ label: source.label }] : [])
+      : [],
+    published_at: value.published_at,
+  };
 };
 const normalizeChatResult = (result: AiAssistantChatResult): AiAssistantChatResult => {
   const { contract_version, outcome, coverage, evidence, billing, ui_actions, auto_open, export_task } = result;
@@ -43,6 +66,10 @@ const normalizeRequestStatus = <T extends AiAssistantRequestStatus>(status: T): 
   ...status,
   conversation_id: status.conversation_id == null ? null : String(status.conversation_id),
   progress: normalizeProgress(status.progress),
+  accepted_at: validTimestamp(status.accepted_at) ? status.accepted_at : undefined,
+  elapsed_seconds: typeof status.elapsed_seconds === 'number' && Number.isFinite(status.elapsed_seconds) && status.elapsed_seconds >= 0
+    ? status.elapsed_seconds : undefined,
+  interim_result: normalizeInterimResult(status.interim_result),
   ...(status.response ? { response: normalizeChatResult(status.response) } : {}),
 });
 const post = (input: unknown, signal?: AbortSignal): RequestInit => ({ method: 'POST', body: JSON.stringify(input), signal });

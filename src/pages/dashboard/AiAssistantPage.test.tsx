@@ -370,6 +370,101 @@ describe('AiAssistantPage', () => {
     expect(channel.stopListening).toHaveBeenCalledWith('.assistant.request.changed', realtimeHandler);
     expect(echo.leave).not.toHaveBeenCalled();
   });
+  it('follows long-running snapshots, replaces interim revisions and publishes the final answer once', async () => {
+    let wake: ((payload: unknown) => void) | undefined;
+    const channel = { listen: vi.fn((_event: string, handler: (payload: unknown) => void) => { wake = handler; return channel; }), stopListening: vi.fn() };
+    vi.mocked(getEcho).mockReturnValueOnce({ private: () => channel } as never);
+    const interim = {
+      key: 'answer', revision: 1, text: 'Проверено две записи', scope: { kind: 'project', project_id: 72 },
+      sources: [{ label: 'График работ' }], published_at: '2026-10-25T10:00:00Z',
+    } as const;
+    const running = { request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'reading', elapsed_seconds: 75 };
+    const recordCheck = { id: 1, key: 'records.internal-id', code: 'record_check', state: 'started' } as const;
+    const finalText = 'Проверено три записи';
+    vi.mocked(aiAssistantService.chat).mockResolvedValueOnce({ ...running, status: 'running' });
+    vi.mocked(aiAssistantService.getRequest)
+      .mockResolvedValueOnce({ ...running, progress: [recordCheck], interim_result: { ...interim, sources: [...interim.sources] } })
+      .mockRejectedValueOnce(new Error('Соединение прервано'))
+      .mockResolvedValueOnce({
+        ...running, progress: [
+          { ...recordCheck, id: 2, state: 'completed' },
+          { id: 3, code: 'composing', key: 'composing.internal-id', state: 'failed' },
+        ],
+        interim_result: { ...interim, revision: 2, text: finalText, sources: [] },
+      })
+      .mockResolvedValueOnce(running)
+      .mockResolvedValueOnce({ ...running, interim_result: { ...interim, revision: 3, text: finalText, sources: [] } })
+      .mockResolvedValueOnce({
+        ...running, status: 'completed', run_status: 'completed',
+        response: { result_key: 'answer', request_id: 'uuid-request', conversation_id: '11', message: { id: 'final', role: 'assistant', content: finalText }, credit_usage: {} },
+      });
+    render(<AiAssistantPage />);
+    await selectFirst();
+    await quoteQuestion('Проверьте график');
+    fireEvent.click(screen.getByRole('button', { name: 'Подтвердить и отправить' }));
+
+    const interimCard = await screen.findByRole('article', { name: 'Промежуточный результат' });
+    expect(interimCard).toHaveTextContent('Данные проекта');
+    expect(interimCard).toHaveTextContent('График работ');
+    expect(interimCard).toHaveTextContent('Работа продолжается.');
+    expect(await screen.findByText('Проверяю записи')).toBeInTheDocument();
+    expect(screen.getByText('Прошло 1 мин 15 сек.')).toBeInTheDocument();
+    const steps = screen.getByText('Этапы обработки');
+    expect(steps.closest('details')).not.toHaveAttribute('open');
+    steps.closest('details')?.setAttribute('open', '');
+    expect(screen.getByText('Проверка записей · Выполняется')).toBeVisible();
+
+    const notify = async () => act(async () => wake?.({ request_id: 'uuid-request' }));
+    await notify();
+    expect(aiAssistantService.getRequest).toHaveBeenCalledTimes(2);
+    expect(screen.getByText(interim.text)).toBeInTheDocument();
+    await notify();
+    expect(await screen.findByText(finalText)).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: 'Промежуточный результат' })).toBe(interimCard);
+    expect(screen.queryByText(interim.text)).not.toBeInTheDocument();
+    expect(screen.queryByText('Проверка записей · Выполняется')).not.toBeInTheDocument();
+    expect(screen.getByText('Проверка записей · Завершён')).toBeVisible();
+    expect(screen.getByText('Подготовка ответа · Не удалось завершить')).toBeVisible();
+    expect(document.body).not.toHaveTextContent('internal-id');
+
+    await notify();
+    expect(screen.queryByRole('article', { name: 'Промежуточный результат' })).not.toBeInTheDocument();
+    await notify();
+    expect(await screen.findByRole('article', { name: 'Промежуточный результат' })).toHaveTextContent(finalText);
+    await notify();
+    expect(screen.queryByRole('article', { name: 'Промежуточный результат' })).not.toBeInTheDocument();
+    expect(screen.getAllByText(finalText)).toHaveLength(1);
+    expect(screen.queryByText('Этапы обработки')).not.toBeInTheDocument();
+    expect(aiAssistantService.chat).toHaveBeenCalledTimes(1);
+  });
+
+  it('restores server time and checked interim data and removes the card on cancellation', async () => {
+    vi.mocked(aiAssistantService.getHistory).mockResolvedValueOnce({
+      items: [],
+      meta: { current_page: 1, last_page: 1, per_page: 30, total: 0, active_request: { request_id: 'restore-id', conversation_id: '11', status: 'running', stage: 'reading' } },
+    });
+    vi.mocked(aiAssistantService.getRequest).mockResolvedValueOnce({
+      request_id: 'restore-id', conversation_id: '11', status: 'running', stage: 'reading',
+      accepted_at: new Date(Date.now() - 90_000).toISOString(),
+      interim_result: {
+        key: 'answer', revision: 1, text: 'Проверен остаток', scope: { kind: 'organization' },
+        sources: [], published_at: '2026-10-25T10:00:00Z',
+      },
+    });
+    vi.mocked(aiAssistantService.cancelRequest).mockResolvedValueOnce({
+      request_id: 'restore-id', conversation_id: '11', status: 'cancelled',
+    });
+    render(<AiAssistantPage />);
+    await selectFirst();
+    expect(await screen.findByRole('article', { name: 'Промежуточный результат' })).toHaveTextContent('Данные организации');
+    expect(screen.getByText('Прошло 1 мин 30 сек.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Отменить запрос' }));
+    expect(screen.queryByRole('article', { name: 'Промежуточный результат' })).not.toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent('Запрос отменён.');
+    expect(aiAssistantService.cancelRequest).toHaveBeenCalledWith('restore-id');
+    expect(aiAssistantService.chat).not.toHaveBeenCalled();
+  });
+
   it('shows backend progress immediately and retains completed sources with a fast response', async () => {
     const progress = deferred<Awaited<ReturnType<typeof aiAssistantService.getRequest>>>();
     vi.mocked(aiAssistantService.chat).mockResolvedValue({ request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'queued', progress: [{ id: 31, code: 'estimates', state: 'started' }] });
@@ -398,6 +493,8 @@ describe('AiAssistantPage', () => {
     expect(screen.queryByRole('button', { name: 'Отменить запрос' })).not.toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
     expect(screen.queryByText('Ответ готов')).not.toBeInTheDocument();
+    expect(screen.queryByRole('article', { name: 'Промежуточный результат' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Этапы обработки')).not.toBeInTheDocument();
     fireEvent.change(input, { target: { value: 'Следующий вопрос' } });
     expect(screen.getByRole('button', { name: 'Рассчитать стоимость' })).toBeEnabled();
   });

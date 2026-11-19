@@ -64,6 +64,34 @@ describe('aiAssistantService', () => {
       expect(requests).toEqual([{ ...input, quote_id: 'quote', async: true }]);
     });
 
+    it('accepts canonical progress snapshots while filtering unsupported step data', async () => {
+      const at = '2026-10-25T10:00:00Z';
+      const step = { id: 2, key: 'record.1', code: 'record_check', state: 'failed', at };
+      const interim = {
+        key: 'answer', revision: 1, text: 'Проверен график', scope: { kind: 'project', project_id: 8 },
+        sources: [{ label: 'График' }], published_at: at,
+      };
+      const status = {
+        request_id: input.request_id, conversation_id: 11, status: 'running',
+        accepted_at: at, elapsed_seconds: 42,
+      };
+      server.use(http.get(`${baseUrl}/requests/${input.request_id}`, () => HttpResponse.json({
+        success: true,
+        data: {
+          ...status,
+          progress: [{ ...step, argument: 'internal' }, { ...step, id: 3, code: 'private_tool' }],
+          interim_result: { ...interim, sources: [{ ...interim.sources[0], entity_id: 19 }, { label: 12 }] },
+        },
+      }), { once: true }), http.get(`${baseUrl}/requests/${input.request_id}`, () => HttpResponse.json({ success: true, data: status })));
+
+      const current = await aiAssistantService.getRequest(input.request_id);
+      expect(current).toMatchObject({ ...status, conversation_id: '11' });
+      expect(current.progress).toEqual([step]);
+      expect(current.interim_result).toEqual(interim);
+      const next = await aiAssistantService.getRequest(input.request_id);
+      expect(next.interim_result).toBeNull();
+    });
+
     it('retains typed results in responses and history alongside the legacy fields', async () => {
       const result = {
         contract_version: 1, outcome: 'clarification', coverage: { status: 'partial' },

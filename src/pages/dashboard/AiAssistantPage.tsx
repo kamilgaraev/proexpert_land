@@ -11,7 +11,7 @@ import { AuthContext } from '@/contexts/AuthContext';
 import { useCanAccess } from '@/hooks/usePermissions';
 import { aiAssistantService, AssistantApiError, createAiAssistantRequestId } from '@/services/aiAssistantService';
 import getEcho from '@/services/echo';
-import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantArtifact, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantOutcome, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantProfile, AiAssistantProgress, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantSource, AiAssistantUsage } from '@/types/aiAssistant';
+import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantArtifact, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantInterimResult, AiAssistantMemory, AiAssistantMessage, AiAssistantOutcome, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantProfile, AiAssistantProgress, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantSource, AiAssistantUsage } from '@/types/aiAssistant';
 import type { OrganizationTeamMember } from '@/types/organization-team';
 
 export const assistantUnits = (minor: number) => (minor / 100).toLocaleString('ru-RU', { maximumFractionDigits: 2 });
@@ -38,16 +38,38 @@ const mergeMessages = (items: AiAssistantMessage[]) => [...new Map(items.map((it
 const stages: Record<string, string> = { queued: 'В очереди', reading: 'Анализирует данные', generating: 'Формирует ответ', tools: 'Проверяет данные', verifying: 'Проверяет ответ', completed: 'Ответ готов', cancel_requested: 'Останавливает обработку', cancelled: 'Запрос отменён', failed: 'Не удалось завершить', sending: 'Отправляет запрос', recovering: 'Проверяет состояние запроса' };
 const progressLabels: Record<AiAssistantProgress['code'], { started: string; completed: string }> = {
   rag_search: { started: 'Ищу информацию', completed: 'Информация собрана' }, estimates: { started: 'Проверяю сметы', completed: 'Сметы проверены' }, warehouse: { started: 'Проверяю склад', completed: 'Склад проверен' }, projects: { started: 'Проверяю проекты', completed: 'Проекты проверены' }, contracts: { started: 'Проверяю договоры', completed: 'Договоры проверены' }, procurement: { started: 'Проверяю закупки', completed: 'Закупки проверены' }, schedule: { started: 'Проверяю график', completed: 'График проверен' }, work_volumes: { started: 'Проверяю объёмы работ', completed: 'Объёмы работ проверены' }, materials: { started: 'Проверяю материалы', completed: 'Материалы проверены' }, reports: { started: 'Проверяю отчёты', completed: 'Отчёты проверены' }, financial_data: { started: 'Проверяю финансовые данные', completed: 'Финансовые данные проверены' },
+  record_check: { started: 'Проверяю записи', completed: 'Записи проверены' },
+  composing: { started: 'Готовлю ответ', completed: 'Ответ подготовлен' },
 };
 const mergeProgress = (current: AiAssistantProgress[], incoming: AiAssistantProgress[]) => [...new Map([...current, ...incoming].map((item) => [item.id, item])).values()].sort((left, right) => left.id - right.id).slice(-24);
+const progressKey = (step: AiAssistantProgress) => step.key ?? step.code;
+const latestSteps = (progress: AiAssistantProgress[]) =>
+  [...new Map(progress.map((step) => [progressKey(step), step])).values()].sort((left, right) => left.id - right.id);
+const stepStateLabels = { started: 'Выполняется', completed: 'Завершён', failed: 'Не удалось завершить' };
+const stepLabels: Record<AiAssistantProgress['code'], string> = {
+  rag_search: 'Поиск информации', estimates: 'Сметы', warehouse: 'Склад', projects: 'Проекты',
+  contracts: 'Договоры', procurement: 'Закупки', schedule: 'График', work_volumes: 'Объёмы работ',
+  materials: 'Материалы', reports: 'Отчёты', financial_data: 'Финансовые данные',
+  record_check: 'Проверка записей', composing: 'Подготовка ответа',
+};
 const currentActivity = (progress: AiAssistantProgress[], stage: string) => {
   if (['generating', 'verifying', 'cancel_requested', 'recovering'].includes(stage)) return stages[stage];
-  const latestByCode = new Map(progress.map((item) => [item.code, item]));
-  const active = [...latestByCode.values()].filter((item) => item.state === 'started').sort((left, right) => right.id - left.id)[0];
-  return active ? progressLabels[active.code].started : stages[stage] ?? 'Выполняет запрос';
+  const active = latestSteps(progress).reverse().find((step) => step.state === 'started');
+  return active ? progressLabels[active.code].started : Object.prototype.hasOwnProperty.call(stages, stage) ? stages[stage] : 'Выполняет запрос';
 };
-const completedSources = (progress: AiAssistantProgress[]) => [...new Map(progress.filter((item) => item.state === 'completed').map((item) => [item.code, item])).values()].sort((left, right) => left.id - right.id);
+const completedSources = (progress: AiAssistantProgress[]) => latestSteps(progress).filter((step) => step.state === 'completed');
 const elapsedLabel = (seconds: number) => seconds < 60 ? `${seconds} сек.` : `${Math.floor(seconds / 60)} мин ${String(seconds % 60).padStart(2, '0')} сек.`;
+function AssistantInterimCard({ result }: { result: AiAssistantInterimResult }) {
+  return <article aria-label="Промежуточный результат" className="mr-4 space-y-2 rounded-lg bg-muted p-3">
+    <h2 className="font-medium">Промежуточный результат</h2>
+    <p className="text-xs text-muted-foreground">{result.scope.kind === 'project' ? 'Данные проекта' : 'Данные организации'}</p>
+    <p className="whitespace-pre-wrap">{result.text}</p>
+    {result.sources.length > 0 && <ul aria-label="Источники" className="list-disc pl-4 text-xs text-muted-foreground">
+      {[...new Set(result.sources.map((source) => source.label))].map((label) => <li key={label}>{label}</li>)}
+    </ul>}
+    <p className="text-xs text-muted-foreground">Работа продолжается.</p>
+  </article>;
+}
 const detailedProcessingDeadline = (quote: AiAssistantQuote) => {
   const seconds = quote.metadata?.processing_deadline_seconds;
   if (quote.profile !== 'detailed' || typeof seconds !== 'number' || !Number.isSafeInteger(seconds) || seconds <= 0) return undefined;
@@ -165,6 +187,7 @@ const AiAssistantPage = () => {
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState('');
   const [requestStartedAt, setRequestStartedAt] = useState<number | null>(null);
+  const [interimResult, setInterimResult] = useState<AiAssistantInterimResult | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [activeProgress, setActiveProgress] = useState<AiAssistantProgress[]>([]);
   const activeProgressRef = useRef<AiAssistantProgress[]>([]);
@@ -180,11 +203,12 @@ const AiAssistantPage = () => {
   const isOwner = conversation?.can_manage_participants ?? (conversation?.user_id === String(user?.id));
   const canEdit = !!conversation && (conversation.can_edit ?? (isOwner || participants.some((item) => item.user_id === String(user?.id) && item.role === 'editor')));
   const canPurchaseCredits = balance?.billing_mode !== 'shadow' && balance?.charging_enabled === true && balance?.pack_purchase_enabled !== false && (balance?.can_purchase ?? balance?.can_manage_billing ?? canManageBilling);
-  const visibleCompletedProgress = completedSources(activeProgress);
+  const visibleSteps = latestSteps(activeProgress);
+  const observingRequest = requestStartedAt !== null;
   const current = (version: number) => mounted.current && version === epoch.current && identityRef.current === identity;
   useEffect(() => {
     if (requestStartedAt === null) return;
-    const updateElapsed = () => setElapsedSeconds(Math.floor((Date.now() - requestStartedAt) / 1000));
+    const updateElapsed = () => setElapsedSeconds(Math.max(0, Math.floor((Date.now() - requestStartedAt) / 1000)));
     updateElapsed();
     const timer = setInterval(updateElapsed, 1000);
     return () => clearInterval(timer);
@@ -212,7 +236,7 @@ const AiAssistantPage = () => {
     } catch {
       return;
     }
-  }, [conversation?.id, requestStartedAt, user?.current_organization_id, user?.id]);
+  }, [conversation?.id, observingRequest, user?.current_organization_id, user?.id]);
   const run = async (operation: () => Promise<void>) => {
     if (busyRef.current) return;
     busyRef.current = true; setBusy(true); setError('');
@@ -230,7 +254,7 @@ const AiAssistantPage = () => {
     typedFacts.current = emptyAssistantTypedFacts(selectedScope);
     attachmentControllers.current.forEach((item) => item.abort()); attachmentControllers.current.clear(); uploadingAttachments.current = null; setIsUploadingAttachments(false); setAttachments((items) => { items.forEach((item) => URL.revokeObjectURL(item.preview)); return []; });
     setPausedRequest(null);
-    setConversation(selected); setMessages([]); setParticipants([]); setHistoryMeta(null); setApproved(null); setPreview(null); setSharing(false); setQuestion(''); setError(''); setLoading(true); setStage(''); setRequestStartedAt(null); setActiveProgress([]); activeProgressRef.current = []; setCompletedProgress({});
+    setConversation(selected); setMessages([]); setParticipants([]); setHistoryMeta(null); setApproved(null); setPreview(null); setSharing(false); setQuestion(''); setError(''); setLoading(true); setStage(''); setRequestStartedAt(null); setInterimResult(null); setActiveProgress([]); activeProgressRef.current = []; setCompletedProgress({});
     try {
       const [history, people] = await Promise.all([aiAssistantService.getHistory(selected.id, 1, controller.signal), aiAssistantService.getParticipants(selected.id, controller.signal)]);
       if (!current(version)) return;
@@ -252,7 +276,7 @@ const AiAssistantPage = () => {
     mounted.current = true;
     busyOperation.current = null;
     typedFacts.current = emptyAssistantTypedFacts(null);
-    setConversation(null); setConversations([]); setListMeta(null); setMessages([]); setHistoryMeta(null); setParticipants([]); setMembers([]); setMemberMeta(null); setSharing(false); setApproved(null); setPreview(null); setQuestion(''); setMemory([]); setMemoryText(''); setEditingMemory(null); setBalance(null); setUsage(null); setError(''); setLoading(true); setBusy(false); busyRef.current = false; activeRequest.current = null; setStage(''); setRequestStartedAt(null); setActiveProgress([]); activeProgressRef.current = []; setCompletedProgress({});
+    setConversation(null); setConversations([]); setListMeta(null); setMessages([]); setHistoryMeta(null); setParticipants([]); setMembers([]); setMemberMeta(null); setSharing(false); setApproved(null); setPreview(null); setQuestion(''); setMemory([]); setMemoryText(''); setEditingMemory(null); setBalance(null); setUsage(null); setError(''); setLoading(true); setBusy(false); busyRef.current = false; activeRequest.current = null; setStage(''); setRequestStartedAt(null); setInterimResult(null); setActiveProgress([]); activeProgressRef.current = []; setCompletedProgress({});
     setAttachments([]); setIsUploadingAttachments(false); uploadingAttachments.current = null; setPausedRequest(null);
     const controller = new AbortController();
     void Promise.all([aiAssistantService.getConversations(1, controller.signal), aiAssistantService.getMemory(controller.signal), aiAssistantService.getBalance(controller.signal), aiAssistantService.getUsage(controller.signal).catch(() => null)]).then(async ([list, personalMemory, wallet, statistics]) => {
@@ -323,6 +347,24 @@ const AiAssistantPage = () => {
       ? 'Недостаточно единиц МОСТ для выполнения запроса.'
       : 'Не удалось завершить запрос. Попробуйте ещё раз.');
   }
+  function applyStatusSnapshot(active: ActiveRequest, state: AiAssistantRequestStatus) {
+    const progress = mergeProgress(activeProgressRef.current, state.progress ?? []);
+    activeProgressRef.current = progress;
+    setActiveProgress(progress);
+    const status = state.status === 'cancel_requested' ? state.status : state.run_status ?? state.status;
+    const running = status === 'queued' || status === 'running';
+    setStage(status === 'cancel_requested' || (running && active.cancelRequested) ? 'cancel_requested' : state.stage ?? status);
+    setInterimResult(running && !active.cancelRequested ? state.interim_result ?? null : null);
+
+    const now = Date.now();
+    const acceptedAt = state.accepted_at ? Date.parse(state.accepted_at) : NaN;
+    const startedAt = typeof state.elapsed_seconds === 'number' ? now - state.elapsed_seconds * 1000 : acceptedAt;
+    if (Number.isFinite(startedAt)) {
+      setRequestStartedAt(Math.min(now, startedAt));
+      setElapsedSeconds(Math.max(0, Math.floor((now - startedAt) / 1000)));
+    }
+    return { status, progress };
+  }
   async function waitForRequest(active: ActiveRequest, version: number): Promise<AiAssistantChatResult> {
     const signal = active.controller.signal;
     const pause = () => new Promise<void>((resolve) => {
@@ -383,11 +425,7 @@ const AiAssistantPage = () => {
         if ('message' in submitted) return submitted;
         state = submitted;
       }
-      const progress = mergeProgress(activeProgressRef.current, state.progress ?? []);
-      activeProgressRef.current = progress;
-      setActiveProgress(progress);
-      const status = state.status === 'cancel_requested' ? state.status : state.run_status ?? state.status;
-      setStage(status === 'cancel_requested' ? status : state.stage ?? status);
+      const { status, progress } = applyStatusSnapshot(active, state);
       if (status === 'completed' && state.response) return { ...state.response, progress: mergeProgress(progress, state.response.progress ?? []) };
       if (status === 'completed') throw new AiAssistantRequestTerminalError('Сервер не вернул результат запроса.');
       throwIfRequestTerminated(status, state.error_code);
@@ -416,6 +454,7 @@ const AiAssistantPage = () => {
     setPausedRequest(null);
     updatePendingAssistantRequest(identity, pending, true);
     setRequestStartedAt(active.startedAt);
+    setInterimResult(null);
     setElapsedSeconds(Math.max(0, Math.floor((Date.now() - active.startedAt) / 1000)));
     setActiveProgress([]);
     activeProgressRef.current = [];
@@ -433,9 +472,7 @@ const AiAssistantPage = () => {
             result = submitted;
           } else {
             throwIfRequestTerminated(submitted.status, submitted.error_code);
-            setStage(submitted.stage ?? submitted.run_status ?? submitted.status);
-            activeProgressRef.current = mergeProgress(activeProgressRef.current, submitted.progress ?? []);
-            setActiveProgress(activeProgressRef.current);
+            applyStatusSnapshot(active, submitted);
           }
         } catch (reason) {
           if (!current(version) || signal.aborted) return;
@@ -505,6 +542,7 @@ const AiAssistantPage = () => {
       if (current(version)) {
         setStage('');
         setRequestStartedAt(null);
+        setInterimResult(null);
         setActiveProgress([]);
         activeProgressRef.current = [];
       }
@@ -523,6 +561,7 @@ const AiAssistantPage = () => {
     const active = activeRequest.current;
     if (!active || active.controller.signal.aborted || active.cancelRequested) return;
     active.cancelRequested = true;
+    setInterimResult(null);
     setStage('cancel_requested');
     try {
       const state = await aiAssistantService.cancelRequest(active.id);
@@ -585,14 +624,25 @@ const AiAssistantPage = () => {
         {isOwner && <div className="flex flex-wrap gap-2"><Button variant="outline" disabled={busy} onClick={() => void openSharing()}>Настроить доступ</Button><Button variant="outline" disabled={busy} onClick={() => void run(async () => { await aiAssistantService.deleteConversation(conversation.id); epoch.current++; typedFacts.current = emptyAssistantTypedFacts(null); setConversations((items) => items.filter((item) => item.id !== conversation.id)); setConversation(null); setMessages([]); setApproved(null); setPreview(null); })}>Удалить чат</Button></div>}
         {sharing && <div className="space-y-3 rounded border p-3"><p>Доступ к чату не расширяет права на данные. Без участников чат личный.</p>{members.filter((member) => String(member.id) !== String(user?.id)).map((member) => <label key={member.id} className="flex items-center justify-between gap-3"><span>{member.name}</span><select aria-label={`Доступ: ${member.name}`} value={participants.find((item) => item.user_id === String(member.id))?.role ?? ''} onChange={(event) => { const role = event.target.value; setParticipants((items) => [...items.filter((item) => item.user_id !== String(member.id)), ...(role === 'viewer' || role === 'editor' ? [{ user_id: String(member.id), name: member.name, role } satisfies AiAssistantParticipant] : [])]); }}><option value="">Нет доступа</option><option value="viewer">Читатель</option><option value="editor">Участник</option></select></label>)}{memberMeta && memberMeta.current_page < memberMeta.last_page && <Button variant="ghost" disabled={busy} onClick={() => void run(async () => { const next = await aiAssistantService.getActiveMembers(memberMeta.current_page + 1); setMembers((items) => [...items, ...next.items]); setMemberMeta(next.meta); })}>Ещё сотрудники</Button>}<Button disabled={busy} onClick={() => void run(async () => { setParticipants(await aiAssistantService.setParticipants(conversation.id, participants)); setSharing(false); })}>Подтвердить доступ</Button><Button variant="ghost" disabled={busy} onClick={() => void run(async () => { setParticipants(await aiAssistantService.getParticipants(conversation.id)); setSharing(false); })}>Отмена</Button></div>}
         {historyMeta && historyMeta.current_page < historyMeta.last_page && <Button variant="outline" disabled={busy} onClick={() => void loadOlder()}>Предыдущие сообщения</Button>}
-        <div className="max-h-[52vh] space-y-4 overflow-y-auto pr-1">{messages.length === 0 && attachments.length === 0 && <p className="text-sm text-muted-foreground">Задайте вопрос помощнику или прикрепите изображение.</p>}{messages.map((item) => <article key={item.id} className={item.role === 'user' ? 'ml-4 rounded-lg bg-primary p-3 text-primary-foreground' : 'mr-4 rounded-lg bg-muted p-3'}><p className="whitespace-pre-wrap">{item.content}</p>{item.role === 'assistant' && <AssistantResultDetails metadata={item.metadata} />}{completedSources(completedProgress[item.id] ?? []).length > 0 && <ol aria-label="Проверенные разделы" className="mt-3 space-y-1 border-t pt-2 text-xs text-muted-foreground">{completedSources(completedProgress[item.id] ?? []).map((step) => <li key={step.code}>{progressLabels[step.code].completed}</li>)}</ol>}{item.metadata?.attachments?.map((attachment) => <AiAssistantAttachmentImage key={attachment.id} attachment={attachment} />)}{[...(item.metadata?.source_refs ?? []), ...(item.metadata?.rag_context?.sources ?? []), ...(item.metadata?.entity_references ?? [])].map((source, index) => { if (conversation && index < (item.metadata?.source_refs?.length ?? 0) && isDocumentCitation(source, item.metadata?.source_refs_version)) return <AiAssistantCitation key={`citation-${item.id}-${index}`} conversationId={conversation.id} messageId={item.id} sourceIndex={index} source={source} version={item.metadata?.source_refs_version} />; const sourceUrl = source.navigation?.url ?? source.url; const reportUrl = sourceUrl?.includes('/api/v1/ai-assistant/reports/') ? sourceUrl : undefined; const href = reportUrl ? undefined : assistantSourceUrl(sourceUrl, assistantSourceProjectId(source)); if (reportUrl) return <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => void downloadArtifact(reportUrl, source.title ?? 'Отчёт')}>Скачать отчёт: {source.title ?? 'Отчёт'}</Button></div>; return href ? <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2 text-xs"><a href={href} className="underline" target="_blank" rel="noreferrer">Открыть проект: {source.title ?? source.name ?? 'Источник'}</a></div> : null; })}{assistantArtifacts(item.metadata).map((artifact, index) => {
+        <div className="max-h-[52vh] space-y-4 overflow-y-auto pr-1">{messages.length === 0 && attachments.length === 0 && !interimResult && <p className="text-sm text-muted-foreground">Задайте вопрос помощнику или прикрепите изображение.</p>}{messages.map((item) => <article key={item.id} className={item.role === 'user' ? 'ml-4 rounded-lg bg-primary p-3 text-primary-foreground' : 'mr-4 rounded-lg bg-muted p-3'}><p className="whitespace-pre-wrap">{item.content}</p>{item.role === 'assistant' && <AssistantResultDetails metadata={item.metadata} />}{completedSources(completedProgress[item.id] ?? []).length > 0 && <ol aria-label="Проверенные разделы" className="mt-3 space-y-1 border-t pt-2 text-xs text-muted-foreground">{completedSources(completedProgress[item.id] ?? []).map((step) => <li key={progressKey(step)}>{progressLabels[step.code].completed}</li>)}</ol>}{item.metadata?.attachments?.map((attachment) => <AiAssistantAttachmentImage key={attachment.id} attachment={attachment} />)}{[...(item.metadata?.source_refs ?? []), ...(item.metadata?.rag_context?.sources ?? []), ...(item.metadata?.entity_references ?? [])].map((source, index) => { if (conversation && index < (item.metadata?.source_refs?.length ?? 0) && isDocumentCitation(source, item.metadata?.source_refs_version)) return <AiAssistantCitation key={`citation-${item.id}-${index}`} conversationId={conversation.id} messageId={item.id} sourceIndex={index} source={source} version={item.metadata?.source_refs_version} />; const sourceUrl = source.navigation?.url ?? source.url; const reportUrl = sourceUrl?.includes('/api/v1/ai-assistant/reports/') ? sourceUrl : undefined; const href = reportUrl ? undefined : assistantSourceUrl(sourceUrl, assistantSourceProjectId(source)); if (reportUrl) return <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => void downloadArtifact(reportUrl, source.title ?? 'Отчёт')}>Скачать отчёт: {source.title ?? 'Отчёт'}</Button></div>; return href ? <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2 text-xs"><a href={href} className="underline" target="_blank" rel="noreferrer">Открыть проект: {source.title ?? source.name ?? 'Источник'}</a></div> : null; })}{assistantArtifacts(item.metadata).map((artifact, index) => {
           if (artifact.artifact_type === 'core_report_task') return <div key={artifact.task_id ?? index} className="mt-2 text-xs"><p className="font-medium">{artifact.title ?? 'Отчёт'}</p><p>{reportTaskStatus(artifact.status)}</p></div>;
           const url = artifact.download_url ?? artifact.url;
           return url ? <Button key={`artifact-${index}`} className="mt-2" variant="outline" disabled={busy} onClick={() => void downloadArtifact(url, artifact.filename ?? artifact.file_name ?? 'Отчёт')}>Скачать: {artifact.title ?? artifact.filename ?? 'Отчёт'}</Button> : null;
-        })}{(item.metadata?.proposed_actions ?? item.metadata?.suggested_actions ?? item.metadata?.actions ?? item.metadata?.next_actions?.filter((action) => action.tool_name && action.type === 'act' && action.requires_confirmation) ?? []).map((action, index) => <Button key={index} className="mt-2" variant="outline" disabled={busy || !canEdit || action.allowed === false} onClick={() => void prepareAction({ ...action, origin_request_id: action.origin_request_id ?? item.metadata?.request_id })}>Проверить действие: {action.label ?? 'Предложенное изменение'}</Button>)}</article>)}</div>
+        })}{(item.metadata?.proposed_actions ?? item.metadata?.suggested_actions ?? item.metadata?.actions ?? item.metadata?.next_actions?.filter((action) => action.tool_name && action.type === 'act' && action.requires_confirmation) ?? []).map((action, index) => <Button key={index} className="mt-2" variant="outline" disabled={busy || !canEdit || action.allowed === false} onClick={() => void prepareAction({ ...action, origin_request_id: action.origin_request_id ?? item.metadata?.request_id })}>Проверить действие: {action.label ?? 'Предложенное изменение'}</Button>)}</article>)}{interimResult && <AssistantInterimCard key={interimResult.key} result={interimResult} />}</div>
         {pausedRequest && <Button type="button" variant="outline" disabled={busy} onClick={() => void run(() => observeRequest(pausedRequest))}>Проверить состояние запроса</Button>}
         {preview && <div className="space-y-2 rounded border border-amber-500 p-3"><p className="font-medium">{preview.title}</p><p>{preview.description}</p><details open><summary>Изменения</summary><pre className="overflow-auto whitespace-pre-wrap text-xs">{JSON.stringify({ before: preview.before, after: preview.after }, null, 2)}</pre></details>{preview.warnings?.map((warning) => <p key={warning}>{warning}</p>)}<Button disabled={busy || !canEdit || preview.executable === false} onClick={() => void run(async () => { if (Date.parse(preview.expires_at) <= Date.now()) throw new Error('Подготовка истекла. Проверьте действие снова.'); await aiAssistantService.executeAction(conversation.id, preview); setPreview(null); const history = await aiAssistantService.getHistory(conversation.id); setMessages(history.items); setHistoryMeta(history.meta); })}>Подтверждаю изменение</Button><Button variant="ghost" disabled={busy} onClick={() => setPreview(null)}>Отмена</Button></div>}
-        {busy && requestStartedAt !== null && <div role="status" aria-live="polite" className="space-y-1 rounded-md bg-muted p-3 text-sm"><p className="font-medium">{currentActivity(activeProgress, stage)}</p><p className="text-muted-foreground">Прошло {elapsedLabel(elapsedSeconds)}</p>{visibleCompletedProgress.length > 0 && <ol aria-label="Проверенные разделы" className="space-y-1">{visibleCompletedProgress.map((item) => <li key={item.code}>{progressLabels[item.code].completed}</li>)}</ol>}</div>}
+        {busy && observingRequest && <div className="space-y-2 rounded-md bg-muted p-3 text-sm">
+          <div role="status" aria-live="polite">
+            <p className="font-medium">{currentActivity(activeProgress, stage)}</p>
+            {stage !== 'sending' && <p className="text-muted-foreground">Прошло {elapsedLabel(elapsedSeconds)}</p>}
+          </div>
+          {visibleSteps.length > 0 && <details>
+            <summary className="cursor-pointer font-medium">Этапы обработки</summary>
+            <ol className="mt-2 space-y-1 pl-4 text-muted-foreground">
+              {visibleSteps.map((step) => <li key={progressKey(step)}>{stepLabels[step.code]} · {stepStateLabels[step.state]}</li>)}
+            </ol>
+          </details>}
+        </div>}
         {activeRequest.current && <Button type="button" variant="outline" disabled={stage === 'cancel_requested'} onClick={() => void cancel()}><Square className="mr-2 h-4 w-4" />Отменить запрос</Button>}
         {canEdit && <form onSubmit={submit} className="space-y-3"><label htmlFor="assistant-question" className="sr-only">Вопрос помощнику</label><textarea id="assistant-question" value={question} onChange={(event) => { setQuestion(event.target.value); setApproved(null); }} disabled={busy} maxLength={4000} rows={4} className="w-full rounded-md border bg-background p-3" placeholder="Опишите задачу или задайте вопрос" />{attachments.map((item) => <AiAssistantAttachmentImage key={item.preview} preview={item.preview} progress={item.progress} error={item.error} attachment={item.metadata} onRemove={() => removeAttachment(item.preview)} />)}<label className="inline-flex cursor-pointer items-center gap-2 text-sm"><Paperclip className="h-4 w-4" />Прикрепить изображение<input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy || isUploadingAttachments || attachments.length >= 2} onChange={(event) => { void addImages(event.target.files); event.currentTarget.value = ''; }} /></label><span className="text-xs text-muted-foreground">До 2 изображений JPEG, PNG или WebP; каждое до 5 МБ, сторона до 2048 пикселей.</span><div className="flex flex-wrap items-center gap-3"><label>Подробность <select aria-label="Подробность ответа" value={profile} disabled={busy} onChange={(event) => { setProfile(event.target.value as AiAssistantProfile); setApproved(null); }}><option value="short">Кратко</option><option value="normal">Обычно</option><option value="detailed">Подробно</option></select></label><label className="text-sm"><input type="checkbox" checked={allowActions} disabled={busy} onChange={(event) => { setAllowActions(event.target.checked); setApproved(null); }} /> Предлагать изменения с подтверждением</label></div>{approved && <div className="rounded bg-amber-50 p-3 text-sm text-amber-950">Оценка расхода: от {assistantUnits(approved.quote.min_units_minor)} до {assistantUnits(approved.quote.max_units_minor)} ед. МОСТ. {balance?.billing_mode === 'shadow' ? 'Тестовый режим: списания выключены, фактическое списание — 0. ' : ''}Подтвердите максимальную оценку. Оценка до {new Date(approved.quote.expires_at).toLocaleTimeString('ru-RU')}.{detailedProcessingDeadline(approved.quote) && <> <span>{detailedProcessingDeadline(approved.quote)}</span></>}</div>}<div className="flex flex-wrap items-center gap-2"><Button type="submit" disabled={busy || !!pausedRequest || (!question.trim() && attachments.length === 0) || attachments.some((item) => !item.metadata || item.error)}><Send className="mr-2 h-4 w-4" />{approved ? 'Подтвердить и отправить' : 'Рассчитать стоимость'}</Button></div></form>}
       </>}</CardContent></Card>

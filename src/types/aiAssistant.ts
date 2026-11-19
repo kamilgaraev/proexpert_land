@@ -29,12 +29,20 @@ export interface AiAssistantCreditUsage { charged_minor?: number | string | null
 export interface AiAssistantQuote { quote_id: string; min_units_minor: number; max_units_minor: number; expires_at: string; profile: AiAssistantProfile; price_version: string; metadata?: { processing_deadline_seconds?: number } }
 export interface AiAssistantChatInput { conversation_id: string; message: string; request_id: string; profile: AiAssistantProfile; allow_actions: boolean; context: Record<string, unknown> & { typed_facts?: AiAssistantTypedFactsLocator }; attachment_ids?: string[] }
 export interface AiAssistantActionPreview { title: string; description?: string; action: { id: string }; preview_token: string; expires_at: string; before?: unknown; after?: unknown; warnings?: string[]; executable?: boolean }
-export type AiAssistantProgressCode = 'rag_search' | 'estimates' | 'warehouse' | 'projects' | 'contracts' | 'procurement' | 'schedule' | 'work_volumes' | 'materials' | 'reports' | 'financial_data';
-export type AiAssistantProgressState = 'started' | 'completed';
-export interface AiAssistantProgress { id: number; code: AiAssistantProgressCode; state: AiAssistantProgressState }
-export interface AiAssistantChatResult extends AiAssistantPublishedResult { request_id: string; conversation_id: string; message: AiAssistantMessage; credit_usage: AiAssistantCreditUsage; progress?: AiAssistantProgress[] }
+export type AiAssistantProgressCode = 'rag_search' | 'estimates' | 'warehouse' | 'projects' | 'contracts' | 'procurement' | 'schedule' | 'work_volumes' | 'materials' | 'reports' | 'financial_data' | 'record_check' | 'composing';
+export type AiAssistantProgressState = 'started' | 'completed' | 'failed';
+export interface AiAssistantProgress { id: number; key?: string; code: AiAssistantProgressCode; state: AiAssistantProgressState; at?: string }
+export interface AiAssistantInterimResult {
+  key: 'answer';
+  revision: number;
+  text: string;
+  scope: { kind: 'project' | 'organization'; project_id?: number };
+  sources: { label: string }[];
+  published_at: string;
+}
+export interface AiAssistantChatResult extends AiAssistantPublishedResult { result_key?: 'answer'; request_id: string; conversation_id: string; message: AiAssistantMessage; credit_usage: AiAssistantCreditUsage; progress?: AiAssistantProgress[] }
 export type AiAssistantRunStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
-export interface AiAssistantRequestStatus { request_id: string; conversation_id: string | null; status: string; run_status?: AiAssistantRunStatus; stage?: string; progress?: AiAssistantProgress[]; response?: AiAssistantChatResult; error_code?: string; calls_used?: number; max_calls?: number }
+export interface AiAssistantRequestStatus { accepted_at?: string; elapsed_seconds?: number; interim_result?: AiAssistantInterimResult | null; request_id: string; conversation_id: string | null; status: string; run_status?: AiAssistantRunStatus; stage?: string; progress?: AiAssistantProgress[]; response?: AiAssistantChatResult; error_code?: string; calls_used?: number; max_calls?: number }
 export interface AiAssistantRequestAccepted extends AiAssistantRequestStatus { status: 'running' | 'queued' | 'cancel_requested'; stage: string }
 export interface AiAssistantRequestTerminated extends AiAssistantRequestStatus { status: 'failed' | 'cancelled' }
 export type AiAssistantChatSubmission = AiAssistantChatResult | AiAssistantRequestAccepted | AiAssistantRequestTerminated;
