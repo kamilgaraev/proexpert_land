@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AiAssistantPage, { assistantSourceUrl, assistantUnits } from './AiAssistantPage';
 import { aiAssistantService, AssistantApiError } from '@/services/aiAssistantService';
@@ -33,6 +34,47 @@ describe('AiAssistantPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
     await screen.findByRole('button', { name: 'Подтвердить и отправить' });
   };
+
+  it('renders only verified structured knowledge links with an exact local article path', async () => {
+    const path = '/dashboard/help/knowledge';
+    const ref = (display_label: string, url: string) => ({
+      source_type: 'knowledge', entity_type: 'knowledge_article', display_label, navigation: { url },
+    });
+    const article = ref('Настройка ЛК', `${path}/LK_guide-%D0%9C%D0%9E%D0%A1%D0%A2`);
+    const rejected = [
+      `https://untrusted.example${path}/article`, `//untrusted.example${path}/article`,
+      `${path}/article?a=1`, `${path}/article#section`, `${path}/nested/article`, `${path}/article/`,
+      `${path}/../article`, `${path}/%2E%2E`, `${path}/article%2Fother`, `${path}/article%5Cother`,
+      `${path}/article%252Fother`, `${path}/article%3Fquery`, `${path}/article%23section`, `${path}/article%00`, `${path}/article%E2%80%AE`,
+    ];
+    vi.mocked(aiAssistantService.getHistory).mockResolvedValue({
+      items: [
+        { id: 'verified', role: 'assistant', content: `[Ссылка из текста](${path}/markdown)`, metadata: {
+          contract_version: 1, validation_status: 'verified',
+          source_refs: [article, ...rejected.map((url, index) => ref(`Недопустимая ссылка ${index}`, url)),
+            { ...ref('Другой тип источника', `${path}/other`), source_type: 'other' }],
+          rag_context: { sources: [ref('Ссылка из RAG', `${path}/rag`)] },
+        } },
+        { id: 'unverified', role: 'assistant', content: 'Непроверенный ответ', metadata: {
+          contract_version: 1, validation_status: 'unverified', source_refs: [ref('Непроверенная статья', `${path}/unverified`)],
+        } },
+        { id: 'legacy', role: 'assistant', content: 'Старый ответ', metadata: {
+          validation_status: 'verified', source_refs: [ref('Старая статья', `${path}/legacy`)],
+        } },
+        { id: 'user', role: 'user', content: 'Вопрос', metadata: {
+          contract_version: 1, validation_status: 'verified', source_refs: [ref('Статья от пользователя', `${path}/user`)],
+        } },
+      ],
+      meta: null,
+    });
+
+    render(<MemoryRouter><AiAssistantPage /></MemoryRouter>);
+    await selectFirst();
+    expect(await screen.findByRole('link', { name: 'Настройка ЛК' })).toHaveAttribute('href', article.navigation.url);
+    expect(screen.queryByRole('link', { name: /Недопустимая ссылка|Другой тип источника|Ссылка из RAG|Ссылка из текста|Непроверенная статья|Старая статья|Статья от пользователя/ }))
+      .not.toBeInTheDocument();
+    expect(screen.getByText(/\[Ссылка из текста\]/)).toBeInTheDocument();
+  });
 
   it('keeps the new draft and removes only sent attachments after manually checking a timed-out request', async () => {
     const clock = vi.spyOn(Date, 'now').mockReturnValue(factsNow);

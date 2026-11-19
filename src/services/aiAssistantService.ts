@@ -1,5 +1,7 @@
 import { API_URL, authApi, userManagementService } from '@/utils/api';
 import { getJsonAuthHeaders } from '@/utils/authTokenStorage';
+import { encodeKnowledgeArticleSlug, isKnowledgeArticleSlug } from '@/utils/knowledgeArticleRoutes';
+import type { KnowledgeArticleDetail } from '@/types/knowledgeHub';
 import type { OrganizationTeamPage } from '@/types/organization-team';
 import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantChatSubmission, AiAssistantRequestAccepted, AiAssistantRequestTerminated, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantProgress, AiAssistantProgressCode, AiAssistantInterimResult, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage, AiAssistantSourcePreview } from '@/types/aiAssistant';
 
@@ -130,6 +132,11 @@ export const aiAssistantService = {
   createConversation: async (title?: string, signal?: AbortSignal) => normalizeConversation((await request<AiAssistantConversation>('/conversations', post({ title }, signal))).data),
   deleteConversation: async (id: string) => { await request<null>(`/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
   getSourcePreview: async (conversationId: string, messageId: string, sourceIndex: number, signal?: AbortSignal) => (await request<AiAssistantSourcePreview>(`/conversations/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}/sources/${sourceIndex}`, { signal })).data,
+  getKnowledgeArticle: async (slug: string, signal?: AbortSignal): Promise<KnowledgeArticleDetail> => {
+    if (!isKnowledgeArticleSlug(slug)) throw new AssistantApiError('Материал не найден или недоступен.', 404);
+    const { data } = await request<KnowledgeArticleDetail>(`/knowledge/articles/${encodeKnowledgeArticleSlug(slug)}`, { signal, redirect: 'error' });
+    return data;
+  },
   getHistory: async (id: string, page = 1, signal?: AbortSignal) => {
     const response = await request<AiAssistantMessage[]>(`/conversations/${encodeURIComponent(id)}/history?page=${page}&per_page=30&contract_version=1`, { signal });
     const active = response.meta?.active_request;

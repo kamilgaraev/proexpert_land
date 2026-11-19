@@ -157,4 +157,15 @@ describe('dashboard route guards', () => {
 
     expect(await screen.findByText('База знаний ЛК')).toBeInTheDocument();
   });
+
+  it('opens the article page for the dashboard knowledge deep link', async () => {
+    render(
+      <MemoryRouter initialEntries={['/dashboard/help/knowledge/first-project']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText('Материал базы знаний')).toBeInTheDocument();
+    expect(screen.queryByText('База знаний ЛК')).not.toBeInTheDocument();
+  });
 });

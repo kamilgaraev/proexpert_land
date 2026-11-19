@@ -100,12 +100,6 @@ export const knowledgeHubApi = {
     return unwrap<{ id: number }>(response as { data: KnowledgeHubApiEnvelope<{ id: number }> });
   },
 
-  getArticle: async (slug: string): Promise<KnowledgeArticleDetail> => {
-    const response = await api.get(`${KNOWLEDGE_HUB_PATH}/articles/${encodeURIComponent(slug)}`);
-
-    return unwrap<KnowledgeArticleDetail>(response as { data: KnowledgeHubApiEnvelope<KnowledgeArticleDetail> });
-  },
-
   getChangelog: async (
     filters?: Omit<KnowledgeHubFilters, 'kind' | 'category'>,
   ): Promise<KnowledgeHubPaginatedResponse<KnowledgeArticleSummary>> => {
