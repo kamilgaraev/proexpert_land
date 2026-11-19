@@ -1,10 +1,11 @@
 import { API_URL, authApi, userManagementService } from '@/utils/api';
 import { getJsonAuthHeaders } from '@/utils/authTokenStorage';
 import type { OrganizationTeamPage } from '@/types/organization-team';
-import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantChatSubmission, AiAssistantRequestAccepted, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantProgress, AiAssistantProgressCode, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage, AiAssistantSourcePreview } from '@/types/aiAssistant';
+import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantChatSubmission, AiAssistantRequestAccepted, AiAssistantRequestTerminated, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantMemory, AiAssistantMessage, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantProgress, AiAssistantProgressCode, AiAssistantInterimResult, AiAssistantDocumentSettings, AiAssistantRagStatus, AiAssistantUsage, AiAssistantSourcePreview } from '@/types/aiAssistant';
 
 type LandingResponse<T> = { success: boolean; message?: string; data: T; meta?: AiAssistantPaginationMeta };
 const assistantBaseUrl = API_URL.replace(/\/landing$/, '') + '/ai-assistant';
+const contractVersion = 1;
 export class AssistantApiError extends Error { constructor(message: string, public status: number) { super(message); } }
 const request = async <T>(path: string, options: RequestInit = {}): Promise<LandingResponse<T>> => {
   const response = await fetch(`${assistantBaseUrl}${path}`, { ...options, headers: { ...getJsonAuthHeaders(), ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers } });
@@ -15,22 +16,61 @@ const request = async <T>(path: string, options: RequestInit = {}): Promise<Land
 const normalizeConversation = (item: AiAssistantConversation): AiAssistantConversation => ({ ...item, id: String(item.id), user_id: String(item.user_id) });
 const normalizeMessage = (item: AiAssistantMessage): AiAssistantMessage => ({ ...item, id: String(item.id) });
 const normalizeParticipant = (item: AiAssistantParticipant): AiAssistantParticipant => ({ ...item, user_id: String(item.user_id) });
-const progressCodes = new Set<AiAssistantProgressCode>(['rag_search', 'estimates', 'warehouse', 'projects', 'contracts', 'procurement', 'schedule', 'work_volumes', 'materials', 'reports', 'financial_data']);
+const progressCodes = new Set<AiAssistantProgressCode>(['rag_search', 'estimates', 'warehouse', 'projects', 'contracts', 'procurement', 'schedule', 'work_volumes', 'materials', 'reports', 'financial_data', 'record_check', 'composing', 'estimate_position_search', 'estimate_position_read']);
+const validTimestamp = (value: unknown): value is string =>
+  typeof value === 'string' && Number.isFinite(Date.parse(value));
+
 const normalizeProgress = (value: unknown): AiAssistantProgress[] => {
   if (!Array.isArray(value)) return [];
   const unique = new Map<number, AiAssistantProgress>();
   for (const item of value.slice(-24)) {
     if (!item || typeof item !== 'object') continue;
     const step = item as Partial<AiAssistantProgress>;
-    if (!Number.isInteger(step.id) || (step.id ?? 0) <= 0 || !progressCodes.has(step.code as AiAssistantProgressCode) || (step.state !== 'started' && step.state !== 'completed')) continue;
-    unique.set(step.id!, { id: step.id!, code: step.code!, state: step.state });
+    if (!Number.isInteger(step.id) || (step.id ?? 0) <= 0 || !progressCodes.has(step.code as AiAssistantProgressCode) || (step.state !== 'started' && step.state !== 'completed' && step.state !== 'failed')) continue;
+    unique.set(step.id!, {
+      id: step.id!, code: step.code!, state: step.state,
+      ...(typeof step.key === 'string' && step.key.trim() && { key: step.key }),
+      ...(validTimestamp(step.at) && { at: step.at }),
+    });
   }
   return [...unique.values()].sort((left, right) => left.id - right.id).slice(-24);
 };
-const normalizeChatResult = (result: AiAssistantChatResult): AiAssistantChatResult => ({ ...result, progress: normalizeProgress(result.progress) });
-const normalizeRequestStatus = (status: AiAssistantRequestStatus): AiAssistantRequestStatus => ({
+const normalizeInterimResult = (value: AiAssistantInterimResult | null | undefined): AiAssistantInterimResult | null => {
+  if (value?.key !== 'answer' || !Number.isSafeInteger(value.revision) || value.revision <= 0
+      || typeof value.text !== 'string' || !value.text.trim() || !validTimestamp(value.published_at)
+      || (value.scope?.kind !== 'project' && value.scope?.kind !== 'organization')) return null;
+  const { kind, project_id } = value.scope;
+  return {
+    key: value.key,
+    revision: value.revision,
+    text: value.text,
+    scope: { kind, ...(kind === 'project' && typeof project_id === 'number' && Number.isSafeInteger(project_id) && project_id > 0 && { project_id }) },
+    sources: Array.isArray(value.sources)
+      ? value.sources.flatMap((source) => typeof source?.label === 'string' && source.label.trim() ? [{ label: source.label }] : [])
+      : [],
+    published_at: value.published_at,
+  };
+};
+const normalizeChatResult = (result: AiAssistantChatResult): AiAssistantChatResult => {
+  const { contract_version, outcome, coverage, evidence, billing, ui_actions, auto_open, export_task } = result;
+  const message = normalizeMessage(result.message);
+  return {
+    ...result,
+    conversation_id: String(result.conversation_id),
+    message: contract_version === 1
+      ? { ...message, metadata: { contract_version, outcome, coverage, evidence, billing, ui_actions, auto_open, export_task, ...message.metadata } }
+      : message,
+    progress: normalizeProgress(result.progress),
+  };
+};
+const normalizeRequestStatus = <T extends AiAssistantRequestStatus>(status: T): T => ({
   ...status,
+  conversation_id: status.conversation_id == null ? null : String(status.conversation_id),
   progress: normalizeProgress(status.progress),
+  accepted_at: validTimestamp(status.accepted_at) ? status.accepted_at : undefined,
+  elapsed_seconds: typeof status.elapsed_seconds === 'number' && Number.isFinite(status.elapsed_seconds) && status.elapsed_seconds >= 0
+    ? status.elapsed_seconds : undefined,
+  interim_result: normalizeInterimResult(status.interim_result),
   ...(status.response ? { response: normalizeChatResult(status.response) } : {}),
 });
 const post = (input: unknown, signal?: AbortSignal): RequestInit => ({ method: 'POST', body: JSON.stringify(input), signal });
@@ -84,10 +124,20 @@ export const aiAssistantService = {
     return response.blob();
   },
   getConversations: async (page = 1, signal?: AbortSignal) => { const response = await request<AiAssistantConversation[]>(`/conversations?page=${page}&per_page=20`, { signal }); return { items: response.data.map(normalizeConversation), meta: response.meta ?? null }; },
+  getConversation: async (id: string, signal?: AbortSignal) => normalizeConversation(
+    (await request<{ conversation: AiAssistantConversation }>(`/conversations/${encodeURIComponent(id)}?per_page=1`, { signal })).data.conversation,
+  ),
   createConversation: async (title?: string, signal?: AbortSignal) => normalizeConversation((await request<AiAssistantConversation>('/conversations', post({ title }, signal))).data),
   deleteConversation: async (id: string) => { await request<null>(`/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
   getSourcePreview: async (conversationId: string, messageId: string, sourceIndex: number, signal?: AbortSignal) => (await request<AiAssistantSourcePreview>(`/conversations/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}/sources/${sourceIndex}`, { signal })).data,
-  getHistory: async (id: string, page = 1, signal?: AbortSignal) => { const response = await request<AiAssistantMessage[]>(`/conversations/${encodeURIComponent(id)}/history?page=${page}&per_page=30`, { signal }); return { items: response.data.map(normalizeMessage), meta: response.meta ?? null }; },
+  getHistory: async (id: string, page = 1, signal?: AbortSignal) => {
+    const response = await request<AiAssistantMessage[]>(`/conversations/${encodeURIComponent(id)}/history?page=${page}&per_page=30&contract_version=1`, { signal });
+    const active = response.meta?.active_request;
+    const meta = active && response.meta
+      ? { ...response.meta, active_request: { ...active, conversation_id: active.conversation_id == null ? null : String(active.conversation_id) } }
+      : response.meta ?? null;
+    return { items: response.data.map(normalizeMessage), meta };
+  },
   getParticipants: async (id: string, signal?: AbortSignal) => (await request<AiAssistantParticipant[]>(`/conversations/${encodeURIComponent(id)}/participants`, { signal })).data.map(normalizeParticipant),
   setParticipants: async (id: string, participants: AiAssistantParticipant[]) => (await request<AiAssistantParticipant[]>(`/conversations/${encodeURIComponent(id)}/participants`, { method: 'PUT', body: JSON.stringify({ participants: participants.map(({ user_id, role }) => ({ user_id, role })) }) })).data.map(normalizeParticipant),
   getActiveMembers: async (page: number, signal?: AbortSignal) => { const response = await userManagementService.getOrganizationTeam({ search: '', page, per_page: 50 }, signal ?? new AbortController().signal) as OrganizationTeamPage; if (!Array.isArray(response.data)) throw new Error('Не удалось загрузить сотрудников.'); return { items: response.data.filter((item) => item.is_active), meta: response.meta }; },
@@ -96,28 +146,32 @@ export const aiAssistantService = {
   updateMemory: async (id: string, content: string) => (await request<AiAssistantMemory>(`/memory/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ content, confirmed: true }) })).data,
   deleteMemory: async (id: string) => { await request<null>(`/memory/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
   getBalance: async (signal?: AbortSignal) => (await request<AiAssistantCreditsBalance>('/credits/balance', { signal })).data,
-  getQuote: async (input: AiAssistantChatInput, signal?: AbortSignal) => (await request<AiAssistantQuote>('/credits/quote', post(input, signal))).data,
+  getQuote: async (input: AiAssistantChatInput, signal?: AbortSignal) => (await request<AiAssistantQuote>('/credits/quote', post({ ...input, contract_version: contractVersion }, signal))).data,
   purchase: async (pack_id: string) => (await request<{ order_id: string; confirmation_url: string }>('/credits/purchase', post({ pack_id }))).data,
   chat: async (input: AiAssistantChatInput & { quote_id: string }, signal?: AbortSignal): Promise<AiAssistantChatSubmission> => {
-    const { response, payload } = await fetchJsonWithTimeout<{ success?: boolean; message?: string; data?: unknown }>(`${assistantBaseUrl}/chat`, { ...post({ ...input, async: true }, signal), headers: { ...getJsonAuthHeaders(), 'Content-Type': 'application/json' } }, 30_000);
+    const { response, payload } = await fetchJsonWithTimeout<{ success?: boolean; message?: string; data?: unknown }>(`${assistantBaseUrl}/chat`, { ...post({ ...input, async: true, contract_version: contractVersion }, signal), headers: { ...getJsonAuthHeaders(), 'Content-Type': 'application/json' } }, 30_000);
     const data = payload.data ?? payload;
     if (!response.ok || payload.success === false) throw new AssistantApiError(payload.message || 'Не удалось выполнить запрос к помощнику.', response.status);
     if (response.status === 202) {
-      const accepted = data as Partial<Extract<AiAssistantChatSubmission, { status: string }>>;
-      if (!accepted || typeof accepted.request_id !== 'string' || accepted.status !== 'running') throw new AssistantApiError('Не удалось подтвердить запуск запроса.', response.status);
-      return { ...accepted, progress: normalizeProgress(accepted.progress) } as AiAssistantRequestAccepted;
+      const accepted = data as Partial<AiAssistantRequestAccepted>;
+      if (!accepted || typeof accepted.request_id !== 'string' || !(accepted.status === 'running' || accepted.status === 'queued' || accepted.status === 'cancel_requested')) throw new AssistantApiError('Не удалось подтвердить запуск запроса.', response.status);
+      return normalizeRequestStatus(accepted as AiAssistantRequestAccepted);
+    }
+    const terminal = data as Partial<AiAssistantRequestTerminated>;
+    if (response.status === 200 && typeof terminal?.request_id === 'string' && (terminal.status === 'failed' || terminal.status === 'cancelled')) {
+      return normalizeRequestStatus({ ...terminal, request_id: terminal.request_id, conversation_id: terminal.conversation_id ?? null, status: terminal.status });
     }
     const result = data as AiAssistantChatResult;
     if (!result || result.request_id === undefined || result.conversation_id === undefined || !result.message || !result.credit_usage) throw new AssistantApiError(payload.message || 'Не удалось выполнить запрос к помощнику.', response.status);
-    return { ...normalizeChatResult(result), conversation_id: String(result.conversation_id), message: normalizeMessage(result.message) };
+    return normalizeChatResult(result);
   },
   getRequest: async (id: string, signal?: AbortSignal) => {
-    const path = `/requests/${encodeURIComponent(id)}`;
+    const path = `/requests/${encodeURIComponent(id)}?contract_version=${contractVersion}`;
     const { response, payload } = await fetchJsonWithTimeout<Partial<LandingResponse<AiAssistantRequestStatus>>>(`${assistantBaseUrl}${path}`, { headers: getJsonAuthHeaders(), signal }, 15_000);
     if (!response.ok || payload.success === false || payload.data === undefined) throw new AssistantApiError(payload.message || 'Не удалось проверить состояние запроса.', response.status);
     return normalizeRequestStatus(payload.data);
   },
-  cancelRequest: async (id: string) => (await request<AiAssistantRequestStatus>(`/requests/${encodeURIComponent(id)}/cancel`, post({}))).data,
+  cancelRequest: async (id: string) => (await request<AiAssistantRequestStatus>(`/requests/${encodeURIComponent(id)}/cancel`, post({ contract_version: contractVersion }))).data,
   previewAction: async (conversation_id: string, action: AiAssistantAction) => (await request<AiAssistantActionPreview>('/actions/preview', post({ conversation_id, action }))).data,
   executeAction: async (conversation_id: string, preview: AiAssistantActionPreview) => (await request<{ message?: string }>('/actions/execute', post({ conversation_id, action: { id: preview.action.id, preview_token: preview.preview_token, confirmed: true } }))).data,
 };
