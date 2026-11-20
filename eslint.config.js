@@ -13,6 +13,7 @@ export default tseslint.config(
     'dist/**',
     'dist-lk/**',
     'node_modules/**',
+    'output/',
     'server/**',
   ]),
   {

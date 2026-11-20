@@ -26,21 +26,19 @@ export const SEOImage: React.FC<SEOImageProps> = ({
   // Генерируем SEO-оптимизированный alt текст
   const seoAlt = keyword ? `${alt} - ${keyword}` : alt;
   
-  // Добавляем structured data для изображения
-  const imageSchema = {
-    "@context": "https://schema.org",
-    "@type": "ImageObject",
-    "url": src,
-    "name": seoAlt,
-    "description": title || alt,
-    "width": width,
-    "height": height,
-    "encodingFormat": getImageFormat(src)
-  };
-
   React.useEffect(() => {
     // Добавляем schema для изображения
     if (priority) {
+      const imageSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'ImageObject',
+        url: src,
+        name: seoAlt,
+        description: title || alt,
+        width,
+        height,
+        encodingFormat: getImageFormat(src),
+      };
       const script = document.createElement('script');
       script.type = 'application/ld+json';
       script.text = JSON.stringify(imageSchema);
@@ -50,7 +48,7 @@ export const SEOImage: React.FC<SEOImageProps> = ({
         document.head.appendChild(script);
       }
     }
-  }, [src, priority]);
+  }, [src, priority, seoAlt, title, alt, width, height]);
 
   return (
     <>

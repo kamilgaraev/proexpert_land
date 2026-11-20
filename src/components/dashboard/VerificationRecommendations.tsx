@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   LightBulbIcon, 
@@ -7,7 +7,7 @@ import {
   XCircleIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
-import { organizationService, VerificationRecommendations as VerificationRecommendationsType, UserMessage } from '@utils/api';
+import { organizationService, VerificationRecommendations as VerificationRecommendationsType } from '@utils/api';
 
 interface VerificationRecommendationsProps {
   organizationId?: number;
@@ -25,30 +25,36 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
   refreshTrigger
 }) => {
   const [recommendations, setRecommendations] = useState<VerificationRecommendationsType | null>(null);
-  const [, setUserMessage] = useState<UserMessage | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const onRecommendationsLoadRef = useRef(onRecommendationsLoad);
 
   useEffect(() => {
-    loadRecommendations();
-  }, [organizationId, refreshTrigger]);
+    onRecommendationsLoadRef.current = onRecommendationsLoad;
+  }, [onRecommendationsLoad]);
 
-  const loadRecommendations = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await organizationService.getVerificationRecommendations();
-      if (response.success) {
-        setRecommendations(response.data.recommendations);
-        setUserMessage(response.data.user_message);
-        onRecommendationsLoad?.(response.data.recommendations);
+  useEffect(() => {
+    let active = true;
+    const loadRecommendations = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await organizationService.getVerificationRecommendations();
+        if (active && response.success) {
+          setRecommendations(response.data.recommendations);
+          onRecommendationsLoadRef.current?.(response.data.recommendations);
+        }
+      } catch {
+        if (active) setError('Не удалось загрузить рекомендации');
+      } finally {
+        if (active) setLoading(false);
       }
-    } catch (err: any) {
-      setError('Не удалось загрузить рекомендации');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    void loadRecommendations();
+    return () => {
+      active = false;
+    };
+  }, [organizationId, refreshTrigger]);
 
   const getIssueIcon = (type: string) => {
     switch (type) {
@@ -288,4 +294,4 @@ const VerificationRecommendations: React.FC<VerificationRecommendationsProps> = 
   );
 };
 
-export default VerificationRecommendations; 
+export default VerificationRecommendations;

@@ -38,14 +38,13 @@ export const useInvitationsList = (initialFilters: InvitationFilters = {}): UseI
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<InvitationFilters>(initialFilters);
 
-  const loadInvitations = useCallback(async (isLoadMore = false) => {
+  const loadInvitations = useCallback(async (currentPage: number, isLoadMore = false) => {
     try {
       if (!isLoadMore) {
         setLoading(true);
         setError(null);
       }
 
-      const currentPage = isLoadMore ? (pagination?.current_page || 0) + 1 : 1;
       const response = await contractorInvitationsService.getIncomingInvitations({
         ...filters,
         per_page: filters.per_page || 15,
@@ -67,21 +66,21 @@ export const useInvitationsList = (initialFilters: InvitationFilters = {}): UseI
     } finally {
       setLoading(false);
     }
-  }, [filters, pagination?.current_page]);
+  }, [filters]);
 
   const refreshInvitations = useCallback(() => {
-    return loadInvitations(false);
+    return loadInvitations(1);
   }, [loadInvitations]);
 
   const loadMore = useCallback(() => {
-    return loadInvitations(true);
-  }, [loadInvitations]);
+    return loadInvitations((pagination?.current_page || 0) + 1, true);
+  }, [loadInvitations, pagination?.current_page]);
 
   const hasMore = pagination?.has_more_pages || false;
 
   useEffect(() => {
-    loadInvitations(false);
-  }, [filters]);
+    void refreshInvitations();
+  }, [refreshInvitations]);
 
   return {
     invitations,

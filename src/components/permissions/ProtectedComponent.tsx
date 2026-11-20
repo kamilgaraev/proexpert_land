@@ -43,12 +43,11 @@ export const ProtectedComponent: React.FC<ProtectedComponentProps> = ({
   ...options
 }) => {
   const { isLoaded, isLoading, error } = usePermissions();
+  const hasAccess = useCanAccess(options);
 
   if (isLoading || (!isLoaded && !error)) {
     return <div className={className}><PageLoading message="Загрузка прав..." /></div>;
   }
-
-  const hasAccess = useCanAccess(options);
 
   if (hasAccess) {
     return <div className={className}>{children}</div>;

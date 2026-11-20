@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { VerificationRecommendations as Recommendations } from '@utils/api';
 import VerificationRecommendations from './VerificationRecommendations';
@@ -76,5 +76,32 @@ describe('VerificationRecommendations status', () => {
     render(<VerificationRecommendations onVerificationRequest={verify} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Запустить верификацию данных' }));
     expect(verify).toHaveBeenCalledOnce();
+  });
+
+  it('discards recommendations from the previous organization on a late response', async () => {
+    const first = recommendations();
+    const second = recommendations({ current_score: 85 });
+    type RecommendationResponse = { success: boolean; data: { recommendations: Recommendations } };
+    let resolveFirst!: (value: RecommendationResponse) => void;
+    const firstResponse = new Promise<RecommendationResponse>((resolve) => { resolveFirst = resolve; });
+    getRecommendations.mockReturnValueOnce(firstResponse).mockResolvedValueOnce({
+      success: true,
+      data: { recommendations: second },
+    });
+    const onFirstLoad = vi.fn();
+    const onSecondLoad = vi.fn();
+    const { rerender } = render(
+      <VerificationRecommendations organizationId={1} onRecommendationsLoad={onFirstLoad} />,
+    );
+    await act(async () => {
+      rerender(<VerificationRecommendations organizationId={2} onRecommendationsLoad={onSecondLoad} />);
+    });
+    await act(async () => {
+      resolveFirst({ success: true, data: { recommendations: first } });
+    });
+
+    expect(getRecommendations).toHaveBeenCalledTimes(2);
+    expect(onFirstLoad).not.toHaveBeenCalled();
+    expect(onSecondLoad).toHaveBeenCalledExactlyOnceWith(second);
   });
 });

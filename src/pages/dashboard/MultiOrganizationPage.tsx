@@ -89,15 +89,15 @@ const MultiOrganizationPage = () => {
   useEffect(() => {
     const initializeData = async () => {
       const available = await checkAvailability();
-      if (available || availability) {
+      if (available) {
         await Promise.all([
           fetchHierarchy(),
           fetchAccessibleOrganizations(),
         ]);
       }
     };
-    initializeData();
-  }, []);
+    void initializeData();
+  }, [checkAvailability, fetchAccessibleOrganizations, fetchHierarchy]);
 
   useEffect(() => {
     if (hierarchy?.parent?.group_id) {

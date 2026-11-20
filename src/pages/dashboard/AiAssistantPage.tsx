@@ -1,5 +1,5 @@
 import AiAssistantCitation, { isDocumentCitation } from './AiAssistantCitation';
-import { useContext, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Bot, Loader2, Paperclip, Plus, Send, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -188,7 +188,9 @@ const AiAssistantPage = () => {
   const [balance, setBalance] = useState<AiAssistantCreditsBalance | null>(null);
   const [usage, setUsage] = useState<AiAssistantUsage | null>(null);
   const [{ text: question, revision: questionRevision }, setQuestionDraft] = useState({ text: '', revision: 0 });
-  const setQuestion = (text: string) => setQuestionDraft((draft) => ({ text, revision: draft.revision + 1 }));
+  const setQuestion = useCallback((text: string) => {
+    setQuestionDraft((draft) => ({ text, revision: draft.revision + 1 }));
+  }, []);
   const [attachments, setAttachments] = useState<DraftAttachment[]>([]);
   const attachmentsRef = useRef(attachments);
   attachmentsRef.current = attachments;
@@ -222,7 +224,11 @@ const AiAssistantPage = () => {
   const canPurchaseCredits = balance?.billing_mode !== 'shadow' && balance?.charging_enabled === true && balance?.pack_purchase_enabled !== false && (balance?.can_purchase ?? balance?.can_manage_billing ?? canManageBilling);
   const visibleSteps = latestSteps(activeProgress);
   const observingRequest = requestStartedAt !== null;
-  const current = (version: number) => mounted.current && version === epoch.current && identityRef.current === identity;
+  const current = useCallback(
+    (version: number) => mounted.current && version === epoch.current && identityRef.current === identity,
+    [identity],
+  );
+  const advanceEpoch = useCallback(() => ++epoch.current, []);
   useEffect(() => {
     if (requestStartedAt === null) return;
     const updateElapsed = () => setElapsedSeconds(Math.max(0, Math.floor((Date.now() - requestStartedAt) / 1000)));
@@ -266,7 +272,7 @@ const AiAssistantPage = () => {
     if (activeRequest.current || busyRef.current) return;
     historyController.current?.abort();
     const controller = new AbortController(); historyController.current = controller;
-    const version = ++epoch.current;
+    const version = advanceEpoch();
     const selectedScope = assistantTypedFactsScope(user?.id, user?.current_organization_id, selected.id);
     typedFacts.current = emptyAssistantTypedFacts(selectedScope);
     attachmentControllers.current.forEach((item) => item.abort()); attachmentControllers.current.clear(); uploadingAttachments.current = null; setIsUploadingAttachments(false); setAttachments((items) => { items.forEach((item) => URL.revokeObjectURL(item.preview)); return []; });
@@ -289,7 +295,13 @@ const AiAssistantPage = () => {
     } catch (reason) { if (current(version) && !controller.signal.aborted) setError(failureText(reason)); }
     finally { if (current(version)) setLoading(false); }
   };
+  const selectConversationRef = useRef(selectConversation);
   useEffect(() => {
+    selectConversationRef.current = selectConversation;
+  });
+
+  useEffect(() => {
+    const attachmentUploads = attachmentControllers.current;
     mounted.current = true;
     busyOperation.current = null;
     typedFacts.current = emptyAssistantTypedFacts(null);
@@ -305,7 +317,7 @@ const AiAssistantPage = () => {
         try {
           const selected = list.items.find((item) => item.id === pending.conversationId)
             ?? await aiAssistantService.getConversation(pending.conversationId, controller.signal);
-          if (!controller.signal.aborted && current(version)) await selectConversation(selected);
+          if (!controller.signal.aborted && current(version)) await selectConversationRef.current(selected);
         } catch (reason) {
           if (controller.signal.aborted || !current(version)) return;
           if (reason instanceof AssistantApiError && [403, 404].includes(reason.status)) updatePendingAssistantRequest(identity, pending, false);
@@ -314,8 +326,17 @@ const AiAssistantPage = () => {
       }
       if (!controller.signal.aborted) setLoading(false);
     }).catch((reason) => { if (!controller.signal.aborted) { setError(failureText(reason)); setLoading(false); } });
-    return () => { mounted.current = false; epoch.current++; controller.abort(); historyController.current?.abort(); attachmentControllers.current.forEach((item) => item.abort()); attachmentControllers.current.clear(); attachmentsRef.current.forEach((item) => URL.revokeObjectURL(item.preview)); const request = activeRequest.current; if (request) request.controller.abort(); };
-  }, [user?.id, user?.current_organization_id]);
+    return () => {
+      mounted.current = false;
+      advanceEpoch();
+      controller.abort();
+      historyController.current?.abort();
+      attachmentUploads.forEach((item) => item.abort());
+      attachmentUploads.clear();
+      attachmentsRef.current.forEach((item) => URL.revokeObjectURL(item.preview));
+      activeRequest.current?.controller.abort();
+    };
+  }, [advanceEpoch, current, identity, setQuestion]);
   const addImages = async (files: FileList | null) => {
     if (!files || !conversation || uploadingAttachments.current || attachments.length >= 2) return;
     const batchId = Symbol(); uploadingAttachments.current = batchId; setIsUploadingAttachments(true); setApproved(null);

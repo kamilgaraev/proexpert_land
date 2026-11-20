@@ -42,17 +42,6 @@ interface UseSEOProps {
 }
 
 export const useSEO = (props: UseSEOProps = {}) => {
-  if (!isBrowser) {
-    const noop = () => {};
-
-    return {
-      updateSEO: noop,
-      setMetaTag: noop,
-      setLinkTag: noop,
-      setStructuredData: noop,
-    } as const;
-  }
-
   const location = useLocation();
 
   const setMetaTag = useCallback((name: string, content: string, property = false) => {
@@ -201,8 +190,21 @@ export const useSEO = (props: UseSEOProps = {}) => {
   ]);
 
   useEffect(() => {
-    updateSEO();
+    if (isBrowser) {
+      updateSEO();
+    }
   }, [updateSEO]);
+
+  if (!isBrowser) {
+    const noop = () => {};
+
+    return {
+      updateSEO: noop,
+      setMetaTag: noop,
+      setLinkTag: noop,
+      setStructuredData: noop,
+    } as const;
+  }
 
   return {
     updateSEO,

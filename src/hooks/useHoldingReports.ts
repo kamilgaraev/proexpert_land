@@ -292,6 +292,8 @@ export const useHoldingReports = () => {
   };
 };
 
+const initialReportPagination = { page: 1, per_page: 50 };
+
 export const useProjectsReport = () => {
   const {
     projectsReport,
@@ -306,10 +308,9 @@ export const useProjectsReport = () => {
 
   const [filters, setFilters] = useState<ProjectsSummaryFilters>({});
 
-  const loadReport = useCallback(async (newFilters?: ProjectsSummaryFilters) => {
-    const targetFilters = newFilters || filters;
-    await fetchProjectsSummary(targetFilters);
-  }, [fetchProjectsSummary, filters]);
+  const loadReport = useCallback(async (reportFilters: ProjectsSummaryFilters = {}) => {
+    await fetchProjectsSummary(reportFilters);
+  }, [fetchProjectsSummary]);
 
   const updateFilters = useCallback((newFilters: Partial<ProjectsSummaryFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -345,15 +346,11 @@ export const useContractsReport = () => {
     formatDate
   } = useHoldingReports();
 
-  const [filters, setFilters] = useState<ContractsSummaryFilters>({
-    page: 1,
-    per_page: 50
-  });
+  const [filters, setFilters] = useState<ContractsSummaryFilters>(initialReportPagination);
 
-  const loadReport = useCallback(async (newFilters?: ContractsSummaryFilters) => {
-    const targetFilters = newFilters || filters;
-    await fetchContractsSummary(targetFilters);
-  }, [fetchContractsSummary, filters]);
+  const loadReport = useCallback(async (reportFilters: ContractsSummaryFilters = initialReportPagination) => {
+    await fetchContractsSummary(reportFilters);
+  }, [fetchContractsSummary]);
 
   const updateFilters = useCallback((newFilters: Partial<ContractsSummaryFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -396,10 +393,9 @@ export const useIntraGroupReport = () => {
 
   const [filters, setFilters] = useState<IntraGroupFilters>({});
 
-  const loadReport = useCallback(async (newFilters?: IntraGroupFilters) => {
-    const targetFilters = newFilters || filters;
-    await fetchIntraGroupReport(targetFilters);
-  }, [fetchIntraGroupReport, filters]);
+  const loadReport = useCallback(async (reportFilters: IntraGroupFilters = {}) => {
+    await fetchIntraGroupReport(reportFilters);
+  }, [fetchIntraGroupReport]);
 
   const updateFilters = useCallback((newFilters: Partial<IntraGroupFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -437,10 +433,9 @@ export const useConsolidatedReport = () => {
 
   const [filters, setFilters] = useState<ConsolidatedFilters>({});
 
-  const loadReport = useCallback(async (newFilters?: ConsolidatedFilters) => {
-    const targetFilters = newFilters || filters;
-    await fetchConsolidatedReport(targetFilters);
-  }, [fetchConsolidatedReport, filters]);
+  const loadReport = useCallback(async (reportFilters: ConsolidatedFilters = {}) => {
+    await fetchConsolidatedReport(reportFilters);
+  }, [fetchConsolidatedReport]);
 
   const updateFilters = useCallback((newFilters: Partial<ConsolidatedFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -476,15 +471,11 @@ export const useDetailedContractsReport = () => {
     formatDate
   } = useHoldingReports();
 
-  const [filters, setFilters] = useState<DetailedContractsFilters>({
-    page: 1,
-    per_page: 50
-  });
+  const [filters, setFilters] = useState<DetailedContractsFilters>(initialReportPagination);
 
-  const loadReport = useCallback(async (newFilters?: DetailedContractsFilters) => {
-    const targetFilters = newFilters || filters;
-    await fetchDetailedContractsReport(targetFilters);
-  }, [fetchDetailedContractsReport, filters]);
+  const loadReport = useCallback(async (reportFilters: DetailedContractsFilters = initialReportPagination) => {
+    await fetchDetailedContractsReport(reportFilters);
+  }, [fetchDetailedContractsReport]);
 
   const updateFilters = useCallback((newFilters: Partial<DetailedContractsFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));

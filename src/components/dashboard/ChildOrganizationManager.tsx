@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   BuildingOfficeIcon,
   ChartBarIcon,
@@ -44,11 +44,7 @@ export const ChildOrganizationManager: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [showStatsModal, setShowStatsModal] = useState(false);
 
-  useEffect(() => {
-    void loadOrganizations();
-  }, [searchTerm, statusFilter, sortBy, sortDirection]);
-
-  const loadOrganizations = async () => {
+  const loadOrganizations = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -71,7 +67,11 @@ export const ChildOrganizationManager: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, statusFilter, sortBy, sortDirection]);
+
+  useEffect(() => {
+    void loadOrganizations();
+  }, [loadOrganizations]);
 
   const loadOrganizationStats = async (organizationId: number) => {
     try {

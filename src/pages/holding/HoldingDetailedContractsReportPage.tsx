@@ -36,8 +36,8 @@ const HoldingDetailedContractsReportPage: React.FC = () => {
       navigate('/reports');
       return;
     }
-    loadReport();
-  }, []);
+    void loadReport();
+  }, [can, loadReport, navigate]);
 
   const handleFilterChange = (key: string, value: any) => {
     updateFilters({ [key]: value });
