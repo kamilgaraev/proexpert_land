@@ -52,8 +52,8 @@ export default tseslint.config(
       'react-hooks': reactHooks,
     },
     rules: {
-      'react-hooks/exhaustive-deps': 'off',
-      'react-hooks/rules-of-hooks': 'off',
+      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/rules-of-hooks': 'warn',
     },
   },
   {
