@@ -37,26 +37,18 @@ interface AdvancedSEOProps {
 }
 
 export const useAdvancedSEO = (props: AdvancedSEOProps = {}) => {
-  if (!isBrowser) {
-    return { seoWarnings: [] };
-  }
-
-  const location = useLocation();
-  const [seoWarnings, setSeoWarnings] = useState<string[]>([]);
+  const { pathname } = useLocation();
+  const pageName = pathname.slice(1) || 'home';
+  const pageData = getPageSEOData(pageName);
+  const finalTitle = props.title || pageData.title;
+  const finalDescription = props.description || pageData.description;
   
   useEffect(() => {
-    const pageName = location.pathname.slice(1) || 'home';
-    const pageData = getPageSEOData(pageName);
-    
-    const finalTitle = props.title || pageData.title;
-    const finalDescription = props.description || pageData.description;
+    if (!isBrowser) return;
+
     const finalKeywords = props.keywords || pageData.keywords;
     const generatedOgImage = generateOGImage(pageName, finalTitle);
     const finalOGImage = normalizeOgImageUrl(props.ogImage || generatedOgImage) || generatedOgImage;
-    
-    // Валидация SEO параметров
-    const warnings = validateSEOLength(finalTitle, finalDescription);
-    setSeoWarnings(warnings);
     
     // Обновляем meta теги
     updateMetaTags({
@@ -64,7 +56,7 @@ export const useAdvancedSEO = (props: AdvancedSEOProps = {}) => {
       description: finalDescription,
       keywords: finalKeywords,
       ogImage: finalOGImage,
-      url: `https://1мост.рф${location.pathname}`
+      url: `https://1мост.рф${pathname}`
     });
     
     // Создаем structured data
@@ -78,7 +70,7 @@ export const useAdvancedSEO = (props: AdvancedSEOProps = {}) => {
       schemas.push(generateWebPageSchema({
         name: finalTitle,
         description: finalDescription,
-        url: `https://1мост.рф${location.pathname}`,
+        url: `https://1мост.рф${pathname}`,
         breadcrumbs: props.breadcrumbs
       }));
     }
@@ -92,7 +84,7 @@ export const useAdvancedSEO = (props: AdvancedSEOProps = {}) => {
     if (props.article) {
       schemas.push(generateArticleSchema({
         ...props.article,
-        url: `https://1мост.рф${location.pathname}`
+        url: `https://1мост.рф${pathname}`
       }));
     }
     
@@ -114,9 +106,9 @@ export const useAdvancedSEO = (props: AdvancedSEOProps = {}) => {
       preloadCriticalResources();
     }
     
-  }, [location, props]);
-  
-  return { seoWarnings };
+  }, [pathname, pageName, finalTitle, finalDescription, pageData.keywords, props]);
+
+  return { seoWarnings: isBrowser ? validateSEOLength(finalTitle, finalDescription) : [] };
 };
 
 const updateMetaTags = (data: {

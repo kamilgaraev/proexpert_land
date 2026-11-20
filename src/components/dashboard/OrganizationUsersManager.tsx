@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTheme } from '../shared/ThemeProvider';
 import { multiOrganizationService } from '../../utils/api';
 import { 
@@ -80,11 +80,7 @@ export const OrganizationUsersManager: React.FC<Props> = ({ organizationId, orga
     send_invitation: true
   });
 
-  useEffect(() => {
-    loadUsers();
-  }, [organizationId, searchTerm, roleFilter, statusFilter]);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await multiOrganizationService.getChildOrganizationUsers(organizationId, {
@@ -104,7 +100,11 @@ export const OrganizationUsersManager: React.FC<Props> = ({ organizationId, orga
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, searchTerm, roleFilter, statusFilter]);
+
+  useEffect(() => {
+    void loadUsers();
+  }, [loadUsers]);
 
   const handleAddUser = async () => {
     try {
@@ -389,4 +389,4 @@ export const OrganizationUsersManager: React.FC<Props> = ({ organizationId, orga
       {/* Другие модальные окна для редактирования и удаления здесь... */}
     </div>
   );
-}; 
+};

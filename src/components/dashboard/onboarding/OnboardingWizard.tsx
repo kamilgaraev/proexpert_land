@@ -59,20 +59,14 @@ export const OnboardingWizard = ({ onComplete }: OnboardingWizardProps) => {
     setIsInitialized(true);
   }, [profile, isLoadingInitialData, availableCapabilities.length, setCapabilities, setBusinessType, setSpecializations, setCertifications]);
 
-  useEffect(() => {
-    const nextBusinessType = resolvePrimaryBusinessType(
-      onboarding.data.capabilities,
-      onboarding.data.primary_business_type
-    );
+  const { capabilities, primary_business_type: primaryBusinessType } = onboarding.data;
 
-    if (nextBusinessType !== onboarding.data.primary_business_type) {
-      onboarding.updateBusinessType(nextBusinessType);
+  useEffect(() => {
+    const nextBusinessType = resolvePrimaryBusinessType(capabilities, primaryBusinessType);
+    if (nextBusinessType !== primaryBusinessType) {
+      setBusinessType(nextBusinessType);
     }
-  }, [
-    onboarding.data.capabilities,
-    onboarding.data.primary_business_type,
-    onboarding.updateBusinessType,
-  ]);
+  }, [capabilities, primaryBusinessType, setBusinessType]);
 
   const currentWorkspaceRoute = useMemo(
     () => getPrimaryWorkspaceRoute(profile?.workspace_profile),

@@ -480,7 +480,7 @@ export const useNotifications = (
       trimMap(knownNotificationsRef.current, protectedIds);
       trimMap(readOverridesRef.current, new Set(pendingReadRef.current.keys()));
     }
-  }, [publishNotifications, refreshNotifications, scheduleMutationRefresh]);
+  }, [publishNotifications, scheduleMutationRefresh]);
 
   const markAllAsRead = useCallback(async (): Promise<void> => {
     if (pendingMarkAllRef.current) {
@@ -623,6 +623,8 @@ export const useNotifications = (
   }, [refreshNotifications]);
 
   useEffect(() => {
+    const listBuffers = activeListBuffersRef.current;
+    const countBuffers = activeCountBuffersRef.current;
     const epoch = lifecycleEpochRef.current + 1;
     lifecycleEpochRef.current = epoch;
     dedupeCacheRef.current.clear();
@@ -632,8 +634,8 @@ export const useNotifications = (
     countAbortControllerRef.current?.abort();
     listAbortControllerRef.current = null;
     countAbortControllerRef.current = null;
-    activeListBuffersRef.current.clear();
-    activeCountBuffersRef.current.clear();
+    listBuffers.clear();
+    countBuffers.clear();
     activeMarkAllBufferRef.current = null;
     readOverridesRef.current.clear();
     deleteTombstonesRef.current.clear();
@@ -715,14 +717,14 @@ export const useNotifications = (
         }
         buffer.set(key, notification);
       };
-      activeListBuffersRef.current.forEach(addToBuffer);
-      activeCountBuffersRef.current.forEach(addToBuffer);
+      listBuffers.forEach(addToBuffer);
+      countBuffers.forEach(addToBuffer);
       if (overflowed && !overflowRefreshScheduledRef.current) {
         overflowRefreshScheduledRef.current = true;
         listAbortControllerRef.current?.abort();
         countAbortControllerRef.current?.abort();
-        activeListBuffersRef.current.clear();
-        activeCountBuffersRef.current.clear();
+        listBuffers.clear();
+        countBuffers.clear();
         queueMicrotask(() => {
           overflowRefreshScheduledRef.current = false;
           if (lifecycleEpochRef.current === epoch) {
@@ -794,8 +796,8 @@ export const useNotifications = (
         lifecycleEpochRef.current += 1;
       }
 
-      activeListBuffersRef.current.clear();
-      activeCountBuffersRef.current.clear();
+      listBuffers.clear();
+      countBuffers.clear();
       listAbortControllerRef.current?.abort();
       countAbortControllerRef.current?.abort();
       leaveChannels();

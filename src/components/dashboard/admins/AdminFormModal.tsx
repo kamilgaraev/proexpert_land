@@ -95,19 +95,18 @@ const normalizeRoleOption = (role: string | AvailableRole, defaultType: 'system'
   };
 };
 
+const initialFormState: AdminFormData = {
+  name: '',
+  email: '',
+  role_slug: '',
+  password: '',
+  password_confirmation: '',
+  is_active: true,
+};
+
 const AdminFormModal: React.FC<AdminFormModalProps> = ({ isOpen, onClose, onFormSubmit, adminToEdit }) => {
   const isEditing = !!adminToEdit;
   const { user } = useAuth();
-
-  const initialFormState: AdminFormData = {
-    name: '',
-    email: '',
-    role_slug: '',
-    password: '',
-    password_confirmation: '',
-    is_active: true,
-  };
-
   const [formData, setFormData] = useState<AdminFormData>(initialFormState);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

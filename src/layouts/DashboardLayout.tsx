@@ -49,24 +49,26 @@ const DashboardLayout = () => {
     fetchProfile();
   }, [fetchProfile]);
 
-  const canViewOrganization =
-    useCanAccess({ permission: 'organization.view' }) ||
-    useCanAccess({ role: 'organization_owner' }) ||
-    useCanAccess({ role: 'organization_admin' });
+  const isOrganizationOwner = useCanAccess({ role: 'organization_owner' });
+  const isOrganizationAdmin = useCanAccess({ role: 'organization_admin' });
+  const isAccountant = useCanAccess({ role: 'accountant' });
+  const hasOrganizationViewPermission = useCanAccess({ permission: 'organization.view' });
+  const hasUserManagementPermission = useCanAccess({ permission: 'users.manage' });
+  const hasAdminManagementPermission = useCanAccess({ permission: 'users.manage_admin' });
+  const hasUserInvitationPermission = useCanAccess({ permission: 'users.invite' });
+  const hasBillingManagementPermission = useCanAccess({ permission: 'billing.manage' });
+  const hasBillingViewPermission = useCanAccess({ permission: 'billing.view' });
+  const hasMultiOrgManagementPermission = useCanAccess({ permission: 'multi-organization.manage' });
+  const hasLegacyMultiOrgManagementPermission = useCanAccess({ permission: 'multi_organization.manage' });
+  const hasAllMultiOrgPermissions = useCanAccess({ permission: 'multi-organization.*' });
+  const hasMultiOrgModule = useCanAccess({ module: 'multi-organization' });
 
-  const canManageUsers =
-    useCanAccess({ permission: 'users.manage' }) ||
-    useCanAccess({ permission: 'users.manage_admin' }) ||
-    useCanAccess({ role: 'organization_owner' }) ||
-    useCanAccess({ role: 'organization_admin' });
-
-  const canManageProjectInvitations = useCanAccess({ role: 'organization_owner' });
-
-  const canViewBilling =
-    useCanAccess({ permission: 'billing.manage' }) ||
-    useCanAccess({ permission: 'billing.view' }) ||
-    useCanAccess({ role: 'organization_owner' }) ||
-    useCanAccess({ role: 'accountant' });
+  const canViewOrganization = hasOrganizationViewPermission || isOrganizationOwner || isOrganizationAdmin;
+  const canManageUsers = hasUserManagementPermission || hasAdminManagementPermission || isOrganizationOwner || isOrganizationAdmin;
+  const canManageProjectInvitations = isOrganizationOwner;
+  const canInviteUsers = hasUserInvitationPermission || isOrganizationOwner || isOrganizationAdmin;
+  const canViewBilling = hasBillingManagementPermission || hasBillingViewPermission || isOrganizationOwner || isAccountant;
+  const canManageMultiOrg = hasMultiOrgManagementPermission || hasLegacyMultiOrgManagementPermission || hasAllMultiOrgPermissions;
 
   const { balance: actualBalance, error: balanceError, refresh: refreshBalance } = useBalance({
     enabled: canViewBilling,
@@ -74,19 +76,7 @@ const DashboardLayout = () => {
 
   const activeModules = useActiveModules();
 
-  const canInviteUsers =
-    useCanAccess({ permission: 'users.invite' }) ||
-    useCanAccess({ role: 'organization_owner' }) ||
-    useCanAccess({ role: 'organization_admin' });
-
   const { canUseMarketplace: canViewContractorMarketplace } = useContractorMarketplaceAccess();
-
-  const canManageMultiOrg =
-    useCanAccess({ permission: 'multi-organization.manage' }) ||
-    useCanAccess({ permission: 'multi_organization.manage' }) ||
-    useCanAccess({ permission: 'multi-organization.*' });
-
-  const hasMultiOrgModule = useCanAccess({ module: 'multi-organization' });
 
   const handleLogout = () => {
     logout();
