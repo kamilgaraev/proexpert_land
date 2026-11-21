@@ -21,6 +21,11 @@ export const marketingBlogArticles = {
     href: "/blog/reestr-zamechanii-k-proektnoi-dokumentatsii",
     purpose: "Как привязать замечание к чертежу или информационной модели и проверить исправление.",
   },
+  handoverPunchList: {
+    title: "Панч-лист при приёмке работ: пример и шаблон Excel",
+    href: "/blog/panch-list-pri-priemke",
+    purpose: "Как записать замечание по зоне, назначить исполнителя и проверить устранение.",
+  },
   managerMorning: {
     title:
       "План-факт в строительстве: как контролировать сроки, объемы и бюджет",
