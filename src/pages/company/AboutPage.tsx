@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
-import { marketingPaths, marketingSeo } from "@/data/marketingRegistry";
+import { legalProvider } from "@/data/marketing/legal";
+import { marketingCompany, marketingPaths, marketingSeo } from "@/data/marketingRegistry";
 import { useSEO } from "@/hooks/useSEO";
 import "@/styles/marketing-company.css";
 
@@ -78,6 +79,26 @@ const AboutPage = () => {
               работает и какие действия выполняет.
             </p>
           </article>
+        </div>
+      </section>
+      <section
+        id="company"
+        className="most-container most-company-section most-company-split"
+      >
+        <h2>Кто предоставляет МОСТ</h2>
+        <div className="most-company-prose">
+          <p>
+            Сервис предоставляет {legalProvider.name}. Реквизиты и условия
+            предоставления доступа опубликованы в{" "}
+            <Link to={marketingPaths.offer}>оферте</Link>.
+          </p>
+          <p>
+            По вопросам подключения, демонстрации и работы с продуктом
+            напишите на{" "}
+            <a href={marketingCompany.emailHref}>{marketingCompany.email}</a>.
+            Укажите задачу и роль команды, чтобы мы могли предложить нужный
+            сценарий.
+          </p>
         </div>
       </section>
       <section
