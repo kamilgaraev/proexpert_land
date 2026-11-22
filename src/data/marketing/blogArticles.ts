@@ -4,6 +4,12 @@ import type {
 } from "../../types/marketing";
 
 export const marketingBlogArticles = {
+  ptoTemplates: {
+    title: "Шаблоны для ПТО в строительстве — Excel и Word с примерами",
+    href: "/blog/shablony-dlya-pto",
+    purpose:
+      "Пять файлов для графика, общего журнала, скрытых работ, входного контроля и реестра документов.",
+  },
   foremanOrder: {
     title: "Общий журнал работ: образцы заполнения и ведение в 2026 году",
     href: "/blog/obshchiy-zhurnal-rabot-v-stroitelstve",
@@ -42,7 +48,7 @@ export const marketingBlogArticles = {
   },
   contractorControl: {
     title:
-      "График производства работ в строительстве: как составить, вести и обновлять по факту",
+      "График производства работ в строительстве — шаблон Excel с планом и фактом",
     href: "/blog/grafik-proizvodstva-rabot-v-stroitelstve",
     purpose:
       "Как связать последовательность работ, ответственность и фактические сроки.",

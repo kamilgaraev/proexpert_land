@@ -1409,7 +1409,7 @@ export const marketingSeoLandingPages: Record<string, MarketingSeoLandingPage> =
           description: "Получайте фактические подтверждения с площадки.",
         },
       ],
-      blogLinks: getMarketingBlogLinks("ptoWorkspace", "foremanOrder"),
+      blogLinks: getMarketingBlogLinks("ptoTemplates", "ptoWorkspace", "foremanOrder"),
       contactHighlights: [
         "Покажем перечень исполнительной документации.",
         "Покажем цикл замечания и повторной проверки.",
