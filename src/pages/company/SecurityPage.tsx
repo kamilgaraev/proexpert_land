@@ -57,6 +57,13 @@ const SecurityPage = () => {
             </p>
           </li>
         </ol>
+        <p className="most-company-prose">
+          Например, прораб открывает задания и прикреплённые файлы на
+          назначенном объекте. Просмотр бюджета, изменение документов и
+          согласование платежей определяются отдельными правами. Чтобы
+          показать запись сотруднику, команда сначала проверяет доступ к
+          организации, объекту и действию.
+        </p>
       </section>
       <section id="principles" className="most-container most-company-section">
         <h2>Как устроена работа с данными</h2>
@@ -74,6 +81,29 @@ const SecurityPage = () => {
               </ul>
             </article>
           ))}
+        </div>
+      </section>
+      <section
+        id="recovery"
+        className="most-container most-company-section most-company-split"
+      >
+        <h2>Выгрузка и восстановление данных</h2>
+        <div className="most-company-prose">
+          <p>
+            Доступные в разделе выгрузки выполняет сотрудник с нужными
+            правами. Условия согласованного возврата данных после завершения
+            работы с сервисом описаны в{" "}
+            <Link to={marketingPaths.offer}>публичной оферте</Link>.
+          </p>
+          <p>
+            Резервное копирование и восстановление указаны в{" "}
+            <Link to={marketingPaths.privacy}>
+              политике конфиденциальности
+            </Link>
+            . Если нужно уточнить порядок восстановления, напишите, какая
+            организация, объект и записи затронуты, через{" "}
+            <Link to={marketingPaths.contact}>форму связи</Link>.
+          </p>
         </div>
       </section>
       <section
