@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AiAssistantCoveragePanel from './AiAssistantCoveragePanel';
 import AiAssistantAttachmentImage from './AiAssistantAttachmentImage';
+import AiAssistantPresentation from './AiAssistantPresentation';
 import { assistantTypedFactsScope, assistantTypedFactsSnapshot, emptyAssistantTypedFacts, receiveAssistantTypedFacts } from './assistantTypedFacts';
 import { readPendingAssistantRequests, updatePendingAssistantRequest, type PendingAssistantRequest } from './assistantPendingRequests';
 import { AuthContext } from '@/contexts/AuthContext';
@@ -100,19 +101,27 @@ const billingReasonLabels = new Map([
 ]);
 const unsupportedRevealTypes = new Set(['warehouse_balance', 'design_ifc_model_element', 'schedule_task', 'estimate_item']);
 
+function hasTurnSources(metadata: AiAssistantMessage['metadata']): boolean {
+  return (metadata?.decision_contract === 2 || metadata?.decision_contract === 3) && !!metadata.source_refs?.length;
+}
+
 function AssistantResultDetails({ metadata }: { metadata: AiAssistantMessage['metadata'] }) {
-  if (metadata?.contract_version !== 1) return null;
+  const presentation = <AiAssistantPresentation presentation={metadata?.presentation} />;
+  if (metadata?.contract_version !== 1) return presentation;
   const outcome = metadata.outcome ? outcomeLabels.get(metadata.outcome) : undefined;
   const coverage = metadata.coverage?.status;
   const charges = metadata.billing?.charged_minor;
   const billingReason = billingReasonLabels.get(metadata.billing?.reason ?? '');
   const evidence = Array.isArray(metadata.evidence) ? metadata.evidence.flatMap((item) => item?.source_ref ? [item.source_ref] : []) : [];
   const hasLegacySources = !!(metadata.source_refs?.length || metadata.rag_context?.sources?.length || metadata.entity_references?.length);
+  const canonicalSources = hasTurnSources(metadata);
   const evidenceTitles = [...new Set(evidence
-    .filter((source) => !hasLegacySources || unsupportedRevealTypes.has(source.entity_type ?? ''))
+    .filter((source) => !hasLegacySources || (!canonicalSources && unsupportedRevealTypes.has(source.entity_type ?? '')))
     .map((source) => source.display_label ?? source.title ?? source.name)
     .filter((title): title is string => typeof title === 'string' && !!title.trim()))];
-  const articleLinks = metadata.validation_status === 'verified' && Array.isArray(metadata.source_refs)
+  const canLinkArticle = metadata.validation_status === 'verified'
+    || (metadata.validation_status === 'partial' && canonicalSources);
+  const articleLinks = canLinkArticle && Array.isArray(metadata.source_refs)
     ? metadata.source_refs.flatMap((source) => {
       if (source?.source_type !== 'knowledge' || source.entity_type !== 'knowledge_article' || typeof source.display_label !== 'string') return [];
       const label = source.display_label.trim();
@@ -122,17 +131,22 @@ function AssistantResultDetails({ metadata }: { metadata: AiAssistantMessage['me
     : [];
   const unsupportedReveal = (Array.isArray(metadata.ui_actions) && metadata.ui_actions.some((action) => action?.type === 'reveal_source'))
     || evidence.some((source) => unsupportedRevealTypes.has(source.entity_type ?? ''));
-  return <div className="space-y-1 text-xs text-muted-foreground">
-    {outcome && <p className="font-medium">{outcome}</p>}
-    {coverage === 'partial' && <p>Проверена часть доступных данных.</p>}
-    {evidenceTitles.length > 0 && <ul aria-label="Источники" className="list-disc pl-4">{evidenceTitles.map((title) => <li key={title}>{title}</li>)}</ul>}
-    {articleLinks.length > 0 && <ul aria-label="Статьи базы знаний" className="list-disc pl-4">
-      {articleLinks.map(({ label, path }) => <li key={path}><Link to={path} className="underline">{label}</Link></li>)}
-    </ul>}
-    {typeof charges === 'number' && Number.isFinite(charges) && charges >= 0 && <p>Списано единиц МОСТ: {assistantUnits(charges)}</p>}
-    {billingReason && <p>{billingReason}</p>}
-    {unsupportedReveal && <p>Открытие записи из ответа недоступно в личном кабинете.</p>}
-  </div>;
+  return <>
+    {(outcome || coverage === 'partial') && <div className="space-y-1 text-xs text-muted-foreground">
+      {outcome && <p className="font-medium">{outcome}</p>}
+      {coverage === 'partial' && <p>Проверена часть доступных данных.</p>}
+    </div>}
+    {presentation}
+    <div className="space-y-1 text-xs text-muted-foreground">
+      {evidenceTitles.length > 0 && <ul aria-label="Источники" className="list-disc pl-4">{evidenceTitles.map((title) => <li key={title}>{title}</li>)}</ul>}
+      {articleLinks.length > 0 && <ul aria-label="Статьи базы знаний" className="list-disc pl-4">
+        {articleLinks.map(({ label, path }) => <li key={path}><Link to={path} className="underline">{label}</Link></li>)}
+      </ul>}
+      {typeof charges === 'number' && Number.isFinite(charges) && charges >= 0 && <p>Списано единиц МОСТ: {assistantUnits(charges)}</p>}
+      {billingReason && <p>{billingReason}</p>}
+      {unsupportedReveal && <p>Открытие записи из ответа недоступно в личном кабинете.</p>}
+    </div>
+  </>;
 }
 
 function assistantArtifacts(metadata: AiAssistantMessage['metadata']): AiAssistantArtifact[] {
@@ -641,6 +655,12 @@ const AiAssistantPage = () => {
     const result = await aiAssistantService.getActiveMembers(1); setMembers(result.items); setMemberMeta(result.meta); setSharing(true);
   });
   const prepareAction = (action: AiAssistantAction) => run(async () => { if (conversation && canEdit) setPreview(await aiAssistantService.previewAction(conversation.id, action)); });
+  const cancelPreparedAction = () => run(async () => {
+    if (!conversation || !canEdit || !preview) return;
+    const version = epoch.current;
+    await aiAssistantService.cancelAction(conversation.id, preview);
+    if (current(version)) setPreview(null);
+  });
   const downloadArtifact = (url: string, filename: string) => run(async () => {
     const blob = await aiAssistantService.downloadReport(url);
     const objectUrl = URL.createObjectURL(blob);
@@ -670,13 +690,50 @@ const AiAssistantPage = () => {
         {isOwner && <div className="flex flex-wrap gap-2"><Button variant="outline" disabled={busy} onClick={() => void openSharing()}>Настроить доступ</Button><Button variant="outline" disabled={busy} onClick={() => void run(async () => { await aiAssistantService.deleteConversation(conversation.id); epoch.current++; typedFacts.current = emptyAssistantTypedFacts(null); setConversations((items) => items.filter((item) => item.id !== conversation.id)); setConversation(null); setMessages([]); setApproved(null); setPreview(null); })}>Удалить чат</Button></div>}
         {sharing && <div className="space-y-3 rounded border p-3"><p>Доступ к чату не расширяет права на данные. Без участников чат личный.</p>{members.filter((member) => String(member.id) !== String(user?.id)).map((member) => <label key={member.id} className="flex items-center justify-between gap-3"><span>{member.name}</span><select aria-label={`Доступ: ${member.name}`} value={participants.find((item) => item.user_id === String(member.id))?.role ?? ''} onChange={(event) => { const role = event.target.value; setParticipants((items) => [...items.filter((item) => item.user_id !== String(member.id)), ...(role === 'viewer' || role === 'editor' ? [{ user_id: String(member.id), name: member.name, role } satisfies AiAssistantParticipant] : [])]); }}><option value="">Нет доступа</option><option value="viewer">Читатель</option><option value="editor">Участник</option></select></label>)}{memberMeta && memberMeta.current_page < memberMeta.last_page && <Button variant="ghost" disabled={busy} onClick={() => void run(async () => { const next = await aiAssistantService.getActiveMembers(memberMeta.current_page + 1); setMembers((items) => [...items, ...next.items]); setMemberMeta(next.meta); })}>Ещё сотрудники</Button>}<Button disabled={busy} onClick={() => void run(async () => { setParticipants(await aiAssistantService.setParticipants(conversation.id, participants)); setSharing(false); })}>Подтвердить доступ</Button><Button variant="ghost" disabled={busy} onClick={() => void run(async () => { setParticipants(await aiAssistantService.getParticipants(conversation.id)); setSharing(false); })}>Отмена</Button></div>}
         {historyMeta && historyMeta.current_page < historyMeta.last_page && <Button variant="outline" disabled={busy} onClick={() => void loadOlder()}>Предыдущие сообщения</Button>}
-        <div className="max-h-[52vh] space-y-4 overflow-y-auto pr-1">{messages.length === 0 && attachments.length === 0 && !interimResult && <p className="text-sm text-muted-foreground">Задайте вопрос помощнику или прикрепите изображение.</p>}{messages.map((item) => <article key={item.id} className={item.role === 'user' ? 'ml-4 rounded-lg bg-primary p-3 text-primary-foreground' : 'mr-4 rounded-lg bg-muted p-3'}><p className="whitespace-pre-wrap">{item.content}</p>{item.role === 'assistant' && <AssistantResultDetails metadata={item.metadata} />}{completedSources(completedProgress[item.id] ?? []).length > 0 && <ol aria-label="Проверенные разделы" className="mt-3 space-y-1 border-t pt-2 text-xs text-muted-foreground">{completedSources(completedProgress[item.id] ?? []).map((step) => <li key={progressKey(step)}>{progressLabels[step.code].completed}</li>)}</ol>}{item.metadata?.attachments?.map((attachment) => <AiAssistantAttachmentImage key={attachment.id} attachment={attachment} />)}{[...(item.metadata?.source_refs ?? []), ...(item.metadata?.rag_context?.sources ?? []), ...(item.metadata?.entity_references ?? [])].map((source, index) => { if (!source || source.source_type === 'knowledge' || source.entity_type === 'knowledge_article') return null; if (conversation && index < (item.metadata?.source_refs?.length ?? 0) && isDocumentCitation(source, item.metadata?.source_refs_version)) return <AiAssistantCitation key={`citation-${item.id}-${index}`} conversationId={conversation.id} messageId={item.id} sourceIndex={index} source={source} version={item.metadata?.source_refs_version} />; const sourceUrl = source.navigation?.url ?? source.url; const reportUrl = sourceUrl?.includes('/api/v1/ai-assistant/reports/') ? sourceUrl : undefined; const href = reportUrl ? undefined : assistantSourceUrl(sourceUrl, assistantSourceProjectId(source)); if (reportUrl) return <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => void downloadArtifact(reportUrl, source.title ?? 'Отчёт')}>Скачать отчёт: {source.title ?? 'Отчёт'}</Button></div>; return href ? <div key={`${source.source_type ?? source.entity_type ?? 'source'}-${source.entity_id ?? index}`} className="mt-2 text-xs"><a href={href} className="underline" target="_blank" rel="noreferrer">Открыть проект: {source.title ?? source.name ?? 'Источник'}</a></div> : null; })}{assistantArtifacts(item.metadata).map((artifact, index) => {
+        <div className="max-h-[52vh] space-y-4 overflow-y-auto pr-1">{messages.length === 0 && attachments.length === 0 && !interimResult && <p className="text-sm text-muted-foreground">Задайте вопрос помощнику или прикрепите изображение.</p>}{messages.map((item) => <article key={item.id} className={item.role === 'user' ? 'ml-4 rounded-lg bg-primary p-3 text-primary-foreground' : 'mr-4 rounded-lg bg-muted p-3'}><p className="whitespace-pre-wrap">{item.content}</p>
+        {item.role === 'assistant' && <AssistantResultDetails metadata={item.metadata} />}{completedSources(completedProgress[item.id] ?? []).length > 0 && <ol aria-label="Проверенные разделы" className="mt-3 space-y-1 border-t pt-2 text-xs text-muted-foreground">{completedSources(completedProgress[item.id] ?? []).map((step) => <li key={progressKey(step)}>{progressLabels[step.code].completed}</li>)}</ol>}{item.metadata?.attachments?.map((attachment) => <AiAssistantAttachmentImage key={attachment.id} attachment={attachment} />)}{[...(item.metadata?.source_refs ?? []), ...(item.metadata?.rag_context?.sources ?? []), ...(item.metadata?.entity_references ?? [])].map((source, index) => {
+          if (!source || source.source_type === 'knowledge' || source.entity_type === 'knowledge_article') return null;
+          const published = index < (item.metadata?.source_refs?.length ?? 0);
+          const decisionContract = item.role === 'assistant' ? item.metadata?.decision_contract : undefined;
+          if (conversation && published && isDocumentCitation(source, item.metadata?.source_refs_version, decisionContract)) {
+            return <AiAssistantCitation key={index} conversationId={conversation.id} messageId={item.id} sourceIndex={index}
+              source={source} version={item.metadata?.source_refs_version} decisionContract={decisionContract} />;
+          }
+          const sourceUrl = source.navigation?.url ?? source.url;
+          const reportUrl = sourceUrl?.includes('/api/v1/ai-assistant/reports/') ? sourceUrl : undefined;
+          const href = reportUrl ? undefined : assistantSourceUrl(sourceUrl, assistantSourceProjectId(source));
+          const turnSource = item.role === 'assistant' && published && hasTurnSources(item.metadata);
+          const label = (turnSource ? source.display_label : undefined) ?? source.title ?? source.name;
+          if (reportUrl) return <div key={index} className="mt-2"><Button size="sm" variant="outline" disabled={busy} onClick={() => void downloadArtifact(reportUrl, source.title ?? 'Отчёт')}>Скачать отчёт: {source.title ?? 'Отчёт'}</Button></div>;
+          if (href) return <div key={index} className="mt-2 text-xs"><a href={href} className="underline" target="_blank" rel="noreferrer">Открыть проект: {label ?? 'Источник'}</a></div>;
+          return turnSource && label ? <p key={index} className="mt-2 break-words text-xs text-muted-foreground">{label}</p> : null;
+        })}{assistantArtifacts(item.metadata).map((artifact, index) => {
           if (artifact.artifact_type === 'core_report_task') return <div key={artifact.task_id ?? index} className="mt-2 text-xs"><p className="font-medium">{artifact.title ?? 'Отчёт'}</p><p>{reportTaskStatus(artifact.status)}</p></div>;
           const url = artifact.download_url ?? artifact.url;
           return url ? <Button key={`artifact-${index}`} className="mt-2" variant="outline" disabled={busy} onClick={() => void downloadArtifact(url, artifact.filename ?? artifact.file_name ?? 'Отчёт')}>Скачать: {artifact.title ?? artifact.filename ?? 'Отчёт'}</Button> : null;
         })}{(item.metadata?.proposed_actions ?? item.metadata?.suggested_actions ?? item.metadata?.actions ?? item.metadata?.next_actions?.filter((action) => action.tool_name && action.type === 'act' && action.requires_confirmation) ?? []).map((action, index) => <Button key={index} className="mt-2" variant="outline" disabled={busy || !canEdit || action.allowed === false} onClick={() => void prepareAction({ ...action, origin_request_id: action.origin_request_id ?? item.metadata?.request_id })}>Проверить действие: {action.label ?? 'Предложенное изменение'}</Button>)}</article>)}{interimResult && <AssistantInterimCard key={interimResult.key} result={interimResult} />}</div>
         {pausedRequest && <Button type="button" variant="outline" disabled={busy} onClick={() => void run(() => observeRequest(pausedRequest))}>Проверить состояние запроса</Button>}
-        {preview && <div className="space-y-2 rounded border border-amber-500 p-3"><p className="font-medium">{preview.title}</p><p>{preview.description}</p><details open><summary>Изменения</summary><pre className="overflow-auto whitespace-pre-wrap text-xs">{JSON.stringify({ before: preview.before, after: preview.after }, null, 2)}</pre></details>{preview.warnings?.map((warning) => <p key={warning}>{warning}</p>)}<Button disabled={busy || !canEdit || preview.executable === false} onClick={() => void run(async () => { if (Date.parse(preview.expires_at) <= Date.now()) throw new Error('Подготовка истекла. Проверьте действие снова.'); await aiAssistantService.executeAction(conversation.id, preview); setPreview(null); const history = await aiAssistantService.getHistory(conversation.id); setMessages(history.items); setHistoryMeta(history.meta); })}>Подтверждаю изменение</Button><Button variant="ghost" disabled={busy} onClick={() => setPreview(null)}>Отмена</Button></div>}
+        {preview && <div className="space-y-2 rounded border border-amber-500 p-3">
+          <p className="font-medium">{preview.title}</p>
+          <p>{preview.description}</p>
+          <details open>
+            <summary>Изменения</summary>
+            <pre className="overflow-auto whitespace-pre-wrap text-xs">{JSON.stringify({ before: preview.before, after: preview.after }, null, 2)}</pre>
+          </details>
+          {preview.warnings?.map((warning) => <p key={warning}>{warning}</p>)}
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" disabled={busy || !canEdit || preview.executable === false} onClick={() => void run(async () => {
+              if (Date.parse(preview.expires_at) <= Date.now()) throw new Error('Подготовка истекла. Проверьте действие снова.');
+              await aiAssistantService.executeAction(conversation.id, preview);
+              setPreview(null);
+              const history = await aiAssistantService.getHistory(conversation.id);
+              setMessages(history.items);
+              setHistoryMeta(history.meta);
+            })}>Подтверждаю изменение</Button>
+            <Button type="button" variant="outline" disabled={busy || !canEdit} onClick={() => void cancelPreparedAction()}>Отменить действие</Button>
+            <Button type="button" variant="ghost" disabled={busy} onClick={() => setPreview(null)}>Закрыть предпросмотр</Button>
+          </div>
+        </div>}
         {busy && observingRequest && <div className="space-y-2 rounded-md bg-muted p-3 text-sm">
           <div role="status" aria-live="polite">
             <p className="font-medium">{currentActivity(visibleSteps, stage)}</p>
