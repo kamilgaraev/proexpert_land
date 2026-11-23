@@ -55,6 +55,10 @@ describe('AiAssistantPage', () => {
             { ...ref('Другой тип источника', `${path}/other`), source_type: 'other' }],
           rag_context: { sources: [ref('Ссылка из RAG', `${path}/rag`)] },
         } },
+        { id: 'partial', role: 'assistant', content: 'Статья найдена, другие данные недоступны.', metadata: {
+          contract_version: 1, decision_contract: 3, validation_status: 'partial', coverage: { status: 'partial' },
+          source_refs: [ref('Статья подтверждена', `${path}/confirmed`)],
+        } },
         { id: 'unverified', role: 'assistant', content: 'Непроверенный ответ', metadata: {
           contract_version: 1, validation_status: 'unverified', source_refs: [ref('Непроверенная статья', `${path}/unverified`)],
         } },
@@ -71,6 +75,7 @@ describe('AiAssistantPage', () => {
     render(<MemoryRouter><AiAssistantPage /></MemoryRouter>);
     await selectFirst();
     expect(await screen.findByRole('link', { name: 'Настройка ЛК' })).toHaveAttribute('href', article.navigation.url);
+    expect(screen.getByRole('link', { name: 'Статья подтверждена' })).toHaveAttribute('href', `${path}/confirmed`);
     expect(screen.queryByRole('link', { name: /Недопустимая ссылка|Другой тип источника|Ссылка из RAG|Ссылка из текста|Непроверенная статья|Старая статья|Статья от пользователя/ }))
       .not.toBeInTheDocument();
     expect(screen.getByText(/\[Ссылка из текста\]/)).toBeInTheDocument();
@@ -260,10 +265,20 @@ describe('AiAssistantPage', () => {
     expect(vi.mocked(aiAssistantService.getQuote).mock.calls[1][0].context).toEqual({});
   });
 
-  it('opens only original source_refs citations and preserves their index beside legacy extra sources', async () => {
-    const locator = { entity_type: 'assistant_document', entity_id: 159, project_id: 52, document_id: 159, unit_id: 4, chunk_id: 219753 };
+  it.each([
+    {
+      name: 'legacy',
+      publication: { source_refs_version: 'ordinary-publication-locator/1' },
+      locator: { entity_type: 'assistant_document', entity_id: 159, project_id: 52, document_id: 159, unit_id: 4, chunk_id: 219753 },
+    },
+    {
+      name: 'V3',
+      publication: { contract_version: 1 as const, decision_contract: 3 as const },
+      locator: { entity_type: 'assistant_document', display_label: 'Подтверждённый документ', preview_kind: 'source_chunk_preview' as const },
+    },
+  ])('opens only original $name citations and preserves the public source index', async ({ publication, locator }) => {
     vi.mocked(aiAssistantService.getHistory).mockResolvedValue({ items: [{ id: '22', role: 'assistant', content: 'Ответ', metadata: {
-      source_refs_version: 'ordinary-publication-locator/1', source_refs: [{ entity_type: 'project', entity_id: 52, project_id: 52 }, locator],
+      ...publication, source_refs: [{ entity_type: 'project', entity_id: 52, project_id: 52 }, locator],
       rag_context: { sources: [locator] },
     } }], meta: null });
     vi.mocked(aiAssistantService.getSourcePreview).mockResolvedValue({ message_id: '22', source_index: 1, source: locator, kind: 'source_chunk_preview', title: 'Источник', content: 'Подтверждённый текст', content_range: { offset: 0, length: 19, total_length: 19, truncated: false } });
@@ -431,16 +446,81 @@ describe('AiAssistantPage', () => {
     expect(screen.queryByRole('link', { name: 'Открыть запись' })).not.toBeInTheDocument();
   });
 
-  it('polls accepted request to completion once and renders its complete response', async () => {
+  it('renders the queued answer once, with model blocks in order before sources', async () => {
+    const content = 'Даты графика проверены.';
+    const starts = { key: 'planned', label: 'Начало', value: { kind: 'date', value: '2026-12-03' } };
+    const message: AiAssistantMessage = {
+      id: 'answer-async', role: 'assistant', content,
+      metadata: {
+        contract_version: 1, decision_contract: 3, coverage: { status: 'partial' },
+        source_refs: [{ entity_type: 'schedule', display_label: 'График корпуса' }],
+        evidence: [{ source_ref: { entity_type: 'schedule', display_label: 'График корпуса' } }],
+        presentation: { version: 1, blocks: [
+          { id: 'answer', type: 'text', source_refs: [0], data: { text: content } },
+          { id: 'lead', type: 'facts', source_refs: [0], data: { items: [starts] } },
+          { id: 'stage', type: 'list', source_refs: [0], data: { items: [{ id: '1', title: 'Подготовительные работы' }] } },
+          { id: 'cost', type: 'table', source_refs: [0], data: {
+            columns: [{ key: 'amount', label: 'Итого' }],
+            rows: [{ id: '1', cells: { amount: { kind: 'decimal', value: '1234567890123456789.70', currency: 'RUB', vat: 'included' } } }],
+          } },
+          { id: 'sources', type: 'sources', source_refs: [0], data: {} },
+        ] },
+      },
+    };
     vi.mocked(aiAssistantService.chat).mockResolvedValue({ request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'queued' });
-    vi.mocked(aiAssistantService.getRequest).mockResolvedValue({ request_id: 'uuid-request', conversation_id: '11', status: 'completed', stage: 'completed', response: { request_id: 'uuid-request', conversation_id: '11', message: { id: 'answer-async', role: 'assistant', content: 'Асинхронный ответ' }, credit_usage: { charged_minor: 50, available_after_minor: 499950 } } });
+    vi.mocked(aiAssistantService.getRequest).mockResolvedValue({
+      request_id: 'uuid-request', conversation_id: '11', status: 'completed', stage: 'completed',
+      response: { request_id: 'uuid-request', conversation_id: '11', message, credit_usage: { charged_minor: 50, available_after_minor: 499950 } },
+    });
     render(<AiAssistantPage />); await selectFirst();
     fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Вопрос' } }); fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
     const submit = await screen.findByRole('button', { name: 'Подтвердить и отправить' }); fireEvent.click(submit); fireEvent.click(submit);
-    expect(await screen.findByText('Асинхронный ответ')).toBeInTheDocument();
+    const answer = await screen.findByText(content);
+    expect(screen.getAllByText(content)).toHaveLength(1);
+    const coverage = screen.getByText('Проверена часть доступных данных.');
+    const fact = screen.getByText('03.12.2026');
+    const listItem = screen.getByText('Подготовительные работы');
+    const table = screen.getByRole('table');
+    const source = screen.getByText('График корпуса');
+    expect(fact).toHaveAttribute('datetime', '2026-12-03');
+    expect(screen.getByRole('columnheader', { name: 'Итого' })).toHaveAttribute('scope', 'col');
+    expect(screen.getByRole('cell', { name: '1234567890123456789,70 RUB с НДС' })).toBeInTheDocument();
+    const ordered = [answer, coverage, fact, listItem, table, source];
+    ordered.slice(1).forEach((node, index) => {
+      expect(ordered[index].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+    });
     expect(aiAssistantService.chat).toHaveBeenCalledTimes(1);
     expect(aiAssistantService.getRequest).toHaveBeenCalledWith('uuid-request', expect.any(AbortSignal));
   });
+  it('keeps verified text and sources for unsupported or malformed historical blocks', async () => {
+    const source = { source_type: 'project', project_id: 7, display_label: 'Корпус А' };
+    const valid = { id: 'valid', type: 'list', source_refs: [0], data: { items: [{ id: '1', title: 'Совместимый блок' }] } };
+    vi.mocked(aiAssistantService.getHistory).mockResolvedValue({
+      items: [
+        { id: 'mixed', role: 'assistant', content: 'Проверенные даты.', metadata: {
+          contract_version: 1, decision_contract: 3, source_refs: [source],
+          presentation: { version: 1, blocks: [
+            { id: 'unsupported', type: 'timeline', data: { label: 'Неподдерживаемый блок' } },
+            { id: 'malformed', type: 'facts', data: { items: [{ key: 'invalid', label: 'Неверный блок', value: { kind: 'text', value: {} } }] } },
+            valid,
+          ] },
+        } },
+        { id: 'unknown-version', role: 'assistant', content: 'Проверенный текст после обновления.', metadata: {
+          contract_version: 1, decision_contract: 3, source_refs: [{ ...source, display_label: 'Корпус Б' }],
+          presentation: { version: 2, blocks: [{ ...valid, data: { items: [{ id: '2', title: 'Несовместимая версия' }] } }] },
+        } },
+      ], meta: null,
+    });
+    render(<AiAssistantPage />);
+    await selectFirst();
+    expect(screen.getByText('Проверенные даты.')).toBeInTheDocument();
+    expect(screen.getByText('Совместимый блок')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Открыть проект: Корпус А' })).toHaveAttribute('href', expect.stringContaining('/dashboard/projects/7'));
+    expect(screen.getByText('Проверенный текст после обновления.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Открыть проект: Корпус Б' })).toBeInTheDocument();
+    expect(screen.queryByText(/Неподдерживаемый блок|Неверный блок|Несовместимая версия/)).not.toBeInTheDocument();
+  });
+
   it('shows one generic activity line and an elapsed timer for legacy progress', async () => {
     const progress = deferred<Awaited<ReturnType<typeof aiAssistantService.getRequest>>>();
     vi.mocked(aiAssistantService.chat).mockResolvedValue({ request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'queued' });

@@ -1,5 +1,6 @@
 import { API_URL, authApi, userManagementService } from '@/utils/api';
 import { getJsonAuthHeaders } from '@/utils/authTokenStorage';
+import { aiAssistantRenderer } from '@/utils/aiAssistantRenderer';
 import { encodeKnowledgeArticleSlug, isKnowledgeArticleSlug } from '@/utils/knowledgeArticleRoutes';
 import type { KnowledgeArticleDetail } from '@/types/knowledgeHub';
 import type { OrganizationTeamPage } from '@/types/organization-team';
@@ -16,7 +17,18 @@ const request = async <T>(path: string, options: RequestInit = {}): Promise<Land
   return payload as LandingResponse<T>;
 };
 const normalizeConversation = (item: AiAssistantConversation): AiAssistantConversation => ({ ...item, id: String(item.id), user_id: String(item.user_id) });
-const normalizeMessage = (item: AiAssistantMessage): AiAssistantMessage => ({ ...item, id: String(item.id) });
+const normalizeMessage = (item: AiAssistantMessage): AiAssistantMessage => {
+  const message = { ...item, id: String(item.id) };
+  if (item.presentation === undefined && !item.source_refs?.length) return message;
+  return {
+    ...message,
+    metadata: {
+      ...(item.presentation !== undefined && { presentation: item.presentation }),
+      ...(item.source_refs?.length && { source_refs: item.source_refs }),
+      ...item.metadata,
+    },
+  };
+};
 const normalizeParticipant = (item: AiAssistantParticipant): AiAssistantParticipant => ({ ...item, user_id: String(item.user_id) });
 const progressCodes = new Set<AiAssistantProgressCode>(['rag_search', 'estimates', 'warehouse', 'projects', 'contracts', 'procurement', 'schedule', 'work_volumes', 'materials', 'reports', 'financial_data', 'record_check', 'composing', 'estimate_position_search', 'estimate_position_read']);
 const validTimestamp = (value: unknown): value is string =>
@@ -54,13 +66,13 @@ const normalizeInterimResult = (value: AiAssistantInterimResult | null | undefin
   };
 };
 const normalizeChatResult = (result: AiAssistantChatResult): AiAssistantChatResult => {
-  const { contract_version, outcome, coverage, evidence, billing, ui_actions, auto_open, export_task } = result;
+  const { contract_version, decision_contract, presentation, outcome, coverage, evidence, billing, ui_actions, auto_open, export_task } = result;
   const message = normalizeMessage(result.message);
   return {
     ...result,
     conversation_id: String(result.conversation_id),
     message: contract_version === 1
-      ? { ...message, metadata: { contract_version, outcome, coverage, evidence, billing, ui_actions, auto_open, export_task, ...message.metadata } }
+      ? { ...message, metadata: { contract_version, decision_contract, presentation, outcome, coverage, evidence, billing, ui_actions, auto_open, export_task, ...message.metadata } }
       : message,
     progress: normalizeProgress(result.progress),
   };
@@ -153,10 +165,10 @@ export const aiAssistantService = {
   updateMemory: async (id: string, content: string) => (await request<AiAssistantMemory>(`/memory/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ content, confirmed: true }) })).data,
   deleteMemory: async (id: string) => { await request<null>(`/memory/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
   getBalance: async (signal?: AbortSignal) => (await request<AiAssistantCreditsBalance>('/credits/balance', { signal })).data,
-  getQuote: async (input: AiAssistantChatInput, signal?: AbortSignal) => (await request<AiAssistantQuote>('/credits/quote', post({ ...input, contract_version: contractVersion }, signal))).data,
+  getQuote: async (input: AiAssistantChatInput, signal?: AbortSignal) => (await request<AiAssistantQuote>('/credits/quote', post({ ...input, contract_version: contractVersion, ...aiAssistantRenderer }, signal))).data,
   purchase: async (pack_id: string) => (await request<{ order_id: string; confirmation_url: string }>('/credits/purchase', post({ pack_id }))).data,
   chat: async (input: AiAssistantChatInput & { quote_id: string }, signal?: AbortSignal): Promise<AiAssistantChatSubmission> => {
-    const { response, payload } = await fetchJsonWithTimeout<{ success?: boolean; message?: string; data?: unknown }>(`${assistantBaseUrl}/chat`, { ...post({ ...input, async: true, contract_version: contractVersion }, signal), headers: { ...getJsonAuthHeaders(), 'Content-Type': 'application/json' } }, 30_000);
+    const { response, payload } = await fetchJsonWithTimeout<{ success?: boolean; message?: string; data?: unknown }>(`${assistantBaseUrl}/chat`, { ...post({ ...input, async: true, contract_version: contractVersion, ...aiAssistantRenderer }, signal), headers: { ...getJsonAuthHeaders(), 'Content-Type': 'application/json' } }, 30_000);
     const data = payload.data ?? payload;
     if (!response.ok || payload.success === false) throw new AssistantApiError(payload.message || 'Не удалось выполнить запрос к помощнику.', response.status);
     if (response.status === 202) {

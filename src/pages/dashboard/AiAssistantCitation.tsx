@@ -3,20 +3,25 @@ import { Button } from '@/components/ui/button';
 import { aiAssistantService } from '@/services/aiAssistantService';
 import type { AiAssistantSource, AiAssistantSourcePreview } from '@/types/aiAssistant';
 
-export const isDocumentCitation = (source: AiAssistantSource, version?: string): boolean =>
-  version === 'ordinary-publication-locator/1' && source.entity_type === 'assistant_document'
-  && [source.document_id, source.unit_id, source.chunk_id, source.project_id].every((id) => typeof id === 'number' && Number.isSafeInteger(id) && id > 0)
-  && source.entity_id === source.document_id;
+const isTurnDocumentCitation = (source: AiAssistantSource, decisionContract?: number): boolean =>
+  decisionContract === 3 && source.preview_kind === 'source_chunk_preview';
+
+export const isDocumentCitation = (source: AiAssistantSource, version?: string, decisionContract?: number): boolean =>
+  isTurnDocumentCitation(source, decisionContract) || (
+    version === 'ordinary-publication-locator/1' && source.entity_type === 'assistant_document'
+    && [source.document_id, source.unit_id, source.chunk_id, source.project_id].every((id) => typeof id === 'number' && Number.isSafeInteger(id) && id > 0)
+    && source.entity_id === source.document_id
+  );
 
 type PreviewState = { key: string; loading: boolean; preview?: AiAssistantSourcePreview; error?: string };
 
-export default function AiAssistantCitation({ conversationId, messageId, sourceIndex, source, version }: {
-  conversationId: string; messageId: string; sourceIndex: number; source: AiAssistantSource; version?: string;
+export default function AiAssistantCitation({ conversationId, messageId, sourceIndex, source, version, decisionContract }: {
+  conversationId: string; messageId: string; sourceIndex: number; source: AiAssistantSource; version?: string; decisionContract?: number;
 }) {
   const [state, setState] = useState<PreviewState | null>(null);
   const controller = useRef<AbortController | null>(null);
   const regionId = useId();
-  const key = JSON.stringify([conversationId, messageId, sourceIndex, source, version]);
+  const key = JSON.stringify([conversationId, messageId, sourceIndex, source, version, decisionContract]);
   const active = state?.key === key ? state : null;
   useEffect(() => () => { controller.current?.abort(); }, [key]);
 
@@ -33,9 +38,11 @@ export default function AiAssistantCitation({ conversationId, messageId, sourceI
     }
   };
 
-  if (!isDocumentCitation(source, version)) return null;
+  if (!isDocumentCitation(source, version, decisionContract)) return null;
+  const label = isTurnDocumentCitation(source, decisionContract) ? source.display_label ?? source.title : undefined;
 
   return <div className="mt-3 space-y-2 text-sm">
+    {label && <p className="break-words text-xs text-muted-foreground">{label}</p>}
     <Button size="sm" variant="outline" aria-expanded={active !== null} aria-controls={regionId} onClick={() => {
       if (active) { controller.current?.abort(); setState(null); } else { void load(); }
     }}>{active ? 'Закрыть источник' : 'Открыть источник'}</Button>
