@@ -655,6 +655,12 @@ const AiAssistantPage = () => {
     const result = await aiAssistantService.getActiveMembers(1); setMembers(result.items); setMemberMeta(result.meta); setSharing(true);
   });
   const prepareAction = (action: AiAssistantAction) => run(async () => { if (conversation && canEdit) setPreview(await aiAssistantService.previewAction(conversation.id, action)); });
+  const cancelPreparedAction = () => run(async () => {
+    if (!conversation || !canEdit || !preview) return;
+    const version = epoch.current;
+    await aiAssistantService.cancelAction(conversation.id, preview);
+    if (current(version)) setPreview(null);
+  });
   const downloadArtifact = (url: string, filename: string) => run(async () => {
     const blob = await aiAssistantService.downloadReport(url);
     const objectUrl = URL.createObjectURL(blob);
@@ -707,7 +713,27 @@ const AiAssistantPage = () => {
           return url ? <Button key={`artifact-${index}`} className="mt-2" variant="outline" disabled={busy} onClick={() => void downloadArtifact(url, artifact.filename ?? artifact.file_name ?? 'Отчёт')}>Скачать: {artifact.title ?? artifact.filename ?? 'Отчёт'}</Button> : null;
         })}{(item.metadata?.proposed_actions ?? item.metadata?.suggested_actions ?? item.metadata?.actions ?? item.metadata?.next_actions?.filter((action) => action.tool_name && action.type === 'act' && action.requires_confirmation) ?? []).map((action, index) => <Button key={index} className="mt-2" variant="outline" disabled={busy || !canEdit || action.allowed === false} onClick={() => void prepareAction({ ...action, origin_request_id: action.origin_request_id ?? item.metadata?.request_id })}>Проверить действие: {action.label ?? 'Предложенное изменение'}</Button>)}</article>)}{interimResult && <AssistantInterimCard key={interimResult.key} result={interimResult} />}</div>
         {pausedRequest && <Button type="button" variant="outline" disabled={busy} onClick={() => void run(() => observeRequest(pausedRequest))}>Проверить состояние запроса</Button>}
-        {preview && <div className="space-y-2 rounded border border-amber-500 p-3"><p className="font-medium">{preview.title}</p><p>{preview.description}</p><details open><summary>Изменения</summary><pre className="overflow-auto whitespace-pre-wrap text-xs">{JSON.stringify({ before: preview.before, after: preview.after }, null, 2)}</pre></details>{preview.warnings?.map((warning) => <p key={warning}>{warning}</p>)}<Button disabled={busy || !canEdit || preview.executable === false} onClick={() => void run(async () => { if (Date.parse(preview.expires_at) <= Date.now()) throw new Error('Подготовка истекла. Проверьте действие снова.'); await aiAssistantService.executeAction(conversation.id, preview); setPreview(null); const history = await aiAssistantService.getHistory(conversation.id); setMessages(history.items); setHistoryMeta(history.meta); })}>Подтверждаю изменение</Button><Button variant="ghost" disabled={busy} onClick={() => setPreview(null)}>Отмена</Button></div>}
+        {preview && <div className="space-y-2 rounded border border-amber-500 p-3">
+          <p className="font-medium">{preview.title}</p>
+          <p>{preview.description}</p>
+          <details open>
+            <summary>Изменения</summary>
+            <pre className="overflow-auto whitespace-pre-wrap text-xs">{JSON.stringify({ before: preview.before, after: preview.after }, null, 2)}</pre>
+          </details>
+          {preview.warnings?.map((warning) => <p key={warning}>{warning}</p>)}
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" disabled={busy || !canEdit || preview.executable === false} onClick={() => void run(async () => {
+              if (Date.parse(preview.expires_at) <= Date.now()) throw new Error('Подготовка истекла. Проверьте действие снова.');
+              await aiAssistantService.executeAction(conversation.id, preview);
+              setPreview(null);
+              const history = await aiAssistantService.getHistory(conversation.id);
+              setMessages(history.items);
+              setHistoryMeta(history.meta);
+            })}>Подтверждаю изменение</Button>
+            <Button type="button" variant="outline" disabled={busy || !canEdit} onClick={() => void cancelPreparedAction()}>Отменить действие</Button>
+            <Button type="button" variant="ghost" disabled={busy} onClick={() => setPreview(null)}>Закрыть предпросмотр</Button>
+          </div>
+        </div>}
         {busy && observingRequest && <div className="space-y-2 rounded-md bg-muted p-3 text-sm">
           <div role="status" aria-live="polite">
             <p className="font-medium">{currentActivity(visibleSteps, stage)}</p>

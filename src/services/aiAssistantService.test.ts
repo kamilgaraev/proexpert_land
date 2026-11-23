@@ -198,6 +198,28 @@ describe('aiAssistantService', () => {
     await aiAssistantService.executeAction('11', { title: 'Изменение', action: { id: 'action' }, preview_token: 'secret', expires_at: '2099-01-01' });
     expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toEqual({ conversation_id: '11', action: { id: 'action', preview_token: 'secret', confirmed: true } });
   });
+  it('cancels only the persisted preview using the authenticated route', async () => {
+    saveAuthToken('cancel-token');
+    const mock = respond({ status: 'cancelled' });
+    const preview = { title: 'Изменение', action: { id: 'action' }, preview_token: 'secret', expires_at: '2099-01-01' };
+    await expect(aiAssistantService.cancelAction('11', preview)).resolves.toBeUndefined();
+    expect(mock.mock.calls[0][0]).toBe('https://api.example/api/v1/ai-assistant/actions/cancel');
+    expect(mock.mock.calls[0][1]).toMatchObject({ method: 'POST', headers: { Authorization: 'Bearer cancel-token' } });
+    expect(JSON.parse(String(mock.mock.calls[0][1]?.body))).toEqual({ conversation_id: '11', action: { id: 'action', preview_token: 'secret' } });
+  });
+  it.each([
+    [{ status: 'executed' }, 'Действие уже выполнено.'],
+    [null, 'Сервер не подтвердил отмену действия.'],
+  ] as const)('does not report cancellation for response %j', async (data, message) => {
+    respond(data);
+    const preview = { title: 'Изменение', action: { id: 'action' }, preview_token: 'secret', expires_at: '2099-01-01' };
+    await expect(aiAssistantService.cancelAction('11', preview)).rejects.toThrow(message);
+  });
+  it('returns a localized error when the cancellation route is unavailable', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ message: 'Route not found' }), { status: 404 }));
+    const preview = { title: 'Изменение', action: { id: 'action' }, preview_token: 'secret', expires_at: '2099-01-01' };
+    await expect(aiAssistantService.cancelAction('11', preview)).rejects.toThrow('Не удалось отменить действие.');
+  });
   it('confirms personal memory and never adds organization-wide scope', async () => {
     const mock = respond({ id: 'memory', content: 'Факт' });
     await aiAssistantService.createMemory('Факт', '11');

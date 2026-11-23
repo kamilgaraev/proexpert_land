@@ -193,4 +193,13 @@ export const aiAssistantService = {
   cancelRequest: async (id: string) => (await request<AiAssistantRequestStatus>(`/requests/${encodeURIComponent(id)}/cancel`, post({ contract_version: contractVersion }))).data,
   previewAction: async (conversation_id: string, action: AiAssistantAction) => (await request<AiAssistantActionPreview>('/actions/preview', post({ conversation_id, action }))).data,
   executeAction: async (conversation_id: string, preview: AiAssistantActionPreview) => (await request<{ message?: string }>('/actions/execute', post({ conversation_id, action: { id: preview.action.id, preview_token: preview.preview_token, confirmed: true } }))).data,
+  cancelAction: async (conversation_id: string, preview: AiAssistantActionPreview): Promise<void> => {
+    const action = { id: preview.action.id, preview_token: preview.preview_token };
+    const { data } = await request<{ status?: string } | null>('/actions/cancel', post({ conversation_id, action })).catch((error: unknown) => {
+      if (error instanceof AssistantApiError && error.status !== 404) throw error;
+      throw new Error('Не удалось отменить действие. Повторите попытку или закройте предпросмотр.');
+    });
+    if (data?.status === 'executed') throw new Error('Действие уже выполнено.');
+    if (data?.status !== 'cancelled') throw new Error('Сервер не подтвердил отмену действия.');
+  },
 };

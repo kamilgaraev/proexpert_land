@@ -11,7 +11,7 @@ import type { AiAssistantMessage, AiAssistantTypedFactsLocator } from '@/types/a
 vi.mock('./AiAssistantCoveragePanel', () => ({ default: () => null }));
 vi.mock('@/hooks/usePermissions', () => ({ useCanAccess: () => false }));
 vi.mock('@/contexts/AuthContext', async () => ({ AuthContext: (await import('react')).createContext({ user: { id: 7, current_organization_id: 44 } }) }));
-vi.mock('@/services/aiAssistantService', () => ({ AssistantApiError: class extends Error {}, createAiAssistantRequestId: vi.fn(() => 'uuid-request'), aiAssistantService: { getConversations: vi.fn(), getConversation: vi.fn(), getMemory: vi.fn(), getBalance: vi.fn(), getUsage: vi.fn(), getHistory: vi.fn(), getParticipants: vi.fn(), getQuote: vi.fn(), chat: vi.fn(), cancelRequest: vi.fn(), getRequest: vi.fn(), previewAction: vi.fn(), executeAction: vi.fn(), getSourcePreview: vi.fn(), uploadAttachment: vi.fn() } }));
+vi.mock('@/services/aiAssistantService', () => ({ AssistantApiError: class extends Error {}, createAiAssistantRequestId: vi.fn(() => 'uuid-request'), aiAssistantService: { getConversations: vi.fn(), getConversation: vi.fn(), getMemory: vi.fn(), getBalance: vi.fn(), getUsage: vi.fn(), getHistory: vi.fn(), getParticipants: vi.fn(), getQuote: vi.fn(), chat: vi.fn(), cancelRequest: vi.fn(), getRequest: vi.fn(), previewAction: vi.fn(), executeAction: vi.fn(), cancelAction: vi.fn(), getSourcePreview: vi.fn(), uploadAttachment: vi.fn() } }));
 vi.mock('@/services/echo', () => ({ default: vi.fn() }));
 const deferred = <T,>() => { let resolve!: (value: T) => void; const promise = new Promise<T>((done) => { resolve = done; }); return { promise, resolve }; };
 beforeEach(() => {
@@ -860,6 +860,45 @@ describe('AiAssistantPage', () => {
     expect(aiAssistantService.executeAction).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Подтверждаю изменение' }));
     await waitFor(() => expect(aiAssistantService.executeAction).toHaveBeenCalledWith('11', preview));
+  });
+  it('can close the preview locally and waits for server confirmation to cancel a prepared action', async () => {
+    const action = { tool_name: 'update_project', arguments: { project_id: 3, title: 'Новое' }, label: 'Название' };
+    const preview = { title: 'Новое название', action: { id: 'prepared' }, preview_token: 'token', expires_at: '2099-01-01' };
+    vi.mocked(aiAssistantService.getHistory).mockResolvedValue({ items: [{
+      id: 'answer', role: 'assistant', content: 'Предлагаю изменение', metadata: { proposed_actions: [action] },
+    }], meta: null });
+    vi.mocked(aiAssistantService.previewAction).mockResolvedValue(preview);
+    const cancellation = deferred<void>();
+    vi.mocked(aiAssistantService.cancelAction)
+      .mockRejectedValueOnce(new Error('Не удалось отменить действие.'))
+      .mockReturnValueOnce(cancellation.promise);
+    render(<AiAssistantPage />);
+    await selectFirst();
+
+    const open = screen.getByRole('button', { name: 'Проверить действие: Название' });
+    fireEvent.click(open);
+    fireEvent.click(await screen.findByRole('button', { name: 'Закрыть предпросмотр' }));
+    expect(screen.queryByText(preview.title)).not.toBeInTheDocument();
+    expect(aiAssistantService.cancelAction).not.toHaveBeenCalled();
+
+    fireEvent.click(open);
+    fireEvent.click(await screen.findByRole('button', { name: 'Отменить действие' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось отменить действие.');
+    expect(screen.getByText(preview.title)).toBeInTheDocument();
+
+    const retry = screen.getByRole('button', { name: 'Отменить действие' });
+    expect(retry).toBeEnabled();
+    fireEvent.click(retry);
+    fireEvent.click(retry);
+    expect(screen.getByText(preview.title)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Подтверждаю изменение' })).toBeDisabled();
+    expect(aiAssistantService.cancelAction).toHaveBeenCalledTimes(2);
+    expect(aiAssistantService.cancelAction).toHaveBeenLastCalledWith('11', preview);
+    expect(aiAssistantService.executeAction).not.toHaveBeenCalled();
+
+    await act(async () => cancellation.resolve(undefined));
+    expect(screen.queryByText(preview.title)).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
   it('formats hundredths and rejects unsafe source navigation', () => {
     expect(assistantUnits(125)).toBe('1,25');
