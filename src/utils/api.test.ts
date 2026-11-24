@@ -432,8 +432,8 @@ describe('landingService', () => {
 
     const result = await landingService.getLandingDashboard();
 
-    expect(result.data.projects.total).toBe(3);
-    expect(result.data.financial.balance).toBe(125000);
-    expect(result.data.charts.status_labels?.projects?.active).toBe('Активные');
+    expect(result.data.projects?.total).toBe(3);
+    expect(result.data.financial?.balance).toBe(125000);
+    expect(result.data.charts?.status_labels?.projects?.active).toBe('Активные');
   });
 });
