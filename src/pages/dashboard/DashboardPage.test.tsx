@@ -146,4 +146,20 @@ describe('DashboardPage', () => {
     expect(screen.queryByText('Быстрые действия')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Новый проект' })).not.toBeInTheDocument();
   });
+
+  it('shows an empty state when the response has no displayable charts or cards', async () => {
+    apiMocks.useCanAccess.mockReturnValue(false);
+    apiMocks.getLandingDashboard.mockResolvedValue({
+      data: { charts: { projects_monthly: null } },
+      status: 200,
+    });
+
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Нет данных для обзора.')).toBeInTheDocument();
+  });
 });

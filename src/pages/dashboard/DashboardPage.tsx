@@ -105,6 +105,8 @@ const DashboardPage = () => {
   const formatCurrency = (val: number) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(val);
   const financial = landingData?.financial;
   const charts = landingData?.charts;
+  const hasProjectCharts = charts?.projects_monthly || charts?.projects_status;
+  const hasAdditionalCharts = charts?.contracts_monthly || charts?.completed_works_monthly || charts?.balance_monthly;
   const projectStatusChartData = localizeStatusDistribution(
     charts?.projects_status ?? undefined,
     charts?.status_labels?.projects,
@@ -297,7 +299,7 @@ const DashboardPage = () => {
       )}
 
       {/* Charts */}
-      {(charts?.projects_monthly || charts?.projects_status) && (
+      {hasProjectCharts && (
          <div className="grid grid-cols-1 gap-4 xl:grid-cols-7">
              {charts.projects_monthly && <Card className="min-w-0 rounded-lg shadow-none xl:col-span-4">
                  <CardHeader>
@@ -325,7 +327,7 @@ const DashboardPage = () => {
       )}
       
       {/* Additional Charts */}
-      {(charts?.contracts_monthly || charts?.completed_works_monthly || charts?.balance_monthly) && (
+      {hasAdditionalCharts && (
          <div className="grid grid-cols-1 gap-4 2xl:grid-cols-3">
             {charts.contracts_monthly && <Card className="min-w-0 rounded-lg shadow-none">
                  <CardHeader>
@@ -366,7 +368,7 @@ const DashboardPage = () => {
          </div>
       )}
 
-      {landingData && !financial && !charts && primaryStats.length === 0 && secondaryStats.length === 0 && quickActions.length === 0 && (
+      {landingData && !financial && !hasProjectCharts && !hasAdditionalCharts && primaryStats.length === 0 && secondaryStats.length === 0 && quickActions.length === 0 && (
         <Card className="border-dashed">
           <CardContent className="py-10 text-center text-muted-foreground">
             Нет данных для обзора.
