@@ -17,7 +17,8 @@ import { landingService } from '@utils/api';
 import type { LandingDashboardResponse } from '@utils/api';
 import LineChart from '@components/dashboard/LineChart';
 import DonutStatusChart from '@components/dashboard/DonutStatusChart';
-import { usePermissionsReady } from '@/hooks/usePermissions';
+import { useCanAccess, usePermissions } from '@/hooks/usePermissions';
+import type { PermissionsData } from '@/types/permissions';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,10 +53,18 @@ const localizeStatusDistribution = (
 );
 
 const DashboardPage = () => {
-  const [landingData, setLandingData] = useState<LandingDashboardResponse | null>(null);
+  const [dashboard, setDashboard] = useState<{
+    permissions: PermissionsData;
+    data: LandingDashboardResponse;
+  } | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
-  const permissionsReady = usePermissionsReady();
+  const { isLoaded: permissionsReady, permissions } = usePermissions();
+  const landingData = permissionsReady && dashboard?.permissions === permissions ? dashboard.data : null;
+  const canCreateProject = useCanAccess({ permission: 'admin.projects.edit', interface: 'admin', requireAll: true });
+  const canManageTeam = useCanAccess({ permission: 'users.manage', role: 'organization_owner', requireAll: false });
+  const canInviteContractors = useCanAccess({ permission: 'users.invite', role: 'organization_owner', requireAll: false });
+
   useEffect(() => {
     if (!permissionsReady) {
       return;
@@ -79,9 +88,9 @@ const DashboardPage = () => {
         isSuccessfulStatus(landingResult.value.status) &&
         landingResult.value.data
       ) {
-        setLandingData(landingResult.value.data);
+        setDashboard({ permissions, data: landingResult.value.data });
       } else {
-        setLandingData(null);
+        setDashboard(null);
         setDashboardError('Не удалось загрузить сводку. Попробуйте обновить страницу.');
       }
 
@@ -91,40 +100,46 @@ const DashboardPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [permissionsReady]);
+  }, [permissions, permissionsReady]);
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(val);
+  const financial = landingData?.financial;
+  const charts = landingData?.charts;
+  const hasProjectCharts = charts?.projects_monthly || charts?.projects_status;
+  const hasAdditionalCharts = charts?.contracts_monthly || charts?.completed_works_monthly || charts?.balance_monthly;
   const projectStatusChartData = localizeStatusDistribution(
-    landingData?.charts?.projects_status,
-    landingData?.charts?.status_labels?.projects,
+    charts?.projects_status ?? undefined,
+    charts?.status_labels?.projects,
   );
 
-  const statCards = landingData ? [
+  const statCards = [
     {
       name: 'Проекты',
-      value: landingData.projects?.total || 0,
+      value: landingData?.projects?.total,
       icon: Building2,
       description: 'Всего объектов'
     },
     {
       name: 'Контракты',
-      value: landingData.contracts?.total || 0,
+      value: landingData?.contracts?.total,
       icon: FileText,
       description: 'Всего договоров'
     },
     {
       name: 'Команда',
-      value: landingData.team?.total || 0,
+      value: landingData?.team?.total,
       icon: Users,
       description: 'Пользователей организации'
     },
     {
       name: 'Акты',
-      value: landingData.acts?.total || 0,
+      value: landingData?.acts?.total,
       icon: CheckCircle,
       description: 'Всего актов'
     },
-  ] : [];
+  ];
+  const primaryStats = statCards.slice(0, 2).filter((stat) => stat.value !== undefined);
+  const secondaryStats = statCards.slice(2).filter((stat) => stat.value !== undefined);
 
   const quickActions = [
     {
@@ -132,23 +147,23 @@ const DashboardPage = () => {
       description: 'Новый объект строительства',
       href: 'https://admin.1мост.рф/projects/create',
       icon: Building2,
-      variant: 'default' as const
+      visible: canCreateProject,
     },
     {
       name: 'Сотрудники',
       description: 'Добавить сотрудника',
       href: '/dashboard/admins',
       icon: Users,
-      variant: 'outline' as const
+      visible: canManageTeam,
     },
     {
       name: 'Приглашения подрядчиков',
       description: 'Пригласить компанию к работе',
       href: '/dashboard/contractor-invitations',
       icon: BarChart,
-      variant: 'outline' as const
+      visible: canInviteContractors,
     }
-  ];
+  ].filter((action) => action.visible);
 
   return (
     <div className="space-y-8">
@@ -158,14 +173,16 @@ const DashboardPage = () => {
           <h1 className="text-3xl font-bold tracking-tight">Обзор</h1>
           <p className="text-muted-foreground">Сводная информация по вашим проектам и финансам.</p>
         </div>
-        <div className="flex items-center gap-2">
+        {canCreateProject && (
+          <div className="flex items-center gap-2">
            <Button asChild>
              <Link to="https://admin.1мост.рф/projects/create">
                <Plus className="h-5 w-5 mr-2" />
                Новый проект
              </Link>
            </Button>
-        </div>
+          </div>
+        )}
       </div>
 
       {dashboardLoading && !landingData && (
@@ -186,10 +203,10 @@ const DashboardPage = () => {
       )}
 
       {/* Stats Grid */}
-      {landingData && (
+      {(financial || primaryStats.length > 0) && (
         <div className="grid grid-cols-2 gap-4 2xl:grid-cols-4">
              {/* Financial Card - Featured */}
-             <Card className="col-span-2 border-border bg-card shadow-none rounded-lg">
+             {financial && <Card className="col-span-2 border-border bg-card shadow-none rounded-lg">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
                     Баланс организации
@@ -197,7 +214,7 @@ const DashboardPage = () => {
                   <Wallet className="h-5 w-5 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{formatCurrency(landingData.financial?.balance || 0)}</div>
+                  <div className="text-3xl font-bold">{formatCurrency(financial.balance)}</div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Доступные средства
                   </p>
@@ -208,20 +225,20 @@ const DashboardPage = () => {
                              <ArrowUpRight className="h-5 w-5 mr-1" />
                              Поступления
                           </div>
-                          <div className="font-semibold text-lg">{formatCurrency(landingData.financial?.credits_this_month || 0)}</div>
+                          <div className="font-semibold text-lg">{formatCurrency(financial.credits_this_month)}</div>
                       </div>
                       <div className="min-w-0 border-t border-border pt-3">
                           <div className="flex items-center text-muted-foreground text-xs mb-1">
                              <ArrowDownRight className="h-5 w-5 mr-1" />
                              Расходы
                           </div>
-                          <div className="font-semibold text-lg">{formatCurrency(landingData.financial?.debits_this_month || 0)}</div>
+                          <div className="font-semibold text-lg">{formatCurrency(financial.debits_this_month)}</div>
                       </div>
                   </div>
                 </CardContent>
-              </Card>
+              </Card>}
 
-             {statCards.slice(0, 2).map((stat) => (
+             {primaryStats.map((stat) => (
                 <Card key={stat.name} className="min-w-0 rounded-lg border-border shadow-none">
                     <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0 p-4 pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -240,9 +257,9 @@ const DashboardPage = () => {
         </div>
       )}
 
-      {landingData && (
+      {landingData && (secondaryStats.length > 0 || quickActions.length > 0) && (
          <div className="grid grid-cols-2 gap-4 2xl:grid-cols-4">
-              {statCards.slice(2).map((stat) => (
+              {secondaryStats.map((stat) => (
                 <Card key={stat.name} className="min-w-0 rounded-lg border-border shadow-none">
                     <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0 p-4 pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -258,7 +275,7 @@ const DashboardPage = () => {
                     </CardContent>
                 </Card>
              ))}
-              <Card className="col-span-2 rounded-lg border-border bg-card shadow-none">
+              {quickActions.length > 0 && <Card className="col-span-2 rounded-lg border-border bg-card shadow-none">
                  <CardHeader className="pb-2">
                      <CardTitle className="text-base">Быстрые действия</CardTitle>
                  </CardHeader>
@@ -277,27 +294,27 @@ const DashboardPage = () => {
                          </Button>
                      ))}
                  </CardContent>
-              </Card>
+              </Card>}
          </div>
       )}
 
       {/* Charts */}
-      {landingData && (
+      {hasProjectCharts && (
          <div className="grid grid-cols-1 gap-4 xl:grid-cols-7">
-             <Card className="min-w-0 rounded-lg shadow-none xl:col-span-4">
+             {charts.projects_monthly && <Card className="min-w-0 rounded-lg shadow-none xl:col-span-4">
                  <CardHeader>
                      <CardTitle className="text-lg">Проекты по месяцам</CardTitle>
                      <CardDescription>Динамика создания новых объектов</CardDescription>
                  </CardHeader>
-                 <CardContent className={landingData.charts?.projects_monthly?.values?.some((value) => value !== 0) ? 'h-[240px] pl-2 pr-4 pb-6 sm:h-[300px]' : 'h-28 px-4 pb-6'}>
+                 <CardContent className={charts.projects_monthly.values.some((value) => value !== 0) ? 'h-[240px] pl-2 pr-4 pb-6 sm:h-[300px]' : 'h-28 px-4 pb-6'}>
                     <LineChart
                         title=""
-                        labels={landingData.charts?.projects_monthly?.labels || []}
-                        values={landingData.charts?.projects_monthly?.values || []}
+                        labels={charts.projects_monthly.labels}
+                        values={charts.projects_monthly.values}
                     />
                  </CardContent>
-             </Card>
-             <Card className="min-w-0 rounded-lg shadow-none xl:col-span-3">
+             </Card>}
+             {charts.projects_status && <Card className="min-w-0 rounded-lg shadow-none xl:col-span-3">
                  <CardHeader>
                      <CardTitle className="text-lg">Статус проектов</CardTitle>
                      <CardDescription>Распределение по этапам</CardDescription>
@@ -305,52 +322,59 @@ const DashboardPage = () => {
                  <CardContent className="h-[260px] pb-6 sm:h-[300px]">
                     <DonutStatusChart title="" data={projectStatusChartData} />
                  </CardContent>
-             </Card>
+             </Card>}
          </div>
       )}
       
       {/* Additional Charts */}
-      {landingData && (
+      {hasAdditionalCharts && (
          <div className="grid grid-cols-1 gap-4 2xl:grid-cols-3">
-            <Card className="min-w-0 rounded-lg shadow-none">
+            {charts.contracts_monthly && <Card className="min-w-0 rounded-lg shadow-none">
                  <CardHeader>
                      <CardTitle className="text-lg">Контракты</CardTitle>
                  </CardHeader>
                  <CardContent className="h-[240px] pl-2 pr-4 pb-6">
                     <LineChart
                         title=""
-                        labels={landingData.charts?.contracts_monthly?.labels || []}
-                        values={landingData.charts?.contracts_monthly?.values || []}
+                        labels={charts.contracts_monthly.labels}
+                        values={charts.contracts_monthly.values}
                     />
                  </CardContent>
-            </Card>
-            <Card className="min-w-0 rounded-lg shadow-none">
+            </Card>}
+            {charts.completed_works_monthly && <Card className="min-w-0 rounded-lg shadow-none">
                  <CardHeader>
                      <CardTitle className="text-lg">Завершённые работы</CardTitle>
                  </CardHeader>
                  <CardContent className="h-[240px] pl-2 pr-4 pb-6">
                     <LineChart
                         title=""
-                        labels={landingData.charts?.completed_works_monthly?.labels || []}
-                        values={landingData.charts?.completed_works_monthly?.values || []}
+                        labels={charts.completed_works_monthly.labels}
+                        values={charts.completed_works_monthly.values}
                     />
                  </CardContent>
-            </Card>
-            <Card className="min-w-0 rounded-lg shadow-none">
+            </Card>}
+            {charts.balance_monthly && <Card className="min-w-0 rounded-lg shadow-none">
                  <CardHeader>
                      <CardTitle className="text-lg">Изменение баланса</CardTitle>
                  </CardHeader>
                  <CardContent className="h-[240px] pl-2 pr-4 pb-6">
                     <LineChart
                         title=""
-                        labels={landingData.charts?.balance_monthly?.labels || []}
-                        values={landingData.charts?.balance_monthly?.values || []}
+                        labels={charts.balance_monthly.labels}
+                        values={charts.balance_monthly.values}
                     />
                  </CardContent>
-            </Card>
+            </Card>}
          </div>
       )}
 
+      {landingData && !financial && !hasProjectCharts && !hasAdditionalCharts && primaryStats.length === 0 && secondaryStats.length === 0 && quickActions.length === 0 && (
+        <Card className="border-dashed">
+          <CardContent className="py-10 text-center text-muted-foreground">
+            Нет данных для обзора.
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

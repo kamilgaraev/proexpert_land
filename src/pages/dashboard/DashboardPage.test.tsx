@@ -6,6 +6,8 @@ import DashboardPage from './DashboardPage';
 
 const apiMocks = vi.hoisted(() => ({
   getLandingDashboard: vi.fn(),
+  useCanAccess: vi.fn(),
+  usePermissions: vi.fn(),
 }));
 
 vi.mock('@utils/api', () => ({
@@ -15,8 +17,8 @@ vi.mock('@utils/api', () => ({
 }));
 
 vi.mock('@/hooks/usePermissions', () => ({
-  usePermissionsReady: () => true,
-  useCanAccess: () => true,
+  usePermissions: apiMocks.usePermissions,
+  useCanAccess: apiMocks.useCanAccess,
 }));
 
 vi.mock('@components/dashboard/LineChart', () => ({
@@ -78,6 +80,8 @@ const dashboardPayload = {
 describe('DashboardPage', () => {
   beforeEach(() => {
     apiMocks.getLandingDashboard.mockReset();
+    apiMocks.usePermissions.mockReturnValue({ isLoaded: true, permissions: { organization_id: 1 } });
+    apiMocks.useCanAccess.mockReturnValue(true);
   });
 
   it('shows landing dashboard data when optional billing dashboard fails', async () => {
@@ -112,5 +116,50 @@ describe('DashboardPage', () => {
     );
 
     expect(await screen.findByText('Не удалось загрузить сводку. Попробуйте обновить страницу.')).toBeInTheDocument();
+  });
+
+  it('shows only the cards and charts returned for the user', async () => {
+    apiMocks.useCanAccess.mockReturnValue(false);
+    apiMocks.getLandingDashboard.mockResolvedValue({
+      data: {
+        projects: { ...dashboardPayload.projects, total: 0 },
+        charts: { projects_monthly: dashboardPayload.charts.projects_monthly },
+      },
+      status: 200,
+    });
+
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Проекты по месяцам')).toBeInTheDocument();
+    expect(screen.getByText('0')).toBeInTheDocument();
+    expect(screen.queryByText('Баланс организации')).not.toBeInTheDocument();
+    expect(screen.queryByText('Изменение баланса')).not.toBeInTheDocument();
+    expect(screen.queryByText('Контракты')).not.toBeInTheDocument();
+    expect(screen.queryByText('Команда')).not.toBeInTheDocument();
+    expect(screen.queryByText('Акты')).not.toBeInTheDocument();
+    expect(screen.queryByText('Завершённые работы')).not.toBeInTheDocument();
+    expect(screen.queryByText('Статус проектов')).not.toBeInTheDocument();
+    expect(screen.queryByText('Быстрые действия')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Новый проект' })).not.toBeInTheDocument();
+  });
+
+  it('shows an empty state when the response has no displayable charts or cards', async () => {
+    apiMocks.useCanAccess.mockReturnValue(false);
+    apiMocks.getLandingDashboard.mockResolvedValue({
+      data: { charts: { projects_monthly: null } },
+      status: 200,
+    });
+
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Нет данных для обзора.')).toBeInTheDocument();
   });
 });

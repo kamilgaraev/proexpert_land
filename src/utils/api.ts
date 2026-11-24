@@ -3219,44 +3219,44 @@ export default api;
 
 // --- Типы дашборда лендинга ---
 export interface LandingDashboardResponse {
-  financial: {
+  financial?: {
     balance: number;
     credits_this_month: number;
     debits_this_month: number;
-  };
-  projects: {
+  } | null;
+  projects?: {
     total: number;
     active: number;
     completed: number;
-  };
-  contracts: {
+  } | null;
+  contracts?: {
     total: number;
     active: number;
     draft: number;
     completed: number;
     total_amount: number;
-  };
-  works_materials: {
+  } | null;
+  works_materials?: {
     works: Record<string, unknown>;
     materials: Record<string, unknown>;
-  };
-  acts: {
+  } | null;
+  acts?: {
     total: number;
     approved: number;
     total_amount: number;
-  };
-  team: {
+  } | null;
+  team?: {
     total: number;
     by_roles: Record<string, number>;
-  };
-  team_details: unknown[];
-  charts: {
-    projects_monthly: { labels: string[]; values: number[] };
-    contracts_monthly: { labels: string[]; values: number[] };
-    completed_works_monthly: { labels: string[]; values: number[] };
-    balance_monthly: { labels: string[]; values: number[] };
-    projects_status: Record<string, number>;
-    contracts_status: Record<string, number>;
+  } | null;
+  team_details?: unknown[] | null;
+  charts?: {
+    projects_monthly?: { labels: string[]; values: number[] } | null;
+    contracts_monthly?: { labels: string[]; values: number[] } | null;
+    completed_works_monthly?: { labels: string[]; values: number[] } | null;
+    balance_monthly?: { labels: string[]; values: number[] } | null;
+    projects_status?: Record<string, number> | null;
+    contracts_status?: Record<string, number> | null;
     status_labels?: {
       projects?: Record<string, string>;
       contracts?: Record<string, string>;
