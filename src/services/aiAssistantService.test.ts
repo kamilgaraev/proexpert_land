@@ -7,7 +7,7 @@ import type { AiAssistantChatInput } from '@/types/aiAssistant';
 vi.mock('@/utils/api', () => ({ API_URL: 'https://api.example/api/v1/landing', userManagementService: { getOrganizationTeam: vi.fn() } }));
 const respond = (data: unknown, meta?: unknown) => vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(JSON.stringify({ success: true, data, meta }), { status: 200 }));
 const capabilities = { renderer_version: 1, supported_blocks: ['facts', 'list', 'table'] };
-const input: AiAssistantChatInput = { conversation_id: '11', message: 'Вопрос', request_id: '4b3a24d1-1b27-41e3-a364-5da772bd739b', profile: 'detailed', allow_actions: true, context: { entity_refs: [{ type: 'project', id: 8 }] } };
+const input: AiAssistantChatInput = { conversation_id: '11', message: 'Вопрос', request_id: '4b3a24d1-1b27-41e3-a364-5da772bd739b', allow_actions: true, context: { entity_refs: [{ type: 'project', id: 8 }] } };
 afterEach(() => vi.restoreAllMocks());
 describe('aiAssistantService', () => {
   it('loads an article from the authenticated assistant endpoint with an encoded slug', async () => {
@@ -74,7 +74,7 @@ describe('aiAssistantService', () => {
       await expect(aiAssistantService.getKnowledgeArticle('invite-admin')).rejects.toMatchObject({ status: 404 });
     });
 
-    it('opts into v1 for quote, chat, status and cancel while reading legacy responses', async () => {
+    it('uses the Auto request without a profile and keeps the public v1 transport contract', async () => {
       const state = { request_id: input.request_id, conversation_id: 11, status: 'running', stage: 'queued' };
       server.use(
         http.post(`${baseUrl}/credits/quote`, async ({ request }) => {
@@ -108,6 +108,13 @@ describe('aiAssistantService', () => {
         ...state, conversation_id: '11', interim_result: null,
       });
       await expect(aiAssistantService.cancelRequest(input.request_id)).resolves.toMatchObject({ status: 'cancelled' });
+    });
+
+    it('preserves the server code when the approved quote can no longer be used', async () => {
+      const message = 'Способ обработки изменился. Обновите оценку и отправьте запрос снова.';
+      server.use(http.post(`${baseUrl}/chat`, () => HttpResponse.json({ success: false, message, code: 'quote_execution_changed' }, { status: 409 })));
+
+      await expect(aiAssistantService.chat({ ...input, quote_id: 'expired-quote' })).rejects.toMatchObject({ status: 409, code: 'quote_execution_changed', message });
     });
 
     it.each(['failed', 'cancelled'] as const)('returns an idempotent %s POST as a terminal status', async (status) => {

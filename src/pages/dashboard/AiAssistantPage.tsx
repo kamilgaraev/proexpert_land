@@ -14,7 +14,7 @@ import { useCanAccess } from '@/hooks/usePermissions';
 import { aiAssistantService, AssistantApiError, createAiAssistantRequestId } from '@/services/aiAssistantService';
 import getEcho from '@/services/echo';
 import { knowledgeArticlePath } from '@/utils/knowledgeArticleRoutes';
-import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantArtifact, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantInterimResult, AiAssistantMemory, AiAssistantMessage, AiAssistantOutcome, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantProfile, AiAssistantProgress, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantSource, AiAssistantUsage } from '@/types/aiAssistant';
+import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantArtifact, AiAssistantAttachment, AiAssistantChatInput, AiAssistantChatResult, AiAssistantConversation, AiAssistantCreditsBalance, AiAssistantInterimResult, AiAssistantMemory, AiAssistantMessage, AiAssistantOutcome, AiAssistantPaginationMeta, AiAssistantParticipant, AiAssistantProgress, AiAssistantQuote, AiAssistantRequestStatus, AiAssistantSource, AiAssistantUsage } from '@/types/aiAssistant';
 import type { OrganizationTeamMember } from '@/types/organization-team';
 
 export const assistantUnits = (minor: number) => (minor / 100).toLocaleString('ru-RU', { maximumFractionDigits: 2 });
@@ -76,14 +76,6 @@ function AssistantInterimCard({ result }: { result: AiAssistantInterimResult }) 
     <p className="text-xs text-muted-foreground">Работа продолжается.</p>
   </article>;
 }
-const detailedProcessingDeadline = (quote: AiAssistantQuote) => {
-  const seconds = quote.metadata?.processing_deadline_seconds;
-  if (quote.profile !== 'detailed' || typeof seconds !== 'number' || !Number.isSafeInteger(seconds) || seconds <= 0) return undefined;
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  const duration = minutes === 0 ? `${seconds} сек` : remainingSeconds === 0 ? `${minutes} мин` : `${minutes} мин ${remainingSeconds} сек`;
-  return `Подробный анализ: ожидание до ${duration}.`;
-};
 const outcomeLabels = new Map<AiAssistantOutcome, string>([
   ['no_match', 'Совпадения не найдены'],
   ['ambiguous', 'Найдено несколько совпадений'],
@@ -211,7 +203,6 @@ const AiAssistantPage = () => {
   const [isUploadingAttachments, setIsUploadingAttachments] = useState(false);
   const attachmentControllers = useRef(new Map<string, AbortController>());
   const uploadingAttachments = useRef<symbol | null>(null);
-  const [profile, setProfile] = useState<AiAssistantProfile>('normal');
   const [allowActions, setAllowActions] = useState(false);
   const [approved, setApproved] = useState<ApprovedQuote | null>(null);
   const [preview, setPreview] = useState<AiAssistantActionPreview | null>(null);
@@ -378,7 +369,7 @@ const AiAssistantPage = () => {
       if (!conversation || !canEdit || pausedRequest || (!question.trim() && readyAttachments.length === 0) || attachments.some((item) => !item.metadata || item.error)) return;
       const snapshot = assistantTypedFactsSnapshot(typedFacts.current, scope, Date.now());
       const receipt = typedFacts.current.receipt;
-      const input: AiAssistantChatInput = { conversation_id: conversation.id, message: question.trim() || 'Проанализируй прикреплённое изображение.', request_id: createAiAssistantRequestId(), profile, allow_actions: allowActions, context: snapshot.context, ...(readyAttachments.length ? { attachment_ids: readyAttachments.map((item) => item.metadata!.id) } : {}) };
+      const input: AiAssistantChatInput = { conversation_id: conversation.id, message: question.trim() || 'Проанализируй прикреплённое изображение.', request_id: createAiAssistantRequestId(), allow_actions: allowActions, context: snapshot.context, ...(readyAttachments.length ? { attachment_ids: readyAttachments.map((item) => item.metadata!.id) } : {}) };
       const version = epoch.current;
       const quote = await aiAssistantService.getQuote(input);
       if (!current(version)) return;
@@ -592,7 +583,7 @@ const AiAssistantPage = () => {
       if (!current(version) || signal.aborted) return;
       if (reason instanceof AiAssistantRequestTerminalError || (reason instanceof AssistantApiError && reason.status >= 400 && reason.status < 500)) {
         updatePendingAssistantRequest(identity, pending, false);
-        if (reason instanceof AssistantApiError && [404, 422].includes(reason.status)) setApproved(null);
+        if (reason instanceof AssistantApiError && ([404, 422].includes(reason.status) || (reason.status === 409 && reason.code === 'quote_execution_changed'))) setApproved(null);
       } else {
         setPausedRequest({ ...pending, attachmentIds, submittedQuestionRevision });
       }
@@ -747,7 +738,25 @@ const AiAssistantPage = () => {
           </details>}
         </div>}
         {activeRequest.current && <Button type="button" variant="outline" disabled={stage === 'cancel_requested'} onClick={() => void cancel()}><Square className="mr-2 h-4 w-4" />Отменить запрос</Button>}
-        {canEdit && <form onSubmit={submit} className="space-y-3"><label htmlFor="assistant-question" className="sr-only">Вопрос помощнику</label><textarea id="assistant-question" value={question} onChange={(event) => { setQuestion(event.target.value); setApproved(null); }} disabled={busy} maxLength={4000} rows={4} className="w-full rounded-md border bg-background p-3" placeholder="Опишите задачу или задайте вопрос" />{attachments.map((item) => <AiAssistantAttachmentImage key={item.preview} preview={item.preview} progress={item.progress} error={item.error} attachment={item.metadata} onRemove={() => removeAttachment(item.preview)} />)}<label className="inline-flex cursor-pointer items-center gap-2 text-sm"><Paperclip className="h-4 w-4" />Прикрепить изображение<input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy || isUploadingAttachments || attachments.length >= 2} onChange={(event) => { void addImages(event.target.files); event.currentTarget.value = ''; }} /></label><span className="text-xs text-muted-foreground">До 2 изображений JPEG, PNG или WebP; каждое до 5 МБ, сторона до 2048 пикселей.</span><div className="flex flex-wrap items-center gap-3"><label>Подробность <select aria-label="Подробность ответа" value={profile} disabled={busy} onChange={(event) => { setProfile(event.target.value as AiAssistantProfile); setApproved(null); }}><option value="short">Кратко</option><option value="normal">Обычно</option><option value="detailed">Подробно</option></select></label><label className="text-sm"><input type="checkbox" checked={allowActions} disabled={busy} onChange={(event) => { setAllowActions(event.target.checked); setApproved(null); }} /> Предлагать изменения с подтверждением</label></div>{approved && <div className="rounded bg-amber-50 p-3 text-sm text-amber-950">Оценка расхода: от {assistantUnits(approved.quote.min_units_minor)} до {assistantUnits(approved.quote.max_units_minor)} ед. МОСТ. {balance?.billing_mode === 'shadow' ? 'Тестовый режим: списания выключены, фактическое списание — 0. ' : ''}Подтвердите максимальную оценку. Оценка до {new Date(approved.quote.expires_at).toLocaleTimeString('ru-RU')}.{detailedProcessingDeadline(approved.quote) && <> <span>{detailedProcessingDeadline(approved.quote)}</span></>}</div>}<div className="flex flex-wrap items-center gap-2"><Button type="submit" disabled={busy || !!pausedRequest || (!question.trim() && attachments.length === 0) || attachments.some((item) => !item.metadata || item.error)}><Send className="mr-2 h-4 w-4" />{approved ? 'Подтвердить и отправить' : 'Рассчитать стоимость'}</Button></div></form>}
+        {canEdit && <form onSubmit={submit} className="space-y-3">
+          <label htmlFor="assistant-question" className="sr-only">Вопрос помощнику</label>
+          <textarea id="assistant-question" value={question} onChange={(event) => { setQuestion(event.target.value); setApproved(null); }} disabled={busy} maxLength={4000} rows={4} className="w-full rounded-md border bg-background p-3" placeholder="Опишите задачу или задайте вопрос" />
+          {attachments.map((item) => <AiAssistantAttachmentImage key={item.preview} preview={item.preview} progress={item.progress} error={item.error} attachment={item.metadata} onRemove={() => removeAttachment(item.preview)} />)}
+          <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
+            <Paperclip className="h-4 w-4" />Прикрепить изображение
+            <input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy || isUploadingAttachments || attachments.length >= 2} onChange={(event) => { void addImages(event.target.files); event.currentTarget.value = ''; }} />
+          </label>
+          <span className="text-xs text-muted-foreground">До 2 изображений JPEG, PNG или WebP; каждое до 5 МБ, сторона до 2048 пикселей.</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="text-sm"><input type="checkbox" checked={allowActions} disabled={busy} onChange={(event) => { setAllowActions(event.target.checked); setApproved(null); }} /> Предлагать изменения с подтверждением</label>
+          </div>
+          {approved && <div className="rounded bg-amber-50 p-3 text-sm text-amber-950">
+            Оценка расхода: от {assistantUnits(approved.quote.min_units_minor)} до {assistantUnits(approved.quote.max_units_minor)} ед. МОСТ. {balance?.billing_mode === 'shadow' ? 'Тестовый режим: списания выключены, фактическое списание — 0. ' : ''}Подтвердите максимальную оценку. Оценка до {new Date(approved.quote.expires_at).toLocaleTimeString('ru-RU')}.
+          </div>}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="submit" disabled={busy || !!pausedRequest || (!question.trim() && attachments.length === 0) || attachments.some((item) => !item.metadata || item.error)}><Send className="mr-2 h-4 w-4" />{approved ? 'Подтвердить и отправить' : 'Рассчитать стоимость'}</Button>
+          </div>
+        </form>}
       </>}</CardContent></Card>
     </section>
   </div>;
