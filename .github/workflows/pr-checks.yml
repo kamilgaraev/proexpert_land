@@ -1,0 +1,80 @@
+name: Проверки PR
+run-name: "PR #${{ github.event.pull_request.number }}"
+on:
+  pull_request:
+    branches: [main]
+
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  pull_request_review_comment:
+    types: [created, edited, deleted]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-checks-${{ github.event_name }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: github.event_name == 'pull_request'
+    name: ${{ github.event_name == 'pull_request' && 'Проверки по изменению' || 'Событие ревью' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Определение затронутых файлов
+        id: paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --no-renames --name-only -z HEAD^1 HEAD > "$RUNNER_TEMP/changed"
+          runtime=false
+          release=false
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              AGENTS.md|README.md|.cursorrules|.github/pull_request_template.md|.agent/rules/*.md|docs/*.md) ;;
+              .github/*) release=true ;;
+              *) runtime=true ;;
+            esac
+          done < "$RUNNER_TEMP/changed"
+          printf 'runtime=%s\nrelease=%s\n' "$runtime" "$release" >> "$GITHUB_OUTPUT"
+          printf 'Проверка приложения: %s. Проверка выпуска: %s.\n' "$runtime" "$release" >> "$GITHUB_STEP_SUMMARY"
+      - name: Проверка допуска к выпуску
+        if: steps.paths.outputs.release == 'true'
+        run: python3 .github/scripts/test_release_review.py -v
+      - uses: actions/setup-node@v7
+        if: steps.paths.outputs.runtime == 'true'
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Проверки приложения
+        if: steps.paths.outputs.runtime == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npx --no-install tsc --noEmit
+          git diff --no-renames --diff-filter=AMT --name-only -z HEAD^1 HEAD -- 'src/*.ts' 'src/*.tsx' |
+            xargs -0 -r ./node_modules/.bin/eslint --
+          tests=()
+          only_tests=true
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              *.test.ts|*.test.tsx|*.test.mjs|*.spec.ts|*.spec.tsx)
+                if [[ -f "$file" ]]; then tests+=("./$file"); else only_tests=false; fi ;;
+              *) only_tests=false ;;
+            esac
+          done < "$RUNNER_TEMP/changed"
+          if [[ "$only_tests" == true && ${#tests[@]} -gt 0 ]]; then
+            ./node_modules/.bin/vitest run --maxWorkers=2 "${tests[@]}"
+          else
+            ./node_modules/.bin/vitest run --maxWorkers=2
+          fi
+      - name: Контракт кеша HTML
+        if: steps.paths.outputs.release == 'true' || steps.paths.outputs.runtime == 'true'
+        run: python3 -m unittest discover -s deploy -p 'test_lk_html_cache.py'
