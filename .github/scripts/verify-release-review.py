@@ -5,12 +5,16 @@ import subprocess
 import sys
 
 
-def pages(endpoint, *args):
+def api(endpoint, *args):
     result = subprocess.run(
-        ["gh", "api", endpoint, "--paginate", "--slurp", *args],
+        ["gh", "api", endpoint, *args],
         check=True, stdout=subprocess.PIPE, encoding="utf-8",
     )
     return json.loads(result.stdout)
+
+
+def pages(endpoint, *args):
+    return api(endpoint, "--paginate", "--slurp", *args)
 
 
 def verify(repo, sha):
@@ -26,6 +30,8 @@ def verify(repo, sha):
     if not isinstance(head, str) or not re.fullmatch(r"[a-f0-9]{40}", head):
         raise ValueError(f"Недействительный head SHA в PR #{number}")
     verify_head(repo, pr)
+    if api(f"repos/{repo}/compare/{sha}...main?per_page=1")["status"] not in ("ahead", "identical"):
+        raise ValueError(f"Ревизия {sha} отсутствует в истории main")
     print(f"PR #{number}, Codex Review {head}, release {sha}")
 
 

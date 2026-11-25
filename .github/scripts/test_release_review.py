@@ -24,8 +24,8 @@ class ReleaseReviewTest(unittest.TestCase):
         run = {"id": 1, "head_sha": self.head, "path": ".github/workflows/pr-checks.yml",
                "pull_requests": [], "display_title": f"PR #{run_number}", "event": "pull_request",
                "head_branch": "topic", "head_repository": {"id": 123}, "status": "completed", "conclusion": conclusion}
-        responses = [[[self.pr]], [[], [comment]], [thread], [{"workflow_runs": [run]}], [{"status": ancestry}]]
-        with patch.object(review, "pages", side_effect=responses):
+        responses = [[[self.pr]], [[], [comment]], [thread], [{"workflow_runs": [run]}]]
+        with patch.object(review, "pages", side_effect=responses), patch.object(review, "api", return_value={"status": ancestry}):
             review.verify("owner/project", self.sha)
 
     def test_reviewed_squash(self):
