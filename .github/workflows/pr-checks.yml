@@ -1,0 +1,60 @@
+name: Проверки PR
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Проверки по изменению
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Определение затронутых файлов
+        id: paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --no-renames --name-only -z HEAD^1 HEAD > "$RUNNER_TEMP/changed"
+          runtime=false
+          release=false
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              AGENTS.md|README.md|.cursorrules|.github/pull_request_template.md|.agent/rules/*.md|docs/*.md) ;;
+              .github/*) release=true ;;
+              *) runtime=true ;;
+            esac
+          done < "$RUNNER_TEMP/changed"
+          printf 'runtime=%s\nrelease=%s\n' "$runtime" "$release" >> "$GITHUB_OUTPUT"
+          printf 'Проверка приложения: %s. Проверка выпуска: %s.\n' "$runtime" "$release" >> "$GITHUB_STEP_SUMMARY"
+      - name: Проверка допуска к выпуску
+        if: steps.paths.outputs.release == 'true'
+        run: python3 -m unittest discover -s .github/scripts -p 'test_release_review.py' -v
+      - uses: actions/setup-node@v7
+        if: steps.paths.outputs.runtime == 'true'
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Проверки приложения
+        if: steps.paths.outputs.runtime == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npx --no-install tsc --noEmit
+          git diff --no-renames --diff-filter=AMT --name-only -z HEAD^1 HEAD -- 'src/*.ts' 'src/*.tsx' |
+            xargs -0 -r ./node_modules/.bin/eslint --
+          ./node_modules/.bin/vitest run --maxWorkers=2
+      - name: Контракт кеша HTML
+        if: steps.paths.outputs.release == 'true' || steps.paths.outputs.runtime == 'true'
+        run: python3 -m unittest discover -s deploy -p 'test_lk_html_cache.py'
