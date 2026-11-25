@@ -21,7 +21,7 @@ beforeEach(() => {
   vi.mocked(aiAssistantService.getUsage).mockResolvedValue({ billing_contract_version: 2, limiting_resource: 'organization_ai_credits', usage_kind: 'statistics', monthly_limit: null, remaining: null, percentage_used: null, used: 12, tokens_used: 960, cost_rub: 1.2 });
   vi.mocked(aiAssistantService.getParticipants).mockResolvedValue([]);
   vi.mocked(aiAssistantService.getHistory).mockResolvedValue({ items: [], meta: null });
-  vi.mocked(aiAssistantService.getQuote).mockResolvedValue({ quote_id: 'quote', min_units_minor: 50, max_units_minor: 200, expires_at: '2099-01-01T00:00:00Z', profile: 'normal', price_version: '1' });
+  vi.mocked(aiAssistantService.getQuote).mockResolvedValue({ quote_id: 'quote', min_units_minor: 50, max_units_minor: 200, expires_at: '2099-01-01T00:00:00Z', price_version: '1' });
 });
 afterEach(() => { cleanup(); sessionStorage.clear(); vi.unstubAllGlobals(); vi.clearAllMocks(); });
 const selectFirst = async () => { await screen.findByRole('button', { name: 'Первый' }); fireEvent.click(screen.getByRole('button', { name: 'Первый' })); await screen.findByLabelText('Вопрос помощнику'); };
@@ -206,7 +206,7 @@ describe('AiAssistantPage', () => {
     await screen.findByRole('button', { name: 'Первый' });
     fireEvent.click(screen.getByRole('button', { name: 'Первый' }));
     await screen.findByLabelText('Вопрос помощнику');
-    await act(async () => pending.resolve({ quote_id: 'old', min_units_minor: 50, max_units_minor: 200, expires_at: '2099-01-01T00:00:00Z', profile: 'normal', price_version: '1' }));
+    await act(async () => pending.resolve({ quote_id: 'old', min_units_minor: 50, max_units_minor: 200, expires_at: '2099-01-01T00:00:00Z', price_version: '1' }));
     expect(screen.queryByRole('button', { name: 'Подтвердить и отправить' })).not.toBeInTheDocument();
     await quoteQuestion('Новый вопрос');
     expect(vi.mocked(aiAssistantService.getQuote).mock.calls[1][0].context).toEqual({});
@@ -711,7 +711,7 @@ describe('AiAssistantPage', () => {
     expect(aiAssistantService.getRequest).toHaveBeenCalledTimes(1);
   });
   it('sends a zero-cost greeting quote immediately without confirmation', async () => {
-    vi.mocked(aiAssistantService.getQuote).mockResolvedValue({ quote_id: 'free-greeting', min_units_minor: 0, max_units_minor: 0, expires_at: '2099-01-01T00:00:00Z', profile: 'normal', price_version: '1' });
+    vi.mocked(aiAssistantService.getQuote).mockResolvedValue({ quote_id: 'free-greeting', min_units_minor: 0, max_units_minor: 0, expires_at: '2099-01-01T00:00:00Z', price_version: '1' });
     vi.mocked(aiAssistantService.chat).mockResolvedValue({ request_id: 'uuid-request', conversation_id: '11', status: 'running', stage: 'queued' });
     vi.mocked(aiAssistantService.getRequest).mockResolvedValue({ request_id: 'uuid-request', conversation_id: '11', status: 'completed', stage: 'completed', response: { request_id: 'uuid-request', conversation_id: '11', message: { id: 'greeting', role: 'assistant', content: 'Привет', metadata: { response_kind: 'greeting', validation_status: 'verified' } }, credit_usage: {} } });
     render(<AiAssistantPage />); await selectFirst();
@@ -730,22 +730,36 @@ describe('AiAssistantPage', () => {
     fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Новый вопрос' } });
     expect(screen.getByRole('button', { name: 'Рассчитать стоимость' })).toBeEnabled();
   });
-  it('shows the server deadline only for a detailed quote', async () => {
-    vi.mocked(aiAssistantService.getQuote).mockResolvedValue({ quote_id: 'detailed-quote', min_units_minor: 50, max_units_minor: 200, expires_at: '2099-01-01T00:00:00Z', profile: 'detailed', price_version: '1', metadata: { processing_deadline_seconds: 630 } });
+  it('keeps the draft and requires separate approval when processing invalidates a quote', async () => {
+    vi.mocked(createAiAssistantRequestId).mockReturnValueOnce('previous-request').mockReturnValueOnce('current-request');
+    vi.mocked(aiAssistantService.getQuote)
+      .mockResolvedValueOnce({ quote_id: 'previous-quote', min_units_minor: 50, max_units_minor: 1150, expires_at: '2099-01-01T00:00:00Z', price_version: 'previous' })
+      .mockResolvedValueOnce({ quote_id: 'current-quote', min_units_minor: 50, max_units_minor: 1700, expires_at: '2099-01-01T00:00:00Z', price_version: 'current' });
+    const changed = Object.assign(new AssistantApiError('Способ обработки изменился. Обновите оценку и отправьте запрос снова.', 409), { status: 409, code: 'quote_execution_changed' });
+    vi.mocked(aiAssistantService.chat).mockRejectedValueOnce(changed).mockResolvedValueOnce({ request_id: 'current-request', conversation_id: '11', message: { id: 'auto-result', role: 'assistant', content: 'Ответ готов.' }, credit_usage: {} });
+
     render(<AiAssistantPage />); await selectFirst();
-    fireEvent.change(screen.getByLabelText('Подробность ответа'), { target: { value: 'detailed' } });
-    fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Вопрос' } });
+    expect(screen.queryByLabelText('Подробность ответа')).not.toBeInTheDocument();
+    await quoteQuestion('Мой вопрос');
+    const input = { conversation_id: '11', message: 'Мой вопрос', allow_actions: false, context: {} };
+    expect(aiAssistantService.getQuote).toHaveBeenNthCalledWith(1, { ...input, request_id: 'previous-request' });
+    expect(aiAssistantService.chat).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Подтвердить и отправить' }));
+    expect(await screen.findByText(changed.message)).toBeInTheDocument();
+    expect(screen.getByLabelText('Вопрос помощнику')).toHaveValue('Мой вопрос');
+    expect(screen.queryByRole('button', { name: 'Подтвердить и отправить' })).not.toBeInTheDocument();
+    expect(aiAssistantService.getQuote).toHaveBeenCalledTimes(1);
+    expect(aiAssistantService.chat).toHaveBeenNthCalledWith(1, { ...input, request_id: 'previous-request', quote_id: 'previous-quote' }, expect.any(AbortSignal));
+    expect(aiAssistantService.getRequest).not.toHaveBeenCalled();
+
     fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
-    expect(await screen.findByText('Подробный анализ: ожидание до 10 мин 30 сек.')).toBeInTheDocument();
-    expect(screen.getByText(/Оценка расхода/)).toBeInTheDocument();
-  });
-  it('does not show the optional deadline for a normal quote', async () => {
-    vi.mocked(aiAssistantService.getQuote).mockResolvedValue({ quote_id: 'normal-quote', min_units_minor: 50, max_units_minor: 200, expires_at: '2099-01-01T00:00:00Z', profile: 'normal', price_version: '1', metadata: { processing_deadline_seconds: 630 } });
-    render(<AiAssistantPage />); await selectFirst();
-    fireEvent.change(screen.getByLabelText('Вопрос помощнику'), { target: { value: 'Вопрос' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Рассчитать стоимость' }));
-    expect(await screen.findByText(/Оценка расхода/)).toBeInTheDocument();
-    expect(screen.queryByText(/Подробный анализ: ожидание/)).not.toBeInTheDocument();
+    const confirm = await screen.findByRole('button', { name: 'Подтвердить и отправить' });
+    expect(screen.getByText(/Оценка расхода: от 0,5 до 17 ед\. МОСТ/)).toBeInTheDocument();
+    expect(aiAssistantService.getQuote).toHaveBeenNthCalledWith(2, { ...input, request_id: 'current-request' });
+    expect(aiAssistantService.chat).toHaveBeenCalledTimes(1);
+    fireEvent.click(confirm);
+    expect(await screen.findByText('Ответ готов.')).toBeInTheDocument();
+    expect(aiAssistantService.chat).toHaveBeenNthCalledWith(2, { ...input, request_id: 'current-request', quote_id: 'current-quote' }, expect.any(AbortSignal));
   });
   it('recovers a lost POST acknowledgement through existing request ID without reposting', async () => {
     vi.mocked(aiAssistantService.chat).mockRejectedValue(new TypeError('Network error'));

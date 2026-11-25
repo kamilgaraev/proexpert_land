@@ -1,4 +1,3 @@
-export type AiAssistantProfile = 'short' | 'normal' | 'detailed';
 export type AiAssistantParticipantRole = 'viewer' | 'editor';
 export interface AiAssistantPaginationMeta { current_page: number; last_page: number; per_page: number; total: number; active_request?: AiAssistantRequestAccepted | null }
 export interface AiAssistantConversation { id: string; title?: string | null; user_id: string; participant_role?: AiAssistantParticipantRole; is_owned_by_current_user?: boolean; can_edit?: boolean; can_manage_participants?: boolean; scope?: 'personal' | 'shared' }
@@ -28,8 +27,8 @@ export interface AiAssistantMemory { id: string; content: string }
 export interface AiAssistantCreditsBalance { included_minor: number; purchased_minor: number; reserved_minor: number; available_minor: number; total_minor: number; base_period_expires_at?: string | null; packs: { id: string; units_minor: number; amount_minor: number }[]; charging_enabled: boolean; billing_mode?: 'shadow' | 'paid'; can_purchase?: boolean; can_manage_billing?: boolean; pack_purchase_enabled?: boolean }
 export interface AiAssistantUsage { billing_contract_version?: number; limiting_resource?: string; usage_kind?: string; monthly_limit: number | null; used: number; remaining: number | null; percentage_used: number | null; tokens_used?: number; cost_rub?: number }
 export interface AiAssistantCreditUsage { charged_minor?: number | string | null; reserved_minor?: number | string | null; available_after_minor?: number | string | null; charging_enabled?: boolean }
-export interface AiAssistantQuote { quote_id: string; min_units_minor: number; max_units_minor: number; expires_at: string; profile: AiAssistantProfile; price_version: string; metadata?: { processing_deadline_seconds?: number } }
-export interface AiAssistantChatInput { conversation_id: string; message: string; request_id: string; profile: AiAssistantProfile; allow_actions: boolean; context: Record<string, unknown> & { typed_facts?: AiAssistantTypedFactsLocator }; attachment_ids?: string[] }
+export interface AiAssistantQuote { quote_id: string; min_units_minor: number; max_units_minor: number; expires_at: string; price_version: string }
+export interface AiAssistantChatInput { conversation_id: string; message: string; request_id: string; allow_actions: boolean; context: Record<string, unknown> & { typed_facts?: AiAssistantTypedFactsLocator }; attachment_ids?: string[] }
 export interface AiAssistantActionPreview { title: string; description?: string; action: { id: string }; preview_token: string; expires_at: string; before?: unknown; after?: unknown; warnings?: string[]; executable?: boolean }
 export type AiAssistantProgressCode = 'rag_search' | 'estimates' | 'warehouse' | 'projects' | 'contracts' | 'procurement' | 'schedule' | 'work_volumes' | 'materials' | 'reports' | 'financial_data' | 'record_check' | 'composing' | 'estimate_position_search' | 'estimate_position_read';
 export type AiAssistantProgressState = 'started' | 'completed' | 'failed';

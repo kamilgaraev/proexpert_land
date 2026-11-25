@@ -9,7 +9,7 @@ import type { AiAssistantAction, AiAssistantActionPreview, AiAssistantAttachment
 type LandingResponse<T> = { success: boolean; message?: string; data: T; meta?: AiAssistantPaginationMeta };
 const assistantBaseUrl = API_URL.replace(/\/landing$/, '') + '/ai-assistant';
 const contractVersion = 1;
-export class AssistantApiError extends Error { constructor(message: string, public status: number) { super(message); } }
+export class AssistantApiError extends Error { constructor(message: string, public status: number, public code?: string) { super(message); } }
 const request = async <T>(path: string, options: RequestInit = {}): Promise<LandingResponse<T>> => {
   const response = await fetch(`${assistantBaseUrl}${path}`, { ...options, headers: { ...getJsonAuthHeaders(), ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers } });
   const payload = await response.json().catch(() => ({})) as Partial<LandingResponse<T>>;
@@ -168,9 +168,9 @@ export const aiAssistantService = {
   getQuote: async (input: AiAssistantChatInput, signal?: AbortSignal) => (await request<AiAssistantQuote>('/credits/quote', post({ ...input, contract_version: contractVersion, ...aiAssistantRenderer }, signal))).data,
   purchase: async (pack_id: string) => (await request<{ order_id: string; confirmation_url: string }>('/credits/purchase', post({ pack_id }))).data,
   chat: async (input: AiAssistantChatInput & { quote_id: string }, signal?: AbortSignal): Promise<AiAssistantChatSubmission> => {
-    const { response, payload } = await fetchJsonWithTimeout<{ success?: boolean; message?: string; data?: unknown }>(`${assistantBaseUrl}/chat`, { ...post({ ...input, async: true, contract_version: contractVersion, ...aiAssistantRenderer }, signal), headers: { ...getJsonAuthHeaders(), 'Content-Type': 'application/json' } }, 30_000);
+    const { response, payload } = await fetchJsonWithTimeout<{ success?: boolean; message?: string; code?: unknown; data?: unknown }>(`${assistantBaseUrl}/chat`, { ...post({ ...input, async: true, contract_version: contractVersion, ...aiAssistantRenderer }, signal), headers: { ...getJsonAuthHeaders(), 'Content-Type': 'application/json' } }, 30_000);
     const data = payload.data ?? payload;
-    if (!response.ok || payload.success === false) throw new AssistantApiError(payload.message || 'Не удалось выполнить запрос к помощнику.', response.status);
+    if (!response.ok || payload.success === false) throw new AssistantApiError(payload.message || 'Не удалось выполнить запрос к помощнику.', response.status, typeof payload.code === 'string' ? payload.code : undefined);
     if (response.status === 202) {
       const accepted = data as Partial<AiAssistantRequestAccepted>;
       if (!accepted || typeof accepted.request_id !== 'string' || !(accepted.status === 'running' || accepted.status === 'queued' || accepted.status === 'cancel_requested')) throw new AssistantApiError('Не удалось подтвердить запуск запроса.', response.status);
