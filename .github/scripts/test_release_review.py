@@ -16,12 +16,14 @@ class ReleaseReviewTest(unittest.TestCase):
                    "base": {"ref": "main", "repo": {"full_name": "owner/project"}}, "merge_commit_sha": self.sha}
         self.report = {"commit_sha": self.head, "status": "completed", "has_unresolved_findings": False}
 
-    def verify(self, *, bot_id=199175422, resolved=True):
+    def verify(self, *, bot_id=199175422, resolved=True, conclusion="success"):
         body = "<!-- codex-review-state:v1 " + review.json.dumps({"code_review": self.report}) + " -->"
         comment = {"body": body, "user": {"id": bot_id},
                    "performed_via_github_app": {"slug": "chatgpt-codex-connector"}}
         thread = {"data": {"repository": {"pullRequest": {"reviewThreads": {"nodes": [{"isResolved": resolved}]}}}}}
-        responses = [[[self.pr]], [[], [comment]], [thread]]
+        run = {"id": 1, "head_sha": self.head, "path": ".github/workflows/pr-checks.yml",
+               "pull_requests": [{"number": 7}], "status": "completed", "conclusion": conclusion}
+        responses = [[[self.pr]], [[], [comment]], [thread], [{"workflow_runs": [run]}]]
         with patch.object(review, "pages", side_effect=responses):
             review.verify("owner/project", self.sha)
 
@@ -61,3 +63,11 @@ class ReleaseReviewTest(unittest.TestCase):
         self.report["commit_sha"] = None
         with self.assertRaises(ValueError):
             self.verify()
+
+    def test_failed_ci(self):
+        with self.assertRaises(ValueError):
+            self.verify(conclusion="failure")
+
+
+if __name__ == "__main__":
+    unittest.main()

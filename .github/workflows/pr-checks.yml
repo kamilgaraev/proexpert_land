@@ -39,7 +39,7 @@ jobs:
           printf 'Проверка приложения: %s. Проверка выпуска: %s.\n' "$runtime" "$release" >> "$GITHUB_STEP_SUMMARY"
       - name: Проверка допуска к выпуску
         if: steps.paths.outputs.release == 'true'
-        run: python3 -m unittest discover -s .github/scripts -p 'test_release_review.py' -v
+        run: python3 .github/scripts/test_release_review.py -v
       - uses: actions/setup-node@v7
         if: steps.paths.outputs.runtime == 'true'
         with:
